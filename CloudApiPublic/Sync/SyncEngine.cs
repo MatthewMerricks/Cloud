@@ -7384,7 +7384,7 @@ namespace Cloud.Sync
                                         //    : null),
 
                                         CreatedDate = currentEvent.FileChange.Metadata.HashableProperties.CreationTime, // when the file system object was created
-                                        Deleted = currentEvent.FileChange.Type == FileChangeType.Deleted, // whether or not the file system object is deleted
+                                        IsDeleted = currentEvent.FileChange.Type == FileChangeType.Deleted, // whether or not the file system object is deleted
                                         Hash = currentEvent.FileChange.GetMD5LowercaseString(), // retrieve the hash from the current FileChange (can be null)
                                         IsFolder = currentEvent.FileChange.Metadata.HashableProperties.IsFolder, // whether this is a folder
                                         LastEventId = lastEventId, // the highest event id of all FileChanges in the current batch
@@ -8080,7 +8080,7 @@ namespace Cloud.Sync
 
                                                             // if there was no content, then the metadata was not found at the given path so throw an error
                                                             if (getNewMetadataStatus == CLHttpRestStatus.NoContent
-                                                                || newMetadata.Deleted == true)
+                                                                || newMetadata.IsDeleted == true)
                                                             {
                                                                 throw new Exception("Metadata not found for given path");
                                                             }
@@ -8960,7 +8960,7 @@ namespace Cloud.Sync
 
                                                                         if (oldPathMetadataRevisionStatus == CLHttpRestStatus.Success
                                                                             && oldPathMetadataRevision != null
-                                                                            && oldPathMetadataRevision.Deleted != true)
+                                                                            && oldPathMetadataRevision.IsDeleted != true)
                                                                         {
                                                                             bool createOldPathFileChange = false;
 
@@ -9903,7 +9903,7 @@ namespace Cloud.Sync
 
                                             // if there was no content, then the metadata was not found at the given path so throw an error
                                             if (getNewMetadataStatus == CLHttpRestStatus.NoContent
-                                                || newMetadata.Deleted == true)
+                                                || newMetadata.IsDeleted == true)
                                             {
                                                 throw new Exception("Metadata not found for given path");
                                             }

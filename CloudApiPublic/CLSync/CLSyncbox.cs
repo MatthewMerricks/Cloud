@@ -1342,25 +1342,17 @@ namespace Cloud
 
         #region GetItemAtPath (Queries the cloud for the item at a particular path)
         /// <summary>
-        /// Asynchronously starts querying the server at a given file or folder path (must be specified) for existing metadata at that path; outputs CLHttpRestStatus.NoContent for status if not found on server;
+        /// Asynchronously starts querying the server at a given path (must be specified) for existing metadata at that path; outputs a CLFileItem object.
         /// Check for Deleted flag being true in case the metadata represents a deleted item
         /// </summary>
         /// <param name="callback">Callback method to fire when operation completes</param>
         /// <param name="callbackUserState">Userstate to pass when firing async callback</param>
-        /// <param name="fullPath">Full path to where file or folder would exist locally on disk</param>
-        /// <param name="isFolder">Whether the query is for a folder (as opposed to a file/link)</param>
-        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <param name="path">Full path to where file or folder would exist locally on disk.</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginGetItemAtPath(AsyncCallback callback, object callbackUserState, string path,
-            bool isFolder,
-            int timeoutMilliseconds)
+        public IAsyncResult BeginGetItemAtPath(AsyncCallback callback, object callbackUserState, string path)
         {
             CheckDisposed();
-            return _httpRestClient.BeginGetMetadata(callback,
-                callbackUserState,
-                fullPath,
-                isFolder,
-                timeoutMilliseconds);
+            return _httpRestClient.BeginGetItemAtPath(callback, callbackUserState, path);
         }
 
         /// <summary>
@@ -1370,10 +1362,10 @@ namespace Cloud
         /// <param name="aResult">The asynchronous result provided upon starting the metadata query</param>
         /// <param name="result">(output) The result from the metadata query</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndGetItemAtPath(IAsyncResult aResult, out GetMetadataResult result)
+        public CLError EndGetItemAtPath(IAsyncResult aResult, out SyncboxGetItemAtPathResult result)
         {
             CheckDisposed();
-            return _httpRestClient.EndGetMetadata(aResult, out result);
+            return _httpRestClient.EndGetItemAtPath(aResult, out result);
         }
 
         /// <summary>

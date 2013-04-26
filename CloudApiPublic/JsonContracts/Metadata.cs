@@ -41,7 +41,7 @@ namespace Cloud.JsonContracts
         public string ServerUid { get; set; }
 
         [DataMember(Name = CLDefinitions.CLMetadataIsDeleted, IsRequired = false)]
-        public Nullable<bool> Deleted { get; set; }
+        public Nullable<bool> IsDeleted { get; set; }
 
         [DataMember(Name = CLDefinitions.CLMetadataMimeType, IsRequired = false)]
         public string MimeType { get; set; }

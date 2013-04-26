@@ -945,6 +945,174 @@ namespace Cloud.REST
         }
         #endregion
 
+        #region GetItemAtPath (Gets the metedata at a particular server syncbox path)
+        /// <summary>
+        /// Asynchronously starts querying the server at a given path for existing metadata at that path.
+        /// </summary>
+        /// <param name="callback">Callback method to fire when operation completes</param>
+        /// <param name="callbackUserState">Userstate to pass when firing async callback</param>
+        /// <param name="path">Full path to where file or folder would exist locally on disk</param>
+        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        public IAsyncResult BeginGetItemAtPath(AsyncCallback callback, object callbackUserState, string path)
+        {
+            var asyncThread = DelegateAndDataHolder.Create(
+                // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
+                new
+                {
+                    // create the asynchronous result to return
+                    toReturn = new GenericAsyncResult<SyncboxGetItemAtPathResult>(
+                        callback,
+                        callbackUserState),
+                    path
+                },
+                (Data, errorToAccumulate) =>
+                {
+                    // The ThreadProc.
+                    // try/catch to process with the input parameters, on catch set the exception in the asyncronous result
+                    try
+                    {
+                        // declare the output status for communication
+                        CLHttpRestStatus status;    // &&&&& Fix this
+                        // declare the specific type of result for this operation
+                        CLFileItem response;
+                        // alloc and init the syncbox with the passed parameters, storing any error that occurs
+                        CLError processError = GetItemAtPath(
+                            Data.path,
+                            out status,
+                            out response);
+
+                        Data.toReturn.Complete(
+                            new SyncboxGetItemAtPathResult(
+                                processError, // any error that may have occurred during processing
+                                status, // the output status of communication
+                                response), // the specific type of result for this operation
+                            sCompleted: false); // processing did not complete synchronously
+                    }
+                    catch (Exception ex)
+                    {
+                        Data.toReturn.HandleException(
+                            ex, // the exception which was not handled correctly by the CLError wrapping
+                            sCompleted: false); // processing did not complete synchronously
+                    }
+                },
+                null);
+
+            // create the thread from a void (object) parameterized start which wraps the synchronous method call
+            (new Thread(new ThreadStart(asyncThread.VoidProcess))).Start(); // start the asynchronous processing thread which is attached to its data
+
+            // return the asynchronous result
+            return asyncThread.TypedData.toReturn;
+        }
+
+        /// <summary>
+        /// Finishes a metadata query if it has not already finished via its asynchronous result, and outputs the result,
+        /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
+        /// </summary>
+        /// <param name="aResult">The asynchronous result provided upon starting the metadata query</param>
+        /// <param name="result">(output) The result from the metadata query</param>
+        /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
+        public CLError EndGetItemAtPath(IAsyncResult aResult, out SyncboxGetItemAtPathResult result)
+        {
+            return Helpers.EndAsyncOperation<SyncboxGetItemAtPathResult>(aResult, out result);
+        }
+
+        /// <summary>
+        /// Query the server at a given path for existing metadata at that path.
+        /// </summary>
+        /// <param name="path">Full path to where file or folder would exist locally on disk</param>
+        /// <param name="status">(output) success/failure status of communication</param>
+        /// <param name="response">(output) response object from communication</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        private CLError GetItemAtPath(string path, out CLHttpRestStatus status, out CLFileItem response)
+        {
+            // start with bad request as default if an exception occurs but is not explicitly handled to change the status
+            status = CLHttpRestStatus.BadRequest;
+            // try/catch to process the metadata query, on catch return the error
+            try
+            {
+                // check input parameters
+
+                if (path == null)
+                {
+                    throw new NullReferenceException("path must not be null");
+                }
+
+                CLError pathError = Helpers.CheckForBadPath(path);
+                if (pathError != null)
+                {
+                    throw new AggregateException("path is not in the proper format", pathError.Exceptions);
+                }
+
+                if (string.IsNullOrEmpty(_syncbox.Path))
+                {
+                    throw new NullReferenceException("settings SyncRoot cannot be null");
+                }
+
+                if (!path.Contains(_syncbox.Path))
+                {
+                    throw new ArgumentException("path does not contain settings SyncRoot");
+                }
+                if (!(_copiedSettings.HttpTimeoutMilliseconds > 0))
+                {
+                    throw new ArgumentException("timeoutMilliseconds must be greater than zero");
+                }
+
+                // build the location of the metadata retrieval method on the server dynamically
+                FilePath filePath = new FilePath(path);
+                string serverMethodPath = CLDefinitions.MethodPathGetItemMetadata + 
+                    Helpers.QueryStringBuilder(new[] // the method grabs its parameters by query string (since this method is an HTTP GET)
+                    {
+                        // query string parameter for the path to query, built by turning the full path location into a relative path from the cloud root and then escaping the whole thing for a url
+                        new KeyValuePair<string, string>(CLDefinitions.CLMetadataCloudPath, Uri.EscapeDataString(filePath.GetRelativePath((_syncbox.Path ?? string.Empty), true))),
+
+                        // query string parameter for the current sync box id, should not need escaping since it should be an integer in string format
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringSyncboxId, _syncbox.SyncboxId.ToString())
+                    });
+
+                // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
+                Helpers.RequestNewCredentialsInfo requestNewCredentialsInfo = new Helpers.RequestNewCredentialsInfo()
+                {
+                    ProcessingStateByThreadId = _processingStateByThreadId,
+                    GetNewCredentialsCallback = _getNewCredentialsCallback,
+                    GetNewCredentialsCallbackUserState = _getNewCredentialsCallbackUserState,
+                    GetCurrentCredentialsCallback = GetCurrentCredentialsCallback,
+                    SetCurrentCredentialsCallback = SetCurrentCredentialCallback,
+                };
+
+                // Communicate with the server to get the response.
+                JsonContracts.Metadata responseFromServer;
+                responseFromServer = Helpers.ProcessHttp<JsonContracts.Metadata>(
+                    null, // HTTP Get method does not have content
+                    CLDefinitions.CLMetaDataServerURL, // base domain is the MDS server
+                    serverMethodPath, // path to query metadata (dynamic based on file or folder)
+                    Helpers.requestMethod.get, // query metadata is a get
+                    _copiedSettings.HttpTimeoutMilliseconds, // time before communication timeout
+                    null, // not an upload or download
+                    Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
+                    ref status, // reference to update the output success/failure status for the communication
+                    _copiedSettings, // pass the copied settings
+                    _syncbox.SyncboxId, // pass the unique id of the sync box on the server
+                    requestNewCredentialsInfo);   // pass the optional parameters to support temporary token reallocation.
+
+                // Convert the response to the expected output object.
+                if (responseFromServer != null)
+                {
+                    response = new CLFileItem(responseFromServer);
+                }
+                else
+                {
+                    throw new NullReferenceException("response from server was null");
+                }
+            }
+            catch (Exception ex)
+            {
+                response = Helpers.DefaultForType<CLFileItem>();
+                return ex;
+            }
+            return null;
+        }
+        #endregion  // end GetItemAtPath (Gets the metedata at a particular server syncbox path)
+
         #region GetMetadata
         /// <summary>
         /// Asynchronously starts querying the server at a given file or folder path (must be specified) for existing metadata at that path
