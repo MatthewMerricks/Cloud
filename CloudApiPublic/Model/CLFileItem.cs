@@ -28,7 +28,6 @@ namespace Cloud.Model
         public string ParentUid { get; set; }
         public bool IsFolder { get; set; }
         public bool IsDeleted { get; set; }
-        public bool IsStored { get; set; }
         public Nullable<POSIXPermissions> Permissions { get; set; }
 
         #endregion  // end Public Properties
@@ -47,7 +46,6 @@ namespace Cloud.Model
             string parentUid,
             bool isFolder,
             bool isDeleted,
-            bool isStored,
             Nullable<POSIXPermissions> permissions)
         {
             this.Name = name;
@@ -61,7 +59,6 @@ namespace Cloud.Model
             this.ParentUid = parentUid;
             this.IsFolder = isFolder;
             this.IsDeleted = isDeleted;
-            this.IsStored = isStored;
             this.Permissions = permissions;
         }
 
@@ -87,7 +84,6 @@ namespace Cloud.Model
             this.ParentUid = response.ParentUid;
             this.IsFolder = response.IsFolder ?? false;
             this.IsDeleted = response.IsDeleted ?? false;
-            this.IsStored = response.IsNotPending ?? false;
             this.Permissions = response.PermissionsEnum;
         }
 
