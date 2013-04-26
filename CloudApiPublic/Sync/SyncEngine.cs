@@ -1311,7 +1311,7 @@ namespace Cloud.Sync
 
             #region checkHaltsAndErrors
 
-            var checkHaltsAndErrors = DelegateAndDataHolder.Create(
+            var checkHaltsAndErrors = DelegateAndDataHolderBase.Create(
                 new
                 {
                     commonThisEngine = this
@@ -1348,7 +1348,7 @@ namespace Cloud.Sync
 
             #region getIsShutdown
 
-            var getIsShutdown = DelegateAndDataHolder.Create(
+            var getIsShutdown = DelegateAndDataHolderBase.Create(
                 new
                 {
                     commonThisEngine = this
@@ -1372,7 +1372,7 @@ namespace Cloud.Sync
 
             #region checkInternetConnection
 
-            var checkInternetConnection = DelegateAndDataHolder.Create(
+            var checkInternetConnection = DelegateAndDataHolderBase.Create(
                 new
                 {
                     commonThisEngine = this,
@@ -1422,7 +1422,7 @@ namespace Cloud.Sync
 
             #region stopOnFullHaltOrStartup
 
-            var stopOnFullHaltOrStartup = DelegateAndDataHolder.Create(
+            var stopOnFullHaltOrStartup = DelegateAndDataHolderBase.Create(
                 new
                 {
                     commonThisEngine = this
@@ -1455,7 +1455,7 @@ namespace Cloud.Sync
 
             #region checkTempNeedsCleaning
 
-            var checkTempNeedsCleaning = DelegateAndDataHolder.Create(
+            var checkTempNeedsCleaning = DelegateAndDataHolderBase.Create(
                 new
                 {
                     commonTempDownloadsFolder = commonTempDownloadsFolder
@@ -1492,7 +1492,7 @@ namespace Cloud.Sync
 
             #region cleanTempDownloads
 
-            var cleanTempDownloads = DelegateAndDataHolder.Create(
+            var cleanTempDownloads = DelegateAndDataHolderBase.Create(
                 new
                 {
                     commonTempDownloadsFolder = commonTempDownloadsFolder
@@ -1547,7 +1547,7 @@ namespace Cloud.Sync
 
             #region verifyUnderFailureTimerLock
 
-            var verifyUnderFailureTimerLock = DelegateAndDataHolder.Create(
+            var verifyUnderFailureTimerLock = DelegateAndDataHolderBase.Create(
                 new
                 {
                     commonWithinFailureTimerLock = commonWithinFailureTimerLock
@@ -1571,7 +1571,7 @@ namespace Cloud.Sync
 
             #region dequeueNonNullFailuresAndReturnWhetherNullFound
 
-            var dequeueNonNullFailuresAndReturnWhetherNullFound = DelegateAndDataHolder.Create(
+            var dequeueNonNullFailuresAndReturnWhetherNullFound = DelegateAndDataHolderBase.Create(
                 new
                 {
                     commonThisEngine = this,
@@ -1616,7 +1616,7 @@ namespace Cloud.Sync
 
             #region traceChangesEnumerableWithFlowState AND oneLineChangeFlowTrace
 
-            var traceChangesEnumerableWithFlowState = DelegateAndDataHolder.Create(
+            var traceChangesEnumerableWithFlowState = DelegateAndDataHolderBase.Create(
                 new
                 {
                     commonThisEngine = this,
@@ -1642,7 +1642,7 @@ namespace Cloud.Sync
                     }
                 },
                 toReturn);
-            Action<FileChangeFlowEntryPositionInFlow, IEnumerable<FileChange>, DelegateAndDataHolder, GenericHolder<Nullable<FileChangeFlowEntryPositionInFlow>>, GenericHolder<IEnumerable<FileChange>>> oneLineChangeFlowTrace =
+            Action<FileChangeFlowEntryPositionInFlow, IEnumerable<FileChange>, DelegateAndDataHolderBase, GenericHolder<Nullable<FileChangeFlowEntryPositionInFlow>>, GenericHolder<IEnumerable<FileChange>>> oneLineChangeFlowTrace =
                 (positionToSet, changesToSet, baseTraceFunction, basePositionInChangeFlow, baseChangesToTrace) =>
                 {
                     basePositionInChangeFlow.Value = positionToSet;
@@ -1656,7 +1656,7 @@ namespace Cloud.Sync
 
             #region grabFileMonitorChangesAndCombineHierarchyWithErrors
 
-            var grabFileMonitorChangesAndCombineHierarchyWithErrorsAndReturnWhetherSuccessful = DelegateAndDataHolder.Create(
+            var grabFileMonitorChangesAndCombineHierarchyWithErrorsAndReturnWhetherSuccessful = DelegateAndDataHolderBase.Create(
                 new
                 {
                     commonThisEngine = this,
@@ -1771,7 +1771,7 @@ namespace Cloud.Sync
 
             #region assignOutputErrorsFromOutputChangesAndOutputErrorsExcludingNulls
 
-            var assignOutputErrorsFromOutputChangesAndOutputErrorsExcludingNulls = DelegateAndDataHolder.Create(
+            var assignOutputErrorsFromOutputChangesAndOutputErrorsExcludingNulls = DelegateAndDataHolderBase.Create(
                 new
                 {
                     commonErrorsToQueue = commonErrorsToQueue,
@@ -1792,7 +1792,7 @@ namespace Cloud.Sync
             #region doesPreprocessingNeedToRepeatForDependencies
 
             // function which reinserts dependencies into topLevelChanges in sorted order and returns true for reprocessing
-            var doesPreprocessingNeedToRepeatForDependencies = DelegateAndDataHolder.Create(
+            var doesPreprocessingNeedToRepeatForDependencies = DelegateAndDataHolderBase.Create(
                 new
                 {
                     commonThingsThatWereDependenciesToQueue = commonThingsThatWereDependenciesToQueue,
@@ -1864,7 +1864,7 @@ namespace Cloud.Sync
 
             #region completeEventInSqlAndReturnWhetherErrorOccurred
 
-            var completeEventInSqlAndReturnWhetherErrorOccurred = DelegateAndDataHolder.Create(
+            var completeEventInSqlAndReturnWhetherErrorOccurred = DelegateAndDataHolderBase.Create(
                 new
                 {
                     commonThisEngine = this,
@@ -1923,7 +1923,7 @@ namespace Cloud.Sync
 
             #region onCompletionOfSynchronousPreprocessedEventReturnWhetherErrorOccurredCompletingEvent
 
-            var onCompletionOfSynchronousPreprocessedEventReturnWhetherErrorOccurredCompletingEvent = DelegateAndDataHolder.Create(
+            var onCompletionOfSynchronousPreprocessedEventReturnWhetherErrorOccurredCompletingEvent = DelegateAndDataHolderBase.Create(
                 new
                 {
                     commonThisEngine = this,
@@ -1990,7 +1990,7 @@ namespace Cloud.Sync
 
             #region fillPendingStorageKeysForPendingUploadsAndReturnValue
 
-            var fillPendingStorageKeysForPendingUploadsAndReturnValue = DelegateAndDataHolder.Create(
+            var fillPendingStorageKeysForPendingUploadsAndReturnValue = DelegateAndDataHolderBase.Create(
                 new
                 {
                     commonThisEngine = this,
@@ -2056,7 +2056,7 @@ namespace Cloud.Sync
 
             #region notifyOnConfirmMetadataForInitialUploadOrDownload
 
-            var notifyOnConfirmMetadataForInitialUploadOrDownload = DelegateAndDataHolder.Create(
+            var notifyOnConfirmMetadataForInitialUploadOrDownload = DelegateAndDataHolderBase.Create(
                 new
                 {
                     commonThisEngine = this,
@@ -2093,7 +2093,7 @@ namespace Cloud.Sync
 
             #region verifyInitialDownloadMetadataAndReturnWhetherErrorOccurred
 
-            var verifyInitialDownloadMetadataAndReturnWhetherErrorOccurred = DelegateAndDataHolder.Create(
+            var verifyInitialDownloadMetadataAndReturnWhetherErrorOccurred = DelegateAndDataHolderBase.Create(
                 new
                 {
                     commonThisEngine = this,
@@ -2287,7 +2287,7 @@ namespace Cloud.Sync
 
             #region finalizeAndStartAsyncTask
 
-            var finalizeAndStartAsyncTask = DelegateAndDataHolder.Create(
+            var finalizeAndStartAsyncTask = DelegateAndDataHolderBase.Create(
                 new
                 {
                     commonThisEngine = this,
@@ -2390,7 +2390,7 @@ namespace Cloud.Sync
 
             #region preprocessExistingEventsAndReturnWhetherShutdown
 
-            var preprocessExistingEventsAndReturnWhetherShutdown = DelegateAndDataHolder.Create(
+            var preprocessExistingEventsAndReturnWhetherShutdown = DelegateAndDataHolderBase.Create(
                 new
                 {
                     commonThingsThatWereDependenciesToQueue = commonThingsThatWereDependenciesToQueue,
@@ -2602,7 +2602,7 @@ namespace Cloud.Sync
 
             #region onBatchProcessedSendStatusMessages
 
-            var onBatchProcessedSendStatusMessages = DelegateAndDataHolder.Create(
+            var onBatchProcessedSendStatusMessages = DelegateAndDataHolderBase.Create(
                 new
                 {
                     commonThisEngine = this,
@@ -2660,7 +2660,7 @@ namespace Cloud.Sync
 
             #region buildChangesForCommunicationArrayAndSetErrorsToQueueToRemainingChanges
 
-            var buildChangesForCommunicationArrayAndSetErrorsToQueueToRemainingChanges = DelegateAndDataHolder.Create(
+            var buildChangesForCommunicationArrayAndSetErrorsToQueueToRemainingChanges = DelegateAndDataHolderBase.Create(
                 new
                 {
                     commonThisEngine = this,
@@ -2779,7 +2779,7 @@ namespace Cloud.Sync
 
             #region isInitialSyncId
 
-            var isInitialSyncId = DelegateAndDataHolder.Create(
+            var isInitialSyncId = DelegateAndDataHolderBase.Create(
                 new
                 {
                     commonThisEngine = this
@@ -2796,7 +2796,7 @@ namespace Cloud.Sync
 
             #region fillInServerUidsOnInitialSyncAndReturnWhetherErrorOccurred
 
-            var fillInServerUidsOnInitialSyncAndReturnWhetherErrorOccurred = DelegateAndDataHolder.Create(
+            var fillInServerUidsOnInitialSyncAndReturnWhetherErrorOccurred = DelegateAndDataHolderBase.Create(
                 new
                 {
                     commonThisEngine = this,
@@ -2897,7 +2897,7 @@ namespace Cloud.Sync
 
             #region fillInServerUidsWhereNecessaryForCommunicationAndReturnWhetherErrorOccurred
 
-            var fillInServerUidsWhereNecessaryForCommunicationAndReturnWhetherErrorOccurred = DelegateAndDataHolder.Create(
+            var fillInServerUidsWhereNecessaryForCommunicationAndReturnWhetherErrorOccurred = DelegateAndDataHolderBase.Create(
                 new
                 {
                     commonThisEngine = this,
@@ -2945,7 +2945,7 @@ namespace Cloud.Sync
 			
 			#region removeDuplicateUploads
 			
-			var removeDuplicateUploads = DelegateAndDataHolder.Create(
+			var removeDuplicateUploads = DelegateAndDataHolderBase.Create(
 			    new
 			    {
                     commonThisEngine = this,
@@ -2960,7 +2960,7 @@ namespace Cloud.Sync
                     Data.commonUploadsRemovedUponDuplicateFound.Value = new List<PossiblyStreamableFileChange>();
 
                     // define a function to initialize and fill in the failuresDict for lookup of metadata when needed (runs only when needed to prevent unnecessary logic under the UpDownEvent locker)
-                    var getRunningUpChangesDict = DelegateAndDataHolder.Create(
+                    var getRunningUpChangesDict = DelegateAndDataHolderBase.Create(
                         new
                         {
                             // define a dictionary which will store FileChanges which are asynchronously processing for uploads or downloads to allow lookup of metadata when needed (renames from the server do not include metadata),
@@ -3062,7 +3062,7 @@ namespace Cloud.Sync
 
             #region handleCredentialsErrorIfAny
 
-            var handleCredentialsErrorIfAny = DelegateAndDataHolder.Create(
+            var handleCredentialsErrorIfAny = DelegateAndDataHolderBase.Create(
                 new
                 {
                     commonThisEngine = this,
@@ -3117,7 +3117,7 @@ namespace Cloud.Sync
 
             #region pullSuccessIdsFromCompletedChangesAndPullOutDependencies
 
-            var pullSuccessIdsFromCompletedChangesAndPullOutDependencies = DelegateAndDataHolder.Create(
+            var pullSuccessIdsFromCompletedChangesAndPullOutDependencies = DelegateAndDataHolderBase.Create(
                 new
                 {
                     commonCompletedChanges = commonCompletedChanges,
@@ -3155,7 +3155,7 @@ namespace Cloud.Sync
 
             #region mergePostCommunicationChangesToSQLAndReturnWhetherTransactionErrorOccurred
 
-            var mergePostCommunicationChangesToSQLAndReturnWhetherTransactionErrorOccurred = DelegateAndDataHolder.Create(
+            var mergePostCommunicationChangesToSQLAndReturnWhetherTransactionErrorOccurred = DelegateAndDataHolderBase.Create(
                 new
                 {
                     commonThisEngine = this,
@@ -3204,7 +3204,7 @@ namespace Cloud.Sync
 
             #region appendPostCommunicationErrorsToReturn
 
-            var appendPostCommunicationErrorsToReturn = DelegateAndDataHolder.Create(
+            var appendPostCommunicationErrorsToReturn = DelegateAndDataHolderBase.Create(
                 new
                 {
                     commonChangesInError = commonChangesInError
@@ -3228,7 +3228,7 @@ namespace Cloud.Sync
 
             #region dequeueFailuresIncludingNulls
 
-            var dequeueFailuresIncludingNulls = DelegateAndDataHolder.Create(
+            var dequeueFailuresIncludingNulls = DelegateAndDataHolderBase.Create(
                 new
                 {
                     commonThisEngine = this,
@@ -3252,7 +3252,7 @@ namespace Cloud.Sync
 
             #region assignDependenciesAfterCommunication
 
-            var assignDependenciesAfterCommunication = DelegateAndDataHolder.Create(
+            var assignDependenciesAfterCommunication = DelegateAndDataHolderBase.Create(
                 new
                 {
                     commonThisEngine = this,
@@ -3465,7 +3465,7 @@ namespace Cloud.Sync
 
             #region completeSynchronousChangesAfterCommunicationAndReturnRemainingAsynchronousTasks
 
-            var completeSynchronousChangesAfterCommunicationAndReturnRemainingAsynchronousTasks = DelegateAndDataHolder.Create(
+            var completeSynchronousChangesAfterCommunicationAndReturnRemainingAsynchronousTasks = DelegateAndDataHolderBase.Create(
                 new
                 {
                     commonThisEngine = this,
@@ -3561,7 +3561,7 @@ namespace Cloud.Sync
 
             #region startAndReturnPostCommunicationAsynchronousChanges
 
-            var startAndReturnPostCommunicationAsynchronousChanges = DelegateAndDataHolder.Create(
+            var startAndReturnPostCommunicationAsynchronousChanges = DelegateAndDataHolderBase.Create(
                 new
                 {
                     asyncTasksToRun = new GenericHolder<List<PossiblyStreamableFileChangeWithUploadDownloadTask>>(null),
@@ -3597,7 +3597,7 @@ namespace Cloud.Sync
 
             #region sendFinishedMessage
 
-            var sendFinishedMessage = DelegateAndDataHolder.Create(
+            var sendFinishedMessage = DelegateAndDataHolderBase.Create(
                 new
                 {
                     commonThisEngine = this
@@ -3616,7 +3616,7 @@ namespace Cloud.Sync
 
             #region addDependenciesBackToProcessingQueue
 
-            var addDependenciesBackToProcessingQueue = DelegateAndDataHolder.Create(
+            var addDependenciesBackToProcessingQueue = DelegateAndDataHolderBase.Create(
                 new
                 {
                     commonThisEngine = this,
@@ -3707,7 +3707,7 @@ namespace Cloud.Sync
 
             #region requeueFinalFailures
 
-            var requeueFinalFailures = DelegateAndDataHolder.Create(
+            var requeueFinalFailures = DelegateAndDataHolderBase.Create(
                 new
                 {
                     commonThisEngine = this,
@@ -3732,7 +3732,7 @@ namespace Cloud.Sync
 
             #region disposeErrorStreamsAndLogErrors
 
-            var disposeErrorStreamsAndLogErrors = DelegateAndDataHolder.Create(
+            var disposeErrorStreamsAndLogErrors = DelegateAndDataHolderBase.Create(
                 new
                 {
                     commonThisEngine = this,
@@ -6802,7 +6802,7 @@ namespace Cloud.Sync
 
                 convertSyncToEventToFileChangePart1ForNonNullEventMetadata implementationConvertSyncToEventToFileChangePart1ForNonNullEventMetadata =
                     delegate(
-                        DelegateAndDataHolder findPaths,
+                        DelegateAndDataHolderBase findPaths,
                         FileChangeResponse currentEvent,
                         out FilePath findNewPath,
                         out FilePath findOldPath,
@@ -7025,7 +7025,7 @@ namespace Cloud.Sync
                         serverUidsToPath.Remove(serverUidRenamed);
                     });
 
-                var findPathsByUids = DelegateAndDataHolder.Create(
+                var findPathsByUids = DelegateAndDataHolderBase.Create(
                     new
                     {
                         commonThisEngine = this,
@@ -10352,7 +10352,7 @@ namespace Cloud.Sync
             out string findRevision,
             out string findMimeType);
         private delegate void convertSyncToEventToFileChangePart1ForNonNullEventMetadata(
-            DelegateAndDataHolder findPaths,
+            DelegateAndDataHolderBase findPaths,
             FileChangeResponse currentEvent,
             out FilePath findNewPath,
             out FilePath findOldPath,

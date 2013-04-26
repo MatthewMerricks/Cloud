@@ -228,4 +228,28 @@ namespace Cloud.Model
             IEnumerable<Exception> innerExceptions)
             : base(code, message, innerExceptions) { }
     }
+
+    /// <summary>
+    /// Use in place of KeyNotFoundException
+    /// </summary>
+    internal sealed class CLKeyNotFoundException : CLSystemException
+    {
+        /// <summary>
+        /// Internal constructor
+        /// </summary>
+        internal CLKeyNotFoundException(
+            CLExceptionCode code,
+            string message,
+            params Exception[] original)
+            : base(code, message, original) { }
+
+        /// <summary>
+        /// Internal constructor
+        /// </summary>
+        internal CLKeyNotFoundException(
+            CLExceptionCode code,
+            string message,
+            IEnumerable<Exception> innerExceptions)
+            : base(code, message, innerExceptions) { }
+    }
 }

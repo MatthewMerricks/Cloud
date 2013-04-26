@@ -115,6 +115,15 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to : cancelled---.
+        /// </summary>
+        internal static string CancelledHttpResponseAppend {
+            get {
+                return ResourceManager.GetString("CancelledHttpResponseAppend", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to ProgramData\Microsoft\Windows.
         /// </summary>
         internal static string CommonStartMenuParentFolderNameVista {
@@ -129,6 +138,15 @@ namespace Cloud.Static {
         internal static string CommonStartMenuParentFolderNameXP {
             get {
                 return ResourceManager.GetString("CommonStartMenuParentFolderNameXP", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ---File upload complete---.
+        /// </summary>
+        internal static string CompleteFileUpload {
+            get {
+                return ResourceManager.GetString("CompleteFileUpload", resourceCulture);
             }
         }
         
@@ -205,6 +223,15 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to delegateToWrap cannot be processed when null.
+        /// </summary>
+        internal static string ExceptionDelegateAndDataHolderNullDelegateToWrap {
+            get {
+                return ResourceManager.GetString("ExceptionDelegateAndDataHolderNullDelegateToWrap", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to MD5 must be 128 bits (a byte array of length 16).
         /// </summary>
         internal static string ExceptionFileChangeSetMD5ByteLength {
@@ -219,6 +246,15 @@ namespace Cloud.Static {
         internal static string ExceptionFileChangeUpDownEventArgsNullSendBackChange {
             get {
                 return ResourceManager.GetString("ExceptionFileChangeUpDownEventArgsNullSendBackChange", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MakeAsyncRequestSynchronous was processed without param1.
+        /// </summary>
+        internal static string ExceptionHelpersAsyncGetUploadRequestStreamOrDownloadResponseMakeSyncParam1 {
+            get {
+                return ResourceManager.GetString("ExceptionHelpersAsyncGetUploadRequestStreamOrDownloadResponseMakeSyncParam1", resourceCulture);
             }
         }
         
@@ -295,11 +331,236 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to eventSource cannot be null.
+        /// </summary>
+        internal static string ExceptionHelpersHandleUploadDownloadStatusNullEventSource {
+            get {
+                return ResourceManager.GetString("ExceptionHelpersHandleUploadDownloadStatusNullEventSource", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to hashString must be in a hexadecimal string format with no seperator characters and two characters per byte.
         /// </summary>
         internal static string ExceptionHelpersParseHexadecimalStringToByteArrayHashStringFormat {
             get {
                 return ResourceManager.GetString("ExceptionHelpersParseHexadecimalStringToByteArrayHashStringFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot do anything with the Cloud SDK if Helpers.AllHaltedOnUnrecoverableError is set.
+        /// </summary>
+        internal static string ExceptionHelpersProcessHttpInnerAllHaltedOnUnrecoverableError {
+            get {
+                return ResourceManager.GetString("ExceptionHelpersProcessHttpInnerAllHaltedOnUnrecoverableError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Operation cancelled by client.
+        /// </summary>
+        internal static string ExceptionHelpersProcessHttpInnerClientCancelled {
+            get {
+                return ResourceManager.GetString("ExceptionHelpersProcessHttpInnerClientCancelled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Download httpRequest EndGetResponse threw a WebException without a WebResponse.
+        /// </summary>
+        internal static string ExceptionHelpersProcessHttpInnerDownloadNullResponse {
+            get {
+                return ResourceManager.GetString("ExceptionHelpersProcessHttpInnerDownloadNullResponse", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error getting request stream for a download.
+        /// </summary>
+        internal static string ExceptionHelpersProcessHttpInnerDownloadRequestStream {
+            get {
+                return ResourceManager.GetString("ExceptionHelpersProcessHttpInnerDownloadRequestStream", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to httpResponse GetResponse at URL {0}, MethodPath {1} threw a WebException without a WebResponse.
+        /// </summary>
+        internal static string ExceptionHelpersProcessHttpInnerGeneralNullResponse {
+            get {
+                return ResourceManager.GetString("ExceptionHelpersProcessHttpInnerGeneralNullResponse", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {missing serverMethodPath}.
+        /// </summary>
+        internal static string ExceptionHelpersProcessHttpInnerGeneralNullResponseNullServerMethodPath {
+            get {
+                return ResourceManager.GetString("ExceptionHelpersProcessHttpInnerGeneralNullResponseNullServerMethodPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {missing serverUrl}.
+        /// </summary>
+        internal static string ExceptionHelpersProcessHttpInnerGeneralNullResponseNullServerUrl {
+            get {
+                return ResourceManager.GetString("ExceptionHelpersProcessHttpInnerGeneralNullResponseNullServerUrl", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error getting request stream for a post operation.
+        /// </summary>
+        internal static string ExceptionHelpersProcessHttpInnerGeneralRequestStream {
+            get {
+                return ResourceManager.GetString("ExceptionHelpersProcessHttpInnerGeneralRequestStream", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unknown method: {0}.
+        /// </summary>
+        internal static string ExceptionHelpersProcessHttpInnerHttpMethod {
+            get {
+                return ResourceManager.GetString("ExceptionHelpersProcessHttpInnerHttpMethod", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid HTTP response status code at URL {0}, MethodPath {1}.
+        /// </summary>
+        internal static string ExceptionHelpersProcessHttpInnerInvalidResponseStatus {
+            get {
+                return ResourceManager.GetString("ExceptionHelpersProcessHttpInnerInvalidResponseStatus", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to read the response stream.
+        /// </summary>
+        internal static string ExceptionHelpersProcessHttpInnerInvalidStatusStreamRead {
+            get {
+                return ResourceManager.GetString("ExceptionHelpersProcessHttpInnerInvalidStatusStreamRead", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to find serializer for JsonContracts.AuthenticationErrorResponse in SerializableResponseTypes.
+        /// </summary>
+        internal static string ExceptionHelpersProcessHttpInnerMissingAuthenticationErrorResponse {
+            get {
+                return ResourceManager.GetString("ExceptionHelpersProcessHttpInnerMissingAuthenticationErrorResponse", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to httpRequest cannot be null.
+        /// </summary>
+        internal static string ExceptionHelpersProcessHttpInnerNullHttpRequest {
+            get {
+                return ResourceManager.GetString("ExceptionHelpersProcessHttpInnerNullHttpRequest", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unknown requestContent Type: {0}.
+        /// </summary>
+        internal static string ExceptionHelpersProcessHttpInnerRequestContentType {
+            get {
+                return ResourceManager.GetString("ExceptionHelpersProcessHttpInnerRequestContentType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Deserialized JsonObject null from requestString.
+        /// </summary>
+        internal static string ExceptionHelpersProcessHttpInnerRequestStringJsonObject {
+            get {
+                return ResourceManager.GetString("ExceptionHelpersProcessHttpInnerRequestStringJsonObject", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to deserialize response stream and missed an earlier check for this condition.
+        /// </summary>
+        internal static string ExceptionHelpersProcessHttpInnerResponseDeserializeMissedEarlierCheck {
+            get {
+                return ResourceManager.GetString("ExceptionHelpersProcessHttpInnerResponseDeserializeMissedEarlierCheck", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Deserialized JsonObject null from responseString.
+        /// </summary>
+        internal static string ExceptionHelpersProcessHttpInnerResponseStringJsonObject {
+            get {
+                return ResourceManager.GetString("ExceptionHelpersProcessHttpInnerResponseStringJsonObject", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to uploadDownload TempDownloadFolderPath cannot be null.
+        /// </summary>
+        internal static string ExceptionHelpersProcessHttpInnerTempDownloadFolderPath {
+            get {
+                return ResourceManager.GetString("ExceptionHelpersProcessHttpInnerTempDownloadFolderPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to uploadDownload must be either upload or download.
+        /// </summary>
+        internal static string ExceptionHelpersProcessHttpInnerUploadDownloadType {
+            get {
+                return ResourceManager.GetString("ExceptionHelpersProcessHttpInnerUploadDownloadType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error getting request stream for an upload.
+        /// </summary>
+        internal static string ExceptionHelpersProcessHttpInnerUploadRequestStream {
+            get {
+                return ResourceManager.GetString("ExceptionHelpersProcessHttpInnerUploadRequestStream", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to RequestNewCredentialsInfo GetCurrentCredentialsCallback must not be null.
+        /// </summary>
+        internal static string ExceptionHelpersProcessHttpNullGetCurrentCredentialsCallback {
+            get {
+                return ResourceManager.GetString("ExceptionHelpersProcessHttpNullGetCurrentCredentialsCallback", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to RequestNewCredentialsInfo ProcessingStateByThreadId must not be null.
+        /// </summary>
+        internal static string ExceptionHelpersProcessHttpNullProcessingStateByThreadId {
+            get {
+                return ResourceManager.GetString("ExceptionHelpersProcessHttpNullProcessingStateByThreadId", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to RequestNewCredentialsInfo must not be null.
+        /// </summary>
+        internal static string ExceptionHelpersProcessHttpNullRequestNewCredentialsInfo {
+            get {
+                return ResourceManager.GetString("ExceptionHelpersProcessHttpNullRequestNewCredentialsInfo", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to RequestNewCredentialsInfo SetNewCredentialsCallback must not be null.
+        /// </summary>
+        internal static string ExceptionHelpersProcessHttpNullSetNewCredentialsCallback {
+            get {
+                return ResourceManager.GetString("ExceptionHelpersProcessHttpNullSetNewCredentialsCallback", resourceCulture);
             }
         }
         
@@ -367,6 +628,15 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to ---Incomplete file download---.
+        /// </summary>
+        internal static string IncompleteFileDownload {
+            get {
+                return ResourceManager.GetString("IncompleteFileDownload", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to AppData\Local.
         /// </summary>
         internal static string LocalAppDataFolderNameVista {
@@ -381,6 +651,42 @@ namespace Cloud.Static {
         internal static string LocalAppDataFolderNameXP {
             get {
                 return ResourceManager.GetString("LocalAppDataFolderNameXP", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cloud exception type: {0}.
+        /// </summary>
+        internal static string LogCloudExceptionType {
+            get {
+                return ResourceManager.GetString("LogCloudExceptionType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Http response:{0}{1}.
+        /// </summary>
+        internal static string LogHttpResponse {
+            get {
+                return ResourceManager.GetString("LogHttpResponse", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Http status code: {0}.
+        /// </summary>
+        internal static string LogHttpStatus {
+            get {
+                return ResourceManager.GetString("LogHttpStatus", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to StackTrace:{0}{1}.
+        /// </summary>
+        internal static string LogStacktrace {
+            get {
+                return ResourceManager.GetString("LogStacktrace", resourceCulture);
             }
         }
         
@@ -556,6 +862,33 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Close.
+        /// </summary>
+        internal static string NotTranslatedHttpClose {
+            get {
+                return ResourceManager.GetString("NotTranslatedHttpClose", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to 100-continue.
+        /// </summary>
+        internal static string NotTranslatedHttpContinue {
+            get {
+                return ResourceManager.GetString("NotTranslatedHttpContinue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Keep-Alive.
+        /// </summary>
+        internal static string NotTranslatedHttpKeepAlive {
+            get {
+                return ResourceManager.GetString("NotTranslatedHttpKeepAlive", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to op_Implicit.
         /// </summary>
         internal static string NotTranslatedImplicitOperator {
@@ -691,6 +1024,15 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to ---responseBody set to null---.
+        /// </summary>
+        internal static string NullHttpResponseBody {
+            get {
+                return ResourceManager.GetString("NullHttpResponseBody", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to bits.
         /// </summary>
         internal static string OsBits {
@@ -750,6 +1092,15 @@ namespace Cloud.Static {
         internal static string RoamingAppDataFolderNameXP {
             get {
                 return ResourceManager.GetString("RoamingAppDataFolderNameXP", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ---File upload started---.
+        /// </summary>
+        internal static string StartedFileUpload {
+            get {
+                return ResourceManager.GetString("StartedFileUpload", resourceCulture);
             }
         }
         

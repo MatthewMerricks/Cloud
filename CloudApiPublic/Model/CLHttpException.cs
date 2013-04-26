@@ -40,15 +40,15 @@ namespace Cloud.Model
         /// Internal constructor
         /// </summary>
         internal CLHttpException(
-            Nullable<HttpStatusCode> Status,
-            string Response,
+            Nullable<HttpStatusCode> status,
+            string response,
             CLExceptionCode code,
             string message,
             params Exception[] original)
             : base(code, message, original)
         {
-            this._status = Status;
-            this._response = Response;
+            this._status = status;
+            this._response = response;
         }
 
         /// <summary>

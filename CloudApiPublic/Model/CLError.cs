@@ -296,13 +296,56 @@ namespace Cloud.Model
                                         // traverse through inner exceptions, each time with an extra tab appended
                                         while (dequeuedException != null)
                                         {
+                                            AggregateException dequeuedAsAggregate = dequeuedException as AggregateException;
+                                            CLException dequeuedAsCLException;
+                                            if (dequeuedAsAggregate == null)
+                                            {
+                                                dequeuedAsCLException = null;
+                                            }
+                                            else
+                                            {
+                                                dequeuedAsCLException = dequeuedAsAggregate as CLException;
+
+                                                if (dequeuedAsCLException != null)
+                                                {
+                                                    logWriter.WriteLine(
+                                                        Helpers.MakeTabs(tabCounter) +
+                                                            string.Format(Resources.LogCloudExceptionType,
+                                                                dequeuedAsCLException.GetType().Name));
+                                                }
+                                            }
+
                                             // write the current exception message to the log after the tabCounter worth of tabs
                                             logWriter.WriteLine(
                                                 Helpers.MakeTabs(tabCounter++) + // increment the tab count so the next message will be more indented
                                                     dequeuedException.Message);
 
+                                            if (dequeuedAsCLException != null)
+                                            {
+                                                CLHttpException dequeuedAsHttpException = dequeuedAsCLException as CLHttpException;
+
+                                                if (dequeuedAsHttpException != null)
+                                                {
+                                                    if (dequeuedAsHttpException.Status != null)
+                                                    {
+                                                        logWriter.WriteLine(
+                                                            Helpers.MakeTabs(tabCounter) +
+                                                                string.Format(Resources.LogHttpStatus,
+                                                                    (int)((HttpStatusCode)dequeuedAsHttpException.Status)));
+                                                    }
+
+                                                    if (!string.IsNullOrEmpty(dequeuedAsHttpException.Response))
+                                                    {
+                                                        logWriter.WriteLine(
+                                                            Helpers.MakeTabs(tabCounter) +
+                                                                string.Format(Resources.LogHttpResponse,
+                                                                    Environment.NewLine,
+                                                                    dequeuedAsHttpException.Response));
+                                                    }
+                                                }
+                                            }
+
                                             // if the current exception is an aggregate, then enqueue its inner exceptions to relog (for viewing their stacktrace)
-                                            AggregateException dequeuedAsAggregate = dequeuedException as AggregateException;
                                             if (dequeuedAsAggregate != null)
                                             {
                                                 foreach (Exception aggregatedException in
@@ -322,8 +365,10 @@ namespace Cloud.Model
                                         {
                                             // write the StackTrace to the log with 1 tab
                                             logWriter.WriteLine(
-                                                Helpers.MakeTabs() + "StackTrace:" + Environment.NewLine +
-                                                stack);
+                                                Helpers.MakeTabs() +
+                                                    string.Format(Resources.LogStacktrace,
+                                                        Environment.NewLine,
+                                                        stack));
                                         }
                                     }
                                 }

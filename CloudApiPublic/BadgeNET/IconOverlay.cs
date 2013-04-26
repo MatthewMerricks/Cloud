@@ -150,7 +150,7 @@ namespace Cloud.BadgeNET
                 // thread is a STA thread, and we must instantiate CBadgeNetPubSubEvents as an MTA thread.
                 if (_badgeComPubSubEvents == null)
                 {
-                    var threadInitDelegate = DelegateAndDataHolder.Create(
+                    var threadInitDelegate = DelegateAndDataHolderBase.Create(
                         new
                         {
                             commonThisOverlay = this,

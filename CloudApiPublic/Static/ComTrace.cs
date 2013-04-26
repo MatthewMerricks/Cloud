@@ -287,8 +287,8 @@ namespace Cloud.Static
                                 castRequest.Connection.Count > 0
                                     ? string.Join(", ", castRequest.Connection)
                                     : ((castRequest.ConnectionClose == null || !((bool)castRequest.ConnectionClose))
-                                        ? "Keep-Alive"
-                                        : "Close")));
+                                        ? Resources.NotTranslatedHttpKeepAlive
+                                        : Resources.NotTranslatedHttpClose)));
 
                             if (castRequest.Date != null)
                             {
@@ -309,12 +309,12 @@ namespace Cloud.Static
                                                                 "; " + currentExpectParameter.Name + (currentExpectParameter.Value == null ? string.Empty : "=" + currentExpectParameter.Value)))
                                                         : string.Empty))) +
                                             ((castRequest.ExpectContinue != null && ((bool)castRequest.ExpectContinue))
-                                                ? (firstExpectParameterSet ? "," : string.Empty) + "100-continue"
+                                                ? (firstExpectParameterSet ? "," : string.Empty) + Resources.NotTranslatedHttpContinue
                                                 : string.Empty)));
                             }
                             else if (castRequest.ExpectContinue == null || ((bool)castRequest.ExpectContinue))
                             {
-                                ignoredHeadersList.Add(new KeyValuePair<string, string>("Expect", "100-continue"));
+                                ignoredHeadersList.Add(new KeyValuePair<string, string>("Expect", Resources.NotTranslatedHttpContinue));
                             }
 
                             if (castRequest.From != null)
@@ -615,8 +615,8 @@ namespace Cloud.Static
                                     castResponse.Connection.Count > 0
                                         ? string.Join(", ", castResponse.Connection)
                                         : ((castResponse.ConnectionClose == null || !((bool)castResponse.ConnectionClose))
-                                            ? "Keep-Alive"
-                                            : "Close")));
+                                            ? Resources.NotTranslatedHttpKeepAlive
+                                            : Resources.NotTranslatedHttpClose)));
 
                                 if (castResponse.Date != null)
                                 {
@@ -760,7 +760,7 @@ namespace Cloud.Static
 
                                 if (castResponse.WwwAuthenticate.Count > 0)
                                 {
-                                    ignoredHeadersList.Add(new KeyValuePair<string, string>("WWW-Authenticat",
+                                    ignoredHeadersList.Add(new KeyValuePair<string, string>("WWW-Authenticate",
                                         string.Join(", ",
                                             castResponse.WwwAuthenticate.Select(currentWwwAuthenticate =>
                                                 (string.IsNullOrEmpty(currentWwwAuthenticate.Scheme)
@@ -792,7 +792,7 @@ namespace Cloud.Static
 
                                 if (body.Headers.ContentLanguage.Count > 0)
                                 {
-                                    ignoredHeadersList.Add(new KeyValuePair<string, string>("Content-Langauge",
+                                    ignoredHeadersList.Add(new KeyValuePair<string, string>("Content-Language",
                                         string.Join(", ",
                                             body.Headers.ContentLanguage)));
                                 }

@@ -2141,7 +2141,7 @@ namespace Cloud.SQLIndexer
                 //}
 
                 GenericHolder<CLError> moveObjectsToNewParentError = new GenericHolder<CLError>(null);
-                var moveObjectsToNewParent = DelegateAndDataHolder.Create(
+                var moveObjectsToNewParent = DelegateAndDataHolderBase.Create(
                     new
                     {
                         castTransaction = castTransaction,

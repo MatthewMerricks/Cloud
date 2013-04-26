@@ -105,6 +105,11 @@ namespace Cloud.Static
         /// </summary>
         Http_NoResponse = (((ulong)CLExceptionDomain.Http) << 32) | 10, // 1_10
 
+        /// <summary>
+        /// Internal completion routine failed
+        /// </summary>
+        Http_CompletionFailure = (((ulong)CLExceptionDomain.Http) << 32) | 11, // 1_11
+
         #endregion
 
         #region Syncbox

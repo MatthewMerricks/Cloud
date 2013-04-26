@@ -878,7 +878,7 @@ namespace Cloud.FileMonitor
                 string rootPathString;
                 FilePath rootPath = rootPathString = CurrentFolderPath;
 
-                var fillAndReturnUpDowns = DelegateAndDataHolder.Create(
+                var fillAndReturnUpDowns = DelegateAndDataHolderBase.Create(
                     new
                     {
                         upDownsHolder = new GenericHolder<FilePathDictionary<List<FileChange>>>(null),
@@ -904,11 +904,11 @@ namespace Cloud.FileMonitor
                     },
                     null);
 
-                var recurseFolderCreationToRoot = DelegateAndDataHolder.Create(
+                var recurseFolderCreationToRoot = DelegateAndDataHolderBase.Create(
                     new
                     {
                         thisAgent = this,
-                        thisDelegate = new GenericHolder<DelegateAndDataHolder>(null),
+                        thisDelegate = new GenericHolder<DelegateAndDataHolderBase>(null),
                         toCreate = new GenericHolder<FilePath>(null),
                         root = rootPath,
                         creationTime = new GenericHolder<Nullable<DateTime>>(null),
@@ -961,10 +961,10 @@ namespace Cloud.FileMonitor
                     null);
                 recurseFolderCreationToRoot.TypedData.thisDelegate.Value = recurseFolderCreationToRoot;
 
-                var recurseHierarchyAndAddSyncFromsToHashSet = DelegateAndDataHolder.Create(
+                var recurseHierarchyAndAddSyncFromsToHashSet = DelegateAndDataHolderBase.Create(
                     new
                     {
-                        thisDelegate = new GenericHolder<DelegateAndDataHolder>(null),
+                        thisDelegate = new GenericHolder<DelegateAndDataHolderBase>(null),
                         matchedDowns = new HashSet<FileChange>(),
                         innerHierarchy = new GenericHolder<FilePathHierarchicalNode<List<FileChange>>>(null)
                     },
@@ -4803,10 +4803,10 @@ namespace Cloud.FileMonitor
                     senderToAdd = null;
                 }
 
-                var recurseHierarchyAndAddSyncFromsToHashSet = DelegateAndDataHolder.Create(
+                var recurseHierarchyAndAddSyncFromsToHashSet = DelegateAndDataHolderBase.Create(
                     new
                     {
-                        thisDelegate = new GenericHolder<DelegateAndDataHolder>(null),
+                        thisDelegate = new GenericHolder<DelegateAndDataHolderBase>(null),
                         innerHierarchy = new GenericHolder<FilePathHierarchicalNode<List<FileChange>>>(null),
                         matchedChanges = new HashSet<FileChange>()
                     },

@@ -1690,7 +1690,7 @@ namespace Cloud.Static
         /// </summary>
         public static void DelayedInvoke(this Dispatcher dispatcher, TimeSpan delay, Action action)
         {
-            var delayDelegate = DelegateAndDataHolder.Create(
+            var delayDelegate = DelegateAndDataHolderBase.Create(
                 new
                 {
                     dispatcher = dispatcher,
@@ -1713,7 +1713,7 @@ namespace Cloud.Static
         /// </summary>
         public static void DelayedInvoke(this Dispatcher dispatcher, TimeSpan delay, System.Delegate d, params object[] args)
         {
-            var delayDelegate = DelegateAndDataHolder.Create(
+            var delayDelegate = DelegateAndDataHolderBase.Create(
                 new
                 {
                     dispatcher = dispatcher,
@@ -2426,7 +2426,7 @@ namespace Cloud.Static
 
             if (eventSource == null)
             {
-                throw new NullReferenceException("eventSource cannot be null");
+                throw new CLNullReferenceException(CLExceptionCode.Http_BadRequest, Resources.ExceptionHelpersHandleUploadDownloadStatusNullEventSource);
             }
 
             // direction of communication determines which event to fire
@@ -2448,6 +2448,59 @@ namespace Cloud.Static
             }
         }
 
+        #region todo: remove this debug only code
+        internal static T ProcessHttp<T>(object requestContent, // JSON contract object to serialize and send up as the request content, if any
+            string serverUrl, // the server URL
+            string serverMethodPath, // the server method path
+            requestMethod method, // type of HTTP method (get vs. put vs. post)
+            int timeoutMilliseconds, // time before communication timeout (does not restrict time for the upload or download of files)
+            uploadDownloadParams uploadDownload, // parameters if the method is for a file upload or download, or null otherwise
+            HashSet<HttpStatusCode> validStatusCodes, // a HashSet with HttpStatusCodes which should be considered all possible successful return codes from the server
+            ICLSyncSettingsAdvanced CopiedSettings, // used for device id, trace settings, and client version
+            ref CLHttpRestStatus status, // todo: remove this debug only code
+            CLCredentials Credentials, // contains key/secret for authorization
+            Nullable<long> SyncboxId) // unique id for the sync box on the server
+            where T : class // restrict T to an object type to allow default null return
+        {
+            status = CLHttpRestStatus.Success; // todo: remove this debug only code
+            return ProcessHttp<T>(requestContent,
+                serverUrl,
+                serverMethodPath,
+                method,
+                timeoutMilliseconds,
+                uploadDownload,
+                validStatusCodes,
+                CopiedSettings,
+                Credentials,
+                SyncboxId);
+        }
+        internal static T ProcessHttp<T>(object requestContent, // JSON contract object to serialize and send up as the request content, if any
+            string serverUrl, // the server URL
+            string serverMethodPath, // the server method path
+            requestMethod method, // type of HTTP method (get vs. put vs. post)
+            int timeoutMilliseconds, // time before communication timeout (does not restrict time for the upload or download of files)
+            uploadDownloadParams uploadDownload, // parameters if the method is for a file upload or download, or null otherwise
+            HashSet<HttpStatusCode> validStatusCodes, // a HashSet with HttpStatusCodes which should be considered all possible successful return codes from the server
+            ICLSyncSettingsAdvanced CopiedSettings, // used for device id, trace settings, and client version
+            ref CLHttpRestStatus status, // todo: remove this debug only code
+            Nullable<long> SyncboxId,  // unique id for the sync box on the server
+            RequestNewCredentialsInfo RequestNewCredentialsInfo) // gets the credentials and renews the credentials if needed
+            where T : class // restrict T to an object type to allow default null return
+        {
+            status = CLHttpRestStatus.Success;
+            return ProcessHttp<T>(requestContent,
+                serverUrl,
+                serverMethodPath,
+                method,
+                timeoutMilliseconds,
+                uploadDownload,
+                validStatusCodes,
+                CopiedSettings,
+                SyncboxId,
+                RequestNewCredentialsInfo);
+        }
+        #endregion
+
         /// <summary>
         /// forwards to the main HTTP REST routine helper method which processes the actual communication, but only where the return type is object
         /// </summary>
@@ -2458,7 +2511,6 @@ namespace Cloud.Static
             int timeoutMilliseconds, // time before communication timeout (does not restrict time for the upload or download of files)
             uploadDownloadParams uploadDownload, // parameters if the method is for a file upload or download, or null otherwise
             HashSet<HttpStatusCode> validStatusCodes, // a HashSet with HttpStatusCodes which should be considered all possible successful return codes from the server
-            ref CLHttpRestStatus status, // reference to the successful/failed state of communication
             ICLSyncSettingsAdvanced CopiedSettings, // used for device id, trace settings, and client version
             CLCredentials Credentials, // contains key/secret for authorization
             Nullable<long> SyncboxId) // unique id for the sync box on the server
@@ -2471,7 +2523,6 @@ namespace Cloud.Static
                 timeoutMilliseconds,
                 uploadDownload,
                 validStatusCodes,
-                ref status,
                 CopiedSettings,
                 Credentials,
                 SyncboxId);
@@ -2488,7 +2539,6 @@ namespace Cloud.Static
             int timeoutMilliseconds, // time before communication timeout (does not restrict time for the upload or download of files)
             uploadDownloadParams uploadDownload, // parameters if the method is for a file upload or download, or null otherwise
             HashSet<HttpStatusCode> validStatusCodes, // a HashSet with HttpStatusCodes which should be considered all possible successful return codes from the server
-            ref CLHttpRestStatus status, // reference to the successful/failed state of communication
             ICLSyncSettingsAdvanced CopiedSettings, // used for device id, trace settings, and client version
             Nullable<long> SyncboxId,  // unique id for the sync box on the server
             RequestNewCredentialsInfo RequestNewCredentialsInfo) // gets the credentials and renews the credentials if needed
@@ -2501,13 +2551,13 @@ namespace Cloud.Static
 
             if (RequestNewCredentialsInfo == null)
             {
-                throw new ArgumentNullException("RequestNewCredentialsInfo must not be null");
+                throw new CLArgumentNullException(CLExceptionCode.Http_BadRequest, Resources.ExceptionHelpersProcessHttpNullRequestNewCredentialsInfo);
             }
 
             // The caller wants to handle requests for new temporary credentials.  Validate the parameters.
             if (RequestNewCredentialsInfo.GetCurrentCredentialsCallback == null)
             {
-                throw new ArgumentNullException("RequestNewCredentialsInfo GetCurrentCredentialsCallback must not be null");
+                throw new CLArgumentNullException(CLExceptionCode.Http_BadRequest, Resources.ExceptionHelpersProcessHttpNullGetCurrentCredentialsCallback);
             }
             if (RequestNewCredentialsInfo.GetNewCredentialsCallback == null)
             {
@@ -2518,12 +2568,12 @@ namespace Cloud.Static
             {
                 if (RequestNewCredentialsInfo.ProcessingStateByThreadId == null)
                 {
-                    throw new ArgumentNullException("RequestNewCredentialsInfo ProcessingStateByThreadId must not be null");
+                    throw new CLArgumentNullException(CLExceptionCode.Http_BadRequest, Resources.ExceptionHelpersProcessHttpNullProcessingStateByThreadId);
                 }
             }
             if (RequestNewCredentialsInfo.SetCurrentCredentialsCallback == null)
             {
-                throw new ArgumentNullException("RequestNewCredentialsInfo SetNewCredentialsCallback must not be null");
+                throw new CLArgumentNullException(CLExceptionCode.Http_BadRequest, Resources.ExceptionHelpersProcessHttpNullSetNewCredentialsCallback);
             }
             
             CLCredentials Credentials;
@@ -2553,7 +2603,6 @@ namespace Cloud.Static
                     timeoutMilliseconds,
                     uploadDownload,
                     validStatusCodes,
-                    ref status,
                     CopiedSettings,
                     Credentials,
                     SyncboxId);
@@ -2581,6 +2630,8 @@ namespace Cloud.Static
                 }
                 else
                 {
+                    CLException castEx;
+
                     lock (RequestNewCredentialsInfo.ProcessingStateByThreadId)
                     {
                         // Get this thread's value entry in ProcessingStateByThreadId
@@ -2589,8 +2640,11 @@ namespace Cloud.Static
                         // Remove this thread's entry from the ProcessingStateByThreadId dictionary
                         RequestNewCredentialsInfo.ProcessingStateByThreadId.Remove(threadId);
 
+                        castEx = ex as CLException;
+
                         // Special handling if this is a 401 NotAuthorized code with the "expired credentials" error enumeration.
-                        if (status == CLHttpRestStatus.NotAuthorizedExpiredCredentials)
+                        if (castEx != null
+                            && castEx.Code == CLExceptionCode.Http_NotAuthorizedExpiredCredentials)
                         {
                             switch (localThreadState)
                             {
@@ -2643,7 +2697,12 @@ namespace Cloud.Static
                     }
 
                     // Here we will retry the original operation if we decided to do that under the lock.
-                    if (localThreadState == EnumRequestNewCredentialsStates.RequestNewCredentials_Retry)
+                    //
+                    // Also, need to make sure the reason to retry was because you had expired credentials and this or another thread renewed the credentials,
+                    // this allows all other errors to bubble normally immediately without retrying
+                    if (localThreadState == EnumRequestNewCredentialsStates.RequestNewCredentials_Retry
+                        && castEx != null
+                        && castEx.Code == CLExceptionCode.Http_NotAuthorizedExpiredCredentials)
                     {
                         // Retry the original operation.
                         return ProcessHttpInner<T>(requestContent,
@@ -2653,7 +2712,6 @@ namespace Cloud.Static
                             timeoutMilliseconds,
                             uploadDownload,
                             validStatusCodes,
-                            ref status,
                             CopiedSettings,
                             Credentials,
                             SyncboxId);
@@ -2677,7 +2735,6 @@ namespace Cloud.Static
             int timeoutMilliseconds, // time before communication timeout (does not restrict time for the upload or download of files)
             uploadDownloadParams uploadDownload, // parameters if the method is for a file upload or download, or null otherwise
             HashSet<HttpStatusCode> validStatusCodes, // a HashSet with HttpStatusCodes which should be considered all possible successful return codes from the server
-            ref CLHttpRestStatus status, // reference to the successful/failed state of communication
             ICLSyncSettingsAdvanced CopiedSettings, // used for device id, trace settings, and client version
             CLCredentials Credentials, // contains key/secret for authorization
             Nullable<long> SyncboxId) // unique id for the sync box on the server
@@ -2685,7 +2742,7 @@ namespace Cloud.Static
         {
             if (AllHaltedOnUnrecoverableError)
             {
-                throw new InvalidOperationException("Cannot do anything with the Cloud SDK if Helpers.AllHaltedOnUnrecoverableError is set");
+                throw new CLInvalidOperationException(CLExceptionCode.Http_BadRequest, Resources.ExceptionHelpersProcessHttpInnerAllHaltedOnUnrecoverableError);
             }
 
             // check that the temp download folder exists, if not, create it
@@ -2694,7 +2751,7 @@ namespace Cloud.Static
             {
                 if (string.IsNullOrEmpty(((downloadParams)uploadDownload).TempDownloadFolderPath))
                 {
-                    throw new NullReferenceException("uploadDownload TempDownloadFolderPath cannot be null");
+                    throw new CLNullReferenceException(CLExceptionCode.Http_BadRequest, Resources.ExceptionHelpersProcessHttpInnerTempDownloadFolderPath);
                 }
 
                 if (!Directory.Exists(((downloadParams)uploadDownload).TempDownloadFolderPath))
@@ -2721,7 +2778,7 @@ namespace Cloud.Static
                     break;
 
                 default:
-                    throw new ArgumentException("Unknown method: " + method.ToString());
+                    throw new CLArgumentException(CLExceptionCode.Http_BadRequest, string.Format(Resources.ExceptionHelpersProcessHttpInnerHttpMethod, method));
             }
 
             httpRequest.UserAgent = CLDefinitions.HeaderAppendCloudClient; // set client
@@ -2768,7 +2825,7 @@ namespace Cloud.Static
                         DataContractJsonSerializer getRequestSerializer;
                         if (!SerializableRequestTypes.TryGetValue(requestType, out getRequestSerializer))
                         {
-                            throw new ArgumentException("Unknown requestContent Type: " + requestType.FullName);
+                            throw new CLArgumentException(CLExceptionCode.Http_BadRequest, string.Format(Resources.ExceptionHelpersProcessHttpInnerRequestContentType, requestType.FullName));
                         }
 
                         getRequestSerializer.WriteObject(requestMemory, requestContent);
@@ -2782,7 +2839,7 @@ namespace Cloud.Static
 
                             if (myDeserialized == null)
                             {
-                                throw new NullReferenceException("Deserialized JsonObject null from requestString");
+                                throw new CLNullReferenceException(CLExceptionCode.Http_BadRequest, Resources.ExceptionHelpersProcessHttpInnerRequestStringJsonObject);
                             }
 
                             foreach (KeyValuePair<string, object> myDeserializedPair in myDeserialized)
@@ -2860,7 +2917,7 @@ namespace Cloud.Static
                     true, // trace is enabled
                     httpRequest.Headers, // headers of request
                     ((uploadDownload != null && uploadDownload is uploadParams) // special condition for the request body content based on whether this is a file upload or not
-                        ? "---File upload started---" // truncate the request body content to a predefined string so that the entire uploaded file is not written as content
+                        ? Resources.StartedFileUpload // truncate the request body content to a predefined string so that the entire uploaded file is not written as content
                         : (requestContentBytes == null // condition on whether there were bytes to write in the request content body
                             ? null // if there were no bytes to write in the request content body, then log for none
                             : Encoding.UTF8.GetString(requestContentBytes))), // if there were no bytes to write in the request content body, then log them (in string form)
@@ -2870,8 +2927,8 @@ namespace Cloud.Static
                     ((requestContentBytes != null || (uploadDownload != null && uploadDownload is uploadParams))
                         ? httpRequest.ContentLength.ToString() // if the communication had bytes to upload from an input object or a stream to upload for a file, then set the content length value which would be part of the headers (but cannot be pulled from headers directly)
                         : null), // else if the communication would not have any request content, then log no content length header
-                    (httpRequest.Expect == null ? "100-continue" : httpRequest.Expect), // expect value which would be part of the headers (but cannot be pulled from headers directly)
-                    (httpRequest.KeepAlive ? "Keep-Alive" : "Close")); // keep-alive value which would be part of the headers (but cannot be pulled from headers directly)
+                    (httpRequest.Expect == null ? Resources.NotTranslatedHttpContinue : httpRequest.Expect), // expect value which would be part of the headers (but cannot be pulled from headers directly)
+                    (httpRequest.KeepAlive ? Resources.NotTranslatedHttpKeepAlive : Resources.NotTranslatedHttpClose)); // keep-alive value which would be part of the headers (but cannot be pulled from headers directly)
             }
             #endregion
 
@@ -2895,7 +2952,7 @@ namespace Cloud.Static
                 if (!(uploadDownload is uploadParams)
                     && !(uploadDownload is downloadParams))
                 {
-                    throw new ArgumentException("uploadDownload must be either upload or download");
+                    throw new CLArgumentException(CLExceptionCode.Http_BadRequest, Resources.ExceptionHelpersProcessHttpInnerUploadDownloadType);
                 }
 
                 // set the status event parameters
@@ -2943,19 +3000,22 @@ namespace Cloud.Static
                         }
                         catch (WebException ex)
                         {
-                            if (ex.Status == WebExceptionStatus.ConnectFailure)
-                            {
-                                status = CLHttpRestStatus.ConnectionFailed;
-                            }
-
-                            throw ex;
+                            throw new CLHttpException(
+                                status: null,
+                                response: null,
+                                code: (ex.Status == WebExceptionStatus.ConnectFailure ? CLExceptionCode.Http_ConnectionFailed : CLExceptionCode.Http_BadRequest),
+                                message: Resources.ExceptionHelpersProcessHttpInnerUploadRequestStream,
+                                original: ex);
                         }
 
                         // if there was no request stream retrieved, then the request was cancelled so return cancelled
                         if (httpRequestStream == null)
                         {
-                            status = CLHttpRestStatus.Cancelled;
-                            return null;
+                            throw new CLHttpException(
+                                status: null,
+                                response: null,
+                                code: CLExceptionCode.Http_Cancelled,
+                                message: Resources.ExceptionHelpersProcessHttpInnerClientCancelled);
                         }
 
                         // define a transfer buffer between the file and the upload stream
@@ -3008,8 +3068,11 @@ namespace Cloud.Static
                                     {
                                         if (uploadDownload.ShutdownToken.Token.IsCancellationRequested)
                                         {
-                                            status = CLHttpRestStatus.Cancelled;
-                                            return null;
+                                            throw new CLHttpException(
+                                                status: null,
+                                                response: null,
+                                                code: CLExceptionCode.Http_Cancelled,
+                                                message: Resources.ExceptionHelpersProcessHttpInnerClientCancelled);
                                         }
                                     }
                                     finally
@@ -3080,12 +3143,12 @@ namespace Cloud.Static
                         }
                         catch (WebException ex)
                         {
-                            if (ex.Status == WebExceptionStatus.ConnectFailure)
-                            {
-                                status = CLHttpRestStatus.ConnectionFailed;
-                            }
-
-                            throw ex;
+                            throw new CLHttpException(
+                                status: null,
+                                response: null,
+                                code: (ex.Status == WebExceptionStatus.ConnectFailure ? CLExceptionCode.Http_ConnectionFailed : CLExceptionCode.Http_BadRequest),
+                                message: Resources.ExceptionHelpersProcessHttpInnerDownloadRequestStream,
+                                original: ex);
                         }
 
                         // write the request for the download
@@ -3112,49 +3175,38 @@ namespace Cloud.Static
             {
                 // create a function to get the request Stream which can be used inline in a using statement which disposes the returned stream,
                 // the additional functionality is to check for a specific error getting the request for connection failure
-                Func<HttpWebRequest, GenericHolder<bool>, Stream> wrapGetRequest = (innerRequest, connectionFailedHolder) =>
-                {
-                    if (innerRequest == null)
+                var wrapGetRequest = DelegateAndDataHolderBase.Create(
+                    new
                     {
-                        throw new NullReferenceException("innerRequest cannot be null");
-                    }
-                    if (connectionFailedHolder == null)
+                        httpRequest = httpRequest
+                    },
+                    (Data, errorToAccumulate) =>
                     {
-                        throw new NullReferenceException("connectionFailedHolder cannot be null");
-                    }
-
-                    try
-                    {
-                        return innerRequest.GetRequestStream();
-                    }
-                    catch (WebException ex)
-                    {
-                        if (ex.Status == WebExceptionStatus.ConnectFailure)
+                        if (Data.httpRequest == null)
                         {
-                            connectionFailedHolder.Value = true;
+                            throw new CLNullReferenceException(CLExceptionCode.Http_BadRequest, Resources.ExceptionHelpersProcessHttpInnerNullHttpRequest);
                         }
 
-                        throw ex;
-                    }
-                };
+                        // try/catch to get the request stream, catch to wrap with appropriate error code
+                        try
+                        {
+                            return Data.httpRequest.GetRequestStream();
+                        }
+                        catch (WebException ex)
+                        {
+                            throw new CLHttpException(
+                                status: null,
+                                response: null,
+                                code: (ex.Status == WebExceptionStatus.ConnectFailure ? CLExceptionCode.Http_ConnectionFailed : CLExceptionCode.Http_BadRequest),
+                                message: Resources.ExceptionHelpersProcessHttpInnerDownloadRequestStream,
+                                original: ex);
+                        }
+                    },
+                    null);
 
-                // define a holder for whether the connection attempt failed
-                GenericHolder<bool> connectionFailed = new GenericHolder<bool>(false);
-
-                // try/finally to get the request stream and write the request content, finally check if it failed on connection attempt to mark the appropriate output status
-                try
+                using (Stream httpRequestStream = wrapGetRequest.TypedProcess())
                 {
-                    using (Stream httpRequestStream = wrapGetRequest(httpRequest, connectionFailed))
-                    {
-                        httpRequestStream.Write(requestContentBytes, 0, requestContentBytes.Length);
-                    }
-                }
-                finally
-                {
-                    if (connectionFailed.Value)
-                    {
-                        status = CLHttpRestStatus.ConnectionFailed;
-                    }
+                    httpRequestStream.Write(requestContentBytes, 0, requestContentBytes.Length);
                 }
             }
             #endregion
@@ -3165,24 +3217,54 @@ namespace Cloud.Static
             Stream responseStream = null; // response stream (when the communication output is a deserialized object instead of a simple string representation)
             Stream serializationStream = null; // a possible copy of the response stream for when the stream has to be used both for trace and for deserializing a return object
 
+            // declare the serializer which will be used to deserialize the response content for output
+            DataContractJsonSerializer outSerializer;
+            bool pulledOutSerializer;
+
             // try/catch/finally get the response and process its stream for output,
             // on error send a final status event if communication is for upload or download,
             // finally possibly trace if a string response was used and dispose any response/response streams
             try
             {
+                WebException storeEx;
+
                 #region get response
                 // if the communication is a download, then grab the download response asynchronously so its time is not limited to the timeout milliseconds
                 if (uploadDownload != null
                     && uploadDownload is downloadParams)
                 {
-                    // grab the download response asynchronously so its time is not limited to the timeout milliseconds
-                    httpResponse = AsyncGetUploadRequestStreamOrDownloadResponse(uploadDownload.ShutdownToken, httpRequest, false) as HttpWebResponse;
+                    // try/catch to retrieve the response and on catch try to pull the response from the exception otherwise rethrow the exception
+                    try
+                    {
+                        // grab the download response asynchronously so its time is not limited to the timeout milliseconds
+                        httpResponse = AsyncGetUploadRequestStreamOrDownloadResponse(uploadDownload.ShutdownToken, httpRequest, upload: false) as HttpWebResponse;
+
+                        storeEx = null;
+                    }
+                    catch (WebException ex)
+                    {
+                        storeEx = ex;
+
+                        if (ex.Response == null)
+                        {
+                            throw new CLNullReferenceException(CLExceptionCode.Http_NoResponse,
+                                string.Format(Resources.ExceptionHelpersProcessHttpInnerGeneralNullResponse,
+                                    (serverUrl ?? Resources.ExceptionHelpersProcessHttpInnerGeneralNullResponseNullServerUrl),
+                                    (serverMethodPath ?? Resources.ExceptionHelpersProcessHttpInnerGeneralNullResponseNullServerMethodPath)),
+                                ex);
+                        }
+
+                        httpResponse = (HttpWebResponse)ex.Response;
+                    }
 
                     // if there was no download response, then it was cancelled so return as such
-                    if (httpRequest == null)
+                    if (httpResponse == null)
                     {
-                        status = CLHttpRestStatus.Cancelled;
-                        return null;
+                        throw new CLHttpException(
+                            status: null,
+                            response: null,
+                            code: CLExceptionCode.Http_Cancelled,
+                            message: Resources.ExceptionHelpersProcessHttpInnerClientCancelled);
                     }
                 }
                 // else if the communication is not a download, then grab the response
@@ -3192,16 +3274,19 @@ namespace Cloud.Static
                     try
                     {
                         httpResponse = (HttpWebResponse)httpRequest.GetResponse();
+
+                        storeEx = null;
                     }
                     catch (WebException ex)
                     {
+                        storeEx = ex;
+
                         if (ex.Response == null)
                         {
-                            throw new NullReferenceException(
-                                String.Format("httpResponse GetResponse at URL {0}, MethodPath {1}",
-                                        (serverUrl ?? "{missing serverUrl}"),
-                                        (serverMethodPath ?? "{missing serverMethodPath}"))
-                                    + " threw a WebException without a WebResponse",
+                            throw new CLNullReferenceException(CLExceptionCode.Http_NoResponse,
+                                string.Format(Resources.ExceptionHelpersProcessHttpInnerGeneralNullResponse,
+                                    (serverUrl ?? Resources.ExceptionHelpersProcessHttpInnerGeneralNullResponseNullServerUrl),
+                                    (serverMethodPath ?? Resources.ExceptionHelpersProcessHttpInnerGeneralNullResponseNullServerMethodPath)),
                                 ex);
                         }
 
@@ -3209,45 +3294,71 @@ namespace Cloud.Static
                     }
                 }
 
+                // try to get the serializer for the output by the type of output from dictionary and store whether successful
+                pulledOutSerializer = SerializableResponseTypes.TryGetValue(typeof(T), out outSerializer);
+
+                bool validStatusCode = validStatusCodes.Contains(httpResponse.StatusCode);
+
                 // if the status code of the response is not in the provided HashSet of those which represent success,
                 // then try to provide a more specific return status and try to pull the content from the response as a string and throw an exception for invalid status code
-                if (!validStatusCodes.Contains(httpResponse.StatusCode))
+                if (!validStatusCode
+                    || (uploadDownload != null // also, error for non-upload\downloads which cannot be serialized
+                        && !pulledOutSerializer // no serializer for this type found
+                        && typeof(T) != typeof(string) // don't need serializer for direct string output
+                        && typeof(T) != typeof(object))) // don't need serializer for direct object output (will output as string)
                 {
-                    // if response status code is a not found, then set the output status accordingly
-                    if (httpResponse.StatusCode == HttpStatusCode.NotFound)
+                    CLExceptionCode status;
+
+                    if (validStatusCode)
                     {
-                        status = CLHttpRestStatus.NotFound;
+                        // if error is due to not being serializable, use bad request
+                        status = CLExceptionCode.Http_BadRequest;
                     }
-                    // else if response status was not a not found and is a no content, then set the output status accordingly
-                    else if (httpResponse.StatusCode == HttpStatusCode.NoContent
-                        || ((int)httpResponse.StatusCode) == CLDefinitions.CustomNoContentCode) // alternative to no content, so the server can include an error message
-                    {
-                        status = CLHttpRestStatus.NoContent;
-                    }
-                    // else if the response status was neither a not found nor a no content and is an unauthorized, then set the output state accordingly
-                    else if (httpResponse.StatusCode == HttpStatusCode.Unauthorized)
-                    {
-                        status = CLHttpRestStatus.NotAuthorized;
-                    }
-                    // else if response status was neither a not found nor a no content and is within the range of a server error (5XX), then set the output status accordingly
                     else
                     {
-                        // define the cast int for the status code from the enumeration
-                        int statusCodeInt = (int)httpResponse.StatusCode;
-
-                        // if storage quota exceeded then use that status
-                        if (statusCodeInt == CLDefinitions.CustomQuotaExceededCode /* Storage quota exceeded code, not in the HttpStatusCode enumeration */)
+                        // if response status code is a not found, then set the output status accordingly
+                        if (httpResponse.StatusCode == HttpStatusCode.NotFound)
                         {
-                            status = CLHttpRestStatus.QuotaExceeded;
+                            status = CLExceptionCode.Http_NotFound;
                         }
-                        // else if storage quota not exceeded, perform the (5XX) code check for other server error
-                        else if (((HttpStatusCode)(statusCodeInt - (statusCodeInt % 100))) == HttpStatusCode.InternalServerError)
+                        // else if response status was not a not found and is a no content, then set the output status accordingly
+                        else if (httpResponse.StatusCode == HttpStatusCode.NoContent
+                            || ((int)httpResponse.StatusCode) == CLDefinitions.CustomNoContentCode) // alternative to no content, so the server can include an error message
                         {
-                            status = CLHttpRestStatus.ServerError;
+                            status = CLExceptionCode.Http_NoContent;
+                        }
+                        // else if the response status was neither a not found nor a no content and is an unauthorized, then set the output state accordingly
+                        else if (httpResponse.StatusCode == HttpStatusCode.Unauthorized)
+                        {
+                            status = CLExceptionCode.Http_NotAuthorized;
+                        }
+                        // else if response status was neither a not found nor a no content and is within the range of a server error (5XX), then set the output status accordingly
+                        else
+                        {
+                            // define the cast int for the status code from the enumeration
+                            int statusCodeInt = (int)httpResponse.StatusCode;
+
+                            // if storage quota exceeded then use that status
+                            if (statusCodeInt == CLDefinitions.CustomQuotaExceededCode /* Storage quota exceeded code, not in the HttpStatusCode enumeration */)
+                            {
+                                status = CLExceptionCode.Http_QuotaExceeded;
+                            }
+                            // else if storage quota not exceeded, perform the (5XX) code check for other server error
+                            else if (((HttpStatusCode)(statusCodeInt - (statusCodeInt % 100))) == HttpStatusCode.InternalServerError)
+                            {
+                                status = CLExceptionCode.Http_ServerError;
+                            }
+                            // else unhandled http status, just use bad request
+                            else
+                            {
+                                status = CLExceptionCode.Http_BadRequest;
+                            }
                         }
                     }
 
-                    // try/catch to set the response body from the content of the response, on catch silence the error
+                    bool readingStreamError = true;
+
+                    // try/catch to set the response body from the content of the response, on catch rethrow intentional errors or wrap stream-reading errors
                     try
                     {
                         // grab the response stream
@@ -3259,8 +3370,11 @@ namespace Cloud.Static
                                 // set the response text
                                 responseBody = downloadResponseStreamReader.ReadToEnd();
 
+                                // finished reading the stream, if an exception occurs now, we want it rethrown as is
+                                readingStreamError = false;
+
                                 if (!string.IsNullOrEmpty(responseBody)
-                                    && status == CLHttpRestStatus.NotAuthorized)
+                                    && status == CLExceptionCode.Http_NotAuthorized)
                                 {
                                     using (MemoryStream notAuthorizedStream = new MemoryStream())
                                     {
@@ -3273,7 +3387,22 @@ namespace Cloud.Static
                                         DataContractJsonSerializer notAuthorizedSerializer;
                                         if (!SerializableResponseTypes.TryGetValue(typeof(JsonContracts.AuthenticationErrorResponse), out notAuthorizedSerializer))
                                         {
-                                            throw new KeyNotFoundException("Unable to find serializer for JsonContracts.AuthenticationErrorResponse in SerializableResponseTypes");
+                                            // throw and rethrow to get in all the types and extra messages\fields
+                                            try
+                                            {
+                                                throw new CLHttpException(
+                                                    httpResponse.StatusCode,
+                                                    responseBody,
+                                                    CLExceptionCode.Http_NotAuthorized,
+                                                    string.Format(Resources.ExceptionHelpersProcessHttpInnerInvalidResponseStatus,
+                                                        (serverUrl ?? Resources.ExceptionHelpersProcessHttpInnerGeneralNullResponseNullServerUrl),
+                                                        (serverMethodPath ?? Resources.ExceptionHelpersProcessHttpInnerGeneralNullResponseNullServerMethodPath)),
+                                                        storeEx);
+                                            }
+                                            catch (Exception ex)
+                                            {
+                                                throw new CLKeyNotFoundException(CLExceptionCode.Http_NotAuthorized, Resources.ExceptionHelpersProcessHttpInnerMissingAuthenticationErrorResponse, ex);
+                                            }
                                         }
 
                                         #region AuthenticationErrorMessage deprecated, replaced by AuthenticationError below
@@ -3303,7 +3432,7 @@ namespace Cloud.Static
 
                                         //                if (parsedErrorMessage.Message == CLDefinitions.MessageTextExpiredCredentials)
                                         //                {
-                                        //                    status = CLHttpRestStatus.NotAuthorizedExpiredCredentials;
+                                        //                    status = CLExceptionCode.Http_NotAuthorizedExpiredCredentials;
                                         //                    break;
                                         //                }
                                         //            }
@@ -3320,26 +3449,39 @@ namespace Cloud.Static
                                         if (parsedErrorResponse.AuthenticationErrors != null
                                             && parsedErrorResponse.AuthenticationErrors.Any(authenticationError => authenticationError.CodeAsEnum == AuthenticationErrorType.SessionExpired))
                                         {
-                                            status = CLHttpRestStatus.NotAuthorizedExpiredCredentials;
+                                            status = CLExceptionCode.Http_NotAuthorizedExpiredCredentials;
                                         }
                                     }
                                 }
                             }
                         }
                     }
-                    catch
+                    catch (Exception ex)
                     {
+                        if (readingStreamError)
+                        {
+                            throw new CLHttpException(
+                                httpResponse.StatusCode,
+                                responseBody,
+                                CLExceptionCode.Http_BadRequest,
+                                Resources.ExceptionHelpersProcessHttpInnerInvalidStatusStreamRead,
+                                ex);
+                        }
+                        else
+                        {
+                            throw ex;
+                        }
                     }
 
                     // throw the exception for an invalid response
-                    throw new Exception(String.Format("Invalid HTTP response status code at URL {0}, MethodPath {1}",
-                        (serverUrl ?? "{missing serverUrl"),
-                        (serverMethodPath ?? "{missing serverMethodPath")) +
-                            ": " + ((int)httpResponse.StatusCode).ToString() +
-                            (responseBody == null
-                                ? string.Empty
-                                : Environment.NewLine + "Response:" + Environment.NewLine +
-                                    responseBody)); // either the default "incomplete" body or the body retrieved from the response content
+                    throw new CLHttpException(
+                        httpResponse.StatusCode,
+                        responseBody,
+                        status,
+                        string.Format(Resources.ExceptionHelpersProcessHttpInnerInvalidResponseStatus,
+                            (serverUrl ?? Resources.ExceptionHelpersProcessHttpInnerGeneralNullResponseNullServerUrl),
+                            (serverMethodPath ?? Resources.ExceptionHelpersProcessHttpInnerGeneralNullResponseNullServerMethodPath)),
+                            storeEx);
                 }
                 #endregion
 
@@ -3354,7 +3496,7 @@ namespace Cloud.Static
                     if (uploadDownload is uploadParams)
                     {
                         // set body as successful value
-                        responseBody = "---File upload complete---";
+                        responseBody = Resources.CompleteFileUpload;
 
                         try
                         {
@@ -3383,7 +3525,7 @@ namespace Cloud.Static
                     else
                     {
                         // set the response body to a value that will be displayed if the actual response fails to process
-                        responseBody = "---Incomplete file download---";
+                        responseBody = Resources.IncompleteFileDownload;
 
                         try
                         {
@@ -3462,18 +3604,20 @@ namespace Cloud.Static
                                             {
                                                 if (innerStoreReturnBody.Value == null)
                                                 {
-                                                    innerStoreReturnBody.Value = (innerResponseBody ?? "---responseBody set to null---").TrimEnd('-') + ": cancelled---";
+                                                    innerStoreReturnBody.Value = (innerResponseBody ?? Resources.NullHttpResponseBody).TrimEnd(/* '-' */ (char)0x002d) + Resources.CancelledHttpResponseAppend;
                                                 }
                                                 return innerStoreReturnBody.Value;
                                             };
 
                                         if (uploadDownload.ChangeToTransfer.NewPath == null)
                                         {
-                                            status = CLHttpRestStatus.Cancelled;
-
                                             responseBody = fillAndReturnBody(storeReturnBody, responseBody);
 
-                                            return null;
+                                            throw new CLHttpException(
+                                                status: httpResponse.StatusCode,
+                                                response: responseBody,
+                                                code: CLExceptionCode.Http_Cancelled,
+                                                message: Resources.ExceptionHelpersProcessHttpInnerClientCancelled);
                                         }
 
                                         // check for sync shutdown
@@ -3484,11 +3628,13 @@ namespace Cloud.Static
                                             {
                                                 if (uploadDownload.ShutdownToken.Token.IsCancellationRequested)
                                                 {
-                                                    status = CLHttpRestStatus.Cancelled;
-
                                                     responseBody = fillAndReturnBody(storeReturnBody, responseBody);
 
-                                                    return null;
+                                                    throw new CLHttpException(
+                                                        status: httpResponse.StatusCode,
+                                                        response: responseBody,
+                                                        code: CLExceptionCode.Http_Cancelled,
+                                                        message: Resources.ExceptionHelpersProcessHttpInnerClientCancelled);
                                                 }
                                             }
                                             finally
@@ -3560,7 +3706,7 @@ namespace Cloud.Static
                             {
                                 _trace.writeToMemory(() => _trace.trcFmtStr(2, "Helpers: ProcessHttpInner<T>: ERROR: castDownloadState.LockerForDownloadedFileAccess is null."));
                             }
-                            lock (castDownloadState == null ? new object() : castDownloadState.LockerForDownloadedFileAccess ?? new object())
+                            lock (castDownloadState == null ? new object() : (castDownloadState.LockerForDownloadedFileAccess ?? new object()))
                             {
                                 _trace.writeToMemory(() => _trace.trcFmtStr(2, "Helpers: ProcessHttpInner<T>: In lock LockerForDownloadedFileAccess."));
                                 if (castDownloadState != null
@@ -3603,7 +3749,7 @@ namespace Cloud.Static
                             // if the after downloading callback set the response to null, then replace it saying it was null
                             if (responseBody == null)
                             {
-                                responseBody = "---responseBody set to null---";
+                                responseBody = Resources.NullHttpResponseBody;
                             }
 
                             // if a string can be output as the return type, then return the response (which is not the actual download, but a simple string status representation)
@@ -3625,10 +3771,8 @@ namespace Cloud.Static
                 // else if the communication was neither an upload nor a download, then process the response stream for return
                 else
                 {
-                    // declare the serializer which will be used to deserialize the response content for output
-                    DataContractJsonSerializer outSerializer;
-                    // try to get the serializer for the output by the type of output from dictionary and if successful, process response content as stream to deserialize
-                    if (SerializableResponseTypes.TryGetValue(typeof(T), out outSerializer))
+                    // if pulling a serializable return type was successful earlier, process response content as stream to deserialize
+                    if (pulledOutSerializer)
                     {
                         // grab the stream for response content
                         responseStream = httpResponse.GetResponseStream();
@@ -3666,7 +3810,7 @@ namespace Cloud.Static
 
                             if (deserializedResponse == null)
                             {
-                                throw new NullReferenceException("Deserialized JsonObject null from responseString");
+                                throw new CLNullReferenceException(CLExceptionCode.Http_BadRequest, Resources.ExceptionHelpersProcessHttpInnerResponseStringJsonObject);
                             }
 
                             foreach (KeyValuePair<string, object> myDeserializedPair in deserializedResponse)
@@ -3707,15 +3851,24 @@ namespace Cloud.Static
                         }
                     }
                     // else if the output type is not in the dictionary of those serializable and if the output type is also neither object nor string,
-                    // then throw an argument exception
+                    // then we should have handled this condition earlier in invalid status code processing: process as unrecoverable error
                     else
                     {
-                        throw new ArgumentException("T is not a serializable output type nor object/string");
+                        MessageEvents.FireNewEventMessage(
+                            Resources.ExceptionHelpersProcessHttpInnerResponseDeserializeMissedEarlierCheck,
+                            EventMessageLevel.Important,
+                            new Cloud.Model.EventMessages.ErrorInfo.HaltAllOfCloudSDKErrorInfo());
+
+                        throw new CLHttpException(
+                            httpResponse.StatusCode,
+                            responseBody,
+                            CLExceptionCode.Http_BadRequest,
+                            Resources.ExceptionHelpersProcessHttpInnerResponseDeserializeMissedEarlierCheck);
                     }
                 }
 
-                // if the code has not thrown an exception by now then it was successful so mark it so in the output
-                status = CLHttpRestStatus.Success;
+                // if the code has not thrown an exception by now then it was successful
+
                 // return any object set to return for the response, if any
                 return toReturn;
                 #endregion
@@ -4031,48 +4184,132 @@ namespace Cloud.Static
             object toReturn;
 
             // create new async holder used to make async http calls synchronous
-            AsyncRequestHolder requestOrResponseHolder = new AsyncRequestHolder(shutdownToken);
+            var MakeAsyncRequestSynchronous = DelegateAndDataHolderBase<IAsyncResult>.Create(
+                new
+                {
+                    CompletedSynchronously = new GenericHolder<bool>(false),
+                    FullShutdownToken = shutdownToken,
+                    IsCancelled = new GenericHolder<bool>(false),
+                    Error = new GenericHolder<Exception>(null)
+                },
+                (Data, param1, errorToAccumulate) =>
+                {
+                    // try/catch check for completion or cancellation to pulse the AsyncRequestHolder, on catch mark the exception in the AsyncRequestHolder (which will also pulse out)
+                    try
+                    {
+                        if (param1 == null)
+                        {
+                            throw new CLArgumentNullException(CLExceptionCode.Http_BadRequest, Resources.ExceptionHelpersAsyncGetUploadRequestStreamOrDownloadResponseMakeSyncParam1);
+                        }
+
+                        // if marked as completed synchronously pass through to the userstate which is used within the callstack to prevent blocking on Monitor.Wait
+                        if (param1.CompletedSynchronously)
+                        {
+                            lock (Data)
+                            {
+                                Data.CompletedSynchronously.Value = true;
+                            }
+                        }
+
+                        // if asynchronous task completed, then pulse the AsyncRequestHolder
+                        if (param1.IsCompleted)
+                        {
+                            if (!param1.CompletedSynchronously)
+                            {
+                                lock (Data)
+                                {
+                                    Monitor.Pulse(Data);
+                                }
+                            }
+                        }
+                        // else if asychronous task is not completed, then check for cancellation
+                        else if (Data.FullShutdownToken != null)
+                        {
+                            // check for cancellation
+                            Monitor.Enter(Data.FullShutdownToken);
+                            try
+                            {
+                                // if cancelled, then mark the AsyncRequestHolder as cancelled and pulse out
+                                if (Data.FullShutdownToken.Token.IsCancellationRequested)
+                                {
+                                    Data.IsCancelled.Value = true;
+
+                                    if (!param1.CompletedSynchronously)
+                                    {
+                                        lock (Data)
+                                        {
+                                            Monitor.Pulse(Data);
+                                        }
+                                    }
+                                }
+                            }
+                            finally
+                            {
+                                Monitor.Exit(Data.FullShutdownToken);
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        // mark AsyncRequestHolder with error and pulse out
+                        Data.Error.Value = ex;
+
+                        if (param1 == null
+                            || !param1.CompletedSynchronously)
+                        {
+                            lock (Data)
+                            {
+                                Monitor.Pulse(Data);
+                            }
+                        }
+                    }
+                },
+                null);
 
             // declare result from async http call
             IAsyncResult requestOrResponseAsyncResult;
 
             // lock on async holder for modification
-            lock (requestOrResponseHolder)
+            lock (MakeAsyncRequestSynchronous.TypedData)
             {
                 // create a callback which handles the IAsyncResult style used in wrapping an asyncronous method to make it synchronous
-                AsyncCallback requestOrResponseCallback = new AsyncCallback(MakeAsyncRequestSynchronous);
+                AsyncCallback requestOrResponseCallback = new AsyncCallback(MakeAsyncRequestSynchronous.VoidProcess);
 
                 // if this helper was called for an upload, then the action is for the request stream
                 if (upload)
                 {
                     // begin getting the upload request stream asynchronously, using callback which will take the async holder and make the request synchronous again, storing the result
-                    requestOrResponseAsyncResult = httpRequest.BeginGetRequestStream(requestOrResponseCallback, requestOrResponseHolder);
+                    requestOrResponseAsyncResult = httpRequest.BeginGetRequestStream(requestOrResponseCallback, state: null); // state is contained in the callback itself
                 }
                 // else if this helper was called for a download, then the action is for the response
                 else
                 {
                     // begin getting the download response asynchronously, using callback which will take the async holder and make the request synchronous again, storing the result
-                    requestOrResponseAsyncResult = httpRequest.BeginGetResponse(requestOrResponseCallback, requestOrResponseHolder);
+                    requestOrResponseAsyncResult = httpRequest.BeginGetResponse(requestOrResponseCallback, state: null); // state is contained in the callback itself
                 }
 
                 // if the request was not already completed synchronously, wait on it to complete
-                if (!requestOrResponseHolder.CompletedSynchronously)
+                if (!MakeAsyncRequestSynchronous.TypedData.CompletedSynchronously.Value)
                 {
                     // wait on the request to become synchronous again
-                    Monitor.Wait(requestOrResponseHolder);
+                    Monitor.Wait(MakeAsyncRequestSynchronous.TypedData);
                 }
             }
 
             // if there was an error that occurred on the async http call, then rethrow the error
-            if (requestOrResponseHolder.Error != null)
+            if (MakeAsyncRequestSynchronous.TypedData.Error.Value != null)
             {
-                throw requestOrResponseHolder.Error;
+                throw MakeAsyncRequestSynchronous.TypedData.Error.Value;
             }
 
             // if the http call was cancelled, then return immediately with default
-            if (requestOrResponseHolder.IsCanceled)
+            if (MakeAsyncRequestSynchronous.TypedData.IsCancelled.Value)
             {
-                return null;
+                throw new CLHttpException(
+                    status: null,
+                    response: null,
+                    code: CLExceptionCode.Http_Cancelled,
+                    message: Resources.ExceptionHelpersProcessHttpInnerClientCancelled);
             }
 
             // if this helper was called for an upload, then the action is for the request stream
@@ -4083,196 +4320,13 @@ namespace Cloud.Static
             // else if this helper was called for a download, then the action is for the response
             else
             {
-                // try/catch to retrieve the response and on catch try to pull the response from the exception otherwise rethrow the exception
-                try
-                {
-                    toReturn = httpRequest.EndGetResponse(requestOrResponseAsyncResult);
-                }
-                catch (WebException ex)
-                {
-                    if (ex.Response == null)
-                    {
-                        throw new NullReferenceException("Download httpRequest EndGetResponse threw a WebException without a WebResponse", ex);
-                    }
-
-                    toReturn = ex.Response;
-                }
+                toReturn = httpRequest.EndGetResponse(requestOrResponseAsyncResult);
             }
 
             // output the retrieved request stream or the retrieved response
             return toReturn;
         }
 
-        /// <summary>
-        /// Async HTTP operation holder used to help make async calls synchronous
-        /// </summary>
-        internal sealed class AsyncRequestHolder
-        {
-            /// <summary>
-            /// Whether IAsyncResult was found to be CompletedSynchronously: if so, do not Monitor.Wait
-            /// </summary>
-            public bool CompletedSynchronously
-            {
-                get
-                {
-                    return _completedSynchronously;
-                }
-            }
-            /// <summary>
-            /// Mark this when IAsyncResult was found to be CompletedSynchronously
-            /// </summary>
-            public void MarkCompletedSynchronously()
-            {
-                _completedSynchronously = true;
-            }
-            // storage for CompletedSynchronously, only marked when true so default to false
-            private bool _completedSynchronously = false;
-
-            /// <summary>
-            /// cancelation token to check between async calls to cancel out of the operation
-            /// </summary>
-            public CancellationTokenSource FullShutdownToken
-            {
-                get
-                {
-                    return _fullShutdownToken;
-                }
-            }
-            private readonly CancellationTokenSource _fullShutdownToken;
-
-            /// <summary>
-            /// Constructor for the async HTTP operation holder
-            /// </summary>
-            /// <param name="FullShutdownToken">Token to check for cancelation upon async calls</param>
-            public AsyncRequestHolder(CancellationTokenSource FullShutdownToken)
-            {
-                // store the cancellation token
-                this._fullShutdownToken = FullShutdownToken;
-            }
-
-            /// <summary>
-            /// Whether the current async HTTP operation holder detected cancellation
-            /// </summary>
-            public bool IsCanceled
-            {
-                get
-                {
-                    return _isCanceled;
-                }
-            }
-            // storage for cancellation
-            private bool _isCanceled = false;
-
-            /// <summary>
-            /// Marks the current async HTTP operation holder as cancelled
-            /// </summary>
-            public void Cancel()
-            {
-                _isCanceled = true;
-            }
-
-            /// <summary>
-            /// Any error that happened during current async HTTP operation
-            /// </summary>
-            public Exception Error
-            {
-                get
-                {
-                    return _error;
-                }
-            }
-            // storage for any error that occurs
-            private Exception _error = null;
-
-            /// <summary>
-            /// Marks the current async HTTP operation holder with any error that occurs
-            /// </summary>
-            /// <param name="toMark"></param>
-            public void MarkException(Exception toMark)
-            {
-                // null coallesce the exception with a new exception that the exception was null
-                _error = toMark ?? new NullReferenceException("toMark is null");
-                // lock on this current async HTTP operation holder for pulsing waiters
-                lock (this)
-                {
-                    Monitor.Pulse(this);
-                }
-            }
-        }
-
-        /// <summary>
-        /// Method to make async HTTP operations synchronous which can be ; requires passing an AsyncRequestHolder as the userstate
-        /// </summary>
-        internal static void MakeAsyncRequestSynchronous(IAsyncResult makeSynchronous)
-        {
-            // try cast userstate as AsyncRequestHolder
-            AsyncRequestHolder castHolder = makeSynchronous.AsyncState as AsyncRequestHolder;
-
-            // ensure the cast userstate was successful
-            if (castHolder == null)
-            {
-                throw new NullReferenceException("makeSynchronous AsyncState must be castable as AsyncRequestHolder");
-            }
-
-            // try/catch check for completion or cancellation to pulse the AsyncRequestHolder, on catch mark the exception in the AsyncRequestHolder (which will also pulse out)
-            try
-            {
-                // if marked as completed synchronously pass through to the userstate which is used within the callstack to prevent blocking on Monitor.Wait
-                if (makeSynchronous.CompletedSynchronously)
-                {
-                    lock (castHolder)
-                    {
-                        castHolder.MarkCompletedSynchronously();
-                    }
-                }
-
-                // if asynchronous task completed, then pulse the AsyncRequestHolder
-                if (makeSynchronous.IsCompleted)
-                {
-                    if (!makeSynchronous.CompletedSynchronously)
-                    {
-                        lock (castHolder)
-                        {
-                            Monitor.Pulse(castHolder);
-                        }
-                    }
-                }
-                // else if asychronous task is not completed, then check for cancellation
-                else if (castHolder.FullShutdownToken != null)
-                {
-                    // check for cancellation
-                    Monitor.Enter(castHolder.FullShutdownToken);
-                    try
-                    {
-                        // if cancelled, then mark the AsyncRequestHolder as cancelled and pulse out
-                        if (castHolder.FullShutdownToken.Token.IsCancellationRequested)
-                        {
-                            castHolder.Cancel();
-
-                            if (!makeSynchronous.CompletedSynchronously)
-                            {
-                                lock (castHolder)
-                                {
-                                    Monitor.Pulse(castHolder);
-                                }
-                            }
-                        }
-                    }
-                    finally
-                    {
-                        Monitor.Exit(castHolder.FullShutdownToken);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                // mark AsyncRequestHolder with error (which will also pulse out)
-                castHolder.MarkException(ex);
-            }
-        }
-
-        /// <summary>
-        /// </summary>
         internal enum requestMethod : byte
         {
             put,
@@ -4819,7 +4873,7 @@ namespace Cloud.Static
                 // if trying to cast the asynchronous result failed, then throw an error
                 if (castAResult == null)
                 {
-                    throw new NullReferenceException("aResult does not match expected internal type");
+                    throw new CLInvalidOperationException(CLExceptionCode.General_Invalid, "aResult does not match expected internal type");
                 }
 
                 // pull the result for output (may not yet be complete)

@@ -136,6 +136,9 @@
   <data name="BytesSingular" xml:space="preserve">
     <value>Byte</value>
   </data>
+  <data name="CancelledHttpResponseAppend" xml:space="preserve">
+    <value>: cancelled---</value>
+  </data>
   <data name="CommonStartMenuParentFolderNameVista" xml:space="preserve">
     <value>ProgramData\Microsoft\Windows</value>
     <comment>Vista and up; defined translations must perfectly match Microsoft documentation</comment>
@@ -143,6 +146,9 @@
   <data name="CommonStartMenuParentFolderNameXP" xml:space="preserve">
     <value>Documents and Settings\All Users</value>
     <comment>XP only; defined translations must perfectly match Microsoft documentation</comment>
+  </data>
+  <data name="CompleteFileUpload" xml:space="preserve">
+    <value>---File upload complete---</value>
   </data>
   <data name="DocumentsAndSettingsVista" xml:space="preserve">
     <value>Users</value>
@@ -174,6 +180,10 @@
   <data name="ExceptionCreatingUserRegistrationWithCode" xml:space="preserve">
     <value>Oops. We're sorry, it seems like something went wrong while creating your account.  The error code is {0}.</value>
   </data>
+  <data name="ExceptionDelegateAndDataHolderNullDelegateToWrap" xml:space="preserve">
+    <value>delegateToWrap cannot be processed when null</value>
+    <comment>delegateToWrap should not be translated</comment>
+  </data>
   <data name="ExceptionFileChangeSetMD5ByteLength" xml:space="preserve">
     <value>MD5 must be 128 bits (a byte array of length 16)</value>
     <comment>MD5 should not be translated</comment>
@@ -181,6 +191,10 @@
   <data name="ExceptionFileChangeUpDownEventArgsNullSendBackChange" xml:space="preserve">
     <value>SendBackChange cannot be null</value>
     <comment>SendBackChange should not be translated</comment>
+  </data>
+  <data name="ExceptionHelpersAsyncGetUploadRequestStreamOrDownloadResponseMakeSyncParam1" xml:space="preserve">
+    <value>MakeAsyncRequestSynchronous was processed without param1</value>
+    <comment>MakeAsyncRequestSynchronous and param1 should not be translated</comment>
   </data>
   <data name="ExceptionHelpersCheckForBadPathDriveLetter" xml:space="preserve">
     <value>rootPathObject must start with a upper-case drive letter</value>
@@ -214,9 +228,101 @@
     <value>Cannot retrieve property values on an invalid DictionaryTryGetValueResult</value>
     <comment>Dictionary and TryGetValueResult should not be translated</comment>
   </data>
+  <data name="ExceptionHelpersHandleUploadDownloadStatusNullEventSource" xml:space="preserve">
+    <value>eventSource cannot be null</value>
+    <comment>eventSource should not be translated</comment>
+  </data>
   <data name="ExceptionHelpersParseHexadecimalStringToByteArrayHashStringFormat" xml:space="preserve">
     <value>hashString must be in a hexadecimal string format with no seperator characters and two characters per byte</value>
     <comment>hashString should not be translated</comment>
+  </data>
+  <data name="ExceptionHelpersProcessHttpInnerAllHaltedOnUnrecoverableError" xml:space="preserve">
+    <value>Cannot do anything with the Cloud SDK if Helpers.AllHaltedOnUnrecoverableError is set</value>
+    <comment>Cloud and Helpers.AllHaltedOnUnrecoverableError should not be translated</comment>
+  </data>
+  <data name="ExceptionHelpersProcessHttpInnerClientCancelled" xml:space="preserve">
+    <value>Operation cancelled by client</value>
+  </data>
+  <data name="ExceptionHelpersProcessHttpInnerDownloadNullResponse" xml:space="preserve">
+    <value>Download httpRequest EndGetResponse threw a WebException without a WebResponse</value>
+    <comment>httpRequest, EndGetResponse, WebException, and WebResponse should not be translated</comment>
+  </data>
+  <data name="ExceptionHelpersProcessHttpInnerDownloadRequestStream" xml:space="preserve">
+    <value>Error getting request stream for a download</value>
+  </data>
+  <data name="ExceptionHelpersProcessHttpInnerGeneralNullResponse" xml:space="preserve">
+    <value>httpResponse GetResponse at URL {0}, MethodPath {1} threw a WebException without a WebResponse</value>
+    <comment>httpResponse, GetResponse, WebException, and WebResponse should not be translated</comment>
+  </data>
+  <data name="ExceptionHelpersProcessHttpInnerGeneralNullResponseNullServerMethodPath" xml:space="preserve">
+    <value>{missing serverMethodPath}</value>
+    <comment>serverMethodPath should not be translated</comment>
+  </data>
+  <data name="ExceptionHelpersProcessHttpInnerGeneralNullResponseNullServerUrl" xml:space="preserve">
+    <value>{missing serverUrl}</value>
+    <comment>serverUrl should not be translated</comment>
+  </data>
+  <data name="ExceptionHelpersProcessHttpInnerGeneralRequestStream" xml:space="preserve">
+    <value>Error getting request stream for a post operation</value>
+  </data>
+  <data name="ExceptionHelpersProcessHttpInnerHttpMethod" xml:space="preserve">
+    <value>Unknown method: {0}</value>
+  </data>
+  <data name="ExceptionHelpersProcessHttpInnerInvalidResponseStatus" xml:space="preserve">
+    <value>Invalid HTTP response status code at URL {0}, MethodPath {1}</value>
+  </data>
+  <data name="ExceptionHelpersProcessHttpInnerInvalidStatusStreamRead" xml:space="preserve">
+    <value>Unable to read the response stream</value>
+  </data>
+  <data name="ExceptionHelpersProcessHttpInnerMissingAuthenticationErrorResponse" xml:space="preserve">
+    <value>Unable to find serializer for JsonContracts.AuthenticationErrorResponse in SerializableResponseTypes</value>
+    <comment>JsonContracts.AuthenticationErrorResponse and SerializableResponseTypes should not be translated</comment>
+  </data>
+  <data name="ExceptionHelpersProcessHttpInnerNullHttpRequest" xml:space="preserve">
+    <value>httpRequest cannot be null</value>
+    <comment>httpRequest should not be translated</comment>
+  </data>
+  <data name="ExceptionHelpersProcessHttpInnerRequestContentType" xml:space="preserve">
+    <value>Unknown requestContent Type: {0}</value>
+    <comment>requestContent and Type should not be translated</comment>
+  </data>
+  <data name="ExceptionHelpersProcessHttpInnerRequestStringJsonObject" xml:space="preserve">
+    <value>Deserialized JsonObject null from requestString</value>
+    <comment>JsonObject and requestString should not be translated</comment>
+  </data>
+  <data name="ExceptionHelpersProcessHttpInnerResponseDeserializeMissedEarlierCheck" xml:space="preserve">
+    <value>Unable to deserialize response stream and missed an earlier check for this condition</value>
+  </data>
+  <data name="ExceptionHelpersProcessHttpInnerResponseStringJsonObject" xml:space="preserve">
+    <value>Deserialized JsonObject null from responseString</value>
+    <comment>JsonObject and responseString should not be translated</comment>
+  </data>
+  <data name="ExceptionHelpersProcessHttpInnerTempDownloadFolderPath" xml:space="preserve">
+    <value>uploadDownload TempDownloadFolderPath cannot be null</value>
+    <comment>uploadDownload and TempDownloadFolderPath should not be translated</comment>
+  </data>
+  <data name="ExceptionHelpersProcessHttpInnerUploadDownloadType" xml:space="preserve">
+    <value>uploadDownload must be either upload or download</value>
+    <comment>uploadDownload should not be translated</comment>
+  </data>
+  <data name="ExceptionHelpersProcessHttpInnerUploadRequestStream" xml:space="preserve">
+    <value>Error getting request stream for an upload</value>
+  </data>
+  <data name="ExceptionHelpersProcessHttpNullGetCurrentCredentialsCallback" xml:space="preserve">
+    <value>RequestNewCredentialsInfo GetCurrentCredentialsCallback must not be null</value>
+    <comment>RequestNewCredentialsInfo and GetCurrentCredentialsCallback should not be translated</comment>
+  </data>
+  <data name="ExceptionHelpersProcessHttpNullProcessingStateByThreadId" xml:space="preserve">
+    <value>RequestNewCredentialsInfo ProcessingStateByThreadId must not be null</value>
+    <comment>RequestNewCredentialsInfo and ProcessingStateByThreadId should not be translated</comment>
+  </data>
+  <data name="ExceptionHelpersProcessHttpNullRequestNewCredentialsInfo" xml:space="preserve">
+    <value>RequestNewCredentialsInfo must not be null</value>
+    <comment>RequestNewCredentialsInfo should not be translated</comment>
+  </data>
+  <data name="ExceptionHelpersProcessHttpNullSetNewCredentialsCallback" xml:space="preserve">
+    <value>RequestNewCredentialsInfo SetNewCredentialsCallback must not be null</value>
+    <comment>RequestNewCredentialsInfo and SetNewCredentialsCallback should not be translated</comment>
   </data>
   <data name="ExceptionHelpersRunActionWithRetriesFailedRetries" xml:space="preserve">
     <value>Operation failed all retries with a numRetries of {0}</value>
@@ -243,6 +349,10 @@
   <data name="ExceptionUnlinkingWithCode" xml:space="preserve">
     <value>Oops. We're sorry, it seems like something went wrong while removing this device from your account.  The error code is {0}.</value>
   </data>
+  <data name="IncompleteFileDownload" xml:space="preserve">
+    <value>---Incomplete file download---</value>
+    <comment>Must end with three hypen characters</comment>
+  </data>
   <data name="LocalAppDataFolderNameVista" xml:space="preserve">
     <value>AppData\Local</value>
     <comment>Vista and up; defined translations must perfectly match Microsoft documentation</comment>
@@ -250,6 +360,18 @@
   <data name="LocalAppDataFolderNameXP" xml:space="preserve">
     <value>Local Settings\Application Data</value>
     <comment>XP only; defined translations must perfectly match Microsoft documentation</comment>
+  </data>
+  <data name="LogCloudExceptionType" xml:space="preserve">
+    <value>Cloud exception type: {0}</value>
+  </data>
+  <data name="LogHttpResponse" xml:space="preserve">
+    <value>Http response:{0}{1}</value>
+  </data>
+  <data name="LogHttpStatus" xml:space="preserve">
+    <value>Http status code: {0}</value>
+  </data>
+  <data name="LogStacktrace" xml:space="preserve">
+    <value>StackTrace:{0}{1}</value>
   </data>
   <data name="MusicFolderNameVista" xml:space="preserve">
     <value>Music</value>
@@ -327,6 +449,18 @@
     <value>DefaultForType</value>
     <comment>Do not translate</comment>
   </data>
+  <data name="NotTranslatedHttpClose" xml:space="preserve">
+    <value>Close</value>
+    <comment>Do not translate</comment>
+  </data>
+  <data name="NotTranslatedHttpContinue" xml:space="preserve">
+    <value>100-continue</value>
+    <comment>Do not translate</comment>
+  </data>
+  <data name="NotTranslatedHttpKeepAlive" xml:space="preserve">
+    <value>Keep-Alive</value>
+    <comment>Do not translate</comment>
+  </data>
   <data name="NotTranslatedImplicitOperator" xml:space="preserve">
     <value>op_Implicit</value>
     <comment>Do not translate</comment>
@@ -387,6 +521,10 @@
     <value>0.0.0.0</value>
     <comment>Do not translate</comment>
   </data>
+  <data name="NullHttpResponseBody" xml:space="preserve">
+    <value>---responseBody set to null---</value>
+    <comment>responseBody should not be translated; Must end with three hyphen characters</comment>
+  </data>
   <data name="OsBits" xml:space="preserve">
     <value>bits</value>
     <comment>e.g., "32 bits" or "64 bits"</comment>
@@ -414,6 +552,9 @@
   <data name="RoamingAppDataFolderNameXP" xml:space="preserve">
     <value>Application Data</value>
     <comment>XP only; defined translations must perfectly match Microsoft documentation</comment>
+  </data>
+  <data name="StartedFileUpload" xml:space="preserve">
+    <value>---File upload started---</value>
   </data>
   <data name="StartMenuFolderNameVista" xml:space="preserve">
     <value>AppData\Roaming\Microsoft\Windows\Start Menu</value>

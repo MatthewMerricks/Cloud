@@ -292,8 +292,8 @@ namespace Cloud.PushNotification
                         _copiedSettings.TraceExcludeAuthorization, // whether or not to exclude authorization information (like the authentication key)
                         sseRequest.Host, // host value which would be part of the headers (but cannot be pulled from headers directly)
                         null,  // no content length header
-                        (sseRequest.Expect == null ? "100-continue" : sseRequest.Expect), // expect value which would be part of the headers (but cannot be pulled from headers directly)
-                        (sseRequest.KeepAlive ? "Keep-Alive" : "Close")); // keep-alive value which would be part of the headers (but cannot be pulled from headers directly)
+                        (sseRequest.Expect == null ? Resources.NotTranslatedHttpContinue : sseRequest.Expect), // expect value which would be part of the headers (but cannot be pulled from headers directly)
+                        (sseRequest.KeepAlive ? Resources.NotTranslatedHttpKeepAlive : Resources.NotTranslatedHttpClose)); // keep-alive value which would be part of the headers (but cannot be pulled from headers directly)
                 }
                 #endregion
             }
