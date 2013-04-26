@@ -260,7 +260,7 @@ namespace Cloud
                 if (checkPathLength != null)
                 {
                     _trace.writeToLog(1, "CLSyncEngine: SyncReset: ERROR: {0}.", checkPathLength.PrimaryException.Message);
-                    return new ArgumentException("CloudRoot in settings is too long, check it first via Helpers.CheckSyncRootLength", checkPathLength.PrimaryException);
+                    return new ArgumentException("syncbox path is too long, check it first via Helpers.CheckSyncRootLength", checkPathLength.PrimaryException);
                 }
 
                 // Determine the database file with full path
@@ -442,7 +442,7 @@ namespace Cloud
                     FilePath fpSyncbox = this._syncbox.Path;
                     if (fpDatabase.Contains(fpSyncbox, insensitiveNameSearch: true))
                     {
-                        const string verifyDatabaseError = "Syncbox settings DatabaseFolder cannot be inside the Syncbox settings SyncRoot";
+                        const string verifyDatabaseError = "Syncbox settings DatabaseFolder cannot be inside the Syncbox path";
                         _trace.writeToLog(1, "CLSyncEngine: ERROR: {0}.", verifyDatabaseError);
                         Status = CLSyncStartStatus.ErrorDatabaseFolderInsideSyncboxFolder;
                         return new ArgumentException(verifyDatabaseError);
@@ -455,7 +455,7 @@ namespace Cloud
                     FilePath fpSyncbox = this._syncbox.Path;
                     if (fpTraceLocation.Contains(fpSyncbox, insensitiveNameSearch: true))
                     {
-                        const string verifyTraceLocationError = "Syncbox settings TraceLocation cannot be inside the Syncbox settings SyncRoot";
+                        const string verifyTraceLocationError = "Syncbox settings TraceLocation cannot be inside the Syncbox path";
                         _trace.writeToLog(1, "CLSyncEngine: ERROR: {0}.", verifyTraceLocationError);
                         Status = CLSyncStartStatus.ErrorTraceFolderInsideSyncboxFolder;
                         return new ArgumentException(verifyTraceLocationError);
@@ -468,7 +468,7 @@ namespace Cloud
                     FilePath fpSyncbox = this._syncbox.Path;
                     if (fpTemp.Contains(fpSyncbox, insensitiveNameSearch: true))
                     {
-                        const string verifyTempDownloadFolderError = "Syncbox settings TempDownloadFolderFullPath cannot be inside the Syncbox settings SyncRoot";
+                        const string verifyTempDownloadFolderError = "Syncbox settings TempDownloadFolderFullPath cannot be inside the Syncbox path";
                         _trace.writeToLog(1, "CLSyncEngine: ERROR: {0}.", verifyTempDownloadFolderError);
                         Status = CLSyncStartStatus.ErrorTempDownloadFolderInsideSyncboxFolder;
                         return new ArgumentException(verifyTempDownloadFolderError);
@@ -501,7 +501,7 @@ namespace Cloud
 
                     _trace.writeToLog(1, "CLSyncEngine: ERROR: {0}.", checkPathLength.PrimaryException.Message);
                     Status = CLSyncStartStatus.ErrorLongRootPath;
-                    return new ArgumentException("CloudRoot in settings is too long, check it first via Helpers.CheckSyncRootLength", checkPathLength.PrimaryException);
+                    return new ArgumentException("The syncbox path is too long, check it first via Helpers.CheckSyncRootLength", checkPathLength.PrimaryException);
                 }
 
                 // Don't start twice.
@@ -542,8 +542,8 @@ namespace Cloud
 
                 if (!caseMatches)
                 {
-                    const string badCaseErrorCreated = "A new directory was created on disk at the specified settings SyncRoot, but its resulting path does not match case";
-                    const string badCaseErrorExists = "An existing directory was found at the specified settings SyncRoot, but its path does not match case";
+                    const string badCaseErrorCreated = "A new directory was created on disk at the specified syncbox path, but its resulting path does not match case";
+                    const string badCaseErrorExists = "An existing directory was found at the specified syncbox path, but its path does not match case";
                     _trace.writeToLog(1, "CLSyncEngine: ERROR: BadCase (1). {0}.", (alreadyExists ? badCaseErrorExists : badCaseErrorCreated));
                     Status = CLSyncStartStatus.ErrorBadRootPath;
                     if (alreadyExists)

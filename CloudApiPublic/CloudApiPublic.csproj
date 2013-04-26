@@ -389,6 +389,7 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
       <CustomToolNamespace>Cloud.Static</CustomToolNamespace>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="SQLIndexer\IndexDBScripts\4Enums.table.sql" />
     <EmbeddedResource Include="SQLIndexer\IndexDBScripts\7Events.table.sql" />

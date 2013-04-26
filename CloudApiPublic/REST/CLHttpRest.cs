@@ -52,6 +52,34 @@ namespace Cloud.REST
             _syncbox.Credentials = credentials;
         }
 
+        private void CheckPath(string pathToCheck)
+        {
+            if (pathToCheck == null)                
+            {
+                throw new NullReferenceException("path cannot be null");
+            }
+            if (pathToCheck != null)
+            {
+                FilePath filePathToCheck = new FilePath(pathToCheck);
+
+                CLError pathError = Helpers.CheckForBadPath(filePathToCheck);
+                if (pathError != null)
+                {
+                    throw new AggregateException("path is not in the proper format", pathError.Exceptions);
+                }
+
+                if (string.IsNullOrEmpty(_syncbox.Path))
+                {
+                    throw new NullReferenceException("syncbox path cannot be null");
+                }
+
+                if (!pathToCheck.Contains(_syncbox.Path))
+                {
+                    throw new ArgumentException("path does not contain syncbox path");
+                }
+            }
+        }
+
         #endregion
 
         #region Internal Reference Counters for Knowing When an API call is modifying the syncbox
@@ -121,7 +149,7 @@ namespace Cloud.REST
                 CLError syncRootError = Helpers.CheckForBadPath(this._syncbox.Path);
                 if (syncRootError != null)
                 {
-                    throw new AggregateException("settings SyncRoot represents a bad path", syncRootError.Exceptions);
+                    throw new AggregateException("the syncbox path is bad", syncRootError.Exceptions);
                 }
             }
 
@@ -260,12 +288,12 @@ namespace Cloud.REST
 
                 if (string.IsNullOrEmpty(_syncbox.Path))
                 {
-                    throw new NullReferenceException("settings SyncRoot cannot be null");
+                    throw new NullReferenceException("the syncbox path cannot be null");
                 }
 
                 if (!path.Contains(_syncbox.Path))
                 {
-                    throw new ArgumentException("path does not contain settings SyncRoot");
+                    throw new ArgumentException("path does not contain the syncbox path");
                 }
                 if (!(_copiedSettings.HttpTimeoutMilliseconds > 0))
                 {
@@ -327,6 +355,160 @@ namespace Cloud.REST
             return null;
         }
         #endregion  // end GetItemAtPath (Gets the metedata at a particular server syncbox path)
+
+        #region RenameFile (Renames a file in the cloud.)
+        /// <summary>
+        /// Asynchronously starts renaming a file in the cloud.
+        /// </summary>
+        /// <param name="callback">Callback method to fire when operation completes</param>
+        /// <param name="callbackUserState">Userstate to pass when firing async callback</param>
+        /// <param name="path">Full path to where file or folder would exist locally on disk</param>
+        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        public IAsyncResult BeginRenameFile(AsyncCallback callback, object callbackUserState, string path)
+        {
+            var asyncThread = DelegateAndDataHolder.Create(
+                // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
+                new
+                {
+                    // create the asynchronous result to return
+                    toReturn = new GenericAsyncResult<SyncboxGetItemAtPathResult>(
+                        callback,
+                        callbackUserState),
+                    path
+                },
+                (Data, errorToAccumulate) =>
+                {
+                    // The ThreadProc.
+                    // try/catch to process with the input parameters, on catch set the exception in the asyncronous result
+                    try
+                    {
+                        // declare the output status for communication
+                        CLHttpRestStatus status;    // &&&&& Fix this
+                        // declare the specific type of result for this operation
+                        CLFileItem response;
+                        // alloc and init the syncbox with the passed parameters, storing any error that occurs
+                        CLError processError = GetItemAtPath(
+                            Data.path,
+                            out status,
+                            out response);
+
+                        Data.toReturn.Complete(
+                            new SyncboxGetItemAtPathResult(
+                                processError, // any error that may have occurred during processing
+                                status, // the output status of communication
+                                response), // the specific type of result for this operation
+                            sCompleted: false); // processing did not complete synchronously
+                    }
+                    catch (Exception ex)
+                    {
+                        Data.toReturn.HandleException(
+                            ex, // the exception which was not handled correctly by the CLError wrapping
+                            sCompleted: false); // processing did not complete synchronously
+                    }
+                },
+                null);
+
+            // create the thread from a void (object) parameterized start which wraps the synchronous method call
+            (new Thread(new ThreadStart(asyncThread.VoidProcess))).Start(); // start the asynchronous processing thread which is attached to its data
+
+            // return the asynchronous result
+            return asyncThread.TypedData.toReturn;
+        }
+
+        /// <summary>
+        /// Finishes a metadata query if it has not already finished via its asynchronous result, and outputs the result,
+        /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
+        /// </summary>
+        /// <param name="aResult">The asynchronous result provided upon starting the metadata query</param>
+        /// <param name="result">(output) The result from the metadata query</param>
+        /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
+        public CLError EndRenameFile(IAsyncResult aResult, out SyncboxGetItemAtPathResult result)
+        {
+            return Helpers.EndAsyncOperation<SyncboxGetItemAtPathResult>(aResult, out result);
+        }
+
+        /// <summary>
+        /// Query the server at a given path for existing metadata at that path.
+        /// </summary>
+        /// <param name="path">Full path to where file or folder would exist locally on disk</param>
+        /// <param name="path">New full path of the file</param>
+        /// <param name="status">(output) success/failure status of communication</param>
+        /// <param name="response">(output) response object from communication</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        private CLError RenameFile(string path, string newPath, CLHttpRestStatus status, out CLFileItem response)
+        {
+            // start with bad request as default if an exception occurs but is not explicitly handled to change the status
+            status = CLHttpRestStatus.BadRequest;
+            // try/catch to process the metadata query, on catch return the error
+            try
+            {
+                // check input parameters
+                CheckPath(path);
+                CheckPath(newPath);
+
+                if (!(_copiedSettings.HttpTimeoutMilliseconds > 0))
+                {
+                    throw new ArgumentException("timeoutMilliseconds must be greater than zero");
+                }
+
+                // build the location of the metadata retrieval method on the server dynamically
+                FilePath filePath = new FilePath(path);
+                FilePath newFilePath = new FilePath(newPath);
+
+                // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
+                Helpers.RequestNewCredentialsInfo requestNewCredentialsInfo = new Helpers.RequestNewCredentialsInfo()
+                {
+                    ProcessingStateByThreadId = _processingStateByThreadId,
+                    GetNewCredentialsCallback = _getNewCredentialsCallback,
+                    GetNewCredentialsCallbackUserState = _getNewCredentialsCallbackUserState,
+                    GetCurrentCredentialsCallback = GetCurrentCredentialsCallback,
+                    SetCurrentCredentialsCallback = SetCurrentCredentialCallback,
+                };
+
+                // file move (rename) and folder move (rename) share a json contract object for move (rename)
+                object requestContent = new JsonContracts.FileOrFolderMove()
+                {
+                    DeviceId = _copiedSettings.DeviceId,
+                    RelativeFromPath = filePath.GetRelativePath(_syncbox.Path, true),
+                    RelativeToPath = newFilePath.GetRelativePath(_syncbox.Path, true),
+                    SyncboxId = _syncbox.SyncboxId
+                };
+
+                // server method path switched on whether change is a folder or not
+                string serverMethodPath = CLDefinitions.MethodPathOneOffFileMove;
+
+                // Communicate with the server to get the response.
+                JsonContracts.FileChangeResponse responseFromServer;
+                responseFromServer = Helpers.ProcessHttp<JsonContracts.FileChangeResponse>(requestContent, // dynamic type of request content based on method path
+                    CLDefinitions.CLMetaDataServerURL, // base domain is the MDS server
+                    serverMethodPath, // dynamic path to appropriate one-off method
+                    Helpers.requestMethod.post, // one-off methods are all posts
+                    _copiedSettings.HttpTimeoutMilliseconds, // time before communication timeout
+                    null, // not an upload or download
+                    Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
+                    ref status, // reference to update the output success/failure status for the communication
+                    _copiedSettings, // pass the copied settings
+                    _syncbox.SyncboxId, // pass the unique id of the sync box on the server
+                    requestNewCredentialsInfo);   // pass the optional parameters to support temporary token reallocation.
+
+                // Convert the response to the expected output object.
+                if (responseFromServer != null && responseFromServer.Metadata != null)
+                {
+                    response = new CLFileItem(responseFromServer.Metadata);
+                }
+                else
+                {
+                    throw new NullReferenceException("response from server was null");
+                }
+            }
+            catch (Exception ex)
+            {
+                response = Helpers.DefaultForType<CLFileItem>();
+                return ex;
+            }
+            return null;
+        }
+        #endregion  // end RenameFile (Renames a file in the cloud.)
 
         #region UndoDeletionFileChange
         /// <summary>
@@ -512,7 +694,7 @@ namespace Cloud.REST
                 }
                 if (_syncbox.Path == null)
                 {
-                    throw new NullReferenceException("settings SyncRoot cannot be null");
+                    throw new NullReferenceException("syncbox path cannot be null");
                 }
                 if (string.IsNullOrEmpty(deletionChange.Metadata.ServerUid))
                 {
@@ -813,7 +995,7 @@ namespace Cloud.REST
                 }
                 if (_syncbox.Path == null)
                 {
-                    throw new NullReferenceException("settings SyncRoot cannot be null");
+                    throw new NullReferenceException("syncbox path cannot be null");
                 }
                 if (copyTargetPath == null)
                 {
@@ -2473,7 +2655,7 @@ namespace Cloud.REST
                 }
                 if (string.IsNullOrEmpty(_syncbox.Path))
                 {
-                    throw new NullReferenceException("settings SyncRoot cannot be null");
+                    throw new NullReferenceException("syncbox path cannot be null");
                 }
 
                 // build the location of the folder hierarchy retrieval method on the server dynamically
@@ -2633,12 +2815,12 @@ namespace Cloud.REST
 
                 if (string.IsNullOrEmpty(_syncbox.Path))
                 {
-                    throw new NullReferenceException("settings SyncRoot cannot be null");
+                    throw new NullReferenceException("syncbox path cannot be null");
                 }
 
                 if (!path.Contains(_syncbox.Path))
                 {
-                    throw new ArgumentException("path does not contain settings SyncRoot");
+                    throw new ArgumentException("path does not contain syncbox path");
                 }
                 if (!(_copiedSettings.HttpTimeoutMilliseconds > 0))
                 {
@@ -4521,7 +4703,8 @@ namespace Cloud.REST
                     {
                         throw new ArgumentException("fullPath does not contain settings SyncRoot");
                     }
-                }
+                } 
+
                 if (!(timeoutMilliseconds > 0))
                 {
                     throw new ArgumentException("timeoutMilliseconds must be greater than zero");
@@ -4576,6 +4759,7 @@ namespace Cloud.REST
             }
             return null;
         }
+
         #endregion
 
         #region DownloadFile
@@ -5762,7 +5946,7 @@ namespace Cloud.REST
                 }
                 if (_syncbox.Path == null)
                 {
-                    throw new NullReferenceException("settings SyncRoot cannot be null");
+                    throw new NullReferenceException("syncbox path cannot be null");
                 }
                 if (!(timeoutMilliseconds > 0))
                 {
@@ -6232,7 +6416,7 @@ namespace Cloud.REST
                 }
                 if (_syncbox.Path == null)
                 {
-                    throw new NullReferenceException("settings SyncRoot cannot be null");
+                    throw new NullReferenceException("syncbox path cannot be null");
                 }
                 if (string.IsNullOrEmpty(_copiedSettings.DeviceId))
                 {

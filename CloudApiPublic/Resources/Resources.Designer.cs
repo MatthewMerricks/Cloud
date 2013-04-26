@@ -268,7 +268,7 @@ namespace Cloud.Static {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to syncRootFullPath is too long by {0} characters.
+        ///   Looks up a localized string similar to syncbox path is too long by {0} characters.
         /// </summary>
         internal static string ExceptionHelpersCheckSyncRootLengthTooLongPlural {
             get {
@@ -277,7 +277,7 @@ namespace Cloud.Static {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to syncRootFullPath is too long by {0} character.
+        ///   Looks up a localized string similar to syncbox path is too long by {0} character.
         /// </summary>
         internal static string ExceptionHelpersCheckSyncRootLengthTooLongSingular {
             get {

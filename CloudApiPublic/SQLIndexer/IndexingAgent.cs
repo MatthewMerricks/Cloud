@@ -2441,7 +2441,7 @@ namespace Cloud.SQLIndexer
             {
                 if (string.IsNullOrEmpty(newSyncRoot))
                 {
-                    throw new NullReferenceException("newSyncRoot cannot be null");
+                    throw new NullReferenceException("new syncbox path cannot be null");
                 }
 
                 // initializing the database may create the database starting at the newSyncRoot so no setting is required;

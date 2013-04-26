@@ -41,9 +41,7 @@
 ///             // optionally check credentialsStatus/returned CLError here before continuing
 ///            
 ///             // create the minimal settings using just the path to the folder
-///             CLSyncSettings syncSettings = new CLSyncSettings(
-///                 syncRoot: "<Full path of the folder to sync>",
-///                 deviceId: "<device name unique in the Syncbox>");
+///             CLSyncSettings syncSettings = new CLSyncSettings(deviceId: "<device name unique in the Syncbox>");
 ///
 ///             CLSyncbox syncbox; // declare sync box
 ///             CLSyncboxCreationStatus syncboxStatus; // declare status enumeration
@@ -52,13 +50,14 @@
 ///                 SyncboxId: <id of Syncbox>, //The ID created for this Syncbox on the Cloud developer Dashboard
 ///                 syncbox: out syncbox, // output the created sync box here
 ///                 status: out syncboxStatus, // output the status from creating sync box
-///                 Settings: syncSettings); // live syncing requires a settings interface containing a SyncRoot (created above)
+///                 path: "<full path of the syncbox folder on disk>",
+///                 Settings: syncSettings); // live syncing requires an implemented settings interface (created above)
 ///
 ///             // optionally check syncboxStatus/returned CLError here before continuing
 ///
 ///             // start the syncbox
 ///             CLSyncStartStatus startStatus; // declare status enumeration
-///             syncbox.StartSync( // starting sync returns a CLError which can be checked
+///             syncbox.BeginSync( // starting sync returns a CLError which can be checked
 ///                 CLSyncMode.CLSyncModeLive);  // start live syncing
 ///
 ///             // optionally check startStatus/returned CLError here to see if it worked
@@ -66,7 +65,7 @@
 ///             // ...
 ///
 ///             // Stop syncing
-///             syncbox.StopSync();
+///             syncbox.EndSync();
 ///
 ///             // ... Need to shutdown application
 ///
@@ -75,7 +74,7 @@
 ///         }
 /// \endcode
 ///
-/// The code above will automatically sync files in the "SyncRoot" directory with your other devices in this Syncbox, and with the Syncbox on Cloud.
+/// The code above will automatically sync files in the syncbox "path" directory with your other devices in this Syncbox, and with the Syncbox on Cloud.
 ///
 /// \section install_sec SDK Installation
 ///
