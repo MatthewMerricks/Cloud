@@ -783,9 +783,8 @@ namespace Cloud.PushNotification
                     }
 
                     // Send an unsubscribe to the server.  Allow just 200 ms for this to complete.
-                    CLHttpRestStatus status;
                     JsonContracts.NotificationUnsubscribeResponse response;
-                    CLError errorFromUnsubscribe = _syncbox.HttpRestClient.SendUnsubscribeToServer(200, out status, out response, castState._syncbox);
+                    CLError errorFromUnsubscribe = _syncbox.HttpRestClient.SendUnsubscribeToServer(200, out response, castState._syncbox);
                     if (errorFromUnsubscribe != null)
                     {
                         _trace.writeToLog(1, "CLNotificationSseEngine: TimerExpired: ERROR: Msg: {0}.", errorFromUnsubscribe.PrimaryException.Message);

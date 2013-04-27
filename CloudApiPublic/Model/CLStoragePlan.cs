@@ -188,21 +188,17 @@ namespace Cloud.Model
                     // try/catch to process with the input parameters, on catch set the exception in the asyncronous result
                     try
                     {
-                        // declare the output status for communication
-                        CLHttpRestStatus status;   // &&&& fix this
                         // declare the specific type of result for this operation
                         CLStoragePlan[] response;
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
                         CLError processError = ListStoragePlansWithCredentials(
                             Data.credentials,
-                            out status,
                             out response,
                             Data.settings);
                          
                         Data.toReturn.Complete(
                             new ListStoragePlansResult(
                                 processError, // any error that may have occurred during processing
-                                status, // the output status of communication
                                 response), // the specific type of result for this operation
                             sCompleted: false); // processing did not complete synchronously
                     }
@@ -240,18 +236,15 @@ namespace Cloud.Model
         /// Lists the plans on the server for the current application
         /// </summary>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
-        /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) An array of storage plans from the cloud.</param>
         /// <param name="credentials">The credentials to use with this request.</param>
         /// <param name="settings">(optional) settings for optional tracing and specifying the client version to the server</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
         /// <remarks>The output response array may be null, empty, or may contain null items.</remarks>
-        public static CLError ListStoragePlansWithCredentials(CLCredentials credentials, out CLHttpRestStatus status, out CLStoragePlan[] response, ICLCredentialsSettings settings = null)
+        public static CLError ListStoragePlansWithCredentials(CLCredentials credentials, out CLStoragePlan[] response, ICLCredentialsSettings settings = null)
         {
             Helpers.CheckHalted();
 
-            // start with bad request as default if an exception occurs but is not explicitly handled to change the status
-            status = CLHttpRestStatus.BadRequest;
             // try/catch to process the metadata query, on catch return the error
             try
             {
@@ -281,7 +274,6 @@ namespace Cloud.Model
                     copiedSettings.HttpTimeoutMilliseconds,
                     null, // not an upload nor download
                     Helpers.HttpStatusesOkAccepted,
-                    ref status,
                     copiedSettings,
                     credentials,
                     null);

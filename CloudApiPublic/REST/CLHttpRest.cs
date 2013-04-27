@@ -214,20 +214,16 @@ namespace Cloud.REST
                     // try/catch to process with the input parameters, on catch set the exception in the asyncronous result
                     try
                     {
-                        // declare the output status for communication
-                        CLHttpRestStatus status;    // &&&&& Fix this
                         // declare the specific type of result for this operation
                         CLFileItem response;
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
                         CLError processError = GetItemAtPath(
                             Data.path,
-                            out status,
                             out response);
 
                         Data.toReturn.Complete(
                             new SyncboxGetItemAtPathResult(
                                 processError, // any error that may have occurred during processing
-                                status, // the output status of communication
                                 response), // the specific type of result for this operation
                             sCompleted: false); // processing did not complete synchronously
                     }
@@ -263,13 +259,10 @@ namespace Cloud.REST
         /// Query the server at a given path for existing metadata at that path.
         /// </summary>
         /// <param name="path">Full path to where file or folder would exist locally on disk</param>
-        /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        private CLError GetItemAtPath(string path, out CLHttpRestStatus status, out CLFileItem response)
+        public CLError GetItemAtPath(string path, out CLFileItem response)
         {
-            // start with bad request as default if an exception occurs but is not explicitly handled to change the status
-            status = CLHttpRestStatus.BadRequest;
             // try/catch to process the metadata query, on catch return the error
             try
             {
@@ -332,7 +325,6 @@ namespace Cloud.REST
                     _copiedSettings.HttpTimeoutMilliseconds, // time before communication timeout
                     null, // not an upload or download
                     Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
-                    ref status, // reference to update the output success/failure status for the communication
                     _copiedSettings, // pass the copied settings
                     _syncbox.SyncboxId, // pass the unique id of the sync box on the server
                     requestNewCredentialsInfo);   // pass the optional parameters to support temporary token reallocation.
@@ -363,18 +355,20 @@ namespace Cloud.REST
         /// <param name="callback">Callback method to fire when operation completes</param>
         /// <param name="callbackUserState">Userstate to pass when firing async callback</param>
         /// <param name="path">Full path to where file or folder would exist locally on disk</param>
+        /// <param name="path">New full path of the file</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginRenameFile(AsyncCallback callback, object callbackUserState, string path)
+        public IAsyncResult BeginRenameFile(AsyncCallback callback, object callbackUserState, string path, string newPath)
         {
             var asyncThread = DelegateAndDataHolderBase.Create(
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
                 new
                 {
                     // create the asynchronous result to return
-                    toReturn = new GenericAsyncResult<SyncboxGetItemAtPathResult>(
+                    toReturn = new GenericAsyncResult<SyncboxRenameFileResult>(
                         callback,
                         callbackUserState),
-                    path
+                    path,
+                    newPath
                 },
                 (Data, errorToAccumulate) =>
                 {
@@ -383,19 +377,17 @@ namespace Cloud.REST
                     try
                     {
                         // declare the output status for communication
-                        CLHttpRestStatus status;    // &&&&& Fix this
                         // declare the specific type of result for this operation
                         CLFileItem response;
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
-                        CLError processError = GetItemAtPath(
+                        CLError processError = RenameFile(
                             Data.path,
-                            out status,
+                            Data.newPath,
                             out response);
 
                         Data.toReturn.Complete(
-                            new SyncboxGetItemAtPathResult(
+                            new SyncboxRenameFileResult(
                                 processError, // any error that may have occurred during processing
-                                status, // the output status of communication
                                 response), // the specific type of result for this operation
                             sCompleted: false); // processing did not complete synchronously
                     }
@@ -416,29 +408,26 @@ namespace Cloud.REST
         }
 
         /// <summary>
-        /// Finishes a metadata query if it has not already finished via its asynchronous result, and outputs the result,
+        /// Finishes renaming a file in the cloud, if it has not already finished via its asynchronous result, and outputs the result,
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
         /// </summary>
         /// <param name="aResult">The asynchronous result provided upon starting the metadata query</param>
         /// <param name="result">(output) The result from the metadata query</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndRenameFile(IAsyncResult aResult, out SyncboxGetItemAtPathResult result)
+        public CLError EndRenameFile(IAsyncResult aResult, out SyncboxRenameFileResult result)
         {
-            return Helpers.EndAsyncOperation<SyncboxGetItemAtPathResult>(aResult, out result);
+            return Helpers.EndAsyncOperation<SyncboxRenameFileResult>(aResult, out result);
         }
 
         /// <summary>
-        /// Query the server at a given path for existing metadata at that path.
+        /// Rename a file in the cloud.
         /// </summary>
         /// <param name="path">Full path to where file or folder would exist locally on disk</param>
         /// <param name="path">New full path of the file</param>
-        /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        private CLError RenameFile(string path, string newPath, CLHttpRestStatus status, out CLFileItem response)
+        public CLError RenameFile(string path, string newPath, out CLFileItem response)
         {
-            // start with bad request as default if an exception occurs but is not explicitly handled to change the status
-            status = CLHttpRestStatus.BadRequest;
             // try/catch to process the metadata query, on catch return the error
             try
             {
@@ -486,7 +475,6 @@ namespace Cloud.REST
                     _copiedSettings.HttpTimeoutMilliseconds, // time before communication timeout
                     null, // not an upload or download
                     Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
-                    ref status, // reference to update the output success/failure status for the communication
                     _copiedSettings, // pass the copied settings
                     _syncbox.SyncboxId, // pass the unique id of the sync box on the server
                     requestNewCredentialsInfo);   // pass the optional parameters to support temporary token reallocation.
@@ -555,15 +543,12 @@ namespace Cloud.REST
                     // try/catch to process with the input parameters, on catch set the exception in the asyncronous result
                     try
                     {
-                        // declare the output status for communication
-                        CLHttpRestStatus status;
                         // declare the specific type of result for this operation
                         JsonContracts.FileChangeResponse result;
                         // run the download of the file with the passed parameters, storing any error that occurs
                         CLError processError = UndoDeletionFileChange(
                             castState.Item2,
                             castState.Item3,
-                            out status,
                             out result);
 
                         // if there was an asynchronous result in the parameters, then complete it with a new result object
@@ -572,7 +557,6 @@ namespace Cloud.REST
                             castState.Item1.Complete(
                                 new UndoDeletionFileChangeResult(
                                     processError, // any error that may have occurred during processing
-                                    status, // the output status of communication
                                     result), // the specific type of result for this operation
                                     sCompleted: false); // processing did not complete synchronously
                         }
@@ -660,13 +644,10 @@ namespace Cloud.REST
         /// </summary>
         /// <param name="deletionChange">Deletion change which needs to be undone</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
-        /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError UndoDeletionFileChange(FileChange deletionChange, int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.FileChangeResponse response)
+        public CLError UndoDeletionFileChange(FileChange deletionChange, int timeoutMilliseconds, out JsonContracts.FileChangeResponse response)
         {
-            // start with bad request as default if an exception occurs but is not explicitly handled to change the status
-            status = CLHttpRestStatus.BadRequest;
             // try/catch to process the undeletion, on catch return the error
             try
             {
@@ -730,7 +711,6 @@ namespace Cloud.REST
                     timeoutMilliseconds, // time before communication timeout
                     null, // not an upload or download
                     Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
-                    ref status, // reference to update the output success/failure status for the communication
                     _copiedSettings, // pass the copied settings
                     _syncbox.SyncboxId, // pass the unique id of the sync box on the server
                     requestNewCredentialsInfo);   // pass the optional parameters to support temporary token reallocation.
@@ -841,8 +821,6 @@ namespace Cloud.REST
                     // try/catch to process with the input parameters, on catch set the exception in the asyncronous result
                     try
                     {
-                        // declare the output status for communication
-                        CLHttpRestStatus status;
                         // declare the specific type of result for this operation
                         JsonContracts.FileChangeResponse result;
                         // run the download of the file with the passed parameters, storing any error that occurs
@@ -850,7 +828,6 @@ namespace Cloud.REST
                             castState.Item2,
                             castState.Item3,
                             castState.Item4,
-                            out status,
                             out result);
 
                         // if there was an asynchronous result in the parameters, then complete it with a new result object
@@ -859,7 +836,6 @@ namespace Cloud.REST
                             castState.Item1.Complete(
                                 new CopyFileResult(
                                     processError, // any error that may have occurred during processing
-                                    status, // the output status of communication
                                     result), // the specific type of result for this operation
                                     sCompleted: false); // processing did not complete synchronously
                         }
@@ -948,12 +924,11 @@ namespace Cloud.REST
         /// <param name="fileServerId">Unique id to the file on the server</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <param name="copyTargetPath">Location where file shoule be copied to</param>
-        /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError CopyFile(string fileServerId, int timeoutMilliseconds, FilePath copyTargetPath, out CLHttpRestStatus status, out JsonContracts.FileChangeResponse response)
+        public CLError CopyFile(string fileServerId, int timeoutMilliseconds, FilePath copyTargetPath, out JsonContracts.FileChangeResponse response)
         {
-            return CopyFile(fileServerId, timeoutMilliseconds, null, copyTargetPath, out status, out response);
+            return CopyFile(fileServerId, timeoutMilliseconds, null, copyTargetPath, out response);
         }
 
         /// <summary>
@@ -962,12 +937,11 @@ namespace Cloud.REST
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <param name="pathToFile">Location of existing file to copy from</param>
         /// <param name="copyTargetPath">Location where file shoule be copied to</param>
-        /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError CopyFile(int timeoutMilliseconds, FilePath pathToFile, FilePath copyTargetPath, out CLHttpRestStatus status, out JsonContracts.FileChangeResponse response)
+        public CLError CopyFile(int timeoutMilliseconds, FilePath pathToFile, FilePath copyTargetPath, out JsonContracts.FileChangeResponse response)
         {
-            return CopyFile(null, timeoutMilliseconds, pathToFile, copyTargetPath, out status, out response);
+            return CopyFile(null, timeoutMilliseconds, pathToFile, copyTargetPath, out response);
         }
 
         /// <summary>
@@ -977,13 +951,10 @@ namespace Cloud.REST
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <param name="pathToFile">Location of existing file to copy from</param>
         /// <param name="copyTargetPath">Location where file shoule be copied to</param>
-        /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError CopyFile(string fileServerId, int timeoutMilliseconds, FilePath pathToFile, FilePath copyTargetPath, out CLHttpRestStatus status, out JsonContracts.FileChangeResponse response)
+        public CLError CopyFile(string fileServerId, int timeoutMilliseconds, FilePath pathToFile, FilePath copyTargetPath, out JsonContracts.FileChangeResponse response)
         {
-            // start with bad request as default if an exception occurs but is not explicitly handled to change the status
-            status = CLHttpRestStatus.BadRequest;
             // try/catch to process the undeletion, on catch return the error
             try
             {
@@ -1038,7 +1009,6 @@ namespace Cloud.REST
                     timeoutMilliseconds, // time before communication timeout
                     null, // not an upload or download
                     Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
-                    ref status, // reference to update the output success/failure status for the communication
                     _copiedSettings, // pass the copied settings
                     _syncbox.SyncboxId, // pass the unique id of the sync box on the server
                     requestNewCredentialsInfo);   // pass the optional parameters to support temporary token reallocation.
@@ -1077,19 +1047,15 @@ namespace Cloud.REST
                     // try/catch to process with the input parameters, on catch set the exception in the asyncronous result
                     try
                     {
-                        // declare the output status for communication
-                        CLHttpRestStatus status;    // &&&&& Fix this
                         // declare the specific type of result for this operation
                         CLFileItem[] response;
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
                         CLError processError = GetAllImageItems(
-                            out status,
                             out response);
 
                         Data.toReturn.Complete(
                             new SyncboxGetAllImageItemsResult(
                                 processError, // any error that may have occurred during processing
-                                status, // the output status of communication
                                 response), // the specific type of result for this operation
                             sCompleted: false); // processing did not complete synchronously
                     }
@@ -1225,19 +1191,15 @@ namespace Cloud.REST
                     // try/catch to process with the input parameters, on catch set the exception in the asyncronous result
                     try
                     {
-                        // declare the output status for communication
-                        CLHttpRestStatus status;    // &&&&& Fix this
                         // declare the specific type of result for this operation
                         CLFileItem[] response;
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
                         CLError processError = GetAllVideoItems(
-                            out status,
                             out response);
 
                         Data.toReturn.Complete(
                             new SyncboxGetAllVideoItemsResult(
                                 processError, // any error that may have occurred during processing
-                                status, // the output status of communication
                                 response), // the specific type of result for this operation
                             sCompleted: false); // processing did not complete synchronously
                     }
@@ -1272,13 +1234,10 @@ namespace Cloud.REST
         /// <summary>
         /// Queries the server for videos
         /// </summary>
-        /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError GetAllVideoItems(out CLHttpRestStatus status, out CLFileItem [] response)
+        public CLError GetAllVideoItems(out CLFileItem [] response)
         {
-            // start with bad request as default if an exception occurs but is not explicitly handled to change the status
-            status = CLHttpRestStatus.BadRequest;
             // try/catch to process the videos query, on catch return the error
             try
             {
@@ -1317,7 +1276,6 @@ namespace Cloud.REST
                     _copiedSettings.HttpTimeoutMilliseconds, // time before communication timeout
                     null, // not an upload or download
                     Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
-                    ref status, // reference to update the output success/failure status for the communication
                     _copiedSettings, // pass the copied settings
                     _syncbox.SyncboxId, // pass the unique id of the sync box on the server
                     requestNewCredentialsInfo);   // pass the optional parameters to support temporary token reallocation.
@@ -1377,19 +1335,15 @@ namespace Cloud.REST
                     // try/catch to process with the input parameters, on catch set the exception in the asyncronous result
                     try
                     {
-                        // declare the output status for communication
-                        CLHttpRestStatus status;    // &&&&& Fix this
                         // declare the specific type of result for this operation
                         CLFileItem[] response;
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
                         CLError processError = GetAllAudioItems(
-                            out status,
                             out response);
 
                         Data.toReturn.Complete(
                             new SyncboxGetAllAudioItemsResult(
                                 processError, // any error that may have occurred during processing
-                                status, // the output status of communication
                                 response), // the specific type of result for this operation
                             sCompleted: false); // processing did not complete synchronously
                     }
@@ -1424,13 +1378,10 @@ namespace Cloud.REST
         /// <summary>
         /// Queries the server for audios
         /// </summary>
-        /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError GetAllAudioItems(out CLHttpRestStatus status, out CLFileItem [] response)
+        public CLError GetAllAudioItems(out CLFileItem [] response)
         {
-            // start with bad request as default if an exception occurs but is not explicitly handled to change the status
-            status = CLHttpRestStatus.BadRequest;
             // try/catch to process the audios query, on catch return the error
             try
             {
@@ -1469,7 +1420,6 @@ namespace Cloud.REST
                     _copiedSettings.HttpTimeoutMilliseconds, // time before communication timeout
                     null, // not an upload or download
                     Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
-                    ref status, // reference to update the output success/failure status for the communication
                     _copiedSettings, // pass the copied settings
                     _syncbox.SyncboxId, // pass the unique id of the sync box on the server
                     requestNewCredentialsInfo);   // pass the optional parameters to support temporary token reallocation.
@@ -1529,19 +1479,15 @@ namespace Cloud.REST
                     // try/catch to process with the input parameters, on catch set the exception in the asyncronous result
                     try
                     {
-                        // declare the output status for communication
-                        CLHttpRestStatus status;    // &&&&& Fix this
                         // declare the specific type of result for this operation
                         CLFileItem[] response;
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
                         CLError processError = GetAllDocumentItems(
-                            out status,
                             out response);
 
                         Data.toReturn.Complete(
                             new SyncboxGetAllDocumentItemsResult(
                                 processError, // any error that may have occurred during processing
-                                status, // the output status of communication
                                 response), // the specific type of result for this operation
                             sCompleted: false); // processing did not complete synchronously
                     }
@@ -1576,13 +1522,10 @@ namespace Cloud.REST
         /// <summary>
         /// Queries the server for document items.
         /// </summary>
-        /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError GetAllDocumentItems(out CLHttpRestStatus status, out CLFileItem[] response)
+        public CLError GetAllDocumentItems(out CLFileItem[] response)
         {
-            // start with bad request as default if an exception occurs but is not explicitly handled to change the status
-            status = CLHttpRestStatus.BadRequest;
             // try/catch to process the audios query, on catch return the error
             try
             {
@@ -1621,7 +1564,6 @@ namespace Cloud.REST
                     _copiedSettings.HttpTimeoutMilliseconds, // time before communication timeout
                     null, // not an upload or download
                     Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
-                    ref status, // reference to update the output success/failure status for the communication
                     _copiedSettings, // pass the copied settings
                     _syncbox.SyncboxId, // pass the unique id of the sync box on the server
                     requestNewCredentialsInfo);   // pass the optional parameters to support temporary token reallocation.
@@ -1681,19 +1623,15 @@ namespace Cloud.REST
                     // try/catch to process with the input parameters, on catch set the exception in the asyncronous result
                     try
                     {
-                        // declare the output status for communication
-                        CLHttpRestStatus status;    // &&&&& Fix this
                         // declare the specific type of result for this operation
                         CLFileItem[] response;
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
                         CLError processError = GetAllPresentationItems(
-                            out status,
                             out response);
 
                         Data.toReturn.Complete(
                             new SyncboxGetAllPresentationItemsResult(
                                 processError, // any error that may have occurred during processing
-                                status, // the output status of communication
                                 response), // the specific type of result for this operation
                             sCompleted: false); // processing did not complete synchronously
                     }
@@ -1728,13 +1666,10 @@ namespace Cloud.REST
         /// <summary>
         /// Queries the server for presentation items.
         /// </summary>
-        /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError GetAllPresentationItems(out CLHttpRestStatus status, out CLFileItem[] response)
+        public CLError GetAllPresentationItems(out CLFileItem[] response)
         {
-            // start with bad request as default if an exception occurs but is not explicitly handled to change the status
-            status = CLHttpRestStatus.BadRequest;
             // try/catch to process the audios query, on catch return the error
             try
             {
@@ -1773,7 +1708,6 @@ namespace Cloud.REST
                     _copiedSettings.HttpTimeoutMilliseconds, // time before communication timeout
                     null, // not an upload or download
                     Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
-                    ref status, // reference to update the output success/failure status for the communication
                     _copiedSettings, // pass the copied settings
                     _syncbox.SyncboxId, // pass the unique id of the sync box on the server
                     requestNewCredentialsInfo);   // pass the optional parameters to support temporary token reallocation.
@@ -1833,19 +1767,15 @@ namespace Cloud.REST
                     // try/catch to process with the input parameters, on catch set the exception in the asyncronous result
                     try
                     {
-                        // declare the output status for communication
-                        CLHttpRestStatus status;    // &&&&& Fix this
                         // declare the specific type of result for this operation
                         CLFileItem[] response;
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
                         CLError processError = GetAllTextItems(
-                            out status,
                             out response);
 
                         Data.toReturn.Complete(
                             new SyncboxGetAllTextItemsResult(
                                 processError, // any error that may have occurred during processing
-                                status, // the output status of communication
                                 response), // the specific type of result for this operation
                             sCompleted: false); // processing did not complete synchronously
                     }
@@ -1880,13 +1810,10 @@ namespace Cloud.REST
         /// <summary>
         /// Queries the server for audios
         /// </summary>
-        /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError GetAllTextItems(out CLHttpRestStatus status, out CLFileItem[] response)
+        public CLError GetAllTextItems(out CLFileItem[] response)
         {
-            // start with bad request as default if an exception occurs but is not explicitly handled to change the status
-            status = CLHttpRestStatus.BadRequest;
             // try/catch to process the audios query, on catch return the error
             try
             {
@@ -1925,7 +1852,6 @@ namespace Cloud.REST
                     _copiedSettings.HttpTimeoutMilliseconds, // time before communication timeout
                     null, // not an upload or download
                     Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
-                    ref status, // reference to update the output success/failure status for the communication
                     _copiedSettings, // pass the copied settings
                     _syncbox.SyncboxId, // pass the unique id of the sync box on the server
                     requestNewCredentialsInfo);   // pass the optional parameters to support temporary token reallocation.
@@ -1985,19 +1911,15 @@ namespace Cloud.REST
                     // try/catch to process with the input parameters, on catch set the exception in the asyncronous result
                     try
                     {
-                        // declare the output status for communication
-                        CLHttpRestStatus status;    // &&&&& Fix this
                         // declare the specific type of result for this operation
                         CLFileItem[] response;
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
                         CLError processError = GetAllArchiveItems(
-                            out status,
                             out response);
 
                         Data.toReturn.Complete(
                             new SyncboxGetAllArchiveItemsResult(
                                 processError, // any error that may have occurred during processing
-                                status, // the output status of communication
                                 response), // the specific type of result for this operation
                             sCompleted: false); // processing did not complete synchronously
                     }
@@ -2032,13 +1954,10 @@ namespace Cloud.REST
         /// <summary>
         /// Queries the server for audios
         /// </summary>
-        /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError GetAllArchiveItems(out CLHttpRestStatus status, out CLFileItem[] response)
+        public CLError GetAllArchiveItems(out CLFileItem[] response)
         {
-            // start with bad request as default if an exception occurs but is not explicitly handled to change the status
-            status = CLHttpRestStatus.BadRequest;
             // try/catch to process the audios query, on catch return the error
             try
             {
@@ -2077,7 +1996,6 @@ namespace Cloud.REST
                     _copiedSettings.HttpTimeoutMilliseconds, // time before communication timeout
                     null, // not an upload or download
                     Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
-                    ref status, // reference to update the output success/failure status for the communication
                     _copiedSettings, // pass the copied settings
                     _syncbox.SyncboxId, // pass the unique id of the sync box on the server
                     requestNewCredentialsInfo);   // pass the optional parameters to support temporary token reallocation.
@@ -2145,21 +2063,17 @@ namespace Cloud.REST
                     // try/catch to process with the input parameters, on catch set the exception in the asyncronous result
                     try
                     {
-                        // declare the output status for communication
-                        CLHttpRestStatus status;    // &&&&& Fix this
                         // declare the specific type of result for this operation
                         CLFileItem[] response;
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
                         CLError processError = GetRecents(
                             Data.sinceDate,
                             Data.returnLimit,
-                            out status,
                             out response);
 
                         Data.toReturn.Complete(
                             new SyncboxGetRecentsResult(
                                 processError, // any error that may have occurred during processing
-                                status, // the output status of communication
                                 response), // the specific type of result for this operation
                             sCompleted: false); // processing did not complete synchronously
                     }
@@ -2195,17 +2109,13 @@ namespace Cloud.REST
         /// Queries the server for recents
         /// </summary>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
-        /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError GetRecents(
             Nullable<DateTime> sinceDate,
             Nullable<int> returnLimit,
-            out CLHttpRestStatus status,
             out CLFileItem[] response)
         {
-            // start with bad request as default if an exception occurs but is not explicitly handled to change the status
-            status = CLHttpRestStatus.BadRequest;
             // try/catch to process the recents query, on catch return the error
             try
             {
@@ -2244,7 +2154,6 @@ namespace Cloud.REST
                     _copiedSettings.HttpTimeoutMilliseconds, // time before communication timeout
                     null, // not an upload or download
                     Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
-                    ref status, // reference to update the output success/failure status for the communication
                     _copiedSettings, // pass the copied settings
                     _syncbox.SyncboxId, // pass the unique id of the sync box on the server
                     requestNewCredentialsInfo);   // pass the optional parameters to support temporary token reallocation.
@@ -2322,14 +2231,11 @@ namespace Cloud.REST
                     // try/catch to process with the input parameters, on catch set the exception in the asyncronous result
                     try
                     {
-                        // declare the output status for communication
-                        CLHttpRestStatus status;
                         // declare the specific type of result for this operation
                         JsonContracts.SyncboxUsageResponse result;
                         // run the download of the file with the passed parameters, storing any error that occurs
                         CLError processError = GetSyncboxUsage(
                             castState.Item2,
-                            out status,
                             out result);
 
                         // if there was an asynchronous result in the parameters, then complete it with a new result object
@@ -2338,7 +2244,6 @@ namespace Cloud.REST
                             castState.Item1.Complete(
                                 new SyncboxUsageResult(
                                     processError, // any error that may have occurred during processing
-                                    status, // the output status of communication
                                     result), // the specific type of result for this operation
                                     sCompleted: false); // processing did not complete synchronously
                         }
@@ -2425,13 +2330,10 @@ namespace Cloud.REST
         /// Queries the server for sync box usage
         /// </summary>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
-        /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        internal CLError GetSyncboxUsage(int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.SyncboxUsageResponse response)
+        internal CLError GetSyncboxUsage(int timeoutMilliseconds, out JsonContracts.SyncboxUsageResponse response)
         {
-            // start with bad request as default if an exception occurs but is not explicitly handled to change the status
-            status = CLHttpRestStatus.BadRequest;
             // try/catch to process the sync box usage query, on catch return the error
             try
             {
@@ -2469,7 +2371,6 @@ namespace Cloud.REST
                     timeoutMilliseconds, // time before communication timeout
                     null, // not an upload or download
                     Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
-                    ref status, // reference to update the output success/failure status for the communication
                     _copiedSettings, // pass the copied settings
                     _syncbox.SyncboxId, // pass the unique id of the sync box on the server
                     requestNewCredentialsInfo);   // pass the optional parameters to support temporary token reallocation.
@@ -2528,14 +2429,11 @@ namespace Cloud.REST
                     // try/catch to process with the input parameters, on catch set the exception in the asyncronous result
                     try
                     {
-                        // declare the output status for communication
-                        CLHttpRestStatus status;
                         // declare the specific type of result for this operation
                         JsonContracts.Folders result;
                         // run the download of the file with the passed parameters, storing any error that occurs
                         CLError processError = GetFolderHierarchy(
                             castState.Item2,
-                            out status,
                             out result,
                             castState.Item3);
 
@@ -2545,7 +2443,6 @@ namespace Cloud.REST
                             castState.Item1.Complete(
                                 new GetFolderHierarchyResult(
                                     processError, // any error that may have occurred during processing
-                                    status, // the output status of communication
                                     result), // the specific type of result for this operation
                                     sCompleted: false); // processing did not complete synchronously
                         }
@@ -2632,14 +2529,11 @@ namespace Cloud.REST
         /// Queries server for folder hierarchy with an optional path
         /// </summary>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
-        /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) response object from communication</param>
         /// <param name="hierarchyRoot">(optional) root path of hierarchy query</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError GetFolderHierarchy(int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.Folders response, FilePath hierarchyRoot = null)
+        public CLError GetFolderHierarchy(int timeoutMilliseconds, out JsonContracts.Folders response, FilePath hierarchyRoot = null)
         {
-            // start with bad request as default if an exception occurs but is not explicitly handled to change the status
-            status = CLHttpRestStatus.BadRequest;
             // try/catch to process the folder hierarchy query, on catch return the error
             try
             {
@@ -2686,7 +2580,6 @@ namespace Cloud.REST
                     timeoutMilliseconds, // time before communication timeout
                     null, // not an upload or download
                     Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
-                    ref status, // reference to update the output success/failure status for the communication
                     _copiedSettings, // pass the copied settings
                     _syncbox.SyncboxId, // pass the unique id of the sync box on the server
                     requestNewCredentialsInfo);   // pass the optional parameters to support temporary token reallocation.
@@ -2731,20 +2624,16 @@ namespace Cloud.REST
                     // try/catch to process with the input parameters, on catch set the exception in the asyncronous result
                     try
                     {
-                        // declare the output status for communication
-                        CLHttpRestStatus status;    // &&&&& Fix this
                         // declare the specific type of result for this operation
                         CLFileItem[] response;
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
                         CLError processError = GetFolderContentsAtPath(
                             Data.path,
-                            out status,
                             out response);
 
                         Data.toReturn.Complete(
                             new SyncboxGetFolderContentsAtPathResult(
                                 processError, // any error that may have occurred during processing
-                                status, // the output status of communication
                                 response), // the specific type of result for this operation
                             sCompleted: false); // processing did not complete synchronously
                     }
@@ -2780,16 +2669,12 @@ namespace Cloud.REST
         /// Queries server for folder contents at a path.
         /// </summary>
         /// <param name="path">The full path of the folder that would be on disk in the syncbox folder.</param>
-        /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError GetFolderContentsAtPath(
             string path,
-            out CLHttpRestStatus status,
             out CLFileItem [] response)
         {
-            // start with bad request as default if an exception occurs but is not explicitly handled to change the status
-            status = CLHttpRestStatus.BadRequest;
             // try/catch to process the folder contents query, on catch return the error
             try
             {
@@ -2865,7 +2750,6 @@ namespace Cloud.REST
                     _copiedSettings.HttpTimeoutMilliseconds, // time before communication timeout
                     null, // not an upload or download
                     Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
-                    ref status, // reference to update the output success/failure status for the communication
                     _copiedSettings, // pass the copied settings
                     _syncbox.SyncboxId, // pass the unique id of the sync box on the server
                     requestNewCredentialsInfo);   // pass the optional parameters to support temporary token reallocation.
@@ -2946,15 +2830,12 @@ namespace Cloud.REST
                     // try/catch to process with the input parameters, on catch set the exception in the asyncronous result
                     try
                     {
-                        // declare the output status for communication
-                        CLHttpRestStatus status;
                         // declare the specific type of result for this operation
                         JsonContracts.SyncboxResponse result;
                         // purge pending files with the passed parameters, storing any error that occurs
                         CLError processError = UpdateSyncboxExtendedMetadata(
                             castState.Item2,
                             castState.Item3,
-                            out status,
                             out result);
 
                         // if there was an asynchronous result in the parameters, then complete it with a new result object
@@ -2963,7 +2844,6 @@ namespace Cloud.REST
                             castState.Item1.Complete(
                                 new SyncboxUpdateExtendedMetadataResult(
                                     processError, // any error that may have occurred during processing
-                                    status, // the output status of communication
                                     result), // the specific type of result for this operation
                                     sCompleted: false); // processing did not complete synchronously
                         }
@@ -3029,15 +2909,12 @@ namespace Cloud.REST
                     // try/catch to process with the input parameters, on catch set the exception in the asyncronous result
                     try
                     {
-                        // declare the output status for communication
-                        CLHttpRestStatus status;
                         // declare the specific type of result for this operation
                         JsonContracts.SyncboxResponse result;
                         // purge pending files with the passed parameters, storing any error that occurs
                         CLError processError = UpdateSyncboxExtendedMetadata(
                             castState.Item2,
                             castState.Item3,
-                            out status,
                             out result);
 
                         // if there was an asynchronous result in the parameters, then complete it with a new result object
@@ -3046,7 +2923,6 @@ namespace Cloud.REST
                             castState.Item1.Complete(
                                 new SyncboxUpdateExtendedMetadataResult(
                                     processError, // any error that may have occurred during processing
-                                    status, // the output status of communication
                                     result), // the specific type of result for this operation
                                     sCompleted: false); // processing did not complete synchronously
                         }
@@ -3134,10 +3010,9 @@ namespace Cloud.REST
         /// </summary>
         /// <param name="metadata">string keys to serializable object values to store as extra metadata to the sync box</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
-        /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError UpdateSyncboxExtendedMetadata<T>(IDictionary<string, T> metadata, int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.SyncboxResponse response)
+        public CLError UpdateSyncboxExtendedMetadata<T>(IDictionary<string, T> metadata, int timeoutMilliseconds, out JsonContracts.SyncboxResponse response)
         {
             try
             {
@@ -3147,11 +3022,10 @@ namespace Cloud.REST
                             ((metadata is IDictionary<string, object>)
                                 ? (IDictionary<string, object>)metadata
                                 : new JsonContracts.MetadataDictionary.DictionaryWrapper<T>(metadata)))),
-                    timeoutMilliseconds, out status, out response);
+                    timeoutMilliseconds, out response);
             }
             catch (Exception ex)
             {
-                status = CLHttpRestStatus.BadRequest;
                 response = Helpers.DefaultForType<JsonContracts.SyncboxResponse>();
                 return ex;
             }
@@ -3162,13 +3036,10 @@ namespace Cloud.REST
         /// </summary>
         /// <param name="metadata">string keys to serializable object values to store as extra metadata to the sync box</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
-        /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError UpdateSyncboxExtendedMetadata(MetadataDictionary metadata, int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.SyncboxResponse response)
+        public CLError UpdateSyncboxExtendedMetadata(MetadataDictionary metadata, int timeoutMilliseconds, out JsonContracts.SyncboxResponse response)
         {
-            // start with bad request as default if an exception occurs but is not explicitly handled to change the status
-            status = CLHttpRestStatus.BadRequest;
             // try/catch to process setting extended metadata, on catch return the error
             try
             {
@@ -3200,7 +3071,6 @@ namespace Cloud.REST
                     timeoutMilliseconds, // set the timeout for the operation
                     null, // not an upload or download
                     Helpers.HttpStatusesOkAccepted, // sync box extended metadata should give OK or Accepted
-                    ref status, // reference to update output status
                     _copiedSettings, // pass the copied settings
                     _syncbox.SyncboxId, // pass the unique id of the sync box on the server
                     requestNewCredentialsInfo);   // pass the optional parameters to support temporary token reallocation.
@@ -3240,19 +3110,16 @@ namespace Cloud.REST
 
             if (reservedForActiveSync)
             {
-                CLHttpRestStatus unusedStatus;
                 JsonContracts.SyncboxUpdateStoragePlanResponse unusedResponse;
                 toReturn.Complete(
                     new SyncboxUpdateStoragePlanResult(
                         UpdateSyncboxStoragePlan<T>(
                             planId,
                             timeoutMilliseconds,
-                            out unusedStatus,
                             out unusedResponse,
                             reservedForActiveSync,
                             completionCallback,
                             completionCallbackUserState),
-                        unusedStatus,
                         unusedResponse),
                     sCompleted: true);
             }
@@ -3288,15 +3155,12 @@ namespace Cloud.REST
                         // try/catch to process with the input parameters, on catch set the exception in the asyncronous result
                         try
                         {
-                            // declare the output status for communication
-                            CLHttpRestStatus status;
                             // declare the specific type of result for this operation
                             JsonContracts.SyncboxUpdateStoragePlanResponse response;
                             // purge pending files with the passed parameters, storing any error that occurs
                             CLError processError = UpdateSyncboxStoragePlan<T>(
                                 castState.Item2,
                                 castState.Item3,
-                                out status,
                                 out response,
                                 castState.Item4,
                                 castState.Item5,
@@ -3308,7 +3172,6 @@ namespace Cloud.REST
                                 castState.Item1.Complete(
                                     new SyncboxUpdateStoragePlanResult(
                                         processError, // any error that may have occurred during processing
-                                        status, // the output status of communication
                                         response), // the specific type of result for this operation
                                         sCompleted: false); // processing did not complete synchronously
                             }
@@ -3397,7 +3260,6 @@ namespace Cloud.REST
         /// </summary>
         /// <param name="planId">The ID of the plan to set</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
-        /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) response object from communication</param>
         /// <param name="reservedForActiveSync">true: Live sync is active.  User calls are not allowed.</param>
         /// <param name="completionCallback">Delegate to call with the response.  May be null.</param>
@@ -3405,8 +3267,7 @@ namespace Cloud.REST
         /// <returns>Returns any error that occurred during communication, if any</returns>
         internal CLError UpdateSyncboxStoragePlan<T>(
                 long planId, 
-                int timeoutMilliseconds, 
-                out CLHttpRestStatus status, 
+                int timeoutMilliseconds,  
                 out JsonContracts.SyncboxUpdateStoragePlanResponse response,
                 bool reservedForActiveSync,
                 Action<JsonContracts.SyncboxUpdateStoragePlanResponse, T> completionCallback,
@@ -3414,13 +3275,9 @@ namespace Cloud.REST
         {
             if (reservedForActiveSync)
             {
-                status = CLHttpRestStatus.ReservedForActiveSync;
                 response = Helpers.DefaultForType<JsonContracts.SyncboxUpdateStoragePlanResponse>();
                 return new Exception("Current Syncbox cannot be modified while in use in active syncing");
             }
-
-            // start with bad request as default if an exception occurs but is not explicitly handled to change the status
-            status = CLHttpRestStatus.BadRequest;
 
             IncrementModifyingSyncboxViaPublicAPICalls();
 
@@ -3461,7 +3318,6 @@ namespace Cloud.REST
                     timeoutMilliseconds, // set the timeout for the operation
                     null, // not an upload or download
                     Helpers.HttpStatusesOkAccepted, // sync box update plan should give OK or Accepted
-                    ref status, // reference to update output status
                     _copiedSettings, // pass the copied settings
                     _syncbox.SyncboxId, // pass the unique id of the sync box on the server
                     requestNewCredentialsInfo);   // pass the optional parameters to support temporary token reallocation.
@@ -3475,7 +3331,6 @@ namespace Cloud.REST
                     }
                     catch
                     {
-                        status = CLHttpRestStatus.CompletionFailure;
                     }
                 }
             }
@@ -3530,17 +3385,14 @@ namespace Cloud.REST
 
             if (reservedForActiveSync)
             {
-                CLHttpRestStatus unusedStatus;
                 JsonContracts.SyncboxResponse unusedResult;
                 toReturn.Complete(
                     new SyncboxUpdateFriendlyNameResult(
                         UpdateSyncbox(
                             friendlyName,
                             timeoutMilliseconds,
-                            out unusedStatus,
                             out unusedResult,
                             reservedForActiveSync),
-                        unusedStatus,
                         unusedResult),
                     sCompleted: true);
             }
@@ -3572,15 +3424,12 @@ namespace Cloud.REST
                         // try/catch to process with the input parameters, on catch set the exception in the asyncronous result
                         try
                         {
-                            // declare the output status for communication
-                            CLHttpRestStatus status;
                             // declare the specific type of result for this operation
                             JsonContracts.SyncboxResponse result;
                             // purge pending files with the passed parameters, storing any error that occurs
                             CLError processError = UpdateSyncbox(
                                 castState.Item2,
                                 castState.Item3,
-                                out status,
                                 out result);
 
                             // if there was an asynchronous result in the parameters, then complete it with a new result object
@@ -3589,7 +3438,6 @@ namespace Cloud.REST
                                 castState.Item1.Complete(
                                     new SyncboxUpdateFriendlyNameResult(
                                         processError, // any error that may have occurred during processing
-                                        status, // the output status of communication
                                         result), // the specific type of result for this operation
                                         sCompleted: false); // processing did not complete synchronously
                             }
@@ -3678,12 +3526,11 @@ namespace Cloud.REST
         /// </summary>
         /// <param name="friendlyName">The friendly name of the syncbox to set</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
-        /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        internal CLError UpdateSyncbox(string friendlyName, int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.SyncboxResponse response)
+        internal CLError UpdateSyncbox(string friendlyName, int timeoutMilliseconds, out JsonContracts.SyncboxResponse response)
         {
-            return UpdateSyncbox(friendlyName, timeoutMilliseconds, out status, out response, reservedForActiveSync: false);
+            return UpdateSyncbox(friendlyName, timeoutMilliseconds, out response, reservedForActiveSync: false);
         }
 
         /// <summary>
@@ -3691,20 +3538,15 @@ namespace Cloud.REST
         /// </summary>
         /// <param name="friendlyName">The friendly name of the syncbox to set</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
-        /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        internal CLError UpdateSyncbox(string friendlyName, int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.SyncboxResponse response, bool reservedForActiveSync)
+        internal CLError UpdateSyncbox(string friendlyName, int timeoutMilliseconds, out JsonContracts.SyncboxResponse response, bool reservedForActiveSync)
         {
             if (reservedForActiveSync)
             {
-                status = CLHttpRestStatus.ReservedForActiveSync;
                 response = Helpers.DefaultForType<JsonContracts.SyncboxResponse>();
                 return new Exception("Current Syncbox cannot be modified while in use in active syncing");
             }
-
-            // start with bad request as default if an exception occurs but is not explicitly handled to change the status
-            status = CLHttpRestStatus.BadRequest;
 
             IncrementModifyingSyncboxViaPublicAPICalls();
 
@@ -3747,7 +3589,6 @@ namespace Cloud.REST
                 timeoutMilliseconds, // set the timeout for the operation
                 null, // not an upload or download
                 Helpers.HttpStatusesOkAccepted, // sync box update should give OK or Accepted
-                ref status, // reference to update output status
                 _copiedSettings, // pass the copied settings
                 _syncbox.SyncboxId, // pass the unique id of the sync box on the server
                 requestNewCredentialsInfo);   // pass the optional parameters to support temporary token reallocation.
@@ -3800,16 +3641,13 @@ namespace Cloud.REST
 
             if (reservedForActiveSync)
             {
-                CLHttpRestStatus unusedStatus;
                 JsonContracts.SyncboxDeleteResponse unusedResponse;
                 toReturn.Complete(
                     new SyncboxDeleteResult(
                         DeleteSyncbox(
                             timeoutMilliseconds,
-                            out unusedStatus,
                             out unusedResponse,
                             reservedForActiveSync),
-                        unusedStatus,
                         unusedResponse),
                     sCompleted: true);
             }
@@ -3841,14 +3679,11 @@ namespace Cloud.REST
                         // try/catch to process with the input parameters, on catch set the exception in the asyncronous result
                         try
                         {
-                            // declare the output status for communication
-                            CLHttpRestStatus status;
                             // declare the specific type of result for this operation
                             JsonContracts.SyncboxDeleteResponse response;
                             // purge pending files with the passed parameters, storing any error that occurs
                             CLError processError = DeleteSyncbox(
                                 timeoutMilliseconds: castState.Item2,
-                                status: out status,
                                 response: out response,
                                 reservedForActiveSync: castState.Item3);
 
@@ -3858,7 +3693,6 @@ namespace Cloud.REST
                                 castState.Item1.Complete(
                                     new SyncboxDeleteResult(
                                         processError, // any error that may have occurred during processing
-                                        status, // the output status of communication
                                         response), // the specific type of response for this operation
                                         sCompleted: false); // processing did not complete synchronously
                             }
@@ -3947,20 +3781,15 @@ namespace Cloud.REST
         /// that created this CLHttpRest instance.
         /// </summary>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
-        /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        internal CLError DeleteSyncbox(int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.SyncboxDeleteResponse response, bool reservedForActiveSync)
+        internal CLError DeleteSyncbox(int timeoutMilliseconds, out JsonContracts.SyncboxDeleteResponse response, bool reservedForActiveSync)
         {
             if (reservedForActiveSync)
             {
-                status = CLHttpRestStatus.ReservedForActiveSync;
                 response = Helpers.DefaultForType<JsonContracts.SyncboxDeleteResponse>();
                 return new Exception("Current Syncbox cannot be modified while in use in active syncing");
             }
-
-            // start with bad request as default if an exception occurs but is not explicitly handled to change the status
-            status = CLHttpRestStatus.BadRequest;
 
             IncrementModifyingSyncboxViaPublicAPICalls();
 
@@ -3994,7 +3823,6 @@ namespace Cloud.REST
                     timeoutMilliseconds, // set the timeout for the operation
                     null, // not an upload or download
                     Helpers.HttpStatusesOkAccepted, // delete sync box should give OK or Accepted
-                    ref status, // reference to update output status
                     _copiedSettings, // pass the copied settings
                     _syncbox.SyncboxId, // pass the unique id of the sync box on the server
                     requestNewCredentialsInfo);   // pass the optional parameters to support temporary token reallocation.
@@ -4062,14 +3890,11 @@ namespace Cloud.REST
                     // try/catch to process with the input parameters, on catch set the exception in the asyncronous result
                     try
                     {
-                        // declare the output status for communication
-                        CLHttpRestStatus status;
                         // declare the specific type of result for this operation
                         JsonContracts.SyncboxStatusResponse response;
                         // purge pending files with the passed parameters, storing any error that occurs
                         CLError processError = GetSyncboxStatus(
                             castState.Item2,
-                            out status,
                             out response,
                             castState.Item3,
                             castState.Item4);
@@ -4080,7 +3905,6 @@ namespace Cloud.REST
                             castState.Item1.Complete(
                                 new SyncboxStatusResult(
                                     processError, // any error that may have occurred during processing
-                                    status, // the output status of communication
                                     response), // the specific type of result for this operation
                                 sCompleted: false); // processing did not complete synchronously
                         }
@@ -4167,20 +3991,16 @@ namespace Cloud.REST
         /// Gets the status of this Syncbox
         /// </summary>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
-        /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) response object from communication</param>
         /// <param name="completionCallback">Delegate to call with the response.  May be null.</param>
         /// <param name="completionCallbackUserState">User state to pass to the completionCallback delegate.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
         internal CLError GetSyncboxStatus<T>(
             int timeoutMilliseconds, 
-            out CLHttpRestStatus status,
             out JsonContracts.SyncboxStatusResponse response,
             Action<JsonContracts.SyncboxStatusResponse, T> completionRoutine, 
             T completionState)
         {
-            // start with bad request as default if an exception occurs but is not explicitly handled to change the status
-            status = CLHttpRestStatus.BadRequest;
             // try/catch to process purging pending, on catch return the error
             try
             {
@@ -4211,7 +4031,6 @@ namespace Cloud.REST
                     timeoutMilliseconds, // set the timeout for the operation
                     null, // not an upload or download
                     Helpers.HttpStatusesOkAccepted, // sync box status should give OK or Accepted
-                    ref status, // reference to update output status
                     _copiedSettings, // pass the copied settings
                     _syncbox.SyncboxId, // pass the unique id of the sync box on the server
                     requestNewCredentialsInfo);   // pass the optional parameters to support temporary token reallocation.
@@ -4225,7 +4044,6 @@ namespace Cloud.REST
                     }
                     catch
                     {
-                        status = CLHttpRestStatus.CompletionFailure;
                     }
                 }
             }
@@ -4246,14 +4064,10 @@ namespace Cloud.REST
         /// </summary>
         /// <param name="syncToRequest">The array of events to send to the server.</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
-        /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, or null.</returns>
-        internal CLError SyncToCloud(To syncToRequest, int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.To response)
+        internal CLError SyncToCloud(To syncToRequest, int timeoutMilliseconds, out JsonContracts.To response)
         {
-            // start with bad request as default if an exception occurs but is not explicitly handled to change the status
-            status = CLHttpRestStatus.BadRequest;
-
             // try/catch to process the sync_to request, on catch return the error
             try
             {
@@ -4286,7 +4100,6 @@ namespace Cloud.REST
                     timeoutMilliseconds, // time before communication timeout
                     null, // not an upload or download
                     Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
-                    ref status, // reference to update the output success/failure status for the communication
                     _copiedSettings, // pass the copied settings
                     _syncbox.SyncboxId, // pass the unique id of the sync box on the server
                     requestNewCredentialsInfo);   // pass the optional parameters to support temporary token reallocation.
@@ -4305,14 +4118,10 @@ namespace Cloud.REST
         /// </summary>
         /// <param name="pushRequest">The parameters to send to the server.</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
-        /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, or null.</returns>
-        internal CLError SyncFromCloud(Push pushRequest, int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.PushResponse response)
+        internal CLError SyncFromCloud(Push pushRequest, int timeoutMilliseconds, out JsonContracts.PushResponse response)
         {
-            // start with bad request as default if an exception occurs but is not explicitly handled to change the status
-            status = CLHttpRestStatus.BadRequest;
-
             // try/catch to process the sync_to request, on catch return the error
             try
             {
@@ -4345,7 +4154,6 @@ namespace Cloud.REST
                     timeoutMilliseconds, // time before communication timeout
                     null, // not an upload or download
                     Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
-                    ref status, // reference to update the output success/failure status for the communication
                     _copiedSettings, // pass the copied settings
                     _syncbox.SyncboxId, // pass the unique id of the sync box on the server
                     requestNewCredentialsInfo);   // pass the optional parameters to support temporary token reallocation.
@@ -4363,15 +4171,12 @@ namespace Cloud.REST
         /// Unsubscribe this Syncbox/Device ID from Sync notifications.Add a Sync box on the server for the current application
         /// </summary>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
-        /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) response object from communication</param>
         /// <param name="syncbox">the Syncbox to use.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        internal CLError SendUnsubscribeToServer(int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.NotificationUnsubscribeResponse response,
+        internal CLError SendUnsubscribeToServer(int timeoutMilliseconds, out JsonContracts.NotificationUnsubscribeResponse response,
                     CLSyncbox syncbox)
         {
-            // start with bad request as default if an exception occurs but is not explicitly handled to change the status
-            status = CLHttpRestStatus.BadRequest;
             // try/catch to process the metadata query, on catch return the error
             try
             {
@@ -4427,7 +4232,6 @@ namespace Cloud.REST
                     timeoutMilliseconds,
                     null, // not an upload nor download
                     Helpers.HttpStatusesOkAccepted,
-                    ref status,
                     copiedSettings,
                     syncbox.SyncboxId,
                     requestNewCredentialsInfo);
@@ -4528,8 +4332,6 @@ namespace Cloud.REST
                     // try/catch to process with the input parameters, on catch set the exception in the asyncronous result
                     try
                     {
-                        // declare the output status for communication
-                        CLHttpRestStatus status;
                         // declare the specific type of result for this operation
                         JsonContracts.SyncboxMetadataResponse result;
                         // run the download of the file with the passed parameters, storing any error that occurs
@@ -4538,7 +4340,6 @@ namespace Cloud.REST
                             castState.Item3,
                             castState.Item4,
                             castState.Item5,
-                            out status,
                             out result);
 
                         // if there was an asynchronous result in the parameters, then complete it with a new result object
@@ -4547,7 +4348,6 @@ namespace Cloud.REST
                             castState.Item1.Complete(
                                 new GetMetadataResult(
                                     processError, // any error that may have occurred during processing
-                                    status, // the output status of communication
                                     result), // the specific type of result for this operation
                                     sCompleted: false); // processing did not complete synchronously
                         }
@@ -4636,12 +4436,11 @@ namespace Cloud.REST
         /// <param name="isFolder">Whether the query is for a folder (as opposed to a file/link)</param>
         /// <param name="serverId">Unique id of the item on the server</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
-        /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        internal CLError GetMetadata(bool isFolder, string serverId, int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.SyncboxMetadataResponse response)
+        internal CLError GetMetadata(bool isFolder, string serverId, int timeoutMilliseconds, out JsonContracts.SyncboxMetadataResponse response)
         {
-            return GetMetadata(/*fullPath*/ null, serverId, isFolder, timeoutMilliseconds, out status, out response);
+            return GetMetadata(/*fullPath*/ null, serverId, isFolder, timeoutMilliseconds, out response);
         }
 
         /// <summary>
@@ -4650,12 +4449,11 @@ namespace Cloud.REST
         /// <param name="fullPath">Full path to where file or folder would exist locally on disk</param>
         /// <param name="isFolder">Whether the query is for a folder (as opposed to a file/link)</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
-        /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        internal CLError GetMetadata(FilePath fullPath, bool isFolder, int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.SyncboxMetadataResponse response)
+        internal CLError GetMetadata(FilePath fullPath, bool isFolder, int timeoutMilliseconds, out JsonContracts.SyncboxMetadataResponse response)
         {
-            return GetMetadata(fullPath, /*serverId*/ null, isFolder, timeoutMilliseconds, out status, out response);
+            return GetMetadata(fullPath, /*serverId*/ null, isFolder, timeoutMilliseconds, out response);
         }
 
         /// <summary>
@@ -4665,13 +4463,10 @@ namespace Cloud.REST
         /// <param name="serverId">Unique id of the item on the server</param>
         /// <param name="isFolder">Whether the query is for a folder (as opposed to a file/link)</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
-        /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        private CLError GetMetadata(FilePath fullPath, string serverId, bool isFolder, int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.SyncboxMetadataResponse response)
+        private CLError GetMetadata(FilePath fullPath, string serverId, bool isFolder, int timeoutMilliseconds, out JsonContracts.SyncboxMetadataResponse response)
         {
-            // start with bad request as default if an exception occurs but is not explicitly handled to change the status
-            status = CLHttpRestStatus.BadRequest;
             // try/catch to process the metadata query, on catch return the error
             try
             {
@@ -4743,7 +4538,6 @@ namespace Cloud.REST
                     timeoutMilliseconds, // time before communication timeout
                     null, // not an upload or download
                     Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
-                    ref status, // reference to update the output success/failure status for the communication
                     _copiedSettings, // pass the copied settings
                     _syncbox.SyncboxId, // pass the unique id of the sync box on the server
                     requestNewCredentialsInfo);   // pass the optional parameters to support temporary token reallocation.
@@ -4768,7 +4562,6 @@ namespace Cloud.REST
         /// <param name="moveFileUponCompletion">¡¡ Action required: move the completed download file from the temp directory to the final destination !! Callback fired when download completes</param>
         /// <param name="moveFileUponCompletionState">Userstate passed upon firing completed download callback</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception, does not restrict time for the actual file download</param>
-        /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="beforeDownload">(optional) Callback fired before a download starts</param>
         /// <param name="beforeDownloadState">Userstate passed upon firing before download callback</param>
         /// <param name="shutdownToken">(optional) Token used to request cancellation of the download</param>
@@ -4841,15 +4634,12 @@ namespace Cloud.REST
                             progress = castState.Item1.InternalState as GenericHolder<TransferProgress>;
                         }
 
-                        // declare the output status for communication
-                        CLHttpRestStatus status;
                         // run the download of the file with the passed parameters, storing any error that occurs
                         CLError processError = DownloadFile(
                             castState.Item3,
                             castState.Item4,
                             castState.Item5,
                             castState.Item6,
-                            out status,
                             castState.Item7,
                             castState.Rest.Item1,
                             castState.Rest.Item2,
@@ -4865,9 +4655,8 @@ namespace Cloud.REST
                         {
                             castState.Item1.Complete(
                                 new DownloadFileResult(
-                                    processError, // any error that may have occurred during processing
-                                    status), // the output status of communication
-                                    sCompleted: false); // processing did not complete synchronously
+                                    processError), // any error that may have occurred during processing
+                                sCompleted: false); // processing did not complete synchronously
                         }
                     }
                     catch (Exception ex)
@@ -4998,7 +4787,6 @@ namespace Cloud.REST
         /// <param name="moveFileUponCompletion">¡¡ Action required: move the completed download file from the temp directory to the final destination !! Callback fired when download completes</param>
         /// <param name="moveFileUponCompletionState">Userstate passed upon firing completed download callback</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception, does not restrict time for the actual file download</param>
-        /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="beforeDownload">(optional) Callback fired before a download starts</param>
         /// <param name="beforeDownloadState">Userstate passed upon firing before download callback</param>
         /// <param name="shutdownToken">(optional) Token used to request cancellation of the download</param>
@@ -5008,7 +4796,6 @@ namespace Cloud.REST
             Helpers.AfterDownloadToTempFile moveFileUponCompletion,
             object moveFileUponCompletionState,
             int timeoutMilliseconds,
-            out CLHttpRestStatus status,
             Helpers.BeforeDownloadToTempFile beforeDownload = null,
             object beforeDownloadState = null,
             CancellationTokenSource shutdownToken = null,
@@ -5019,7 +4806,6 @@ namespace Cloud.REST
                 moveFileUponCompletion,
                 moveFileUponCompletionState,
                 timeoutMilliseconds,
-                out status,
                 beforeDownload,
                 beforeDownloadState,
                 shutdownToken,
@@ -5037,7 +4823,6 @@ namespace Cloud.REST
             Helpers.AfterDownloadToTempFile moveFileUponCompletion,
             object moveFileUponCompletionState,
             int timeoutMilliseconds,
-            out CLHttpRestStatus status,
             Helpers.BeforeDownloadToTempFile beforeDownload,
             object beforeDownloadState,
             CancellationTokenSource shutdownToken,
@@ -5049,7 +4834,6 @@ namespace Cloud.REST
                 moveFileUponCompletion,
                 moveFileUponCompletionState,
                 timeoutMilliseconds,
-                out status,
                 beforeDownload,
                 beforeDownloadState,
                 shutdownToken,
@@ -5066,7 +4850,6 @@ namespace Cloud.REST
             Helpers.AfterDownloadToTempFile moveFileUponCompletion,
             object moveFileUponCompletionState,
             int timeoutMilliseconds,
-            out CLHttpRestStatus status,
             Helpers.BeforeDownloadToTempFile beforeDownload,
             object beforeDownloadState,
             CancellationTokenSource shutdownToken,
@@ -5077,8 +4860,6 @@ namespace Cloud.REST
             FileTransferStatusUpdateDelegate statusUpdate,
             Nullable<Guid> statusUpdateId)
         {
-            // start with bad request as default if an exception occurs but is not explicitly handled to change the status
-            status = CLHttpRestStatus.BadRequest;
             // try/catch to process the file download, on catch return the error
             try
             {
@@ -5171,7 +4952,6 @@ namespace Cloud.REST
                     timeoutMilliseconds, // time before communication timeout (does not restrict time
                     currentDownload, // download-specific parameters holder constructed directly above
                     Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
-                    ref status, // reference to update the output success/failure status for the communication
                     _copiedSettings, // pass the copied settings
                     _syncbox.SyncboxId, // pass the unique id of the sync box on the server
                     requestNewCredentialsInfo);   // pass the optional parameters to support temporary token reallocation.
@@ -5253,8 +5033,6 @@ namespace Cloud.REST
                             progress = castState.Item1.InternalState as GenericHolder<TransferProgress>;
                         }
 
-                        // declare the output status for communication
-                        CLHttpRestStatus status;
                         // declare the output message for upload
                         string message;
                         bool hashMismatchFound;
@@ -5263,7 +5041,6 @@ namespace Cloud.REST
                             castState.Item3,
                             castState.Item4,
                             castState.Item5,
-                            out status,
                             out message,
                             out hashMismatchFound,
                             castState.Item6,
@@ -5277,7 +5054,6 @@ namespace Cloud.REST
                         if (castState.Item1 != null)
                         {
                             castState.Item1.Complete(new UploadFileResult(processError,
-                                status,
                                 message,
                                 hashMismatchFound),
                                 sCompleted: false);
@@ -5410,14 +5186,12 @@ namespace Cloud.REST
         /// <param name="uploadStream">Stream to upload, if it is a FileStream then make sure the file is locked to prevent simultaneous writes</param>
         /// <param name="changeToUpload">File upload change, requires Metadata.HashableProperties.Size, NewPath, Metadata.StorageKey, and MD5 hash to be set</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception, does not restrict time for the actual file upload</param>
-        /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="message">(output) upload response message</param>
         /// <param name="shutdownToken">(optional) Token used to request cancellation of the upload</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
         internal CLError UploadFile(StreamContext streamContext,
             FileChange changeToUpload,
             int timeoutMilliseconds,
-            out CLHttpRestStatus status,
             out string message,
             out bool hashMismatchFound,
             CancellationTokenSource shutdownToken = null)
@@ -5426,7 +5200,6 @@ namespace Cloud.REST
                 streamContext,
                 changeToUpload,
                 timeoutMilliseconds,
-                out status,
                 out message,
                 out hashMismatchFound,
                 shutdownToken,
@@ -5441,7 +5214,6 @@ namespace Cloud.REST
         internal CLError UploadFile(StreamContext streamContext,
             FileChange changeToUpload,
             int timeoutMilliseconds,
-            out CLHttpRestStatus status,
             out string message,
             out bool hashMismatchFound,
             CancellationTokenSource shutdownToken,
@@ -5452,7 +5224,6 @@ namespace Cloud.REST
                 streamContext,
                 changeToUpload,
                 timeoutMilliseconds,
-                out status,
                 out message,
                 out hashMismatchFound,
                 shutdownToken,
@@ -5467,7 +5238,6 @@ namespace Cloud.REST
         private CLError UploadFile(StreamContext streamContext,
             FileChange changeToUpload,
             int timeoutMilliseconds,
-            out CLHttpRestStatus status,
             out string message,
             out bool hashMismatchFound,
             CancellationTokenSource shutdownToken,
@@ -5477,8 +5247,6 @@ namespace Cloud.REST
             FileTransferStatusUpdateDelegate statusUpdate,
             Nullable<Guid> statusUpdateId)
         {
-            // start with bad request as default if an exception occurs but is not explicitly handled to change the status
-            status = CLHttpRestStatus.BadRequest;
             // try/catch to process the file upload, on catch return the error
             try
             {
@@ -5533,7 +5301,6 @@ namespace Cloud.REST
                         statusUpdate, // callback to user to notify when a CLSyncEngine status has changed
                         statusUpdateId), // userstate to pass to the statusUpdate callback
                     Helpers.HttpStatusesOkCreatedNotModified, // use the hashset for ok/created/not modified as successful HttpStatusCodes
-                    ref status, // reference to update the output success/failure status for the communication
                     _copiedSettings, // pass the copied settings
                     _syncbox.SyncboxId, // pass the unique id of the sync box on the server
                     requestNewCredentialsInfo);   // pass the optional parameters to support temporary token reallocation.
@@ -5593,14 +5360,11 @@ namespace Cloud.REST
                     // try/catch to process with the input parameters, on catch set the exception in the asyncronous result
                     try
                     {
-                        // declare the output status for communication
-                        CLHttpRestStatus status;
                         // declare the specific type of result for this operation
                         JsonContracts.PendingResponse result;
                         // run the download of the file with the passed parameters, storing any error that occurs
                         CLError processError = GetAllPending(
                             castState.Item2,
-                            out status,
                             out result);
 
                         // if there was an asynchronous result in the parameters, then complete it with a new result object
@@ -5609,7 +5373,6 @@ namespace Cloud.REST
                             castState.Item1.Complete(
                                 new GetAllPendingResult(
                                     processError, // any error that may have occurred during processing
-                                    status, // the output status of communication
                                     result), // the specific type of result for this operation
                                     sCompleted: false); // processing did not complete synchronously
                         }
@@ -5696,13 +5459,10 @@ namespace Cloud.REST
         /// Queries the server for a given sync box and device to get all files which are still pending upload
         /// </summary>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
-        /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError GetAllPending(int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.PendingResponse response)
+        public CLError GetAllPending(int timeoutMilliseconds, out JsonContracts.PendingResponse response)
         {
-            // start with bad request as default if an exception occurs but is not explicitly handled to change the status
-            status = CLHttpRestStatus.BadRequest;
             // try/catch to process the pending query, on catch return the error
             try
             {
@@ -5741,7 +5501,6 @@ namespace Cloud.REST
                     timeoutMilliseconds, // time before communication timeout
                     null, // not an upload or download
                     Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
-                    ref status, // reference to update the output success/failure status for the communication
                     _copiedSettings, // pass the copied settings
                     _syncbox.SyncboxId, // pass the unique id of the sync box on the server
                     requestNewCredentialsInfo);   // pass the optional parameters to support temporary token reallocation.
@@ -5800,15 +5559,12 @@ namespace Cloud.REST
                     // try/catch to process with the input parameters, on catch set the exception in the asyncronous result
                     try
                     {
-                        // declare the output status for communication
-                        CLHttpRestStatus status;
                         // declare the specific type of result for this operation
                         JsonContracts.FileChangeResponse response;
                         // run the download of the file with the passed parameters, storing any error that occurs
                         CLError processError = PostFileChange(
                             castState.Item2,
                             castState.Item3,
-                            out status,
                             out response);
 
                         // if there was an asynchronous result in the parameters, then complete it with a new result object
@@ -5817,7 +5573,6 @@ namespace Cloud.REST
                             castState.Item1.Complete(
                                 new FileChangeResult(
                                     processError, // any error that may have occurred during processing
-                                    status, // the output status of communication
                                     response), // the specific type of result for this operation
                                     sCompleted: false); // processing did not complete synchronously
                         }
@@ -5907,13 +5662,10 @@ namespace Cloud.REST
         /// </summary>
         /// <param name="toCommunicate">Single FileChange to send</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
-        /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        internal CLError PostFileChange(FileChange toCommunicate, int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.FileChangeResponse response)
+        internal CLError PostFileChange(FileChange toCommunicate, int timeoutMilliseconds, out JsonContracts.FileChangeResponse response)
         {
-            // start with bad request as default if an exception occurs but is not explicitly handled to change the status
-            status = CLHttpRestStatus.BadRequest;
             // try/catch to process the file change post, on catch return the error
             try
             {
@@ -6141,7 +5893,6 @@ namespace Cloud.REST
                     timeoutMilliseconds, // time before communication timeout
                     null, // not an upload or download
                     Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
-                    ref status, // reference to update the output success/failure status for the communication
                     _copiedSettings, // pass the copied settings
                     _syncbox.SyncboxId, // pass the unique id of the sync box on the server
                     requestNewCredentialsInfo);   // pass the optional parameters to support temporary token reallocation.
@@ -6253,8 +6004,6 @@ namespace Cloud.REST
                     // try/catch to process with the input parameters, on catch set the exception in the asyncronous result
                     try
                     {
-                        // declare the output status for communication
-                        CLHttpRestStatus status;
                         // declare the specific type of result for this operation
                         JsonContracts.FileVersion[] result;
                         // run the download of the file with the passed parameters, storing any error that occurs
@@ -6262,7 +6011,6 @@ namespace Cloud.REST
                             castState.Item2,
                             castState.Item3,
                             castState.Item4,
-                            out status,
                             out result);
 
                         // if there was an asynchronous result in the parameters, then complete it with a new result object
@@ -6271,7 +6019,6 @@ namespace Cloud.REST
                             castState.Item1.Complete(
                                 new GetFileVersionsResult(
                                     processError, // any error that may have occurred during processing
-                                    status, // the output status of communication
                                     result), // the specific type of result for this operation
                                     sCompleted: false); // processing did not complete synchronously
                         }
@@ -6359,13 +6106,12 @@ namespace Cloud.REST
         /// </summary>
         /// <param name="fileServerId">Unique id to the file on the server</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
-        /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) response object from communication</param>
         /// <param name="includeDeletedVersions">(optional) whether to include file versions which are deleted</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError GetFileVersions(string fileServerId, int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.FileVersion[] response, bool includeDeletedVersions = false)
+        public CLError GetFileVersions(string fileServerId, int timeoutMilliseconds, out JsonContracts.FileVersion[] response, bool includeDeletedVersions = false)
         {
-            return GetFileVersions(fileServerId, timeoutMilliseconds, null, out status, out response, includeDeletedVersions);
+            return GetFileVersions(fileServerId, timeoutMilliseconds, null, out response, includeDeletedVersions);
         }
 
         /// <summary>
@@ -6373,13 +6119,12 @@ namespace Cloud.REST
         /// </summary>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <param name="pathToFile">Full path to the file where it would be placed locally within the sync root</param>
-        /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) response object from communication</param>
         /// <param name="includeDeletedVersions">(optional) whether to include file versions which are deleted</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError GetFileVersions(int timeoutMilliseconds, FilePath pathToFile, out CLHttpRestStatus status, out JsonContracts.FileVersion[] response, bool includeDeletedVersions = false)
+        public CLError GetFileVersions(int timeoutMilliseconds, FilePath pathToFile, out JsonContracts.FileVersion[] response, bool includeDeletedVersions = false)
         {
-            return GetFileVersions(null, timeoutMilliseconds, pathToFile, out status, out response, includeDeletedVersions);
+            return GetFileVersions(null, timeoutMilliseconds, pathToFile, out response, includeDeletedVersions);
         }
 
         /// <summary>
@@ -6388,14 +6133,11 @@ namespace Cloud.REST
         /// <param name="fileServerId">Unique id to the file on the server</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <param name="pathToFile">Full path to the file where it would be placed locally within the sync root</param>
-        /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) response object from communication</param>
         /// <param name="includeDeletedVersions">(optional) whether to include file versions which are deleted</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError GetFileVersions(string fileServerId, int timeoutMilliseconds, FilePath pathToFile, out CLHttpRestStatus status, out JsonContracts.FileVersion[] response, bool includeDeletedVersions = false)
+        public CLError GetFileVersions(string fileServerId, int timeoutMilliseconds, FilePath pathToFile, out JsonContracts.FileVersion[] response, bool includeDeletedVersions = false)
         {
-            // start with bad request as default if an exception occurs but is not explicitly handled to change the status
-            status = CLHttpRestStatus.BadRequest;
             // try/catch to process the undeletion, on catch return the error
             try
             {
@@ -6464,7 +6206,6 @@ namespace Cloud.REST
                     timeoutMilliseconds, // time before communication timeout
                     null, // not an upload or download
                     Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
-                    ref status, // reference to update the output success/failure status for the communication
                     _copiedSettings, // pass the copied settings
                     _syncbox.SyncboxId, // pass the unique id of the sync box on the server
                     requestNewCredentialsInfo);   // pass the optional parameters to support temporary token reallocation.
@@ -6520,14 +6261,11 @@ namespace Cloud.REST
         //            // try/catch to process with the input parameters, on catch set the exception in the asyncronous result
         //            try
         //            {
-        //                // declare the output status for communication
-        //                CLHttpRestStatus status;
         //                // declare the specific type of result for this operation
         //                JsonContracts.UsedBytes result;
         //                // run the download of the file with the passed parameters, storing any error that occurs
         //                CLError processError = GetUsedBytes(
         //                    castState.Item2,
-        //                    out status,
         //                    out result);
 
         //                // if there was an asynchronous result in the parameters, then complete it with a new result object
@@ -6536,7 +6274,6 @@ namespace Cloud.REST
         //                    castState.Item1.Complete(
         //                        new GetUsedBytesResult(
         //                            processError, // any error that may have occurred during processing
-        //                            status, // the output status of communication
         //                            result), // the specific type of result for this operation
         //                            sCompleted: false); // processing did not complete synchronously
         //                }
@@ -6623,13 +6360,10 @@ namespace Cloud.REST
         ///// Grabs the bytes used by the sync box and the bytes which are pending for upload
         ///// </summary>
         ///// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
-        ///// <param name="status">(output) success/failure status of communication</param>
         ///// <param name="response">(output) response object from communication</param>
         ///// <returns>Returns any error that occurred during communication, if any</returns>
-        //public CLError GetUsedBytes(int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.UsedBytes response)
+        //public CLError GetUsedBytes(int timeoutMilliseconds, out JsonContracts.UsedBytes response)
         //{
-        //    // start with bad request as default if an exception occurs but is not explicitly handled to change the status
-        //    status = CLHttpRestStatus.BadRequest;
         //    // try/catch to process the undeletion, on catch return the error
         //    try
         //    {
@@ -6667,7 +6401,6 @@ namespace Cloud.REST
         //            timeoutMilliseconds, // time before communication timeout
         //            null, // not an upload or download
         //            Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
-        //            ref status, // reference to update the output success/failure status for the communication
         //            _copiedSettings, // pass the copied settings
         //            _syncbox.SyncboxId, // pass the unique id of the sync box on the server
         //            requestNewCredentialsInfo);   // pass the optional parameters to support temporary token reallocation.
@@ -6723,14 +6456,11 @@ namespace Cloud.REST
                     // try/catch to process with the input parameters, on catch set the exception in the asyncronous result
                     try
                     {
-                        // declare the output status for communication
-                        CLHttpRestStatus status;
                         // declare the specific type of result for this operation
                         JsonContracts.PendingResponse result;
                         // purge pending files with the passed parameters, storing any error that occurs
                         CLError processError = PurgePending(
                             castState.Item2,
-                            out status,
                             out result);
 
                         // if there was an asynchronous result in the parameters, then complete it with a new result object
@@ -6739,7 +6469,6 @@ namespace Cloud.REST
                             castState.Item1.Complete(
                                 new PurgePendingResult(
                                     processError, // any error that may have occurred during processing
-                                    status, // the output status of communication
                                     result), // the specific type of result for this operation
                                     sCompleted: false); // processing did not complete synchronously
                         }
@@ -6826,13 +6555,10 @@ namespace Cloud.REST
         /// Purges any pending changes (pending file uploads) and outputs the files which were purged
         /// </summary>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
-        /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError PurgePending(int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.PendingResponse response)
+        public CLError PurgePending(int timeoutMilliseconds, out JsonContracts.PendingResponse response)
         {
-            // start with bad request as default if an exception occurs but is not explicitly handled to change the status
-            status = CLHttpRestStatus.BadRequest;
             // try/catch to process purging pending, on catch return the error
             try
             {
@@ -6868,7 +6594,6 @@ namespace Cloud.REST
                     timeoutMilliseconds, // set the timeout for the operation
                     null, // not an upload or download
                     Helpers.HttpStatusesOkAccepted, // purge pending should give OK or Accepted
-                    ref status, // reference to update output status
                     _copiedSettings, // pass the copied settings
                     _syncbox.SyncboxId, // pass the unique id of the sync box on the server
                     requestNewCredentialsInfo);   // pass the optional parameters to support temporary token reallocation.
@@ -6920,17 +6645,14 @@ namespace Cloud.REST
 
         //    if (reservedForActiveSync)
         //    {
-        //        CLHttpRestStatus unusedStatus;
         //        JsonContracts.SyncboxHolder unusedResult;
         //        toReturn.Complete(
         //            new UpdateSyncboxQuotaResult(
         //                UpdateSyncboxQuota(
         //                    quotaSize,
         //                    timeoutMilliseconds,
-        //                    out unusedStatus,
         //                    out unusedResult,
         //                    reservedForActiveSync),
-        //                unusedStatus,
         //                unusedResult),
         //            sCompleted: true);
         //    }
@@ -6962,15 +6684,12 @@ namespace Cloud.REST
         //                // try/catch to process with the input parameters, on catch set the exception in the asyncronous result
         //                try
         //                {
-        //                    // declare the output status for communication
-        //                    CLHttpRestStatus status;
         //                    // declare the specific type of result for this operation
         //                    JsonContracts.SyncboxHolder result;
         //                    // purge pending files with the passed parameters, storing any error that occurs
         //                    CLError processError = UpdateSyncboxQuota(
         //                        castState.Item2,
         //                        castState.Item3,
-        //                        out status,
         //                        out result);
 
         //                    // if there was an asynchronous result in the parameters, then complete it with a new result object
@@ -6979,7 +6698,6 @@ namespace Cloud.REST
         //                        castState.Item1.Complete(
         //                            new UpdateSyncboxQuotaResult(
         //                                processError, // any error that may have occurred during processing
-        //                                status, // the output status of communication
         //                                result), // the specific type of result for this operation
         //                                sCompleted: false); // processing did not complete synchronously
         //                    }
@@ -7068,12 +6786,11 @@ namespace Cloud.REST
         ///// </summary>
         ///// <param name="quotaSize">How many bytes big to make the storage quota</param>
         ///// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
-        ///// <param name="status">(output) success/failure status of communication</param>
         ///// <param name="response">(output) response object from communication</param>
         ///// <returns>Returns any error that occurred during communication, if any</returns>
-        //public CLError UpdateSyncboxQuota(long quotaSize, int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.SyncboxHolder response)
+        //public CLError UpdateSyncboxQuota(long quotaSize, int timeoutMilliseconds, out JsonContracts.SyncboxHolder response)
         //{
-        //    return UpdateSyncboxQuota(quotaSize, timeoutMilliseconds, out status, out response, reservedForActiveSync: false);
+        //    return UpdateSyncboxQuota(quotaSize, timeoutMilliseconds, out response, reservedForActiveSync: false);
         //}
 
         ///// <summary>
@@ -7081,20 +6798,15 @@ namespace Cloud.REST
         ///// </summary>
         ///// <param name="quotaSize">How many bytes big to make the storage quota</param>
         ///// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
-        ///// <param name="status">(output) success/failure status of communication</param>
         ///// <param name="response">(output) response object from communication</param>
         ///// <returns>Returns any error that occurred during communication, if any</returns>
-        //internal CLError UpdateSyncboxQuota(long quotaSize, int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.SyncboxHolder response, bool reservedForActiveSync)
+        //internal CLError UpdateSyncboxQuota(long quotaSize, int timeoutMilliseconds, out JsonContracts.SyncboxHolder response, bool reservedForActiveSync)
         //{
         //    if (reservedForActiveSync)
         //    {
-        //        status = CLHttpRestStatus.ReservedForActiveSync;
         //        response = Helpers.DefaultForType<JsonContracts.SyncboxHolder>();
         //        return new Exception("Current Syncbox cannot be modified while in use in active syncing");
         //    }
-
-        //    // start with bad request as default if an exception occurs but is not explicitly handled to change the status
-        //    status = CLHttpRestStatus.BadRequest;
 
         //    IncrementModifyingSyncboxViaPublicAPICalls();
 
@@ -7135,7 +6847,6 @@ namespace Cloud.REST
         //            timeoutMilliseconds, // set the timeout for the operation
         //            null, // not an upload or download
         //            Helpers.HttpStatusesOkAccepted, // sync box storage quota should give OK or Accepted
-        //            ref status, // reference to update output status
         //            _copiedSettings, // pass the copied settings
         //            _syncbox.SyncboxId, // pass the unique id of the sync box on the server
         //            requestNewCredentialsInfo);   // pass the optional parameters to support temporary token reallocation.

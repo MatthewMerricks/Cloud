@@ -273,20 +273,16 @@ namespace Cloud
                     // try/catch to process with the input parameters, on catch set the exception in the asyncronous result
                     try
                     {
-                        // declare the output status for communication
-                        CLHttpRestStatus status;    // &&&&& Fix this
                         // declare the specific type of response for this operation
                         CLCredentials [] response;
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
                         CLError processError = ListAllActiveSessions(
-                            out status,
                             out response,
                             Data.settings);
 
                         Data.toReturn.Complete(
                             new CredentialsListSessionsResult(
                                 processError, // any error that may have occurred during processing
-                                status, // the output status of communication
                                 response), // the specific type of response for this operation
                             sCompleted: false); // processing did not complete synchronously
                     }
@@ -323,17 +319,14 @@ namespace Cloud
         /// <summary>
         /// Lists the sessions boxes on the server for the current application
         /// </summary>
-        /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) An array of CLCredential objects representing the sessions in the cloud.</param>
         /// <param name="settings">(optional) settings for optional tracing and specifying the client version to the server</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
         /// <remarks>The response array may be null, empty, or may contain null items.</remarks>
-        public CLError ListAllActiveSessions(out CLHttpRestStatus status, out CLCredentials [] response, ICLCredentialsSettings settings = null)
+        public CLError ListAllActiveSessions(out CLCredentials [] response, ICLCredentialsSettings settings = null)
         {
             Helpers.CheckHalted();
 
-            // start with bad request as default if an exception occurs but is not explicitly handled to change the status
-            status = CLHttpRestStatus.BadRequest;
             // try/catch to process the metadata query, on catch return the error
             try
             {
@@ -358,7 +351,6 @@ namespace Cloud
                     copiedSettings.HttpTimeoutMilliseconds,
                     /* uploadDownload */ null, // not an upload nor download
                     Helpers.HttpStatusesOkAccepted,
-                    ref status,
                     copiedSettings,
                     Credentials: this,
                     SyncboxId: null);
@@ -430,13 +422,10 @@ namespace Cloud
                     // try/catch to process with the input parameters, on catch set the exception in the asyncronous result
                     try
                     {
-                        // declare the output status for communication
-                        CLHttpRestStatus status;    // &&&&& Fix this
                         // declare the specific type of response for this operation
                         CLCredentials response;
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
                         CLError processError = CreateSessionForSyncboxIds(
-                            out status,
                             out response,
                             Data.syncboxIds,
                             Data.tokenDurationMinutes,
@@ -445,7 +434,6 @@ namespace Cloud
                         Data.toReturn.Complete(
                             new CredentialsSessionCreateResult(
                                 processError, // any error that may have occurred during processing
-                                status, // the output status of communication
                                 response), // the specific type of response for this operation
                             sCompleted: false); // processing did not complete synchronously
                     }
@@ -482,14 +470,12 @@ namespace Cloud
         /// <summary>
         /// Creates a session on the server for the current application
         /// </summary>
-        /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) response object from communication</param>
         /// <param name="syncboxIds">(optional) IDs of sync boxes to associate with this session.  A null value causes all syncboxes defined for the application to be associated with this session.</param>
         /// <param name="tokenDurationMinutes">(optional) The number of minutes before the token expires. Default: 2160 minutes (36 hours).  Maximum: 7200 minutes (120 hours).</param>
         /// <param name="settings">(optional) settings for optional tracing and specifying the client version to the server</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError CreateSessionForSyncboxIds(
-                    out CLHttpRestStatus status, 
                     out CLCredentials response,
                     HashSet<long> syncboxIds = null,
                     Nullable<long> tokenDurationMinutes = null,
@@ -497,8 +483,6 @@ namespace Cloud
         {
             Helpers.CheckHalted();
 
-            // start with bad request as default if an exception occurs but is not explicitly handled to change the status
-            status = CLHttpRestStatus.BadRequest;
             // try/catch to process the metadata query, on catch return the error
             try
             {
@@ -546,7 +530,6 @@ namespace Cloud
                     copiedSettings.HttpTimeoutMilliseconds,
                     null, // not an upload nor download
                     Helpers.HttpStatusesOkCreatedNotModifiedNoContent,
-                    ref status,
                     copiedSettings,
                     this,
                     null);
@@ -606,13 +589,10 @@ namespace Cloud
                     // try/catch to process with the input parameters, on catch set the exception in the asyncronous result
                     try
                     {
-                        // declare the output status for communication
-                        CLHttpRestStatus status;    // &&&&& Fix this
                         // declare the specific type of response for this operation
                         CLCredentials response;
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
                         CLError processError = GetSessionForKey(
-                            out status,
                             out response,
                             Data.key,
                             Data.settings);
@@ -620,7 +600,6 @@ namespace Cloud
                         Data.toReturn.Complete(
                             new CredentialsSessionGetForKeyResult(
                                 processError, // any error that may have occurred during processing
-                                status, // the output status of communication
                                 response), // the specific type of response for this operation
                             sCompleted: false); // processing did not complete synchronously
                     }
@@ -657,22 +636,18 @@ namespace Cloud
         /// <summary>
         /// Creates a session on the server for the current application
         /// </summary>
-        /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) response object from communication</param>
         /// <param name="syncboxIds">(optional) IDs of sync boxes to associate with this session.  A null value causes all syncboxes defined for the application to be associated with this session.</param>
         /// <param name="tokenDurationMinutes">(optional) The number of minutes before the token expires. Default: 2160 minutes (36 hours).  Maximum: 7200 minutes (120 hours).</param>
         /// <param name="settings">(optional) settings for optional tracing and specifying the client version to the server</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError GetSessionForKey(
-                    out CLHttpRestStatus status,
                     out CLCredentials response,
                     string key,
                     ICLCredentialsSettings settings = null)
         {
             Helpers.CheckHalted();
 
-            // start with bad request as default if an exception occurs but is not explicitly handled to change the status
-            status = CLHttpRestStatus.BadRequest;
             // try/catch to process the metadata query, on catch return the error
             try
             {
@@ -702,7 +677,6 @@ namespace Cloud
                     copiedSettings.HttpTimeoutMilliseconds,
                     null, // not an upload nor download
                     Helpers.HttpStatusesOkAccepted,
-                    ref status,
                     copiedSettings,
                     this,
                     null);
@@ -761,21 +735,17 @@ namespace Cloud
                     // try/catch to process with the input parameters, on catch set the exception in the asyncronous result
                     try
                     {
-                        // declare the output status for communication
-                        CLHttpRestStatus status;    // &&&&& Fix this
                         // declare the specific type of response for this operation
                         JsonContracts.CredentialsSessionDeleteResponse response;
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
                         CLError processError = DeleteSessionWithKey(
                             Data.key,
-                            out status,
                             out response,
                             Data.settings);
 
                         Data.toReturn.Complete(
                             new CredentialsSessionDeleteResult(
                                 processError, // any error that may have occurred during processing
-                                status, // the output status of communication
                                 response), // the specific type of response for this operation
                             sCompleted: false); // processing did not complete synchronously
                     }
@@ -813,20 +783,16 @@ namespace Cloud
         /// Deletes a session on the server for the current credentials.
         /// </summary>
         /// <param name="key">The key of the session to delete.</param>
-        /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) An array of CLCredential objects representing the sessions in the cloud.</param>
         /// <param name="settings">(optional) settings for optional tracing and specifying the client version to the server</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError DeleteSessionWithKey(
             string key, 
-            out CLHttpRestStatus status, 
             out JsonContracts.CredentialsSessionDeleteResponse response, 
             ICLCredentialsSettings settings = null)
         {
             Helpers.CheckHalted();
 
-            // start with bad request as default if an exception occurs but is not explicitly handled to change the status
-            status = CLHttpRestStatus.BadRequest;
             // try/catch to process the metadata query, on catch return the error
             try
             {
@@ -856,7 +822,6 @@ namespace Cloud
                     copiedSettings.HttpTimeoutMilliseconds,
                     null, // not an upload nor download
                     Helpers.HttpStatusesOkAccepted,
-                    ref status,
                     copiedSettings,
                     this,
                     null);
@@ -926,15 +891,12 @@ namespace Cloud
                     // try/catch to process with the input parameters, on catch set the exception in the asyncronous result
                     try
                     {
-                        // declare the output status for communication
-                        CLHttpRestStatus status;
                         // declare the specific type of response for this operation
                         JsonContracts.LinkDeviceFirstTimeResponse response;
                         // run the download of the file with the passed parameters, storing any error that occurs
                         CLError processError = LinkDeviceFirstTime(
                             request,
                             castState.Item2,
-                            out status,
                             out response,
                             castState.Item3);
 
@@ -944,7 +906,6 @@ namespace Cloud
                             castState.Item1.Complete(
                                 new LinkDeviceFirstTimeResult(
                                     processError, // any error that may have occurred during processing
-                                    status, // the output status of communication
                                     response), // the specific type of response for this operation
                                     sCompleted: false); // processing did not complete synchronously
                         }
@@ -986,7 +947,6 @@ namespace Cloud
         /// </summary>
         /// <param name="request">The parameters to send to the server.</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
-        /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) response object from communication</param>
         /// <param name="settings">The settings to use.</param>
         /// <returns>Returns any error that occurred during communication, or null.</returns>
@@ -995,14 +955,10 @@ namespace Cloud
         public CLError LinkDeviceFirstTime(
                     JsonContracts.LinkDeviceFirstTimeRequest request, 
                     int timeoutMilliseconds, 
-                    out CLHttpRestStatus status, 
                     out JsonContracts.LinkDeviceFirstTimeResponse response,
                     ICLCredentialsSettings settings = null)
         {
             Helpers.CheckHalted();
-
-            // start with bad request as default if an exception occurs but is not explicitly handled to change the status
-            status = CLHttpRestStatus.BadRequest;
 
             // try/catch to process the sync_to request, on catch return the error
             try
@@ -1044,7 +1000,6 @@ namespace Cloud
                     timeoutMilliseconds, // time before communication timeout
                     null, // not an upload or download
                     httpStatusCodesAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes.
-                    ref status, // reference to update the output success/failure status for the communication
                     copiedSettings, // pass the copied settings
                     this, // pass the key/secret
                     null); // no unique id of the sync box on the server
@@ -1111,17 +1066,22 @@ namespace Cloud
                     // try/catch to process with the input parameters, on catch set the exception in the asyncronous result
                     try
                     {
+                        //&&&& Check this.
                         // declare the output status for communication
-                        CLHttpRestStatus status;
+                        CLExceptionCode status;
                         // declare the specific type of response for this operation
                         JsonContracts.LinkDeviceResponse response;
                         // run the download of the file with the passed parameters, storing any error that occurs
                         CLError processError = LinkDevice(
                             request,
                             castState.Item2,
-                            out status,
                             out response,
                             castState.Item3);
+
+                        if (processError != null)
+                        {
+                            status = processError.PrimaryException.Code;
+                        }
 
                         // if there was an asynchronous result in the parameters, then complete it with a new result object
                         if (castState.Item1 != null)
@@ -1129,7 +1089,6 @@ namespace Cloud
                             castState.Item1.Complete(
                                 new LinkDeviceResult(
                                     processError, // any error that may have occurred during processing
-                                    status, // the output status of communication
                                     response), // the specific type of response for this operation
                                     sCompleted: false); // processing did not complete synchronously
                         }
@@ -1179,14 +1138,10 @@ namespace Cloud
         public CLError LinkDevice(
                     JsonContracts.LinkDeviceRequest request, 
                     int timeoutMilliseconds, 
-                    out CLHttpRestStatus status, 
                     out JsonContracts.LinkDeviceResponse response,
                     ICLCredentialsSettings settings = null)
         {
             Helpers.CheckHalted();
-
-            // start with bad request as default if an exception occurs but is not explicitly handled to change the status
-            status = CLHttpRestStatus.BadRequest;
 
             // try/catch to process the sync_to request, on catch return the error
             try
@@ -1219,7 +1174,6 @@ namespace Cloud
                     timeoutMilliseconds, // time before communication timeout
                     null, // not an upload or download
                     Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
-                    ref status, // reference to update the output success/failure status for the communication
                     copiedSettings, // pass the copied settings
                     this, // pass the key/secret
                     null); // no unique id of the sync box on the server
@@ -1286,15 +1240,12 @@ namespace Cloud
                     // try/catch to process with the input parameters, on catch set the exception in the asyncronous result
                     try
                     {
-                        // declare the output status for communication
-                        CLHttpRestStatus status;
                         // declare the specific type of response for this operation
                         JsonContracts.UnlinkDeviceResponse response;
                         // run the download of the file with the passed parameters, storing any error that occurs
                         CLError processError = UnlinkDevice(
                             request,
                             castState.Item2,
-                            out status,
                             out response,
                             castState.Item3);
 
@@ -1304,7 +1255,6 @@ namespace Cloud
                             castState.Item1.Complete(
                                 new UnlinkDeviceResult(
                                     processError, // any error that may have occurred during processing
-                                    status, // the output status of communication
                                     response), // the specific type of response for this operation
                                     sCompleted: false); // processing did not complete synchronously
                         }
@@ -1354,14 +1304,10 @@ namespace Cloud
         public CLError UnlinkDevice(
                     JsonContracts.UnlinkDeviceRequest request, 
                     int timeoutMilliseconds, 
-                    out CLHttpRestStatus status, 
                     out JsonContracts.UnlinkDeviceResponse response,
                     ICLCredentialsSettings settings = null)
         {
             Helpers.CheckHalted();
-
-            // start with bad request as default if an exception occurs but is not explicitly handled to change the status
-            status = CLHttpRestStatus.BadRequest;
 
             // try/catch to process the sync_to request, on catch return the error
             try
@@ -1390,7 +1336,6 @@ namespace Cloud
                     timeoutMilliseconds, // time before communication timeout
                     null, // not an upload or download
                     Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
-                    ref status, // reference to update the output success/failure status for the communication
                     copiedSettings, // pass the copied settings
                     this, // pass the key/secret
                     null); // no unique id of the sync box on the server

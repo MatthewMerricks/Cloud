@@ -32,19 +32,24 @@ namespace Cloud.Static
         #region General
 
         /// <summary>
+        /// General success
+        /// </summary>
+        General_Success = (((ulong)CLExceptionDomain.General) << 32) | 0, // 0_0
+
+        /// <summary>
         /// General error
         /// </summary>
-        General_Miscellaneous = (((ulong)CLExceptionDomain.General) << 32) | 0, // 0_0
+        General_Miscellaneous = (((ulong)CLExceptionDomain.General) << 32) | 1, // 0_1
 
         /// <summary>
         /// Invalid arguments
         /// </summary>
-        General_Arguments = (((ulong)CLExceptionDomain.General) << 32) | 1, // 0_1
+        General_Arguments = (((ulong)CLExceptionDomain.General) << 32) | 2, // 0_2
 
         /// <summary>
         /// Operation is not valid
         /// </summary>
-        General_Invalid = (((ulong)CLExceptionDomain.General) << 32) | 2, // 0_2
+        General_Invalid = (((ulong)CLExceptionDomain.General) << 32) | 3, // 0_3
 
         #endregion
 

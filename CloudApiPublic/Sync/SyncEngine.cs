@@ -2000,14 +2000,19 @@ namespace Cloud.Sync
                 {
                     if (Data.pendingStorageKeys.Value == null)
                     {
-                        CLHttpRestStatus getAllPendingsStatus;
+                        //&&&& Check this.
+                        CLExceptionCode getAllPendingsStatus;
                         JsonContracts.PendingResponse getAllPendingsResult;
                         CLError getAllPendingsError = Data.commonThisEngine.httpRestClient.GetAllPending(
                             Data.commonThisEngine.HttpTimeoutMilliseconds,
-                            out getAllPendingsStatus,
                             out getAllPendingsResult);
 
-                        if (getAllPendingsStatus != CLHttpRestStatus.Success)
+                        if (getAllPendingsError != null)
+                        {
+                            getAllPendingsStatus = getAllPendingsError.PrimaryException.Code;
+                        }
+
+                        if (getAllPendingsError != null)
                         {
                             const string pendingsErrorString = "Unable to query pending files for comparison with preexisting uploads";
 
@@ -2178,17 +2183,21 @@ namespace Cloud.Sync
                     {
                         Data.notifyOnConfirmMetadataForInitialUploadOrDownload.Process();
 
-                        CLHttpRestStatus latestMetadataStatus;
+                        //&&&& Check this.
+                        CLExceptionCode latestMetadataStatus = CLExceptionCode.General_Success;
                         JsonContracts.SyncboxMetadataResponse latestMetadataResult;
                         CLError latestMetadataError = Data.commonThisEngine.httpRestClient.GetMetadata(
                             Data.topLevelChange.Value.FileChange.NewPath,
                             /* isFolder */ false,
                             Data.commonThisEngine.HttpTimeoutMilliseconds,
-                            out latestMetadataStatus,
                             out latestMetadataResult);
 
-                        if (latestMetadataStatus != CLHttpRestStatus.Success
-                            && latestMetadataStatus != CLHttpRestStatus.NoContent)
+                        if (latestMetadataError != null)
+                        {
+                            latestMetadataStatus = latestMetadataError.PrimaryException.Code;
+                        }
+
+                        if (latestMetadataStatus != CLExceptionCode.Http_NoContent)
                         {
                             const string fileMetadataErrorString = "Errors occurred finding latest metadata for a preexisting download";
 
@@ -2212,19 +2221,22 @@ namespace Cloud.Sync
 
                         bool markDownloadError = false;
 
-                        if (latestMetadataStatus == CLHttpRestStatus.Success
+                        if (latestMetadataError == null
                             && latestMetadataResult != null)
                         {
-                            CLHttpRestStatus fileVersionStatus;
+                            CLExceptionCode fileVersionStatus = CLExceptionCode.General_Success;
                             JsonContracts.FileVersion[] fileVersionResult;
                             CLError fileVersionError = Data.commonThisEngine.httpRestClient.GetFileVersions(
                                 latestMetadataResult.ServerUid,
                                 Data.commonThisEngine.HttpTimeoutMilliseconds,
-                                out fileVersionStatus,
                                 out fileVersionResult);
 
-                            if (fileVersionStatus != CLHttpRestStatus.Success
-                                && fileVersionStatus != CLHttpRestStatus.NoContent)
+                            if (fileVersionError != null)
+                            {
+                                fileVersionStatus = fileVersionError.PrimaryException.Code;
+                            }
+
+                            if (fileVersionStatus != CLExceptionCode.Http_NoContent)
                             {
                                 const string fileVersionsErrorString = "Errors occurred finding previous versions for a preexisting download";
 
@@ -2266,6 +2278,96 @@ namespace Cloud.Sync
                         {
                             markDownloadError = true;
                         }
+
+                        ////&&&& Check this.
+                        //CLHttpRestStatus latestMetadataStatus;
+                        //JsonContracts.SyncboxMetadataResponse latestMetadataResult;
+                        //CLError latestMetadataError = Data.commonThisEngine.httpRestClient.GetMetadata(
+                        //    Data.topLevelChange.Value.FileChange.NewPath,
+                        //    /* isFolder */ false,
+                        //    Data.commonThisEngine.HttpTimeoutMilliseconds,
+                        //    out latestMetadataStatus,
+                        //    out latestMetadataResult);
+
+                        //if (latestMetadataStatus != CLHttpRestStatus.Success
+                        //    && latestMetadataStatus != CLHttpRestStatus.NoContent)
+                        //{
+                        //    const string fileMetadataErrorString = "Errors occurred finding latest metadata for a preexisting download";
+
+                        //    errorToAccumulate.Value += new AggregateException(fileMetadataErrorString,
+                        //        latestMetadataError.Exceptions);
+
+                        //    try
+                        //    {
+                        //        MessageEvents.FireNewEventMessage(
+                        //            fileMetadataErrorString,
+                        //            EventMessageLevel.Regular,
+                        //            /*Error*/new GeneralErrorInfo(),
+                        //            Data.commonThisEngine.syncbox.SyncboxId,
+                        //            Data.commonThisEngine.syncbox.CopiedSettings.DeviceId);
+                        //    }
+                        //    catch (Exception ex)
+                        //    {
+                        //        errorToAccumulate.Value += ex;
+                        //    }
+                        //}
+
+                        //bool markDownloadError = false;
+
+                        //if (latestMetadataStatus == CLHttpRestStatus.Success
+                        //    && latestMetadataResult != null)
+                        //{
+                        //    CLHttpRestStatus fileVersionStatus;
+                        //    JsonContracts.FileVersion[] fileVersionResult;
+                        //    CLError fileVersionError = Data.commonThisEngine.httpRestClient.GetFileVersions(
+                        //        latestMetadataResult.ServerUid,
+                        //        Data.commonThisEngine.HttpTimeoutMilliseconds,
+                        //        out fileVersionStatus,
+                        //        out fileVersionResult);
+
+                        //    if (fileVersionStatus != CLHttpRestStatus.Success
+                        //        && fileVersionStatus != CLHttpRestStatus.NoContent)
+                        //    {
+                        //        const string fileVersionsErrorString = "Errors occurred finding previous versions for a preexisting download";
+
+                        //        errorToAccumulate.Value += new AggregateException(fileVersionsErrorString,
+                        //            fileVersionError.Exceptions);
+
+                        //        try
+                        //        {
+                        //            MessageEvents.FireNewEventMessage(
+                        //                fileVersionsErrorString,
+                        //                EventMessageLevel.Regular,
+                        //                /*Error*/new GeneralErrorInfo(),
+                        //                Data.commonThisEngine.syncbox.SyncboxId,
+                        //                Data.commonThisEngine.syncbox.CopiedSettings.DeviceId);
+                        //        }
+                        //        catch (Exception ex)
+                        //        {
+                        //            errorToAccumulate.Value += ex;
+                        //        }
+                        //    }
+
+                        //    JsonContracts.FileVersion latestNonPendingVersion;
+                        //    byte[] latestNonPendingHash;
+                        //    if (fileVersionResult == null
+                        //        || (latestNonPendingVersion = (fileVersionResult
+                        //            .OrderByDescending(fileVersion => (fileVersion.Version ?? -1))
+                        //            .FirstOrDefault(fileVersion =>
+                        //                fileVersion.IsNotPending != false
+                        //                    && fileVersion.IsDeleted != true))) == null
+                        //        || (latestNonPendingHash = Helpers.ParseHexadecimalStringToByteArray(latestNonPendingVersion.FileHash)) == null
+                        //        || Data.existingFileMD5.Value == null
+                        //        || NativeMethods.memcmp(Data.existingFileMD5.Value, latestNonPendingHash, new UIntPtr((uint)Data.existingFileMD5.Value.Length)) != 0
+                        //        || Data.topLevelChange.Value.FileChange.Metadata.HashableProperties.Size != latestNonPendingVersion.FileSize)
+                        //    {
+                        //        markDownloadError = true;
+                        //    }
+                        //}
+                        //else
+                        //{
+                        //    markDownloadError = true;
+                        //}
 
                         if (markDownloadError)
                         {
@@ -2808,20 +2910,25 @@ namespace Cloud.Sync
                     {
                         FilePath rootPath = Data.commonThisEngine.syncbox.Path;
 
-                        CLHttpRestStatus getRootStatus;
+                        //&&&& Check this.
+                        CLExceptionCode getRootStatus = CLExceptionCode.General_Success;
                         JsonContracts.SyncboxMetadataResponse rootResponse;
                         CLError rootError = Data.commonThisEngine.httpRestClient.GetMetadata(
                             rootPath,
                             /* isFolder */ true,
                             Data.commonThisEngine.HttpTimeoutMilliseconds,
-                            out getRootStatus,
                             out rootResponse);
+
+                        if (rootError != null)
+                        {
+                            getRootStatus = rootError.PrimaryException.Code;
+                        }
 
                         // possible condition if sync box id has never been initialized on the server,
                         // fixed with sync from of sid "0" and then repeat metadata query
-                        if (getRootStatus == CLHttpRestStatus.NoContent)
+                        if (getRootStatus == CLExceptionCode.Http_NoContent)
                         {
-                            CLHttpRestStatus initialSyncStatus;
+                            CLExceptionCode initialSyncStatus;
                             JsonContracts.PushResponse initialSyncResponse;
                             CLError initialSyncError = Data.commonThisEngine.httpRestClient.SyncFromCloud(
                                 new Push()
@@ -2832,10 +2939,14 @@ namespace Cloud.Sync
                                     SyncboxId = Data.commonThisEngine.syncbox.SyncboxId
                                 },
                                 Data.commonThisEngine.HttpTimeoutMilliseconds,
-                                out initialSyncStatus,
                                 out initialSyncResponse);
 
-                            if (initialSyncStatus != CLHttpRestStatus.Success)
+                            if (initialSyncError != null)
+                            {
+                                initialSyncStatus = initialSyncError.PrimaryException.Code;
+                            }
+
+                            if (initialSyncError != null)
                             {
                                 throw new NullReferenceException("Error getting initial sync response");
                             }
@@ -2844,11 +2955,15 @@ namespace Cloud.Sync
                                 rootPath,
                                 /* isFolder */ true,
                                 Data.commonThisEngine.HttpTimeoutMilliseconds,
-                                out getRootStatus,
                                 out rootResponse);
+
+                            if (rootError != null)
+                            {
+                                getRootStatus = rootError.PrimaryException.Code;
+                            }
                         }
 
-                        if (getRootStatus != CLHttpRestStatus.Success)
+                        if (rootError != null)
                         {
                             const string rootErrorString = "Error getting folder contents for root object";
 
@@ -2861,6 +2976,61 @@ namespace Cloud.Sync
                                 throw new AggregateException(rootErrorString, rootError.Exceptions);
                             }
                         }
+
+                        ////&&&& Check this.
+                        //CLHttpRestStatus getRootStatus;
+                        //JsonContracts.SyncboxMetadataResponse rootResponse;
+                        //CLError rootError = Data.commonThisEngine.httpRestClient.GetMetadata(
+                        //    rootPath,
+                        //    /* isFolder */ true,
+                        //    Data.commonThisEngine.HttpTimeoutMilliseconds,
+                        //    out getRootStatus,
+                        //    out rootResponse);
+
+                        //// possible condition if sync box id has never been initialized on the server,
+                        //// fixed with sync from of sid "0" and then repeat metadata query
+                        //if (getRootStatus == CLHttpRestStatus.NoContent)
+                        //{
+                        //    CLHttpRestStatus initialSyncStatus;
+                        //    JsonContracts.PushResponse initialSyncResponse;
+                        //    CLError initialSyncError = Data.commonThisEngine.httpRestClient.SyncFromCloud(
+                        //        new Push()
+                        //        {
+                        //            DeviceId = Data.commonThisEngine.syncbox.CopiedSettings.DeviceId,
+                        //            LastSyncId = "0", // special condition for initial sync
+                        //            RelativeRootPath = "/", // sync at root
+                        //            SyncboxId = Data.commonThisEngine.syncbox.SyncboxId
+                        //        },
+                        //        Data.commonThisEngine.HttpTimeoutMilliseconds,
+                        //        out initialSyncStatus,
+                        //        out initialSyncResponse);
+
+                        //    if (initialSyncStatus != CLHttpRestStatus.Success)
+                        //    {
+                        //        throw new NullReferenceException("Error getting initial sync response");
+                        //    }
+
+                        //    rootError = Data.commonThisEngine.httpRestClient.GetMetadata(
+                        //        rootPath,
+                        //        /* isFolder */ true,
+                        //        Data.commonThisEngine.HttpTimeoutMilliseconds,
+                        //        out getRootStatus,
+                        //        out rootResponse);
+                        //}
+
+                        //if (getRootStatus != CLHttpRestStatus.Success)
+                        //{
+                        //    const string rootErrorString = "Error getting folder contents for root object";
+
+                        //    if (rootError == null)
+                        //    {
+                        //        throw new NullReferenceException("Error getting folder contents for root object");
+                        //    }
+                        //    else
+                        //    {
+                        //        throw new AggregateException(rootErrorString, rootError.Exceptions);
+                        //    }
+                        //}
 
                         if (rootResponse == null)
                         {
@@ -4898,14 +5068,13 @@ namespace Cloud.Sync
                     }
 
                     // declare the status for performing a rest communication
-                    CLHttpRestStatus uploadStatus;
+                    CLExceptionCode uploadStatus = CLExceptionCode.General_Success;
                     string uploadMessage;
                     bool hashMismatchFound;
                     // upload the file using the REST client, storing any error that occurs
                     uploadError = castState.RestClient.UploadFile(castState.StreamContext, // stream for upload
                         castState.FileToUpload, // upload change
                         (int)castState.HttpTimeoutMilliseconds, // milliseconds before communication timeout (does not apply to the amount of time it takes to actually upload the file)
-                        out uploadStatus, // output the status of communication
                         out uploadMessage,
                         out hashMismatchFound,
                         castState.ShutdownToken, // pass in the shutdown token for the optional parameter so it can be cancelled
@@ -4913,8 +5082,12 @@ namespace Cloud.Sync
                         castState.ThreadId);
 
                     // depending on whether the communication status is a connection failure or not, either increment the failure count or clear it, respectively
+                    if (uploadError != null)
+                    {
+                        uploadStatus = uploadError.PrimaryException.Code;
+                    }
 
-                    if (uploadStatus == CLHttpRestStatus.ConnectionFailed)
+                    if (uploadStatus == CLExceptionCode.Http_ConnectionFailed)
                     {
                         lock (castState.UploadDownloadServerConnectionFailureCount)
                         {
@@ -5590,7 +5763,8 @@ namespace Cloud.Sync
                     }
 
                     // declare the enumeration to store the state of the download
-                    CLHttpRestStatus downloadStatus;
+                    //&&&& Check this
+                    CLExceptionCode downloadStatus = CLExceptionCode.General_Success;
                     // perform the download of the file, storing any error that occurs
                     downloadError = castState.RestClient.DownloadFile(castState.FileToDownload, // the download change
                         OnAfterDownloadToTempFile, // handler for when downloading completes, needs to move the file to the final location and update the status string message
@@ -5602,7 +5776,6 @@ namespace Cloud.Sync
                             DownloadFoundToMoveUnderTempDownloadsLock = downloadFoundToMoveUnderTempDownloadsLock
                         },
                         castState.HttpTimeoutMilliseconds ?? 0, // milliseconds before communication throws exception from timeout, excludes the time it takes to actually download the file
-                        out downloadStatus, // output the status of the communication
                         OnBeforeDownloadToTempFile, // handler for when downloading is going to start, which stores the new download id to a local dictionary
                         new OnBeforeDownloadToTempFileState() // userstate which will be passed along when the callback is fired before downloading starts
                         {
@@ -5616,8 +5789,12 @@ namespace Cloud.Sync
                         castState.ThreadId);
 
                     // depending on whether the communication status is a connection failure or not, either increment the failure count or clear it, respectively
+                    if (downloadError != null)
+                    {
+                        downloadStatus = downloadError.PrimaryException.Code;
+                    }
 
-                    if (downloadStatus == CLHttpRestStatus.ConnectionFailed)
+                    if (downloadStatus == CLExceptionCode.Http_ConnectionFailed)
                     {
                         _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: DownloadForTask: ERROR: Connection failed."));
                         lock (castState.UploadDownloadServerConnectionFailureCount)
@@ -5647,20 +5824,14 @@ namespace Cloud.Sync
                     }
 
                     // The download was successful (no exceptions), but it may have been cancelled.
-                    if (downloadStatus == CLHttpRestStatus.Cancelled
+                    if (downloadStatus == CLExceptionCode.Http_Cancelled
                         && castState.FileToDownload.NewPath != null) // cancelled via setting a null path such as when event was cancelled out on another thread
                     {
                         _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: DownloadForTask: CANCELLED:  Return a zero ID."));
                         return new EventIdAndCompletionProcessor(0, castState.SyncData, castState.Syncbox.CopiedSettings, castState.Syncbox.SyncboxId, castState.TempDownloadFolderPath);
                     }
 
-                    // if the download was not a success throw an error
-                    if (downloadStatus != CLHttpRestStatus.Success)
-                    {
-                        throw new Exception("The return status from downloading a file was not successful: CLHttpRestStatus." + downloadStatus.ToString());
-                    }
-
-                    if (downloadStatus != CLHttpRestStatus.Cancelled) // possible that it was cancelled if path was set as null when event was cancelled out on another thread
+                    if (downloadStatus != CLExceptionCode.Http_Cancelled) // possible that it was cancelled if path was set as null when event was cancelled out on another thread
                     {
                         _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: DownloadForTask: File finished downloading message."));
                         // status message
@@ -6924,17 +7095,21 @@ namespace Cloud.Sync
                     #region purge pending on SID "0"
                     // declare the json contract object for the response content
                     PendingResponse purgeResponse;
+                    //&&&& Check this.
                     // declare the success/failure status for the communication
-                    CLHttpRestStatus purgeStatus;
+                    CLExceptionCode purgeStatus = CLExceptionCode.General_Success;
                     // purge pending communication with the purge request content, storing any error that occurs
                     CLError purgePendingError = httpRestClient.PurgePending(
                         HttpTimeoutMilliseconds, // milliseconds before communication timeout
-                        out purgeStatus, // output the success/failure status
                         out purgeResponse); // output the response content (this response content does not get used anywhere later)
 
                     // depending on whether the communication status is a connection failure or not, either increment the failure count or clear it, respectively
+                    if (purgePendingError != null)
+                    {
+                        purgeStatus = purgePendingError.PrimaryException.Code;
+                    }
 
-                    if (purgeStatus == CLHttpRestStatus.ConnectionFailed)
+                    if (purgeStatus == CLExceptionCode.Http_ConnectionFailed)
                     {
                         lock (MetadataConnectionFailures)
                         {
@@ -6944,11 +7119,11 @@ namespace Cloud.Sync
                             }
                         }
                     }
-                    else if (purgeStatus == CLHttpRestStatus.NotAuthorized)
+                    else if (purgeStatus == CLExceptionCode.Http_NotAuthorized)
                     {
                         credentialsError = CredentialsErrorType.OtherError;
                     }
-                    else if (purgeStatus == CLHttpRestStatus.NotAuthorizedExpiredCredentials)
+                    else if (purgeStatus == CLExceptionCode.Http_NotAuthorizedExpiredCredentials)
                     {
                         credentialsError = CredentialsErrorType.ExpiredCredentials;
                     }
@@ -7401,18 +7576,21 @@ namespace Cloud.Sync
                         };
 
                         // declare the status for the sync to http operation
-                        CLHttpRestStatus syncToStatus;
+                        CLExceptionCode syncToStatus = CLExceptionCode.General_Success;
                         // declare the json contract object for the response content
                         To currentBatchResponse;
                         // perform a sync to of the current batch of changes, storing any error
                         CLError syncToError = httpRestClient.SyncToCloud(syncTo, // request object with current batch of changes to upload and current sync id
                             HttpTimeoutMilliseconds, // milliseconds before communication would timeout for each operation
-                            out syncToStatus, // output the status of the communication
                             out currentBatchResponse); // output the response object from a successful communication
 
                         // depending on whether the communication status is a connection failure or not, either increment the failure count or clear it, respectively
+                        if (syncToError != null)
+                        {
+                            syncToStatus = syncToError.PrimaryException.Code;
+                        }
 
-                        if (syncToStatus == CLHttpRestStatus.ConnectionFailed)
+                        if (syncToStatus == CLExceptionCode.Http_ConnectionFailed)
                         {
                             lock (MetadataConnectionFailures)
                             {
@@ -7422,11 +7600,11 @@ namespace Cloud.Sync
                                 }
                             }
                         }
-                        else if (syncToStatus == CLHttpRestStatus.NotAuthorized)
+                        else if (syncToStatus == CLExceptionCode.Http_NotAuthorized)
                         {
                             credentialsError = CredentialsErrorType.OtherError;
                         }
-                        else if (syncToStatus == CLHttpRestStatus.NotAuthorizedExpiredCredentials)
+                        else if (syncToStatus == CLExceptionCode.Http_NotAuthorizedExpiredCredentials)
                         {
                             credentialsError = CredentialsErrorType.ExpiredCredentials;
                         }
@@ -7448,7 +7626,7 @@ namespace Cloud.Sync
                         }
 
                         // if sync to was not successful, throw an error
-                        if (syncToStatus != CLHttpRestStatus.Success)
+                        if (syncToError != null)
                         {
                             throw new Exception("SyncTo communication was not successful: CLHttpRestStatus." + syncToStatus.ToString());
                         }
@@ -8054,16 +8232,21 @@ namespace Cloud.Sync
                                                         // if the change is a Sync From, then try to grab the metadata from the server at the new destination for the rename to use to create a new creation event at the new path
                                                         if (currentChange.Direction == SyncDirection.From)
                                                         {
+                                                            //&&&& Check this
                                                             // declare the status of communication from getting metadata
-                                                            CLHttpRestStatus getNewMetadataStatus;
+                                                            CLExceptionCode getNewMetadataStatus = CLExceptionCode.General_Success;
                                                             // declare the response object of the actual metadata when returned
                                                             JsonContracts.SyncboxMetadataResponse newMetadata;
                                                             // grab the metadata from the server for the current path and whether or not the current event represents a folder, storing any error that occurs
                                                             CLError getNewMetadataError = httpRestClient.GetMetadata(currentChange.NewPath, // path to query
                                                                 currentChange.Metadata.HashableProperties.IsFolder, // whether path represents a folder (as opposed to a file or shortcut)
                                                                 HttpTimeoutMilliseconds, // milliseconds before communication would expire on an operation
-                                                                out getNewMetadataStatus, // output the status of communication
                                                                 out newMetadata); // output the resulting metadata, if any is found
+
+                                                            if (getNewMetadataError != null)
+                                                            {
+                                                                getNewMetadataStatus = getNewMetadataError.PrimaryException.Code;
+                                                            }
 
                                                             // if an error occurred getting metadata, rethrow the error
                                                             if (getNewMetadataError != null)
@@ -8072,14 +8255,13 @@ namespace Cloud.Sync
                                                             }
 
                                                             // if the communication was not successful, then throw an error with the bad status
-                                                            if (getNewMetadataStatus != CLHttpRestStatus.Success
-                                                                && getNewMetadataStatus != CLHttpRestStatus.NoContent)
+                                                            if (getNewMetadataStatus != CLExceptionCode.Http_NoContent)
                                                             {
                                                                 throw new Exception("Retrieving metadata did not return successful status: CLHttpRestStatus." + getNewMetadataStatus.ToString());
                                                             }
 
                                                             // if there was no content, then the metadata was not found at the given path so throw an error
-                                                            if (getNewMetadataStatus == CLHttpRestStatus.NoContent
+                                                            if (getNewMetadataStatus == CLExceptionCode.Http_NoContent
                                                                 || newMetadata.IsDeleted == true)
                                                             {
                                                                 throw new Exception("Metadata not found for given path");
@@ -8087,16 +8269,19 @@ namespace Cloud.Sync
 
                                                             if (newMetadata.IsNotPending == false)
                                                             {
-                                                                CLHttpRestStatus fileVersionsStatus;
+                                                                CLExceptionCode fileVersionsStatus = CLExceptionCode.General_Success;
                                                                 JsonContracts.FileVersion[] fileVersions;
                                                                 CLError fileVersionsError = httpRestClient.GetFileVersions(
                                                                     newMetadata.ServerUid,
                                                                     HttpTimeoutMilliseconds,
-                                                                    out fileVersionsStatus,
                                                                     out fileVersions);
 
-                                                                if (fileVersionsStatus != CLHttpRestStatus.Success
-                                                                    && fileVersionsStatus != CLHttpRestStatus.NoContent)
+                                                                if (fileVersionsError != null)
+                                                                {
+                                                                    fileVersionsStatus = fileVersionsError.PrimaryException.Code;
+                                                                }
+
+                                                                if (fileVersionsStatus != CLExceptionCode.Http_NoContent)
                                                                 {
                                                                     throw new AggregateException("An error occurred retrieving previous versions of a file", fileVersionsError.Exceptions);
                                                                 }
@@ -8118,6 +8303,72 @@ namespace Cloud.Sync
                                                                 newMetadata.Hash = lastNonPendingVersion.FileHash;
                                                                 newMetadata.Size = lastNonPendingVersion.FileSize;
                                                             }
+
+                                                            ////&&&& Check this
+                                                            //// declare the status of communication from getting metadata
+                                                            //CLHttpRestStatus getNewMetadataStatus;
+                                                            //// declare the response object of the actual metadata when returned
+                                                            //JsonContracts.SyncboxMetadataResponse newMetadata;
+                                                            //// grab the metadata from the server for the current path and whether or not the current event represents a folder, storing any error that occurs
+                                                            //CLError getNewMetadataError = httpRestClient.GetMetadata(currentChange.NewPath, // path to query
+                                                            //    currentChange.Metadata.HashableProperties.IsFolder, // whether path represents a folder (as opposed to a file or shortcut)
+                                                            //    HttpTimeoutMilliseconds, // milliseconds before communication would expire on an operation
+                                                            //    out getNewMetadataStatus, // output the status of communication
+                                                            //    out newMetadata); // output the resulting metadata, if any is found
+
+                                                            //// if an error occurred getting metadata, rethrow the error
+                                                            //if (getNewMetadataError != null)
+                                                            //{
+                                                            //    throw new AggregateException("An error occurred retrieving metadata", getNewMetadataError.Exceptions);
+                                                            //}
+
+                                                            //// if the communication was not successful, then throw an error with the bad status
+                                                            //if (getNewMetadataStatus != CLHttpRestStatus.Success
+                                                            //    && getNewMetadataStatus != CLHttpRestStatus.NoContent)
+                                                            //{
+                                                            //    throw new Exception("Retrieving metadata did not return successful status: CLHttpRestStatus." + getNewMetadataStatus.ToString());
+                                                            //}
+
+                                                            //// if there was no content, then the metadata was not found at the given path so throw an error
+                                                            //if (getNewMetadataStatus == CLHttpRestStatus.NoContent
+                                                            //    || newMetadata.IsDeleted == true)
+                                                            //{
+                                                            //    throw new Exception("Metadata not found for given path");
+                                                            //}
+
+                                                            //if (newMetadata.IsNotPending == false)
+                                                            //{
+                                                            //    CLHttpRestStatus fileVersionsStatus;
+                                                            //    JsonContracts.FileVersion[] fileVersions;
+                                                            //    CLError fileVersionsError = httpRestClient.GetFileVersions(
+                                                            //        newMetadata.ServerUid,
+                                                            //        HttpTimeoutMilliseconds,
+                                                            //        out fileVersionsStatus,
+                                                            //        out fileVersions);
+
+                                                            //    if (fileVersionsStatus != CLHttpRestStatus.Success
+                                                            //        && fileVersionsStatus != CLHttpRestStatus.NoContent)
+                                                            //    {
+                                                            //        throw new AggregateException("An error occurred retrieving previous versions of a file", fileVersionsError.Exceptions);
+                                                            //    }
+
+                                                            //    JsonContracts.FileVersion lastNonPendingVersion = (fileVersions ?? Enumerable.Empty<JsonContracts.FileVersion>())
+                                                            //        .OrderByDescending(fileVersion => (fileVersion.Version ?? -1))
+                                                            //        .FirstOrDefault(fileVersion => fileVersion.IsDeleted != true
+                                                            //            && fileVersion.IsNotPending != false);
+
+                                                            //    if (lastNonPendingVersion == null)
+                                                            //    {
+                                                            //        throw new Exception("A previous non-pending file version was not found");
+                                                            //    }
+
+                                                            //    newMetadata.IsNotPending = true;
+
+                                                            //    // server does not version other metadata, so these are the only ones we can really use to update
+                                                            //    newMetadata.StorageKey = lastNonPendingVersion.StorageKey;
+                                                            //    newMetadata.Hash = lastNonPendingVersion.FileHash;
+                                                            //    newMetadata.Size = lastNonPendingVersion.FileSize;
+                                                            //}
 
                                                             // create and initialize the FileChange for the new file creation by combining data from the current rename event with the metadata from the server, also adds the hash
                                                             FileChangeWithDependencies newPathCreation = CreateFileChangeFromBaseChangePlusHash(new FileChange(DelayCompletedLocker: null, fileDownloadMoveLocker: new object())
@@ -8265,16 +8516,15 @@ namespace Cloud.Sync
                                                                                 throw new AggregateException("Error setting MD5 on duplicateChange: " + setDuplicateHash.PrimaryException.Message, setDuplicateHash.Exceptions);
                                                                             }
 
-                                                                            CLHttpRestStatus postDuplicateChangeStatus;
+                                                                            //&&&& Check this.
                                                                             JsonContracts.FileChangeResponse postDuplicateChangeResult;
-                                                                            CLError postDuplicateChange = httpRestClient.PostFileChange(
+                                                                            CLError postDuplicateChangeError = httpRestClient.PostFileChange(
                                                                                 duplicateChange,
                                                                                 HttpTimeoutMilliseconds,
-                                                                                out postDuplicateChangeStatus,
                                                                                 out postDuplicateChangeResult);
-                                                                            if (postDuplicateChangeStatus != CLHttpRestStatus.Success)
+                                                                            if (postDuplicateChangeError != null)
                                                                             {
-                                                                                throw new AggregateException("Error adding duplicate file on server: " + postDuplicateChange.PrimaryException.Message, postDuplicateChange.Exceptions);
+                                                                                throw new AggregateException("Error adding duplicate file on server: " + postDuplicateChangeError.PrimaryException.Message, postDuplicateChangeError.Exceptions);
                                                                             }
 
                                                                             if (postDuplicateChangeResult == null)
@@ -8949,16 +9199,21 @@ namespace Cloud.Sync
                                                                     }
                                                                     else
                                                                     {
+                                                                        //&&&& Check this
                                                                         JsonContracts.SyncboxMetadataResponse oldPathMetadataRevision;
-                                                                        CLHttpRestStatus oldPathMetadataRevisionStatus;
+                                                                        CLExceptionCode oldPathMetadataRevisionStatus;
                                                                         CLError oldPathMetadataRevisionError = httpRestClient.GetMetadata(
                                                                             originalConflictPath,
                                                                             /* isFolder */ false,
                                                                             HttpTimeoutMilliseconds,
-                                                                            out oldPathMetadataRevisionStatus,
                                                                             out oldPathMetadataRevision);
 
-                                                                        if (oldPathMetadataRevisionStatus == CLHttpRestStatus.Success
+                                                                        if (oldPathMetadataRevisionError != null)
+                                                                        {
+                                                                            oldPathMetadataRevisionStatus = oldPathMetadataRevisionError.PrimaryException.Code;
+                                                                        }
+
+                                                                        if (oldPathMetadataRevisionError == null
                                                                             && oldPathMetadataRevision != null
                                                                             && oldPathMetadataRevision.IsDeleted != true)
                                                                         {
@@ -8967,14 +9222,18 @@ namespace Cloud.Sync
                                                                             if (oldPathMetadataRevision.IsNotPending == false)
                                                                             {
                                                                                 JsonContracts.FileVersion[] oldPathFileVersions;
-                                                                                CLHttpRestStatus oldPathFileVersionsStatus;
+                                                                                CLExceptionCode oldPathFileVersionsStatus;
                                                                                 CLError oldPathFileVersionsError = httpRestClient.GetFileVersions(
                                                                                     oldPathMetadataRevision.ServerUid,
                                                                                     HttpTimeoutMilliseconds,
-                                                                                    out oldPathFileVersionsStatus,
                                                                                     out oldPathFileVersions);
 
-                                                                                if (oldPathFileVersionsStatus == CLHttpRestStatus.Success
+                                                                                if (oldPathFileVersionsError != null)
+                                                                                {
+                                                                                    oldPathFileVersionsStatus = oldPathFileVersionsError.PrimaryException.Code;
+                                                                                }
+
+                                                                                if (oldPathFileVersionsError == null
                                                                                     && oldPathFileVersions != null)
                                                                                 {
                                                                                     JsonContracts.FileVersion latestStoredVersion = oldPathFileVersions
@@ -9064,6 +9323,122 @@ namespace Cloud.Sync
                                                                                     innerFindMimeType);
                                                                             }
                                                                         }
+                                                                        ////&&&& Check this
+                                                                        //JsonContracts.SyncboxMetadataResponse oldPathMetadataRevision;
+                                                                        //CLHttpRestStatus oldPathMetadataRevisionStatus;
+                                                                        //CLError oldPathMetadataRevisionError = httpRestClient.GetMetadata(
+                                                                        //    originalConflictPath,
+                                                                        //    /* isFolder */ false,
+                                                                        //    HttpTimeoutMilliseconds,
+                                                                        //    out oldPathMetadataRevisionStatus,
+                                                                        //    out oldPathMetadataRevision);
+
+                                                                        //if (oldPathMetadataRevisionStatus == CLHttpRestStatus.Success
+                                                                        //    && oldPathMetadataRevision != null
+                                                                        //    && oldPathMetadataRevision.IsDeleted != true)
+                                                                        //{
+                                                                        //    bool createOldPathFileChange = false;
+
+                                                                        //    if (oldPathMetadataRevision.IsNotPending == false)
+                                                                        //    {
+                                                                        //        JsonContracts.FileVersion[] oldPathFileVersions;
+                                                                        //        CLHttpRestStatus oldPathFileVersionsStatus;
+                                                                        //        CLError oldPathFileVersionsError = httpRestClient.GetFileVersions(
+                                                                        //            oldPathMetadataRevision.ServerUid,
+                                                                        //            HttpTimeoutMilliseconds,
+                                                                        //            out oldPathFileVersionsStatus,
+                                                                        //            out oldPathFileVersions);
+
+                                                                        //        if (oldPathFileVersionsStatus == CLHttpRestStatus.Success
+                                                                        //            && oldPathFileVersions != null)
+                                                                        //        {
+                                                                        //            JsonContracts.FileVersion latestStoredVersion = oldPathFileVersions
+                                                                        //                .OrderByDescending(currentOldPathVerion => currentOldPathVerion.Version ?? int.MinValue)
+                                                                        //                .FirstOrDefault(currentOldPathVersion => currentOldPathVersion.IsDeleted != true && currentOldPathVersion.IsNotPending != false);
+
+                                                                        //            if (latestStoredVersion != null)
+                                                                        //            {
+                                                                        //                oldPathMetadataRevision.Hash = latestStoredVersion.FileHash;
+                                                                        //                oldPathMetadataRevision.Size = latestStoredVersion.FileSize;
+                                                                        //                oldPathMetadataRevision.StorageKey = latestStoredVersion.StorageKey;
+                                                                        //                oldPathMetadataRevision.Version = latestStoredVersion.Version.ToString();
+
+                                                                        //                createOldPathFileChange = true;
+                                                                        //            }
+                                                                        //        }
+                                                                        //    }
+                                                                        //    else
+                                                                        //    {
+                                                                        //        createOldPathFileChange = true;
+                                                                        //    }
+
+                                                                        //    if (createOldPathFileChange)
+                                                                        //    {
+                                                                        //        FileChangeResponse pseudoSyncFromDownloadEvent = new FileChangeResponse()
+                                                                        //        {
+                                                                        //            Metadata = oldPathMetadataRevision,
+                                                                        //            Action = CLDefinitions.CLEventTypeAddFile,
+                                                                        //            Header = new Header()
+                                                                        //            {
+                                                                        //                Action = CLDefinitions.CLEventTypeAddFile
+                                                                        //            }
+                                                                        //        };
+
+                                                                        //        // full path for the destination of the event
+                                                                        //        FilePath innerFindNewPath;
+                                                                        //        // full path for a previous destination of a rename event
+                                                                        //        FilePath innerFindOldPath;
+                                                                        //        // MD5 hash for the event as a string
+                                                                        //        string innerFindHash;
+                                                                        //        // unique id from server
+                                                                        //        string innerFindServerUid;
+                                                                        //        // unique id for parent folder from server
+                                                                        //        string innerFindParentUid;
+                                                                        //        // Metadata properties for the event
+                                                                        //        FileMetadataHashableProperties innerFindHashableProperties;
+                                                                        //        // storage key for a file event
+                                                                        //        string innerFindStorageKey;
+                                                                        //        // revision for a file event
+                                                                        //        string innerFindRevision;
+                                                                        //        // never set on Windows
+                                                                        //        string innerFindMimeType;
+
+                                                                        //        findPathsByUids.TypedData.matchedChange.Value = null;
+                                                                        //        findPathsByUids.TypedData.currentEvent.Value = pseudoSyncFromDownloadEvent;
+                                                                        //        implementationConvertSyncToEventToFileChangePart1ForNonNullEventMetadata(
+                                                                        //            findPathsByUids,
+                                                                        //            pseudoSyncFromDownloadEvent,
+                                                                        //            out innerFindNewPath,
+                                                                        //            out innerFindOldPath,
+                                                                        //            out innerFindHash,
+                                                                        //            out innerFindServerUid,
+                                                                        //            out innerFindParentUid,
+                                                                        //            out innerFindHashableProperties,
+                                                                        //            out innerFindStorageKey,
+                                                                        //            out innerFindRevision,
+                                                                        //            out innerFindMimeType);
+
+                                                                        //        oldPathDownload = implementationConvertSyncToEventToFileChangePart2(
+                                                                        //            pseudoSyncFromDownloadEvent,
+                                                                        //            innerFindNewPath,
+                                                                        //            innerFindOldPath,
+                                                                        //            innerFindHash,
+                                                                        //            DependencyDebugging);
+
+                                                                        //        // skip part 3 because it only applies if there was a matched change which part 3 normally outputs; no matched change because this Sync From matching the Sync To conflict is artificially not matched by our definition
+
+                                                                        //        // returned stream will be null because input matchedChange is passed as null
+                                                                        //        implementationConvertSyncToEventToFileChangePart4(
+                                                                        //            (FileChangeWithDependencies)oldPathDownload,
+                                                                        //            /* matchedChange */ null,
+                                                                        //            innerFindServerUid,
+                                                                        //            innerFindParentUid,
+                                                                        //            innerFindHashableProperties,
+                                                                        //            innerFindRevision,
+                                                                        //            innerFindStorageKey,
+                                                                        //            innerFindMimeType);
+                                                                        //    }
+                                                                        //}
                                                                     }
                                                                 }
                                                                 catch
@@ -9550,8 +9925,9 @@ namespace Cloud.Sync
                             SyncboxId: syncbox.SyncboxId,
                             DeviceId: syncbox.CopiedSettings.DeviceId);
 
+                        //&&&& Check this.
                         // declare the status of the sync from communication
-                        CLHttpRestStatus syncFromStatus;
+                        CLExceptionCode syncFromStatus = CLExceptionCode.General_Success;
                         // declare the json contract object for the deserialized response
                         PushResponse deserializedResponse;
                         // perform the sync from communication, storing any error that occurs
@@ -9563,12 +9939,16 @@ namespace Cloud.Sync
                                 SyncboxId = syncbox.SyncboxId // fill in the sync box id
                             },
                             HttpTimeoutMilliseconds, // milliseconds before http communication will timeout on an operation
-                            out syncFromStatus, // output the status of the communication
                             out deserializedResponse); // output the response object resulting from the operation
+
+                        if (syncFromError != null)
+                        {
+                            syncFromStatus = syncFromError.PrimaryException.Code;
+                        }
 
                         // depending on whether the communication status is a connection failure or not, either increment the failure count or clear it, respectively
 
-                        if (syncFromStatus == CLHttpRestStatus.ConnectionFailed)
+                        if (syncFromStatus == CLExceptionCode.Http_ConnectionFailed)
                         {
                             lock (MetadataConnectionFailures)
                             {
@@ -9578,11 +9958,11 @@ namespace Cloud.Sync
                                 }
                             }
                         }
-                        else if (syncFromStatus == CLHttpRestStatus.NotAuthorized)
+                        else if (syncFromStatus == CLExceptionCode.Http_NotAuthorized)
                         {
                             credentialsError = CredentialsErrorType.OtherError;
                         }
-                        else if (syncFromStatus == CLHttpRestStatus.NotAuthorizedExpiredCredentials)
+                        else if (syncFromStatus == CLExceptionCode.Http_NotAuthorizedExpiredCredentials)
                         {
                             credentialsError = CredentialsErrorType.ExpiredCredentials;
                         }
@@ -9877,15 +10257,15 @@ namespace Cloud.Sync
                                         // if no metadata was returned from the database, then throw an error if the change originated on the client or otherwise try to grab the metadata from the server for a new creation event at the final destination of the rename
                                         if (syncStateMetadata == null)
                                         {
+                                            //&&&& Check this
                                             // declare the status of communication from getting metadata
-                                            CLHttpRestStatus getNewMetadataStatus;
+                                            CLExceptionCode getNewMetadataStatus;
                                             // declare the response object of the actual metadata when returned
                                             JsonContracts.SyncboxMetadataResponse newMetadata;
                                             // grab the metadata from the server for the current path and whether or not the current event represents a folder, storing any error that occurs
                                             CLError getNewMetadataError = httpRestClient.GetMetadata(currentChange.NewPath,
                                                 currentChange.Metadata.HashableProperties.IsFolder,
                                                 HttpTimeoutMilliseconds,
-                                                out getNewMetadataStatus,
                                                 out newMetadata);
 
                                             // if an error occurred getting metadata, rethrow the error
@@ -9893,16 +10273,21 @@ namespace Cloud.Sync
                                             {
                                                 throw new AggregateException("An error occurred retrieving metadata", getNewMetadataError.Exceptions);
                                             }
+                                            else
+                                            {
+                                                getNewMetadataStatus = getNewMetadataError.PrimaryException.Code;
+                                            }
 
                                             // if the communication was not successful, then throw an error with the bad status
-                                            if (getNewMetadataStatus != CLHttpRestStatus.Success
-                                                && getNewMetadataStatus != CLHttpRestStatus.NoContent)
+                                            if (getNewMetadataError != null
+                                                && getNewMetadataStatus != CLExceptionCode.Http_NoContent)
                                             {
                                                 throw new Exception("Retrieving metadata did not return successful status: CLHttpRestStatus." + getNewMetadataStatus.ToString());
                                             }
 
                                             // if there was no content, then the metadata was not found at the given path so throw an error
-                                            if (getNewMetadataStatus == CLHttpRestStatus.NoContent
+                                            if (getNewMetadataError != null
+                                                && getNewMetadataStatus == CLExceptionCode.Http_NoContent
                                                 || newMetadata.IsDeleted == true)
                                             {
                                                 throw new Exception("Metadata not found for given path");
@@ -9910,16 +10295,19 @@ namespace Cloud.Sync
 
                                             if (newMetadata.IsNotPending == false)
                                             {
-                                                CLHttpRestStatus fileVersionsStatus;
+                                                CLExceptionCode fileVersionsStatus = CLExceptionCode.General_Success;
                                                 JsonContracts.FileVersion[] fileVersions;
                                                 CLError fileVersionsError = httpRestClient.GetFileVersions(
                                                     newMetadata.ServerUid,
                                                     HttpTimeoutMilliseconds,
-                                                    out fileVersionsStatus,
                                                     out fileVersions);
 
-                                                if (fileVersionsStatus != CLHttpRestStatus.Success
-                                                    && fileVersionsStatus != CLHttpRestStatus.NoContent)
+                                                if (fileVersionsError != null)
+                                                {
+                                                    fileVersionsStatus = fileVersionsError.PrimaryException.Code;
+                                                }
+
+                                                if (fileVersionsStatus != CLExceptionCode.Http_NoContent)
                                                 {
                                                     throw new AggregateException("An error occurred retrieving previous versions of a file", fileVersionsError.Exceptions);
                                                 }
@@ -10059,16 +10447,14 @@ namespace Cloud.Sync
                                                                 throw new AggregateException("Error setting MD5 on duplicateChange: " + setDuplicateHash.PrimaryException.Message, setDuplicateHash.Exceptions);
                                                             }
 
-                                                            CLHttpRestStatus postDuplicateChangeStatus;
                                                             JsonContracts.FileChangeResponse postDuplicateChangeResult;
-                                                            CLError postDuplicateChange = httpRestClient.PostFileChange(
+                                                            CLError postDuplicateChangeError = httpRestClient.PostFileChange(
                                                                 duplicateChange,
                                                                 HttpTimeoutMilliseconds,
-                                                                out postDuplicateChangeStatus,
                                                                 out postDuplicateChangeResult);
-                                                            if (postDuplicateChangeStatus != CLHttpRestStatus.Success)
+                                                            if (postDuplicateChangeError != null)
                                                             {
-                                                                throw new AggregateException("Error adding duplicate file on server: " + postDuplicateChange.PrimaryException.Message, postDuplicateChange.Exceptions);
+                                                                throw new AggregateException("Error adding duplicate file on server: " + postDuplicateChangeError.PrimaryException.Message, postDuplicateChangeError.Exceptions);
                                                             }
 
                                                             if (postDuplicateChangeResult == null)

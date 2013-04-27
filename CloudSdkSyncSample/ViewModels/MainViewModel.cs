@@ -1230,12 +1230,11 @@ namespace SampleLiveSync.ViewModels
                             else
                             {
                                 // create a Syncbox from an existing SyncboxId
-                                CLHttpRestStatus syncboxStatus;    // &&&& fix this.
+                                CLExceptionCode syncboxStatus = CLExceptionCode.General_Success;
                                 CLError errorCreateSyncbox = CLSyncbox.AllocAndInit(
                                     syncboxId: (long)SettingsAdvancedImpl.Instance.SyncboxId,
                                     credentials: syncCredentials,
                                     syncbox: out _syncbox,
-                                    status: out syncboxStatus,
                                     path: SettingsAdvancedImpl.Instance.SyncRoot,
                                     settings: SettingsAdvancedImpl.Instance,
                                     getNewCredentialsCallback: ReplaceExpiredCredentialsCallback,
@@ -1243,9 +1242,10 @@ namespace SampleLiveSync.ViewModels
 
                                 if (errorCreateSyncbox != null)
                                 {
+                                    syncboxStatus = errorCreateSyncbox.PrimaryException.Code;
                                     _trace.writeToLog(1, "MainViewModel: StartSyncing: ERROR: From CLSyncbox.CreateAndInitialize: Msg: <{0}>.", errorCreateSyncbox.PrimaryException.Message);
                                 }
-                                if (syncboxStatus != CLHttpRestStatus.Success)   // &&&& fix this
+                                if (syncboxStatus != CLExceptionCode.General_Success)
                                 {
                                     if (NotifyException != null)
                                     {
