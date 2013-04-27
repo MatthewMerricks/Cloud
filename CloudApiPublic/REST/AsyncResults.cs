@@ -920,6 +920,55 @@ namespace Cloud.REST
     /// <summary>
     /// Holds result properties
     /// </summary>
+    public sealed class SyncboxRenameFilesResult
+    {
+        /// <summary>
+        /// The result returned from the server
+        /// </summary>
+        public CLFileItem [] Responses
+        {
+            get
+            {
+                return _responses;
+            }
+        }
+        private readonly CLFileItem [] _responses;
+
+        /// <summary>
+        /// Any item errors which may have occurred during communication
+        /// </summary>
+        public CLError [] Errors
+        {
+            get
+            {
+                return _errors;
+            }
+        }
+        private readonly CLError [] _errors;
+
+        /// <summary>
+        /// Any overall error which may have occurred during communication
+        /// </summary>
+        public CLError OverallError
+        {
+            get
+            {
+                return _overallError;
+            }
+        }
+        private readonly CLError _overallError;
+
+        // construct with all readonly properties
+        internal SyncboxRenameFilesResult(CLError overallError, CLError [] Errors, CLFileItem [] Responses)
+        {
+            this._errors = Errors;
+            this._responses = Responses;
+        }
+    }
+
+    /// <summary>
+    /// Holds result properties
+    /// </summary>
     public sealed class SessionShowResult : BaseCLHttpRestResult<JsonContracts.CredentialsSessionGetForKeyResponse>
     {
         // construct with all readonly properties

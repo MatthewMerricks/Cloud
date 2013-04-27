@@ -348,27 +348,27 @@ namespace Cloud.REST
         }
         #endregion  // end GetItemAtPath (Gets the metedata at a particular server syncbox path)
 
-        #region RenameFile (Renames a file in the cloud.)
+        #region RenameFiles (Renames files in the cloud.)
         /// <summary>
-        /// Asynchronously starts renaming a file in the cloud.
+        /// Asynchronously starts renaming files in the cloud.
         /// </summary>
         /// <param name="callback">Callback method to fire when operation completes</param>
         /// <param name="callbackUserState">Userstate to pass when firing async callback</param>
-        /// <param name="path">Full path to where file or folder would exist locally on disk</param>
-        /// <param name="path">New full path of the file</param>
+        /// <param name="paths">An array of full paths to where the files would exist locally on disk</param>
+        /// <param name="newPaths">Array of new full paths corresponding to the paths array</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginRenameFile(AsyncCallback callback, object callbackUserState, string path, string newPath)
+        public IAsyncResult BeginRenameFiles(AsyncCallback callback, object callbackUserState, string [] paths, string [] newPaths)
         {
             var asyncThread = DelegateAndDataHolderBase.Create(
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
                 new
                 {
                     // create the asynchronous result to return
-                    toReturn = new GenericAsyncResult<SyncboxRenameFileResult>(
+                    toReturn = new GenericAsyncResult<SyncboxRenameFilesResult>(
                         callback,
                         callbackUserState),
-                    path,
-                    newPath
+                    paths,
+                    newPaths
                 },
                 (Data, errorToAccumulate) =>
                 {
@@ -378,17 +378,20 @@ namespace Cloud.REST
                     {
                         // declare the output status for communication
                         // declare the specific type of result for this operation
-                        CLFileItem response;
+                        CLFileItem [] responses;
+                        CLError [] errors;
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
-                        CLError processError = RenameFile(
-                            Data.path,
-                            Data.newPath,
-                            out response);
+                        CLError overallError = RenameFiles(
+                            Data.paths,
+                            Data.newPaths,
+                            out responses,
+                            out errors);
 
                         Data.toReturn.Complete(
-                            new SyncboxRenameFileResult(
-                                processError, // any error that may have occurred during processing
-                                response), // the specific type of result for this operation
+                            new SyncboxRenameFilesResult(
+                                overallError, // any overall error that may have occurred during processing
+                                errors,     // any item erros that may have occurred during processing
+                                responses), // the specific type of result for this operation
                             sCompleted: false); // processing did not complete synchronously
                     }
                     catch (Exception ex)
@@ -408,41 +411,45 @@ namespace Cloud.REST
         }
 
         /// <summary>
-        /// Finishes renaming a file in the cloud, if it has not already finished via its asynchronous result, and outputs the result,
+        /// Finishes renaming files in the cloud, if it has not already finished via its asynchronous result, and outputs the result,
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
         /// </summary>
         /// <param name="aResult">The asynchronous result provided upon starting the metadata query</param>
         /// <param name="result">(output) The result from the metadata query</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndRenameFile(IAsyncResult aResult, out SyncboxRenameFileResult result)
+        public CLError EndRenameFiles(IAsyncResult aResult, out SyncboxRenameFilesResult result)
         {
-            return Helpers.EndAsyncOperation<SyncboxRenameFileResult>(aResult, out result);
+            return Helpers.EndAsyncOperation<SyncboxRenameFilesResult>(aResult, out result);
         }
 
         /// <summary>
-        /// Rename a file in the cloud.
+        /// Rename files in the cloud.
         /// </summary>
-        /// <param name="path">Full path to where file or folder would exist locally on disk</param>
-        /// <param name="path">New full path of the file</param>
-        /// <param name="response">(output) response object from communication</param>
+        /// <param name="paths">An array of full paths to where the files would exist locally on disk</param>
+        /// <param name="newPaths">Array of new full paths corresponding to the paths array</param>
+        /// <param name="responses">(output) An array of response objects from communication</param>
+        /// <param name="errors">(output) An array of errors from communication.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError RenameFile(string path, string newPath, out CLFileItem response)
+        public CLError RenameFiles(string [] paths, string [] newPaths, out CLFileItem [] responses, out CLError [] errors)
         {
             // try/catch to process the metadata query, on catch return the error
             try
             {
-                // check input parameters
-                CheckPath(path);
-                CheckPath(newPath);
+                // check input parameters.
+                if (paths.Length != newPaths.Length)
+                {
+                    throw new ArgumentException("The paths and newPaths arrays must have the same number of elements");
+                }
+                for (int i = 0; i < paths.Length; ++i)
+                {
+                    CheckPath(paths[i]);
+                    CheckPath(newPaths[i]);
+                }
 
                 if (!(_copiedSettings.HttpTimeoutMilliseconds > 0))
                 {
                     throw new ArgumentException("timeoutMilliseconds must be greater than zero");
                 }
-
-                // build the location of the metadata retrieval method on the server dynamically
-                FilePath filePath = new FilePath(path);
-                FilePath newFilePath = new FilePath(newPath);
 
                 // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
                 Helpers.RequestNewCredentialsInfo requestNewCredentialsInfo = new Helpers.RequestNewCredentialsInfo()
@@ -454,21 +461,39 @@ namespace Cloud.REST
                     SetCurrentCredentialsCallback = SetCurrentCredentialCallback,
                 };
 
-                // file move (rename) and folder move (rename) share a json contract object for move (rename)
-                object requestContent = new JsonContracts.FileOrFolderMove()
+                // Build the REST content dynamically.
+                // File move (rename) and folder move (rename) share a json contract object for move (rename).
+                // This will be an array of contracts.
+                int numberOfFiles = paths.Length;
+                List<FileOrFolderMove> listMoveContract = new List<FileOrFolderMove>();
+                for (int i = 0; i < numberOfFiles; ++i)
                 {
-                    DeviceId = _copiedSettings.DeviceId,
-                    RelativeFromPath = filePath.GetRelativePath(_syncbox.Path, true),
-                    RelativeToPath = newFilePath.GetRelativePath(_syncbox.Path, true),
-                    SyncboxId = _syncbox.SyncboxId
+                    FilePath filePath = new FilePath(paths[i]);
+                    FilePath newFilePath = new FilePath(newPaths[i]);
+
+                    FileOrFolderMove thisMove = new FileOrFolderMove()
+                    {
+                        DeviceId = _copiedSettings.DeviceId,
+                        RelativeFromPath = filePath.GetRelativePath(_syncbox.Path, true),
+                        RelativeToPath = newFilePath.GetRelativePath(_syncbox.Path, true),
+                        SyncboxId = _syncbox.SyncboxId
+                    };
+
+                    listMoveContract.Add(thisMove);
+                }
+
+                // Now make the REST request content.
+                object requestContent = new JsonContracts.FileOrFolderMoves()
+                {
+                    Moves = listMoveContract.ToArray()
                 };
 
                 // server method path switched on whether change is a folder or not
-                string serverMethodPath = CLDefinitions.MethodPathOneOffFileMove;
+                string serverMethodPath = CLDefinitions.MethodPathOneOffFileMoves;
 
                 // Communicate with the server to get the response.
-                JsonContracts.FileChangeResponse responseFromServer;
-                responseFromServer = Helpers.ProcessHttp<JsonContracts.FileChangeResponse>(requestContent, // dynamic type of request content based on method path
+                JsonContracts.SyncboxMoveFilesResponse responseFromServer;
+                responseFromServer = Helpers.ProcessHttp<JsonContracts.SyncboxMoveFilesResponse>(requestContent, // dynamic type of request content based on method path
                     CLDefinitions.CLMetaDataServerURL, // base domain is the MDS server
                     serverMethodPath, // dynamic path to appropriate one-off method
                     Helpers.requestMethod.post, // one-off methods are all posts
@@ -479,24 +504,54 @@ namespace Cloud.REST
                     _syncbox.SyncboxId, // pass the unique id of the sync box on the server
                     requestNewCredentialsInfo);   // pass the optional parameters to support temporary token reallocation.
 
-                // Convert the response to the expected output object.
-                if (responseFromServer != null && responseFromServer.Metadata != null)
+                // Convert these items to the output array.
+                if (responseFromServer != null && responseFromServer.MoveResponses != null)
                 {
-                    response = new CLFileItem(responseFromServer.Metadata);
+                    List<CLFileItem> listFileItems = new List<CLFileItem>();
+                    List<CLError> listErrors = new List<CLError>();
+                    foreach (FileChangeResponse fileChangeResponse in responseFromServer.MoveResponses)
+                    {
+                        if (fileChangeResponse != null && fileChangeResponse.Metadata != null)
+                        {
+                            try
+                            {
+                                listFileItems.Add(new CLFileItem(fileChangeResponse.Metadata));
+                            }
+                            catch (Exception ex)
+                            {
+                                CLException exInner = new CLException(CLExceptionCode.Rest_Syncbox_File_Rename_Invalid_Metadata, ex.Message, ex);
+                                listErrors.Add(new CLError(exInner));
+                            }
+                        }
+                        else
+                        {
+                            string msg = "<Unknown>";
+                            if (fileChangeResponse.Header.Status != null)
+                            {
+                                msg = fileChangeResponse.Header.Status;
+                            }
+                            
+                            CLException ex = new CLException(CLExceptionCode.Rest_Syncbox_File_Rename, msg);
+                            listErrors.Add(new CLError(ex));
+                        }
+                    }
+                    responses = listFileItems.ToArray();
+                    errors = listErrors.ToArray();
                 }
                 else
                 {
-                    throw new NullReferenceException("response from server was null");
+                    throw new NullReferenceException("Server responded without an array of move responses");
                 }
             }
             catch (Exception ex)
             {
-                response = Helpers.DefaultForType<CLFileItem>();
+                responses = Helpers.DefaultForType<CLFileItem []>();
+                errors = Helpers.DefaultForType<CLError[]>();
                 return ex;
             }
             return null;
         }
-        #endregion  // end RenameFile (Renames a file in the cloud.)
+        #endregion  // end RenameFiles (Renames files in the cloud.)
 
         #region UndoDeletionFileChange
         /// <summary>

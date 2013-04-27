@@ -1351,7 +1351,9 @@ namespace Cloud
         public IAsyncResult BeginRenameFile(AsyncCallback callback, object callbackUserState, string path, string newPath)
         {
             CheckDisposed();
-            return _httpRestClient.BeginRenameFile(callback, callbackUserState, path, newPath);
+            string[] paths = new string[1] { path };
+            string[] newPaths = new string[1] { newPath };
+            return _httpRestClient.BeginRenameFiles(callback, callbackUserState, paths, newPaths);
         }
 
         /// <summary>
@@ -1364,20 +1366,90 @@ namespace Cloud
         public CLError EndRenameFile(IAsyncResult aResult, out SyncboxRenameFileResult result)
         {
             CheckDisposed();
-            return _httpRestClient.EndRenameFile(aResult, out result);
+
+            // Complete the async operation.
+            SyncboxRenameFilesResult results;
+            CLError error = _httpRestClient.EndRenameFiles(aResult, out results);
+
+            // Return resulting error or item
+            if (error != null)
+            {
+                // We got an overall error.  Return it.
+                result = null;
+                return error;
+            }
+            // error == null  (no overall error)
+            if (results == null)
+            {
+                // No overall error, but also no results.  Return an error.
+                result = null;
+                return new CLError(new CLException(CLExceptionCode.Rest_Syncbox_File_Rename_No_Server_Responses_Or_Errors, "No error or responses from serer"));
+            }
+            // error == null && results != null  (no overall error, and we got a results object)
+            if (results.Errors != null && results.Errors.Length >= 1)
+            {
+                // No overall error, got a results object, and it has an error.  Return that error.
+                result = null;
+                return results.Errors[0];
+            }
+            // (error == null && results != null) && (results.Errors == null || results.Errors.Length == 0)  (no overall error, we got a results object, and there are no errors in results)
+            if (results.Responses != null && results.Responses.Length >= 1)
+            {
+                // No overall error, got a results object, is has no errors, and it has a rename response.  This is the normal case.  Return that rename response as the result.
+                result = new SyncboxRenameFileResult(Error: null, Response: results.Responses[0]);
+                return null;        // normal condition
+            }
+            // ((error == null && results != null) && (results.Errors == null || results.Errors.Length == 0)) && (results.Responses == null || results.Responses.Length == 0)
+            else
+            {
+                // No error, got a results object, but there were no errors and no rename responses inside.  Return an error.
+                result = null;
+                return new CLError(new CLException(CLExceptionCode.Rest_Syncbox_File_Rename_No_Server_Responses_Or_Errors, "No error or responses from serer"));
+            }
         }
 
         /// <summary>
         /// Renames a file in the cloud.
         /// </summary>
-        /// <param name="fullPath">Full path to where file or folder would exist locally on disk</param>
+        /// <param name="path">Full path to where file or folder would exist locally on disk</param>
         /// <param name="newPath">Full path to the new location of the file.</param>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError RenameFile(string path, string newPath, out CLFileItem response)
         {
             CheckDisposed();
-            return _httpRestClient.RenameFile(path, newPath, out response);
+            string[] paths = new string[1] { path };
+            string[] newPaths = new string[1] { newPath };
+
+            // Communicate and get the results.
+            CLError[] outErrors;
+            CLFileItem[] outItems;
+            CLError error = _httpRestClient.RenameFiles(paths, newPaths, out outItems, out outErrors);
+
+            // Return resulting error or item
+            if (error != null)
+            {
+                response = null;
+                return error;
+            }
+            // error == null
+            if (outErrors != null && outErrors.Length >= 1)
+            {
+                response = null;
+                return outErrors[0];
+            }
+            // error == null && (outErrors == null || outErrors.Length == 0)
+            if (outItems != null && outItems.Length >= 1)
+            {
+                response = outItems[0];
+                return null;        // normal condition
+            }
+            // (error == null && (outErrors == null || outErrors.Length == 0)) && (outItems == null || outItems.Length == 0)
+            else
+            {
+                response = null;
+                return new CLError(new CLException(CLExceptionCode.Rest_Syncbox_File_Rename_No_Server_Status_Or_Responses, "No responses or status from serer"));
+            }
         }
 
         #endregion  // end GetItemAtPath (Queries the cloud for the item at a particular path)

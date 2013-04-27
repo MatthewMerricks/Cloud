@@ -21,7 +21,8 @@ namespace Cloud.Static
         Http = 1,
         Syncbox = 2,
         ShellExt = 3,
-        Syncing = 4
+        Syncing = 4,
+        REST = 5
     }
 
     /// <summary>
@@ -201,6 +202,30 @@ namespace Cloud.Static
         /// Error in a syncing model class
         /// </summary>
         Syncing_Model = (((ulong)CLExceptionDomain.Syncing) << 32) | 3, // 4_3
+
+        #endregion
+
+        #region REST
+
+        /// <summary>
+        /// Cloud syncbox file rename error
+        /// </summary>
+        Rest_Syncbox_File_Rename = (((ulong)CLExceptionDomain.REST) << 32) | 0, // 5_0
+
+        /// <summary>
+        /// Cloud syncbox file rename invalid metadata error
+        /// </summary>
+        Rest_Syncbox_File_Rename_Invalid_Metadata = (((ulong)CLExceptionDomain.REST) << 32) | 1, // 5_1
+
+        /// <summary>
+        /// Cloud syncbox file rename.  Server returned no status and no responses.
+        /// </summary>
+        Rest_Syncbox_File_Rename_No_Server_Status_Or_Responses = (((ulong)CLExceptionDomain.REST) << 32) | 2, // 5_2
+
+        /// <summary>
+        /// Cloud syncbox file rename.  Server returned no status and no responses.
+        /// </summary>
+        Rest_Syncbox_File_Rename_No_Server_Responses_Or_Errors = (((ulong)CLExceptionDomain.REST) << 32) | 3, // 5_3
 
         #endregion
 
