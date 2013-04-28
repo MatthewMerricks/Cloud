@@ -19,9 +19,9 @@ namespace Cloud.JsonContracts
     /// Result from <see cref="Cloud.CLSyncbox.RenameFiles"/>
     /// </summary>
     [DataContract]
-    public sealed class SyncboxMoveFilesResponse
+    public sealed class SyncboxMoveFilesOrFoldersResponse
     {
-        [DataMember(Name = CLDefinitions.RESTResponseMoveFiles, IsRequired = false)]
+        [DataMember(Name = CLDefinitions.RESTResponseMoveFilesOrFolders, IsRequired = false)]
         public JsonContracts.FileChangeResponse[] MoveResponses { get; set; }
     }
 }

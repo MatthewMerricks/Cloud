@@ -220,12 +220,22 @@ namespace Cloud.Static
         /// <summary>
         /// Cloud syncbox file rename.  Server returned no status and no responses.
         /// </summary>
-        Rest_Syncbox_File_Rename_No_Server_Status_Or_Responses = (((ulong)CLExceptionDomain.REST) << 32) | 2, // 5_2
+        Rest_Syncbox_File_Rename_No_Server_Responses_Or_Errors = (((ulong)CLExceptionDomain.REST) << 32) | 2, // 5_2
 
         /// <summary>
-        /// Cloud syncbox file rename.  Server returned no status and no responses.
+        /// Cloud syncbox folder rename error
         /// </summary>
-        Rest_Syncbox_File_Rename_No_Server_Responses_Or_Errors = (((ulong)CLExceptionDomain.REST) << 32) | 3, // 5_3
+        Rest_Syncbox_Folder_Rename = (((ulong)CLExceptionDomain.REST) << 32) | 3, // 5_3
+
+        /// <summary>
+        /// Cloud syncbox folder rename invalid metadata error
+        /// </summary>
+        Rest_Syncbox_Folder_Rename_Invalid_Metadata = (((ulong)CLExceptionDomain.REST) << 32) | 4, // 5_4
+
+        /// <summary>
+        /// Cloud syncbox folder rename.  Server returned no status and no responses.
+        /// </summary>
+        Rest_Syncbox_Folder_Rename_No_Server_Responses_Or_Errors = (((ulong)CLExceptionDomain.REST) << 32) | 5, // 5_5
 
         #endregion
 

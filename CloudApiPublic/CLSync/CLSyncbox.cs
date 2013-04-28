@@ -1452,7 +1452,7 @@ namespace Cloud
             {
                 // No overall error, no item errors, and no items.  No responses from server.  Return error.
                 response = null;
-                return new CLError(new CLException(CLExceptionCode.Rest_Syncbox_File_Rename_No_Server_Status_Or_Responses, "No responses or status from serer"));
+                return new CLError(new CLException(CLExceptionCode.Rest_Syncbox_File_Rename_No_Server_Responses_Or_Errors, "No responses or status from serer"));
             }
         }
 
@@ -1500,6 +1500,168 @@ namespace Cloud
         }
 
         #endregion  // end GetItemAtPath (Queries the cloud for the item at a particular path)
+
+        #region RenameFolder (Renames a folder in the cloud)
+        /// <summary>
+        /// Asynchronously starts renaming a folder in the cloud; outputs a CLFileItem object.
+        /// </summary>
+        /// <param name="callback">Callback method to fire when operation completes</param>
+        /// <param name="callbackUserState">Userstate to pass when firing async callback</param>
+        /// <param name="path">Full path to where the folder would exist locally on disk.</param>
+        /// <param name="newPath">Full path to the new location of the folder.</param>
+        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        public IAsyncResult BeginRenameFolder(AsyncCallback callback, object callbackUserState, string path, string newPath)
+        {
+            CheckDisposed();
+            string[] paths = new string[1] { path };
+            string[] newPaths = new string[1] { newPath };
+            return _httpRestClient.BeginRenameFolders(callback, callbackUserState, paths, newPaths);
+        }
+
+        /// <summary>
+        /// Finishes renaming a folder in the cloud, if it has not already finished via its asynchronous result, and outputs the result,
+        /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
+        /// </summary>
+        /// <param name="aResult">The asynchronous result provided upon starting the metadata query</param>
+        /// <param name="result">(output) The result from the metadata query</param>
+        /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
+        public CLError EndRenameFolder(IAsyncResult aResult, out SyncboxRenameFolderResult result)
+        {
+            CheckDisposed();
+
+            // Complete the async operation.
+            SyncboxRenameFoldersResult results;
+            CLError error = _httpRestClient.EndRenameFolders(aResult, out results);
+
+            // Return resulting error or item
+            if (error != null)
+            {
+                // We got an overall error.  Return it.
+                result = null;
+                return error;
+            }
+            // error == null  (no overall error)
+            else if (results == null)
+            {
+                // No overall error, but also no results.  Return an error.
+                result = null;
+                return new CLError(new CLException(CLExceptionCode.Rest_Syncbox_Folder_Rename_No_Server_Responses_Or_Errors, "No error or responses from server results null"));
+            }
+            // error == null && results != null  (no overall error, and we got a results object)
+            else if (results.Errors != null && results.Errors.Length >= 1)
+            {
+                // No overall error, got a results object, and it has an error.  Return that error.
+                result = null;
+                return results.Errors[0];
+            }
+            // (error == null && results != null) && (results.Errors == null || results.Errors.Length == 0)  (no overall error, we got a results object, and there are no errors in results)
+            else if (results.Responses != null && results.Responses.Length >= 1)
+            {
+                // No overall error, got a results object, is has no errors, and it has a rename response.  This is the normal case.  Return that rename response as the result.
+                result = new SyncboxRenameFolderResult(Error: null, Response: results.Responses[0]);
+                return null;        // normal condition
+            }
+            // ((error == null && results != null) && (results.Errors == null || results.Errors.Length == 0)) && (results.Responses == null || results.Responses.Length == 0)
+            else
+            {
+                // No error, got a results object, but there were no errors and no rename responses inside.  Return an error.
+                result = null;
+                return new CLError(new CLException(CLExceptionCode.Rest_Syncbox_Folder_Rename_No_Server_Responses_Or_Errors, "No error or responses from server"));
+            }
+        }
+
+        /// <summary>
+        /// Renames a folder in the cloud.
+        /// </summary>
+        /// <param name="path">Full path to where the folder would exist locally on disk</param>
+        /// <param name="newPath">Full path to the new location of the folder.</param>
+        /// <param name="response">(output) response object from communication</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        public CLError RenameFolder(string path, string newPath, out CLFileItem response)
+        {
+            CheckDisposed();
+            string[] paths = new string[1] { path };
+            string[] newPaths = new string[1] { newPath };
+
+            // Communicate and get the results.
+            CLError[] outErrors;
+            CLFileItem[] outItems;
+            CLError error = _httpRestClient.RenameFolders(paths, newPaths, out outItems, out outErrors);
+
+            // Return resulting error or item
+            if (error != null)
+            {
+                // There was an overall error.  Return it
+                response = null;
+                return error;
+            }
+            // error == null
+            else if (outErrors != null && outErrors.Length >= 1)
+            {
+                // No overall error, but there was an item error.  Return it.
+                response = null;
+                return outErrors[0];
+            }
+            // error == null && (outErrors == null || outErrors.Length == 0)
+            else if (outItems != null && outItems.Length >= 1)
+            {
+                // No overall error, no item errors, and we have an item.  Return it.  This is the normal condition
+                response = outItems[0];
+                return null;
+            }
+            // (error == null && (outErrors == null || outErrors.Length == 0)) && (outItems == null || outItems.Length == 0)
+            else
+            {
+                // No overall error, no item errors, and no items.  No responses from server.  Return error.
+                response = null;
+                return new CLError(new CLException(CLExceptionCode.Rest_Syncbox_Folder_Rename_No_Server_Responses_Or_Errors, "No responses or status from serer"));
+            }
+        }
+
+        #endregion  // end RenameFolder (Renames a folder in the cloud)
+
+        #region RenameFolders (Rename folders in the cloud)
+        /// <summary>
+        /// Asynchronously starts renaming folders in the cloud; outputs an array of  CLFileItem objects, and possibly an array of CLError objects.
+        /// </summary>
+        /// <param name="callback">Callback method to fire when operation completes</param>
+        /// <param name="callbackUserState">Userstate to pass when firing async callback</param>
+        /// <param name="paths">An array of full paths to where the folders would exist locally on disk.</param>
+        /// <param name="newPaths">An array of full paths to the new location of the folders, corresponding to the paths array.</param>
+        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        public IAsyncResult BeginRenameFolders(AsyncCallback callback, object callbackUserState, string[] paths, string[] newPaths)
+        {
+            CheckDisposed();
+            return _httpRestClient.BeginRenameFolders(callback, callbackUserState, paths, newPaths);
+        }
+
+        /// <summary>
+        /// Finishes renaming folders in the cloud, if it has not already finished via its asynchronous result, and outputs the result,
+        /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
+        /// </summary>
+        /// <param name="aResult">The asynchronous result provided upon starting the metadata query</param>
+        /// <param name="result">(output) The result from the metadata query</param>
+        /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
+        public CLError EndRenameFolders(IAsyncResult aResult, out SyncboxRenameFoldersResult result)
+        {
+            CheckDisposed();
+            return _httpRestClient.EndRenameFolders(aResult, out result);
+        }
+
+        /// <summary>
+        /// Renames folders in the cloud.
+        /// </summary>
+        /// <param name="paths">An array of full paths to where the folders would exist locally on disk.</param>
+        /// <param name="newPaths">An array of full paths to the new location of the folders, corresponding to the paths array.</param>
+        /// <param name="response">(output) response object from communication</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        public CLError RenameFolders(string[] paths, string[] newPaths, out CLFileItem[] responses, CLError[] errors)
+        {
+            CheckDisposed();
+            return _httpRestClient.RenameFolders(paths, newPaths, out responses, out errors);
+        }
+
+        #endregion  // end RenameFolders (Rename folders in the cloud)
 
         #region GetAllPending
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
@@ -2408,59 +2570,6 @@ namespace Cloud
             }
         }
         #endregion  // end (changes the storage plan associated with this syncbox in the cloud)
-
-        // We won't publish this.
-        //#region UpdateFriendlyName (Update the friendly name for a syncbox in the cloud)
-        ///// <summary>
-        ///// Asynchronously updates the friendly name of this syncbox in the cloud.
-        ///// </summary>
-        ///// <param name="callback">Callback method to fire when operation completes</param>
-        ///// <param name="callbackUserState">User state to pass when firing async callback</param>
-        ///// <param name="friendlyName">The new friendly name of this syncbox.</param>
-        ///// <returns>Returns the asynchronous result which is used to retrieve the response</returns>
-        ///// <remarks>The FriendlyName property of this object will also be updated on success.</remarks>
-        //public IAsyncResult BeginUpdateFriendlyName(AsyncCallback callback, object callbackUserState, string friendlyName)
-        //{
-        //    CheckDisposed();
-        //    return _httpRestClient.BeginUpdateSyncbox(callback, callbackUserState, friendlyName, _copiedSettings.HttpTimeoutMilliseconds, ReservedForActiveSync);
-        //}
-
-        ///// <summary>
-        ///// Finishes updating the friendly name of this syncbox in the cloud, if it has not already finished via its asynchronous result, and outputs the result,
-        ///// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
-        ///// </summary>
-        ///// <param name="aResult">The asynchronous result provided upon starting the operation</param>
-        ///// <param name="result">(output) The result from the asynchronous operation.</param>
-        ///// <returns>Returns the error that occurred while finishing and/or outputting the result, if any</returns>
-        //public CLError EndUpdateFriendlyName(IAsyncResult aResult, out SyncboxUpdateFriendlyNameResult result)
-        //{
-        //    CheckDisposed();
-        //    CLError toReturn =  _httpRestClient.EndUpdateSyncbox(aResult, out result);
-        //    if (toReturn == null && result != null && result.Result != null && result.Result.Syncbox != null)
-        //    {
-        //        _friendlyName = result.Result.Syncbox.FriendlyName;   // update our property too
-        //    }
-        //    return toReturn;
-        //}
-
-        ///// <summary>
-        ///// Updates the properties of a syncbox in the cloud.  This is a synchronous operation.
-        ///// </summary>
-        ///// <param name="friendlyName">The friendly name of this syncbox.</param>
-        ///// <param name="response">(output) response object from communication</param>
-        ///// <returns>Returns any error that occurred during communication, if any</returns>
-        ///// <remarks>The FriendlyName property of this object will also be updated on success.</remarks>
-        //public CLError UpdateFriendlyName(string friendlyName, out JsonContracts.SyncboxResponse response)
-        //{
-        //    CheckDisposed();
-        //    CLError toReturn = _httpRestClient.UpdateSyncbox(friendlyName, _copiedSettings.HttpTimeoutMilliseconds, out response, ReservedForActiveSync);
-        //    if (toReturn == null && response != null)
-        //    {
-        //        _friendlyName = response.Syncbox.FriendlyName;       // update our local copy
-        //    }
-        //    return toReturn;
-        //}
-        //#endregion  // end UpdateFriendlyName (Update the friendly namd for a syncbox in the cloud)
 
         #region GetCurrentStatus (update the status of this syncbox from the cloud)
         /// <summary>

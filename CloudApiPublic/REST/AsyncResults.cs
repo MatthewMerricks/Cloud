@@ -969,6 +969,92 @@ namespace Cloud.REST
     /// <summary>
     /// Holds result properties
     /// </summary>
+    public sealed class SyncboxRenameFolderResult
+    {
+        /// <summary>
+        /// The result returned from the server
+        /// </summary>
+        public CLFileItem Response
+        {
+            get
+            {
+                return _response;
+            }
+        }
+        private readonly CLFileItem _response;
+
+        /// <summary>
+        /// Any error which may have occurred during communication
+        /// </summary>
+        public CLError Error
+        {
+            get
+            {
+                return _error;
+            }
+        }
+        private readonly CLError _error;
+
+        // construct with all readonly properties
+        internal SyncboxRenameFolderResult(CLError Error, CLFileItem Response)
+        {
+            this._error = Error;
+            this._response = Response;
+        }
+    }
+
+    /// <summary>
+    /// Holds result properties
+    /// </summary>
+    public sealed class SyncboxRenameFoldersResult
+    {
+        /// <summary>
+        /// The result returned from the server
+        /// </summary>
+        public CLFileItem[] Responses
+        {
+            get
+            {
+                return _responses;
+            }
+        }
+        private readonly CLFileItem[] _responses;
+
+        /// <summary>
+        /// Any item errors which may have occurred during communication
+        /// </summary>
+        public CLError[] Errors
+        {
+            get
+            {
+                return _errors;
+            }
+        }
+        private readonly CLError[] _errors;
+
+        /// <summary>
+        /// Any overall error which may have occurred during communication
+        /// </summary>
+        public CLError OverallError
+        {
+            get
+            {
+                return _overallError;
+            }
+        }
+        private readonly CLError _overallError;
+
+        // construct with all readonly properties
+        internal SyncboxRenameFoldersResult(CLError overallError, CLError[] Errors, CLFileItem[] Responses)
+        {
+            this._errors = Errors;
+            this._responses = Responses;
+        }
+    }
+
+    /// <summary>
+    /// Holds result properties
+    /// </summary>
     public sealed class SessionShowResult : BaseCLHttpRestResult<JsonContracts.CredentialsSessionGetForKeyResponse>
     {
         // construct with all readonly properties

@@ -145,7 +145,7 @@
     <Compile Include="Interfaces\ITransferTaskState.cs" />
     <Compile Include="JsonContracts\Archives.cs" />
     <Compile Include="JsonContracts\FileOrFolderMoves.cs" />
-    <Compile Include="JsonContracts\SyncboxMoveFilesResponse.cs" />
+    <Compile Include="JsonContracts\SyncboxMoveFilesOrFoldersResponse.cs" />
     <Compile Include="JsonContracts\SyncboxGetAllArchiveItemsResponse.cs" />
     <Compile Include="JsonContracts\SyncboxGetAllTextItemsResponse.cs" />
     <Compile Include="JsonContracts\SyncboxGetAllPresentationItemsResponse.cs" />

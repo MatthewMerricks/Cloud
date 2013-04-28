@@ -584,7 +584,7 @@ namespace Cloud.Static
         public const string RESTResponseErrors = "errors";
 
         // REST Response File
-        public const string RESTResponseMoveFiles = "moves";
+        public const string RESTResponseMoveFilesOrFolders = "moves";
 
         // REST Response Syncbox
         public const string RESTResponseSyncbox = "sync_box";
