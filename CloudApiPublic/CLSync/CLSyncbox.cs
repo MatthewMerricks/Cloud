@@ -2011,6 +2011,340 @@ namespace Cloud
 
         #endregion  // end MoveFolders (Move folders in the cloud)
 
+        #region DeleteFile (Deletes a file in the cloud)
+        /// <summary>
+        /// Asynchronously starts deleting a file in the cloud; outputs a CLFileItem object.
+        /// </summary>
+        /// <param name="callback">Callback method to fire when operation completes</param>
+        /// <param name="callbackUserState">Userstate to pass when firing async callback</param>
+        /// <param name="path">Full path to where the file would exist locally on disk.</param>
+        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        public IAsyncResult BeginDeleteFile(AsyncCallback callback, object callbackUserState, string path)
+        {
+            CheckDisposed();
+            string[] paths = new string[1] { path };
+            return _httpRestClient.BeginDeleteFiles(callback, callbackUserState, paths);
+        }
+
+        /// <summary>
+        /// Finishes deleting a file in the cloud, if it has not already finished via its asynchronous result, and outputs the result,
+        /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
+        /// </summary>
+        /// <param name="aResult">The asynchronous result provided upon starting the metadata query</param>
+        /// <param name="result">(output) The result from the metadata query</param>
+        /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
+        public CLError EndDeleteFile(IAsyncResult aResult, out SyncboxDeleteFileResult result)
+        {
+            CheckDisposed();
+
+            // Complete the async operation.
+            SyncboxDeleteFilesResult results;
+            CLError error = _httpRestClient.EndDeleteFiles(aResult, out results);
+
+            // Return resulting error or item
+            if (error != null)
+            {
+                // We got an overall error.  Return it.
+                result = null;
+                return error;
+            }
+            // error == null  (no overall error)
+            else if (results == null)
+            {
+                // No overall error, but also no results.  Return an error.
+                result = null;
+                return new CLError(new CLException(CLExceptionCode.Rest_Syncbox_File_Delete_No_Server_Responses_Or_Errors, "No error or responses from server results null"));
+            }
+            // error == null && results != null  (no overall error, and we got a results object)
+            else if (results.Errors != null && results.Errors.Length >= 1)
+            {
+                // No overall error, got a results object, and it has an error.  Return that error.
+                result = null;
+                return results.Errors[0];
+            }
+            // (error == null && results != null) && (results.Errors == null || results.Errors.Length == 0)  (no overall error, we got a results object, and there are no errors in results)
+            else if (results.FileItems != null && results.FileItems.Length >= 1)
+            {
+                // No overall error, got a results object, is has no errors, and it has a delete response.  This is the normal case.  Return that delete response as the result.
+                result = new SyncboxDeleteFileResult(error: null, fileItem: results.FileItems[0]);
+                return null;        // normal condition
+            }
+            // ((error == null && results != null) && (results.Errors == null || results.Errors.Length == 0)) && (results.Responses == null || results.Responses.Length == 0)
+            else
+            {
+                // No error, got a results object, but there were no errors and no delete responses inside.  Return an error.
+                result = null;
+                return new CLError(new CLException(CLExceptionCode.Rest_Syncbox_File_Delete_No_Server_Responses_Or_Errors, "No error or responses from server"));
+            }
+        }
+
+        /// <summary>
+        /// Deletes a file in the cloud.
+        /// </summary>
+        /// <param name="path">Full path to where the file would exist locally on disk</param>
+        /// <param name="fileItem">(output) response object from communication</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        public CLError DeleteFile(string path, out CLFileItem fileItem)
+        {
+            CheckDisposed();
+            string[] paths = new string[1] { path };
+
+            // Communicate and get the results.
+            CLError[] outErrors;
+            CLFileItem[] outItems;
+            CLError error = _httpRestClient.DeleteFiles(paths, out outItems, out outErrors);
+
+            // Return resulting error or item
+            if (error != null)
+            {
+                // There was an overall error.  Return it
+                fileItem = null;
+                return error;
+            }
+            // error == null
+            else if (outErrors != null && outErrors.Length >= 1)
+            {
+                // No overall error, but there was an item error.  Return it.
+                fileItem = null;
+                return outErrors[0];
+            }
+            // error == null && (outErrors == null || outErrors.Length == 0)
+            else if (outItems != null && outItems.Length >= 1)
+            {
+                // No overall error, no item errors, and we have an item.  Return it.  This is the normal condition
+                fileItem = outItems[0];
+                return null;
+            }
+            // (error == null && (outErrors == null || outErrors.Length == 0)) && (outItems == null || outItems.Length == 0)
+            else
+            {
+                // No overall error, no item errors, and no items.  No responses from server.  Return error.
+                fileItem = null;
+                return new CLError(new CLException(CLExceptionCode.Rest_Syncbox_File_Delete_No_Server_Responses_Or_Errors, "No responses or status from serer"));
+            }
+        }
+
+        #endregion  // end GetItemAtPath (Queries the cloud for the item at a particular path)
+
+        #region DeleteFiles (Delete files in the cloud)
+        /// <summary>
+        /// Asynchronously starts deleting files in the cloud; outputs an array of  CLFileItem objects, and possibly an array of CLError objects.
+        /// </summary>
+        /// <param name="callback">Callback method to fire when operation completes</param>
+        /// <param name="callbackUserState">Userstate to pass when firing async callback</param>
+        /// <param name="paths">An array of full paths to where the files would exist locally on disk.</param>
+        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        public IAsyncResult BeginDeleteFiles(AsyncCallback callback, object callbackUserState, string[] paths)
+        {
+            CheckDisposed();
+            return _httpRestClient.BeginDeleteFiles(callback, callbackUserState, paths);
+        }
+
+        /// <summary>
+        /// Finishes deleting files in the cloud, if it has not already finished via its asynchronous result, and outputs the result,
+        /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
+        /// </summary>
+        /// <param name="aResult">The asynchronous result provided upon starting the metadata query</param>
+        /// <param name="result">(output) The result from the metadata query</param>
+        /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
+        public CLError EndDeleteFiles(IAsyncResult aResult, out SyncboxDeleteFilesResult result)
+        {
+            CheckDisposed();
+            SyncboxDeleteFilesResult deleteResult;
+            CLError error = _httpRestClient.EndDeleteFiles(aResult, out deleteResult);
+
+            if (error != null)
+            {
+                result = null;
+                return error;
+            }
+
+            result = new SyncboxDeleteFilesResult(deleteResult.OverallError, deleteResult.Errors, deleteResult.FileItems);
+            return error;
+        }
+
+        /// <summary>
+        /// Deletes files in the cloud.
+        /// </summary>
+        /// <param name="paths">An array of full paths to where the files would exist locally on disk.</param>
+        /// <param name="fileItems">(output) response object from communication</param>
+        /// <param name="errors">(output) Any errors that occur, or null</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        public CLError DeleteFiles(string[] paths, out CLFileItem[] fileItems, out CLError[] errors)
+        {
+            CheckDisposed();
+            return _httpRestClient.DeleteFiles(paths, out fileItems, out errors);
+        }
+
+        #endregion  // end DeleteFiles (Delete files in the cloud)
+
+        #region DeleteFolder (Deletes a folder in the cloud)
+        /// <summary>
+        /// Asynchronously starts deleting a folder in the cloud; outputs a CLFileItem object.
+        /// </summary>
+        /// <param name="callback">Callback method to fire when operation completes</param>
+        /// <param name="callbackUserState">Userstate to pass when firing async callback</param>
+        /// <param name="path">Full path to where the folder would exist locally on disk.</param>
+        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        public IAsyncResult BeginDeleteFolder(AsyncCallback callback, object callbackUserState, string path)
+        {
+            CheckDisposed();
+            string[] paths = new string[1] { path };
+            return _httpRestClient.BeginDeleteFolders(callback, callbackUserState, paths);
+        }
+
+        /// <summary>
+        /// Finishes deleting a folder in the cloud, if it has not already finished via its asynchronous result, and outputs the result,
+        /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
+        /// </summary>
+        /// <param name="aResult">The asynchronous result provided upon starting the metadata query</param>
+        /// <param name="result">(output) The result from the metadata query</param>
+        /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
+        public CLError EndDeleteFolder(IAsyncResult aResult, out SyncboxDeleteFolderResult result)
+        {
+            CheckDisposed();
+
+            // Complete the async operation.
+            SyncboxDeleteFoldersResult results;
+            CLError error = _httpRestClient.EndDeleteFolders(aResult, out results);
+
+            // Return resulting error or item
+            if (error != null)
+            {
+                // We got an overall error.  Return it.
+                result = null;
+                return error;
+            }
+            // error == null  (no overall error)
+            else if (results == null)
+            {
+                // No overall error, but also no results.  Return an error.
+                result = null;
+                return new CLError(new CLException(CLExceptionCode.Rest_Syncbox_Folder_Delete_No_Server_Responses_Or_Errors, "No error or responses from server results null"));
+            }
+            // error == null && results != null  (no overall error, and we got a results object)
+            else if (results.Errors != null && results.Errors.Length >= 1)
+            {
+                // No overall error, got a results object, and it has an error.  Return that error.
+                result = null;
+                return results.Errors[0];
+            }
+            // (error == null && results != null) && (results.Errors == null || results.Errors.Length == 0)  (no overall error, we got a results object, and there are no errors in results)
+            else if (results.FolderItems != null && results.FolderItems.Length >= 1)
+            {
+                // No overall error, got a results object, is has no errors, and it has a delete response.  This is the normal case.  Return that delete response as the result.
+                result = new SyncboxDeleteFolderResult(error: null, folderItem: results.FolderItems[0]);
+                return null;        // normal condition
+            }
+            // ((error == null && results != null) && (results.Errors == null || results.Errors.Length == 0)) && (results.Responses == null || results.Responses.Length == 0)
+            else
+            {
+                // No error, got a results object, but there were no errors and no delete responses inside.  Return an error.
+                result = null;
+                return new CLError(new CLException(CLExceptionCode.Rest_Syncbox_Folder_Delete_No_Server_Responses_Or_Errors, "No error or responses from server"));
+            }
+        }
+
+        /// <summary>
+        /// Deletes a folder in the cloud.
+        /// </summary>
+        /// <param name="path">Full path to where the folder would exist locally on disk</param>
+        /// <param name="folderItem">(output) response object from communication</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        public CLError DeleteFolder(string path, out CLFileItem folderItem)
+        {
+            CheckDisposed();
+            string[] paths = new string[1] { path };
+
+            // Communicate and get the results.
+            CLError[] outErrors;
+            CLFileItem[] outItems;
+            CLError error = _httpRestClient.DeleteFolders(paths, out outItems, out outErrors);
+
+            // Return resulting error or item
+            if (error != null)
+            {
+                // There was an overall error.  Return it
+                folderItem = null;
+                return error;
+            }
+            // error == null
+            else if (outErrors != null && outErrors.Length >= 1)
+            {
+                // No overall error, but there was an item error.  Return it.
+                folderItem = null;
+                return outErrors[0];
+            }
+            // error == null && (outErrors == null || outErrors.Length == 0)
+            else if (outItems != null && outItems.Length >= 1)
+            {
+                // No overall error, no item errors, and we have an item.  Return it.  This is the normal condition
+                folderItem = outItems[0];
+                return null;
+            }
+            // (error == null && (outErrors == null || outErrors.Length == 0)) && (outItems == null || outItems.Length == 0)
+            else
+            {
+                // No overall error, no item errors, and no items.  No responses from server.  Return error.
+                folderItem = null;
+                return new CLError(new CLException(CLExceptionCode.Rest_Syncbox_Folder_Delete_No_Server_Responses_Or_Errors, "No responses or status from serer"));
+            }
+        }
+
+        #endregion  // end DeleteFolder (Deletes a folder in the cloud)
+
+        #region DeleteFolders (Delete folders in the cloud)
+        /// <summary>
+        /// Asynchronously starts deleting folders in the cloud; outputs an array of  CLFileItem objects, and possibly an array of CLError objects.
+        /// </summary>
+        /// <param name="callback">Callback method to fire when operation completes</param>
+        /// <param name="callbackUserState">Userstate to pass when firing async callback</param>
+        /// <param name="paths">An array of full paths to where the folders would exist locally on disk.</param>
+        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        public IAsyncResult BeginDeleteFolders(AsyncCallback callback, object callbackUserState, string[] paths)
+        {
+            CheckDisposed();
+            return _httpRestClient.BeginDeleteFolders(callback, callbackUserState, paths);
+        }
+
+        /// <summary>
+        /// Finishes deleting folders in the cloud, if it has not already finished via its asynchronous result, and outputs the result,
+        /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
+        /// </summary>
+        /// <param name="aResult">The asynchronous result provided upon starting the metadata query</param>
+        /// <param name="result">(output) The result from the metadata query</param>
+        /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
+        public CLError EndDeleteFolders(IAsyncResult aResult, out SyncboxDeleteFoldersResult result)
+        {
+            CheckDisposed();
+            SyncboxDeleteFoldersResult deleteResult;
+            CLError error = _httpRestClient.EndDeleteFolders(aResult, out deleteResult);
+
+            if (error != null)
+            {
+                result = null;
+                return error;
+            }
+
+            result = new SyncboxDeleteFoldersResult(deleteResult.OverallError, deleteResult.Errors, deleteResult.FolderItems);
+            return error;
+        }
+
+        /// <summary>
+        /// Deletes folders in the cloud.
+        /// </summary>
+        /// <param name="paths">An array of full paths to where the folders would exist locally on disk.</param>
+        /// <param name="folderItems">(output) response object from communication</param>
+        /// <param name="errors">(output) Any returned errors, or null.</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        public CLError DeleteFolders(string[] paths, out CLFileItem[] folderItems, out CLError[] errors)
+        {
+            CheckDisposed();
+            return _httpRestClient.DeleteFolders(paths, out folderItems, out errors);
+        }
+
+        #endregion  // end DeleteFolders (Delete folders in the cloud)
+
         #region GetAllPending
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         /// <summary>

@@ -1273,7 +1273,7 @@ namespace Cloud.REST
         /// <summary>
         /// The result returned from the server
         /// </summary>
-        public CLFileItem[] fileItems
+        public CLFileItem[] FileItems
         {
             get
             {
@@ -1360,7 +1360,7 @@ namespace Cloud.REST
         /// <summary>
         /// The result returned from the server
         /// </summary>
-        public CLFileItem[] folderItems
+        public CLFileItem[] FolderItems
         {
             get
             {
