@@ -584,6 +584,7 @@ namespace Cloud.Static
         public const string RESTRequestFileOrFolderMoves = "moves";
         public const string RESTRequestFileOrFolderDeletes = "paths";
         public const string RESTRequestFolderAdds = "folders";
+        public const string RESTRequestFileAdds = "files";
 
         // REST Response Status "status"
         public const string RESTResponseStatus = "status";
@@ -600,6 +601,7 @@ namespace Cloud.Static
         // REST Response Folder
         public const string RESTResponseDeleteFolders = "folders";
         public const string RESTResponseAddFolders = "folders";
+        public const string RESTResponseAddFiles = "files";
 
         // REST Response Syncbox
         public const string RESTResponseSyncbox = "sync_box";
