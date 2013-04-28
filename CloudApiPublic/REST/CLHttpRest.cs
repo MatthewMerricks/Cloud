@@ -244,11 +244,11 @@ namespace Cloud.REST
         }
 
         /// <summary>
-        /// Finishes a metadata query if it has not already finished via its asynchronous result, and outputs the result,
+        /// Finishes getting the item at the input path, if it has not already finished via its asynchronous result, and outputs the result,
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
         /// </summary>
-        /// <param name="aResult">The asynchronous result provided upon starting the metadata query</param>
-        /// <param name="result">(output) The result from the metadata query</param>
+        /// <param name="aResult">The asynchronous result provided upon starting the request</param>
+        /// <param name="result">(output) The result from the request</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndGetItemAtPath(IAsyncResult aResult, out SyncboxGetItemAtPathResult result)
         {
@@ -263,7 +263,7 @@ namespace Cloud.REST
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError GetItemAtPath(string path, out CLFileItem response)
         {
-            // try/catch to process the metadata query, on catch return the error
+            // try/catch to process the request. On catch return the error
             try
             {
                 // check input parameters
@@ -348,7 +348,7 @@ namespace Cloud.REST
         }
         #endregion  // end GetItemAtPath (Gets the metedata at a particular server syncbox path)
 
-        #region RenameFiles (Renames files in the cloud.)
+        #region RenameFiles (Rename files in the cloud.)
         /// <summary>
         /// Asynchronously starts renaming files in the cloud.
         /// </summary>
@@ -414,8 +414,8 @@ namespace Cloud.REST
         /// Finishes renaming files in the cloud, if it has not already finished via its asynchronous result, and outputs the result,
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
         /// </summary>
-        /// <param name="aResult">The asynchronous result provided upon starting the metadata query</param>
-        /// <param name="result">(output) The result from the metadata query</param>
+        /// <param name="aResult">The asynchronous result provided upon starting the request</param>
+        /// <param name="result">(output) The result from the request</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndRenameFiles(IAsyncResult aResult, out SyncboxRenameFilesResult result)
         {
@@ -432,7 +432,7 @@ namespace Cloud.REST
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError RenameFiles(string [] paths, string [] newPaths, out CLFileItem [] responses, out CLError [] errors)
         {
-            // try/catch to process the metadata query, on catch return the error
+            // try/catch to process the request,  On catch return the error
             try
             {
                 // check input parameters.
@@ -4232,7 +4232,7 @@ namespace Cloud.REST
         internal CLError SendUnsubscribeToServer(int timeoutMilliseconds, out JsonContracts.NotificationUnsubscribeResponse response,
                     CLSyncbox syncbox)
         {
-            // try/catch to process the metadata query, on catch return the error
+            // try/catch to process the request. On catch return the error
             try
             {
                 // check input parameters
