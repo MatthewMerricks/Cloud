@@ -888,7 +888,7 @@ namespace Cloud.REST
         /// <summary>
         /// The result returned from the server
         /// </summary>
-        public CLFileItem Response
+        public CLFileItem FileItem
         {
             get
             {
@@ -925,7 +925,7 @@ namespace Cloud.REST
         /// <summary>
         /// The result returned from the server
         /// </summary>
-        public CLFileItem Response
+        public CLFileItem FileItem
         {
             get
             {
@@ -962,7 +962,7 @@ namespace Cloud.REST
         /// <summary>
         /// The result returned from the server
         /// </summary>
-        public CLFileItem [] Responses
+        public CLFileItem [] FileItems
         {
             get
             {
@@ -1011,7 +1011,7 @@ namespace Cloud.REST
         /// <summary>
         /// The result returned from the server
         /// </summary>
-        public CLFileItem[] Responses
+        public CLFileItem[] FileItems
         {
             get
             {
@@ -1060,7 +1060,7 @@ namespace Cloud.REST
         /// <summary>
         /// The result returned from the server
         /// </summary>
-        public CLFileItem Response
+        public CLFileItem FolderItem
         {
             get
             {
@@ -1097,7 +1097,7 @@ namespace Cloud.REST
         /// <summary>
         /// The result returned from the server
         /// </summary>
-        public CLFileItem Response
+        public CLFileItem FolderItem
         {
             get
             {
@@ -1134,7 +1134,7 @@ namespace Cloud.REST
         /// <summary>
         /// The result returned from the server
         /// </summary>
-        public CLFileItem[] Responses
+        public CLFileItem[] FolderItems
         {
             get
             {
@@ -1183,7 +1183,7 @@ namespace Cloud.REST
         /// <summary>
         /// The result returned from the server
         /// </summary>
-        public CLFileItem[] Responses
+        public CLFileItem[] FolderItems
         {
             get
             {
