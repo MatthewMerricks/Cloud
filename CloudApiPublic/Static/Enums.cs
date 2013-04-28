@@ -235,7 +235,7 @@ namespace Cloud.Static
         /// <summary>
         /// Cloud syncbox file add.  Server returned no status and no responses.
         /// </summary>
-        Rest_Syncbox_File_Adde_No_Server_Responses_Or_Errors = (((ulong)CLExceptionDomain.REST) << 32) | 5, // 5_5
+        Rest_Syncbox_File_Add_No_Server_Responses_Or_Errors = (((ulong)CLExceptionDomain.REST) << 32) | 5, // 5_5
 
         /// <summary>
         /// Cloud syncbox file delete error
