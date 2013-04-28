@@ -258,24 +258,39 @@ namespace Cloud.Static
         Rest_Syncbox_Folder_Rename_No_Server_Responses_Or_Errors = (((ulong)CLExceptionDomain.REST) << 32) | 9, // 5_9
 
         /// <summary>
+        /// Cloud syncbox folder add error
+        /// </summary>
+        Rest_Syncbox_Folder_Add = (((ulong)CLExceptionDomain.REST) << 32) | 10, // 5_10
+
+        /// <summary>
+        /// Cloud syncbox folder add invalid metadata error
+        /// </summary>
+        Rest_Syncbox_Folder_Add_Invalid_Metadata = (((ulong)CLExceptionDomain.REST) << 32) | 11, // 5_11
+
+        /// <summary>
+        /// Cloud syncbox folder add.  Server returned no status and no responses.
+        /// </summary>
+        Rest_Syncbox_Folder_Add_No_Server_Responses_Or_Errors = (((ulong)CLExceptionDomain.REST) << 32) | 12, // 5_12
+
+        /// <summary>
         /// Cloud syncbox folder delete error
         /// </summary>
-        Rest_Syncbox_Folder_Delete = (((ulong)CLExceptionDomain.REST) << 32) | 10, // 5_10
+        Rest_Syncbox_Folder_Delete = (((ulong)CLExceptionDomain.REST) << 32) | 13, // 5_13
 
         /// <summary>
         /// Cloud syncbox folder delete invalid metadata error
         /// </summary>
-        Rest_Syncbox_Folder_Delete_Invalid_Metadata = (((ulong)CLExceptionDomain.REST) << 32) | 11, // 5_11
+        Rest_Syncbox_Folder_Delete_Invalid_Metadata = (((ulong)CLExceptionDomain.REST) << 32) | 14, // 5_14
 
         /// <summary>
         /// Cloud syncbox folder delete.  Server returned no status and no responses.
         /// </summary>
-        Rest_Syncbox_Folder_Delete_No_Server_Responses_Or_Errors = (((ulong)CLExceptionDomain.REST) << 32) | 12, // 5_12
+        Rest_Syncbox_Folder_Delete_No_Server_Responses_Or_Errors = (((ulong)CLExceptionDomain.REST) << 32) | 15, // 5_15
 
         /// <summary>
         /// Cloud syncbox folder move.  Server returned no status and no responses.
         /// </summary>
-        Rest_Syncbox_Folder_Move_No_Server_Responses_Or_Errors = (((ulong)CLExceptionDomain.REST) << 32) | 13, // 5_13
+        Rest_Syncbox_Folder_Move_No_Server_Responses_Or_Errors = (((ulong)CLExceptionDomain.REST) << 32) | 16, // 5_16
 
         #endregion
 

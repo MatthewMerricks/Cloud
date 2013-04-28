@@ -1012,7 +1012,7 @@ namespace Cloud.REST
         }
 
         /// <summary>
-        /// Finishes renaming folders in the cloud, if it has not already finished via its asynchronous result, and outputs the result,
+        /// Finishes deleting folders in the cloud, if it has not already finished via its asynchronous result, and outputs the result,
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
         /// </summary>
         /// <param name="aResult">The asynchronous result provided upon starting the request</param>
@@ -1145,6 +1145,200 @@ namespace Cloud.REST
             return null;
         }
         #endregion  // end DeleteFolders (Deletes folders in the cloud.)
+
+        #region AddFolders (Add folders in the cloud.)
+        /// <summary>
+        /// Asynchronously starts adding folders in the cloud.
+        /// </summary>
+        /// <param name="callback">Callback method to fire when operation completes</param>
+        /// <param name="callbackUserState">Userstate to pass when firing async callback</param>
+        /// <param name="paths">An array of full paths to where the folders would exist locally on disk</param>
+        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        public IAsyncResult BeginAddFolders(AsyncCallback callback, object callbackUserState, string[] paths)
+        {
+            var asyncThread = DelegateAndDataHolderBase.Create(
+                // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
+                new
+                {
+                    // create the asynchronous result to return
+                    toReturn = new GenericAsyncResult<SyncboxAddFoldersResult>(
+                        callback,
+                        callbackUserState),
+                    paths
+                },
+                (Data, errorToAccumulate) =>
+                {
+                    // The ThreadProc.
+                    // try/catch to process with the input parameters, on catch set the exception in the asyncronous result
+                    try
+                    {
+                        // declare the output status for communication
+                        // declare the specific type of result for this operation
+                        CLFileItem[] responses;
+                        CLError[] errors;
+                        // alloc and init the syncbox with the passed parameters, storing any error that occurs
+                        CLError overallError = AddFolders(
+                            Data.paths,
+                            out responses,
+                            out errors);
+
+                        Data.toReturn.Complete(
+                            new SyncboxAddFoldersResult(
+                                overallError, // any overall error that may have occurred during processing
+                                errors,     // any item erros that may have occurred during processing
+                                responses), // the specific type of result for this operation
+                            sCompleted: false); // processing did not complete synchronously
+                    }
+                    catch (Exception ex)
+                    {
+                        Data.toReturn.HandleException(
+                            ex, // the exception which was not handled correctly by the CLError wrapping
+                            sCompleted: false); // processing did not complete synchronously
+                    }
+                },
+                null);
+
+            // create the thread from a void (object) parameterized start which wraps the synchronous method call
+            (new Thread(new ThreadStart(asyncThread.VoidProcess))).Start(); // start the asynchronous processing thread which is attached to its data
+
+            // return the asynchronous result
+            return asyncThread.TypedData.toReturn;
+        }
+
+        /// <summary>
+        /// Finishes adding folders in the cloud, if it has not already finished via its asynchronous result, and outputs the result,
+        /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
+        /// </summary>
+        /// <param name="aResult">The asynchronous result provided upon starting the request</param>
+        /// <param name="result">(output) The result from the request</param>
+        /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
+        public CLError EndAddFolders(IAsyncResult aResult, out SyncboxAddFoldersResult result)
+        {
+            return Helpers.EndAsyncOperation<SyncboxAddFoldersResult>(aResult, out result);
+        }
+
+        /// <summary>
+        /// Add folders in the cloud.
+        /// </summary>
+        /// <param name="paths">An array of full paths to where the folders would exist locally on disk</param>
+        /// <param name="responses">(output) An array of response objects from communication</param>
+        /// <param name="errors">(output) An array of errors from communication.</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        public CLError AddFolders(string[] paths, out CLFileItem[] responses, out CLError[] errors)
+        {
+            // try/catch to process the request,  On catch return the error
+            try
+            {
+                // check input parameters.
+                for (int i = 0; i < paths.Length; ++i)
+                {
+                    CheckPath(paths[i]);
+                }
+
+                if (!(_copiedSettings.HttpTimeoutMilliseconds > 0))
+                {
+                    throw new ArgumentException("timeoutMilliseconds must be greater than zero");
+                }
+
+                // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
+                Helpers.RequestNewCredentialsInfo requestNewCredentialsInfo = new Helpers.RequestNewCredentialsInfo()
+                {
+                    ProcessingStateByThreadId = _processingStateByThreadId,
+                    GetNewCredentialsCallback = _getNewCredentialsCallback,
+                    GetNewCredentialsCallbackUserState = _getNewCredentialsCallbackUserState,
+                    GetCurrentCredentialsCallback = GetCurrentCredentialsCallback,
+                    SetCurrentCredentialsCallback = SetCurrentCredentialCallback,
+                };
+
+                // Build the REST content dynamically.
+                // Folder move (rename) and folder move (rename) share a json contract object for move (rename).
+                // This will be an array of contracts.
+                int numberOfFolders = paths.Length;
+                List<FolderAdd> listAddContract = new List<FolderAdd>();
+                for (int i = 0; i < numberOfFolders; ++i)
+                {
+                    FilePath folderPath = new FilePath(paths[i]);
+
+                    FolderAdd thisAdd = new FolderAdd()
+                    {
+                        DeviceId = _copiedSettings.DeviceId,
+                        RelativePath = folderPath.GetRelativePath(_syncbox.Path, true),
+                        SyncboxId = _syncbox.SyncboxId
+                    };
+
+                    listAddContract.Add(thisAdd);
+                }
+
+                // Now make the REST request content.
+                object requestContent = new JsonContracts.FolderAdds()
+                {
+                    Adds = listAddContract.ToArray()
+                };
+
+                // server method path switched on whether change is a folder or not
+                string serverMethodPath = CLDefinitions.MethodPathOneOffFolderAdds;
+
+                // Communicate with the server to get the response.
+                JsonContracts.SyncboxAddFoldersResponse responseFromServer;
+                responseFromServer = Helpers.ProcessHttp<JsonContracts.SyncboxAddFoldersResponse>(requestContent, // dynamic type of request content based on method path
+                    CLDefinitions.CLMetaDataServerURL, // base domain is the MDS server
+                    serverMethodPath, // dynamic path to appropriate one-off method
+                    Helpers.requestMethod.post, // one-off methods are all posts
+                    _copiedSettings.HttpTimeoutMilliseconds, // time before communication timeout
+                    null, // not an upload or download
+                    Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
+                    _copiedSettings, // pass the copied settings
+                    _syncbox.SyncboxId, // pass the unique id of the sync box on the server
+                    requestNewCredentialsInfo);   // pass the optional parameters to support temporary token reallocation.
+
+                // Convert these items to the output array.
+                if (responseFromServer != null && responseFromServer.AddResponses != null)
+                {
+                    List<CLFileItem> listFileItems = new List<CLFileItem>();
+                    List<CLError> listErrors = new List<CLError>();
+                    foreach (FileChangeResponse fileChangeResponse in responseFromServer.AddResponses)
+                    {
+                        if (fileChangeResponse != null && fileChangeResponse.Metadata != null)
+                        {
+                            try
+                            {
+                                listFileItems.Add(new CLFileItem(fileChangeResponse.Metadata));
+                            }
+                            catch (Exception ex)
+                            {
+                                CLException exInner = new CLException(CLExceptionCode.Rest_Syncbox_Folder_Add_Invalid_Metadata, ex.Message, ex);
+                                listErrors.Add(new CLError(exInner));
+                            }
+                        }
+                        else
+                        {
+                            string msg = "<Unknown>";
+                            if (fileChangeResponse.Header.Status != null)
+                            {
+                                msg = fileChangeResponse.Header.Status;
+                            }
+
+                            CLException ex = new CLException(CLExceptionCode.Rest_Syncbox_Folder_Add, msg);
+                            listErrors.Add(new CLError(ex));
+                        }
+                    }
+                    responses = listFileItems.ToArray();
+                    errors = listErrors.ToArray();
+                }
+                else
+                {
+                    throw new NullReferenceException("Server responded without an array of move responses");
+                }
+            }
+            catch (Exception ex)
+            {
+                responses = Helpers.DefaultForType<CLFileItem[]>();
+                errors = Helpers.DefaultForType<CLError[]>();
+                return ex;
+            }
+            return null;
+        }
+        #endregion  // end AddFolders (Adds folders in the cloud.)
 
         #region UndoDeletionFileChange
         /// <summary>
