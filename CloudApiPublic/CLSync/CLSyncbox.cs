@@ -1396,7 +1396,7 @@ namespace Cloud
             else if (results.FileItems != null && results.FileItems.Length >= 1)
             {
                 // No overall error, got a results object, is has no errors, and it has a rename response.  This is the normal case.  Return that rename response as the result.
-                result = new SyncboxRenameFileResult(Error: null, Response: results.FileItems[0]);
+                result = new SyncboxRenameFileResult(error: null, _fileItem: results.FileItems[0]);
                 return null;        // normal condition
             }
             // ((error == null && results != null) && (results.Errors == null || results.Errors.Length == 0)) && (results.Responses == null || results.Responses.Length == 0)
@@ -1491,9 +1491,10 @@ namespace Cloud
         /// </summary>
         /// <param name="paths">An array of full paths to where the files would exist locally on disk.</param>
         /// <param name="newPaths">An array of full paths to the new location of the files, corresponding to the paths array.</param>
-        /// <param name="response">(output) response object from communication</param>
+        /// <param name="fileItems">(output) response object from communication</param>
+        /// <param name="errors">(output) Any errors that occur, or null</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError RenameFiles(string [] paths, string [] newPaths, out CLFileItem [] fileItems, CLError [] errors)
+        public CLError RenameFiles(string [] paths, string [] newPaths, out CLFileItem [] fileItems, out CLError [] errors)
         {
             CheckDisposed();
             return _httpRestClient.RenameFiles(paths, newPaths, out fileItems, out errors);
@@ -1558,7 +1559,7 @@ namespace Cloud
             else if (results.FolderItems != null && results.FolderItems.Length >= 1)
             {
                 // No overall error, got a results object, is has no errors, and it has a rename response.  This is the normal case.  Return that rename response as the result.
-                result = new SyncboxRenameFolderResult(Error: null, Response: results.FolderItems[0]);
+                result = new SyncboxRenameFolderResult(error: null, folderItem: results.FolderItems[0]);
                 return null;        // normal condition
             }
             // ((error == null && results != null) && (results.Errors == null || results.Errors.Length == 0)) && (results.Responses == null || results.Responses.Length == 0)
@@ -1653,9 +1654,10 @@ namespace Cloud
         /// </summary>
         /// <param name="paths">An array of full paths to where the folders would exist locally on disk.</param>
         /// <param name="newPaths">An array of full paths to the new location of the folders, corresponding to the paths array.</param>
-        /// <param name="response">(output) response object from communication</param>
+        /// <param name="folderItems">(output) response object from communication</param>
+        /// <param name="errors">(output) Any errors that occur, or null.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError RenameFolders(string[] paths, string[] newPaths, out CLFileItem[] folderItems, CLError[] errors)
+        public CLError RenameFolders(string[] paths, string[] newPaths, out CLFileItem[] folderItems, out CLError[] errors)
         {
             CheckDisposed();
             return _httpRestClient.RenameFolders(paths, newPaths, out folderItems, out errors);
@@ -1720,7 +1722,7 @@ namespace Cloud
             else if (results.FileItems != null && results.FileItems.Length >= 1)
             {
                 // No overall error, got a results object, is has no errors, and it has a rename response.  This is the normal case.  Return that rename response as the result.
-                result = new SyncboxMoveFileResult(Error: null, Response: results.FileItems[0]);
+                result = new SyncboxMoveFileResult(error: null, fileItem: results.FileItems[0]);
                 return null;        // normal condition
             }
             // ((error == null && results != null) && (results.Errors == null || results.Errors.Length == 0)) && (results.Responses == null || results.Responses.Length == 0)
@@ -1825,9 +1827,10 @@ namespace Cloud
         /// </summary>
         /// <param name="paths">An array of full paths to where the files would exist locally on disk.</param>
         /// <param name="newPaths">An array of full paths to the new location of the files, corresponding to the paths array.</param>
-        /// <param name="response">(output) response object from communication</param>
+        /// <param name="fileItems">(output) response object from communication</param>
+        /// <param name="errors">(output) Any errors that occur, or null</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError MoveFiles(string[] paths, string[] newPaths, out CLFileItem[] fileItems, CLError[] errors)
+        public CLError MoveFiles(string[] paths, string[] newPaths, out CLFileItem[] fileItems, out CLError[] errors)
         {
             CheckDisposed();
             return _httpRestClient.RenameFiles(paths, newPaths, out fileItems, out errors);
@@ -1892,7 +1895,7 @@ namespace Cloud
             else if (results.FolderItems != null && results.FolderItems.Length >= 1)
             {
                 // No overall error, got a results object, is has no errors, and it has a rename response.  This is the normal case.  Return that rename response as the result.
-                result = new SyncboxMoveFolderResult(Error: null, Response: results.FolderItems[0]);
+                result = new SyncboxMoveFolderResult(error: null, folderItem: results.FolderItems[0]);
                 return null;        // normal condition
             }
             // ((error == null && results != null) && (results.Errors == null || results.Errors.Length == 0)) && (results.Responses == null || results.Responses.Length == 0)
@@ -1997,9 +2000,10 @@ namespace Cloud
         /// </summary>
         /// <param name="paths">An array of full paths to where the folders would exist locally on disk.</param>
         /// <param name="newPaths">An array of full paths to the new location of the folders, corresponding to the paths array.</param>
-        /// <param name="response">(output) response object from communication</param>
+        /// <param name="folderItems">(output) response object from communication</param>
+        /// <param name="errors">(output) Any returned errors, or null.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError MoveFolders(string[] paths, string[] newPaths, out CLFileItem[] folderItems, CLError[] errors)
+        public CLError MoveFolders(string[] paths, string[] newPaths, out CLFileItem[] folderItems, out CLError[] errors)
         {
             CheckDisposed();
             return _httpRestClient.RenameFolders(paths, newPaths, out folderItems, out errors);

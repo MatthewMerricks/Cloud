@@ -223,29 +223,59 @@ namespace Cloud.Static
         Rest_Syncbox_File_Rename_No_Server_Responses_Or_Errors = (((ulong)CLExceptionDomain.REST) << 32) | 2, // 5_2
 
         /// <summary>
+        /// Cloud syncbox file delete error
+        /// </summary>
+        Rest_Syncbox_File_Delete = (((ulong)CLExceptionDomain.REST) << 32) | 3, // 5_3
+
+        /// <summary>
+        /// Cloud syncbox file delete invalid metadata error
+        /// </summary>
+        Rest_Syncbox_File_Delete_Invalid_Metadata = (((ulong)CLExceptionDomain.REST) << 32) | 4, // 5_4
+
+        /// <summary>
+        /// Cloud syncbox file delete.  Server returned no status and no responses.
+        /// </summary>
+        Rest_Syncbox_File_Delete_No_Server_Responses_Or_Errors = (((ulong)CLExceptionDomain.REST) << 32) | 5, // 5_5
+
+        /// <summary>
         /// Cloud syncbox file move.  Server returned no status and no responses.
         /// </summary>
-        Rest_Syncbox_File_Move_No_Server_Responses_Or_Errors = (((ulong)CLExceptionDomain.REST) << 32) | 3, // 5_3
+        Rest_Syncbox_File_Move_No_Server_Responses_Or_Errors = (((ulong)CLExceptionDomain.REST) << 32) | 6, // 5_6
 
         /// <summary>
         /// Cloud syncbox folder rename error
         /// </summary>
-        Rest_Syncbox_Folder_Rename = (((ulong)CLExceptionDomain.REST) << 32) | 4, // 5_4
+        Rest_Syncbox_Folder_Rename = (((ulong)CLExceptionDomain.REST) << 32) | 7, // 5_7
 
         /// <summary>
         /// Cloud syncbox folder rename invalid metadata error
         /// </summary>
-        Rest_Syncbox_Folder_Rename_Invalid_Metadata = (((ulong)CLExceptionDomain.REST) << 32) | 5, // 5_5
+        Rest_Syncbox_Folder_Rename_Invalid_Metadata = (((ulong)CLExceptionDomain.REST) << 32) | 8, // 5_8
 
         /// <summary>
         /// Cloud syncbox folder rename.  Server returned no status and no responses.
         /// </summary>
-        Rest_Syncbox_Folder_Rename_No_Server_Responses_Or_Errors = (((ulong)CLExceptionDomain.REST) << 32) | 6, // 5_6
+        Rest_Syncbox_Folder_Rename_No_Server_Responses_Or_Errors = (((ulong)CLExceptionDomain.REST) << 32) | 9, // 5_9
+
+        /// <summary>
+        /// Cloud syncbox folder delete error
+        /// </summary>
+        Rest_Syncbox_Folder_Delete = (((ulong)CLExceptionDomain.REST) << 32) | 10, // 5_10
+
+        /// <summary>
+        /// Cloud syncbox folder delete invalid metadata error
+        /// </summary>
+        Rest_Syncbox_Folder_Delete_Invalid_Metadata = (((ulong)CLExceptionDomain.REST) << 32) | 11, // 5_11
+
+        /// <summary>
+        /// Cloud syncbox folder delete.  Server returned no status and no responses.
+        /// </summary>
+        Rest_Syncbox_Folder_Delete_No_Server_Responses_Or_Errors = (((ulong)CLExceptionDomain.REST) << 32) | 12, // 5_12
 
         /// <summary>
         /// Cloud syncbox folder move.  Server returned no status and no responses.
         /// </summary>
-        Rest_Syncbox_Folder_Move_No_Server_Responses_Or_Errors = (((ulong)CLExceptionDomain.REST) << 32) | 7, // 5_7
+        Rest_Syncbox_Folder_Move_No_Server_Responses_Or_Errors = (((ulong)CLExceptionDomain.REST) << 32) | 13, // 5_13
 
         #endregion
 

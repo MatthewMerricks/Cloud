@@ -122,6 +122,7 @@ namespace Cloud.Static
         public const string MethodPathOneOffFileModify = VersionPrefix + "/sync/file/modify";                           // POST
         public const string MethodPathOneOffFileMove = VersionPrefix + "/sync/file/move";                               // POST
         public const string MethodPathOneOffFileMoves = VersionPrefix + "/sync/file/moves";                             // POST
+        public const string MethodPathOneOffFileDeletes = VersionPrefix + "/sync/file/deletes";                         // POST
         /* duplicate functionality to file move:
         public const string MethodPathOneOffFileRename = VersionPrefix + "/sync/file/rename";                           // POST
  
@@ -133,6 +134,7 @@ namespace Cloud.Static
         public const string MethodPathOneOffFolderDelete = VersionPrefix + "/sync/folder/delete";                       // POST
         public const string MethodPathOneOffFolderMove = VersionPrefix + "/sync/folder/move";                           // POST
         public const string MethodPathOneOffFolderMoves = VersionPrefix + "/sync/folder/moves";                         // POST
+        public const string MethodPathOneOffFolderDeletes = VersionPrefix + "/sync/folder/deletes";                     // POST
         /* duplicate functionality to folder move:
         public const string MethodPathOneOffFolderRename = VersionPrefix + "/sync/folder/rename";                       // POST
          */
@@ -210,6 +212,7 @@ namespace Cloud.Static
         public const string MethodPathOneOffFileModify = "/1/file/modify";                              // POST
         public const string MethodPathOneOffFileMove = "/1/file/move";                                  // POST
         public const string MethodPathOneOffFileMoves = "/1/file/moves";                                // POST
+        public const string MethodPathOneOffFileDeletes = "/1/file/deletes";                            // POST
         /* duplicate functionality to file move:
         public const string MethodPathOneOffFileRename = "/1/file/rename";                              // POST
          */
@@ -220,6 +223,7 @@ namespace Cloud.Static
         public const string MethodPathOneOffFolderDelete = "/1/folder/delete";                          // POST
         public const string MethodPathOneOffFolderMove = "/1/folder/move";                              // POST
         public const string MethodPathOneOffFolderMoves = "/1/folder/moves";                            // POST
+        public const string MethodPathOneOffFolderDeletes = "/1/folder/deletes";                        // POST
         /* duplicate functionality to folder move:
         public const string MethodPathOneOffFolderRename = "/1/folder/rename";                          // POST
          */
@@ -574,6 +578,7 @@ namespace Cloud.Static
 
         // REST Request fields
         public const string RESTRequestFileOrFolderMoves = "moves";
+        public const string RESTRequestFileOrFolderDeletes = "paths";
 
         // REST Response Status "status"
         public const string RESTResponseStatus = "status";
@@ -585,6 +590,8 @@ namespace Cloud.Static
 
         // REST Response File
         public const string RESTResponseMoveFilesOrFolders = "moves";
+        public const string RESTResponseDeleteFiles = "files";
+        public const string RESTResponseDeleteFolders = "folders";
 
         // REST Response Syncbox
         public const string RESTResponseSyncbox = "sync_box";
