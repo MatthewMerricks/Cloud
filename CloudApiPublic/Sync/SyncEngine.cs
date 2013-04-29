@@ -1289,6 +1289,8 @@ namespace Cloud.Sync
             IEnumerable<PossiblyStreamableAndPossiblyChangedFileChange> incompleteChanges;
             // Declare enumerable for the changes which had errors for requeueing
             IEnumerable<PossiblyStreamableAndPossiblyChangedFileChangeWithError> changesInError;
+            // Declare enumerable for pseudo file creations which need to be added to SQL
+            IEnumerable<PossiblyChangedFileChange> pseudoFileCreationsForDownload;
             // Declare string for the newest sync id from the server
             string newSyncId;
             string syncRootUid;
@@ -1298,6 +1300,7 @@ namespace Cloud.Sync
             GenericHolder<IEnumerable<PossiblyChangedFileChange>> commonCompletedChanges = new GenericHolder<IEnumerable<PossiblyChangedFileChange>>(null);
             GenericHolder<IEnumerable<PossiblyStreamableAndPossiblyChangedFileChange>> commonIncompleteChanges = new GenericHolder<IEnumerable<PossiblyStreamableAndPossiblyChangedFileChange>>(null);
             GenericHolder<IEnumerable<PossiblyStreamableAndPossiblyChangedFileChangeWithError>> commonChangesInError = new GenericHolder<IEnumerable<PossiblyStreamableAndPossiblyChangedFileChangeWithError>>(null);
+            GenericHolder<IEnumerable<PossiblyChangedFileChange>> commonPseudoFileCreationsForDownload = new GenericHolder<IEnumerable<PossiblyChangedFileChange>>(null);
 
             GenericHolder<string> commonNewSyncId = new GenericHolder<string>(null);
             GenericHolder<string> commonRootFolderServerUid = new GenericHolder<string>(null);
@@ -3273,6 +3276,7 @@ namespace Cloud.Sync
                     commonCompletedChanges = commonCompletedChanges,
                     commonIncompleteChanges = commonIncompleteChanges,
                     commonChangesInError = commonChangesInError,
+                    commonPseudoFileCreationsForDownload = commonPseudoFileCreationsForDownload,
                     commonNewSyncId = commonNewSyncId,
                     commonRootFolderServerUid = commonRootFolderServerUid
                 },
@@ -3286,7 +3290,8 @@ namespace Cloud.Sync
                         .Concat((Data.commonIncompleteChanges.Value ?? Enumerable.Empty<PossiblyStreamableAndPossiblyChangedFileChange>()) // concatenate changes that still need to be performed
                             .Select(currentIncompleteChange => new PossiblyChangedFileChange(currentIncompleteChange.ResultOrder, currentIncompleteChange.Changed, currentIncompleteChange.FileChange))) // reselect into same format
                         .Concat((Data.commonChangesInError.Value ?? Enumerable.Empty<PossiblyStreamableAndPossiblyChangedFileChangeWithError>()) // concatenate changes that were in error during communication (i.e. conflicts)
-                            .Select(currentChangeInError => new PossiblyChangedFileChange(currentChangeInError.ResultOrder, currentChangeInError.Changed, currentChangeInError.FileChange))), // reselect into same format
+                            .Select(currentChangeInError => new PossiblyChangedFileChange(currentChangeInError.ResultOrder, currentChangeInError.Changed, currentChangeInError.FileChange))) // reselect into same format
+                        .Concat(Data.commonPseudoFileCreationsForDownload.Value ?? Enumerable.Empty<PossiblyChangedFileChange>()), // pseudo sync from file creations
 
                         Data.commonNewSyncId.Value,
                         (Data.commonCompletedChanges.Value ?? Enumerable.Empty<PossiblyChangedFileChange>()).Select(currentCompletedChange => currentCompletedChange.FileChange.EventId),
@@ -4053,6 +4058,7 @@ namespace Cloud.Sync
                                 out completedChanges, // output changes completed during communication
                                 out incompleteChanges, // output changes that still need to be performed
                                 out changesInError, // output changes that were marked in error during communication (i.e. conflicts)
+                                out pseudoFileCreationsForDownload, // output changes which are pseudo sync from file creations to add to SQL
                                 out newSyncId, // output newest sync id from server
                                 out communicationOutputCredentialsError,
                                 out syncRootUid);
@@ -4060,6 +4066,7 @@ namespace Cloud.Sync
                             commonCompletedChanges.Value = completedChanges;
                             commonIncompleteChanges.Value = incompleteChanges;
                             commonChangesInError.Value = changesInError;
+                            commonPseudoFileCreationsForDownload.Value = pseudoFileCreationsForDownload;
                             commonNewSyncId.Value = newSyncId;
                             commonRootFolderServerUid.Value = syncRootUid;
 
@@ -6782,6 +6789,7 @@ namespace Cloud.Sync
             out IEnumerable<PossiblyChangedFileChange> completedChanges,
             out IEnumerable<PossiblyStreamableAndPossiblyChangedFileChange> incompleteChanges,
             out IEnumerable<PossiblyStreamableAndPossiblyChangedFileChangeWithError> changesInError,
+            out IEnumerable<PossiblyChangedFileChange> pseudoFileCreationsForDownload,
             out string newSyncId,
             out CredentialErrorType credentialsError,
             out string syncRootUid)
@@ -6801,6 +6809,7 @@ namespace Cloud.Sync
                         completedChanges = Helpers.DefaultForType<IEnumerable<PossiblyChangedFileChange>>();
                         incompleteChanges = Helpers.DefaultForType<IEnumerable<PossiblyStreamableAndPossiblyChangedFileChange>>();
                         changesInError = Helpers.DefaultForType<IEnumerable<PossiblyStreamableAndPossiblyChangedFileChangeWithError>>();
+                        pseudoFileCreationsForDownload = Helpers.DefaultForType<IEnumerable<PossiblyChangedFileChange>>();
                         newSyncId = Helpers.DefaultForType<string>();
                         return new Exception("Shut down in the middle of communication");
                     }
@@ -7144,6 +7153,7 @@ namespace Cloud.Sync
                         completedChanges = Helpers.DefaultForType<IEnumerable<PossiblyChangedFileChange>>();
                         incompleteChanges = Helpers.DefaultForType<IEnumerable<PossiblyStreamableAndPossiblyChangedFileChange>>();
                         changesInError = Helpers.DefaultForType<IEnumerable<PossiblyStreamableAndPossiblyChangedFileChangeWithError>>();
+                        pseudoFileCreationsForDownload = Helpers.DefaultForType<IEnumerable<PossiblyChangedFileChange>>();
                         newSyncId = Helpers.DefaultForType<string>();
                         return new Exception("Shut down in the middle of communication");
                     }
@@ -7427,6 +7437,7 @@ namespace Cloud.Sync
                                 completedChanges = Helpers.DefaultForType<IEnumerable<PossiblyChangedFileChange>>();
                                 incompleteChanges = Helpers.DefaultForType<IEnumerable<PossiblyStreamableAndPossiblyChangedFileChange>>();
                                 changesInError = Helpers.DefaultForType<IEnumerable<PossiblyStreamableAndPossiblyChangedFileChangeWithError>>();
+                                pseudoFileCreationsForDownload = Helpers.DefaultForType<IEnumerable<PossiblyChangedFileChange>>();
                                 newSyncId = Helpers.DefaultForType<string>();
                                 return new Exception("Shut down in the middle of communication");
                             }
@@ -7506,27 +7517,6 @@ namespace Cloud.Sync
                                         ToParentUid = currentEvent.FileChange.Metadata.ParentFolderServerUid,
                                         Name = currentEvent.FileChange.NewPath.Name,
                                         ToName = currentEvent.FileChange.NewPath.Name,
-
-                                        //// Phil says this case is fixed, test thoroughly before removing this commented section; the commented section immediately below this is currently not fixed, so don't remove that one until checked seperately
-                                        //
-                                        //// TODO: remove this property setter; supposedly "You do not have to provide to_path." according to Phil, but if you don't provide it then folder renames give the error “No to_path found.”
-                                        //// for now this is left in until this problem is fixed
-                                        //RelativeToPath = (currentEvent.FileChange.Type == FileChangeType.Renamed
-                                        //    ? currentEvent.FileChange.NewPath.GetRelativePath((syncbox.CopiedSettings.SyncRoot ?? string.Empty), true) + // path relative to the root with slashes switched for the NewPath (this one should be the one read only for renames, but set it anyways)
-                                        //        (currentEvent.FileChange.Metadata.HashableProperties.IsFolder
-                                        //            ? "/" // append forward slash at end of folder paths
-                                        //            : string.Empty)
-                                        //    : null),
-
-                                        //// TODO: remove this property setter; same as above, except folder creations give the error "No path provided." if path is not provided
-                                        //// for now this is left in until this problem is fixed
-                                        //RelativePath = (currentEvent.FileChange.Type == FileChangeType.Created
-                                        //    ? currentEvent.FileChange.NewPath.GetRelativePath((syncbox.CopiedSettings.SyncRoot ?? string.Empty), true) + // path relative to the root with slashes switched for the NewPath (this one should be the one read only for renames, but set it anyways)
-                                        //        (currentEvent.FileChange.Metadata.HashableProperties.IsFolder
-                                        //            ? "/" // append forward slash at end of folder paths
-                                        //            : string.Empty)
-                                        //    : null),
-
                                         CreatedDate = currentEvent.FileChange.Metadata.HashableProperties.CreationTime, // when the file system object was created
                                         Deleted = currentEvent.FileChange.Type == FileChangeType.Deleted, // whether or not the file system object is deleted
                                         Hash = ((Func<FileChange, string>)(innerEvent => // hash must be retrieved via function because the appropriate FileChange call has an output parameter (and requires error checking)
@@ -7666,6 +7656,9 @@ namespace Cloud.Sync
                     //RKSCHANGE: Begin
                     Dictionary<Event, Event> syncToConflictEventToSyncFromRelatedEvent = new Dictionary<Event, Event>();
                     //RKSCHANGE: End
+
+                    // create a list of pseudo sync from file creations which will be appended when a download is needed for the original location of a conflict
+                    List<PossiblyChangedFileChange> pseudoFileCreationsForDownloadList = null;
 
                     // if there are events in the response to process, then loop through all events looking for duplicates between Sync From and Sync To
                     if (deserializedResponse.Events.Length > 0)
@@ -7919,6 +7912,7 @@ namespace Cloud.Sync
                                 completedChanges = Helpers.DefaultForType<IEnumerable<PossiblyChangedFileChange>>();
                                 incompleteChanges = Helpers.DefaultForType<IEnumerable<PossiblyStreamableAndPossiblyChangedFileChange>>();
                                 changesInError = Helpers.DefaultForType<IEnumerable<PossiblyStreamableAndPossiblyChangedFileChangeWithError>>();
+                                pseudoFileCreationsForDownload = Helpers.DefaultForType<IEnumerable<PossiblyChangedFileChange>>();
                                 newSyncId = Helpers.DefaultForType<string>();
                                 return new Exception("Shut down in the middle of communication");
                             }
@@ -9103,14 +9097,15 @@ namespace Cloud.Sync
                                                                     if (syncToConflictEventToSyncFromRelatedFileChange.TryGetValue(currentEvent, out outRelatedSyncToConflictFileChange))
                                                                     {
                                                                         oldPathDownload = outRelatedSyncToConflictFileChange;
+                                                                        oldPathDownload.Type = FileChangeType.Created; // in case the sync from was a modify, it should be a create to act like a new download
                                                                     }
                                                                     else
                                                                     {
                                                                         JsonContracts.Metadata oldPathMetadataRevision;
                                                                         CLHttpRestStatus oldPathMetadataRevisionStatus;
                                                                         CLError oldPathMetadataRevisionError = httpRestClient.GetMetadata(
-                                                                            originalConflictPath,
                                                                             /* isFolder */ false,
+                                                                            currentChange.Metadata.ServerUid,
                                                                             HttpTimeoutMilliseconds,
                                                                             out oldPathMetadataRevisionStatus,
                                                                             out oldPathMetadataRevision);
@@ -9368,6 +9363,16 @@ namespace Cloud.Sync
                                                                         currentChange.Metadata.Revision = storeRevision;
 
                                                                         throw new AggregateException("Error adding a new creation FileChange at the new conflict path", addModifiedConflictAsCreate.GrabExceptions());
+                                                                    }
+
+                                                                    PossiblyChangedFileChange changedOldPathDownload = new PossiblyChangedFileChange(resultOrder++, /* changed */ true, oldPathDownload);
+                                                                    if (pseudoFileCreationsForDownloadList == null)
+                                                                    {
+                                                                        pseudoFileCreationsForDownloadList = new List<PossiblyChangedFileChange>(Helpers.EnumerateSingleItem(changedOldPathDownload));
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        pseudoFileCreationsForDownloadList.Add(changedOldPathDownload);
                                                                     }
 
                                                                     sqlTran.Commit();
@@ -9682,6 +9687,8 @@ namespace Cloud.Sync
                     // set the output changes in error from the changes in error list
                     changesInError = changesInErrorList.SelectMany(currentError =>
                         currentError.Value);
+                    // set the output psuedo sync from file creations
+                    pseudoFileCreationsForDownload = pseudoFileCreationsForDownloadList;
                     #endregion
                 }
                 // else if there is not a change to communicate, then this is a Sync From  (when responding to a push notification or manual polling) or it does not require communication
@@ -9935,6 +9942,7 @@ namespace Cloud.Sync
                                     completedChanges = Helpers.DefaultForType<IEnumerable<PossiblyChangedFileChange>>();
                                     incompleteChanges = Helpers.DefaultForType<IEnumerable<PossiblyStreamableAndPossiblyChangedFileChange>>();
                                     changesInError = Helpers.DefaultForType<IEnumerable<PossiblyStreamableAndPossiblyChangedFileChangeWithError>>();
+                                    pseudoFileCreationsForDownload = Helpers.DefaultForType<IEnumerable<PossiblyChangedFileChange>>();
                                     newSyncId = Helpers.DefaultForType<string>();
                                     return new Exception("Shut down in the middle of communication");
                                 }
@@ -10440,6 +10448,8 @@ namespace Cloud.Sync
                     completedChanges = Enumerable.Empty<PossiblyChangedFileChange>();
                     // the only errors on Sync From should be if there was a rename and local metadata at the previous location and revision was not found
                     changesInError = syncFromErrors;
+                    // set the output psuedo sync from file creations (none for now)
+                    pseudoFileCreationsForDownload = null;
                 }
             }
             catch (Exception ex)
@@ -10463,6 +10473,7 @@ namespace Cloud.Sync
                 completedChanges = Helpers.DefaultForType<IEnumerable<PossiblyChangedFileChange>>();
                 incompleteChanges = Helpers.DefaultForType<IEnumerable<PossiblyStreamableAndPossiblyChangedFileChange>>();
                 changesInError = Helpers.DefaultForType<IEnumerable<PossiblyStreamableAndPossiblyChangedFileChangeWithError>>();
+                pseudoFileCreationsForDownload = Helpers.DefaultForType<IEnumerable<PossiblyChangedFileChange>>();
                 newSyncId = Helpers.DefaultForType<string>();
 
                 // return the error to the calling method
