@@ -127,6 +127,7 @@ namespace Cloud.Support
                         _logErrors = LogErrors;
                         Instance.writeToLog(1, "CLSptTrace: Initialize: Trace initialized, TraceLevel: {0}. Extension: {1}. Category: {2}. Dir: {3}.", 
                                 TraceLevel, FileExtensionWithoutPeriod, TraceCategory, TraceLocation);
+                        Instance.writeToLog(1, "CLSptTrace: Initialize: OS Info: {0}.", OSVersionInfo.GetClientVersionHttpHeader(""));
                     }
                     else
                     {
