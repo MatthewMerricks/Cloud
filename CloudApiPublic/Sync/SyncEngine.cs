@@ -8911,7 +8911,7 @@ namespace Cloud.Sync
                                                     //ZW: File Rename scheme for conflicting file names 
                                                     // case that triggers moving the local file to a new location in the same directory and processing it as a new file creation (the latest version of the file at the original location will likely be downloaded from a Sync From event)
                                                     case CLDefinitions.CLEventTypeConflict:
-                                                        // store original path for current change (a new path with "CONFLICT" appended to the name will be calculated)
+                                                        // store original path for current change (a new path with "-conflict=" appended to the name will be calculated)
                                                         FilePath originalConflictPath = currentChange.NewPath;
 
                                                         // define an exception for storing any error that may occur while processing the conflict change 
@@ -8921,7 +8921,7 @@ namespace Cloud.Sync
                                                         try
                                                         {
                                                             // TODO: The directory file enumeration in this function should be run via the event source (to remove the ties to the file system here)
-                                                            // create a function to find the next available name for a conflicted file, will run again if the ending number can't be incremeneted and new counter has to be added, i.e. "Z (2147483647)" will need a " (2)" added
+                                                            // create a function to find the next available name for a conflicted file, will run again if the ending number can't be incremeneted and new counter has to be added, i.e. "Z(2147483647)" will need a "(2)" added
                                                             Func<FilePath, string, string, KeyValuePair<bool, string>> getNextName = (innerOriginalConflictPath, extension, mainName) =>
                                                             {
                                                                 // if the main name of the file (before extension) has a positive length and ends with a right paranthesis, then try to process the ending of the name as a number surrounded by parenthesis so we can remove it to find the real name (without the incrementor)
@@ -8940,10 +8940,9 @@ namespace Cloud.Sync
                                                                         {
                                                                             numDigits++;
                                                                         }
-                                                                        // else if at least one digit has been found and the characters before the digits are a space followed by a right parenthesis, then try to parse the digits as an integer to find if the ending can be chopped off
+                                                                        // else if at least one digit has been found and the character before the digits is a right parenthesis, then try to parse the digits as an integer to find if the ending can be chopped off
                                                                         else if (numDigits > 0
-                                                                            && mainName[mainName.Length - 2 - numDigits] == '('
-                                                                            && mainName[mainName.Length - 3 - numDigits] == ' ')
+                                                                            && mainName[mainName.Length - 2 - numDigits] == '(')
                                                                         {
                                                                             // take the substring for just the digits found
                                                                             string numPortion = mainName.Substring(mainName.Length - 1 - numDigits, numDigits);
@@ -8983,9 +8982,9 @@ namespace Cloud.Sync
                                                                             highestNumFound = 1;
                                                                         }
                                                                     }
-                                                                    // else if the sibling does not have the same exact file name but is named based on the name with an incrementor "Z (XXX).YYY",
+                                                                    // else if the sibling does not have the same exact file name but is named based on the name with an incrementor "Z(XXX).YYY",
                                                                     // then try to pull out the number value of the incrementor to use and use it as the highest number if greatest found so far
-                                                                    else if (currentSiblingFileNameExt.StartsWith(mainName + " (", StringComparison.InvariantCultureIgnoreCase) // "Z (..."
+                                                                    else if (currentSiblingFileNameExt.StartsWith(mainName + "(", StringComparison.InvariantCultureIgnoreCase) // "Z(..."
                                                                         && currentSiblingFileNameExt.EndsWith(")" + extension, StringComparison.InvariantCultureIgnoreCase)) // "...).YYY"
                                                                     {
                                                                         // pull out the portion of the name between the parenteses
@@ -9030,7 +9029,7 @@ namespace Cloud.Sync
                                                             }
 
                                                             // define a portion of the name which needs to be added to describe the conflict state dynamic to the current friendly-named device
-                                                            string deviceAppend = " CONFLICT " + Environment.MachineName;
+                                                            string deviceAppend = "-conflict-" + Environment.MachineName;
                                                             // declare a string to store the main name of the conflict file to create
                                                             string finalizedMainName;
                                                             // declare a FilePath to store the full path to the conflict file to create
