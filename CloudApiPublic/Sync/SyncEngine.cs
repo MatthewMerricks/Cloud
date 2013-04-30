@@ -9248,9 +9248,7 @@ namespace Cloud.Sync
                                                                         Metadata = new FileMetadata()
                                                                         {
                                                                             HashableProperties = currentChange.Metadata.HashableProperties, // copy metadata from the conflicted file
-                                                                            ServerUid = storeServerUid,
-                                                                            ParentFolderServerUid = storeServerParentUid,
-                                                                            Revision = storeRevision
+                                                                            ParentFolderServerUid = storeServerParentUid
                                                                         },
                                                                         NewPath = currentChange.NewPath, // use the new conflict path as the rename destination
                                                                         OldPath = originalConflictPath, // use the location of the current conflicted file as move from location
@@ -9364,6 +9362,8 @@ namespace Cloud.Sync
                                                                         throw new AggregateException("Error adding a new creation FileChange at the new conflict path", addModifiedConflictAsCreate.GrabExceptions());
                                                                     }
 
+                                                                    sqlTran.Commit();
+
                                                                     PossiblyChangedFileChange changedOldPathDownload = new PossiblyChangedFileChange(resultOrder++, /* changed */ true, oldPathDownload);
                                                                     if (pseudoFileCreationsForDownloadList == null)
                                                                     {
@@ -9374,7 +9374,7 @@ namespace Cloud.Sync
                                                                         pseudoFileCreationsForDownloadList.Add(changedOldPathDownload);
                                                                     }
 
-                                                                    sqlTran.Commit();
+
                                                                 }
 
                                                                 // store the succesfully created rename change with the modified conflict change as the current change to process
