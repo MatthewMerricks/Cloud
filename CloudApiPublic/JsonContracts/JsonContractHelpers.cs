@@ -72,6 +72,20 @@ namespace Cloud.JsonContracts
         private static DataContractJsonSerializer _getMetadataResponseSerializer = null;
         private static readonly object GetMetadataResponseSerializerLocker = new object();
 
+        public static DataContractJsonSerializer GetStatusResponseSerializer
+        {
+            get
+            {
+                lock (GetStatusResponseSerializerLocker)
+                {
+                    return _getStatusResponseSerializer
+                        ?? (_getMetadataResponseSerializer = new DataContractJsonSerializer(typeof(JsonContracts.SyncboxStatusResponse)));
+                }
+            }
+        }
+        private static DataContractJsonSerializer _getStatusResponseSerializer = null;
+        private static readonly object GetStatusResponseSerializerLocker = new object();
+         
         public static DataContractJsonSerializer ToSerializer
         {
             get
@@ -203,6 +217,20 @@ namespace Cloud.JsonContracts
         }
         private static DataContractJsonSerializer _notificationUnsubscribeResponseSerializer = null;
         private static readonly object NotificationUnsubscribeResponseSerializerLocker = new object();
+
+        public static DataContractJsonSerializer SyncboxCreateRequestSerializer
+        {
+            get
+            {
+                lock (SyncboxCreateRequestSerializerLocker)
+                {
+                    return _syncboxCreateRequestSerializer
+                        ?? (_syncboxCreateRequestSerializer = new DataContractJsonSerializer(typeof(JsonContracts.SyncboxCreateRequest)));
+                }
+            }
+        }
+        private static DataContractJsonSerializer _syncboxCreateRequestSerializer = null;
+        private static readonly object SyncboxCreateRequestSerializerLocker = new object();
 
         #region one-off contract serializers
         public static DataContractJsonSerializer FolderAddSerializer

@@ -2342,6 +2342,8 @@ namespace Cloud.Static
             { typeof(JsonContracts.PurgePending), JsonContractHelpers.PurgePendingSerializer },
             { typeof(JsonContracts.Push), JsonContractHelpers.PushSerializer },
             { typeof(JsonContracts.To), JsonContractHelpers.ToSerializer },
+
+            { typeof(JsonContracts.SyncboxCreateRequest), JsonContractHelpers.SyncboxCreateRequestSerializer },
             
             #region one-offs
             { typeof(JsonContracts.FolderAdd), JsonContractHelpers.FolderAddSerializer },
@@ -2379,6 +2381,7 @@ namespace Cloud.Static
         private static readonly Dictionary<Type, DataContractJsonSerializer> SerializableResponseTypes = new Dictionary<Type, DataContractJsonSerializer>()
         {
             { typeof(JsonContracts.SyncboxMetadataResponse), JsonContractHelpers.GetMetadataResponseSerializer },
+            { typeof(JsonContracts.SyncboxStatusResponse), JsonContractHelpers.GetStatusResponseSerializer },
             { typeof(JsonContracts.NotificationResponse), JsonContractHelpers.NotificationResponseSerializer },
             { typeof(JsonContracts.PendingResponse), JsonContractHelpers.PendingResponseSerializer },
             { typeof(JsonContracts.PushResponse), JsonContractHelpers.PushResponseSerializer },
@@ -3249,7 +3252,7 @@ namespace Cloud.Static
                 // if the status code of the response is not in the provided HashSet of those which represent success,
                 // then try to provide a more specific return status and try to pull the content from the response as a string and throw an exception for invalid status code
                 if (!validStatusCode
-                    || (uploadDownload != null // also, error for non-upload\downloads which cannot be serialized
+                    || (uploadDownload == null // also, error for non-upload\downloads which cannot be serialized
                         && !pulledOutSerializer // no serializer for this type found
                         && typeof(T) != typeof(string) // don't need serializer for direct string output
                         && typeof(T) != typeof(object))) // don't need serializer for direct object output (will output as string)

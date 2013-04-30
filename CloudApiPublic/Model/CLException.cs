@@ -51,7 +51,7 @@ namespace Cloud.Model
             params Exception[] innerExceptions)
             : base(
                 message,
-                innerExceptions)
+                (innerExceptions == null ? null : innerExceptions.Where(currentException => currentException != null)))
         {
             this._domain = (CLExceptionDomain)(((ulong)code) >> 32);
             this._code = code;
@@ -66,7 +66,7 @@ namespace Cloud.Model
             IEnumerable<Exception> innerExceptions)
             : base(
                 message,
-                innerExceptions)
+                (innerExceptions == null ? null : innerExceptions.Where(currentException => currentException != null)))
         {
             this._domain = (CLExceptionDomain)(((ulong)code) >> 32);
             this._code = code;

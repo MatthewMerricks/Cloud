@@ -554,18 +554,18 @@ namespace Cloud
                     if (path != null)
                     {
                         int nOutTooLongChars;
-                        CLError errorPathTooLong = Helpers.CheckSyncRootLength(_path, out nOutTooLongChars);
+                        CLError errorPathTooLong = Helpers.CheckSyncRootLength(path, out nOutTooLongChars);
                         if (errorPathTooLong != null)
                         {
                             throw new CLArgumentException(errorPathTooLong.PrimaryException.Code, string.Format("syncbox path is too long by {0} characters.", nOutTooLongChars), errorPathTooLong.Exceptions);
                         }
 
-                        CLError errorBadPath = Helpers.CheckForBadPath(_path);
+                        CLError errorBadPath = Helpers.CheckForBadPath(path);
                         if (errorBadPath != null)
                         {
                             throw new CLArgumentException(errorBadPath.PrimaryException.Code, "syncbox path contains invalid characters.", errorBadPath.Exceptions);
                         }
-                        _path = path;
+                        this._path = path;
                     }
 
                     _syncMode = mode;
