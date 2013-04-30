@@ -572,13 +572,14 @@ namespace Cloud
                     return error;
                 }
 
-                // Create the Syncbox directory if it doesn't exist
-                bool alreadyExists = true;
+                // It is an error if the syncbox directory doesn't exist at the specified location.
                 System.IO.DirectoryInfo rootInfo = new System.IO.DirectoryInfo(_syncbox.CopiedSettings.SyncRoot);
                 if (!rootInfo.Exists)
                 {
-                    alreadyExists = false;
-                    rootInfo.Create();
+                    string msg = String.Format("The syncbox folder does not exist at the specified path: {0}.", _syncbox.CopiedSettings.SyncRoot);
+                    _trace.writeToLog(1, msg);
+                    Status = CLSyncStartStatus.ErrorSyncboxFolderDoesNotExist;
+                    return new ArgumentException(msg);
                 }
 
                 bool caseMatches;
@@ -594,18 +595,10 @@ namespace Cloud
 
                 if (!caseMatches)
                 {
-                    const string badCaseErrorCreated = "A new directory was created on disk at the specified settings SyncRoot, but its resulting path does not match case";
-                    const string badCaseErrorExists = "An existing directory was found at the specified settings SyncRoot, but its path does not match case";
-                    _trace.writeToLog(1, "CLSyncEngine: ERROR: BadCase (1). {0}.", (alreadyExists ? badCaseErrorExists : badCaseErrorCreated));
+                    string badCaseErrorExists = String.Format("An existing directory was found at the specified settings SyncRoot: <{0}>, but its path does not match case.", _syncbox.CopiedSettings.SyncRoot);
+                    _trace.writeToLog(1, "CLSyncEngine: ERROR: BadCase (1). {0}.", badCaseErrorExists);
                     Status = CLSyncStartStatus.ErrorBadRootPath;
-                    if (alreadyExists)
-                    {
-                        return new Exception(badCaseErrorExists);
-                    }
-                    else
-                    {
-                        return new Exception(badCaseErrorCreated);
-                    }
+                    return new Exception(badCaseErrorExists);
                 }
 				
                 // Start badging

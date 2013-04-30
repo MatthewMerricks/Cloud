@@ -237,7 +237,7 @@ namespace Cloud.Static
         public const long InvalidUtcTimeTicks = 504911232000000000; //number determined by practice
         public static readonly byte[] EmptyBuffer = new byte[0]; // empty buffer is used to complete an MD5 hash
         public const int BufferSize = 4096; //posts online seem to suggest between 1kb and 12kb is optimal for a FileStream buffer, 4kb seems commonly used
-        public const long MaxUploadFileSize = 500 * 1024 * 1024; // -1 if no restrictions
+        public const long MaxUploadFileSize = 40L * 1024L * 1024L * 1024L; // -1 if no restrictions
         public const int MaxUploadIntermediateHashBytesSize = 10 * 1024 * 1024; // 10MB; size of intermediate file blocks to hash for verifying the file contents in an optimistic share lock startegy on uploads
     }
 
