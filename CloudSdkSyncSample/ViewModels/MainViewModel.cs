@@ -1175,6 +1175,22 @@ namespace SampleLiveSync.ViewModels
             {
                 bool startSyncbox = false;
 
+                // Don't start syncing if the syncbox root directory is missing.
+                if (!Directory.Exists(SettingsAdvancedImpl.Instance.SyncRoot))
+                {
+                    string msg = String.Format("The syncbox root folder is missing: {0}.", SettingsAdvancedImpl.Instance.SyncRoot);
+                    if (NotifyException != null)
+                    {
+                        NotifyException(this, new NotificationEventArgs<CLError>()
+                        {
+                            Data = new ArgumentException(msg),
+                            Message = msg
+                        });
+                    }
+                    _trace.writeToLog(1, "MainViewModel: StartSyncing: ERROR: From StartSyncing: Msg: <{0}>.", msg);
+                    return;
+                }
+
                 // Store Syncbox.  It will be set under the locker which checks the _syncEngine, but started afterwards if it was set
                 CLSyncbox syncbox = null;
                 lock (_locker)
