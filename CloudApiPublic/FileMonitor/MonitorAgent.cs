@@ -1837,7 +1837,7 @@ namespace Cloud.FileMonitor
                                         {
                                             case FileChangeType.Created:
                                             case FileChangeType.Modified:
-                                            CLError creationModificationCheckError = CreationModificationDependencyCheck(OuterFileChange, InnerFileChange, PulledChanges, out DisposeChanges);
+                                            CLError creationModificationCheckError = CreationModificationDependencyCheck(OuterFileChange, InnerFileChange, PulledChanges, out DisposeChanges, sqlTran);
                                                 ContinueProcessing = true;
                                                 if (creationModificationCheckError != null)
                                                 {
@@ -1852,7 +1852,7 @@ namespace Cloud.FileMonitor
                                                 }
                                                 break;
                                             case FileChangeType.Deleted:
-                                                CLError deleteCheckError = DeleteDependencyCheck(OuterFileChange, InnerFileChange, PulledChanges, out DisposeChanges, out ContinueProcessing);
+                                                CLError deleteCheckError = DeleteDependencyCheck(OuterFileChange, InnerFileChange, PulledChanges, out DisposeChanges, out ContinueProcessing, sqlTran);
                                                 if (deleteCheckError != null)
                                                 {
                                                     toReturn += new AggregateException("Error in DeleteDependencyCheck", deleteCheckError.GrabExceptions());
@@ -1944,7 +1944,7 @@ namespace Cloud.FileMonitor
             return toReturn;
         }
 
-        private CLError CreationModificationDependencyCheck(FileChangeWithDependencies EarlierChange, FileChangeWithDependencies LaterChange, HashSet<FileChangeWithDependencies> PulledChanges, out List<FileChangeWithDependencies> DisposeChanges)
+        private CLError CreationModificationDependencyCheck(FileChangeWithDependencies EarlierChange, FileChangeWithDependencies LaterChange, HashSet<FileChangeWithDependencies> PulledChanges, out List<FileChangeWithDependencies> DisposeChanges, SQLTransactionalBase sqlTran)
         {
             CLError toReturn = null;
             DisposeChanges = null;
@@ -1962,7 +1962,7 @@ namespace Cloud.FileMonitor
                             {
                                 LaterChange.Type = FileChangeType.Created;
 
-                                CLError updateLaterChangeAsCreatedError = SyncData.mergeToSql(new[] { new FileChangeMerge(LaterChange) });
+                                CLError updateLaterChangeAsCreatedError = Indexer.MergeEventsIntoDatabase(new[] { new FileChangeMerge(LaterChange) }, sqlTran);
                                 if (updateLaterChangeAsCreatedError != null)
                                 {
                                     throw new AggregateException("Error updating LaterChange in CreationModificationDependencyCheck to Created Type", updateLaterChangeAsCreatedError.GrabExceptions());
@@ -2247,7 +2247,7 @@ namespace Cloud.FileMonitor
             return toReturn;
         }
 
-        private CLError DeleteDependencyCheck(FileChangeWithDependencies EarlierChange, FileChangeWithDependencies LaterChange, HashSet<FileChangeWithDependencies> PulledChanges, out List<FileChangeWithDependencies> DisposeChanges, out bool ContinueProcessing)
+        private CLError DeleteDependencyCheck(FileChangeWithDependencies EarlierChange, FileChangeWithDependencies LaterChange, HashSet<FileChangeWithDependencies> PulledChanges, out List<FileChangeWithDependencies> DisposeChanges, out bool ContinueProcessing, SQLTransactionalBase sqlTran)
         {
             CLError toReturn = null;
             try
@@ -2310,7 +2310,7 @@ namespace Cloud.FileMonitor
                             if (FilePathComparer.Instance.Equals(renamedOverlap, CurrentEarlierChange.NewPath))
                             {
                                 renamedOverlapChild.Parent = CurrentEarlierChange.OldPath;
-                                CLError replacePathPortionError = Indexer.MergeEventsIntoDatabase(Helpers.EnumerateSingleItem(new FileChangeMerge(LaterChange, null)));
+                                CLError replacePathPortionError = Indexer.MergeEventsIntoDatabase(Helpers.EnumerateSingleItem(new FileChangeMerge(LaterChange)), sqlTran);
                                 if (replacePathPortionError != null)
                                 {
                                     toReturn += new AggregateException("Error replacing a portion of the path of CurrentEarlierChange", replacePathPortionError.GrabExceptions());
