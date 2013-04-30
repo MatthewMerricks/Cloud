@@ -1439,7 +1439,15 @@ namespace Cloud.REST
                     });
 
                 // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
-                Helpers.RequestNewCredentialInfo requestNewCredentialInfo = new Helpers.RequestNewCredentialInfo();
+                Helpers.RequestNewCredentialInfo requestNewCredentialInfo = new Helpers.RequestNewCredentialInfo()
+                {
+                    ProcessingStateByThreadId = _processingStateByThreadId,
+                    GetNewCredentialCallback = _getNewCredentialCallback,
+                    GetNewCredentialCallbackUserState = _getNewCredentialCallbackUserState,
+                    GetCurrentCredentialCallback = GetCurrentCredentialCallback,
+                    SetCurrentCredentialCallback = SetCurrentCredentialCallback,
+                };
+
 
                 // run the HTTP communication and store the response object to the output parameter
                 response = Helpers.ProcessHttp<JsonContracts.PendingResponse>(

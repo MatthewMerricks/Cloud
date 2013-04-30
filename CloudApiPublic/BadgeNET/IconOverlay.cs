@@ -882,12 +882,6 @@ namespace Cloud.BadgeNET
                     }
                 }
 
-                if (toDelete.Contains(this._filePathCloudDirectory))
-                {
-                    isDeleted = false;
-                    return null;
-                }
-
                 // Trace the badging dictionaries
                 TraceBadgingDictionaries("DeleteBadgePath (before):" + toDelete);
 

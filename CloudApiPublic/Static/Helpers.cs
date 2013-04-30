@@ -1440,10 +1440,13 @@ namespace Cloud.Static
                         }
 
                         char rootDriveLetter = checkForEmptyName.Name[0];
-                        if (!char.IsUpper(rootDriveLetter))
-                        {
-                            throw new CLArgumentException(CLExceptionCode.General_Arguments, Resources.ExceptionHelpersCheckForBadPathDriveLetter);
-                        }
+
+                        //TODO: This was removed because the SDK now upper cases the first letter of the syncbox path.  All of that should be removed when the sync engine becomes case insensitive.
+                        //if (!char.IsUpper(rootDriveLetter))
+                        //{
+                        //    throw new CLArgumentException(CLExceptionCode.General_Arguments, Resources.ExceptionHelpersCheckForBadPathDriveLetter);
+                        //}
+
                         DriveInfo rootDrive = new DriveInfo(char.ToString(rootDriveLetter));
                         switch (rootDrive.DriveType)
                         {

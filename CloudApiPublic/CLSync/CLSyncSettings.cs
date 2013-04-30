@@ -238,6 +238,25 @@ namespace Cloud
             {
                 throw new ArgumentException("ClientDescription must not contain commas");
             }
+            if (syncRoot == null)
+            {
+                throw new ArgumentNullException("syncRoot must not be null");
+            }
+
+            //TODO: Remove this when the sync engine support case insensitive paths.
+            // This was required because OSD code was providing paths that started with a lower case drive letter.
+            if (syncRoot.Length >= 2 && syncRoot[1] == ':')
+            {
+                syncRoot = char.ToUpper(syncRoot[0]) + syncRoot.Substring(1);
+            }
+            if (tempDownloadFolderFullPath != null && tempDownloadFolderFullPath.Length >= 2 && tempDownloadFolderFullPath[1] == ':')
+            {
+                tempDownloadFolderFullPath = char.ToUpper(tempDownloadFolderFullPath[0]) + tempDownloadFolderFullPath.Substring(1);
+            }
+            if (databaseFolder != null && databaseFolder.Length >= 2 && databaseFolder[1] == ':')
+            {
+                databaseFolder = char.ToUpper(databaseFolder[0]) + databaseFolder.Substring(1);
+            }
 
             this._logErrors = logErrors;
             this._traceType = traceType;
