@@ -9436,7 +9436,7 @@ namespace Cloud.Sync
                                                                             }
                                                                         }
 
-                                                                        // need to remove the badge at the conflict path here since when the rename completes it will try to move the badge to the rename location and get blocked\
+                                                                        // need to remove the badge at the conflict path here since when the rename completes it will try to move the badge to the rename location and get blocked
                                                                         MessageEvents.ApplyFileChangeMergeToChangeState(this, new FileChangeMerge(null, currentChange));   // Message to invoke BadgeNet.IconOverlay.QueueNewEventBadge(currentMergeToFrom.MergeTo, currentMergeToFrom.MergeFrom)
                                                                     }
 
