@@ -22,6 +22,7 @@ using System.Security.Cryptography;
 using Cloud.Support;
 using System.Linq.Expressions;
 using Cloud.Model.EventMessages.ErrorInfo;
+using Cloud.CLSync;
 
 namespace Cloud.REST
 {
@@ -332,7 +333,7 @@ namespace Cloud.REST
                 // Convert the response to the expected output object.
                 if (responseFromServer != null)
                 {
-                    response = new CLFileItem(responseFromServer);
+                    response = new CLFileItem(responseFromServer, _syncbox);
                 }
                 else
                 {
@@ -515,7 +516,7 @@ namespace Cloud.REST
                         {
                             try
                             {
-                                listFileItems.Add(new CLFileItem(fileChangeResponse.Metadata));
+                                listFileItems.Add(new CLFileItem(fileChangeResponse.Metadata, _syncbox));
                             }
                             catch (Exception ex)
                             {
@@ -720,7 +721,7 @@ namespace Cloud.REST
                         {
                             try
                             {
-                                listFileItems.Add(new CLFileItem(fileChangeResponse.Metadata));
+                                listFileItems.Add(new CLFileItem(fileChangeResponse.Metadata, _syncbox));
                             }
                             catch (Exception ex)
                             {
@@ -914,7 +915,7 @@ namespace Cloud.REST
                         {
                             try
                             {
-                                listFileItems.Add(new CLFileItem(fileChangeResponse.Metadata));
+                                listFileItems.Add(new CLFileItem(fileChangeResponse.Metadata, _syncbox));
                             }
                             catch (Exception ex)
                             {
@@ -1108,7 +1109,7 @@ namespace Cloud.REST
                         {
                             try
                             {
-                                listFileItems.Add(new CLFileItem(fileChangeResponse.Metadata));
+                                listFileItems.Add(new CLFileItem(fileChangeResponse.Metadata, _syncbox));
                             }
                             catch (Exception ex)
                             {
@@ -1302,7 +1303,7 @@ namespace Cloud.REST
                         {
                             try
                             {
-                                listFileItems.Add(new CLFileItem(fileChangeResponse.Metadata));
+                                listFileItems.Add(new CLFileItem(fileChangeResponse.Metadata, _syncbox));
                             }
                             catch (Exception ex)
                             {
@@ -1496,7 +1497,7 @@ namespace Cloud.REST
                         {
                             try
                             {
-                                listFileItems.Add(new CLFileItem(fileChangeResponse.Metadata));
+                                listFileItems.Add(new CLFileItem(fileChangeResponse.Metadata, _syncbox));
                             }
                             catch (Exception ex)
                             {
@@ -2180,7 +2181,7 @@ namespace Cloud.REST
                     {
                         if (metadata != null)
                         {
-                            listFileItems.Add(new CLFileItem(metadata));
+                            listFileItems.Add(new CLFileItem(metadata, _syncbox));
                         }
                         else
                         {
@@ -2324,7 +2325,7 @@ namespace Cloud.REST
                     {
                         if (metadata != null)
                         {
-                            listFileItems.Add(new CLFileItem(metadata));
+                            listFileItems.Add(new CLFileItem(metadata, _syncbox));
                         }
                         else
                         {
@@ -2468,7 +2469,7 @@ namespace Cloud.REST
                     {
                         if (metadata != null)
                         {
-                            listFileItems.Add(new CLFileItem(metadata));
+                            listFileItems.Add(new CLFileItem(metadata, _syncbox));
                         }
                         else
                         {
@@ -2612,7 +2613,7 @@ namespace Cloud.REST
                     {
                         if (metadata != null)
                         {
-                            listFileItems.Add(new CLFileItem(metadata));
+                            listFileItems.Add(new CLFileItem(metadata, _syncbox));
                         }
                         else
                         {
@@ -2756,7 +2757,7 @@ namespace Cloud.REST
                     {
                         if (metadata != null)
                         {
-                            listFileItems.Add(new CLFileItem(metadata));
+                            listFileItems.Add(new CLFileItem(metadata, _syncbox));
                         }
                         else
                         {
@@ -2900,7 +2901,7 @@ namespace Cloud.REST
                     {
                         if (metadata != null)
                         {
-                            listFileItems.Add(new CLFileItem(metadata));
+                            listFileItems.Add(new CLFileItem(metadata, _syncbox));
                         }
                         else
                         {
@@ -3044,7 +3045,7 @@ namespace Cloud.REST
                     {
                         if (metadata != null)
                         {
-                            listFileItems.Add(new CLFileItem(metadata));
+                            listFileItems.Add(new CLFileItem(metadata, _syncbox));
                         }
                         else
                         {
@@ -3202,7 +3203,7 @@ namespace Cloud.REST
                     {
                         if (metadata != null)
                         {
-                            listFileItems.Add(new CLFileItem(metadata));
+                            listFileItems.Add(new CLFileItem(metadata, _syncbox));
                         }
                         else
                         {
@@ -3385,7 +3386,7 @@ namespace Cloud.REST
                     CLDefinitions.MethodPathSyncboxUsage + // path for getting sync box usage
                     Helpers.QueryStringBuilder(Helpers.EnumerateSingleItem(
                         // query string parameter for the current sync box id, should not need escaping since it should be an integer in string format
-                        new KeyValuePair<string, string>(CLDefinitions.QueryStringSyncboxId, _syncbox.SyncboxId.ToString())
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringInsideSyncSyncbox_SyncboxId, _syncbox.SyncboxId.ToString())
                     ));
 
                 // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
@@ -3798,7 +3799,7 @@ namespace Cloud.REST
                     {
                         if (metadata != null)
                         {
-                            listFileItems.Add(new CLFileItem(metadata));
+                            listFileItems.Add(new CLFileItem(metadata, _syncbox));
                         }
                         else
                         {

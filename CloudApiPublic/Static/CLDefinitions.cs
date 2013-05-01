@@ -8,8 +8,8 @@
 // Back end definitions
 // @@@@@@@@@ AUTO-BUILD SECTION.  DON'T CHANGE THE FORMAT @@@@@@@@@@@@@@@@@
 //#define PRODUCTION_BACKEND    // cloud.com
-//#define DEVELOPMENT_BACKEND     // cliff.cloudburrito.com
-#define STAGING_BACKEND       // cloudstaging.us
+#define DEVELOPMENT_BACKEND     // cliff.cloudburrito.com
+//#define STAGING_BACKEND       // cloudstaging.us
 // @@@@@@@@@ END AUTO-BUILD SECTION.  DON'T CHANGE THE FORMAT @@@@@@@@@@@@@@@@@
 
 // URL definitions
@@ -331,6 +331,7 @@ namespace Cloud.Static
 
         // Query string keys
         public const string QueryStringDeviceId = "device_uuid";
+        public const string QueryStringInsideSyncSyncbox_SyncboxId = "id";
         public const string QueryStringSyncboxId = "sync_box_id";
         public const string QueryStringIncludeDeleted = "include_deleted";
         public const string QueryStringIncludeFolders = "include_folders";

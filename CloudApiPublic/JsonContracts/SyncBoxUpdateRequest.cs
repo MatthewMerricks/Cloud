@@ -21,7 +21,7 @@ namespace Cloud.JsonContracts
     [DataContract]
     internal sealed class SyncboxUpdateRequest
     {
-        [DataMember(Name = CLDefinitions.RESTResponseSyncboxId, IsRequired = false)]
+        [DataMember(Name = CLDefinitions.QueryStringInsideSyncSyncbox_SyncboxId, IsRequired = false)]
         public long SyncboxId { get; set; }
 
         [DataMember(Name = CLDefinitions.RESTRequestSyncbox, IsRequired = false)]

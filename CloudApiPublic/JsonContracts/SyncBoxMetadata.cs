@@ -22,7 +22,7 @@ namespace Cloud.JsonContracts
     [ContainsMetadataDictionary]
     internal sealed class SyncboxMetadata
     {
-        [DataMember(Name = CLDefinitions.RESTResponseSyncboxId, IsRequired = false)]
+        [DataMember(Name = CLDefinitions.QueryStringInsideSyncSyncbox_SyncboxId, IsRequired = false)]
         public Nullable<long> Id { get; set; }
 
         [DataMember(Name = CLDefinitions.RESTResponseSyncboxMetadata, IsRequired = false)]

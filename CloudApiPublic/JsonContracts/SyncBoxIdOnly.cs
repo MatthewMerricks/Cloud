@@ -18,7 +18,7 @@ namespace Cloud.JsonContracts
     [DataContract]
     internal sealed class SyncboxIdOnly
     {
-        [DataMember(Name = CLDefinitions.RESTResponseSyncboxId, IsRequired = false)]
+        [DataMember(Name = CLDefinitions.QueryStringInsideSyncSyncbox_SyncboxId, IsRequired = false)]
         public Nullable<long> Id { get; set; }
     }
 }
