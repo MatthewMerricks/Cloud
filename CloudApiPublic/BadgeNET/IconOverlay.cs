@@ -2049,6 +2049,8 @@ namespace Cloud.BadgeNET
                 public genericSetter(cloudAppIconBadgeType badgeType, FilePath badgePath, IconOverlay thisOverlay)
                     : base(thisOverlay)
                 {
+                    thisOverlay._trace.writeToMemory(() => thisOverlay._trace.trcFmtStr(1, "IconOverlay: genericSetter: badgeType: {0}. Path: {1}.", badgeType.ToString(), badgePath));
+                    thisOverlay._trace.writeToMemory(() => thisOverlay._trace.trcFmtStr(1, "IconOverlay: genericSetter: StackTrace: {0}.", Environment.StackTrace));
                     this.badgeType = badgeType;
                     this.badgePath = badgePath;
                 }
@@ -2073,6 +2075,15 @@ namespace Cloud.BadgeNET
                 public newEvent(FileChange mergedEvent, FileChange eventToRemove, IconOverlay thisOverlay)
                     : base(thisOverlay)
                 {
+                    if (mergedEvent != null)
+                    {
+                        thisOverlay._trace.writeToMemory(() => thisOverlay._trace.trcFmtStr(1, "IconOverlay: newEvent: mergedEvent: Type: {0}. Old: {1}. New: {2}.", mergedEvent.Type.ToString(), mergedEvent.OldPath, mergedEvent.NewPath));
+                    }
+                    if (eventToRemove != null)
+                    {
+                        thisOverlay._trace.writeToMemory(() => thisOverlay._trace.trcFmtStr(1, "IconOverlay: newEvent: eventToRemove: Type: {0}. Old: {1}. New: {2}.", eventToRemove.Type.ToString(), eventToRemove.OldPath, eventToRemove.NewPath));
+                    }
+                    thisOverlay._trace.writeToMemory(() => thisOverlay._trace.trcFmtStr(1, "IconOverlay: newEvent: StackTrace: {0}.", Environment.StackTrace));
                     this.mergedEvent = mergedEvent;
                     this.eventToRemove = eventToRemove;
                 }

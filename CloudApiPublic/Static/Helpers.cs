@@ -109,6 +109,18 @@ namespace Cloud.Static
         //}
 
         /// <summary>
+        /// Calculates the full path of the sync database file.
+        /// </summary>
+        /// <param name="syncbox">The syncbox.</param>
+        /// <returns>The full path of the sync database file.</returns>
+        public static string CalculateDatabasePath(CLSyncbox syncbox)
+        {
+            return (string.IsNullOrEmpty(syncbox.CopiedSettings.DatabaseFolder)
+                ? Helpers.GetDefaultDatabasePath(syncbox.CopiedSettings.DeviceId, syncbox.SyncboxId) + "\\" + CLDefinitions.kSyncDatabaseFileName
+                : syncbox.CopiedSettings.DatabaseFolder + "\\" + CLDefinitions.kSyncDatabaseFileName);
+        }
+
+        /// <summary>
         /// Creates a default instance of a provided type for use with populating out parameters when exceptions are thrown
         /// </summary>
         /// <param name="toDefault">Type to return</param>

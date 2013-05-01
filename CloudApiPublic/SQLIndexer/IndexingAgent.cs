@@ -2500,111 +2500,25 @@ namespace Cloud.SQLIndexer
                 throw new NullReferenceException("settings DeviceId cannot be null");
             }
 
-            this.indexDBLocation = (string.IsNullOrEmpty(syncbox.CopiedSettings.DatabaseFolder)
-                ? Helpers.GetDefaultDatabasePath(syncbox.CopiedSettings.DeviceId, syncbox.SyncboxId) + "\\" + CLDefinitions.kSyncDatabaseFileName
-                : syncbox.CopiedSettings.DatabaseFolder + "\\" + CLDefinitions.kSyncDatabaseFileName);
+            this.indexDBLocation = Helpers.CalculateDatabasePath(syncbox);
 
             this.syncbox = syncbox;
         }
 
         private bool InitializeDatabase(string syncRoot, bool createEvenIfExisting = false)
         {
-            FileInfo dbInfo = new FileInfo(indexDBLocation);
+            FileInfo dbInfo;
+            bool dbNeedsDeletion;
+            bool dbNeedsCreation;
 
-            bool deleteDB;
-            bool createDB;
+            CheckDatabaseFileState(createEvenIfExisting, out dbInfo, out dbNeedsDeletion, out dbNeedsCreation, indexDBLocation, syncbox);
 
-            if (dbInfo.Exists)
-            {
-                if (createEvenIfExisting)
-                {
-                    deleteDB = true;
-                    createDB = true;
-                }
-                else
-                {
-                    try
-                    {
-                        using (ISQLiteConnection verifyAndUpdateConnection = CreateAndOpenCipherConnection())
-                        {
-                            CheckIntegrity(verifyAndUpdateConnection);
-
-                            int existingVersion;
-
-                            using (ISQLiteCommand getVersionCommand = verifyAndUpdateConnection.CreateCommand())
-                            {
-                                getVersionCommand.CommandText = "PRAGMA user_version;";
-                                existingVersion = Convert.ToInt32(getVersionCommand.ExecuteScalar());
-                            }
-
-                            if (existingVersion < 2)
-                            {
-                                // database was never finalized (version is changed from 1 to [current database version] via the last initialization script, which identifies successful creation)
-                                // the very first implementation of this database will be version 2 so we can compare on less than 2
-
-                                createDB = true;
-                                deleteDB = true;
-                            }
-                            else
-                            {
-                                int newVersion = -1;
-
-                                foreach (KeyValuePair<int, IMigration> currentDBMigration in MigrationList.GetMigrationsAfterVersion(existingVersion))
-                                {
-                                    currentDBMigration.Value.Apply(
-                                        verifyAndUpdateConnection,
-                                        indexDBPassword);
-
-                                    newVersion = currentDBMigration.Key;
-                                }
-
-                                if (newVersion > existingVersion)
-                                {
-                                    using (ISQLiteCommand updateVersionCommand = verifyAndUpdateConnection.CreateCommand())
-                                    {
-                                        updateVersionCommand.CommandText = "PRAGMA user_version = " + newVersion.ToString();
-                                        updateVersionCommand.ExecuteNonQuery();
-                                    }
-                                }
-
-                                createDB = false;
-                                deleteDB = false;
-                            }
-                        }
-                    }
-                    catch (SQLiteExceptionBase ex)
-                    {
-                        // notify database replaced due to corruption
-                        MessageEvents.FireNewEventMessage(
-                            "Database corruption found on initializing index. Replacing database with a fresh one. Files and folders changed while offline will be grabbed again from server. Error message: " + ex.Message,
-                            EventMessageLevel.Important,
-                            new GeneralErrorInfo(),
-                            syncbox.SyncboxId,
-                            syncbox.CopiedSettings.DeviceId);
-
-                        deleteDB = true;
-                        createDB = true;
-                    }
-                }
-            }
-            else
-            {
-                MessageEvents.FireNewEventMessage(
-                    "Existing database not found, possibly due to new SyncboxId\\DeviceId combination. Starting fresh.",
-                    EventMessageLevel.Minor,
-                    SyncboxId: syncbox.SyncboxId,
-                    DeviceId: syncbox.CopiedSettings.DeviceId);
-
-                createDB = true;
-                deleteDB = false;
-            }
-
-            if (deleteDB)
+            if (dbNeedsDeletion)
             {
                 dbInfo.Delete();
             }
 
-            if (createDB)
+            if (dbNeedsCreation)
             {
                 FileInfo indexDBInfo = new FileInfo(indexDBLocation);
                 if (!indexDBInfo.Directory.Exists)
@@ -2769,7 +2683,108 @@ namespace Cloud.SQLIndexer
                 }
             }
 
-            return createDB;
+            return dbNeedsCreation;
+        }
+
+        public static void CheckDatabaseFileState(bool createEvenIfExisting, out FileInfo dbInfo, out bool dbNeedsDeletion, out bool dbNeedsCreation, string indexDBLocation)
+        {
+            CheckDatabaseFileState(createEvenIfExisting, out dbInfo, out dbNeedsDeletion, out dbNeedsCreation, indexDBLocation, syncbox: null);
+        }
+
+        private static void CheckDatabaseFileState(bool createEvenIfExisting, out FileInfo dbInfo, out bool dbNeedsDeletion, out bool dbNeedsCreation, string indexDBLocation, CLSyncbox syncbox)
+        {
+            dbInfo = new FileInfo(indexDBLocation);
+
+            if (dbInfo.Exists)
+            {
+                if (createEvenIfExisting)
+                {
+                    dbNeedsDeletion = true;
+                    dbNeedsCreation = true;
+                }
+                else
+                {
+                    try
+                    {
+                        using (ISQLiteConnection verifyAndUpdateConnection = StaticCreateAndOpenCipherConnection(enforceForeignKeyConstraints: true, indexDBLocation: indexDBLocation))
+                        {
+                            CheckIntegrity(verifyAndUpdateConnection);
+
+                            int existingVersion;
+
+                            using (ISQLiteCommand getVersionCommand = verifyAndUpdateConnection.CreateCommand())
+                            {
+                                getVersionCommand.CommandText = "PRAGMA user_version;";
+                                existingVersion = Convert.ToInt32(getVersionCommand.ExecuteScalar());
+                            }
+
+                            if (existingVersion < 2)
+                            {
+                                // database was never finalized (version is changed from 1 to [current database version] via the last initialization script, which identifies successful creation)
+                                // the very first implementation of this database will be version 2 so we can compare on less than 2
+
+                                dbNeedsCreation = true;
+                                dbNeedsDeletion = true;
+                            }
+                            else
+                            {
+                                int newVersion = -1;
+
+                                foreach (KeyValuePair<int, IMigration> currentDBMigration in MigrationList.GetMigrationsAfterVersion(existingVersion))
+                                {
+                                    currentDBMigration.Value.Apply(
+                                        verifyAndUpdateConnection,
+                                        indexDBPassword);
+
+                                    newVersion = currentDBMigration.Key;
+                                }
+
+                                if (newVersion > existingVersion)
+                                {
+                                    using (ISQLiteCommand updateVersionCommand = verifyAndUpdateConnection.CreateCommand())
+                                    {
+                                        updateVersionCommand.CommandText = "PRAGMA user_version = " + newVersion.ToString();
+                                        updateVersionCommand.ExecuteNonQuery();
+                                    }
+                                }
+
+                                dbNeedsCreation = false;
+                                dbNeedsDeletion = false;
+                            }
+                        }
+                    }
+                    catch (SQLiteExceptionBase ex)
+                    {
+                        if (syncbox != null)
+                        {
+                            // notify database replaced due to corruption
+                            MessageEvents.FireNewEventMessage(
+                                "Database corruption found on initializing index. Replacing database with a fresh one. Files and folders changed while offline will be grabbed again from server. Error message: " + ex.Message,
+                                EventMessageLevel.Important,
+                                new GeneralErrorInfo(),
+                                syncbox.SyncboxId,
+                                syncbox.CopiedSettings.DeviceId);
+                        }
+
+                        dbNeedsDeletion = true;
+                        dbNeedsCreation = true;
+                    }
+                }
+            }
+            else
+            {
+                if (syncbox != null)
+                {
+                    MessageEvents.FireNewEventMessage(
+                        "Existing database not found, possibly due to new SyncboxId\\DeviceId combination. Starting fresh.",
+                        EventMessageLevel.Minor,
+                        SyncboxId: syncbox.SyncboxId,
+                        DeviceId: syncbox.CopiedSettings.DeviceId);
+                }
+
+                dbNeedsCreation = true;
+                dbNeedsDeletion = false;
+            }
         }
 
         private void MarkBadgeSyncedAfterEventCompletion(FileChangeType storeExistingChangeType, string storeNewPath, string storeOldPath, bool storeWhetherEventIsASyncFrom)
@@ -2854,6 +2869,11 @@ namespace Cloud.SQLIndexer
         }
 
         private ISQLiteConnection CreateAndOpenCipherConnection(bool enforceForeignKeyConstraints = true)
+        {
+            return StaticCreateAndOpenCipherConnection(enforceForeignKeyConstraints, indexDBLocation);
+        }
+
+        private static ISQLiteConnection StaticCreateAndOpenCipherConnection(bool enforceForeignKeyConstraints, string indexDBLocation)
         {
             const string CipherConnectionString = "Data Source=\"{0}\";Pooling=false;Synchronous=Full;UTF8Encoding=True;Foreign Keys={1}";
 

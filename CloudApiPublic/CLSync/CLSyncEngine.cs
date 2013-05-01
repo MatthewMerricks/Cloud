@@ -20,6 +20,7 @@ using Cloud.Sync;
 using Cloud.BadgeNET;
 using Cloud.REST;
 using System.Collections;
+using System.IO;
 
 namespace Cloud
 {
@@ -572,13 +573,36 @@ namespace Cloud
                     return error;
                 }
 
-                // Create the Syncbox directory if it doesn't exist
-                bool alreadyExists = true;
+                // If the database file will be created, then we will create the syncbox root folder if it does not exist.
+                // Otherwise, the database is active, and the syncbox root folder must already exist at the specified location.
+                // Determine if the database file will be created.
+                bool dbNeedsDeletion;
+                bool dbNeedsCreation;
+                FileInfo dbInfo;
+
+                string indexDBLocation = Helpers.CalculateDatabasePath(this._syncbox);
+                IndexingAgent.CheckDatabaseFileState(createEvenIfExisting: false, dbInfo: out dbInfo, dbNeedsDeletion: out dbNeedsDeletion, dbNeedsCreation: out dbNeedsCreation, indexDBLocation: indexDBLocation);
+
                 System.IO.DirectoryInfo rootInfo = new System.IO.DirectoryInfo(_syncbox.CopiedSettings.SyncRoot);
-                if (!rootInfo.Exists)
+                bool alreadyExists = rootInfo.Exists;
+                if (dbNeedsCreation)
                 {
-                    alreadyExists = false;
-                    rootInfo.Create();
+                    // The database file will be created.  We can create the syncbox root folder if it doesn't exist.  The sync engine will be sending a sync_from with SID zero.  We will merge the cloud syncbox with the syncbox folder on disk.
+                    if (!alreadyExists)
+                    {
+                        rootInfo.Create();
+                    }
+                }
+                else
+                {
+                    // The database contains valid state information.  If the syncbox root directory is not there, letting the sync engine use it would delete all of the files and folders in the cloud.
+                    if (!alreadyExists)
+                    {
+                        string msg = String.Format("The syncbox folder does not exist at the specified path: {0}.", _syncbox.CopiedSettings.SyncRoot);
+                        _trace.writeToLog(1, msg);
+                        Status = CLSyncStartStatus.ErrorSyncboxFolderDoesNotExist;
+                        return new ArgumentException(msg);
+                    }
                 }
 
                 bool caseMatches;
@@ -597,7 +621,7 @@ namespace Cloud
                     const string badCaseErrorCreated = "A new directory was created on disk at the specified settings SyncRoot, but its resulting path does not match case";
                     const string badCaseErrorExists = "An existing directory was found at the specified settings SyncRoot, but its path does not match case";
                     _trace.writeToLog(1, "CLSyncEngine: ERROR: BadCase (1). {0}.", (alreadyExists ? badCaseErrorExists : badCaseErrorCreated));
-                    Status = CLSyncStartStatus.ErrorBadRootPath;
+                     Status = CLSyncStartStatus.ErrorBadRootPath;
                     if (alreadyExists)
                     {
                         return new Exception(badCaseErrorExists);
