@@ -289,6 +289,21 @@ namespace Cloud.JsonContracts
         private static DataContractJsonSerializer _fileOrFolderDeleteSerializer = null;
         private static readonly object FileOrFolderDeleteSerializerLocker = new object();
 
+
+        public static DataContractJsonSerializer FileOrFolderDeletesSerializer
+        {
+            get
+            {
+                lock (FileOrFolderDeletesSerializerLocker)
+                {
+                    return _fileOrFolderDeletesSerializer
+                        ?? (_fileOrFolderDeletesSerializer = new DataContractJsonSerializer(typeof(JsonContracts.FileOrFolderDeletes)));
+                }
+            }
+        }
+        private static DataContractJsonSerializer _fileOrFolderDeletesSerializer = null;
+        private static readonly object FileOrFolderDeletesSerializerLocker = new object();
+
         public static DataContractJsonSerializer FileOrFolderMoveSerializer
         {
             get
@@ -302,6 +317,20 @@ namespace Cloud.JsonContracts
         }
         private static DataContractJsonSerializer _fileOrFolderMoveSerializer = null;
         private static readonly object FileOrFolderMoveSerializerLocker = new object();
+
+        public static DataContractJsonSerializer FileOrFolderMovesSerializer
+        {
+            get
+            {
+                lock (FileOrFolderMovesSerializerLocker)
+                {
+                    return _fileOrFolderMovesSerializer
+                        ?? (_fileOrFolderMovesSerializer = new DataContractJsonSerializer(typeof(JsonContracts.FileOrFolderMoves)));
+                }
+            }
+        }
+        private static DataContractJsonSerializer _fileOrFolderMovesSerializer = null;
+        private static readonly object FileOrFolderMovesSerializerLocker = new object();
 
         public static DataContractJsonSerializer FileOrFolderUndeleteSerializer
         {

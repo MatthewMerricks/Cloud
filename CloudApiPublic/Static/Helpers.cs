@@ -2352,7 +2352,9 @@ namespace Cloud.Static
             { typeof(JsonContracts.FileModify), JsonContractHelpers.FileModifySerializer },
 
             { typeof(JsonContracts.FileOrFolderDelete), JsonContractHelpers.FileOrFolderDeleteSerializer },
+            { typeof(JsonContracts.FileOrFolderDeletes), JsonContractHelpers.FileOrFolderDeletesSerializer },
             { typeof(JsonContracts.FileOrFolderMove), JsonContractHelpers.FileOrFolderMoveSerializer },
+            { typeof(JsonContracts.FileOrFolderMoves), JsonContractHelpers.FileOrFolderMovesSerializer },
             { typeof(JsonContracts.FileOrFolderUndelete), JsonContractHelpers.FileOrFolderUndeleteSerializer },
             #endregion
 
