@@ -1331,7 +1331,7 @@ namespace Cloud
         /// <param name="path">Full path to where file or folder would exist locally on disk</param>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError GetItemAtPath(string path, CLFileItem response)
+        public CLError GetItemAtPath(string path, out CLFileItem response)
         {
             CheckDisposed();
             return _httpRestClient.GetItemAtPath(path, out response);
