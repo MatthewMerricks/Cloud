@@ -9370,7 +9370,16 @@ namespace Cloud.Sync
                                                                     using (Cloud.SQLIndexer.Model.SQLTransactionalBase sqlTran = syncData.GetNewTransaction())
                                                                     {
                                                                         // remove the previous conflict change from the event source database, storing any error that occurred
-                                                                        CLError removalOfPreviousChange = syncData.mergeToSql(Helpers.EnumerateSingleItem(new FileChangeMerge(null, currentChange)), sqlTran);
+                                                                        //
+                                                                        // make sure removal uses a FileChange with the originalConflictPath since the paths are used in badging to clear out the original location's badge
+                                                                        CLError removalOfPreviousChange = syncData.mergeToSql(Helpers.EnumerateSingleItem(new FileChangeMerge(null,
+                                                                            new FileChange()
+                                                                            {
+                                                                                Direction = currentChange.Direction,
+                                                                                EventId = currentChange.EventId,
+                                                                                NewPath = originalConflictPath,
+                                                                                Type = ((PossiblyStreamableFileChange)matchedChange).FileChange.Type
+                                                                            })), sqlTran);
                                                                         // if an error occurred removing the previous conflict change, then rethrow the error
                                                                         if (removalOfPreviousChange != null)
                                                                         {
@@ -9426,6 +9435,9 @@ namespace Cloud.Sync
                                                                                 pseudoFileCreationsForDownloadList.Add(changedOldPathDownload);
                                                                             }
                                                                         }
+
+                                                                        // need to remove the badge at the conflict path here since when the rename completes it will try to move the badge to the rename location and get blocked\
+                                                                        MessageEvents.ApplyFileChangeMergeToChangeState(this, new FileChangeMerge(null, currentChange));   // Message to invoke BadgeNet.IconOverlay.QueueNewEventBadge(currentMergeToFrom.MergeTo, currentMergeToFrom.MergeFrom)
                                                                     }
 
                                                                     // store the succesfully created rename change with the modified conflict change as the current change to process
