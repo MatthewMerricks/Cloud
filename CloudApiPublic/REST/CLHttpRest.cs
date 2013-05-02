@@ -474,10 +474,10 @@ namespace Cloud.REST
 
                     FileOrFolderMove thisMove = new FileOrFolderMove()
                     {
-                        DeviceId = _copiedSettings.DeviceId,
+                        //DeviceId = _copiedSettings.DeviceId,
                         RelativeFromPath = filePath.GetRelativePath(_syncbox.Path, true),
                         RelativeToPath = newFilePath.GetRelativePath(_syncbox.Path, true),
-                        SyncboxId = _syncbox.SyncboxId
+                        //SyncboxId = _syncbox.SyncboxId
                     };
 
                     listMoveContract.Add(thisMove);
@@ -486,7 +486,9 @@ namespace Cloud.REST
                 // Now make the REST request content.
                 object requestContent = new JsonContracts.FileOrFolderMoves()
                 {
-                    Moves = listMoveContract.ToArray()
+                    SyncboxId = _syncbox.SyncboxId,
+                    Moves = listMoveContract.ToArray(), 
+                    DeviceId = _copiedSettings.DeviceId,
                 };
 
                 // server method path switched on whether change is a folder or not

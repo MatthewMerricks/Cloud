@@ -18,7 +18,13 @@ namespace Cloud.JsonContracts
     [DataContract]
     internal sealed class FileOrFolderMoves
     {
+        [DataMember(Name = CLDefinitions.QueryStringDeviceId, IsRequired = false)]
+        public string DeviceId { get; set; }
+
+        [DataMember(Name = CLDefinitions.QueryStringSyncboxId, IsRequired = false)]
+        public Nullable<long> SyncboxId { get; set; }
+
         [DataMember(Name = CLDefinitions.RESTRequestFileOrFolderMoves, IsRequired = false)]
-        public FileOrFolderMove [] Moves { get; set; }
+        public FileOrFolderMove[] Moves { get; set; }
     }
 }
