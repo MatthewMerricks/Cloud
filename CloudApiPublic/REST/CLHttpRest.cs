@@ -681,10 +681,10 @@ namespace Cloud.REST
 
                     FileOrFolderMove thisMove = new FileOrFolderMove()
                     {
-                        DeviceId = _copiedSettings.DeviceId,
+                        //DeviceId = _copiedSettings.DeviceId,
                         RelativeFromPath = folderPath.GetRelativePath(_syncbox.Path, true),
                         RelativeToPath = newFolderPath.GetRelativePath(_syncbox.Path, true),
-                        SyncboxId = _syncbox.SyncboxId
+                        //SyncboxId = _syncbox.SyncboxId
                     };
 
                     listMoveContract.Add(thisMove);
@@ -693,6 +693,8 @@ namespace Cloud.REST
                 // Now make the REST request content.
                 object requestContent = new JsonContracts.FileOrFolderMoves()
                 {
+                    SyncboxId = _syncbox.SyncboxId,
+                    DeviceId = _copiedSettings.DeviceId,
                     Moves = listMoveContract.ToArray()
                 };
 
@@ -869,24 +871,26 @@ namespace Cloud.REST
                 // File move (rename) and folder move (rename) share a json contract object for move (rename).
                 // This will be an array of contracts.
                 int numberOfFiles = paths.Length;
-                List<FileOrFolderDelete> listDeleteContract = new List<FileOrFolderDelete>();
+                List<string> listDeleteContract = new List<string>();
                 for (int i = 0; i < numberOfFiles; ++i)
                 {
                     FilePath filePath = new FilePath(paths[i]);
 
-                    FileOrFolderDelete thisDelete = new FileOrFolderDelete()
-                    {
-                        DeviceId = _copiedSettings.DeviceId,
-                        RelativePath = filePath.GetRelativePath(_syncbox.Path, true),
-                        SyncboxId = _syncbox.SyncboxId
-                    };
+                    //FileDeleteRequest thisDelete = new FileOrFolderDelete()
+                    //{
+                    //    //DeviceId = _copiedSettings.DeviceId,
+                    //    RelativePath = filePath.GetRelativePath(_syncbox.Path, true),
+                    //    //SyncboxId = _syncbox.SyncboxId
+                    //};
 
-                    listDeleteContract.Add(thisDelete);
+                    listDeleteContract.Add(filePath.GetRelativePath(_syncbox.Path, true));
                 }
 
                 // Now make the REST request content.
-                object requestContent = new JsonContracts.FileOrFolderDeletes()
+                object requestContent = new JsonContracts.FileDeleteRequest()
                 {
+                    DeviceId = _copiedSettings.DeviceId,
+                    SyncboxId = _syncbox.SyncboxId,
                     Deletes = listDeleteContract.ToArray()
                 };
 

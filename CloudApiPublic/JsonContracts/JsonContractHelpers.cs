@@ -304,6 +304,20 @@ namespace Cloud.JsonContracts
         private static DataContractJsonSerializer _fileOrFolderDeletesSerializer = null;
         private static readonly object FileOrFolderDeletesSerializerLocker = new object();
 
+        public static DataContractJsonSerializer FileDeleteRequestSerializer
+        {
+            get
+            {
+                lock (FileDeleteRequestSerializerLocker)
+                {
+                    return _fileDeleteRequestSerializer
+                        ?? (_fileDeleteRequestSerializer = new DataContractJsonSerializer(typeof(JsonContracts.FileDeleteRequest)));
+                }
+            }
+        }
+        private static DataContractJsonSerializer _fileDeleteRequestSerializer = null;
+        private static readonly object FileDeleteRequestSerializerLocker = new object();
+
         public static DataContractJsonSerializer FileOrFolderMoveSerializer
         {
             get
@@ -674,7 +688,20 @@ namespace Cloud.JsonContracts
         private static DataContractJsonSerializer _syncboxMoveFilesOrFoldersResponseSerializer = null;
         private static readonly object SyncboxMoveFilesOrFoldersResponseSerializerLocker = new object();
 
-        
+
+        public static DataContractJsonSerializer SyncboxDeleteFilesResponseSerializer
+        {
+            get
+            {
+                lock (SyncboxDeleteFilesResponseSerializerLocker)
+                {
+                    return _syncboxDeleteFilesResponseSerializer
+                        ?? (_syncboxDeleteFilesResponseSerializer = new DataContractJsonSerializer(typeof(JsonContracts.SyncboxDeleteFilesResponse)));
+                }
+            }
+        }
+        private static DataContractJsonSerializer _syncboxDeleteFilesResponseSerializer = null;
+        private static readonly object SyncboxDeleteFilesResponseSerializerLocker = new object();
 
         public static DataContractJsonSerializer ListSyncboxesSerializer
         {
