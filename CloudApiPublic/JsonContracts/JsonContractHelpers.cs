@@ -660,6 +660,22 @@ namespace Cloud.JsonContracts
         private static DataContractJsonSerializer _createSyncboxSerializer = null;
         private static readonly object CreateSyncboxSerializerLocker = new object();
 
+        public static DataContractJsonSerializer SyncboxMoveFilesOrFoldersResponseSerializer
+        {
+            get
+            {
+                lock (SyncboxMoveFilesOrFoldersResponseSerializerLocker)
+                {
+                    return _syncboxMoveFilesOrFoldersResponseSerializer
+                        ?? (_syncboxMoveFilesOrFoldersResponseSerializer = new DataContractJsonSerializer(typeof(JsonContracts.SyncboxMoveFilesOrFoldersResponse)));
+                }
+            }
+        }
+        private static DataContractJsonSerializer _syncboxMoveFilesOrFoldersResponseSerializer = null;
+        private static readonly object SyncboxMoveFilesOrFoldersResponseSerializerLocker = new object();
+
+        
+
         public static DataContractJsonSerializer ListSyncboxesSerializer
         {
             get

@@ -2601,6 +2601,7 @@ namespace Cloud.Static
 
             #region platform management
             { typeof(JsonContracts.SyncboxResponse), JsonContractHelpers.CreateSyncboxSerializer },
+            { typeof(JsonContracts.SyncboxMoveFilesOrFoldersResponse), JsonContractHelpers.SyncboxMoveFilesOrFoldersResponseSerializer },
             { typeof(JsonContracts.SyncboxListResponse), JsonContractHelpers.ListSyncboxesSerializer },
             { typeof(JsonContracts.StoragePlanListResponse), JsonContractHelpers.ListPlansSerializer },
             { typeof(JsonContracts.SyncboxUpdateStoragePlanResponse), JsonContractHelpers.SyncboxUpdatePlanResponseSerializer },
