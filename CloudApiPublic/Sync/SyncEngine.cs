@@ -5436,6 +5436,9 @@ namespace Cloud.Sync
             // Define an error that will be set by CLRestClient.DownloadFile.  We will test this for null.  If it is null on an exception, we will send the appropriate status messages.  Otherwise we assume that CLRestClient.DownloadFile sent the status messages.
             CLError downloadError = null;
 
+            FilePath storeNewPath = castState.FileToDownload.NewPath; // store NewPath because an overlapping delete from the FileMonitor will set it to null
+            // pull the above here because DownloadFile uses NewPath as null for cancelled, cancelled will be checked instead of using NewPath later
+
             // Create an object to store the DateTime when it is first retrieved (and will be reused thus keeping the same time)
             GenericHolder<Nullable<DateTime>> startTimeHolder = new GenericHolder<Nullable<DateTime>>(null);
             // Function to retrieve the DateTime only when it is needed and stored so the same time will be reused
@@ -5786,36 +5789,66 @@ namespace Cloud.Sync
                         }
                     }
 
-                    // if there was an error while downloading, rethrow the error
-                    if (downloadError != null)
-                    {
-                        throw new AggregateException("An error occurred downloading a file", downloadError.GrabExceptions());
-                    }
-
                     // The download was successful (no exceptions), but it may have been cancelled.
-                    if (downloadStatus == CLHttpRestStatus.Cancelled
-                        && castState.FileToDownload.NewPath != null) // cancelled via setting a null path such as when event was cancelled out on another thread
+                    if (downloadStatus == CLHttpRestStatus.Cancelled)
                     {
-                        _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: DownloadForTask: CANCELLED:  Return a zero ID."));
-                        return new EventIdAndCompletionProcessor(0, castState.SyncData, castState.Syncbox.CopiedSettings, castState.Syncbox.SyncboxId, castState.TempDownloadFolderPath);
+                        // possible that it was cancelled if path was set as null when event was cancelled out on another thread (when a delete triggers cancellation)
+                        //
+                        // if it was cancelled due to a rename we want the event to stick around but don't throw an error because this is a normal condition;
+                        // to get the rename to refire the transfer, we can return a 0 EventId in the completion processor
+                        if (castState.FileToDownload.NewPath != null) // cancelled via setting a null path such as when event was cancelled out on another thread; do not use stored new path since freshest is best here
+                        {
+                            _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: DownloadForTask: CANCELLED:  Return a zero ID."));
+                            return new EventIdAndCompletionProcessor(0, castState.SyncData, castState.Syncbox.CopiedSettings, castState.Syncbox.SyncboxId, castState.TempDownloadFolderPath);
+                        }
+                        // else for cancellation based on deletion, the event will act like it was successful by continuing onto normal processing
                     }
-
-                    // if the download was not a success throw an error
-                    if (downloadStatus != CLHttpRestStatus.Success)
-                    {
-                        throw new Exception("The return status from downloading a file was not successful: CLHttpRestStatus." + downloadStatus.ToString());
-                    }
-
-                    if (downloadStatus != CLHttpRestStatus.Cancelled) // possible that it was cancelled if path was set as null when event was cancelled out on another thread
+                    else if (downloadStatus == CLHttpRestStatus.Success)
                     {
                         _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: DownloadForTask: File finished downloading message."));
                         // status message
                         MessageEvents.FireNewEventMessage(
-                            "File finished downloading to path " + castState.FileToDownload.NewPath.ToString(),
+                            "File finished downloading to path " + storeNewPath.ToString(), // could have been marked to cancel but already completed, so use stored path
                             EventMessageLevel.Regular,
                             SyncboxId: castState.Syncbox.SyncboxId,
                             DeviceId: castState.Syncbox.CopiedSettings.DeviceId);
                     }
+                    // if there was an error while downloading, rethrow the error
+                    else
+                    {
+                        throw new AggregateException("An error occurred downloading a file", downloadError.GrabExceptions());
+                    }
+
+                    //// if there was an error while downloading, rethrow the error
+                    //if (downloadError != null)
+                    //{
+                    //    throw new AggregateException("An error occurred downloading a file", downloadError.GrabExceptions());
+                    //}
+
+                    //// The download was successful (no exceptions), but it may have been cancelled.
+                    //if (downloadStatus == CLHttpRestStatus.Cancelled
+                    //    && castState.FileToDownload.NewPath != null) // cancelled via setting a null path such as when event was cancelled out on another thread
+                    //{
+                    //    _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: DownloadForTask: CANCELLED:  Return a zero ID."));
+                    //    return new EventIdAndCompletionProcessor(0, castState.SyncData, castState.Syncbox.CopiedSettings, castState.Syncbox.SyncboxId, castState.TempDownloadFolderPath);
+                    //}
+
+                    //// if the download was not a success throw an error
+                    //if (downloadStatus != CLHttpRestStatus.Success)
+                    //{
+                    //    throw new Exception("The return status from downloading a file was not successful: CLHttpRestStatus." + downloadStatus.ToString());
+                    //}
+
+                    //if (downloadStatus != CLHttpRestStatus.Cancelled) // possible that it was cancelled if path was set as null when event was cancelled out on another thread
+                    //{
+                    //    _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: DownloadForTask: File finished downloading message."));
+                    //    // status message
+                    //    MessageEvents.FireNewEventMessage(
+                    //        "File finished downloading to path " + castState.FileToDownload.NewPath.ToString(),
+                    //        EventMessageLevel.Regular,
+                    //        SyncboxId: castState.Syncbox.SyncboxId,
+                    //        DeviceId: castState.Syncbox.CopiedSettings.DeviceId);
+                    //}
                 }
                 while (!downloadFoundToMoveUnderTempDownloadsLock.Value);
 
