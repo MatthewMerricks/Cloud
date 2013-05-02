@@ -5436,9 +5436,6 @@ namespace Cloud.Sync
             // Define an error that will be set by CLRestClient.DownloadFile.  We will test this for null.  If it is null on an exception, we will send the appropriate status messages.  Otherwise we assume that CLRestClient.DownloadFile sent the status messages.
             CLError downloadError = null;
 
-            FilePath storeNewPath = castState.FileToDownload.NewPath; // store NewPath because an overlapping delete from the FileMonitor will set it to null
-            // pull the above here because DownloadFile uses NewPath as null for cancelled, cancelled will be checked instead of using NewPath later
-
             // Create an object to store the DateTime when it is first retrieved (and will be reused thus keeping the same time)
             GenericHolder<Nullable<DateTime>> startTimeHolder = new GenericHolder<Nullable<DateTime>>(null);
             // Function to retrieve the DateTime only when it is needed and stored so the same time will be reused
@@ -5740,6 +5737,10 @@ namespace Cloud.Sync
 
                     // declare the enumeration to store the state of the download
                     CLHttpRestStatus downloadStatus;
+
+                    FilePath storeNewPath = castState.FileToDownload.NewPath; // store NewPath because an overlapping delete from the FileMonitor will set it to null
+                    // pull the above here because DownloadFile uses NewPath as null for cancelled, cancelled will be checked instead of using NewPath later
+
                     // perform the download of the file, storing any error that occurs
                     downloadError = castState.RestClient.DownloadFile(castState.FileToDownload, // the download change
                         OnAfterDownloadToTempFile, // handler for when downloading completes, needs to move the file to the final location and update the status string message
