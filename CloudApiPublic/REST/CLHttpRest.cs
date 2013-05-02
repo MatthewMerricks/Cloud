@@ -5981,7 +5981,8 @@ namespace Cloud.REST
                 Helpers.ProcessHttp<object>(
                     new Download() // JSON contract to serialize
                     {
-                        StorageKey = changeToDownload.Metadata.StorageKey // storage key parameter
+                        Uid = changeToDownload.Metadata.ServerUid,
+                        Revision = changeToDownload.Metadata.Revision
                     },
                     CLDefinitions.CLUploadDownloadServerURL, // server for download
                     serverMethodPath, // dynamic method path to incorporate query string parameters

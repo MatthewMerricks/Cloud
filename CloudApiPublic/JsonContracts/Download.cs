@@ -17,7 +17,10 @@ namespace Cloud.JsonContracts
     [DataContract]
     internal sealed class Download
     {
-        [DataMember(Name = CLDefinitions.CLMetadataStorageKey, IsRequired = false)]
-        public string StorageKey { get; set; }
+        [DataMember(Name = CLDefinitions.CLMetadataServerId, IsRequired = false)]
+        public string Uid { get; set; }
+
+        [DataMember(Name = CLDefinitions.CLMetadataFileRevision, IsRequired = false)]
+        public string Revision { get; set; }
     }
 }

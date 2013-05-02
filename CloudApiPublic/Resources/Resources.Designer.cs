@@ -142,6 +142,15 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to ---Completed file download---.
+        /// </summary>
+        internal static string CompletedFileDownloadHttpBody {
+            get {
+                return ResourceManager.GetString("CompletedFileDownloadHttpBody", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to ---File upload complete---.
         /// </summary>
         internal static string CompleteFileUpload {
@@ -183,6 +192,15 @@ namespace Cloud.Static {
         internal static string DocumentsFolderNameXP {
             get {
                 return ResourceManager.GetString("DocumentsFolderNameXP", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ---Error moving downloaded file---.
+        /// </summary>
+        internal static string ErrorMovingDownloadedFileHttpBody {
+            get {
+                return ResourceManager.GetString("ErrorMovingDownloadedFileHttpBody", resourceCulture);
             }
         }
         
@@ -363,6 +381,15 @@ namespace Cloud.Static {
         internal static string ExceptionHelpersProcessHttpInnerClientCancelled {
             get {
                 return ResourceManager.GetString("ExceptionHelpersProcessHttpInnerClientCancelled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0}: {1}---.
+        /// </summary>
+        internal static string ExceptionHelpersProcessHttpInnerDownload {
+            get {
+                return ResourceManager.GetString("ExceptionHelpersProcessHttpInnerDownload", resourceCulture);
             }
         }
         

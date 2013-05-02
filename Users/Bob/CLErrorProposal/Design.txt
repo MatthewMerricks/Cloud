@@ -1,0 +1,146 @@
+private void DoMove(string oldPath, string newPath)
+{
+	CLError moveError = Helpers.MoveFile(oldPath, newPath);
+
+	if (moveError != null)
+	{
+		// presume we haven't gotten detailed enough to correctly identify a domain and code for every system error (defaults to code General_Miscellaneous which is not useful)
+
+		Exception baseException = moveError.PrimaryException.InnerException ?? moveError.PrimaryException;
+
+		if (baseException is IOException)
+		{
+			if (baseException is FileNotFoundException)
+			{
+				// handling for old file not found
+			}
+			else if (baseException is PathTooLongException)
+			{
+				// needs to use Win32 direct calls with "//?//" path format for 32,000 max characters
+			}
+		}
+		// some examples where the null-coallescing was necessary
+		else if (baseException is CLException)
+		{
+			// probably a problem with arguments (if oldPath or newPath was passed in null)
+		}
+	}
+}
+
+
+
+
+
+CLSyncbox
+
+public AddFileResult AddFile(input parameters)
+{
+	
+}
+
+
+
+public sealed class AddFileResult
+{
+	CLFileItem Result { get; }
+	/// <summary>
+	/// Can be null if no error occurred
+	/// </summary>
+	Exception Error { get; }
+	CLHttpRest Status { get; }
+}
+
+
+public main()
+{
+	CLFileItem fileItem;
+	CLError errorFromAddFile = AddFile(out CLFileItem fileItem);
+	if (errorFromAddFile != null)
+	{
+		// Error occurred
+		switch (errorFromAddFile.Status)
+		{	
+			case General_SeeException:
+				// Process the exception
+				if (errorFromAddFile.Error)
+				{
+					// Got the exception
+					// Process it normally
+				}
+				break;
+			case General_FileNotFound:
+				// Process file not found
+				break;
+			// etc.
+		}
+	}
+	else
+	{
+		// no error occurred
+		// process fileItem
+	}
+}
+
+public CLError AddFile(out CLFileItem fileItem)
+{
+	
+}
+
+public CLError AddFiles(out CLFileItem [] fileItems, out CLError [] errors )
+{
+	
+}
+
+
+
+public sealed class CLError
+{
+	CLStatus Status { get; }  // currently CLExceptionCode (ulong)
+
+	Exception Error { get; }
+}
+
+
+public sealed class CLError
+{
+	public CLExceptionCode Code
+	{
+		get
+		{
+			return this.Exception.Code;
+		}
+	}
+
+	public CLExceptionDomain PullDomain()
+	{
+		// calculates based on code so we don't have to store it
+	}
+
+	public Exception FirstException { get; }
+
+	public CLException Exception { get; }
+
+	internal CLError(input params) { // set locals }
+}
+
+public class CLException : AggregateException
+{
+	public CLExceptionCode Code { get; }
+
+	public CLExceptionDomain PullDomain()
+	{
+		// calculates based on code so we don't have to store it
+	}
+
+	internal CLException(CLExceptionCode code, string message, params Exception[] innerExceptions) { // set locals }
+}
+
+
+
+user calls a public http accessor
+that then calls a helper method
+helper methods can also be called externally, always return with domain General
+user would want to chech http domain
+
+if using outer exception code: http will be domain
+if using inner exception code: general will be domain

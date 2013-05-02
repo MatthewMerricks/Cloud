@@ -564,4 +564,16 @@
     <value>Start Menu</value>
     <comment>XP only; defined translations must perfectly match Microsoft documentation</comment>
   </data>
+  <data name="CompletedFileDownloadHttpBody" xml:space="preserve">
+    <value>---Completed file download---</value>
+    <comment>must end with three hyphen characters</comment>
+  </data>
+  <data name="ErrorMovingDownloadedFileHttpBody" xml:space="preserve">
+    <value>---Error moving downloaded file---</value>
+    <comment>must end with three hyphen characters</comment>
+  </data>
+  <data name="ExceptionHelpersProcessHttpInnerDownload" xml:space="preserve">
+    <value>{0}: {1}---</value>
+    <comment>must end with three hyphen characters</comment>
+  </data>
 </root>

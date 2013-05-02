@@ -38,6 +38,7 @@ using System.Security.Principal;
 namespace Cloud.Static
 {
     extern alias SimpleJsonBase;
+    using System.Security.AccessControl;
 
     /// <summary>
     /// Class containing commonly usable static helper methods
@@ -2301,6 +2302,202 @@ namespace Cloud.Static
                 4 * tabCount); // the "4 *" multiplier means each tab is 4 spaces
         }
 
+        #region MoveDownloadedFile
+
+        /// <summary>
+        /// Move a downloaded file to its permanent target location.
+        /// </summary>
+        /// <param name="sourceFileFullPath">Full path of the file at the source location.</param>
+        /// <param name="targetFileFullPath">Full path of the file at the target location.</param>
+        /// <param name="backupFileFullPath">Full path of the backup file.</param>
+        /// <returns></returns>
+        internal static CLError MoveDownloadedFile(string sourceFileFullPath, string targetFileFullPath, string backupFileFullPath)
+        {
+            try
+            {
+                if (sourceFileFullPath == null)
+                {
+                    throw new CLArgumentNullException(CLExceptionCode.General_Arguments, "sourceFileFullPath must not be null");
+                }
+                if (targetFileFullPath == null)
+                {
+                    throw new CLArgumentNullException(CLExceptionCode.General_Arguments, "targetFileFullPath must not be null");
+                }
+                if (backupFileFullPath == null)
+                {
+                    throw new CLArgumentNullException(CLExceptionCode.General_Arguments, "backupFileFullPath must not be null");
+                }
+
+                Helpers.RunActionWithRetries(
+                    fileMoveState =>
+                    {
+
+                        // To preserve the DACL in the target file (newPathString) from being overwritten with the DACL of the temp file (oldPathString):
+                        //      collect the original target file external ACEs;
+                        //      collect the temporary file external ACEs;
+                        //      after the file has been moved, reset the target file DACL by adding the original external ACEs and removing the temoporary file external ACEs;
+                        //  Note that reseting the DACL will merge the correct inherited ACEs into the target file DACL;
+
+                        // NOTE: NULL DACL (grants full access to everyone) in C# is represented as AuthorizationRuleCollection([Allow, Everyone (S-1-1-0)]);
+                        //       Empty DACL (grants no access to anyone) in C# is represented as empty AuthorizationRuleCollection();
+
+                        AuthorizationRuleCollection targetExplicitRules = null;
+                        try
+                        {
+                            if (File.Exists(fileMoveState.newPathString))
+                            {
+                                targetExplicitRules = File.GetAccessControl(fileMoveState.newPathString)
+                                                            .GetAccessRules(true, false, typeof(System.Security.Principal.SecurityIdentifier));
+                            }
+                        }
+                        catch
+                        {
+                            //noop;
+                        }
+
+                        AuthorizationRuleCollection tempExplicitRules = null;
+                        try
+                        {
+                            if (File.Exists(fileMoveState.oldPathString))
+                            {
+                                tempExplicitRules = File.GetAccessControl(fileMoveState.oldPathString)
+                                                            .GetAccessRules(true, false, typeof(System.Security.Principal.SecurityIdentifier));
+                            }
+                        }
+                        catch
+                        {
+                            //noop;
+                        }
+
+                        FileInfo oldPathInfo = new FileInfo(fileMoveState.oldPathString);
+                        FileInfo newPathInfo = new FileInfo(fileMoveState.newPathString);
+                        DateTime oldPathCreation = oldPathInfo.CreationTimeUtc;
+                        DateTime oldPathWrite = oldPathInfo.LastWriteTimeUtc;
+                        long oldPathSize = oldPathInfo.Length;
+
+                        try
+                        {
+                            if (newPathInfo.Exists)
+                            {
+                                try
+                                {
+                                    oldPathInfo.Replace(
+                                        fileMoveState.newPathString,
+                                        fileMoveState.backupLocation,
+                                        ignoreMetadataErrors: true);
+                                    try
+                                    {
+                                        if (File.Exists(fileMoveState.backupLocation))
+                                        {
+                                            File.Delete(fileMoveState.backupLocation);
+                                        }
+                                    }
+                                    catch
+                                    {
+                                    }
+                                }
+                                // File.Replace not supported on non-NTFS drives, must use traditional move
+                                catch (PlatformNotSupportedException)
+                                {
+                                    if (newPathInfo.Exists)
+                                    {
+                                        newPathInfo.Delete();
+                                    }
+                                    oldPathInfo.MoveTo(fileMoveState.newPathString);
+                                }
+                                // Some strange condition on specific files which does not make sense can throw an error on replace but may still succeed on move
+                                catch (IOException)
+                                {
+                                    if (newPathInfo.Exists)
+                                    {
+                                        newPathInfo.Delete();
+                                    }
+                                    oldPathInfo.MoveTo(fileMoveState.newPathString);
+                                }
+                            }
+                            else
+                            {
+                                oldPathInfo.MoveTo(fileMoveState.newPathString);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            if (oldPathCreation.Ticks != FileConstants.InvalidUtcTimeTicks
+                                && oldPathCreation.ToUniversalTime().Ticks != FileConstants.InvalidUtcTimeTicks
+
+                                && oldPathWrite.Ticks != FileConstants.InvalidUtcTimeTicks
+                                && oldPathWrite.ToUniversalTime().Ticks != FileConstants.InvalidUtcTimeTicks
+
+                                && newPathInfo.Exists
+
+                                && DateTime.Compare(newPathInfo.CreationTimeUtc, oldPathCreation) == 0
+
+                                && DateTime.Compare(newPathInfo.LastWriteTimeUtc, oldPathWrite) == 0
+
+                                && oldPathSize == newPathInfo.Length)
+                            {
+                                // file move (or replace) actually worked even though it threw an exception
+                                // silence exception
+                            }
+                            else
+                            {
+                                throw ex;
+                            }
+                        }
+
+                        FileSecurity fileSecurity = new FileSecurity(fileMoveState.newPathString, AccessControlSections.Access);
+                        if (tempExplicitRules != null && tempExplicitRules.Count > 0)
+                        {
+                            foreach (FileSystemAccessRule rule in tempExplicitRules)
+                            {
+                                fileSecurity.RemoveAccessRule(rule);
+                            }
+                        }
+                        if (targetExplicitRules != null && targetExplicitRules.Count > 0)
+                        {
+                            foreach (FileSystemAccessRule rule in targetExplicitRules)
+                            {
+                                fileSecurity.ResetAccessRule(rule);
+                            }
+                        }
+                        if ((tempExplicitRules == null || tempExplicitRules.Count == 0) &&
+                            (targetExplicitRules == null || targetExplicitRules.Count == 0))
+                        {
+                            // Note: File.SetAccessControl() won't change the target file DACL if fileSecurity has not been modified;
+                            //          the following line formally "modifies" fileSecurity
+                            fileSecurity.SetSecurityDescriptorBinaryForm(fileSecurity.GetSecurityDescriptorBinaryForm(), AccessControlSections.Access);
+                        }
+
+                        try
+                        {
+                            File.SetAccessControl(fileMoveState.newPathString, fileSecurity);
+                        }
+                        catch
+                        {
+                            //noop; 
+                        }
+                    },
+                    new
+                    {
+                        oldPathString = sourceFileFullPath,
+                        newPathString = targetFileFullPath,
+                        backupLocation = backupFileFullPath
+                    },
+                    throwExceptionOnFailure: true);  // end RunActionWithRetries
+            }
+            catch (Exception ex)
+            {
+                CLError error = ex;
+                error.Log(_trace.TraceLocation, _trace.LogErrors);
+                _trace.writeToLog(9, "Helpers: MoveDownloadedFile: ERROR: Exception: Msg: {0}. Source file: {1}. TargetFile: {2}. BackupFile: {3}.", sourceFileFullPath, targetFileFullPath, backupFileFullPath);
+                return error;
+            }
+
+            return null;
+        }
+
+        #endregion
+
         #region ProcessHttp
         #region readonly fields
         /// <summary>
@@ -3512,7 +3709,7 @@ namespace Cloud.Static
                             }
 
                             // calculate location for downloading the file
-                            string newTempFileString = ((downloadParams)uploadDownload).TempDownloadFolderPath + "\\" + ((Guid)newTempFile).ToString("N");
+                            string newTempFileString = ((downloadParams)uploadDownload).TempDownloadFolderPath + (/* '\\' */ (char)0x005c) + ((Guid)newTempFile).ToString("N");
 
                             if (uploadDownload.ProgressHolder != null)
                             {
@@ -3714,7 +3911,10 @@ namespace Cloud.Static
                         catch (Exception ex)
                         {
                             _trace.writeToMemory(() => _trace.trcFmtStr(2, "Helpers: ProcessHttpInner<T>: ERROR: Exception: Msg: {0}.", ex.Message));
-                            responseBody = (responseBody ?? "---responseBody set to null---").TrimEnd('-') + ": " + ex.Message + "---";
+                            responseBody = string.Format(
+                                Resources.ExceptionHelpersProcessHttpInnerDownload,
+                                (responseBody ?? Resources.NullHttpResponseBody).TrimEnd(/* '-' */ (char)0x002d),
+                                ex.Message);
 
                             throw ex;
                         }

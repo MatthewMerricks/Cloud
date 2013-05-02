@@ -1,0 +1,136 @@
+If anyone makes a change to this Wiki page,
+please send an email notification to the following people to review the changes and allow them to implement in their client frameworks:
+
+ 1. David Bruck (Windows)
+ 2. Robert Stevens (Windows)
+ 3. Steve McFerrin (iOS\OSX)
+ 4. Mat Cruz (iOS\OSX)
+ 5. Roberto Andrade (Android)
+ 6. Ryan Payne (iOS\OSX)
+ 7. Gus Pinto (iOS\OSX)
+
+## Format of enumerated values ##
+
+ - 64-bit unsigned integer values split into high and low order bits:
+ - highest order 32 bits is the CLExceptionDomain (from wiki page for CLExceptionDomain)
+ - lowest order 32 bits is the error code value
+
+ - - in the format below, the wiki editor had a limitation not to display the underscores in the formatted display output, so I had to triple the first underscore in the editor so it would display correctly, this should actually be one underscore. -David
+ - enumeration values listed first with a comment then with a name\value in the following format (C#):
+ - [name of type of domain]___[name of type of error] = (((ulong)CLExceptionDomain.[name of type of domain]) << 32) | [number value of type of error] // [number value of type of domain]_[number value of type of error]
+
+ - - example:
+ - Domain named General has a value of 0 (from wiki page for CLExceptionDomain)
+ - One of the general error codes is named Arguments with a value of 1
+ - Combination should be 0 in the high order bits and 1 in the low order bits
+ - - all together:
+ - General_Arguments = (((ulong)CLExceptionDomain.General) << 32) | 1 // 0_1
+
+## General ##
+
+Note: Reserve code 0_0.
+
+ - - General error
+ - General_Miscellaneous = (((ulong)CLExceptionDomain.General) << 32) | 1 // 0_1
+
+ - - Invalid arguments
+ - General_Arguments = (((ulong)CLExceptionDomain.General) << 32) | 2 // 0_2
+
+ - - Operation is not valid
+ - General_Invalid = (((ulong)CLExceptionDomain.General) << 32) | 3 // 0_3
+
+ - - An exception occurred.  Inspect CLError.FirstException
+ - General_SeeFirstException = (((ulong)CLExceptionDomain.General) << 32) | 4 // 0_4
+
+## Http ##
+ - - 
+
+ - - Method invoked a not found (404) response from the server
+ - Http_NotFound = (((ulong)CLExceptionDomain.Http) << 32) | 0 // 1_0
+
+ - - Method invoked a server error (5xx) response
+ - Http_ServerError = (((ulong)CLExceptionDomain.Http) << 32) | 1 // 1_1
+
+ - - Method had some other problem with parameters processed locally or parameters sent up to the server
+ - Http_BadRequest = (((ulong)CLExceptionDomain.Http) << 32) | 2 // 1_2
+
+ - - Method was cancelled via a provided cancellation token before completion
+ - Http_Cancelled = (((ulong)CLExceptionDomain.Http) << 32) | 3 // 1_3
+
+ - - Method completed without error but has no content in the response; it means no data exists for the given parameter(s)
+ - Http_NoContent = (((ulong)CLExceptionDomain.Http) << 32) | 4 // 1_4
+
+ - - Method invoked an unauthorized (401) response from the server
+ - Http_NotAuthorized = (((ulong)CLExceptionDomain.Http) << 32) | 5 // 1_5
+
+ - - Method invoked an unauthorized (401) response from the server, specifically due to expired session credentials
+ - Http_NotAuthorizedExpiredCredentials = (((ulong)CLExceptionDomain.Http) << 32) | 6 // 1_6
+
+ - - Method invoked a storage quota exceeded (507) response from the server
+ - Http_QuotaExceeded = (((ulong)CLExceptionDomain.Http) << 32) | 7 // 1_7
+
+ - - Unable to establish connection (possible local internet connection error or server is otherwise unreachable)
+ - Http_ConnectionFailed = (((ulong)CLExceptionDomain.Http) << 32) | 8 // 1_8
+
+ - - The current Syncbox is actively syncing so cannot make modifications
+ - Http_ReservedForActiveSync = (((ulong)CLExceptionDomain.Http) << 32) | 9 // 1_9
+
+ - - Error receiving response; communication attempted but did not complete
+ - Http_NoResponse = (((ulong)CLExceptionDomain.Http) << 32) | 10 // 1_10
+
+ - - Internal completion routine failed
+ - Http_CompletionFailure = (((ulong)CLExceptionDomain.Http) << 32) | 11 // 1_11
+
+## Syncbox ##
+ - - 
+
+ - - Error creating Http REST client
+ - Syncbox_CreateRestClient = (((ulong)CLExceptionDomain.Http) << 32) | 0 // 2_0
+
+ - - Directory required since trace is enabled
+ - Syncbox_TraceEnabledWithoutDirectory = (((ulong)CLExceptionDomain.Http) << 32) | 1 // 2_1
+
+ - - SyncRoot cannot contain path to the database
+ - Syncbox_DatabaseInsideSyncRoot = (((ulong)CLExceptionDomain.Http) << 32) | 2 // 2_2
+
+ - - SyncRoot cannot contain path for trace
+ - Syncbox_TraceInsideSyncRoot = (((ulong)CLExceptionDomain.Http) << 32) | 3 // 2_3
+
+ - - SyncRoot cannot contain temporary downloads
+ - Syncbox_TempDownloadsInsideSyncRoot = (((ulong)CLExceptionDomain.Http) << 32) | 4 // 2_4
+
+ - - DeviceId cannot be null
+ - Syncbox_DeviceId = (((ulong)CLExceptionDomain.Http) << 32) | 5 // 2_5
+
+ - - SyncRoot too long; check path first with [namespace, class name, and helper method for checking path length here]
+ - Syncbox_LongSyncRoot = (((ulong)CLExceptionDomain.Http) << 32) | 6 // 2_6
+
+ - - SyncRoot not valid for syncing; check path first with [namespace, class name, and helper method for checking path validity here]
+ - Syncbox_BadSyncRoot = (((ulong)CLExceptionDomain.Http) << 32) | 7 // 2_7
+
+ - - Error retrieving initial Syncbox status
+ - Syncbox_InitialStatus = (((ulong)CLExceptionDomain.Http) << 32) | 8 // 2_8
+
+## ShellExt ##
+ - - 
+
+ - - Error initializing the connection to [name of shell extension], likely not registered with system
+ - ShellExt_ExtensionInitialize = (((ulong)CLExceptionDomain.ShellExt) << 32) | 0 // 3_0
+
+ - - Error creating badging dictionary
+ - ShellExt_CreateBadgingDictionary = (((ulong)CLExceptionDomain.ShellExt) << 32) | 1 // 3_1
+
+## Syncing ##
+ - - 
+
+ - - Database access error
+ - Syncing_Database = (((ulong)CLExceptionDomain.Syncing) << 32) | 0 // 4_0
+
+ - - Live sync engine error
+ - Syncing_LiveSyncEngine = (((ulong)CLExceptionDomain.Syncing) << 32) | 1 // 4_1
+
+ - - Live sync index error
+ - Syncing_LiveSyncIndex = (((ulong)CLExceptionDomain.Syncing) << 32) | 2 // 4_2
+
+ - - Error in a syncing model class
+ - Syncing_Model = (((ulong)CLExceptionDomain.Syncing) << 32) | 3 // 4_3
