@@ -33,11 +33,6 @@ namespace Cloud.Static
         #region General
 
         /// <summary>
-        /// General success
-        /// </summary>
-        General_Success = (((ulong)CLExceptionDomain.General) << 32) | 0, // 0_0
-
-        /// <summary>
         /// General error
         /// </summary>
         General_Miscellaneous = (((ulong)CLExceptionDomain.General) << 32) | 1, // 0_1
@@ -51,6 +46,11 @@ namespace Cloud.Static
         /// Operation is not valid
         /// </summary>
         General_Invalid = (((ulong)CLExceptionDomain.General) << 32) | 3, // 0_3
+
+        /// <summary>
+        /// An exception occurred.  Inspect CLError.FirstException.
+        /// </summary>
+        General_SeeFirstException = (((ulong)CLExceptionDomain.General) << 32) | 4, // 0_4
 
         #endregion
 
@@ -189,14 +189,14 @@ namespace Cloud.Static
         Syncing_Database = (((ulong)CLExceptionDomain.Syncing) << 32) | 0, // 4_0
 
         /// <summary>
-        /// Active syncing engine error
+        /// Live sync engine error
         /// </summary>
-        Syncing_ActiveEngine = (((ulong)CLExceptionDomain.Syncing) << 32) | 1, // 4_1
+        Syncing_LiveSyncEngine = (((ulong)CLExceptionDomain.Syncing) << 32) | 1, // 4_1
 
         /// <summary>
-        /// Active syncing index error
+        /// Live sync index error
         /// </summary>
-        Syncing_ActiveIndex = (((ulong)CLExceptionDomain.Syncing) << 32) | 2, // 4_2
+        Syncing_LiveSyncIndex = (((ulong)CLExceptionDomain.Syncing) << 32) | 2, // 4_2
 
         /// <summary>
         /// Error in a syncing model class

@@ -1230,7 +1230,7 @@ namespace SampleLiveSync.ViewModels
                             else
                             {
                                 // create a Syncbox from an existing SyncboxId
-                                CLExceptionCode syncboxStatus = CLExceptionCode.General_Success;
+                                CLExceptionCode syncboxStatus = (CLExceptionCode)0;
                                 CLError errorCreateSyncbox = CLSyncbox.AllocAndInit(
                                     syncboxId: (long)SettingsAdvancedImpl.Instance.SyncboxId,
                                     credentials: syncCredentials,
@@ -1245,7 +1245,7 @@ namespace SampleLiveSync.ViewModels
                                     syncboxStatus = errorCreateSyncbox.PrimaryException.Code;
                                     _trace.writeToLog(1, "MainViewModel: StartSyncing: ERROR: From CLSyncbox.CreateAndInitialize: Msg: <{0}>.", errorCreateSyncbox.PrimaryException.Message);
                                 }
-                                if (syncboxStatus != CLExceptionCode.General_Success)
+                                if (syncboxStatus != (CLExceptionCode)0)
                                 {
                                     if (NotifyException != null)
                                     {
