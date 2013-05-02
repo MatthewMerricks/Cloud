@@ -800,7 +800,15 @@ namespace Cloud.PushNotification
                     if (_engineThread.Value != null)
                     {
                         _trace.writeToLog(9, "CLNotificationSseEngine: TimerExpired: Abort the engine thread.");
-                        _engineThread.Value.Abort();
+
+                        // a ThreadAbortException is expected here, silence it
+                        try 
+                        {
+                            _engineThread.Value.Abort();
+                        }
+                        catch
+                        {
+                        }
                     }
 
                     // Clean up any resources left over.

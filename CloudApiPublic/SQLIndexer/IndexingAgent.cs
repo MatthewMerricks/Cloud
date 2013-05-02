@@ -2265,7 +2265,7 @@ namespace Cloud.SQLIndexer
                         movePreviousesCommand.Transaction = castTransaction.sqlTransaction;
                         movePreviousesCommand.CommandText = "UPDATE Events " +
                             "SET PreviousId = ? " +
-                            "WHERE PreviousId = ? ";
+                            "WHERE PreviousId = ?";
 
                         ISQLiteParameter newPreviousId = movePreviousesCommand.CreateParameter();
                         newPreviousId.Value = existingEventObject.FileSystemObjectId;
@@ -2342,11 +2342,50 @@ namespace Cloud.SQLIndexer
                         {
                             moveOtherMatchingOldNames.Transaction = castTransaction.sqlTransaction;
 
+                            //// initial attempt to move all the other events at the same location to follow the rename to its new path
+                            //
+                            //moveOtherMatchingOldNames.CommandText = "UPDATE FileSystemObjects " +
+                            //    "SET ParentFolderId = ?, " + // <-- parameter 1
+                            //    "Name = ? " + // <-- parameter 2
+                            //    "WHERE ParentFolderId = ? " + // <-- parameter 3
+                            //    "AND Name = ?"; // <-- parameter 4
+
+                            // find lowest EventOrder with same ParentFolderId and Name with a greater EventOrder than the current object which also has an Event with a FileChangeTypeEnumId which represents either "created" or "renamed", if any
+                            // if this EventOrder is found, limit the above query by "AND EventOrder < [lowest EventOrder of create\rename]"
+
                             moveOtherMatchingOldNames.CommandText = "UPDATE FileSystemObjects " +
                                 "SET ParentFolderId = ?, " + // <-- parameter 1
                                 "Name = ? " + // <-- parameter 2
                                 "WHERE ParentFolderId = ? " + // <-- parameter 3
-                                "AND Name = ?"; // <-- parameter 4
+                                "AND Name = ? " + // <-- parameter 4
+                                "AND EventOrder < " +
+                                "(" +
+                                    "SELECT UpperExclusiveOrder " +
+                                    "FROM " +
+                                    "(" +
+                                        "SELECT MAX(InnerObjects.EventOrder) + 1 as UpperExclusiveOrder " +
+                                        "FROM FileSystemObjects InnerObjects" +
+                                        " " +
+                                        "UNION SELECT MIN(InnerObjects.EventOrder) " +
+                                        "FROM FileSystemObjects InnerObjects " +
+                                        "INNER JOIN Events ON InnerObjects.EventId = Events.EventId " +
+                                        "WHERE InnerObjects.EventOrder > ? " + // <-- parameter 5
+                                        "AND Events.FileChangeTypeEnumId IN (" + changeEnumsBackward[FileChangeType.Created].ToString() + ", " + changeEnumsBackward[FileChangeType.Renamed].ToString() + ")" +
+                                    ") " +
+
+                                    // first order to grab non-null event orders first
+                                    "ORDER BY " +
+                                    "CASE WHEN UpperExclusiveOrder IS NULL " +
+                                    "THEN 1 " +
+                                    "ELSE 0 " +
+                                    "END, " +
+
+                                    // then order by the event order itself (ascending)
+                                    "UpperExclusiveOrder " +
+
+                                    // only take the lowest event order (either the maximum or the lowest create or rename)
+                                    "LIMIT 1" +
+                                ")";
 
                             ISQLiteParameter newParentParam = moveOtherMatchingOldNames.CreateParameter();
                             newParentParam.Value = existingEventObject.ParentFolderId;
@@ -2363,6 +2402,10 @@ namespace Cloud.SQLIndexer
                             ISQLiteParameter oldNameParam = moveOtherMatchingOldNames.CreateParameter();
                             oldNameParam.Value = existingEventObject.Event.Previous.Name;
                             moveOtherMatchingOldNames.Parameters.Add(oldNameParam);
+
+                            ISQLiteParameter renameEventOrderParam = moveOtherMatchingOldNames.CreateParameter();
+                            renameEventOrderParam.Value = existingEventObject.EventOrder;
+                            moveOtherMatchingOldNames.Parameters.Add(renameEventOrderParam);
 
                             moveOtherMatchingOldNames.ExecuteNonQuery();
                         }

@@ -6202,7 +6202,7 @@ namespace Cloud.Sync
 
                 // build the first part of a message which will be sent to an event handler for error messages
                 string growlErrorMessage = "An error occurred downloading " +
-                    exceptionState.FileChange.FileChange.NewPath.ToString() + ": " +
+                    (exceptionState.FileChange.FileChange.NewPath == null ? "{Possibly cancelled upload or download}" : exceptionState.FileChange.FileChange.NewPath.ToString()) + ": " +
 
                     // Because of exception wrapping, the real cause of the error is probably in the message of the exception's inner inner exception,
                     // so attempt to grab it from there otherwise attempt to grab it from the exception's inner exception otherwise attempt to grab it from the exception itself
