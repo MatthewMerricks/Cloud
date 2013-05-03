@@ -32,6 +32,7 @@ namespace Cloud
         private IconOverlay _iconOverlay = null;
         private MonitorAgent _monitor = null;
         private IndexingAgent _indexer = null;
+        private Microsoft.Win32.SafeHandles.SafeFileHandle _syncboxPathCreateFile = null;
         private CLNotificationService _notifier = null;
         private bool _isStarted = false;
         private static CLTrace _trace = CLTrace.Instance;
@@ -605,73 +606,91 @@ namespace Cloud
                     }
                 }
 
-                bool caseMatches;
-                CLError caseCheckError = Helpers.DirectoryMatchesCaseWithDisk(_syncbox.CopiedSettings.SyncRoot,
-                    out caseMatches);
-
-                if (caseCheckError != null)
-                {
-                    _trace.writeToLog(1, "CLSyncEngine: ERROR: {0}.", checkBadPath.errorDescription);
-                    Status = CLSyncStartStatus.ErrorBadRootPath;
-                    return new ArgumentException("CloudRoot in settings represents a path which cannot be queried, check it first via Helpers.DirectoryMatchesCaseWithDisk", caseCheckError.GrabFirstException());
-                }
-
-                if (!caseMatches)
-                {
-                    const string badCaseErrorCreated = "A new directory was created on disk at the specified settings SyncRoot, but its resulting path does not match case";
-                    const string badCaseErrorExists = "An existing directory was found at the specified settings SyncRoot, but its path does not match case";
-                    _trace.writeToLog(1, "CLSyncEngine: ERROR: BadCase (1). {0}.", (alreadyExists ? badCaseErrorExists : badCaseErrorCreated));
-                     Status = CLSyncStartStatus.ErrorBadRootPath;
-                    if (alreadyExists)
-                    {
-                        return new Exception(badCaseErrorExists);
-                    }
-                    else
-                    {
-                        return new Exception(badCaseErrorCreated);
-                    }
-                }
-				
-                // Start badging
                 lock (_locker)
                 {
-                    _iconOverlay = new IconOverlay();
-                }
-                CLError iconOverlayError = _iconOverlay.Initialize(this._syncbox.CopiedSettings, this._syncbox.SyncboxId);
-                if (iconOverlayError != null)
-                {
-                    // Failure to start badging does not prevent syncing.  Just log it.
-                    _trace.writeToLog(1, "CLSyncEngine: Start: ERROR: Exception. Msg: {0}. Code: {1}.", iconOverlayError.errorDescription, ((int)iconOverlayError.code).ToString());
-                }
-
-                // Start the indexer.
-                _trace.writeToLog(9, "CLSyncEngine: Start: Start the indexer.");
-                CLError indexCreationError;
-                lock (_locker)
-                {
-                    indexCreationError = IndexingAgent.CreateNewAndInitialize(out _indexer, this._syncbox);
-                }
-                if (indexCreationError != null)
-                {
-                    if (reservedSyncbox
-                        && Syncbox != null)
+                    if (_syncboxPathCreateFile != null)
                     {
-                        Syncbox.ResetReserveForActiveSync();
+                        try
+                        {
+                            _syncboxPathCreateFile.Dispose();
+                        }
+                        catch
+                        {
+                        }
                     }
 
-                    _trace.writeToLog(1, "CLSyncEngine: Start: ERROR: Exception(2). Msg: {0}. Code: {1}.", indexCreationError.errorDescription, ((int)indexCreationError.code).ToString());
-                    ReleaseResources();
-                    Status = CLSyncStartStatus.ErrorIndexCreation;
-                    return indexCreationError;
+                    try
+                    {
+                        _syncboxPathCreateFile = NativeMethods.CreateFile(
+                            _syncbox.CopiedSettings.SyncRoot,
+                            FileAccess.Read,
+                            FileShare.Read | FileShare.Write,
+                            /* securityAttributes: */ IntPtr.Zero,
+                            FileMode.Open,
+                            (FileAttributes)NativeMethods.FileAttributesFileFlagBackupSemantics,
+                            /* template: */ IntPtr.Zero);
+                    }
+                    catch (Exception ex)
+                    {
+                        string CreateFileErrorString = string.Format(
+                            "CLSyncEngine: ERROR: CreateFile after checking Syncbox path. Msg: {0}",
+                            ex.Message);
+
+                        _trace.writeToLog(1, CreateFileErrorString);
+                        Status = CLSyncStartStatus.ErrorSyncboxFolderDoesNotExist;
+                        return new ArgumentException(CreateFileErrorString, ex);
+                    }
                 }
 
-                // Start the push notification.
-                _trace.writeToLog(9, "CLSyncEngine: Start: Start the notifier.");
-                lock (_locker)
+                try
                 {
-                    CLError getNotificationError = CLNotificationService.GetInstance(this._syncbox, out _notifier);
-                    if (getNotificationError != null
-                        || _notifier == null)
+                    bool caseMatches;
+                    CLError caseCheckError = Helpers.DirectoryMatchesCaseWithDisk(_syncbox.CopiedSettings.SyncRoot,
+                        out caseMatches);
+
+                    if (caseCheckError != null)
+                    {
+                        _trace.writeToLog(1, "CLSyncEngine: ERROR: {0}.", checkBadPath.errorDescription);
+                        Status = CLSyncStartStatus.ErrorBadRootPath;
+                        return new ArgumentException("CloudRoot in settings represents a path which cannot be queried, check it first via Helpers.DirectoryMatchesCaseWithDisk", caseCheckError.GrabFirstException());
+                    }
+
+                    if (!caseMatches)
+                    {
+                        const string badCaseErrorCreated = "A new directory was created on disk at the specified settings SyncRoot, but its resulting path does not match case";
+                        const string badCaseErrorExists = "An existing directory was found at the specified settings SyncRoot, but its path does not match case";
+                        _trace.writeToLog(1, "CLSyncEngine: ERROR: BadCase (1). {0}.", (alreadyExists ? badCaseErrorExists : badCaseErrorCreated));
+                        Status = CLSyncStartStatus.ErrorBadRootPath;
+                        if (alreadyExists)
+                        {
+                            return new Exception(badCaseErrorExists);
+                        }
+                        else
+                        {
+                            return new Exception(badCaseErrorCreated);
+                        }
+                    }
+
+                    // Start badging
+                    lock (_locker)
+                    {
+                        _iconOverlay = new IconOverlay();
+                    }
+                    CLError iconOverlayError = _iconOverlay.Initialize(this._syncbox.CopiedSettings, this._syncbox.SyncboxId);
+                    if (iconOverlayError != null)
+                    {
+                        // Failure to start badging does not prevent syncing.  Just log it.
+                        _trace.writeToLog(1, "CLSyncEngine: Start: ERROR: Exception. Msg: {0}. Code: {1}.", iconOverlayError.errorDescription, ((int)iconOverlayError.code).ToString());
+                    }
+
+                    // Start the indexer.
+                    _trace.writeToLog(9, "CLSyncEngine: Start: Start the indexer.");
+                    CLError indexCreationError;
+                    lock (_locker)
+                    {
+                        indexCreationError = IndexingAgent.CreateNewAndInitialize(out _indexer, this._syncbox);
+                    }
+                    if (indexCreationError != null)
                     {
                         if (reservedSyncbox
                             && Syncbox != null)
@@ -679,157 +698,197 @@ namespace Cloud
                             Syncbox.ResetReserveForActiveSync();
                         }
 
-                        CLError error;
-                        if (getNotificationError == null)
-                        {
-                            error = new Exception("Error starting push notification");
-                        }
-                        else
-                        {
-                            error = new AggregateException("An error occurred starting push notification", getNotificationError.GrabExceptions());
-                        }
-                        _trace.writeToLog(1, "CLSyncEngine: Start: ERROR(2): {0}.", error.errorDescription);
+                        _trace.writeToLog(1, "CLSyncEngine: Start: ERROR: Exception(2). Msg: {0}. Code: {1}.", indexCreationError.errorDescription, ((int)indexCreationError.code).ToString());
                         ReleaseResources();
-                        Status = CLSyncStartStatus.ErrorStartingNotification;
-                        return error;
-                    }
-                }
-
-                bool debugMemory;
-                lock (debugFileMonitorMemory)
-                {
-                    debugMemory = debugFileMonitorMemory.Value;
-                }
-
-                bool DependencyDebugging;
-                lock (debugDependencies)
-                {
-                    DependencyDebugging = debugDependencies.Value;
-                }
-
-                // Start the monitor
-                CLError fileMonitorCreationError;
-                lock (_locker)
-                {
-                    fileMonitorCreationError = MonitorAgent.CreateNewAndInitialize(this._syncbox,
-                        _indexer,
-                        this._syncbox.HttpRestClient,
-                        DependencyDebugging,
-                        statusUpdated,
-                        statusUpdatedUserState,
-                        out _monitor,
-                        out _syncEngine,
-                        debugMemory);
-                }
-
-                // Hook up the events
-                _trace.writeToLog(9, "CLSyncEngine: Start: Hook up events.");
-                _notifier.NotificationReceived += OnNotificationReceived;
-                _notifier.NotificationStillDisconnectedPing += OnNotificationPerformManualSyncFrom;
-                _notifier.ConnectionError += OnNotificationConnectionError;
-
-                if (fileMonitorCreationError != null)
-                {
-                    if (reservedSyncbox
-                        && Syncbox != null)
-                    {
-                        Syncbox.ResetReserveForActiveSync();
+                        Status = CLSyncStartStatus.ErrorIndexCreation;
+                        return indexCreationError;
                     }
 
-                    _trace.writeToLog(1, "CLSyncEngine: Start: ERROR(4): Msg: {0}. Code: {1}.", fileMonitorCreationError.errorDescription, ((int)fileMonitorCreationError.code).ToString());
+                    // Start the push notification.
+                    _trace.writeToLog(9, "CLSyncEngine: Start: Start the notifier.");
                     lock (_locker)
                     {
-                        _indexer.Dispose();
-                        _indexer = null;
-                    }
-                    ReleaseResources();
-                    Status = CLSyncStartStatus.ErrorCreatingFileMonitor;
-                    return fileMonitorCreationError;
-                }
-                else
-                {
-                    lock (_locker)
-                    {
-                        lock (NetworkMonitoredEngines)
+                        CLError getNotificationError = CLNotificationService.GetInstance(this._syncbox, out _notifier);
+                        if (getNotificationError != null
+                            || _notifier == null)
                         {
-                            bool startNetworkMonitor = NetworkMonitoredEngines.Count == 0;
-
-                            if (NetworkMonitoredEngines.Add(_syncEngine))
+                            if (reservedSyncbox
+                                && Syncbox != null)
                             {
-                                if (startNetworkMonitor)
+                                Syncbox.ResetReserveForActiveSync();
+                            }
+
+                            CLError error;
+                            if (getNotificationError == null)
+                            {
+                                error = new Exception("Error starting push notification");
+                            }
+                            else
+                            {
+                                error = new AggregateException("An error occurred starting push notification", getNotificationError.GrabExceptions());
+                            }
+                            _trace.writeToLog(1, "CLSyncEngine: Start: ERROR(2): {0}.", error.errorDescription);
+                            ReleaseResources();
+                            Status = CLSyncStartStatus.ErrorStartingNotification;
+                            return error;
+                        }
+                    }
+
+                    bool debugMemory;
+                    lock (debugFileMonitorMemory)
+                    {
+                        debugMemory = debugFileMonitorMemory.Value;
+                    }
+
+                    bool DependencyDebugging;
+                    lock (debugDependencies)
+                    {
+                        DependencyDebugging = debugDependencies.Value;
+                    }
+
+                    // Start the monitor
+                    CLError fileMonitorCreationError;
+                    lock (_locker)
+                    {
+                        fileMonitorCreationError = MonitorAgent.CreateNewAndInitialize(this._syncbox,
+                            _indexer,
+                            this._syncbox.HttpRestClient,
+                            DependencyDebugging,
+                            statusUpdated,
+                            statusUpdatedUserState,
+                            out _monitor,
+                            out _syncEngine,
+                            debugMemory);
+                    }
+
+                    // Hook up the events
+                    _trace.writeToLog(9, "CLSyncEngine: Start: Hook up events.");
+                    _notifier.NotificationReceived += OnNotificationReceived;
+                    _notifier.NotificationStillDisconnectedPing += OnNotificationPerformManualSyncFrom;
+                    _notifier.ConnectionError += OnNotificationConnectionError;
+
+                    if (fileMonitorCreationError != null)
+                    {
+                        if (reservedSyncbox
+                            && Syncbox != null)
+                        {
+                            Syncbox.ResetReserveForActiveSync();
+                        }
+
+                        _trace.writeToLog(1, "CLSyncEngine: Start: ERROR(4): Msg: {0}. Code: {1}.", fileMonitorCreationError.errorDescription, ((int)fileMonitorCreationError.code).ToString());
+                        lock (_locker)
+                        {
+                            _indexer.Dispose();
+                            _indexer = null;
+                        }
+                        ReleaseResources();
+                        Status = CLSyncStartStatus.ErrorCreatingFileMonitor;
+                        return fileMonitorCreationError;
+                    }
+                    else
+                    {
+                        lock (_locker)
+                        {
+                            lock (NetworkMonitoredEngines)
+                            {
+                                bool startNetworkMonitor = NetworkMonitoredEngines.Count == 0;
+
+                                if (NetworkMonitoredEngines.Add(_syncEngine))
                                 {
-                                    NetworkMonitor.Instance.NetworkChanged += NetworkChanged;
-                                    try
+                                    if (startNetworkMonitor)
                                     {
-                                        NetworkMonitor.Instance.StartNetworkMonitor();
-                                        SyncEngine.InternetConnected = NetworkMonitor.Instance.CheckInternetIsConnected();
-                                    }
-                                    catch
-                                    {
-                                        SyncEngine.InternetConnected = true;
-                                        NetworkMonitor.Instance.NetworkChanged -= NetworkChanged;
+                                        NetworkMonitor.Instance.NetworkChanged += NetworkChanged;
+                                        try
+                                        {
+                                            NetworkMonitor.Instance.StartNetworkMonitor();
+                                            SyncEngine.InternetConnected = NetworkMonitor.Instance.CheckInternetIsConnected();
+                                        }
+                                        catch
+                                        {
+                                            SyncEngine.InternetConnected = true;
+                                            NetworkMonitor.Instance.NetworkChanged -= NetworkChanged;
+                                        }
                                     }
                                 }
                             }
-                        }
 
-                        if (_monitor != null)
+                            if (_monitor != null)
+                            {
+                                try
+                                {
+                                    MonitorStatus returnStatus;
+                                    CLError fileMonitorStartError = _monitor.Start(out returnStatus);
+                                    if (fileMonitorStartError != null)
+                                    {
+                                        if (reservedSyncbox
+                                            && Syncbox != null)
+                                        {
+                                            Syncbox.ResetReserveForActiveSync();
+                                        }
+
+                                        _trace.writeToLog(1, "CLSyncEngine: Start: ERROR: Starting the MonitorAgent.  Msg: <{0}>. Code: {1}.", fileMonitorStartError.errorDescription, ((int)fileMonitorStartError.code).ToString());
+                                        ReleaseResources();
+                                        Status = CLSyncStartStatus.ErrorStartingFileMonitor;
+                                        return fileMonitorStartError;
+                                    }
+
+                                    CLError indexerStartError = _indexer.StartInitialIndexing(
+                                                    _monitor.BeginProcessing,
+                                                    _monitor.GetCurrentPath);
+                                    if (indexerStartError != null)
+                                    {
+                                        if (reservedSyncbox
+                                            && Syncbox != null)
+                                        {
+                                            Syncbox.ResetReserveForActiveSync();
+                                        }
+
+                                        _trace.writeToLog(1, "CLSyncEngine: Start: ERROR: Starting the initial indexing.  Msg: <{0}>. Code: {1}.", indexerStartError.errorDescription, ((int)indexerStartError.code).ToString());
+                                        ReleaseResources();
+                                        Status = CLSyncStartStatus.ErrorStartingInitialIndexing;
+                                        return indexerStartError;
+                                    }
+                                }
+                                catch (Exception ex)
+                                {
+                                    if (reservedSyncbox
+                                        && Syncbox != null)
+                                    {
+                                        Syncbox.ResetReserveForActiveSync();
+                                    }
+
+                                    CLError error = ex;
+                                    error.LogErrors(this._syncbox.CopiedSettings.TraceLocation, this._syncbox.CopiedSettings.LogErrors);
+                                    _trace.writeToLog(1, "CLSyncEngine: Start: ERROR: Exception(5).  Msg: <{0}>.", ex.Message);
+                                    ReleaseResources();
+                                    Status = CLSyncStartStatus.ErrorExceptionStartingFileMonitor;
+                                    return ex;
+                                }
+                            }
+                        }
+                    }
+
+                    Status = CLSyncStartStatus.Success;
+                }
+                catch
+                {
+                    lock (_locker)
+                    {
+                        if (_syncboxPathCreateFile != null)
                         {
                             try
                             {
-                                MonitorStatus returnStatus;
-                                CLError fileMonitorStartError = _monitor.Start(out returnStatus);
-                                if (fileMonitorStartError != null)
-                                {
-                                    if (reservedSyncbox
-                                        && Syncbox != null)
-                                    {
-                                        Syncbox.ResetReserveForActiveSync();
-                                    }
-
-                                    _trace.writeToLog(1, "CLSyncEngine: Start: ERROR: Starting the MonitorAgent.  Msg: <{0}>. Code: {1}.", fileMonitorStartError.errorDescription, ((int)fileMonitorStartError.code).ToString());
-                                    ReleaseResources();
-                                    Status = CLSyncStartStatus.ErrorStartingFileMonitor;
-                                    return fileMonitorStartError;
-                                }
-
-                                CLError indexerStartError = _indexer.StartInitialIndexing(
-                                                _monitor.BeginProcessing,
-                                                _monitor.GetCurrentPath);
-                                if (indexerStartError != null)
-                                {
-                                    if (reservedSyncbox
-                                        && Syncbox != null)
-                                    {
-                                        Syncbox.ResetReserveForActiveSync();
-                                    }
-
-                                    _trace.writeToLog(1, "CLSyncEngine: Start: ERROR: Starting the initial indexing.  Msg: <{0}>. Code: {1}.", indexerStartError.errorDescription, ((int)indexerStartError.code).ToString());
-                                    ReleaseResources();
-                                    Status = CLSyncStartStatus.ErrorStartingInitialIndexing;
-                                    return indexerStartError;
-                                }
+                                _syncboxPathCreateFile.Dispose();
                             }
-                            catch (Exception ex)
+                            catch
                             {
-                                if (reservedSyncbox
-                                    && Syncbox != null)
-                                {
-                                    Syncbox.ResetReserveForActiveSync();
-                                }
-
-                                CLError error = ex;
-                                error.LogErrors(this._syncbox.CopiedSettings.TraceLocation, this._syncbox.CopiedSettings.LogErrors);
-                                _trace.writeToLog(1, "CLSyncEngine: Start: ERROR: Exception(5).  Msg: <{0}>.", ex.Message);
-                                ReleaseResources();
-                                Status = CLSyncStartStatus.ErrorExceptionStartingFileMonitor;
-                                return ex;
                             }
+                            _syncboxPathCreateFile = null;
                         }
                     }
-                }
 
-                Status = CLSyncStartStatus.Success;
+                    throw;
+                }
             }
             catch (Exception ex)
             {
@@ -1032,6 +1091,19 @@ namespace Cloud
                 }
 
                 storeSyncbox = _syncbox;
+
+                if (_syncboxPathCreateFile != null)
+                {
+                    try
+                    {
+                        _syncboxPathCreateFile.Dispose();
+                    }
+                    catch (Exception ex)
+                    {
+                        toReturn += ex;
+                    }
+                    _syncboxPathCreateFile = null;
+                }
             }
 
             if (toReturn != null)
