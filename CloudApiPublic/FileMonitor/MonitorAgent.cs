@@ -1687,7 +1687,8 @@ namespace Cloud.FileMonitor
                     {
                         // Store a boolean whether to trigger an initial sync operation in case
                         // no changes occurred that would otherwise trigger sync
-                        bool triggerSyncWithNoChanges = true;
+                        // bool triggerSyncWithNoChanges = true;  RKS: Removed.  Push notification will trigger the initial sync from.
+                        bool triggerSyncWithNoChanges = false;
 
                         // only need to process new changes if the list exists
                         if (newChanges != null)
