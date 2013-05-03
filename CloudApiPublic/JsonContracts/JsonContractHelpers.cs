@@ -85,7 +85,21 @@ namespace Cloud.JsonContracts
         }
         private static DataContractJsonSerializer _getStatusResponseSerializer = null;
         private static readonly object GetStatusResponseSerializerLocker = new object();
-         
+        
+        public static DataContractJsonSerializer SyncboxDeleteResponseSerializer
+        {
+            get
+            {
+                lock (SyncboxDeleteResponseSerializerLocker)
+                {
+                    return _syncboxDeleteResponseSerializer
+                        ?? (_syncboxDeleteResponseSerializer = new DataContractJsonSerializer(typeof(JsonContracts.SyncboxDeleteResponse)));
+                }
+            }
+        }
+        private static DataContractJsonSerializer _syncboxDeleteResponseSerializer = null;
+        private static readonly object SyncboxDeleteResponseSerializerLocker = new object();
+
         public static DataContractJsonSerializer ToSerializer
         {
             get

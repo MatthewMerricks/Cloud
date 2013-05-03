@@ -2582,6 +2582,7 @@ namespace Cloud.Static
         {
             { typeof(JsonContracts.SyncboxMetadataResponse), JsonContractHelpers.GetMetadataResponseSerializer },
             { typeof(JsonContracts.SyncboxStatusResponse), JsonContractHelpers.GetStatusResponseSerializer },
+            { typeof(JsonContracts.SyncboxDeleteResponse), JsonContractHelpers.SyncboxDeleteResponseSerializer },
             { typeof(JsonContracts.NotificationResponse), JsonContractHelpers.NotificationResponseSerializer },
             { typeof(JsonContracts.PendingResponse), JsonContractHelpers.PendingResponseSerializer },
             { typeof(JsonContracts.PushResponse), JsonContractHelpers.PushResponseSerializer },
