@@ -30,6 +30,7 @@ namespace Cloud.PushNotification
         private CancelEngineTimeout _delegateCancelEngineTimeout = null;
         private DisposeEngineTimer _delegateDisposeEngineTimer = null;
         private SendNotificationEvent _delegateSendNotificationEvent = null;
+        private SendManualPoll _delegateSendManualPoll = null;
         private bool _isEngineThreadStarted = false;
         private bool _fToReturnIsSuccess = false;
         private readonly object _locker = new object();
@@ -100,7 +101,8 @@ namespace Cloud.PushNotification
                         StartEngineTimeout delegateStartEngineTimeout, 
                         CancelEngineTimeout delegateCancelEngineTimeout,
                         DisposeEngineTimer delegateDisposeEngineTimer,
-                        SendNotificationEvent delegateSendNotificationEvent)
+                        SendNotificationEvent delegateSendNotificationEvent,
+                        SendManualPoll delegateSendManualPoll)
         {
             if (syncbox == null)
             {
@@ -126,6 +128,10 @@ namespace Cloud.PushNotification
             {
                 throw new ArgumentNullException("delegateSendNotificationEvent must not be null");
             }
+            if (delegateSendManualPoll == null)
+            {
+                throw new ArgumentNullException("delegateSendManualPoll must not be null");
+            }
 
             _syncbox = syncbox;
             _copiedSettings = syncbox.CopiedSettings;
@@ -134,6 +140,7 @@ namespace Cloud.PushNotification
             _delegateCancelEngineTimeout = delegateCancelEngineTimeout;
             _delegateDisposeEngineTimer= delegateDisposeEngineTimer;
             _delegateSendNotificationEvent = delegateSendNotificationEvent;
+            _delegateSendManualPoll = delegateSendManualPoll;
         }
 
         public CLNotificationSseEngine()
@@ -382,6 +389,11 @@ namespace Cloud.PushNotification
                 switch (response.StatusCode)
                 {
                     case HttpStatusCode.OK: // continue reconnecting case, may or may not have data
+
+                        // We subscribed.
+                        // The push server can lose events because they are not queued.  Events can occur from other devices while we are momentarily disconnected from the push server.
+                        // The server regularly disconnects us, and we will resubscribe.  Send a manual poll every time we are reconnected.
+                        _delegateSendManualPoll();
 
                         // Get the stream associated with the response.
                         _delegateStartEngineTimeout(timeoutMilliseconds: CLDefinitions.HttpTimeoutDefaultMilliseconds);

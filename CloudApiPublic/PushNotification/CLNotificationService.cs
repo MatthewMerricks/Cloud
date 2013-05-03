@@ -452,7 +452,8 @@ namespace Cloud.PushNotification
                                                     delegateStartEngineTimeout: this.StartEngineTimeoutCallback,
                                                     delegateCancelEngineTimeout: this.CancelEngineTimeoutCallback,
                                                     delegateDisposeEngineTimer: this.DisposeEngineTimer,
-                                                    delegateSendNotificationEvent: this.SendNotificationEventCallback);
+                                                    delegateSendNotificationEvent: this.SendNotificationEventCallback,
+                                                    delegateSendManualPoll: this.SendManualPollCallback);
                                         _currentEngine = engineSse;
                                         _currentEngineIndex = engineIndex;
                                         break;
