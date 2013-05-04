@@ -9087,7 +9087,7 @@ namespace Cloud.Sync
 
                                                                     // return with the incremented name (or stay at the max int value and return with a true as well if the highest number is at int.MaxValue and a new incrementor needs to be added)
                                                                     return new KeyValuePair<bool, string>(highestNumFound == int.MaxValue,
-                                                                        mainName + " (" + (highestNumFound == int.MaxValue ? highestNumFound : highestNumFound + 1).ToString() + ")");
+                                                                        mainName + "(" + (highestNumFound == int.MaxValue ? highestNumFound : highestNumFound + 1).ToString() + ")");
                                                                 };
 
                                                                 // declare a string for the main name portion of the file name (before the last extension)
