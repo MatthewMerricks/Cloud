@@ -115,6 +115,357 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to aResult does not match expected internal type.
+        /// </summary>
+        internal static string CLHttpRestaResultInternalTypeMismatch {
+            get {
+                return ResourceManager.GetString("CLHttpRestaResultInternalTypeMismatch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot cast state as.
+        /// </summary>
+        internal static string CLHttpRestCannotCastStateAs {
+            get {
+                return ResourceManager.GetString("CLHttpRestCannotCastStateAs", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to deletionChange Direction is not To the server.
+        /// </summary>
+        internal static string CLHttpRestChangeDirectionIsNotToServer {
+            get {
+                return ResourceManager.GetString("CLHttpRestChangeDirectionIsNotToServer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to deletionChange is not of Type Deletion.
+        /// </summary>
+        internal static string CLHttpRestChangeIsNotOfTypeDeletion {
+            get {
+                return ResourceManager.GetString("CLHttpRestChangeIsNotOfTypeDeletion", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to toCommunicate cannot be null.
+        /// </summary>
+        internal static string CLHttpRestCommunicateCannotBeNull {
+            get {
+                return ResourceManager.GetString("CLHttpRestCommunicateCannotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to syncbox.CopiedSettings must not be null.
+        /// </summary>
+        internal static string CLHttpRestCopiedSettingsMustNotBeNull {
+            get {
+                return ResourceManager.GetString("CLHttpRestCopiedSettingsMustNotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to copyTargetPath cannot be null.
+        /// </summary>
+        internal static string CLHttpRestCopyPathCannotBeNull {
+            get {
+                return ResourceManager.GetString("CLHttpRestCopyPathCannotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Current Syncbox cannot be modified while in use in active syncing.
+        /// </summary>
+        internal static string CLHttpRestCurrentSyncboxCannotBeModifiedWhileSyncing {
+            get {
+                return ResourceManager.GetString("CLHttpRestCurrentSyncboxCannotBeModifiedWhileSyncing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to deletionChange cannot be null.
+        /// </summary>
+        internal static string CLHttpRestDeletionChangeCannotBeNull {
+            get {
+                return ResourceManager.GetString("CLHttpRestDeletionChangeCannotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to deletionChange Metadata ServerId must not be null.
+        /// </summary>
+        internal static string CLHttpRestDeletionChangeMetadataServerIDMustnotBeNull {
+            get {
+                return ResourceManager.GetString("CLHttpRestDeletionChangeMetadataServerIDMustnotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to settings DeviceId cannot be null.
+        /// </summary>
+        internal static string CLHttpRestDeviceIDCannotBeNull {
+            get {
+                return ResourceManager.GetString("CLHttpRestDeviceIDCannotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Folder path for temp download files is too long by.
+        /// </summary>
+        internal static string CLHttpRestFolderPathTooLong {
+            get {
+                return ResourceManager.GetString("CLHttpRestFolderPathTooLong", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to friendlyName must be specified.
+        /// </summary>
+        internal static string CLHttpRestFriendlyNameNotSpecified {
+            get {
+                return ResourceManager.GetString("CLHttpRestFriendlyNameNotSpecified", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to fullPath is not in the proper format.
+        /// </summary>
+        internal static string CLHttpRestFullPathBadFormat {
+            get {
+                return ResourceManager.GetString("CLHttpRestFullPathBadFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to fullPath does not contain settings SyncRoot.
+        /// </summary>
+        internal static string CLHttpRestFullPathDoesNotContainSettingsSyncRoot {
+            get {
+                return ResourceManager.GetString("CLHttpRestFullPathDoesNotContainSettingsSyncRoot", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Both fullPath and serverId cannot be null, at least one is required.
+        /// </summary>
+        internal static string CLHttpRestFullPathorServerIDRequired {
+            get {
+                return ResourceManager.GetString("CLHttpRestFullPathorServerIDRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to There was an internal error attempting to retrieve the progress, Error 1.
+        /// </summary>
+        internal static string CLHttpRestInternalPRogressRetreivalFailure1 {
+            get {
+                return ResourceManager.GetString("CLHttpRestInternalPRogressRetreivalFailure1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to There was an internal error attempting to retrieve the progress, Error 2.
+        /// </summary>
+        internal static string CLHttpRestInternalPRogressRetreivalFailure2 {
+            get {
+                return ResourceManager.GetString("CLHttpRestInternalPRogressRetreivalFailure2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MD5 lowercase string retrieved from Resources.CLHttpRestCommunicateCannotBeNull, set via toCommunicate.SetMD5.
+        /// </summary>
+        internal static string CLHttpRestMD5LowerCaseStringSet {
+            get {
+                return ResourceManager.GetString("CLHttpRestMD5LowerCaseStringSet", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to deletionChange Metadata cannot be null.
+        /// </summary>
+        internal static string CLHttpRestMetadataCannotBeNull {
+            get {
+                return ResourceManager.GetString("CLHttpRestMetadataCannotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to toCommunicate Metadata HashableProperties Size cannot be null.
+        /// </summary>
+        internal static string CLHttpRestMetadataHashablePropertiesSizeCannotBeNull {
+            get {
+                return ResourceManager.GetString("CLHttpRestMetadataHashablePropertiesSizeCannotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to toCommunicate Metadata Revision cannot be null.
+        /// </summary>
+        internal static string CLHttpRestMetaDataRevisionCannotBeNull {
+            get {
+                return ResourceManager.GetString("CLHttpRestMetaDataRevisionCannotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to toCommunicate NewPath cannot be null.
+        /// </summary>
+        internal static string CLHttpRestNewPathCannotBeNull {
+            get {
+                return ResourceManager.GetString("CLHttpRestNewPathCannotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to toCommunicate OldPath cannot be null.
+        /// </summary>
+        internal static string CLHttpRestOldPathCannotBeNull {
+            get {
+                return ResourceManager.GetString("CLHttpRestOldPathCannotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to planId must not be zero.
+        /// </summary>
+        internal static string CLHttpRestPlanIDCannotBeZero {
+            get {
+                return ResourceManager.GetString("CLHttpRestPlanIDCannotBeZero", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to pushRequest must not be null.
+        /// </summary>
+        internal static string CLHttpRestPushRequestMustNotBeNull {
+            get {
+                return ResourceManager.GetString("CLHttpRestPushRequestMustNotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to syncbox Credential cannot be null.
+        /// </summary>
+        internal static string CLHttpRestsyncboxCredentialCannotBeNull {
+            get {
+                return ResourceManager.GetString("CLHttpRestsyncboxCredentialCannotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to syncbox must not be null.
+        /// </summary>
+        internal static string CLHttpRestSyncboxMustNotBeNull {
+            get {
+                return ResourceManager.GetString("CLHttpRestSyncboxMustNotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to settings SyncRoot represents a bad path.
+        /// </summary>
+        internal static string CLHttpRestSyncRootBadPath {
+            get {
+                return ResourceManager.GetString("CLHttpRestSyncRootBadPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to settings SyncRoot cannot be null.
+        /// </summary>
+        internal static string CLHttpRestSyncRootCannotBeNull {
+            get {
+                return ResourceManager.GetString("CLHttpRestSyncRootCannotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to syncToRequest must not be null.
+        /// </summary>
+        internal static string CLHttpRestSyncToRequestMustNotBeNull {
+            get {
+                return ResourceManager.GetString("CLHttpRestSyncToRequestMustNotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The customDownloadFolderFullPath is bad.
+        /// </summary>
+        internal static string CLHttpRestThecustomDownloadFolderFullPathIsBad {
+            get {
+                return ResourceManager.GetString("CLHttpRestThecustomDownloadFolderFullPathIsBad", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to timeoutMilliseconds must be greater than zero.
+        /// </summary>
+        internal static string CLHttpRestTimeoutMustBeGreaterThanZero {
+            get {
+                return ResourceManager.GetString("CLHttpRestTimeoutMustBeGreaterThanZero", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to toCommunicate cannot be both a folder and of type Modified.
+        /// </summary>
+        internal static string CLHttpRestToCommunicateCannotBeFolderandModified {
+            get {
+                return ResourceManager.GetString("CLHttpRestToCommunicateCannotBeFolderandModified", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to toCommunicate Direction is not To the server.
+        /// </summary>
+        internal static string CLHttpRestToCommunicateDirectionisNotToServer {
+            get {
+                return ResourceManager.GetString("CLHttpRestToCommunicateDirectionisNotToServer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to toCommunicate Metadata cannot be null.
+        /// </summary>
+        internal static string CLHttpRestToCommunicateMetedataCannotBeNull {
+            get {
+                return ResourceManager.GetString("CLHttpRestToCommunicateMetedataCannotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to toCommunicate Type is an unknown FileChangeType: .
+        /// </summary>
+        internal static string CLHttpRestToCommunicateTypeIsUnknownFileChangeType {
+            get {
+                return ResourceManager.GetString("CLHttpRestToCommunicateTypeIsUnknownFileChangeType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Either toCommunicate NewPath must not be null or toCommunicate Metadata ServerId must not be null or both must not be null.
+        /// </summary>
+        internal static string CLHttpRestXORNewPathServerIDCannotBeNull {
+            get {
+                return ResourceManager.GetString("CLHttpRestXORNewPathServerIDCannotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Either pathToFile must not be null or fileServerId must not be null or both must not be null.
+        /// </summary>
+        internal static string CLHttpRestXORPathtoFileFileServerIDMustNotBeNull {
+            get {
+                return ResourceManager.GetString("CLHttpRestXORPathtoFileFileServerIDMustNotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to ProgramData\Microsoft\Windows.
         /// </summary>
         internal static string CommonStartMenuParentFolderNameVista {

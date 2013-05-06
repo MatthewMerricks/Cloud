@@ -136,6 +136,126 @@
   <data name="BytesSingular" xml:space="preserve">
     <value>Byte</value>
   </data>
+  <data name="CLHttpRestaResultInternalTypeMismatch" xml:space="preserve">
+    <value>aResult does not match expected internal type</value>
+    <comment>Internal Type Mismatch</comment>
+  </data>
+  <data name="CLHttpRestCannotCastStateAs" xml:space="preserve">
+    <value>Cannot cast state as</value>
+  </data>
+  <data name="CLHttpRestChangeDirectionIsNotToServer" xml:space="preserve">
+    <value>deletionChange Direction is not To the server</value>
+  </data>
+  <data name="CLHttpRestChangeIsNotOfTypeDeletion" xml:space="preserve">
+    <value>deletionChange is not of Type Deletion</value>
+  </data>
+  <data name="CLHttpRestCommunicateCannotBeNull" xml:space="preserve">
+    <value>toCommunicate cannot be null</value>
+  </data>
+  <data name="CLHttpRestCopiedSettingsMustNotBeNull" xml:space="preserve">
+    <value>syncbox.CopiedSettings must not be null</value>
+  </data>
+  <data name="CLHttpRestCopyPathCannotBeNull" xml:space="preserve">
+    <value>copyTargetPath cannot be null</value>
+  </data>
+  <data name="CLHttpRestCurrentSyncboxCannotBeModifiedWhileSyncing" xml:space="preserve">
+    <value>Current Syncbox cannot be modified while in use in active syncing</value>
+  </data>
+  <data name="CLHttpRestDeletionChangeCannotBeNull" xml:space="preserve">
+    <value>deletionChange cannot be null</value>
+  </data>
+  <data name="CLHttpRestDeletionChangeMetadataServerIDMustnotBeNull" xml:space="preserve">
+    <value>deletionChange Metadata ServerId must not be null</value>
+  </data>
+  <data name="CLHttpRestDeviceIDCannotBeNull" xml:space="preserve">
+    <value>settings DeviceId cannot be null</value>
+  </data>
+  <data name="CLHttpRestFolderPathTooLong" xml:space="preserve">
+    <value>Folder path for temp download files is too long by</value>
+  </data>
+  <data name="CLHttpRestFriendlyNameNotSpecified" xml:space="preserve">
+    <value>friendlyName must be specified</value>
+  </data>
+  <data name="CLHttpRestFullPathBadFormat" xml:space="preserve">
+    <value>fullPath is not in the proper format</value>
+  </data>
+  <data name="CLHttpRestFullPathDoesNotContainSettingsSyncRoot" xml:space="preserve">
+    <value>fullPath does not contain settings SyncRoot</value>
+  </data>
+  <data name="CLHttpRestFullPathorServerIDRequired" xml:space="preserve">
+    <value>Both fullPath and serverId cannot be null, at least one is required</value>
+  </data>
+  <data name="CLHttpRestInternalPRogressRetreivalFailure1" xml:space="preserve">
+    <value>There was an internal error attempting to retrieve the progress, Error 1</value>
+  </data>
+  <data name="CLHttpRestInternalPRogressRetreivalFailure2" xml:space="preserve">
+    <value>There was an internal error attempting to retrieve the progress, Error 2</value>
+  </data>
+  <data name="CLHttpRestMD5LowerCaseStringSet" xml:space="preserve">
+    <value>MD5 lowercase string retrieved from Resources.CLHttpRestCommunicateCannotBeNull, set via toCommunicate.SetMD5</value>
+  </data>
+  <data name="CLHttpRestMetadataCannotBeNull" xml:space="preserve">
+    <value>deletionChange Metadata cannot be null</value>
+  </data>
+  <data name="CLHttpRestMetadataHashablePropertiesSizeCannotBeNull" xml:space="preserve">
+    <value>toCommunicate Metadata HashableProperties Size cannot be null</value>
+  </data>
+  <data name="CLHttpRestMetaDataRevisionCannotBeNull" xml:space="preserve">
+    <value>toCommunicate Metadata Revision cannot be null</value>
+  </data>
+  <data name="CLHttpRestNewPathCannotBeNull" xml:space="preserve">
+    <value>toCommunicate NewPath cannot be null</value>
+  </data>
+  <data name="CLHttpRestOldPathCannotBeNull" xml:space="preserve">
+    <value>toCommunicate OldPath cannot be null</value>
+  </data>
+  <data name="CLHttpRestPlanIDCannotBeZero" xml:space="preserve">
+    <value>planId must not be zero</value>
+  </data>
+  <data name="CLHttpRestPushRequestMustNotBeNull" xml:space="preserve">
+    <value>pushRequest must not be null</value>
+  </data>
+  <data name="CLHttpRestsyncboxCredentialCannotBeNull" xml:space="preserve">
+    <value>syncbox Credential cannot be null</value>
+    <comment>syncbox feild must be filled</comment>
+  </data>
+  <data name="CLHttpRestSyncboxMustNotBeNull" xml:space="preserve">
+    <value>syncbox must not be null</value>
+  </data>
+  <data name="CLHttpRestSyncRootBadPath" xml:space="preserve">
+    <value>settings SyncRoot represents a bad path</value>
+    <comment>Path invalid</comment>
+  </data>
+  <data name="CLHttpRestSyncRootCannotBeNull" xml:space="preserve">
+    <value>settings SyncRoot cannot be null</value>
+  </data>
+  <data name="CLHttpRestSyncToRequestMustNotBeNull" xml:space="preserve">
+    <value>syncToRequest must not be null</value>
+  </data>
+  <data name="CLHttpRestThecustomDownloadFolderFullPathIsBad" xml:space="preserve">
+    <value>The customDownloadFolderFullPath is bad</value>
+  </data>
+  <data name="CLHttpRestTimeoutMustBeGreaterThanZero" xml:space="preserve">
+    <value>timeoutMilliseconds must be greater than zero</value>
+  </data>
+  <data name="CLHttpRestToCommunicateCannotBeFolderandModified" xml:space="preserve">
+    <value>toCommunicate cannot be both a folder and of type Modified</value>
+  </data>
+  <data name="CLHttpRestToCommunicateDirectionisNotToServer" xml:space="preserve">
+    <value>toCommunicate Direction is not To the server</value>
+  </data>
+  <data name="CLHttpRestToCommunicateMetedataCannotBeNull" xml:space="preserve">
+    <value>toCommunicate Metadata cannot be null</value>
+  </data>
+  <data name="CLHttpRestToCommunicateTypeIsUnknownFileChangeType" xml:space="preserve">
+    <value>toCommunicate Type is an unknown FileChangeType: </value>
+  </data>
+  <data name="CLHttpRestXORNewPathServerIDCannotBeNull" xml:space="preserve">
+    <value>Either toCommunicate NewPath must not be null or toCommunicate Metadata ServerId must not be null or both must not be null</value>
+  </data>
+  <data name="CLHttpRestXORPathtoFileFileServerIDMustNotBeNull" xml:space="preserve">
+    <value>Either pathToFile must not be null or fileServerId must not be null or both must not be null</value>
+  </data>
   <data name="CommonStartMenuParentFolderNameVista" xml:space="preserve">
     <value>ProgramData\Microsoft\Windows</value>
     <comment>Vista and up; defined translations must perfectly match Microsoft documentation</comment>

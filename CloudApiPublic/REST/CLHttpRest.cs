@@ -97,7 +97,7 @@ namespace Cloud.REST
         {
             if (syncbox.Credential == null)
             {
-                throw new NullReferenceException("syncbox Credential cannot be null");
+                throw new NullReferenceException(Resources.CLHttpRestsyncboxCredentialCannotBeNull);
             }
 
             this._syncbox = syncbox;
@@ -115,7 +115,7 @@ namespace Cloud.REST
                 CLError syncRootError = Helpers.CheckForBadPath(this._copiedSettings.SyncRoot);
                 if (syncRootError != null)
                 {
-                    throw new AggregateException("settings SyncRoot represents a bad path", syncRootError.Exceptions);
+                    throw new AggregateException(Resources.CLHttpRestSyncRootBadPath, syncRootError.Exceptions);
                 }
             }
 
@@ -212,7 +212,7 @@ namespace Cloud.REST
                 if (castState == null)
                 {
                     MessageEvents.FireNewEventMessage(
-                        "Cannot cast state as " + Helpers.GetTypeNameEvenForNulls(castState),
+                        Resources.CLHttpRestCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
                         EventMessageLevel.Important,
                         new HaltAllOfCloudSDKErrorInfo());
                 }
@@ -298,7 +298,7 @@ namespace Cloud.REST
                 // if try casting the asynchronous result failed, throw an error
                 if (castAResult == null)
                 {
-                    throw new NullReferenceException("aResult does not match expected internal type");
+                    throw new NullReferenceException(Resources.CLHttpRestaResultInternalTypeMismatch);
                 }
 
                 // try to cast the asynchronous result internal state as the holder for the progress
@@ -307,7 +307,7 @@ namespace Cloud.REST
                 // if trying to cast the internal state as the holder for progress failed, then throw an error (non-descriptive since it's our error)
                 if (iState == null)
                 {
-                    throw new Exception("There was an internal error attempting to retrieve the progress, Error 1");
+                    throw new Exception(Resources.CLHttpRestInternalPRogressRetreivalFailure1);
                 }
 
                 // lock on the holder and retrieve the progress for output
@@ -345,7 +345,7 @@ namespace Cloud.REST
                 // if trying to cast the asynchronous result failed, then throw an error
                 if (castAResult == null)
                 {
-                    throw new NullReferenceException("aResult does not match expected internal type");
+                    throw new NullReferenceException(Resources.CLHttpRestaResultInternalTypeMismatch);
                 }
 
                 // pull the result for output (may not yet be complete)
@@ -480,7 +480,7 @@ namespace Cloud.REST
 
                 if (timeoutMilliseconds <= 0)
                 {
-                    throw new ArgumentException("timeoutMilliseconds must be greater than zero");
+                    throw new ArgumentException(Resources.CLHttpRestTimeoutMustBeGreaterThanZero);
                 }
 
                 // declare the path for the folder which will store temp download files
@@ -508,13 +508,13 @@ namespace Cloud.REST
                 // if the temp download folder is a bad path rethrow the error
                 if (badTempFolderError != null)
                 {
-                    throw new AggregateException("The customDownloadFolderFullPath is bad", badTempFolderError.Exceptions);
+                    throw new AggregateException(Resources.CLHttpRestThecustomDownloadFolderFullPathIsBad, badTempFolderError.Exceptions);
                 }
 
                 // if the folder path for downloads is too long, then throw an exception
                 if (currentDownloadFolder.Length > 222) // 222 calculated by 259 max path length minus 1 character for a folder slash seperator plus 36 characters for (Guid).ToString("N")
                 {
-                    throw new ArgumentException("Folder path for temp download files is too long by " + (currentDownloadFolder.Length - 222).ToString());
+                    throw new ArgumentException(Resources.CLHttpRestFolderPathTooLong + (currentDownloadFolder.Length - 222).ToString());
                 }
 
                 // build the location of the metadata retrieval method on the server dynamically
@@ -624,7 +624,7 @@ namespace Cloud.REST
                 if (castState == null)
                 {
                     MessageEvents.FireNewEventMessage(
-                        "Cannot cast state as " + Helpers.GetTypeNameEvenForNulls(castState),
+                        Resources.CLHttpRestCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
                         EventMessageLevel.Important,
                         new HaltAllOfCloudSDKErrorInfo());
                 }
@@ -711,7 +711,7 @@ namespace Cloud.REST
                 // if try casting the asynchronous result failed, throw an error
                 if (castAResult == null)
                 {
-                    throw new NullReferenceException("aResult does not match expected internal type");
+                    throw new NullReferenceException(Resources.CLHttpRestaResultInternalTypeMismatch);
                 }
 
                 // try to cast the asynchronous result internal state as the holder for the progress
@@ -720,7 +720,7 @@ namespace Cloud.REST
                 // if trying to cast the internal state as the holder for progress failed, then throw an error (non-descriptive since it's our error)
                 if (iState == null)
                 {
-                    throw new Exception("There was an internal error attempting to retrieve the progress, Error 2");
+                    throw new Exception(Resources.CLHttpRestInternalPRogressRetreivalFailure2);
                 }
 
                 // lock on the holder and retrieve the progress for output
@@ -758,7 +758,7 @@ namespace Cloud.REST
                 // if trying to cast the asynchronous result failed, then throw an error
                 if (castAResult == null)
                 {
-                    throw new NullReferenceException("aResult does not match expected internal type");
+                    throw new NullReferenceException(Resources.CLHttpRestaResultInternalTypeMismatch);
                 }
 
                 // pull the result for output (may not yet be complete)
@@ -880,11 +880,11 @@ namespace Cloud.REST
 
                 if (timeoutMilliseconds <= 0)
                 {
-                    throw new ArgumentException("timeoutMilliseconds must be greater than zero");
+                    throw new ArgumentException(Resources.CLHttpRestTimeoutMustBeGreaterThanZero);
                 }
                 if (string.IsNullOrEmpty(_copiedSettings.DeviceId))
                 {
-                    throw new NullReferenceException("settings DeviceId cannot be null");
+                    throw new NullReferenceException(Resources.CLHttpRestDeviceIDCannotBeNull);
                 }
 
 
@@ -1022,7 +1022,7 @@ namespace Cloud.REST
                 if (castState == null)
                 {
                     MessageEvents.FireNewEventMessage(
-                        "Cannot cast state as " + Helpers.GetTypeNameEvenForNulls(castState),
+                        Resources.CLHttpRestCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
                         EventMessageLevel.Important,
                         new HaltAllOfCloudSDKErrorInfo());
                 }
@@ -1094,7 +1094,7 @@ namespace Cloud.REST
                 // if trying to cast the asynchronous result failed, then throw an error
                 if (castAResult == null)
                 {
-                    throw new NullReferenceException("aResult does not match expected internal type");
+                    throw new NullReferenceException(Resources.CLHttpRestaResultInternalTypeMismatch);
                 }
 
                 // pull the result for output (may not yet be complete)
@@ -1184,29 +1184,29 @@ namespace Cloud.REST
                 if (fullPath == null
                     && string.IsNullOrEmpty(serverId))
                 {
-                    throw new NullReferenceException("Both fullPath and serverId cannot be null, at least one is required");
+                    throw new NullReferenceException(Resources.CLHttpRestFullPathorServerIDRequired);
                 }
                 if (fullPath != null)
                 {
                     CLError pathError = Helpers.CheckForBadPath(fullPath);
                     if (pathError != null)
                     {
-                        throw new AggregateException("fullPath is not in the proper format", pathError.Exceptions);
+                        throw new AggregateException(Resources.CLHttpRestFullPathBadFormat, pathError.Exceptions);
                     }
 
                     if (string.IsNullOrEmpty(_copiedSettings.SyncRoot))
                     {
-                        throw new NullReferenceException("settings SyncRoot cannot be null");
+                        throw new NullReferenceException(Resources.CLHttpRestSyncRootCannotBeNull);
                     }
 
                     if (!fullPath.Contains(_copiedSettings.SyncRoot))
                     {
-                        throw new ArgumentException("fullPath does not contain settings SyncRoot");
+                        throw new ArgumentException(Resources.CLHttpRestFullPathDoesNotContainSettingsSyncRoot);
                     }
                 }
                 if (!(timeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException("timeoutMilliseconds must be greater than zero");
+                    throw new ArgumentException(Resources.CLHttpRestTimeoutMustBeGreaterThanZero);
                 }
 
                 // build the location of the metadata retrieval method on the server dynamically
@@ -1292,7 +1292,7 @@ namespace Cloud.REST
                 if (castState == null)
                 {
                     MessageEvents.FireNewEventMessage(
-                        "Cannot cast state as " + Helpers.GetTypeNameEvenForNulls(castState),
+                        Resources.CLHttpRestCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
                         EventMessageLevel.Important,
                         new HaltAllOfCloudSDKErrorInfo());
                 }
@@ -1361,7 +1361,7 @@ namespace Cloud.REST
                 // if trying to cast the asynchronous result failed, then throw an error
                 if (castAResult == null)
                 {
-                    throw new NullReferenceException("aResult does not match expected internal type");
+                    throw new NullReferenceException(Resources.CLHttpRestaResultInternalTypeMismatch);
                 }
 
                 // pull the result for output (may not yet be complete)
@@ -1419,11 +1419,11 @@ namespace Cloud.REST
 
                 if (!(timeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException("timeoutMilliseconds must be greater than zero");
+                    throw new ArgumentException(Resources.CLHttpRestTimeoutMustBeGreaterThanZero);
                 }
                 if (string.IsNullOrEmpty(_copiedSettings.DeviceId))
                 {
-                    throw new NullReferenceException("settings DeviceId cannot be null");
+                    throw new NullReferenceException(Resources.CLHttpRestDeviceIDCannotBeNull);
                 }
 
                 // build the location of the pending retrieval method on the server dynamically
@@ -1507,7 +1507,7 @@ namespace Cloud.REST
                 if (castState == null)
                 {
                     MessageEvents.FireNewEventMessage(
-                        "Cannot cast state as " + Helpers.GetTypeNameEvenForNulls(castState),
+                        Resources.CLHttpRestCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
                         EventMessageLevel.Important,
                         new HaltAllOfCloudSDKErrorInfo());
                 }
@@ -1577,7 +1577,7 @@ namespace Cloud.REST
                 // if trying to cast the asynchronous result failed, then throw an error
                 if (castAResult == null)
                 {
-                    throw new NullReferenceException("aResult does not match expected internal type");
+                    throw new NullReferenceException(Resources.CLHttpRestaResultInternalTypeMismatch);
                 }
 
                 // pull the result for output (may not yet be complete)
@@ -1638,32 +1638,32 @@ namespace Cloud.REST
 
                 if (toCommunicate == null)
                 {
-                    throw new NullReferenceException("toCommunicate cannot be null");
+                    throw new NullReferenceException(Resources.CLHttpRestCommunicateCannotBeNull);
                 }
                 if (toCommunicate.Direction == SyncDirection.From)
                 {
-                    throw new ArgumentException("toCommunicate Direction is not To the server");
+                    throw new ArgumentException(Resources.CLHttpRestToCommunicateDirectionisNotToServer);
                 }
                 if (toCommunicate.Metadata == null)
                 {
-                    throw new NullReferenceException("toCommunicate Metadata cannot be null");
+                    throw new NullReferenceException(Resources.CLHttpRestToCommunicateMetedataCannotBeNull);
                 }
                 if (toCommunicate.Type == FileChangeType.Modified
                     && toCommunicate.Metadata.HashableProperties.IsFolder)
                 {
-                    throw new ArgumentException("toCommunicate cannot be both a folder and of type Modified");
+                    throw new ArgumentException(Resources.CLHttpRestToCommunicateCannotBeFolderandModified);
                 }
                 if (_copiedSettings.DeviceId == null)
                 {
-                    throw new NullReferenceException("settings DeviceId cannot be null");
+                    throw new NullReferenceException(Resources.CLHttpRestDeviceIDCannotBeNull);
                 }
                 if (_copiedSettings.SyncRoot == null)
                 {
-                    throw new NullReferenceException("settings SyncRoot cannot be null");
+                    throw new NullReferenceException(Resources.CLHttpRestSyncRootCannotBeNull);
                 }
                 if (!(timeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException("timeoutMilliseconds must be greater than zero");
+                    throw new ArgumentException(Resources.CLHttpRestTimeoutMustBeGreaterThanZero);
                 }
 
                 // build the location of the one-off method on the server dynamically
@@ -1680,7 +1680,7 @@ namespace Cloud.REST
 
                         if (toCommunicate.NewPath == null)
                         {
-                            throw new NullReferenceException("toCommunicate NewPath cannot be null");
+                            throw new NullReferenceException(Resources.CLHttpRestNewPathCannotBeNull);
                         }
 
                         // if change is a folder, set path and create request content for folder creation
@@ -1705,11 +1705,11 @@ namespace Cloud.REST
 
                             if (string.IsNullOrEmpty(addHashString))
                             {
-                                throw new NullReferenceException("MD5 lowercase string retrieved from toCommunicate cannot be null, set via toCommunicate.SetMD5");
+                                throw new NullReferenceException(Resources.CLHttpRestMD5LowerCaseStringSet);
                             }
                             if (toCommunicate.Metadata.HashableProperties.Size == null)
                             {
-                                throw new NullReferenceException("toCommunicate Metadata HashableProperties Size cannot be null");
+                                throw new NullReferenceException(Resources.CLHttpRestMetadataHashablePropertiesSizeCannotBeNull);
                             }
 
                             serverMethodPath = CLDefinitions.MethodPathOneOffFileCreate;
@@ -1735,7 +1735,7 @@ namespace Cloud.REST
                         if (toCommunicate.NewPath == null
                             && string.IsNullOrEmpty(toCommunicate.Metadata.ServerUid))
                         {
-                            throw new NullReferenceException("Either toCommunicate NewPath must not be null or toCommunicate Metadata ServerId must not be null or both must not be null");
+                            throw new NullReferenceException(Resources.CLHttpRestXORNewPathServerIDCannotBeNull);
                         }
 
                         // file deletion and folder deletion share a json contract object for deletion
@@ -1766,20 +1766,20 @@ namespace Cloud.REST
 
                         if (string.IsNullOrEmpty(modifyHashString))
                         {
-                            throw new NullReferenceException("MD5 lowercase string retrieved from toCommunicate cannot be null, set via toCommunicate.SetMD5");
+                            throw new NullReferenceException(Resources.CLHttpRestMD5LowerCaseStringSet);
                         }
                         if (toCommunicate.Metadata.HashableProperties.Size == null)
                         {
-                            throw new NullReferenceException("toCommunicate Metadata HashableProperties Size cannot be null");
+                            throw new NullReferenceException(Resources.CLHttpRestMetadataHashablePropertiesSizeCannotBeNull);
                         }
                         if (toCommunicate.NewPath == null
                             && string.IsNullOrEmpty(toCommunicate.Metadata.ServerUid))
                         {
-                            throw new NullReferenceException("Either toCommunicate NewPath must not be null or toCommunicate Metadata ServerId must not be null or both must not be null");
+                            throw new NullReferenceException(Resources.CLHttpRestXORNewPathServerIDCannotBeNull);
                         }
                         if (string.IsNullOrEmpty(toCommunicate.Metadata.Revision))
                         {
-                            throw new NullReferenceException("toCommunicate Metadata Revision cannot be null");
+                            throw new NullReferenceException(Resources.CLHttpRestMetaDataRevisionCannotBeNull);
                         }
 
                         // there is no folder modify, so json contract object and server method path for modify are only for files
@@ -1810,11 +1810,11 @@ namespace Cloud.REST
                         if (toCommunicate.NewPath == null
                             && string.IsNullOrEmpty(toCommunicate.Metadata.ServerUid))
                         {
-                            throw new NullReferenceException("Either toCommunicate NewPath must not be null or toCommunicate Metadata ServerId must not be null or both must not be null");
+                            throw new NullReferenceException(Resources.CLHttpRestXORNewPathServerIDCannotBeNull);
                         }
                         if (toCommunicate.OldPath == null)
                         {
-                            throw new NullReferenceException("toCommunicate OldPath cannot be null");
+                            throw new NullReferenceException(Resources.CLHttpRestOldPathCannotBeNull);
                         }
 
                         // file move (rename) and folder move (rename) share a json contract object for move (rename)
@@ -1838,7 +1838,7 @@ namespace Cloud.REST
                         break;
 
                     default:
-                        throw new ArgumentException("toCommunicate Type is an unknown FileChangeType: " + toCommunicate.Type.ToString());
+                        throw new ArgumentException(Resources.CLHttpRestToCommunicateTypeIsUnknownFileChangeType + toCommunicate.Type.ToString());
                 }
 
                 // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
@@ -1908,7 +1908,7 @@ namespace Cloud.REST
                 if (castState == null)
                 {
                     MessageEvents.FireNewEventMessage(
-                        "Cannot cast state as " + Helpers.GetTypeNameEvenForNulls(castState),
+                        Resources.CLHttpRestCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
                         EventMessageLevel.Important,
                         new HaltAllOfCloudSDKErrorInfo());
                 }
@@ -1978,7 +1978,7 @@ namespace Cloud.REST
                 // if trying to cast the asynchronous result failed, then throw an error
                 if (castAResult == null)
                 {
-                    throw new NullReferenceException("aResult does not match expected internal type");
+                    throw new NullReferenceException(Resources.CLHttpRestaResultInternalTypeMismatch);
                 }
 
                 // pull the result for output (may not yet be complete)
@@ -2037,35 +2037,35 @@ namespace Cloud.REST
 
                 if (!(timeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException("timeoutMilliseconds must be greater than zero");
+                    throw new ArgumentException(Resources.CLHttpRestTimeoutMustBeGreaterThanZero);
                 }
                 if (deletionChange == null)
                 {
-                    throw new NullReferenceException("deletionChange cannot be null");
+                    throw new NullReferenceException(Resources.CLHttpRestDeletionChangeCannotBeNull);
                 }
                 if (deletionChange.Direction == SyncDirection.From)
                 {
-                    throw new ArgumentException("deletionChange Direction is not To the server");
+                    throw new ArgumentException(Resources.CLHttpRestChangeDirectionIsNotToServer);
                 }
                 if (deletionChange.Metadata == null)
                 {
-                    throw new NullReferenceException("deletionChange Metadata cannot be null");
+                    throw new NullReferenceException(Resources.CLHttpRestMetadataCannotBeNull);
                 }
                 if (deletionChange.Type != FileChangeType.Deleted)
                 {
-                    throw new ArgumentException("deletionChange is not of Type Deletion");
+                    throw new ArgumentException(Resources.CLHttpRestChangeIsNotOfTypeDeletion);
                 }
                 if (_copiedSettings.SyncRoot == null)
                 {
-                    throw new NullReferenceException("settings SyncRoot cannot be null");
+                    throw new NullReferenceException(Resources.CLHttpRestSyncRootCannotBeNull);
                 }
                 if (string.IsNullOrEmpty(deletionChange.Metadata.ServerUid))
                 {
-                    throw new NullReferenceException("deletionChange Metadata ServerId must not be null");
+                    throw new NullReferenceException(Resources.CLHttpRestDeletionChangeMetadataServerIDMustnotBeNull);
                 }
                 if (string.IsNullOrEmpty(_copiedSettings.DeviceId))
                 {
-                    throw new NullReferenceException("settings DeviceId cannot be null");
+                    throw new NullReferenceException(Resources.CLHttpRestDeviceIDCannotBeNull);
                 }
 
                 // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
@@ -2195,7 +2195,7 @@ namespace Cloud.REST
                 if (castState == null)
                 {
                     MessageEvents.FireNewEventMessage(
-                        "Cannot cast state as " + Helpers.GetTypeNameEvenForNulls(castState),
+                        Resources.CLHttpRestCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
                         EventMessageLevel.Important,
                         new HaltAllOfCloudSDKErrorInfo());
                 }
@@ -2266,7 +2266,7 @@ namespace Cloud.REST
                 // if trying to cast the asynchronous result failed, then throw an error
                 if (castAResult == null)
                 {
-                    throw new NullReferenceException("aResult does not match expected internal type");
+                    throw new NullReferenceException(Resources.CLHttpRestaResultInternalTypeMismatch);
                 }
 
                 // pull the result for output (may not yet be complete)
@@ -2355,20 +2355,20 @@ namespace Cloud.REST
 
                 if (!(timeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException("timeoutMilliseconds must be greater than zero");
+                    throw new ArgumentException(Resources.CLHttpRestTimeoutMustBeGreaterThanZero);
                 }
                 if (pathToFile == null
                     && string.IsNullOrEmpty(fileServerId))
                 {
-                    throw new NullReferenceException("Either pathToFile must not be null or fileServerId must not be null or both must not be null");
+                    throw new NullReferenceException(Resources.CLHttpRestXORPathtoFileFileServerIDMustNotBeNull);
                 }
                 if (_copiedSettings.SyncRoot == null)
                 {
-                    throw new NullReferenceException("settings SyncRoot cannot be null");
+                    throw new NullReferenceException(Resources.CLHttpRestSyncRootCannotBeNull);
                 }
                 if (string.IsNullOrEmpty(_copiedSettings.DeviceId))
                 {
-                    throw new NullReferenceException("settings DeviceId cannot be null");
+                    throw new NullReferenceException(Resources.CLHttpRestDeviceIDCannotBeNull);
                 }
                 
                 // build the location of the file versions retrieval method on the server dynamically
@@ -2462,7 +2462,7 @@ namespace Cloud.REST
         //        if (castState == null)
         //        {
         //            MessageEvents.FireNewEventMessage(
-        //                "Cannot cast state as " + Helpers.GetTypeNameEvenForNulls(castState),
+        //                Resources.CLHttpRestCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
         //                EventMessageLevel.Important,
         //                new HaltAllOfCloudSDKErrorInfo());
         //        }
@@ -2720,7 +2720,7 @@ namespace Cloud.REST
                 if (castState == null)
                 {
                     MessageEvents.FireNewEventMessage(
-                        "Cannot cast state as " + Helpers.GetTypeNameEvenForNulls(castState),
+                        Resources.CLHttpRestCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
                         EventMessageLevel.Important,
                         new HaltAllOfCloudSDKErrorInfo());
                 }
@@ -2791,7 +2791,7 @@ namespace Cloud.REST
                 // if trying to cast the asynchronous result failed, then throw an error
                 if (castAResult == null)
                 {
-                    throw new NullReferenceException("aResult does not match expected internal type");
+                    throw new NullReferenceException(Resources.CLHttpRestaResultInternalTypeMismatch);
                 }
 
                 // pull the result for output (may not yet be complete)
@@ -2880,24 +2880,24 @@ namespace Cloud.REST
 
                 if (!(timeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException("timeoutMilliseconds must be greater than zero");
+                    throw new ArgumentException(Resources.CLHttpRestTimeoutMustBeGreaterThanZero);
                 }
                 if (_copiedSettings.SyncRoot == null)
                 {
-                    throw new NullReferenceException("settings SyncRoot cannot be null");
+                    throw new NullReferenceException(Resources.CLHttpRestSyncRootCannotBeNull);
                 }
                 if (copyTargetPath == null)
                 {
-                    throw new NullReferenceException("copyTargetPath cannot be null");
+                    throw new NullReferenceException(Resources.CLHttpRestCopyPathCannotBeNull);
                 }
                 if (pathToFile == null
                     && string.IsNullOrEmpty(fileServerId))
                 {
-                    throw new NullReferenceException("Either pathToFile must not be null or fileServerId must not be null or both must not be null");
+                    throw new NullReferenceException(Resources.CLHttpRestXORPathtoFileFileServerIDMustNotBeNull);
                 }
                 if (string.IsNullOrEmpty(_copiedSettings.DeviceId))
                 {
-                    throw new NullReferenceException("settings DeviceId cannot be null");
+                    throw new NullReferenceException(Resources.CLHttpRestDeviceIDCannotBeNull);
                 }
 
                 // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
@@ -2973,7 +2973,7 @@ namespace Cloud.REST
                 if (castState == null)
                 {
                     MessageEvents.FireNewEventMessage(
-                        "Cannot cast state as " + Helpers.GetTypeNameEvenForNulls(castState),
+                        Resources.CLHttpRestCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
                         EventMessageLevel.Important,
                         new HaltAllOfCloudSDKErrorInfo());
                 }
@@ -3042,7 +3042,7 @@ namespace Cloud.REST
                 // if trying to cast the asynchronous result failed, then throw an error
                 if (castAResult == null)
                 {
-                    throw new NullReferenceException("aResult does not match expected internal type");
+                    throw new NullReferenceException(Resources.CLHttpRestaResultInternalTypeMismatch);
                 }
 
                 // pull the result for output (may not yet be complete)
@@ -3100,7 +3100,7 @@ namespace Cloud.REST
 
                 if (!(timeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException("timeoutMilliseconds must be greater than zero");
+                    throw new ArgumentException(Resources.CLHttpRestTimeoutMustBeGreaterThanZero);
                 }
 
                 // build the location of the pictures retrieval method on the server dynamically
@@ -3176,7 +3176,7 @@ namespace Cloud.REST
                 if (castState == null)
                 {
                     MessageEvents.FireNewEventMessage(
-                        "Cannot cast state as " + Helpers.GetTypeNameEvenForNulls(castState),
+                        Resources.CLHttpRestCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
                         EventMessageLevel.Important,
                         new HaltAllOfCloudSDKErrorInfo());
                 }
@@ -3245,7 +3245,7 @@ namespace Cloud.REST
                 // if trying to cast the asynchronous result failed, then throw an error
                 if (castAResult == null)
                 {
-                    throw new NullReferenceException("aResult does not match expected internal type");
+                    throw new NullReferenceException(Resources.CLHttpRestaResultInternalTypeMismatch);
                 }
 
                 // pull the result for output (may not yet be complete)
@@ -3303,7 +3303,7 @@ namespace Cloud.REST
 
                 if (!(timeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException("timeoutMilliseconds must be greater than zero");
+                    throw new ArgumentException(Resources.CLHttpRestTimeoutMustBeGreaterThanZero);
                 }
 
                 // build the location of the videos retrieval method on the server dynamically
@@ -3379,7 +3379,7 @@ namespace Cloud.REST
                 if (castState == null)
                 {
                     MessageEvents.FireNewEventMessage(
-                        "Cannot cast state as " + Helpers.GetTypeNameEvenForNulls(castState),
+                        Resources.CLHttpRestCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
                         EventMessageLevel.Important,
                         new HaltAllOfCloudSDKErrorInfo());
                 }
@@ -3448,7 +3448,7 @@ namespace Cloud.REST
                 // if trying to cast the asynchronous result failed, then throw an error
                 if (castAResult == null)
                 {
-                    throw new NullReferenceException("aResult does not match expected internal type");
+                    throw new NullReferenceException(Resources.CLHttpRestaResultInternalTypeMismatch);
                 }
 
                 // pull the result for output (may not yet be complete)
@@ -3506,7 +3506,7 @@ namespace Cloud.REST
 
                 if (!(timeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException("timeoutMilliseconds must be greater than zero");
+                    throw new ArgumentException(Resources.CLHttpRestTimeoutMustBeGreaterThanZero);
                 }
 
                 // build the location of the audios retrieval method on the server dynamically
@@ -3582,7 +3582,7 @@ namespace Cloud.REST
                 if (castState == null)
                 {
                     MessageEvents.FireNewEventMessage(
-                        "Cannot cast state as " + Helpers.GetTypeNameEvenForNulls(castState),
+                        Resources.CLHttpRestCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
                         EventMessageLevel.Important,
                         new HaltAllOfCloudSDKErrorInfo());
                 }
@@ -3651,7 +3651,7 @@ namespace Cloud.REST
                 // if trying to cast the asynchronous result failed, then throw an error
                 if (castAResult == null)
                 {
-                    throw new NullReferenceException("aResult does not match expected internal type");
+                    throw new NullReferenceException(Resources.CLHttpRestaResultInternalTypeMismatch);
                 }
 
                 // pull the result for output (may not yet be complete)
@@ -3709,7 +3709,7 @@ namespace Cloud.REST
 
                 if (!(timeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException("timeoutMilliseconds must be greater than zero");
+                    throw new ArgumentException(Resources.CLHttpRestTimeoutMustBeGreaterThanZero);
                 }
 
                 // build the location of the archives retrieval method on the server dynamically
@@ -3785,7 +3785,7 @@ namespace Cloud.REST
                 if (castState == null)
                 {
                     MessageEvents.FireNewEventMessage(
-                        "Cannot cast state as " + Helpers.GetTypeNameEvenForNulls(castState),
+                        Resources.CLHttpRestCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
                         EventMessageLevel.Important,
                         new HaltAllOfCloudSDKErrorInfo());
                 }
@@ -3854,7 +3854,7 @@ namespace Cloud.REST
                 // if trying to cast the asynchronous result failed, then throw an error
                 if (castAResult == null)
                 {
-                    throw new NullReferenceException("aResult does not match expected internal type");
+                    throw new NullReferenceException(Resources.CLHttpRestaResultInternalTypeMismatch);
                 }
 
                 // pull the result for output (may not yet be complete)
@@ -3912,7 +3912,7 @@ namespace Cloud.REST
 
                 if (!(timeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException("timeoutMilliseconds must be greater than zero");
+                    throw new ArgumentException(Resources.CLHttpRestTimeoutMustBeGreaterThanZero);
                 }
 
                 // build the location of the recents retrieval method on the server dynamically
@@ -3988,7 +3988,7 @@ namespace Cloud.REST
                 if (castState == null)
                 {
                     MessageEvents.FireNewEventMessage(
-                        "Cannot cast state as " + Helpers.GetTypeNameEvenForNulls(castState),
+                        Resources.CLHttpRestCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
                         EventMessageLevel.Important,
                         new HaltAllOfCloudSDKErrorInfo());
                 }
@@ -4057,7 +4057,7 @@ namespace Cloud.REST
                 // if trying to cast the asynchronous result failed, then throw an error
                 if (castAResult == null)
                 {
-                    throw new NullReferenceException("aResult does not match expected internal type");
+                    throw new NullReferenceException(Resources.CLHttpRestaResultInternalTypeMismatch);
                 }
 
                 // pull the result for output (may not yet be complete)
@@ -4115,7 +4115,7 @@ namespace Cloud.REST
 
                 if (!(timeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException("timeoutMilliseconds must be greater than zero");
+                    throw new ArgumentException(Resources.CLHttpRestTimeoutMustBeGreaterThanZero);
                 }
 
                 // build the location of the sync box usage retrieval method on the server dynamically
@@ -4194,7 +4194,7 @@ namespace Cloud.REST
                 if (castState == null)
                 {
                     MessageEvents.FireNewEventMessage(
-                        "Cannot cast state as " + Helpers.GetTypeNameEvenForNulls(castState),
+                        Resources.CLHttpRestCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
                         EventMessageLevel.Important,
                         new HaltAllOfCloudSDKErrorInfo());
                 }
@@ -4264,7 +4264,7 @@ namespace Cloud.REST
                 // if trying to cast the asynchronous result failed, then throw an error
                 if (castAResult == null)
                 {
-                    throw new NullReferenceException("aResult does not match expected internal type");
+                    throw new NullReferenceException(Resources.CLHttpRestaResultInternalTypeMismatch);
                 }
 
                 // pull the result for output (may not yet be complete)
@@ -4323,11 +4323,11 @@ namespace Cloud.REST
 
                 if (!(timeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException("timeoutMilliseconds must be greater than zero");
+                    throw new ArgumentException(Resources.CLHttpRestTimeoutMustBeGreaterThanZero);
                 }
                 if (string.IsNullOrEmpty(_copiedSettings.SyncRoot))
                 {
-                    throw new NullReferenceException("settings SyncRoot cannot be null");
+                    throw new NullReferenceException(Resources.CLHttpRestSyncRootCannotBeNull);
                 }
 
                 // build the location of the folder hierarchy retrieval method on the server dynamically
@@ -4420,7 +4420,7 @@ namespace Cloud.REST
                 if (castState == null)
                 {
                     MessageEvents.FireNewEventMessage(
-                        "Cannot cast state as " + Helpers.GetTypeNameEvenForNulls(castState),
+                        Resources.CLHttpRestCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
                         EventMessageLevel.Important,
                         new HaltAllOfCloudSDKErrorInfo());
                 }
@@ -4493,7 +4493,7 @@ namespace Cloud.REST
                 // if trying to cast the asynchronous result failed, then throw an error
                 if (castAResult == null)
                 {
-                    throw new NullReferenceException("aResult does not match expected internal type");
+                    throw new NullReferenceException(Resources.CLHttpRestaResultInternalTypeMismatch);
                 }
 
                 // pull the result for output (may not yet be complete)
@@ -4562,11 +4562,11 @@ namespace Cloud.REST
 
                 if (!(timeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException("timeoutMilliseconds must be greater than zero");
+                    throw new ArgumentException(Resources.CLHttpRestTimeoutMustBeGreaterThanZero);
                 }
                 if (string.IsNullOrEmpty(_copiedSettings.SyncRoot))
                 {
-                    throw new NullReferenceException("settings SyncRoot cannot be null");
+                    throw new NullReferenceException(Resources.CLHttpRestSyncRootCannotBeNull);
                 }
 
                 // build the location of the folder contents retrieval method on the server dynamically
@@ -4659,7 +4659,7 @@ namespace Cloud.REST
                 if (castState == null)
                 {
                     MessageEvents.FireNewEventMessage(
-                        "Cannot cast state as " + Helpers.GetTypeNameEvenForNulls(castState),
+                        Resources.CLHttpRestCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
                         EventMessageLevel.Important,
                         new HaltAllOfCloudSDKErrorInfo());
                 }
@@ -4728,7 +4728,7 @@ namespace Cloud.REST
                 // if trying to cast the asynchronous result failed, then throw an error
                 if (castAResult == null)
                 {
-                    throw new NullReferenceException("aResult does not match expected internal type");
+                    throw new NullReferenceException(Resources.CLHttpRestaResultInternalTypeMismatch);
                 }
 
                 // pull the result for output (may not yet be complete)
@@ -4786,11 +4786,11 @@ namespace Cloud.REST
 
                 if (string.IsNullOrEmpty(_copiedSettings.DeviceId))
                 {
-                    throw new NullReferenceException("settings DeviceId cannot be null");
+                    throw new NullReferenceException(Resources.CLHttpRestDeviceIDCannotBeNull);
                 }
                 if (!(timeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException("timeoutMilliseconds must be greater than zero");
+                    throw new ArgumentException(Resources.CLHttpRestTimeoutMustBeGreaterThanZero);
                 }
 
                 // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
@@ -4863,7 +4863,7 @@ namespace Cloud.REST
                 if (castState == null)
                 {
                     MessageEvents.FireNewEventMessage(
-                        "Cannot cast state as " + Helpers.GetTypeNameEvenForNulls(castState),
+                        Resources.CLHttpRestCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
                         EventMessageLevel.Important,
                         new HaltAllOfCloudSDKErrorInfo());
                 }
@@ -4946,7 +4946,7 @@ namespace Cloud.REST
                 if (castState == null)
                 {
                     MessageEvents.FireNewEventMessage(
-                        "Cannot cast state as " + Helpers.GetTypeNameEvenForNulls(castState),
+                        Resources.CLHttpRestCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
                         EventMessageLevel.Important,
                         new HaltAllOfCloudSDKErrorInfo());
                 }
@@ -5016,7 +5016,7 @@ namespace Cloud.REST
                 // if trying to cast the asynchronous result failed, then throw an error
                 if (castAResult == null)
                 {
-                    throw new NullReferenceException("aResult does not match expected internal type");
+                    throw new NullReferenceException(Resources.CLHttpRestaResultInternalTypeMismatch);
                 }
 
                 // pull the result for output (may not yet be complete)
@@ -5103,7 +5103,7 @@ namespace Cloud.REST
 
                 if (!(timeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException("timeoutMilliseconds must be greater than zero");
+                    throw new ArgumentException(Resources.CLHttpRestTimeoutMustBeGreaterThanZero);
                 }
 
                 // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
@@ -5211,7 +5211,7 @@ namespace Cloud.REST
         //            if (castState == null)
         //            {
         //                MessageEvents.FireNewEventMessage(
-        //                    "Cannot cast state as " + Helpers.GetTypeNameEvenForNulls(castState),
+        //                    Resources.CLHttpRestCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
         //                    EventMessageLevel.Important,
         //                    new HaltAllOfCloudSDKErrorInfo());
         //            }
@@ -5482,7 +5482,7 @@ namespace Cloud.REST
                     if (castState == null)
                     {
                         MessageEvents.FireNewEventMessage(
-                            "Cannot cast state as " + Helpers.GetTypeNameEvenForNulls(castState),
+                            Resources.CLHttpRestCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
                             EventMessageLevel.Important,
                             new HaltAllOfCloudSDKErrorInfo());
                     }
@@ -5553,7 +5553,7 @@ namespace Cloud.REST
                 // if trying to cast the asynchronous result failed, then throw an error
                 if (castAResult == null)
                 {
-                    throw new NullReferenceException("aResult does not match expected internal type");
+                    throw new NullReferenceException(Resources.CLHttpRestaResultInternalTypeMismatch);
                 }
 
                 // pull the result for output (may not yet be complete)
@@ -5620,7 +5620,7 @@ namespace Cloud.REST
             {
                 status = CLHttpRestStatus.ReservedForActiveSync;
                 response = Helpers.DefaultForType<JsonContracts.SyncboxUpdatePlanResponse>();
-                return new Exception("Current Syncbox cannot be modified while in use in active syncing");
+                return new Exception(Resources.CLHttpRestCurrentSyncboxCannotBeModifiedWhileSyncing);
             }
 
             // start with bad request as default if an exception occurs but is not explicitly handled to change the status
@@ -5635,12 +5635,12 @@ namespace Cloud.REST
 
                 if (!(timeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException("timeoutMilliseconds must be greater than zero");
+                    throw new ArgumentException(Resources.CLHttpRestTimeoutMustBeGreaterThanZero);
                 }
 
                 if (planId == 0)
                 {
-                    throw new ArgumentException("planId must not be zero");
+                    throw new ArgumentException(Resources.CLHttpRestPlanIDCannotBeZero);
                 }
 
                 // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
@@ -5752,7 +5752,7 @@ namespace Cloud.REST
                     if (castState == null)
                     {
                         MessageEvents.FireNewEventMessage(
-                            "Cannot cast state as " + Helpers.GetTypeNameEvenForNulls(castState),
+                            Resources.CLHttpRestCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
                             EventMessageLevel.Important,
                             new HaltAllOfCloudSDKErrorInfo());
                     }
@@ -5823,7 +5823,7 @@ namespace Cloud.REST
                 // if trying to cast the asynchronous result failed, then throw an error
                 if (castAResult == null)
                 {
-                    throw new NullReferenceException("aResult does not match expected internal type");
+                    throw new NullReferenceException(Resources.CLHttpRestaResultInternalTypeMismatch);
                 }
 
                 // pull the result for output (may not yet be complete)
@@ -5890,7 +5890,7 @@ namespace Cloud.REST
             {
                 status = CLHttpRestStatus.ReservedForActiveSync;
                 response = Helpers.DefaultForType<JsonContracts.SyncboxHolder>();
-                return new Exception("Current Syncbox cannot be modified while in use in active syncing");
+                return new Exception(Resources.CLHttpRestCurrentSyncboxCannotBeModifiedWhileSyncing);
             }
 
             // start with bad request as default if an exception occurs but is not explicitly handled to change the status
@@ -5905,12 +5905,12 @@ namespace Cloud.REST
 
                 if (!(timeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException("timeoutMilliseconds must be greater than zero");
+                    throw new ArgumentException(Resources.CLHttpRestTimeoutMustBeGreaterThanZero);
                 }
 
                 if (String.IsNullOrWhiteSpace(friendlyName))
                 {
-                    throw new ArgumentException("friendlyName must be specified");
+                    throw new ArgumentException(Resources.CLHttpRestFriendlyNameNotSpecified);
                 }
 
                 // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
@@ -6019,7 +6019,7 @@ namespace Cloud.REST
                     if (castState == null)
                     {
                         MessageEvents.FireNewEventMessage(
-                            "Cannot cast state as " + Helpers.GetTypeNameEvenForNulls(castState),
+                            Resources.CLHttpRestCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
                             EventMessageLevel.Important,
                             new HaltAllOfCloudSDKErrorInfo());
                     }
@@ -6089,7 +6089,7 @@ namespace Cloud.REST
                 // if trying to cast the asynchronous result failed, then throw an error
                 if (castAResult == null)
                 {
-                    throw new NullReferenceException("aResult does not match expected internal type");
+                    throw new NullReferenceException(Resources.CLHttpRestaResultInternalTypeMismatch);
                 }
 
                 // pull the result for output (may not yet be complete)
@@ -6154,7 +6154,7 @@ namespace Cloud.REST
             {
                 status = CLHttpRestStatus.ReservedForActiveSync;
                 response = Helpers.DefaultForType<JsonContracts.SyncboxHolder>();
-                return new Exception("Current Syncbox cannot be modified while in use in active syncing");
+                return new Exception(Resources.CLHttpRestCurrentSyncboxCannotBeModifiedWhileSyncing);
             }
 
             // start with bad request as default if an exception occurs but is not explicitly handled to change the status
@@ -6169,7 +6169,7 @@ namespace Cloud.REST
 
                 if (!(timeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException("timeoutMilliseconds must be greater than zero");
+                    throw new ArgumentException(Resources.CLHttpRestTimeoutMustBeGreaterThanZero);
                 }
 
                 // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
@@ -6242,7 +6242,7 @@ namespace Cloud.REST
                 if (castState == null)
                 {
                     MessageEvents.FireNewEventMessage(
-                        "Cannot cast state as " + Helpers.GetTypeNameEvenForNulls(castState),
+                        Resources.CLHttpRestCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
                         EventMessageLevel.Important,
                         new HaltAllOfCloudSDKErrorInfo());
                 }
@@ -6311,7 +6311,7 @@ namespace Cloud.REST
                 // if trying to cast the asynchronous result failed, then throw an error
                 if (castAResult == null)
                 {
-                    throw new NullReferenceException("aResult does not match expected internal type");
+                    throw new NullReferenceException(Resources.CLHttpRestaResultInternalTypeMismatch);
                 }
 
                 // pull the result for output (may not yet be complete)
@@ -6369,7 +6369,7 @@ namespace Cloud.REST
 
                 if (!(timeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException("timeoutMilliseconds must be greater than zero");
+                    throw new ArgumentException(Resources.CLHttpRestTimeoutMustBeGreaterThanZero);
                 }
 
                 // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
@@ -6427,11 +6427,11 @@ namespace Cloud.REST
                 // check input parameters
                 if (syncToRequest == null)
                 {
-                    throw new ArgumentException("syncToRequest must not be null");
+                    throw new ArgumentException(Resources.CLHttpRestSyncToRequestMustNotBeNull);
                 }
                 if (!(timeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException("timeoutMilliseconds must be greater than zero");
+                    throw new ArgumentException(Resources.CLHttpRestTimeoutMustBeGreaterThanZero);
                 }
 
                 // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
@@ -6486,11 +6486,11 @@ namespace Cloud.REST
                 // check input parameters
                 if (pushRequest == null)
                 {
-                    throw new ArgumentException("pushRequest must not be null");
+                    throw new ArgumentException(Resources.CLHttpRestPushRequestMustNotBeNull);
                 }
                 if (!(timeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException("timeoutMilliseconds must be greater than zero");
+                    throw new ArgumentException(Resources.CLHttpRestTimeoutMustBeGreaterThanZero);
                 }
 
                 // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
@@ -6545,17 +6545,17 @@ namespace Cloud.REST
                 // check input parameters
                 if (!(timeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException("timeoutMilliseconds must be greater than zero");
+                    throw new ArgumentException(Resources.CLHttpRestTimeoutMustBeGreaterThanZero);
                 }
 
                 if (syncbox == null)
                 {
-                    throw new ArgumentNullException("syncbox must not be null");
+                    throw new ArgumentNullException(Resources.CLHttpRestSyncboxMustNotBeNull);
                 }
 
                 if (syncbox.CopiedSettings == null)
                 {
-                    throw new ArgumentNullException("syncbox.CopiedSettings must not be null");
+                    throw new ArgumentNullException(Resources.CLHttpRestCopiedSettingsMustNotBeNull);
                 }
 
                 // copy settings so they don't change while processing; this also defaults some values
