@@ -49,9 +49,6 @@ namespace Cloud.SQLIndexer
         private static Dictionary<long, FileChangeType> changeEnums = null;
         private static Dictionary<FileChangeType, long> changeEnumsBackward = null;
 
-        // debug only code
-        private static GenericHolder<int> dbCopyNumber = new GenericHolder<int>(0);
-
         // category in SQL that represents the Enumeration type FileChangeType
         private static long changeCategoryId = 0;
         // locker for reading/writing the change enumerations
@@ -1357,15 +1354,6 @@ namespace Cloud.SQLIndexer
         /// <returns>Returns an error that occurred during recording the sync, if any</returns>
         public CLError RecordCompletedSync(IEnumerable<PossiblyChangedFileChange> communicatedChanges, string syncId, IEnumerable<long> syncedEventIds, out long syncCounter, string rootFolderUID = null)
         {
-            // debug only code
-            lock (dbCopyNumber)
-            {
-                string dbName = indexDBLocation.Substring(0, indexDBLocation.LastIndexOf('.')) + dbCopyNumber.Value.ToString();
-                File.WriteAllText(dbName + ".txt.", Environment.StackTrace);
-                File.Copy(indexDBLocation, dbName + ".db");
-                dbCopyNumber.Value += 1;
-            }
-
             try
             {
                 using (SQLTransactionalImplementation connAndTran = GetNewTransactionPrivate())
@@ -1515,15 +1503,6 @@ namespace Cloud.SQLIndexer
         /// </summary>
         public SQLTransactionalBase GetNewTransaction()
         {
-            // debug only code
-            lock (dbCopyNumber)
-            {
-                string dbName = indexDBLocation.Substring(0, indexDBLocation.LastIndexOf('.')) + dbCopyNumber.Value.ToString();
-                File.WriteAllText(dbName + ".txt.", Environment.StackTrace);
-                File.Copy(indexDBLocation, dbName + ".db");
-                dbCopyNumber.Value += 1;
-            }
-
             return GetNewTransactionPrivate();
         }
 
@@ -1542,18 +1521,6 @@ namespace Cloud.SQLIndexer
         /// <returns>Returns an error from merging the events, if any</returns>
         public CLError MergeEventsIntoDatabase(IEnumerable<FileChangeMerge> mergeToFroms, SQLTransactionalBase existingTransaction = null)
         {
-            // debug only code
-            if (existingTransaction == null)
-            {
-                lock (dbCopyNumber)
-                {
-                    string dbName = indexDBLocation.Substring(0, indexDBLocation.LastIndexOf('.')) + dbCopyNumber.Value.ToString();
-                    File.WriteAllText(dbName + ".txt.", Environment.StackTrace);
-                    File.Copy(indexDBLocation, dbName + ".db");
-                    dbCopyNumber.Value += 1;
-                }
-            }
-
             return MergeEventsIntoDatabase(null, mergeToFroms, existingTransaction);
         }
         private CLError MergeEventsIntoDatabase(Nullable<long> syncCounter, IEnumerable<FileChangeMerge> mergeToFroms, SQLTransactionalBase existingTransaction)
@@ -2140,18 +2107,6 @@ namespace Cloud.SQLIndexer
         /// <returns>Returns an error that occurred marking the event complete, if any</returns>
         public CLError MarkEventAsCompletedOnPreviousSync(long eventId, SQLTransactionalBase existingTransaction = null)
         {
-            // debug only code
-            if (existingTransaction == null)
-            {
-                lock (dbCopyNumber)
-                {
-                    string dbName = indexDBLocation.Substring(0, indexDBLocation.LastIndexOf('.')) + dbCopyNumber.Value.ToString();
-                    File.WriteAllText(dbName + ".txt.", Environment.StackTrace);
-                    File.Copy(indexDBLocation, dbName + ".db");
-                    dbCopyNumber.Value += 1;
-                }
-            }
-
             CLError toReturn = null;
             SQLTransactionalImplementation castTransaction = existingTransaction as SQLTransactionalImplementation;
             if (existingTransaction != null
@@ -2771,18 +2726,6 @@ namespace Cloud.SQLIndexer
 
                         throw;
                     }
-                }
-
-                // debug only code
-                string indexLocationWithoutExtension = indexDBLocation.Substring(0, indexDBLocation.LastIndexOf('.'));
-                int highestExistingCopyIndex = 2;
-                while (File.Exists(indexLocationWithoutExtension + highestExistingCopyIndex.ToString() + ".db"))
-                {
-                    highestExistingCopyIndex++;
-                }
-                lock (dbCopyNumber)
-                {
-                    dbCopyNumber.Value = highestExistingCopyIndex;
                 }
             }
 
