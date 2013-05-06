@@ -6964,6 +6964,7 @@ namespace Cloud.Sync
                         findNewPath = nonNullPreviousFileChange.FileChange.NewPath;
                         // set the old path for renames or null otherwise
                         findOldPath = nonNullPreviousFileChange.FileChange.OldPath;
+
                         // try to retrieve the hash, storing any error that occurs (could be null for non-files)
                         CLError hashRetrievalError = nonNullPreviousFileChange.FileChange.GetMD5LowercaseString(out findHash);
                         // if an error occurred retrieving the hash, then rethrow the exception

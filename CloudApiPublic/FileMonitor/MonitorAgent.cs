@@ -1889,8 +1889,11 @@ namespace Cloud.FileMonitor
                                                     	RemoveFileChangeFromQueuedChanges(CurrentOriginalMapping.Key, originalQueuedChangesIndexesByInMemoryIds);
                                                 	}
 
-                                                	_trace.writeToMemory(() => _trace.trcFmtStr(2, "MonitorAgent: AssignDependencies: CurrentOriginalMapping: Add CurrentDisposal to removeFromSql."));
-                                                    removeFromSql.Add(CurrentDisposal);
+                                                    if (CurrentDisposal.EventId != 0)
+                                                    {
+                                                        _trace.writeToMemory(() => _trace.trcFmtStr(2, "MonitorAgent: AssignDependencies: CurrentOriginalMapping: Add CurrentDisposal to removeFromSql."));
+                                                        removeFromSql.Add(CurrentDisposal);
+                                                    }
                                                 }
                                             	else
                                             	{
@@ -2297,31 +2300,16 @@ namespace Cloud.FileMonitor
                     if (CurrentEarlierChange.Type == FileChangeType.Renamed
                         && LaterChange.NewPath.Contains(CurrentEarlierChange.NewPath))
                     {
-                        // child of path of overlap of CurrentEarlierChange's NewPath with LaterChange's OldPath
-                        // (whose parent will be replaced by the change of LaterChange's NewPath
-                        FilePath renamedOverlapChild = LaterChange.NewPath;
-                        // variable for recursive checking against the rename's OldPath
-                        FilePath renamedOverlap = renamedOverlapChild.Parent;
-
-                        // loop till recursing parent of current path level is null
-                        while (renamedOverlap != null)
+                        FilePath newLaterChangeNewPath = LaterChange.NewPath.Copy();
+                        FilePath.ApplyRename(newLaterChangeNewPath, CurrentEarlierChange.NewPath, CurrentEarlierChange.OldPath);
+                        if (!FilePathComparer.Instance.Equals(newLaterChangeNewPath, LaterChange.NewPath))
                         {
-                            // when the rename's OldPath matches the current recursive path parent level,
-                            // replace the child's parent with the rename's NewPath and break out of the checking loop
-                            if (FilePathComparer.Instance.Equals(renamedOverlap, CurrentEarlierChange.NewPath))
+                            LaterChange.NewPath = newLaterChangeNewPath;
+                            CLError replacePathPortionError = Indexer.MergeEventsIntoDatabase(Helpers.EnumerateSingleItem(new FileChangeMerge(LaterChange)), sqlTran);
+                            if (replacePathPortionError != null)
                             {
-                                renamedOverlapChild.Parent = CurrentEarlierChange.OldPath;
-                                CLError replacePathPortionError = Indexer.MergeEventsIntoDatabase(Helpers.EnumerateSingleItem(new FileChangeMerge(LaterChange)), sqlTran);
-                                if (replacePathPortionError != null)
-                                {
-                                    toReturn += new AggregateException("Error replacing a portion of the path of CurrentEarlierChange", replacePathPortionError.GrabExceptions());
-                                }
-                                break;
+                                toReturn += new AggregateException("Error replacing a portion of the path of CurrentEarlierChange", replacePathPortionError.GrabExceptions());
                             }
-
-                            // set recursing path variables one level higher
-                            renamedOverlapChild = renamedOverlap;
-                            renamedOverlap = renamedOverlap.Parent;
                         }
                     }
                 }
@@ -5026,7 +5014,9 @@ namespace Cloud.FileMonitor
             }
 
             // remove file changes from each queue if they exist
-            if (QueuedChangesByMetadata.ContainsKey(toRemove.Metadata.HashableProperties))
+            FileChange metadataIndexedChange;
+            if (QueuedChangesByMetadata.TryGetValue(toRemove.Metadata.HashableProperties, out metadataIndexedChange)
+                && FilePathComparer.Instance.Equals(toRemove.NewPath, metadataIndexedChange.NewPath)) // added check on final path of metadata-matched change in case more renames are in process on the same file\folder
             {
                 QueuedChangesByMetadata.Remove(toRemove.Metadata.HashableProperties);
             }
