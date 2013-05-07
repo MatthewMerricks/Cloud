@@ -1838,8 +1838,7 @@ namespace Cloud.FileMonitor
                                         {
                                             case FileChangeType.Created:
                                             case FileChangeType.Modified:
-                                            CLError creationModificationCheckError = CreationModificationDependencyCheck(OuterFileChange, InnerFileChange, PulledChanges, out DisposeChanges, sqlTran);
-                                                ContinueProcessing = true;
+                                            CLError creationModificationCheckError = CreationModificationDependencyCheck(OuterFileChange, InnerFileChange, PulledChanges, out DisposeChanges, out ContinueProcessing, sqlTran);
                                                 if (creationModificationCheckError != null)
                                                 {
                                                     toReturn += new AggregateException("Error in CreationModificationDependencyCheck", creationModificationCheckError.GrabExceptions());
@@ -1948,10 +1947,11 @@ namespace Cloud.FileMonitor
             return toReturn;
         }
 
-        private CLError CreationModificationDependencyCheck(FileChangeWithDependencies EarlierChange, FileChangeWithDependencies LaterChange, HashSet<FileChangeWithDependencies> PulledChanges, out List<FileChangeWithDependencies> DisposeChanges, SQLTransactionalBase sqlTran)
+        private CLError CreationModificationDependencyCheck(FileChangeWithDependencies EarlierChange, FileChangeWithDependencies LaterChange, HashSet<FileChangeWithDependencies> PulledChanges, out List<FileChangeWithDependencies> DisposeChanges, out bool ContinueProcessing, SQLTransactionalBase sqlTran)
         {
             CLError toReturn = null;
             DisposeChanges = null;
+            ContinueProcessing = true; // usually will continue processing, except when the earlier change has been removed by being a create\modify matched with a later modify
             try
             {
                 foreach (FileChangeWithDependencies CurrentEarlierChange in EnumerateDependenciesFromFileChangeDeepestLevelsFirst(EarlierChange)
@@ -1990,6 +1990,8 @@ namespace Cloud.FileMonitor
                             {
                                 laterParent.RemoveDependency(EarlierChange);
                             }
+
+                            ContinueProcessing = false;
                         }
                         else
                         {
