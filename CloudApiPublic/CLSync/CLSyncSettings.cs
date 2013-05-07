@@ -200,7 +200,7 @@ namespace Cloud
         {
             if (syncSettings == null)
             {
-                throw new ArgumentNullException("syncSettings must not be null");
+                throw new ArgumentNullException(Resources.CLSyncSettingsMustNotBeNull);
             }
 
             return new AdvancedSyncSettings(
@@ -232,15 +232,15 @@ namespace Cloud
         {
             if (clientDescription.Length > CLDefinitions.MaxClientDescriptionLength)
             {
-                throw new ArgumentException("ClientDescription must have 32 or fewer characters");
+                throw new ArgumentException(Resources.CLSyncSettingsClientDescriptionTooLong);
             }
             if (clientDescription.Contains(","))
             {
-                throw new ArgumentException("ClientDescription must not contain commas");
+                throw new ArgumentException(Resources.CLSyncSettingsClientDescriptionCannotContainCommas);
             }
             if (syncRoot == null)
             {
-                throw new ArgumentNullException("syncRoot must not be null");
+                throw new ArgumentNullException(Resources.CLSyncSettingsSyncRootCannotBeNull);
             }
 
             //TODO: Remove this when the sync engine support case insensitive paths.
@@ -278,7 +278,7 @@ namespace Cloud
         {
             if (toCopy == null)
             {
-                throw new ArgumentNullException("toCopy must not be null");
+                throw new ArgumentNullException(Resources.CLSyncSettingstoCopyMustNotBeNull);
             }
             return new AdvancedSyncSettings(
                 toCopy.LogErrors,
@@ -298,7 +298,7 @@ namespace Cloud
         {
             if (toCopy == null)
             {
-                throw new ArgumentNullException("toCopy must not be null");
+                throw new ArgumentNullException(Resources.CLSyncSettingstoCopyMustNotBeNull);
             }
             ICLSyncSettingsAdvanced advancedCopy = toCopy as ICLSyncSettingsAdvanced;
             if (advancedCopy == null)

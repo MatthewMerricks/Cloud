@@ -486,7 +486,7 @@ namespace Cloud.FileMonitor
             {
                 if (checkDisposed == null)
                 {
-                    throw new NullReferenceException("checkDisposed cannot be null");
+                    throw new NullReferenceException(Resources.MonitorAgentcheckDisposedCannotBeNull);
                 }
                 GetDisposedParameterless = checkDisposed;
                 _value = toCheck;
@@ -496,7 +496,7 @@ namespace Cloud.FileMonitor
             {
                 if (checkDisposed == null)
                 {
-                    throw new NullReferenceException("checkDisposed cannot be null");
+                    throw new NullReferenceException(Resources.MonitorAgentcheckDisposedCannotBeNull);
                 }
                 GetDisposed = checkDisposed;
                 _value = toCheck;
@@ -553,7 +553,7 @@ namespace Cloud.FileMonitor
                 {
                     if (_instance == null)
                     {
-                        throw new NullReferenceException("Instance not available until after Initialize is called");
+                        throw new NullReferenceException(Resources.MonitorAgentInstanceNotAvailableAfterInitializeIsCalled);
                     }
                     return _instance;
                 }
@@ -725,13 +725,13 @@ namespace Cloud.FileMonitor
             {
                 if (string.IsNullOrWhiteSpace(syncbox.CopiedSettings.SyncRoot))
                 {
-                    throw new ArgumentException("Folder path cannot be null or empty");
+                    throw new ArgumentException(Resources.MonitorAgentFolderPathCannotBeNullOrEmpty);
                 }
 
                 DirectoryInfo folderInfo = new DirectoryInfo(syncbox.CopiedSettings.SyncRoot);
                 if (!folderInfo.Exists)
                 {
-                    throw new Exception("Folder not found at provided folder path");
+                    throw new Exception(Resources.MonitorAgentFolderNotFoundAtProvidedPath);
                 }
 
                 // Initialize current, in-memory index
@@ -861,18 +861,18 @@ namespace Cloud.FileMonitor
             {
                 if (toApply.Direction == SyncDirection.To)
                 {
-                    throw new ArgumentException("Cannot apply a Sync To FileChange locally");
+                    throw new ArgumentException(Resources.MonitorAgentCannotApplySyncToFileChangeLocally);
                 }
                 if (toApply.Metadata.HashableProperties.IsFolder
                     && toApply.Type == FileChangeType.Modified)
                 {
-                    throw new ArgumentException("Cannot apply a modification to a folder");
+                    throw new ArgumentException(Resources.MonitorAgentCannotApplyAModificationToAFolder);
                 }
                 if (!toApply.Metadata.HashableProperties.IsFolder
                     && (toApply.Type == FileChangeType.Created
                         || toApply.Type == FileChangeType.Modified))
                 {
-                    throw new ArgumentException("Cannot download a file in MonitorAgent, it needs to be downloaded through Sync");
+                    throw new ArgumentException(Resources.MonitorAgentCannotDownloadAFileInMonitorAgentMustBeDownloadedThroughSync);
                 }
 
                 string rootPathString;
@@ -892,11 +892,11 @@ namespace Cloud.FileMonitor
                             KeyValuePair<FilePathDictionary<List<FileChange>>, CLError> upDownsPair = Data.thisAgent.GetUploadDownloadTransfersInProgress(Data.innerRootPath.Value);
                             if (upDownsPair.Value != null)
                             {
-                                throw new AggregateException("Error in GetUploadDownloadTransfersInProgress", upDownsPair.Value.Exceptions);
+                                throw new AggregateException(Resources.MonitorAgentErrorGettingUploadTransferProgress, upDownsPair.Value.Exceptions);
                             }
                             if (upDownsPair.Key == null)
                             {
-                                throw new NullReferenceException("GetUploadDownloadTransfersInProgress return cannot have a null Key");
+                                throw new NullReferenceException(Resources.MonitorAgentGetUploadTranfersInProgressReturnCannotHaveNullKey);
                             }
                             Data.upDownsHolder.Value = upDownsPair.Key;
                         }
@@ -1013,7 +1013,7 @@ namespace Cloud.FileMonitor
                             fillAndReturnUpDowns.TypedData.innerRootPath.Value = rootPathString;
                             if (!toApply.NewPath.Contains(rootPath))
                             {
-                                throw new ArgumentException("FileChange's NewPath does not fall within the root directory");
+                                throw new ArgumentException(Resources.MonitorAgentFileChangesNewPathDoesNotFallWithinTheRootDirectory);
                             }
 
                             switch (toApply.Type)
@@ -1048,7 +1048,7 @@ namespace Cloud.FileMonitor
                                                     Directory.Delete(creationPathString);
                                                     try
                                                     {
-                                                        throw new AggregateException("Error updating creation time for folder to event in database", updateCreationTimeError.Exceptions);
+                                                        throw new AggregateException(Resources.MonitorAgentErrorUpdatingCreationTimeForFolderToEventDatabase, updateCreationTimeError.Exceptions);
                                                     }
                                                     catch (Exception ex)
                                                     {
@@ -1089,7 +1089,7 @@ namespace Cloud.FileMonitor
                                     CLError deletedHierarchyError = upDownsForDeleted.GrabHierarchyForPath(toApply.NewPath, out deletedHierarchy, suppressException: true);
                                     if (deletedHierarchyError != null)
                                     {
-                                        throw new AggregateException("Error grabbing hierarchy from upDownsForDeleted", deletedHierarchyError.Exceptions);
+                                        throw new AggregateException(Resources.MonitorAgentErrorGrabbingHierarchyFromupDowsForDeleted, deletedHierarchyError.Exceptions);
                                     }
 
                                     recurseHierarchyAndAddSyncFromsToHashSet.TypedData.innerHierarchy.Value = deletedHierarchy;
@@ -1167,7 +1167,7 @@ namespace Cloud.FileMonitor
                                         CLError renamedHierarchyError = upDownsForRenamed.GrabHierarchyForPath(toApply.OldPath, out renamedHierarchy, suppressException: true);
                                         if (renamedHierarchyError != null)
                                         {
-                                            throw new AggregateException("Error grabbing hierarchy from upDownsForRenamed", renamedHierarchyError.Exceptions);
+                                            throw new AggregateException(Resources.MonitorAgentErrorGrabbingHierarchyFromupDowsForRenamed, renamedHierarchyError.Exceptions);
                                         }
 
                                         recurseHierarchyAndAddSyncFromsToHashSet.TypedData.innerHierarchy.Value = renamedHierarchy;
@@ -1205,7 +1205,7 @@ namespace Cloud.FileMonitor
                                                 }
                                                 catch (Exception innerEx)
                                                 {
-                                                    throw new AggregateException("Error on applying sync from directory move and an error checking if directory exists at new path",
+                                                    throw new AggregateException(Resources.MonitorAgentErrorApplyingSyncfromDirectoryMoveandAnErrorCheckingIfDirectoryExistsAtNewPath,
                                                         ex,
                                                         innerEx);
                                                 }
@@ -1447,7 +1447,7 @@ namespace Cloud.FileMonitor
                             {
                                 if (exOnMainSwitch != null)
                                 {
-                                    throw new AggregateException("Exception on main ApplySyncFromFileChange switch and exception on onBeforeAllPathsUnlock",
+                                    throw new AggregateException(Resources.MonitorAgentExceptionOnMainApplySyncFromFileChangeSwitchandExceptionononBeforeAllPathsUnlock,
                                         exOnMainSwitch,
                                         ex);
                                 }
@@ -1540,7 +1540,7 @@ namespace Cloud.FileMonitor
             {
                 if (toAdd == null)
                 {
-                    throw new NullReferenceException("toAdd cannot be null");
+                    throw new NullReferenceException(Resources.MonitorAgentToAddCannotBeNull);
                 }
                 return AddFileChangesToProcessingQueue(new FileChange[] { toAdd }, insertAtTop, errorHolder);
             }
@@ -1841,25 +1841,25 @@ namespace Cloud.FileMonitor
                                                 ContinueProcessing = true;
                                                 if (creationModificationCheckError != null)
                                                 {
-                                                    toReturn += new AggregateException("Error in CreationModificationDependencyCheck", creationModificationCheckError.Exceptions);
+                                                    toReturn += new AggregateException(Resources.MonitorAgentErrorInCreationModifactionDependencyCheck, creationModificationCheckError.Exceptions);
                                                 }
                                                 break;
                                             case FileChangeType.Renamed:
                                                 CLError renameCheckError = RenameDependencyCheck(OuterFileChange, InnerFileChange, PulledChanges, out DisposeChanges, out ContinueProcessing, sqlTran);
                                                 if (renameCheckError != null)
                                                 {
-                                                    toReturn += new AggregateException("Error in RenameDependencyCheck", renameCheckError.Exceptions);
+                                                    toReturn += new AggregateException(Resources.MonitorAgentErrorInRenameDependencyCheck, renameCheckError.Exceptions);
                                                 }
                                                 break;
                                             case FileChangeType.Deleted:
                                                 CLError deleteCheckError = DeleteDependencyCheck(OuterFileChange, InnerFileChange, PulledChanges, out DisposeChanges, out ContinueProcessing);
                                                 if (deleteCheckError != null)
                                                 {
-                                                    toReturn += new AggregateException("Error in DeleteDependencyCheck", deleteCheckError.Exceptions);
+                                                    toReturn += new AggregateException(Resources.MonitorAgentErrorInDeleteDependencyCheck, deleteCheckError.Exceptions);
                                                 }
                                                 break;
                                             default:
-                                                throw new InvalidOperationException("Unknown FileChangeType for InnerFileChange: " + InnerFileChange.Type.ToString());
+                                                throw new InvalidOperationException(Resources.MonitorAgentUnknownFileChangeTypeforInnerFileChange + InnerFileChange.Type.ToString());
                                         }
 
                                         if (DisposeChanges != null)

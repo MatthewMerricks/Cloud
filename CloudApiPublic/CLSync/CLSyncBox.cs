@@ -161,7 +161,7 @@ namespace Cloud
             {
                 if (Helpers.AllHaltedOnUnrecoverableError)
                 {
-                    throw new InvalidOperationException("Cannot do anything with the Cloud SDK if Helpers.AllHaltedOnUnrecoverableError is set");
+                    throw new InvalidOperationException(Resources.CLSyncBoxAllHaltedOnUnrecoverableErrorIsSet);
                 }
 
                 syncbox = new CLSyncbox(
@@ -204,18 +204,18 @@ namespace Cloud
 
             // Initialize trace in case it is not already initialized.
             CLTrace.Initialize(this._copiedSettings.TraceLocation, "Cloud", "log", this._copiedSettings.TraceLevel, this._copiedSettings.LogErrors);
-            _trace.writeToLog(1, "CLSyncbox: Constructing...");
+            _trace.writeToLog(1, Resources.CLSyncBoxConstructing);
 
             if (Credential == null)
             {
                 const string credentialError = "Credential cannot be null";
                 status = CLSyncboxCreationStatus.ErrorNullCredential;
-                _trace.writeToLog(1, "CLSyncbox: Construction: ERROR: {0}.", credentialError);
+                _trace.writeToLog(1, Resources.CLSyncboxConstructionError0, credentialError);
                 throw new NullReferenceException(credentialError);
             }
 
             // Create the http rest client
-            _trace.writeToLog(9, "CLSyncbox: Start: Create rest client.");
+            _trace.writeToLog(9, Resources.CLSyncBoxStartCreateRestClient);
             CLError createRestClientError = CLHttpRest.CreateAndInitialize(
                             credential: this.Credential, 
                             syncbox: this, 
@@ -226,18 +226,18 @@ namespace Cloud
             if (createRestClientError != null)
             {
                 _trace.writeToLog(1,
-                    "CLSyncbox: Construction: ERROR: Msg: {0}. Code: {1}.",
+                    Resources.CLSyncBoxConstructionErrorMsg0Code1,
                     createRestClientError.PrimaryException.Message,
                     createRestClientError.PrimaryException.Code);
                 status = CLSyncboxCreationStatus.ErrorCreatingRestClient;
                 throw new CLException(CLExceptionCode.Syncbox_CreateRestClient,
-                    "Error creating REST HTTP client",
+                   Resources.CLSyncBoxErrorCreatingRestHTTPClient,
                     createRestClientError.Exceptions);
             }
             if (_httpRestClient == null)
             {
                 const string nullRestClient = "Unknown error creating HTTP REST client";
-                _trace.writeToLog(1, "CLSyncbox: Construction: ERROR: Msg: {0}.", nullRestClient);
+                _trace.writeToLog(1, Resources.CLSyncBoxConstructionErrorMsg0, nullRestClient);
                 status = CLSyncboxCreationStatus.ErrorCreatingRestClient;
                 throw new NullReferenceException(nullRestClient);
             }

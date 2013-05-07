@@ -66,7 +66,7 @@ namespace Cloud.FileMonitor.SyncImplementation
             }
             if (Indexer == null)
             {
-                throw new NullReferenceException("Indexer cannot be null");
+                throw new NullReferenceException("Indexer cannot be null"); 
             }
             this.Monitor = Monitor;
             this.Indexer = Indexer;

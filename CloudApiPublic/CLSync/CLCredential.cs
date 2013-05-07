@@ -90,7 +90,7 @@ namespace Cloud
             {
                 if (Helpers.AllHaltedOnUnrecoverableError)
                 {
-                    throw new InvalidOperationException("Cannot do anything with the Cloud SDK if Helpers.AllHaltedOnUnrecoverableError is set");
+                    throw new InvalidOperationException(Resources.CLCredentialHelpersAllHaltedOnUnrecoverableErrorIsSet);
                 }
 
                 credential = new CLCredential(
@@ -123,12 +123,12 @@ namespace Cloud
             if (string.IsNullOrEmpty(Key))
             {
                 status = CLCredentialCreationStatus.ErrorNullKey;
-                throw new NullReferenceException("Key cannot be null");
+                throw new NullReferenceException(Resources.CLCredentialKeyCannotBeNull);
             }
             if (string.IsNullOrEmpty(Secret))
             {
                 status = CLCredentialCreationStatus.ErrorNullSecret;
-                throw new NullReferenceException("Secret cannot be null");
+                throw new NullReferenceException(Resources.CLCredentialSecretCannotBeNull);
             }
 
             // Since we allow null then reverse-null coalesce from empty string
@@ -319,7 +319,7 @@ namespace Cloud
                 if (castState == null)
                 {
                     MessageEvents.FireNewEventMessage(
-                        "Cannot cast state as " + Helpers.GetTypeNameEvenForNulls(castState),
+                        Resources.CLCredentialCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
                         EventMessageLevel.Important,
                         new HaltAllOfCloudSDKErrorInfo());
                 }
@@ -392,7 +392,7 @@ namespace Cloud
                 // if trying to cast the asynchronous result failed, then throw an error
                 if (castAResult == null)
                 {
-                    throw new NullReferenceException("aResult does not match expected internal type");
+                    throw new NullReferenceException(Resources.CLCredentialaResultInternalTypeMismatch);
                 }
 
                 // pull the result for output (may not yet be complete)
@@ -497,7 +497,7 @@ namespace Cloud
 
                 if (!(timeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException("timeoutMilliseconds must be greater than zero");
+                    throw new ArgumentException(Resources.CLCredentialMSTimeoutMustBeGreaterThanZero);
                 }
 
                 JsonContracts.SyncboxHolder inputBox = (/*metadata == null
@@ -573,7 +573,7 @@ namespace Cloud
                 if (castState == null)
                 {
                     MessageEvents.FireNewEventMessage(
-                        "Cannot cast state as " + Helpers.GetTypeNameEvenForNulls(castState),
+                        Resources.CLCredentialCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
                         EventMessageLevel.Important,
                         new HaltAllOfCloudSDKErrorInfo());
                 }
@@ -643,7 +643,7 @@ namespace Cloud
                 // if trying to cast the asynchronous result failed, then throw an error
                 if (castAResult == null)
                 {
-                    throw new NullReferenceException("aResult does not match expected internal type");
+                    throw new NullReferenceException(Resources.CLCredentialaResultInternalTypeMismatch);
                 }
 
                 // pull the result for output (may not yet be complete)
@@ -707,7 +707,7 @@ namespace Cloud
 
                 if (!(timeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException("timeoutMilliseconds must be greater than zero");
+                    throw new ArgumentException(Resources.CLCredentialMSTimeoutMustBeGreaterThanZero);
                 }
 
                 response = Helpers.ProcessHttp<JsonContracts.ListSyncboxes>(
@@ -767,7 +767,7 @@ namespace Cloud
                 if (castState == null)
                 {
                     MessageEvents.FireNewEventMessage(
-                        "Cannot cast state as " + Helpers.GetTypeNameEvenForNulls(castState),
+                        Resources.CLCredentialCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
                         EventMessageLevel.Important,
                         new HaltAllOfCloudSDKErrorInfo());
                 }
@@ -837,7 +837,7 @@ namespace Cloud
                 // if trying to cast the asynchronous result failed, then throw an error
                 if (castAResult == null)
                 {
-                    throw new NullReferenceException("aResult does not match expected internal type");
+                    throw new NullReferenceException(Resources.CLCredentialaResultInternalTypeMismatch);
                 }
 
                 // pull the result for output (may not yet be complete)
@@ -901,7 +901,7 @@ namespace Cloud
 
                 if (!(timeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException("timeoutMilliseconds must be greater than zero");
+                    throw new ArgumentException(Resources.CLCredentialMSTimeoutMustBeGreaterThanZero);
                 }
 
                 response = Helpers.ProcessHttp<JsonContracts.ListPlansResponse>(
@@ -961,7 +961,7 @@ namespace Cloud
                 if (castState == null)
                 {
                     MessageEvents.FireNewEventMessage(
-                        "Cannot cast state as " + Helpers.GetTypeNameEvenForNulls(castState),
+                        Resources.CLCredentialCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
                         EventMessageLevel.Important,
                         new HaltAllOfCloudSDKErrorInfo());
                 }
@@ -1031,7 +1031,7 @@ namespace Cloud
                 // if trying to cast the asynchronous result failed, then throw an error
                 if (castAResult == null)
                 {
-                    throw new NullReferenceException("aResult does not match expected internal type");
+                    throw new NullReferenceException(Resources.CLCredentialaResultInternalTypeMismatch);
                 }
 
                 // pull the result for output (may not yet be complete)
@@ -1095,7 +1095,7 @@ namespace Cloud
 
                 if (!(timeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException("timeoutMilliseconds must be greater than zero");
+                    throw new ArgumentException(Resources.CLCredentialMSTimeoutMustBeGreaterThanZero);
                 }
 
                 response = Helpers.ProcessHttp<JsonContracts.ListSessionsResponse>(
@@ -1162,7 +1162,7 @@ namespace Cloud
                 if (castState == null)
                 {
                     MessageEvents.FireNewEventMessage(
-                        "Cannot cast state as " + Helpers.GetTypeNameEvenForNulls(castState),
+                        Resources.CLCredentialCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
                         EventMessageLevel.Important,
                         new HaltAllOfCloudSDKErrorInfo());
                 }
@@ -1234,7 +1234,7 @@ namespace Cloud
                 // if trying to cast the asynchronous result failed, then throw an error
                 if (castAResult == null)
                 {
-                    throw new NullReferenceException("aResult does not match expected internal type");
+                    throw new NullReferenceException(Resources.CLCredentialaResultInternalTypeMismatch);
                 }
 
                 // pull the result for output (may not yet be complete)
@@ -1304,7 +1304,7 @@ namespace Cloud
 
                 if (!(timeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException("timeoutMilliseconds must be greater than zero");
+                    throw new ArgumentException(Resources.CLCredentialMSTimeoutMustBeGreaterThanZero);
                 }
 
                 // Determine the request JSON contract to use.  If the syncboxIds parameter is null, use the "all"
@@ -1390,7 +1390,7 @@ namespace Cloud
                 if (castState == null)
                 {
                     MessageEvents.FireNewEventMessage(
-                        "Cannot cast state as " + Helpers.GetTypeNameEvenForNulls(castState),
+                        Resources.CLCredentialCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
                         EventMessageLevel.Important,
                         new HaltAllOfCloudSDKErrorInfo());
                 }
@@ -1461,7 +1461,7 @@ namespace Cloud
                 // if trying to cast the asynchronous result failed, then throw an error
                 if (castAResult == null)
                 {
-                    throw new NullReferenceException("aResult does not match expected internal type");
+                    throw new NullReferenceException(Resources.CLCredentialaResultInternalTypeMismatch);
                 }
 
                 // pull the result for output (may not yet be complete)
@@ -1530,7 +1530,7 @@ namespace Cloud
 
                 if (!(timeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException("timeoutMilliseconds must be greater than zero");
+                    throw new ArgumentException(Resources.CLCredentialMSTimeoutMustBeGreaterThanZero);
                 }
 
                 // Build the query string.
@@ -1598,7 +1598,7 @@ namespace Cloud
                 if (castState == null)
                 {
                     MessageEvents.FireNewEventMessage(
-                        "Cannot cast state as " + Helpers.GetTypeNameEvenForNulls(castState),
+                        Resources.CLCredentialCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
                         EventMessageLevel.Important,
                         new HaltAllOfCloudSDKErrorInfo());
                 }
@@ -1669,7 +1669,7 @@ namespace Cloud
                 // if trying to cast the asynchronous result failed, then throw an error
                 if (castAResult == null)
                 {
-                    throw new NullReferenceException("aResult does not match expected internal type");
+                    throw new NullReferenceException(Resources.CLCredentialaResultInternalTypeMismatch);
                 }
 
                 // pull the result for output (may not yet be complete)
@@ -1738,7 +1738,7 @@ namespace Cloud
 
                 if (!(timeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException("timeoutMilliseconds must be greater than zero");
+                    throw new ArgumentException(Resources.CLCredentialMSTimeoutMustBeGreaterThanZero);
                 }
 
                 Cloud.JsonContracts.SessionDeleteRequest sessionDeleteRequest = new JsonContracts.SessionDeleteRequest()
@@ -1808,7 +1808,7 @@ namespace Cloud
                 if (castState == null)
                 {
                     MessageEvents.FireNewEventMessage(
-                        "Cannot cast state as " + Helpers.GetTypeNameEvenForNulls(castState),
+                        Resources.CLCredentialCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
                         EventMessageLevel.Important,
                         new HaltAllOfCloudSDKErrorInfo());
                 }
@@ -1880,7 +1880,7 @@ namespace Cloud
                 // if trying to cast the asynchronous result failed, then throw an error
                 if (castAResult == null)
                 {
-                    throw new NullReferenceException("aResult does not match expected internal type");
+                    throw new NullReferenceException(Resources.CLCredentialaResultInternalTypeMismatch);
                 }
 
                 // pull the result for output (may not yet be complete)
@@ -1947,11 +1947,11 @@ namespace Cloud
                 // check input parameters
                 if (request == null)
                 {
-                    throw new ArgumentException("pushRequest must not be null");
+                    throw new ArgumentException(Resources.CLCredentialPushRequestCannotBeNull);
                 }
                 if (!(timeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException("timeoutMilliseconds must be greater than zero");
+                    throw new ArgumentException(Resources.CLCredentialMSTimeoutMustBeGreaterThanZero);
                 }
 
                 // copy settings so they don't change while processing; this also defaults some values
@@ -2036,7 +2036,7 @@ namespace Cloud
                 if (castState == null)
                 {
                     MessageEvents.FireNewEventMessage(
-                        "Cannot cast state as " + Helpers.GetTypeNameEvenForNulls(castState),
+                        Resources.CLCredentialCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
                         EventMessageLevel.Important,
                         new HaltAllOfCloudSDKErrorInfo());
                 }
@@ -2108,7 +2108,7 @@ namespace Cloud
                 // if trying to cast the asynchronous result failed, then throw an error
                 if (castAResult == null)
                 {
-                    throw new NullReferenceException("aResult does not match expected internal type");
+                    throw new NullReferenceException(Resources.CLCredentialaResultInternalTypeMismatch);
                 }
 
                 // pull the result for output (may not yet be complete)
@@ -2174,11 +2174,11 @@ namespace Cloud
                 // check input parameters
                 if (request == null)
                 {
-                    throw new ArgumentException("pushRequest must not be null");
+                    throw new ArgumentException(Resources.CLCredentialPushRequestCannotBeNull);
                 }
                 if (!(timeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException("timeoutMilliseconds must be greater than zero");
+                    throw new ArgumentException(Resources.CLCredentialMSTimeoutMustBeGreaterThanZero);
                 }
 
                 // copy settings so they don't change while processing; this also defaults some values
@@ -2254,7 +2254,7 @@ namespace Cloud
                 if (castState == null)
                 {
                     MessageEvents.FireNewEventMessage(
-                        "Cannot cast state as " + Helpers.GetTypeNameEvenForNulls(castState),
+                        Resources.CLCredentialCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
                         EventMessageLevel.Important,
                         new HaltAllOfCloudSDKErrorInfo());
                 }
@@ -2326,7 +2326,7 @@ namespace Cloud
                 // if trying to cast the asynchronous result failed, then throw an error
                 if (castAResult == null)
                 {
-                    throw new NullReferenceException("aResult does not match expected internal type");
+                    throw new NullReferenceException(Resources.CLCredentialaResultInternalTypeMismatch);
                 }
 
                 // pull the result for output (may not yet be complete)
@@ -2392,11 +2392,11 @@ namespace Cloud
                 // check input parameters
                 if (request == null)
                 {
-                    throw new ArgumentException("pushRequest must not be null");
+                    throw new ArgumentException(Resources.CLCredentialPushRequestCannotBeNull);
                 }
                 if (!(timeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException("timeoutMilliseconds must be greater than zero");
+                    throw new ArgumentException(Resources.CLCredentialMSTimeoutMustBeGreaterThanZero);
                 }
 
                 // copy settings so they don't change while processing; this also defaults some values

@@ -96,7 +96,7 @@ namespace Cloud
         {
             if (toCopy == null)
             {
-                throw new ArgumentNullException("toCopy must not be null");
+                throw new ArgumentNullException(Resources.CLCredentialSettingsToCopyNotBeNull);
             }
             ICLSyncSettingsAdvanced advancedCopy = toCopy as ICLSyncSettingsAdvanced;
             if (advancedCopy == null)
@@ -107,7 +107,7 @@ namespace Cloud
                     toCopy.TraceLocation,
                     toCopy.TraceExcludeAuthorization,
                     toCopy.TraceLevel,
-                    Environment.MachineName + Guid.NewGuid().ToString("N"),
+                    Environment.MachineName + Guid.NewGuid().ToString(Resources.CLCredentialStringSettingsN),
                     false,
                     null,
                     toCopy.ClientDescription,

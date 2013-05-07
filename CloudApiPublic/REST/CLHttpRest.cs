@@ -2462,7 +2462,7 @@ namespace Cloud.REST
         //        if (castState == null)
         //        {
         //            MessageEvents.FireNewEventMessage(
-        //                Resources.CLHttpRestCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
+        //                "Cannot cast state as" + Helpers.GetTypeNameEvenForNulls(castState),
         //                EventMessageLevel.Important,
         //                new HaltAllOfCloudSDKErrorInfo());
         //        }
@@ -5211,7 +5211,7 @@ namespace Cloud.REST
         //            if (castState == null)
         //            {
         //                MessageEvents.FireNewEventMessage(
-        //                    Resources.CLHttpRestCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
+        //                    "Cannot cast state as" + Helpers.GetTypeNameEvenForNulls(castState),
         //                    EventMessageLevel.Important,
         //                    new HaltAllOfCloudSDKErrorInfo());
         //            }
