@@ -4440,6 +4440,7 @@ namespace Cloud.FileMonitor
                                             // delete caused AllPaths to lose metadata fields, but since we're cancelling the delete, they need to be put back
                                             // since all cases from CheckMetadataAgainstFile which led to this creation change assigned Metadata directly from AllPaths, we can change the fields here to propagate back
 
+                                            toChange.Metadata = toChange.Metadata.CopyWithDifferentRevisionChanger(previousChange.Metadata.RevisionChanger);
                                             toChange.Metadata.MimeType = previousChange.Metadata.MimeType;
                                             toChange.Metadata.Revision = previousChange.Metadata.Revision;
                                             toChange.Metadata.ServerUid = previousChange.Metadata.ServerUid;
@@ -4455,6 +4456,7 @@ namespace Cloud.FileMonitor
                                             // delete caused AllPaths to lose metadata fields, but since we're cancelling the delete, they need to be put back
                                             // since all cases from CheckMetadataAgainstFile which led to this creation change assigned Metadata directly from AllPaths, we can change the fields here to propagate back
 
+                                            toChange.Metadata = toChange.Metadata.CopyWithDifferentRevisionChanger(previousChange.Metadata.RevisionChanger);
                                             toChange.Metadata.MimeType = previousChange.Metadata.MimeType;
                                             toChange.Metadata.Revision = previousChange.Metadata.Revision;
                                             toChange.Metadata.ServerUid = previousChange.Metadata.ServerUid;
@@ -4638,6 +4640,8 @@ namespace Cloud.FileMonitor
                     if (toChange.Metadata != null
                         && matchedFileChangeForRename.Metadata != null)
                     {
+                        toChange.Metadata = toChange.Metadata.CopyWithDifferentRevisionChanger(matchedFileChangeForRename.Metadata.RevisionChanger);
+
                         if (toChange.Metadata.ServerUid == null)
                         {
                             toChange.Metadata.ServerUid = matchedFileChangeForRename.Metadata.ServerUid;

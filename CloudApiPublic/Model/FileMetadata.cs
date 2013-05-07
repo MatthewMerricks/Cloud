@@ -79,6 +79,23 @@ namespace Cloud.Model
             }
         }
 
+        internal FileMetadata CopyWithDifferentRevisionChanger(RevisionChanger replacementChanger)
+        {
+            return new FileMetadata(replacementChanger)
+            {
+                EventTime = EventTime,
+                HashableProperties = HashableProperties,
+                IsShare = IsShare,
+                MimeType = MimeType,
+                ParentFolderServerUid = ParentFolderServerUid,
+                Permissions = Permissions,
+                Revision = Revision,
+                ServerUid = ServerUid,
+                StorageKey = StorageKey,
+                Version = Version
+            };
+        }
+
         private void OnRevisionChanged(object sender, RevisionAndOtherDataEventArgs e)
         {
             if (this != sender)
