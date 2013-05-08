@@ -7061,8 +7061,10 @@ namespace Cloud.Sync
                                 OldPath = findOldPath, // The previous path for rename events, or null for everything else
                                 Type = ParseEventStringToType(currentEvent.Header.Action ?? currentEvent.Action) // The FileChange type parsed from the event action
                             },
+                            /* changeMetadata: */ null,
                             findHash, // The MD5 hash, or null for non-files
-                            innerDependencyDebugging);
+                            innerDependencyDebugging,
+                            syncData);
                     };
 
                 // part 3 should be added back perhaps, but logic changed
@@ -7076,10 +7078,12 @@ namespace Cloud.Sync
                         FileMetadataHashableProperties findHashableProperties,
                         string findRevision,
                         string findStorageKey,
-                        string findMimeType)
+                        string findMimeType,
+                        ISyncDataObject innerSyncData)
                     {
                         // set the metadata for the current FileChange (copying the RevisionChanger if a previous matched FileChange was found)
-                        currentChange.Metadata = new FileMetadata(matchedChange == null ? null : ((PossiblyStreamableFileChange)matchedChange).FileChange.Metadata.RevisionChanger) // copy previous RevisionChanger if possible
+                        currentChange.Metadata = new FileMetadata(matchedChange == null ? null : ((PossiblyStreamableFileChange)matchedChange).FileChange.Metadata.RevisionChanger, // copy previous RevisionChanger if possible
+                            Helpers.CreateFileChangeRevisionChangedHandler(currentChange, innerSyncData))
                         {
                             ServerUid = findServerUid, // set the server unique id
                             ParentFolderServerUid = findParentUid, // set the unique parent folder server id
@@ -7928,7 +7932,8 @@ namespace Cloud.Sync
                             findHashableProperties,
                             findRevision,
                             findStorageKey,
-                            findMimeType);
+                            findMimeType,
+                            syncData);
 
                         syncToConflictEventToSyncFromRelatedFileChange.Add(pairSyncToConflictEventToSyncFromRelatedEvent.Key, convertedEventToFileChange);
                     }
@@ -8085,7 +8090,8 @@ namespace Cloud.Sync
                                         findHashableProperties,
                                         findRevision,
                                         findStorageKey,
-                                        findMimeType);
+                                        findMimeType,
+                                        syncData);
                                     if (storePart4Output != null)
                                     {
                                         currentStreamContext = storePart4Output;
@@ -8307,11 +8313,12 @@ namespace Cloud.Sync
 
                                                             // create and initialize the FileChange for the new file creation by combining data from the current rename event with the metadata from the server, also adds the hash
                                                             FileChangeWithDependencies newPathCreation = CreateFileChangeFromBaseChangePlusHash(new FileChange(DelayCompletedLocker: null, fileDownloadMoveLocker: new object())
-                                                            {
-                                                                Direction = SyncDirection.From, // emulate a new Sync From event so the client will try to download the file from the new location
-                                                                NewPath = currentChange.NewPath, // new location only (no previous location since this is converted from a rename to a create)
-                                                                Type = FileChangeType.Created, // a create to download a new file or process a new folder
-                                                                Metadata = new FileMetadata()
+                                                                {
+                                                                    Direction = SyncDirection.From, // emulate a new Sync From event so the client will try to download the file from the new location
+                                                                    NewPath = currentChange.NewPath, // new location only (no previous location since this is converted from a rename to a create)
+                                                                    Type = FileChangeType.Created // a create to download a new file or process a new folder
+                                                                },
+                                                                new FileMetadata()
                                                                 {
                                                                     //Need to find what key this is //LinkTargetPath <-- what does this comment mean?
 
@@ -8323,10 +8330,10 @@ namespace Cloud.Sync
                                                                     Revision = newMetadata.Revision, // file revision or null for folders
                                                                     StorageKey = newMetadata.StorageKey, // file storage key or null for folders
                                                                     MimeType = newMetadata.MimeType // never set on Windows
-                                                                }
-                                                            },
+                                                                },
                                                                 newMetadata.Hash, // file MD5 hash or null for folder
-                                                                DependencyDebugging);
+                                                                DependencyDebugging,
+                                                                syncData);
 
                                                             // make sure to add change to SQL
                                                             newPathCreation.DoNotAddToSQLIndex = false;
@@ -8518,6 +8525,8 @@ namespace Cloud.Sync
                                                                                 {
                                                                                     throw new AggregateException("Error copying duplicate file change for upload processing: " + createCopyDuplicateChange.errorDescription, createCopyDuplicateChange.GrabExceptions());
                                                                                 }
+
+                                                                                copyDuplicateChange.Metadata = copyDuplicateChange.Metadata.CopyWithDifferentRevisionChanger(copyDuplicateChange.Metadata.RevisionChanger, Helpers.CreateFileChangeRevisionChangedHandler(copyDuplicateChange, syncData));
 
                                                                                 AddToIncompleteChanges(incompleteChangesList, copyDuplicateChange, StreamContext.Create(uploadStreamForDuplication), /* different metadata since this is new */true);
 
@@ -8800,6 +8809,8 @@ namespace Cloud.Sync
                                                 {
                                                     throw new AggregateException("Error converting matchedChange to FileChangeWithDependencies", convertMatchedChangeError.GrabExceptions());
                                                 }
+
+                                                currentChange.Metadata = currentChange.Metadata.CopyWithDifferentRevisionChanger(currentChange.Metadata.RevisionChanger, Helpers.CreateFileChangeRevisionChangedHandler(currentChange, syncData));
                                             }
                                         }
 
@@ -9295,7 +9306,8 @@ namespace Cloud.Sync
                                                                                         innerFindHashableProperties,
                                                                                         innerFindRevision,
                                                                                         innerFindStorageKey,
-                                                                                        innerFindMimeType);
+                                                                                        innerFindMimeType,
+                                                                                        syncData);
                                                                                 }
                                                                             }
                                                                         }
@@ -9330,11 +9342,6 @@ namespace Cloud.Sync
                                                                     CLError reparentCreateError = FileChangeWithDependencies.CreateAndInitialize(new FileChange()
                                                                         {
                                                                             Direction = SyncDirection.From, // rename the file locally (Sync From)
-                                                                            Metadata = new FileMetadata(currentChange.Metadata.RevisionChanger)
-                                                                            {
-                                                                                HashableProperties = currentChange.Metadata.HashableProperties, // copy metadata from the conflicted file
-                                                                                ParentFolderServerUid = storeServerParentUid
-                                                                            },
                                                                             NewPath = currentChange.NewPath, // use the new conflict path as the rename destination
                                                                             OldPath = originalConflictPath, // use the location of the current conflicted file as move from location
                                                                             Type = FileChangeType.Renamed // this operation is a move
@@ -9343,12 +9350,20 @@ namespace Cloud.Sync
                                                                             ? Helpers.EnumerateSingleItem(currentChange)  // add the creation at the new location as a dependency to the rename
                                                                             : (IEnumerable<FileChange>)new[] { oldPathDownload, currentChange }), // in addition to the create at the new location in the line above, also download the original copy of the file to the old path
                                                                         out reparentConflict); // output the new rename change
+                                                                    
                                                                     // if an error occurred creating the FileChange for the rename operation, rethrow the error
                                                                     if (reparentCreateError != null)
                                                                     {
                                                                         throw new AggregateException("Error creating reparentConflict", reparentCreateError.GrabExceptions());
                                                                     }
-                                                                    else if (DependencyDebugging)
+
+                                                                    reparentConflict.Metadata = new FileMetadata(currentChange.Metadata.RevisionChanger, Helpers.CreateFileChangeRevisionChangedHandler(reparentConflict, syncData))
+                                                                        {
+                                                                            HashableProperties = currentChange.Metadata.HashableProperties, // copy metadata from the conflicted file
+                                                                            ParentFolderServerUid = storeServerParentUid
+                                                                        };
+
+                                                                    if (DependencyDebugging)
                                                                     {
                                                                         Helpers.CheckFileChangeDependenciesForDuplicates(reparentConflict);
                                                                     }
@@ -9913,38 +9928,41 @@ namespace Cloud.Sync
                                 findPathsByUids.TypedData.currentEvent.Value = currentEvent;
                                 convertSyncToEventToFileChangePathHolder findPathsResult = findPathsByUids.TypedProcess();
 
-                                PossiblyStreamableAndPossiblyChangedFileChange storeConvertedChange = new PossiblyStreamableAndPossiblyChangedFileChange(resultOrder++,
-                                    /* needs to update SQL */ true, // all Sync From events are new and should thus be added to the event source database
-                                    CreateFileChangeFromBaseChangePlusHash(new FileChange( // create a FileChange with dependencies and set the hash, start by creating a new FileChange input
-                                            DelayCompletedLocker: null,
-                                            fileDownloadMoveLocker:
-                                                ((CLDefinitions.SyncHeaderDeletions.Contains(currentEvent.Header.Action ?? currentEvent.Action)
-                                                        || CLDefinitions.SyncHeaderRenames.Contains(currentEvent.Header.Action ?? currentEvent.Action))
-                                                    ? null
-                                                    : new object()))
+                                FileChange baseConvertedChange = new FileChange( // create a FileChange with dependencies and set the hash, start by creating a new FileChange input
+                                    DelayCompletedLocker: null,
+                                    fileDownloadMoveLocker:
+                                        ((CLDefinitions.SyncHeaderDeletions.Contains(currentEvent.Header.Action ?? currentEvent.Action)
+                                                || CLDefinitions.SyncHeaderRenames.Contains(currentEvent.Header.Action ?? currentEvent.Action))
+                                            ? null
+                                            : new object()))
                                     {
                                         Direction = SyncDirection.From, // current communcation direction is Sync From (only Sync From events, not mixed like Sync To events)
                                         NewPath = findPathsResult.newPath, // new location of change
                                         OldPath = findPathsResult.oldPath, // if the current event is a rename, grab the previous path
-                                        Type = ParseEventStringToType(currentEvent.Action ?? currentEvent.Header.Action), // grab the type of change from the action string
-                                        Metadata = new FileMetadata()
-                                        {
-                                            //Need to find what key this is //LinkTargetPath <-- what does this comment mean?
+                                        Type = ParseEventStringToType(currentEvent.Action ?? currentEvent.Header.Action) // grab the type of change from the action string
+                                    };
 
-                                            ServerUid = currentEvent.Metadata.ServerUid, // unique id on the server
-                                            HashableProperties = new FileMetadataHashableProperties((currentEvent.Metadata.IsFolder ?? ParseEventStringToIsFolder(currentEvent.Header.Action ?? currentEvent.Action)), // try to grab whether this event is a folder from the specified property, otherwise parse it from the action
-                                                currentEvent.Metadata.ModifiedDate, // grab the last modified time
-                                                currentEvent.Metadata.CreatedDate, // grab the time of creation
-                                                currentEvent.Metadata.Size), // grab the file size, or null for non-files
-                                            Revision = currentEvent.Metadata.Revision, // grab the revision, or null for non-files
-                                            StorageKey = currentEvent.Metadata.StorageKey, // grab the storage key, or null for non-files
-                                            MimeType = currentEvent.Metadata.MimeType, // never set on Windows
-                                            ParentFolderServerUid = currentEvent.Metadata.ToParentUid ?? currentEvent.Metadata.ParentUid
-                                        }
-                                    },
-                                        currentEvent.Metadata.Hash, // grab the MD5 hash
-                                        DependencyDebugging),
-                                        null);
+                                PossiblyStreamableAndPossiblyChangedFileChange storeConvertedChange = new PossiblyStreamableAndPossiblyChangedFileChange(resultOrder++,
+                                    /* needs to update SQL */ true, // all Sync From events are new and should thus be added to the event source database
+                                        CreateFileChangeFromBaseChangePlusHash(baseConvertedChange,
+                                            new FileMetadata()
+                                                {
+                                                    //Need to find what key this is //LinkTargetPath <-- what does this comment mean?
+
+                                                    ServerUid = currentEvent.Metadata.ServerUid, // unique id on the server
+                                                    HashableProperties = new FileMetadataHashableProperties((currentEvent.Metadata.IsFolder ?? ParseEventStringToIsFolder(currentEvent.Header.Action ?? currentEvent.Action)), // try to grab whether this event is a folder from the specified property, otherwise parse it from the action
+                                                        currentEvent.Metadata.ModifiedDate, // grab the last modified time
+                                                        currentEvent.Metadata.CreatedDate, // grab the time of creation
+                                                        currentEvent.Metadata.Size), // grab the file size, or null for non-files
+                                                    Revision = currentEvent.Metadata.Revision, // grab the revision, or null for non-files
+                                                    StorageKey = currentEvent.Metadata.StorageKey, // grab the storage key, or null for non-files
+                                                    MimeType = currentEvent.Metadata.MimeType, // never set on Windows
+                                                    ParentFolderServerUid = currentEvent.Metadata.ToParentUid ?? currentEvent.Metadata.ParentUid
+                                                },
+                                            currentEvent.Metadata.Hash, // grab the MD5 hash
+                                            DependencyDebugging,
+                                            syncData),
+                                        StreamContext: null);
 
                                 switch (storeConvertedChange.FileChange.Type)
                                 {
@@ -10206,11 +10224,17 @@ namespace Cloud.Sync
 
                                             // create and initialize the FileChange for the new file creation by combining data from the current rename event with the metadata from the server, also adds the hash
                                             FileChangeWithDependencies newPathCreation = CreateFileChangeFromBaseChangePlusHash(new FileChange(DelayCompletedLocker: null, fileDownloadMoveLocker: new object())
-                                            {
-                                                Direction = SyncDirection.From, // emulate a new Sync From event so the client will try to download the file from the new location
-                                                NewPath = currentChange.NewPath, // new location only (no previous location since this is converted from a rename to a create)
-                                                Type = FileChangeType.Created, // a create to download a new file or process a new folder
-                                                Metadata = new FileMetadata()
+                                                {
+                                                    Direction = SyncDirection.From, // emulate a new Sync From event so the client will try to download the file from the new location
+                                                    NewPath = currentChange.NewPath, // new location only (no previous location since this is converted from a rename to a create)
+                                                    Type = FileChangeType.Created // a create to download a new file or process a new folder
+                                                },
+                                                /* changeMetadata: */ null,
+                                                newMetadata.Hash, // file MD5 hash or null for folder
+                                                DependencyDebugging,
+                                                syncData);
+
+                                            newPathCreation.Metadata = new FileMetadata(revisionChanger: null, onRevisionChanged: Helpers.CreateFileChangeRevisionChangedHandler(newPathCreation, syncData))
                                                 {
                                                     //Need to find what key this is //LinkTargetPath <-- what does this comment mean?
 
@@ -10222,10 +10246,7 @@ namespace Cloud.Sync
                                                     Revision = newMetadata.Revision, // file revision or null for folders
                                                     StorageKey = newMetadata.StorageKey, // file storage key or null for folders
                                                     MimeType = newMetadata.MimeType // never set on Windows
-                                                }
-                                            },
-                                                newMetadata.Hash, // file MD5 hash or null for folder
-                                                DependencyDebugging);
+                                                };
 
                                             alreadyVisitedRenames[newPathCreation.NewPath.Copy()] = newPathCreation.Metadata;
 
@@ -10642,7 +10663,8 @@ namespace Cloud.Sync
             FileMetadataHashableProperties findHashableProperties,
             string findRevision,
             string findStorageKey,
-            string findMimeType);
+            string findMimeType,
+            ISyncDataObject innerSyncData);
 
         private static void AppendRandomSubSecondTicksToSyncFromFolderCreationTimes(Event[] deserializedResponseEvents)
         {
@@ -10688,7 +10710,7 @@ namespace Cloud.Sync
         }
 
         // helper method which takes a FileChange and a hash string and creates a new FileChange with dependencies and sets the hash as the MD5 bytes; also copies over dependencies if any
-        private static FileChangeWithDependencies CreateFileChangeFromBaseChangePlusHash(FileChange baseChange, string hashString, bool DependencyDebugging)
+        private static FileChangeWithDependencies CreateFileChangeFromBaseChangePlusHash(FileChange baseChange, FileMetadata changeMetadata, string hashString, bool DependencyDebugging, ISyncDataObject syncData)
         {
             // if baseChange was not set, then the wrapped change would also be null so just return that
             if (baseChange == null)
@@ -10721,7 +10743,13 @@ namespace Cloud.Sync
             {
                 throw new AggregateException("Error converting baseChange to a FileChangeWithDependencies", changeConversionError.GrabExceptions());
             }
-            else if (DependencyDebugging
+
+            if (changeMetadata != null)
+            {
+                returnedChange.Metadata = changeMetadata.CopyWithDifferentRevisionChanger(changeMetadata.RevisionChanger, Helpers.CreateFileChangeRevisionChangedHandler(returnedChange, syncData));
+            }
+
+            if (DependencyDebugging
                 && castBase != null
                 && castBase.DependenciesCount > 0)
             {

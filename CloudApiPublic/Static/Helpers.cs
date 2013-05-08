@@ -108,6 +108,26 @@ namespace Cloud.Static
         //    return Environment.MachineName;
         //}
 
+        internal static Func<object> CreateFileChangeRevisionChangedHandler(FileChange change, ISyncDataObject syncData)
+        {
+            return new Func<object>(DelegateAndDataHolder.Create(
+                new
+                {
+                    change = change,
+                    syncData = syncData
+                },
+                (Data, errorToAccumulate) =>
+                {
+                    // only update sql with the new revision and server "uid" if the change already exists in the database otherwise you could be triggering a change to be added before its
+                    // previous required changes are added; plus before processing the event it will end up added to the database anyways
+                    if (Data.change.EventId != 0)
+                    {
+                        Data.syncData.mergeToSql(Helpers.EnumerateSingleItem(new FileChangeMerge(Data.change)));
+                    }
+                },
+                null).Process);
+        }
+
         /// <summary>
         /// Calculates the full path of the sync database file.
         /// </summary>

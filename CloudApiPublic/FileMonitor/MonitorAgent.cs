@@ -1420,7 +1420,7 @@ namespace Cloud.FileMonitor
 
                                     new ChangeAllPathsRemove(this, toApply.OldPath);
                                     new ChangeAllPathsIndexSet(this, toApply.NewPath,
-                                        new FileMetadata(toApply.Metadata.RevisionChanger)
+                                        new FileMetadata(toApply.Metadata.RevisionChanger, onRevisionChanged: null)
                                         {
                                             ServerUid = toApply.Metadata.ServerUid,
                                             HashableProperties = toApply.Metadata.HashableProperties,
@@ -1720,19 +1720,21 @@ namespace Cloud.FileMonitor
                                 GenericHolder<Nullable<KeyValuePair<Action<DisposeCheckingHolder>, DisposeCheckingHolder>>> newProcessingAction = new GenericHolder<Nullable<KeyValuePair<Action<DisposeCheckingHolder>, DisposeCheckingHolder>>>();
                                 startProcessingActions.Add(newProcessingAction);
 
-                                QueueFileChange(new FileChange(QueuedChanges,
+                                FileChange toQueue = new FileChange(QueuedChanges,
                                     ((currentChange.Direction == SyncDirection.From && (currentChange.Type == FileChangeType.Created || currentChange.Type == FileChangeType.Modified))
                                         ? new object()
                                         : null))
                                     {
                                         NewPath = currentChange.NewPath,
                                         OldPath = currentChange.OldPath,
-                                        Metadata = currentChange.Metadata,
                                         Type = currentChange.Type,
                                         DoNotAddToSQLIndex = currentChange.DoNotAddToSQLIndex,
                                         EventId = currentChange.EventId,
                                         Direction = currentChange.Direction
-                                    }, newProcessingAction);
+                                    };
+                                toQueue.Metadata = currentChange.Metadata.CopyWithDifferentRevisionChanger(currentChange.Metadata.RevisionChanger, Helpers.CreateFileChangeRevisionChangedHandler(toQueue, _syncData));
+
+                                QueueFileChange(toQueue, newProcessingAction);
                             }
                         }
 
@@ -2356,6 +2358,7 @@ namespace Cloud.FileMonitor
                         {
                             throw new AggregateException("Error converting FileChange to FileChangeWithDependencies", conversionError.GrabExceptions());
                         }
+                        outputChange.Metadata = outputChange.Metadata.CopyWithDifferentRevisionChanger(outputChange.Metadata.RevisionChanger, Helpers.CreateFileChangeRevisionChangedHandler(outputChange, _syncData));
                         originalChangeMappings[outputChange] = new KeyValuePair<FileChange, FileChangeSource>(inputChange.FileChange, originalSource);
                         streamMappings[outputChange] = new KeyValuePair<GenericHolder<bool>, StreamContext>(new GenericHolder<bool>(false), inputChange.StreamContext);
                         return outputChange;
@@ -2370,6 +2373,106 @@ namespace Cloud.FileMonitor
                     .Concat((failedOutChanges ?? Enumerable.Empty<FileChange>()).Select(currentFailedOut => new KeyValuePair<FileChangeSource, FileChangeWithDependencies>(FileChangeSource.FailedOutList, convertChange(FileChangeSource.FailedOutList, new PossiblyStreamableFileChange(currentFailedOut, null), originalFileStreams, OriginalFileChangeMappings))))
                     .OrderBy(currentSourcedChange => currentSourcedChange.Value.EventId)
                     .ToArray();
+
+                // advanced trace
+                if ((this._syncbox.CopiedSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
+                {
+                    List<FileChange> logQueued = null;
+                    List<FileChange> logFailure = null;
+                    List<FileChange> logProcessing = null;
+                    List<FileChange> logFailedOut = null;
+
+                    for (int logIndex = 0; logIndex < assignmentsWithDependencies.Length; logIndex++)
+                    {
+                        switch (assignmentsWithDependencies[logIndex].Key)
+                        {
+                            case FileChangeSource.QueuedChanges:
+                                if (logQueued == null)
+                                {
+                                    logQueued = new List<FileChange>(Helpers.EnumerateSingleItem(assignmentsWithDependencies[logIndex].Value));
+                                }
+                                else
+                                {
+                                    logQueued.Add(assignmentsWithDependencies[logIndex].Value);
+                                }
+                                break;
+
+                            case FileChangeSource.FailureQueue:
+                                if (logFailure == null)
+                                {
+                                    logFailure = new List<FileChange>(Helpers.EnumerateSingleItem(assignmentsWithDependencies[logIndex].Value));
+                                }
+                                else
+                                {
+                                    logFailure.Add(assignmentsWithDependencies[logIndex].Value);
+                                }
+                                break;
+
+                            case FileChangeSource.ProcessingChanges:
+                                if (logProcessing == null)
+                                {
+                                    logProcessing = new List<FileChange>(Helpers.EnumerateSingleItem(assignmentsWithDependencies[logIndex].Value));
+                                }
+                                else
+                                {
+                                    logProcessing.Add(assignmentsWithDependencies[logIndex].Value);
+                                }
+                                break;
+
+                            case FileChangeSource.FailedOutList:
+                                if (logFailedOut == null)
+                                {
+                                    logFailedOut = new List<FileChange>(Helpers.EnumerateSingleItem(assignmentsWithDependencies[logIndex].Value));
+                                }
+                                else
+                                {
+                                    logFailedOut.Add(assignmentsWithDependencies[logIndex].Value);
+                                }
+                                break;
+                        }
+                    }
+
+                    if (logQueued != null)
+                    {
+                        ComTrace.LogFileChangeFlow(
+                            this._syncbox.CopiedSettings.TraceLocation,
+                            this._syncbox.CopiedSettings.DeviceId,
+                            this._syncbox.SyncboxId,
+                            FileChangeFlowEntryPositionInFlow.FileMonitorAssignDependenciesQueuedChanges,
+                            logQueued);
+                    }
+
+                    if (logFailure != null)
+                    {
+                        ComTrace.LogFileChangeFlow(
+                            this._syncbox.CopiedSettings.TraceLocation,
+                            this._syncbox.CopiedSettings.DeviceId,
+                            this._syncbox.SyncboxId,
+                            FileChangeFlowEntryPositionInFlow.FileMonitorAssignDependenciesFailureQueue,
+                            logFailure);
+                    }
+
+                    if (logProcessing != null)
+                    {
+                        ComTrace.LogFileChangeFlow(
+                            this._syncbox.CopiedSettings.TraceLocation,
+                            this._syncbox.CopiedSettings.DeviceId,
+                            this._syncbox.SyncboxId,
+                            FileChangeFlowEntryPositionInFlow.FileMonitorAssignDependenciesProcessingChanges,
+                            logProcessing);
+                    }
+
+                    if (logFailedOut != null)
+                    {
+                        ComTrace.LogFileChangeFlow(
+                            this._syncbox.CopiedSettings.TraceLocation,
+                            this._syncbox.CopiedSettings.DeviceId,
+                            this._syncbox.SyncboxId,
+                            FileChangeFlowEntryPositionInFlow.FileMonitorAssignDependenciesFailedOutList,
+                            logFailedOut);
+                    }
+                }
+
                 toReturn = AssignDependencies(assignmentsWithDependencies,
                     OriginalFileChangeMappings,
                     out PulledChanges,
@@ -2474,7 +2577,10 @@ namespace Cloud.FileMonitor
                                 {
                                     throw new AggregateException("Error converting FileChange to FileChangeWithDependencies", conversionError.GrabExceptions());
                                 }
-                                else if (DependencyDebugging
+
+                                converted.Metadata = converted.Metadata.CopyWithDifferentRevisionChanger(converted.Metadata.RevisionChanger, Helpers.CreateFileChangeRevisionChangedHandler(converted, _syncData));
+
+                                if (DependencyDebugging
                                     && (toConvert.Value.Value is FileChangeWithDependencies)
                                     && ((FileChangeWithDependencies)toConvert.Value.Value).DependenciesCount > 0)
                                 {
@@ -2508,6 +2614,12 @@ namespace Cloud.FileMonitor
                                 return new KeyValuePair<FileChangeSource, KeyValuePair<bool, FileChange>>(FileChangeSource.QueuedChanges, new KeyValuePair<bool, FileChange>(false, queuedChange.Value));
                             };
 
+                        List<FileChange> logQueued = null;
+                        List<FileChange> logFailure = null;
+                        List<FileChange> logProcessing = null;
+                        List<FileChange> logFailedOut = null;
+                        bool loggingEnabled = (this._syncbox.CopiedSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow;
+
                         var AllFileChanges = (ProcessingChanges.DequeueAll()
                             .Where(currentProcessingChange => nullCheckAndMarkFound(currentProcessingChange, nullFound)) // added nullable FileChange so that syncing can be triggered by queueing a null
                             .Select(currentProcessingChange => new KeyValuePair<FileChangeSource, KeyValuePair<bool, FileChange>>(FileChangeSource.ProcessingChanges, new KeyValuePair<bool, FileChange>(false, currentProcessingChange)))
@@ -2517,14 +2629,111 @@ namespace Cloud.FileMonitor
                             .Concat(QueuedChanges
                                 .OrderBy(memoryIdOrdering => memoryIdOrdering.Value.InMemoryId)
                                 .Select(queuedChange => reselectQueuedChangeAndAddToMapping(queuedChange, originalQueuedChangesIndexesByInMemoryIds)))
-                            .Select(currentFileChange => new
-                            {
-                                ExistingError = currentFileChange.Value.Key,
-                                OriginalFileChange = currentFileChange.Value.Value,
-                                DependencyFileChange = convertChange(currentFileChange),
-                                SourceType = currentFileChange.Key
-                            })
+                            .Select(currentFileChange =>
+                                {
+                                    if (loggingEnabled)
+                                    {
+                                        switch (currentFileChange.Key)
+                                        {
+                                            case FileChangeSource.QueuedChanges:
+                                                if (logQueued == null)
+                                                {
+                                                    logQueued = new List<FileChange>(Helpers.EnumerateSingleItem(currentFileChange.Value.Value));
+                                                }
+                                                else
+                                                {
+                                                    logQueued.Add(currentFileChange.Value.Value);
+                                                }
+                                                break;
+
+                                            case FileChangeSource.FailureQueue:
+                                                if (logFailure == null)
+                                                {
+                                                    logFailure = new List<FileChange>(Helpers.EnumerateSingleItem(currentFileChange.Value.Value));
+                                                }
+                                                else
+                                                {
+                                                    logFailure.Add(currentFileChange.Value.Value);
+                                                }
+                                                break;
+
+                                            case FileChangeSource.ProcessingChanges:
+                                                if (logProcessing == null)
+                                                {
+                                                    logProcessing = new List<FileChange>(Helpers.EnumerateSingleItem(currentFileChange.Value.Value));
+                                                }
+                                                else
+                                                {
+                                                    logProcessing.Add(currentFileChange.Value.Value);
+                                                }
+                                                break;
+
+                                            case FileChangeSource.FailedOutList:
+                                                if (logFailedOut == null)
+                                                {
+                                                    logFailedOut = new List<FileChange>(Helpers.EnumerateSingleItem(currentFileChange.Value.Value));
+                                                }
+                                                else
+                                                {
+                                                    logFailedOut.Add(currentFileChange.Value.Value);
+                                                }
+                                                break;
+                                        }
+                                    }
+
+                                    return new
+                                    {
+                                        ExistingError = currentFileChange.Value.Key,
+                                        OriginalFileChange = currentFileChange.Value.Value,
+                                        DependencyFileChange = convertChange(currentFileChange),
+                                        SourceType = currentFileChange.Key
+                                    };
+                                })
                             .ToArray();
+
+                        // advanced trace
+                        if (loggingEnabled)
+                        {
+                            if (logQueued != null)
+                            {
+                                ComTrace.LogFileChangeFlow(
+                                    this._syncbox.CopiedSettings.TraceLocation,
+                                    this._syncbox.CopiedSettings.DeviceId,
+                                    this._syncbox.SyncboxId,
+                                    FileChangeFlowEntryPositionInFlow.FileMonitorGrabPreprocessedQueuedChanges,
+                                    logQueued);
+                            }
+
+                            if (logFailure != null)
+                            {
+                                ComTrace.LogFileChangeFlow(
+                                    this._syncbox.CopiedSettings.TraceLocation,
+                                    this._syncbox.CopiedSettings.DeviceId,
+                                    this._syncbox.SyncboxId,
+                                    FileChangeFlowEntryPositionInFlow.FileMonitorGrabPreprocessedFailureQueue,
+                                    logFailure);
+                            }
+
+                            if (logProcessing != null)
+                            {
+                                ComTrace.LogFileChangeFlow(
+                                    this._syncbox.CopiedSettings.TraceLocation,
+                                    this._syncbox.CopiedSettings.DeviceId,
+                                    this._syncbox.SyncboxId,
+                                    FileChangeFlowEntryPositionInFlow.FileMonitorGrabPreprocessedProcessingChanges,
+                                    logProcessing);
+                            }
+
+                            if (logFailedOut != null)
+                            {
+                                ComTrace.LogFileChangeFlow(
+                                    this._syncbox.CopiedSettings.TraceLocation,
+                                    this._syncbox.CopiedSettings.DeviceId,
+                                    this._syncbox.SyncboxId,
+                                    FileChangeFlowEntryPositionInFlow.FileMonitorGrabPreprocessedFailedOutList,
+                                    logFailedOut);
+                            }
+                        }
 
                         if (failedOutChanges != null)
                         {
@@ -2811,6 +3020,8 @@ namespace Cloud.FileMonitor
                     {
                         FileChangeWithDependencies selectedWithoutDependencies;
                         // don't need to set optional parameter (fileDownloadMoveLocker: removeDependencies.fileDownloadMoveLocker) because the returned changes are only used for logging
+
+                        // also, don't connect the FileChange to the onRevisionChanged in its FileMetadata since it's only used for logging
                         CLError createSelectedError = FileChangeWithDependencies.CreateAndInitialize(removeDependencies, /* initialDependencies */ null, out selectedWithoutDependencies);
                         if (createSelectedError != null)
                         {
@@ -3617,13 +3828,17 @@ namespace Cloud.FileMonitor
                                                     // replace index at current path
                                                     new ChangeAllPathsIndexSet(this, pathObject, newMetadata);
                                                     // queue file change for modify
-                                                    QueueFileChange(new FileChange(QueuedChanges)
+                                                    
+                                                    FileChange toQueue = new FileChange(QueuedChanges)
                                                     {
                                                         NewPath = pathObject,
-                                                        Metadata = newMetadata,
                                                         Type = FileChangeType.Modified,
                                                         Direction = SyncDirection.To // detected that a file or folder was modified locally, so Sync To to update server
-                                                    }, startProcessingAction);
+                                                    };
+
+                                                    toQueue.Metadata = newMetadata.CopyWithDifferentRevisionChanger(newMetadata.RevisionChanger, Helpers.CreateFileChangeRevisionChangedHandler(toQueue, _syncData));
+
+                                                    QueueFileChange(toQueue, startProcessingAction);
                                                 }
                                             }
                                         }
@@ -3647,13 +3862,16 @@ namespace Cloud.FileMonitor
                                             // add new index
                                             new ChangeAllPathsAdd(this, pathObject, addedMetadata);
                                             // queue file change for create
-                                            QueueFileChange(new FileChange(QueuedChanges)
+                                            FileChange toQueue = new FileChange(QueuedChanges)
                                             {
                                                 NewPath = pathObject,
-                                                Metadata = addedMetadata,
                                                 Type = FileChangeType.Created,
                                                 Direction = SyncDirection.To // detected that a file or folder was created locally, so Sync To to update server
-                                            }, startProcessingAction);
+                                            };
+
+                                            toQueue.Metadata = addedMetadata.CopyWithDifferentRevisionChanger(addedMetadata.RevisionChanger, Helpers.CreateFileChangeRevisionChangedHandler(toQueue, _syncData));
+
+                                            QueueFileChange(toQueue, startProcessingAction);
                                         }
                                     }
                                     // if file file does not exist, but an index exists
@@ -3667,13 +3885,18 @@ namespace Cloud.FileMonitor
                                         }
 
                                         // queue file change for delete
-                                        QueueFileChange(new FileChange(QueuedChanges)
+                                        FileChange toQueue = new FileChange(QueuedChanges)
                                         {
                                             NewPath = pathObject,
-                                            Metadata = AllPaths[pathObject],
                                             Type = FileChangeType.Deleted,
                                             Direction = SyncDirection.To // detected that a file or folder was deleted locally, so Sync To to update server
-                                        }, startProcessingAction);
+                                        };
+
+                                        FileMetadata existingMetadata = AllPaths[pathObject];
+
+                                        toQueue.Metadata = existingMetadata.CopyWithDifferentRevisionChanger(existingMetadata.RevisionChanger, Helpers.CreateFileChangeRevisionChangedHandler(toQueue, _syncData));
+
+                                        QueueFileChange(toQueue, startProcessingAction);
                                         // remove index
                                         new ChangeAllPathsRemove(this, pathObject);
                                     }
@@ -3732,13 +3955,19 @@ namespace Cloud.FileMonitor
                                             }
 
                                             // queue file change for delete at previous path
-                                            QueueFileChange(new FileChange(QueuedChanges)
+                                            FileChange toQueue = new FileChange(QueuedChanges)
                                             {
                                                 NewPath = oldPathObject,
-                                                Metadata = AllPaths[oldPathObject],
                                                 Type = FileChangeType.Deleted,
                                                 Direction = SyncDirection.To // detected that a file or folder was deleted locally, so Sync To to update server
-                                            }, startProcessingAction);
+                                            };
+
+                                            FileMetadata existingMetadata = AllPaths[oldPathObject];
+
+                                            toQueue.Metadata = existingMetadata.CopyWithDifferentRevisionChanger(existingMetadata.RevisionChanger, Helpers.CreateFileChangeRevisionChangedHandler(toQueue, _syncData));
+
+                                            QueueFileChange(toQueue, startProcessingAction);
+
                                             // remove index at previous path
                                             new ChangeAllPathsRemove(this, oldPathObject);
                                         }
@@ -3807,13 +4036,16 @@ namespace Cloud.FileMonitor
                                                     // replace index at current path
                                                     new ChangeAllPathsIndexSet(this, pathObject, newMetadata);
                                                     // queue file change for modify
-                                                    QueueFileChange(new FileChange(QueuedChanges)
+                                                    FileChange toQueue = new FileChange(QueuedChanges)
                                                     {
                                                         NewPath = pathObject,
-                                                        Metadata = newMetadata,
                                                         Type = FileChangeType.Modified,
                                                         Direction = SyncDirection.To // detected that a file or folder was modified locally, so Sync To to update server
-                                                    }, startProcessingAction);
+                                                    };
+
+                                                    toQueue.Metadata = newMetadata.CopyWithDifferentRevisionChanger(newMetadata.RevisionChanger, Helpers.CreateFileChangeRevisionChangedHandler(toQueue, _syncData));
+
+                                                    QueueFileChange(toQueue, startProcessingAction);
                                                 }
                                                 else if (debugMemory)
                                                 {
@@ -3859,13 +4091,19 @@ namespace Cloud.FileMonitor
                                             }
 
                                             // queue file change for delete at new path
-                                            QueueFileChange(new FileChange(QueuedChanges)
+                                            FileChange toQueue = new FileChange(QueuedChanges)
                                             {
                                                 NewPath = pathObject,
-                                                Metadata = AllPaths[pathObject],
                                                 Type = FileChangeType.Deleted,
                                                 Direction = SyncDirection.To // detected that a file or folder was deleted locally, so Sync To to update server
-                                            }, startProcessingAction);
+                                            };
+
+                                            FileMetadata existingMetadata = AllPaths[pathObject];
+
+                                            toQueue.Metadata = existingMetadata.CopyWithDifferentRevisionChanger(existingMetadata.RevisionChanger, Helpers.CreateFileChangeRevisionChangedHandler(toQueue, _syncData));
+
+                                            QueueFileChange(toQueue, startProcessingAction);
+
                                             // remove index for new path
                                             new ChangeAllPathsRemove(this, pathObject);
 
@@ -3883,13 +4121,19 @@ namespace Cloud.FileMonitor
                                             }
 
                                             // queue file change for delete at previous path
-                                            QueueFileChange(new FileChange(QueuedChanges)
+                                            FileChange toQueue = new FileChange(QueuedChanges)
                                             {
                                                 NewPath = oldPathObject,
-                                                Metadata = AllPaths[oldPathObject],
                                                 Type = FileChangeType.Deleted,
                                                 Direction = SyncDirection.To // detected that a file or folder was deleted locally, so Sync To to update server
-                                            }, startProcessingAction);
+                                            };
+
+                                            FileMetadata existingMetadata = AllPaths[oldPathObject];
+
+                                            toQueue.Metadata = existingMetadata.CopyWithDifferentRevisionChanger(existingMetadata.RevisionChanger, Helpers.CreateFileChangeRevisionChangedHandler(toQueue, _syncData));
+
+                                            QueueFileChange(toQueue, startProcessingAction);
+
                                             // remove index at the previous path
                                             new ChangeAllPathsRemove(this, oldPathObject);
                                         }
@@ -3961,14 +4205,19 @@ namespace Cloud.FileMonitor
                                         new ChangeAllPathsIndexSet(this, pathObject, newMetadata ?? previousMetadata);
 
                                         // queue file change for rename (use changed metadata if it exists otherwise the previous metadata)
-                                        QueueFileChange(new FileChange(QueuedChanges)
+                                        FileChange toQueue = new FileChange(QueuedChanges)
                                         {
                                             NewPath = pathObject,
                                             OldPath = oldPathObject,
-                                            Metadata = newMetadata ?? previousMetadata,
                                             Type = FileChangeType.Renamed,
                                             Direction = SyncDirection.To // detected that a file or folder was renamed locally, so Sync To to update server
-                                        }, startProcessingAction);
+                                        };
+
+                                        FileMetadata metadataToUse = newMetadata ?? previousMetadata;
+
+                                        toQueue.Metadata = metadataToUse.CopyWithDifferentRevisionChanger(metadataToUse.RevisionChanger, Helpers.CreateFileChangeRevisionChangedHandler(toQueue, _syncData));
+
+                                        QueueFileChange(toQueue, startProcessingAction);
                                     }
                                     // if index does not exist at either the old nor new paths and the file exists
                                     else
@@ -4015,13 +4264,18 @@ namespace Cloud.FileMonitor
                                                     fileLength)
                                             });
                                         // queue file change for create for new path
-                                        QueueFileChange(new FileChange(QueuedChanges)
+                                        FileChange toQueue = new FileChange(QueuedChanges)
                                         {
                                             NewPath = pathObject,
-                                            Metadata = AllPaths[pathObject],
                                             Type = FileChangeType.Created,
                                             Direction = SyncDirection.To // detected that a file or folder was created locally, so Sync To to update server
-                                        }, startProcessingAction);
+                                        };
+
+                                        FileMetadata existingMetadata = AllPaths[pathObject];
+
+                                        toQueue.Metadata = existingMetadata.CopyWithDifferentRevisionChanger(existingMetadata.RevisionChanger, Helpers.CreateFileChangeRevisionChangedHandler(toQueue, _syncData));
+
+                                        QueueFileChange(toQueue, startProcessingAction);
                                     }
                                 }
                                 // for file system events marked as delete
@@ -4060,13 +4314,16 @@ namespace Cloud.FileMonitor
                                                     // replace index at current path
                                                     new ChangeAllPathsIndexSet(this, pathObject, newMetadata);
                                                     // queue file change for modify
-                                                    QueueFileChange(new FileChange(QueuedChanges)
+                                                    FileChange toQueue = new FileChange(QueuedChanges)
                                                     {
                                                         NewPath = pathObject,
-                                                        Metadata = newMetadata,
                                                         Type = FileChangeType.Modified,
                                                         Direction = SyncDirection.To // detected that a file or folder was modified locally, so Sync To to update server
-                                                    }, startProcessingAction);
+                                                    };
+
+                                                    toQueue.Metadata = newMetadata.CopyWithDifferentRevisionChanger(newMetadata.RevisionChanger, Helpers.CreateFileChangeRevisionChangedHandler(toQueue, _syncData));
+
+                                                    QueueFileChange(toQueue, startProcessingAction);
                                                 }
                                                 else if (debugMemory)
                                                 {
@@ -4091,13 +4348,18 @@ namespace Cloud.FileMonitor
                                         }
 
                                         // queue file change for delete
-                                        QueueFileChange(new FileChange(QueuedChanges)
+                                        FileChange toQueue = new FileChange(QueuedChanges)
                                         {
                                             NewPath = pathObject,
-                                            Metadata = AllPaths[pathObject],
                                             Type = FileChangeType.Deleted,
                                             Direction = SyncDirection.To // detected that a file or folder was deleted locally, so Sync To to update server
-                                        }, startProcessingAction);
+                                        };
+
+                                        FileMetadata existingMetadata = AllPaths[pathObject];
+
+                                        toQueue.Metadata = existingMetadata.CopyWithDifferentRevisionChanger(existingMetadata.RevisionChanger, Helpers.CreateFileChangeRevisionChangedHandler(toQueue, _syncData));
+
+                                        QueueFileChange(toQueue, startProcessingAction);
 
                                         // remove index
                                         new ChangeAllPathsRemove(this, pathObject);
@@ -4270,7 +4532,7 @@ namespace Cloud.FileMonitor
             if (!FileMetadataHashableComparer.Default.Equals(previousMetadata.HashableProperties, forCompare))
             {
                 // metadata change detected
-                return new FileMetadata(previousMetadata.RevisionChanger)
+                return new FileMetadata(previousMetadata.RevisionChanger, onRevisionChanged: null)
                 {
                     ServerUid = previousMetadata.ServerUid,
                     HashableProperties = forCompare,
@@ -4442,7 +4704,7 @@ namespace Cloud.FileMonitor
                                             // delete caused AllPaths to lose metadata fields, but since we're cancelling the delete, they need to be put back
                                             // since all cases from CheckMetadataAgainstFile which led to this creation change assigned Metadata directly from AllPaths, we can change the fields here to propagate back
 
-                                            toChange.Metadata = toChange.Metadata.CopyWithDifferentRevisionChanger(previousChange.Metadata.RevisionChanger);
+                                            toChange.Metadata = toChange.Metadata.CopyWithDifferentRevisionChanger(previousChange.Metadata.RevisionChanger, Helpers.CreateFileChangeRevisionChangedHandler(toChange, _syncData));
                                             toChange.Metadata.MimeType = previousChange.Metadata.MimeType;
                                             toChange.Metadata.Revision = previousChange.Metadata.Revision;
                                             toChange.Metadata.ServerUid = previousChange.Metadata.ServerUid;
@@ -4458,7 +4720,7 @@ namespace Cloud.FileMonitor
                                             // delete caused AllPaths to lose metadata fields, but since we're cancelling the delete, they need to be put back
                                             // since all cases from CheckMetadataAgainstFile which led to this creation change assigned Metadata directly from AllPaths, we can change the fields here to propagate back
 
-                                            toChange.Metadata = toChange.Metadata.CopyWithDifferentRevisionChanger(previousChange.Metadata.RevisionChanger);
+                                            toChange.Metadata = toChange.Metadata.CopyWithDifferentRevisionChanger(previousChange.Metadata.RevisionChanger, Helpers.CreateFileChangeRevisionChangedHandler(toChange, _syncData));
                                             toChange.Metadata.MimeType = previousChange.Metadata.MimeType;
                                             toChange.Metadata.Revision = previousChange.Metadata.Revision;
                                             toChange.Metadata.ServerUid = previousChange.Metadata.ServerUid;
@@ -4571,9 +4833,11 @@ namespace Cloud.FileMonitor
                                                 {
                                                     NewPath = toChange.OldPath,
                                                     Type = FileChangeType.Deleted,
-                                                    Metadata = toChange.Metadata,
                                                     Direction = SyncDirection.To // detected that a file or folder was deleted locally, so Sync To to update server
                                                 };
+
+                                            oldLocationDelete.Metadata = toChange.Metadata.CopyWithDifferentRevisionChanger(toChange.Metadata.RevisionChanger, Helpers.CreateFileChangeRevisionChangedHandler(toChange, _syncData));
+
                                             if (QueuedChanges.ContainsKey(toChange.OldPath))
                                             {
                                                 FileChange previousOldPathChange = QueuedChanges[toChange.OldPath];
@@ -4642,7 +4906,7 @@ namespace Cloud.FileMonitor
                     if (toChange.Metadata != null
                         && matchedFileChangeForRename.Metadata != null)
                     {
-                        toChange.Metadata = toChange.Metadata.CopyWithDifferentRevisionChanger(matchedFileChangeForRename.Metadata.RevisionChanger);
+                        toChange.Metadata = toChange.Metadata.CopyWithDifferentRevisionChanger(matchedFileChangeForRename.Metadata.RevisionChanger, Helpers.CreateFileChangeRevisionChangedHandler(toChange, _syncData));
 
                         if (toChange.Metadata.ServerUid == null)
                         {

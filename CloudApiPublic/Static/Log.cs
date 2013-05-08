@@ -732,6 +732,18 @@ namespace Cloud.Static
         SyncRunInitialErrors,
 
         /// <remarks/>
+        FileMonitorGrabPreprocessedQueuedChanges,
+
+        /// <remarks/>
+        FileMonitorGrabPreprocessedFailureQueue,
+
+        /// <remarks/>
+        FileMonitorGrabPreprocessedProcessingChanges,
+
+        /// <remarks/>
+        FileMonitorGrabPreprocessedFailedOutList,
+
+        /// <remarks/>
         GrabChangesQueuedChangesAddedToSQL,
 
         /// <remarks/>
@@ -769,6 +781,18 @@ namespace Cloud.Static
 
         /// <remarks/>
         SyncRunPostCommunicationDequeuedFailures,
+
+        /// <remarks/>
+        FileMonitorAssignDependenciesQueuedChanges,
+
+        /// <remarks/>
+        FileMonitorAssignDependenciesFailureQueue,
+
+        /// <remarks/>
+        FileMonitorAssignDependenciesProcessingChanges,
+
+        /// <remarks/>
+        FileMonitorAssignDependenciesFailedOutList,
 
         /// <remarks/>
         DependencyAssignmentOutputChanges,

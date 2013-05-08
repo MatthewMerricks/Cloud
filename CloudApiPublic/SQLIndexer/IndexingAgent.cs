@@ -1404,6 +1404,11 @@ namespace Cloud.SQLIndexer
                                     if (currentCommunicatedChange.Changed)
                                     {
                                         currentCommunicatedChange.FileChange.DoNotAddToSQLIndex = false;
+
+                                        if (currentCommunicatedChange.FileChange.Metadata.ServerUid == null)
+                                        {
+                                            throw new NullReferenceException("communicatedChange with Changed equals true requires FileChange Metadata ServerUid");
+                                        }
                                         return true;
                                     }
 
@@ -2222,6 +2227,10 @@ namespace Cloud.SQLIndexer
                 if (existingEventObject.ParentFolderId == null)
                 {
                     throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "The root folder object should never have been pending to complete");
+                }
+                if (existingEventObject.ServerUid == null)
+                {
+                    throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Existing event cannot be completed if it does not have a ServerUid");
                 }
 
                 storeExistingChangeType = changeEnums[existingEventObject.Event.FileChangeTypeEnumId];
