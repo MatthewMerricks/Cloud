@@ -142,7 +142,8 @@ namespace Cloud.Static
         UploadingFiles = 2,
         DownloadingFiles = 4,
         HaltedOnConnectionFailure = 8,
-        HaltedOnExpiredCredentials = 16
+        HaltedOnExpiredCredentials = 16,
+        InternetDisconnected = 32
     }
 
     /// <summary>

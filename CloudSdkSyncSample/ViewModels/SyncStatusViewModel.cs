@@ -205,6 +205,10 @@ namespace SampleLiveSync.ViewModels
                 {
                     SyncStatus = SyncStates.Synced;
                 }
+                else if ((currentStatus.CurrentState & CLSyncCurrentState.InternetDisconnected) == CLSyncCurrentState.InternetDisconnected)
+                {
+                    SyncStatus = SyncStates.Error; // todo: another icon?
+                }
                 else if (
                     ((currentStatus.CurrentState & CLSyncCurrentState.HaltedOnConnectionFailure) == CLSyncCurrentState.HaltedOnConnectionFailure)
                         || ((currentStatus.CurrentState & CLSyncCurrentState.HaltedOnExpiredCredentials) == CLSyncCurrentState.HaltedOnExpiredCredentials))

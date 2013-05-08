@@ -676,11 +676,46 @@ namespace Cloud.Sync
                         Nullable<DateTime> earliestToKill = null;
                         DateTime killTime = DateTime.UtcNow.Subtract(ThreadStatusTimeoutSpan);
                         List<Guid> removedStatusKeys = null;
+                        ThreadStatus lastInternetDisconnectedThreadStatus = null;
+                        ThreadStatus lastThreadStatus = null;
                         foreach (KeyValuePair<Guid, ThreadStatus> currentStatus in castState.ThreadsToStatus)
                         {
                             if (currentStatus.Value.LastUpdateTime == null
                                 || killTime.CompareTo((DateTime)currentStatus.Value.LastUpdateTime) <= 0)
                             {
+
+                                if (currentStatus.Value.InternetDisconnected == true)
+                                {
+                                    bool isLastInternetDisconnectedThreadStatus = (currentStatus.Value.LastUpdateTime != null && // only if the tested object has a valid time
+                                                                                   (lastInternetDisconnectedThreadStatus == null ||
+                                                                                        lastInternetDisconnectedThreadStatus.LastUpdateTime.Value.CompareTo(currentStatus.Value.LastUpdateTime) < 0));
+                                    if (isLastInternetDisconnectedThreadStatus)
+                                    {
+                                        lastInternetDisconnectedThreadStatus = currentStatus.Value;
+                                    }
+
+                                    // remove this ThreadState in this iteration
+                                    if (removedStatusKeys == null)
+                                    {
+                                        removedStatusKeys = new List<Guid>();
+                                    }
+
+                                    removedStatusKeys.Add(currentStatus.Key);
+
+                                    continue; // do not consider this ThreadStatus further
+                                }
+                                else
+                                {
+                                    bool isLastThreadStatus = (currentStatus.Value.LastUpdateTime != null && // only if the tested object has a valid time
+                                                                (lastThreadStatus == null ||
+                                                                 lastThreadStatus.LastUpdateTime.Value.CompareTo(currentStatus.Value.LastUpdateTime) < 0));
+                                    if (isLastThreadStatus)
+                                    {
+                                        lastThreadStatus = currentStatus.Value;
+                                    }
+                                }
+
+
                                 // define a bool for whether this status change represents a file upload or download which has completed and should be cleared out
                                 bool uploadDownloadCompleted = false;
 
@@ -752,6 +787,14 @@ namespace Cloud.Sync
                                 removedStatusKeys.Add(currentStatus.Key);
                             }
                         }  // end loop thru ThreadsToStatus dictionary.
+
+                        bool isInternetDisconnected = (lastInternetDisconnectedThreadStatus != null &&
+                                                        (lastThreadStatus == null ||
+                                                            lastThreadStatus.LastUpdateTime.Value.CompareTo(lastInternetDisconnectedThreadStatus.LastUpdateTime) < 0));
+                        if (isInternetDisconnected)
+                        {
+                            outputState |= CLSyncCurrentState.InternetDisconnected;
+                        }
 
                         if (removedStatusKeys != null)
                         {
@@ -896,6 +939,28 @@ namespace Cloud.Sync
         private readonly GenericHolder<DateTime> threadStateKillTime = new GenericHolder<DateTime>(DateTime.MinValue);
         private readonly GenericHolder<Timer> threadStateKillTimer = new GenericHolder<Timer>(null);
         private static readonly TimeSpan NoPeriodTimeSpan = TimeSpan.FromMilliseconds(-1d);
+        private Nullable<bool> _lastInternetDisconnected = null;
+        private void SyncInternetDisconnected(Guid threadId)
+        {
+            try
+            {
+                lock (StatusChangesQueue)
+                {
+                    StatusChangesQueue.Enqueue(new KeyValuePair<Guid, ThreadStatus>(
+                        threadId,
+                        new ThreadStatus()
+                        {
+                            LastUpdateTime = DateTime.UtcNow,
+                            InternetDisconnected = true
+                        }));
+
+                    StartStatusAggregatorIfNotStarted();
+                }
+            }
+            catch
+            {
+            }
+        }
         private void SyncStillRunning(Guid threadId)
         {
             try
@@ -1172,6 +1237,19 @@ namespace Cloud.Sync
                 }
             }
             private Nullable<long> _totalByteSize = null; // Null for sync running thread, but set for file upload/file download
+
+            public Nullable<bool> InternetDisconnected
+            {
+                get
+                {
+                    return _internetDisconnected;
+                }
+                set
+                {
+                    _internetDisconnected = value;
+                }
+            }
+            private Nullable<bool> _internetDisconnected = null; 
         }
 
         public KeyValuePair<FilePathDictionary<List<FileChange>>, CLError> GetUploadDownloadTransfersInProgress(string CurrentFolderPath)
@@ -3911,7 +3989,18 @@ namespace Cloud.Sync
                 }
 
                 var disconnectedException = checkInternetConnection.TypedProcess();
-                if (disconnectedException != null)
+                bool internetDisconnected = (disconnectedException != null);
+                // notify internet state only once the time when the connection status changes 
+                if (_lastInternetDisconnected != internetDisconnected)
+                {
+                    _lastInternetDisconnected = internetDisconnected;
+                    if (internetDisconnected)
+                    {
+                        SyncInternetDisconnected(commonRunThreadId);
+                    }
+                    // else.. internet connected will be implicitly communicated on the following SyncStillRunning() ThreadState evaluation
+                }
+                if (internetDisconnected)
                 {
                     return disconnectedException.Value;
                 }
@@ -5157,7 +5246,7 @@ namespace Cloud.Sync
             catch (Exception ex)
             {
                 // Call the StatusUpdate callback to update the summary information for this upload ("center section" of the status window), unless the status messages were already sent by CLHttpRest.UploadFile.
-                if (uploadError == null)
+                if (uploadError != null)
                 {
                     if (castState != null
                         && castState.FileToUpload != null
