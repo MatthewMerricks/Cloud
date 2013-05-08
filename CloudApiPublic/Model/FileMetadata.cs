@@ -59,29 +59,39 @@ namespace Cloud.Model
         /// </summary>
         public DateTime EventTime { get; set; }
 
-        internal RevisionChanger RevisionChanger { get; private set; }
+        internal RevisionChanger RevisionChanger
+        {
+            get
+            {
+                return _revisionChanger;
+            }
+        }
+        private readonly RevisionChanger _revisionChanger;
 
-        public FileMetadata() : this(null) { }
+        internal readonly Func<object> onRevisionChanged;
 
-        internal FileMetadata(RevisionChanger revisionChanger)
+        public FileMetadata() : this(null, null) { }
+
+        internal FileMetadata(RevisionChanger revisionChanger, Func<object> onRevisionChanged)
         {
             if (revisionChanger == null)
             {
-                this.RevisionChanger = new RevisionChanger();
+                this._revisionChanger = new RevisionChanger();
             }
             else
             {
-                this.RevisionChanger = revisionChanger;
+                this._revisionChanger = revisionChanger;
             }
             lock (this.RevisionChanger.RevisionChangeLocker)
             {
                 this.RevisionChanger.RevisionChanged += OnRevisionChanged;
+                this.onRevisionChanged = onRevisionChanged;
             }
         }
 
-        internal FileMetadata CopyWithDifferentRevisionChanger(RevisionChanger replacementChanger)
+        internal FileMetadata CopyWithDifferentRevisionChanger(RevisionChanger replacementChanger, Func<object> onRevisionChanged)
         {
-            return new FileMetadata(replacementChanger)
+            return new FileMetadata(replacementChanger, onRevisionChanged)
             {
                 EventTime = EventTime,
                 HashableProperties = HashableProperties,
@@ -100,8 +110,24 @@ namespace Cloud.Model
         {
             if (this != sender)
             {
-                Revision = e.Revision;
-                ServerUid = e.ServerUid;
+                bool somethingChanged = false;
+
+                if (this.Revision != e.Revision)
+                {
+                    this.Revision = e.Revision;
+                    somethingChanged = true;
+                }
+                if (this.ServerUid != e.ServerUid)
+                {
+                    this.ServerUid = e.ServerUid;
+                    somethingChanged = true;
+                }
+
+                if (somethingChanged
+                    && this.onRevisionChanged != null)
+                {
+                    this.onRevisionChanged();
+                }
             }
         }
     }

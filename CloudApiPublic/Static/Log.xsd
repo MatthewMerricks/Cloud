@@ -101,6 +101,10 @@
                 <xs:enumeration value="FileMonitorAddingToQueuedChanges" />
                 <xs:enumeration value="FileMonitorAddingBatchToSQL" />
                 <xs:enumeration value="SyncRunInitialErrors" />
+                <xs:enumeration value="FileMonitorGrabPreprocessedQueuedChanges" />
+                <xs:enumeration value="FileMonitorGrabPreprocessedFailureQueue" />
+                <xs:enumeration value="FileMonitorGrabPreprocessedProcessingChanges" />
+                <xs:enumeration value="FileMonitorGrabPreprocessedFailedOutList" />
                 <xs:enumeration value="GrabChangesQueuedChangesAddedToSQL" />
                 <xs:enumeration value="GrabChangesOutputChanges" />
                 <xs:enumeration value="GrabChangesOutputChangesInError" />
@@ -114,6 +118,10 @@
                 <xs:enumeration value="CommunicationIncompletedChanges" />
                 <xs:enumeration value="CommunicationChangesInError" />
                 <xs:enumeration value="SyncRunPostCommunicationDequeuedFailures" />
+                <xs:enumeration value="FileMonitorAssignDependenciesQueuedChanges" />
+                <xs:enumeration value="FileMonitorAssignDependenciesFailureQueue" />
+                <xs:enumeration value="FileMonitorAssignDependenciesProcessingChanges" />
+                <xs:enumeration value="FileMonitorAssignDependenciesFailedOutList" />
                 <xs:enumeration value="DependencyAssignmentOutputChanges" />
                 <xs:enumeration value="DependencyAssignmentTopLevelErrors" />
                 <xs:enumeration value="SyncRunPostCommunicationSynchronous" />
