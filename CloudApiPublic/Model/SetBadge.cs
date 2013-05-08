@@ -21,7 +21,7 @@ namespace Cloud.Model
             {
                 if (!_isValid)
                 {
-                    throw new ArgumentException("Cannot retrieve property values on an invalid SetBadge");
+                    throw new ArgumentException(Resources.SetBadgeCannotRetrievePropertyValuesOnAnInvalidSetBadge);
                 }
                 return _pathToBadge;
             }
@@ -34,7 +34,7 @@ namespace Cloud.Model
             {
                 if (!_isValid)
                 {
-                    throw new ArgumentException("Cannot retrieve property values on an invalid SetBadge");
+                    throw new ArgumentException(Resources.SetBadgeCannotRetrievePropertyValuesOnAnInvalidSetBadge);
                 }
                 return _badgeState;
             }
@@ -55,11 +55,11 @@ namespace Cloud.Model
             // Ensure input variables have proper references set
             if (pathToBadge == null)
             {
-                throw new NullReferenceException("PathToBadge cannot be null");
+                throw new NullReferenceException(Resources.SetBadgePathToBadgeCannotBeNull);
             }
             else if ((badgeType < Enum.GetValues(typeof(PathState)).Cast<PathState>().Min()) || (badgeType > Enum.GetValues(typeof(PathState)).Cast<PathState>().Max()))
             {
-                throw new NullReferenceException("BadgeType is not within the acceptable range");
+                throw new NullReferenceException(Resources.SetBadgeBadgeTypeIsNotWithinTheAcceptableRange);
             }
 
             this._badgeState = badgeType;

@@ -90,7 +90,7 @@ namespace Cloud.Model
         {
             if (baseChange == null)
             {
-                throw new NullReferenceException("baseChange cannot be null");
+                throw new NullReferenceException(Resources.FileChangeWithDependenciesBaseChangeCannotBeNull);
             }
 
             base.Direction = baseChange.Direction;
@@ -105,7 +105,7 @@ namespace Cloud.Model
             CLError setMD5Error = base.SetMD5(previousMD5Bytes);
             if (setMD5Error != null)
             {
-                throw new CLException(CLExceptionCode.Syncing_Model, "Error setting MD5 from baseChange to new FileChangeWithDependencies", setMD5Error.Exceptions);
+                throw new CLException(CLExceptionCode.Syncing_Model, Resources.FileChangeWithDependenciesErrorSettingMD5FromBaseChangeToNewFileChangeWithDependencies, setMD5Error.Exceptions);
             }
             base.Type = baseChange.Type;
 

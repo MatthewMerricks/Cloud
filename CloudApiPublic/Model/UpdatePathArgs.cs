@@ -37,7 +37,7 @@ namespace Cloud.Model
         {
             if (badgeChange.PathToBadge == null)
             {
-                throw new NullReferenceException("PathToBadge cannot be null");
+                throw new NullReferenceException(Resources.UpdatePathArgsPathToBadgeCannotBeNull);
             }
 
             this._state = State;

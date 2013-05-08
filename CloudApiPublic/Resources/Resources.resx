@@ -804,4 +804,388 @@
   <data name="MonitorAgentUnknownFileChangeTypeforInnerFileChange" xml:space="preserve">
     <value>Unknown FileChangeType for InnerFileChange:</value>
   </data>
+  <data name="CLNotificationManualPollingEngineAlreadyInitialized" xml:space="preserve">
+    <value>Already initialized</value>
+  </data>
+  <data name="CLNotificationManualPollingEngineAlreadyStarted" xml:space="preserve">
+    <value>Already started</value>
+  </data>
+  <data name="CLNotificationManualPollingEngineDefaultConstructorNotSupported" xml:space="preserve">
+    <value>Default constructor not supported</value>
+  </data>
+  <data name="CLNotificationManualPollingEngineDelegateSendManualPollMustNotBeNull" xml:space="preserve">
+    <value>delegateSendManualPoll must not be null</value>
+  </data>
+  <data name="CLNotificationManualPollingEngineInitializeFirst" xml:space="preserve">
+    <value>Initialize first</value>
+  </data>
+  <data name="CLNotificationManualPollingEngineStartErrorExceptionMsg0" xml:space="preserve">
+    <value>CLNotificationManualPollingEngine: Start: ERROR: Exception: Msg: {0}.</value>
+  </data>
+  <data name="CLNotificationManualPollingEngineSyncBoxMustNotBeNull" xml:space="preserve">
+    <value>syncbox must not be null</value>
+  </data>
+  <data name="CLNotificationServiceAlreadyStarted" xml:space="preserve">
+    <value>Already started</value>
+  </data>
+  <data name="CLNotificationServiceCancelEngineTimeoutCallbackErrorExceptionMsg0" xml:space="preserve">
+    <value>CLNotificationService: CancelEngineTimeoutCallback: ERROR: Exception: Msg: {0}.</value>
+  </data>
+  <data name="CLNotificationServiceCreateEngineTimer" xml:space="preserve">
+    <value>CLNotificationService: CreateEngineTimer: ERROR: Exception: Msg: {0}.</value>
+  </data>
+  <data name="CLNotificationServiceDisconnectNotificationServerRemoteClient0" xml:space="preserve">
+    <value>CLNotificationService: DisconnectPushNotificationServer: Remove client: {0}.</value>
+  </data>
+  <data name="CLNotificationServiceDisconnectPushNotificationServerDisposeEngineWatcher" xml:space="preserve">
+    <value>CLNotificationService: DisconnectPushNotificationServer: Dispose the engine watcher.</value>
+  </data>
+  <data name="CLNotificationServiceDisconnectPushNotificationServerEntry" xml:space="preserve">
+    <value>CLNotificationService: DisconnectPushNotificationServer: Entry.</value>
+  </data>
+  <data name="CLNotificationServiceDisconnectPushNotificationServerErrorExceptionMsg0" xml:space="preserve">
+    <value>CLNotificationService: DisconnectPushNotificationServer: ERROR: Exception: Msg: {0}.</value>
+  </data>
+  <data name="CLNotificationServiceDisconnectPushNotificationServerExit" xml:space="preserve">
+    <value>CLNotificationService: DisconnectPushNotificationServer: Exit.</value>
+  </data>
+  <data name="CLNotificationServiceDisconnectPushNotificationServerStopEngine" xml:space="preserve">
+    <value>CLNotificationService: DisconnectPushNotificationServer: Stop the engine.</value>
+  </data>
+  <data name="CLNotificationServiceDisconnectPushNotificationServerStopServiceManagerThread" xml:space="preserve">
+    <value>CLNotificationService: DisconnectPushNotificationServer: StopServiceMangagerThread.</value>
+  </data>
+  <data name="CLNotificationServiceDisposeEngineTimerBackFromDispose" xml:space="preserve">
+    <value>CLNotificationService: DisposeEngineTimer: Back from dispose.</value>
+  </data>
+  <data name="CLNotificationServiceDisposeEngineTimerDisposeTimer" xml:space="preserve">
+    <value>CLNotificationService: DisposeEngineTimer: Dispose the timer.</value>
+  </data>
+  <data name="CLNotificationServiceDisposeEngineTimerErrorExceptionMsg0" xml:space="preserve">
+    <value>CLNotificationService: DisposeEngineTimer: ERROR: Exception: Msg: {0}.</value>
+  </data>
+  <data name="CLNotificationServiceEntry" xml:space="preserve">
+    <value>CLNotificationService: CLNotificationService: Entry</value>
+  </data>
+  <data name="CLNotificationServiceErrorExceptionMsg0" xml:space="preserve">
+    <value>CLNotificationService: CLNotificationService: ERROR: Exception: Msg: {0}.</value>
+  </data>
+  <data name="CLNotificationServiceHasFailed" xml:space="preserve">
+    <value>Notification service has failed</value>
+  </data>
+  <data name="CLNotificationServiceObjectMustBeACLNotificationService" xml:space="preserve">
+    <value>obj must be a CLNotificationService</value>
+  </data>
+  <data name="CLNotificationServicePerformMannualSyncFromFireEvent" xml:space="preserve">
+    <value>CLNotificationService: PerformManualSyncFrom: Fire event to request the application to send a Sync_From request.</value>
+  </data>
+  <data name="CLNotificationServicePerformManualSyncFromFireEventToNotifyApp" xml:space="preserve">
+    <value>CLNotificationService: PerformManualSyncFrom: Fire event to notify the application  Msg: {0}.</value>
+  </data>
+  <data name="CLNotificationServiceSendNotificationEventCallbackErrorException2Msg0" xml:space="preserve">
+    <value>CLNotificationService: SendNotificationEventCallback: ERROR: Exception (2): Msg: {0}.</value>
+  </data>
+  <data name="CLNotificationServiceSendNotificationEventCallbackErrorExceptionMsg0" xml:space="preserve">
+    <value>CLNotificationService: SendNotificationEventCallback: ERROR: Exception.  Msg: &lt;{0}&gt;.</value>
+  </data>
+  <data name="CLNotificationServiceSendNotificationEventCallbackSendDidReceicePushNotificationFromServer" xml:space="preserve">
+    <value>CLNotificationService: SendNotificationEventCallback: Send DidReceivePushNotificationFromServer.</value>
+  </data>
+  <data name="CLNotificationServiceSendNotificationEventCallbackSendNotificationMessage" xml:space="preserve">
+    <value>CLNotificationService: SendNotificationEventCallback: Send notification msg: &lt;{0}&gt;.</value>
+  </data>
+  <data name="CLNotificationServiceServiceManagerThreadProcbackFromEngineStart" xml:space="preserve">
+    <value>CLNotificationService: ServiceManagerThreadProc: Back from engine Start.</value>
+  </data>
+  <data name="CLNotificationServiceServiceManagerThreadProcBreakToGoToTopOfList" xml:space="preserve">
+    <value>CLNotificationService: ServiceManagerThreadProc: Break to go to top of list.</value>
+  </data>
+  <data name="CLNotificationServiceServiceManagerThreadProcEngine0ReturnedSuccess" xml:space="preserve">
+    <value>CLNotificationService: ServiceManagerThreadProc: Engine {0} returned success.</value>
+  </data>
+  <data name="CLNotificationServiceServiceManagerThreadProcEngineReturnedFailure" xml:space="preserve">
+    <value>CLNotificationService: ServiceManagerThreadProc: Engine {0} returned failure.</value>
+  </data>
+  <data name="CLNotificationServiceServiceManagerThreadProcEntry" xml:space="preserve">
+    <value>CLNotificationService: ServiceManagerThreadProc: Entry.</value>
+  </data>
+  <data name="CLNotificationServiceServiceManagerThreadProcErrorAllEnginesFailed" xml:space="preserve">
+    <value>CLNotificationService: ServiceManagerThreadProc: ERROR: All engines failed.</value>
+  </data>
+  <data name="CLNotificationServiceServiceManagerThreadProcErrorExceptionMsg0" xml:space="preserve">
+    <value>CLNotificationService: ServiceManagerThreadProc: ERROR: Exception: Msg: {0}.</value>
+  </data>
+  <data name="CLNotificationServiceServiceManagerThreadProcInstantiateManualPolling" xml:space="preserve">
+    <value>CLNotificationService: ServiceManagerThreadProc: Instantiate manual polling engine.</value>
+  </data>
+  <data name="CLNotificationServiceServiceManagerThreadProcInstantiateSSEEngine" xml:space="preserve">
+    <value>CLNotificationService: ServiceManagerThreadProc: Instantiate SSE engine.</value>
+  </data>
+  <data name="CLNotificationServiceServiceManagerThreadProcRestartAtTopOfList" xml:space="preserve">
+    <value>CLNotificationService: ServiceManagerThreadProc: Restart at top of list.</value>
+  </data>
+  <data name="CLNotificationServiceServiceManagerThreadProcSelectBackToTopOfList" xml:space="preserve">
+    <value>CLNotificationService: ServiceManagerThreadProc: Select back to top of list.</value>
+  </data>
+  <data name="CLNotificationServiceServiceManagerThreadProcSelectNextInList" xml:space="preserve">
+    <value>CLNotificationService: ServiceManagerThreadProc: Select next in list.</value>
+  </data>
+  <data name="CLNotificationServiceServiceManagerThreadProcSelectNextInList2" xml:space="preserve">
+    <value>CLNotificationService: ServiceManagerThreadProc: Select next in list (2).</value>
+  </data>
+  <data name="CLNotificationServiceServiceManagerThreadProcServiceRequestedToStopExitThread" xml:space="preserve">
+    <value>CLNotificationService: ServiceManagerThreadProc: Service requested to stop.  Exit thread.</value>
+  </data>
+  <data name="CLNotificationServiceServiceManagerThreadProcStartEngine" xml:space="preserve">
+    <value>CLNotificationService: ServiceManagerThreadProc: Start the engine.</value>
+  </data>
+  <data name="CLNotificationServiceServiceManagerThreadProcTopOfLoopRunningEngine0" xml:space="preserve">
+    <value>CLNotificationService: ServiceManagerThreadProc: Top of loop running engine {0}.</value>
+  </data>
+  <data name="CLNotificationServiceStartEngineTimeoutCallbackError0ExMsg0" xml:space="preserve">
+    <value>CLNotificationService: StartEngineTimeoutCallback: ERROR: Exception: Msg: {0}.</value>
+  </data>
+  <data name="CLNotificationServiceStartServiceManagerThreadEntry" xml:space="preserve">
+    <value>CLNotificationService: StartServiceManagerThread: Entry.</value>
+  </data>
+  <data name="CLNotificationServiceStartServiceManagerThreadErrorExceptionMsg0" xml:space="preserve">
+    <value>CLNotificationService: StartServiceManagerThread: ERROR: Exception: Msg: {0}.</value>
+  </data>
+  <data name="CLNotificationServiceStartServiceManagerThreadStartTheManagerThread" xml:space="preserve">
+    <value>CLNotificationService: StartServiceManagerThread: Start the service manager thread.</value>
+  </data>
+  <data name="CLNotificationServiceStopEngineThreadErrorExceptionMsg0" xml:space="preserve">
+    <value>CLNotificationService: StopEngineThread: ERROR: Exception: Msg: {0}.</value>
+  </data>
+  <data name="CLNotificationServiceStopManagerThreadAbortTheServiceManagerThread" xml:space="preserve">
+    <value>CLNotificationService: StopServiceManagerThread: Abort the service manager thread.</value>
+  </data>
+  <data name="CLNotificationServiceStopManagerThreadEntry" xml:space="preserve">
+    <value>CLNotificationService: StopServiceManagerThread: Entry.</value>
+  </data>
+  <data name="CLNotificationServiceSyncBoxCannotBeNull" xml:space="preserve">
+    <value>syncbox cannot be null</value>
+  </data>
+  <data name="CLNotificationServiceSyncBoxCopiedSettingsCannotBeNull" xml:space="preserve">
+    <value>syncbox CopiedSettings DeviceId cannot be null</value>
+  </data>
+  <data name="CLNotificationServiceTimerCallbackErrorExceptionMsg0" xml:space="preserve">
+    <value>CLNotificationService: TimerCallback: ERROR: Exception: Msg: {0}.</value>
+  </data>
+  <data name="CLNotificationUnknownEngineIndex" xml:space="preserve">
+    <value>Unknown engine index</value>
+  </data>
+  <data name="FileChangeWithDependenciesBaseChangeCannotBeNull" xml:space="preserve">
+    <value>baseChange cannot be null</value>
+  </data>
+  <data name="FileChangeWithDependenciesErrorSettingMD5FromBaseChangeToNewFileChangeWithDependencies" xml:space="preserve">
+    <value>Error setting MD5 from baseChange to new FileChangeWithDependencies</value>
+  </data>
+  <data name="HashedStreamReaderAdapterFinalHashDoesNotMatchFileWasEdited" xml:space="preserve">
+    <value>final hash does not match; file has been edited;</value>
+  </data>
+  <data name="HashedStreamReaderAdapterIntermediateHashDoesNotMatchFileWasEdited" xml:space="preserve">
+    <value>intermediate hash does not match; file has been edited;</value>
+  </data>
+  <data name="MoniterAgentOriginalQueuedChangesIndexesByInMemoryIds" xml:space="preserve">
+    <value>originalQueuedChangesIndexesByInMemoryIds cannot be null, perhaps AssignDependencies private helper was called through from the internal AssignDependencies</value>
+  </data>
+  <data name="MonitorAgentAnErrorOccurredAddingAFileSystemEventToTheDatabase" xml:space="preserve">
+    <value>An error occurred adding a file system event to the database:</value>
+  </data>
+  <data name="MonitorAgentAssignDependenciesCurrentDisposalDirection0Type1OldPath2NewPath3" xml:space="preserve">
+    <value>MonitorAgent: AssignDependencies: CurrentDisposal: Direction: {0}. Type: {1}. OldPath: {2}. NewPath: {3}.</value>
+  </data>
+  <data name="MonitorAgentAssignDependenciesCurrentOriginalMappingAddCurrentDisposaltoRemoveFromSQL" xml:space="preserve">
+    <value>MonitorAgent: AssignDependencies: CurrentOriginalMapping: Add CurrentDisposal to removeFromSql.</value>
+  </data>
+  <data name="MonitorAgentAssignDependenciesCurrentOriginalMappingDirection0Type1OldPath2NewPath3" xml:space="preserve">
+    <value>MonitorAgent: AssignDependencies: CurrentOriginalMapping: Direction: {0}. Type: {1}. OldPath: {2}. NewPath: {3}.</value>
+  </data>
+  <data name="MonitorAgentAssignDependenciesCurrentOriginalMappingRemovethisCurrentOriginalMappingFromOriginalQueuedChangesIndexesByInMemoryIds" xml:space="preserve">
+    <value>MonitorAgent: AssignDependencies: CurrentOriginalMapping: Remove this CurrentOriginalMapping from originalQueuedChangesIndexesByInMemoryIds.</value>
+  </data>
+  <data name="MonitorAgentAssignDependenciesErrorCurrentOriginalMappingNotFound" xml:space="preserve">
+    <value>MonitorAgent: AssignDependencies: ERROR: CurrentOriginalMapping not found.</value>
+  </data>
+  <data name="MonitorAgentCannotCommunicateFileChangeWithoutEventIDFileChangeSource" xml:space="preserve">
+    <value>Cannot communicate FileChange without EventId; FileChangeSource:</value>
+  </data>
+  <data name="MonitorAgentCannotCommunicateFileChangeWithoutEventIDFileChangeSourceQueuedChanges" xml:space="preserve">
+    <value>Cannot communicate FileChange without EventId; FileChangeSource: QueuedChanges</value>
+  </data>
+  <data name="MonitorAgentCannotStartMonitorAfterItHasBeenDisposed" xml:space="preserve">
+    <value>Cannot start monitor after it has been disposed</value>
+  </data>
+  <data name="MonitorAgentCheckMetadataAgainstFileAllPathsContainsItem0" xml:space="preserve">
+    <value>MonitorAgent: CheckMetadataAgainstFile: AllPaths contains this item: {0}.</value>
+  </data>
+  <data name="MonitorAgentCheckMetaDataAgainstFileMetadataDifferent" xml:space="preserve">
+    <value>MonitorAgent: CheckMetadataAgainstFile: Metadata different.</value>
+  </data>
+  <data name="MonitorAgentCheckMetadataAgainstFileNotFolderAndNotIgnoringFolderModifiesCallReplacementMetadataIfDifferent" xml:space="preserve">
+    <value>MonitorAgent: CheckMetadataAgainstFile: Not folder, and not ignoring folder modifies. Call ReplacementMetadataIfDifferent.</value>
+  </data>
+  <data name="MonitorAgentCheckMetedataAgainstFileChangedOrCreatedEvent" xml:space="preserve">
+    <value>MonitorAgent: CheckMetadataAgainstFile: Changed or Created event.</value>
+  </data>
+  <data name="MonitorAgentCheckMetedataAgainstFileFileExists" xml:space="preserve">
+    <value>MonitorAgent: CheckMetadataAgainstFile: File exists.</value>
+  </data>
+  <data name="MonitorAgentCheckMetedataAgainstFileFileorFolderDoesNotExist" xml:space="preserve">
+    <value>MonitorAgent: CheckMetadataAgainstFile: File or folder does not exist.</value>
+  </data>
+  <data name="MonitorAgentCheckMetedataAgainstFileFileorFolderExists" xml:space="preserve">
+    <value>MonitorAgent: CheckMetadataAgainstFile: File or folder exists: {0}.</value>
+  </data>
+  <data name="MonitorAgentCreatingSelectedWithDependenciesReturnedAnError" xml:space="preserve">
+    <value>Creating selectedWithDependencies returned an error</value>
+  </data>
+  <data name="MonitorAgentDependencyFileChangeMD5" xml:space="preserve">
+    <value>Error setting DependencyFileChange MD5</value>
+  </data>
+  <data name="MonitorAgentErrorAddingQueuedChangesWithinProcessingFailedChangesDependencyTreeToSQL" xml:space="preserve">
+    <value>Error adding QueuedChanges within processing/failed changes dependency tree to SQL</value>
+  </data>
+  <data name="MonitorAgentErrorCreatingFileChangeToFileChangeWithDependencies" xml:space="preserve">
+    <value>Error converting FileChange to FileChangeWithDependencies</value>
+  </data>
+  <data name="MonitorAgentErrorGrabbingHeirarchyForoldPathFromAllPaths" xml:space="preserve">
+    <value>Error grabbing hierarchy for oldPath from AllPaths</value>
+  </data>
+  <data name="MonitorAgentErrorGrabbingHierarchyFromUploadsAndDownloadsInProgressBeforeMergingNewEventsToTheDataBase" xml:space="preserve">
+    <value>Error grabbing hierarchy from uploads and downloads in progress before merging new events to the database:</value>
+  </data>
+  <data name="MonitorAgentErrorOccurredChackingUploadsAgainstsDownloadsInProgressBeforeMergingNewEvents" xml:space="preserve">
+    <value>An error occurred checking against uploads or downloads in progress before merging new events into the database: </value>
+  </data>
+  <data name="MonitorAgentErrorReplacingAPortionOfThePathOfCurrentEarlierChange" xml:space="preserve">
+    <value>Error replacing a portion of the path of CurrentEarlierChange</value>
+  </data>
+  <data name="MonitorAgentErrorStartingCloudProcessWatcher_ChangedQueueIsNotOfTypeKeyValuePair" xml:space="preserve">
+    <value>Error starting Cloud, ProcessWatcher_ChangedQueue sender is not of type KeyValuePair&lt;MonitorAgent, KeyValuePair&lt;FileSystemEventArgs, bool&gt;&gt;</value>
+  </data>
+  <data name="MonitorAgentErrorUpdatingSQLAfterReplacingNewPath" xml:space="preserve">
+    <value>Error updating SQL after replacing NewPath</value>
+  </data>
+  <data name="MonitorAgentEventIDWasZeroOnAFileChangeToQueueToProcessingChanges" xml:space="preserve">
+    <value>EventId was zero on a FileChange to queue to ProcessingChanges:</value>
+  </data>
+  <data name="MonitorAgentFilesBiggerThan0AreNotYetSupportedFile1Size2" xml:space="preserve">
+    <value>Files bigger than {0} are not yet supported; File: {1}, Size: {2}</value>
+  </data>
+  <data name="MonitorAgentLaterChangeInCreationModificationDependencyChecktoCreatedType" xml:space="preserve">
+    <value>Error updating LaterChange in CreationModificationDependencyCheck to Created Type</value>
+  </data>
+  <data name="MonitorAgentRenameDependencyCheckAddLaterChangeToChangesToDispose" xml:space="preserve">
+    <value>MonitorAgent: RenameDependencyCheck: Add later change to changes to dispose.</value>
+  </data>
+  <data name="MonitorAgentRenameDependencyCheckBreakOutOfEnumeration" xml:space="preserve">
+    <value>MonitorAgent: RenameDependencyCheck: Break out of enumeration.</value>
+  </data>
+  <data name="MonitorAgentRenameDependencyCheckCallCheckFileChangeDependenciesForDuplicatesOnInnerRename" xml:space="preserve">
+    <value>MonitorAgent: RenameDependencyCheck: Call CheckFileChangeDependenciesForDuplicates on inner rename.</value>
+  </data>
+  <data name="MonitorAgentRenameDependencyCheckContinueProcessing" xml:space="preserve">
+    <value>MonitorAgent: RenameDependencyCheck: Continue processing: {0}.</value>
+  </data>
+  <data name="MonitorAgentRenameDependencyCheckCurrentEarlierChangeDirection0Type1OldPath2NewPath3" xml:space="preserve">
+    <value>MonitorAgent: RenameDependencyCheck: CurrentEarlierChange: Direction: {0}. Type: {1}. OldPath: {2}. NewPath: {3}.</value>
+  </data>
+  <data name="MonitorAgentRenameDependencyCheckCurrentInnerRenameDirection0OldPathNewPath2" xml:space="preserve">
+    <value>MonitorAgent: RenameDependencyCheck: CurrentInnerRename: Direction: {0}. OldPath: {1}. NewPath: {2}.</value>
+  </data>
+  <data name="MonitorAgentRenameDependencyCheckEarlierChangeContainsOldPath" xml:space="preserve">
+    <value>MonitorAgent: RenameDependencyCheck: Earlier change contains OldPath.</value>
+  </data>
+  <data name="MonitorAgentRenameDependencyCheckEarlierChangeIsCreated" xml:space="preserve">
+    <value>MonitorAgent: RenameDependencyCheck: Earlier change is Created.</value>
+  </data>
+  <data name="MonitorAgentRenameDependencyCheckEarlierChangeIsCreatedOrModified" xml:space="preserve">
+    <value>MonitorAgent: RenameDependencyCheck: Earlier change is Created or Modified.</value>
+  </data>
+  <data name="MonitorAgentRenameDependencyCheckEarlierChangeIsDeleted" xml:space="preserve">
+    <value>MonitorAgent: RenameDependencyCheck: Earlier change is Deleted.</value>
+  </data>
+  <data name="MonitorAgentRenameDependencyCheckEarlierChangeIsRenamed" xml:space="preserve">
+    <value>MonitorAgent: RenameDependencyCheck: Earlier change is renamed</value>
+  </data>
+  <data name="MonitorAgentRenameDependencyCheckError0" xml:space="preserve">
+    <value>MonitorAgent: RenameDependencyCheck: ERROR: {0}.</value>
+  </data>
+  <data name="MonitorAgentRenameDependencyCheckInnerNewPathContainsLaterChangeOldPathorLAterChangeOldPathContainsInnerNewPath" xml:space="preserve">
+    <value>MonitorAgent: RenameDependencyCheck: Inner new path contains laterChange old path, or laterChange old path contains inner new path.</value>
+  </data>
+  <data name="MonitorAgentRenameDependencyCheckLaterChangeDirection0Type1OldPath2NewPath3" xml:space="preserve">
+    <value>MonitorAgent: RenameDependencyCheck: LaterChange: Direction: {0}. Type: {1}. OldPath: {2}. NewPath: {3}.</value>
+  </data>
+  <data name="MonitorAgentRenameDependencyCheckLaterOldPathContainsEarlierNewPath" xml:space="preserve">
+    <value>MonitorAgent: RenameDependencyCheck: Later old path contains earlier new path.</value>
+  </data>
+  <data name="MonitorAgentRenameDependencyCheckLoopThruOnlyRenamePathsFromTop" xml:space="preserve">
+    <value>MonitorAgent: RenameDependencyCheck: Loop thru onlyRenamePathsFromTop.</value>
+  </data>
+  <data name="MonitorAgentRenameDependencyCheckNewPathDoesNotEqualOldPathLoopUntilRecursingParentIsRenamed" xml:space="preserve">
+    <value>MonitorAgent: RenameDependencyCheck: NewPath does not equal OldPath. Loop until recursing parent is null. renamedOverlapChild: {0}.</value>
+  </data>
+  <data name="MonitorAgentRenameDependencyCheckNewPathEqualsOldPath" xml:space="preserve">
+    <value>MonitorAgent: RenameDependencyCheck: NewPath equals OldPath.</value>
+  </data>
+  <data name="MonitorAgentRenameDependencyCheckNoDependenciesAddedToLaterChange" xml:space="preserve">
+    <value>MonitorAgent: RenameDependencyCheck: No DependenciesAddeedToLaterChange.</value>
+  </data>
+  <data name="MonitorAgentRenameDependencyCheckNoDependenciesAddedToLaterChange2" xml:space="preserve">
+    <value>MonitorAgent: RenameDependencyCheck: No DependenciesAddeedToLaterChange (2).</value>
+  </data>
+  <data name="MonitorAgentRenameDependencyCheckProcessRenamedOverlap" xml:space="preserve">
+    <value>MonitorAgent: RenameDependencyCheck: Process renamedOverlap: {0}.</value>
+  </data>
+  <data name="MonitorAgentRenameDependencyCheckRemoveDependencyFromLaterParentLaterChangeDirection0OldPath1NewPath2" xml:space="preserve">
+    <value>MonitorAgent: RenameDependencyCheck: Remove dependency from laterParent: LaterChange: Direction: {0}. OldPath: {1}. NewPath: {2}.</value>
+  </data>
+  <data name="MonitorAgentRenameDependencyCheckRemoveDependencyToMoveDirection0OldPathNewPath2" xml:space="preserve">
+    <value>MonitorAgent: RenameDependencyCheck: Remove dependency dependencyToMove: Direction: {0}. OldPath: {1}. NewPath: {2}.</value>
+  </data>
+  <data name="MonitorAgentRenameDependencyCheckRenamedOverlapEqualsLaterChangeOldPath0MergeEarlierChangeToSQL" xml:space="preserve">
+    <value>MonitorAgent: RenameDependencyCheck: renamedOverlap equals later change OldPath: {0}. Merge earlier change to SQL.</value>
+  </data>
+  <data name="MonitorAgentRenameDependencyCheckRenamePathSearchesNotNullAddThisInnerRenameToRenamePathSearches" xml:space="preserve">
+    <value>MonitorAgent: RenameDependencyCheck: RenamePathSearches not null. Add this inner rename to RenamePathSearches.</value>
+  </data>
+  <data name="MonitorAgentRenameDependencyCheckRenamePathSearchsIsFull" xml:space="preserve">
+    <value>MonitorAgent: RenameDependencyCheck: RenamePathSearches is null.</value>
+  </data>
+  <data name="MonitorAgentSQLUpdateError" xml:space="preserve">
+    <value>Error updating SQL</value>
+  </data>
+  <data name="MonitorAgentSystemDoesNotSupportShell32FileWillBeAssumedToBeValidShortcut" xml:space="preserve">
+    <value>System does not support Shell32, file will be assumed to be a valid shortcut</value>
+  </data>
+  <data name="MonitorAgentUnableToCastThisActionAsAction" xml:space="preserve">
+    <value>Unable to cast thisAction as Action&lt;SQLIndexer.Model.FindFileResult, DateTime, FilePathDictionary&lt;FileMetadata&gt;, GenericHolder&lt;SQLIndexer.Model.FindFileResult&gt;, object&gt;</value>
+  </data>
+  <data name="MonitorAgentUnableToFireOnProcessEventGroupParameterMismatch" xml:space="preserve">
+    <value>Unable to fire OnProcessEventGroupCallback due to parameter mismatch</value>
+  </data>
+  <data name="MonitorAgentUnableToRemoveFileChangeFromQueuedChangesAfterMergingToSQL" xml:space="preserve">
+    <value>Unable to remove FileChange from QueuedChanges after merging to SQL</value>
+  </data>
+  <data name="MonitorAgentUnknownFileChangeTypeForCurrentEarlierChange" xml:space="preserve">
+    <value>Unknown FileChangeType for CurrentEarlierChange:</value>
+  </data>
+  <data name="MonitorAgentWritingUpdatedFileUploadMetadataToSQL" xml:space="preserve">
+    <value>Error writing updated file upload metadata to SQL</value>
+  </data>
+  <data name="SetBadgeBadgeTypeIsNotWithinTheAcceptableRange" xml:space="preserve">
+    <value>BadgeType is not within the acceptable range</value>
+  </data>
+  <data name="SetBadgeCannotRetrievePropertyValuesOnAnInvalidSetBadge" xml:space="preserve">
+    <value>Cannot retrieve property values on an invalid SetBadge</value>
+  </data>
+  <data name="SetBadgePathToBadgeCannotBeNull" xml:space="preserve">
+    <value>PathToBadge cannot be null</value>
+  </data>
+  <data name="UpdatePathArgsPathToBadgeCannotBeNull" xml:space="preserve">
+    <value>PathToBadge cannot be null</value>
+  </data>
 </root>
