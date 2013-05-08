@@ -2377,7 +2377,8 @@ namespace Cloud.FileMonitor
                 // advanced trace
                 if ((this._syncbox.CopiedSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
                 {
-                    List<FileChange> logQueued = null;
+                    //// no queued changes for post-communication dependency processing
+                    //List<FileChange> logQueued = null;
                     List<FileChange> logFailure = null;
                     List<FileChange> logProcessing = null;
                     List<FileChange> logFailedOut = null;
@@ -2386,16 +2387,17 @@ namespace Cloud.FileMonitor
                     {
                         switch (assignmentsWithDependencies[logIndex].Key)
                         {
-                            case FileChangeSource.QueuedChanges:
-                                if (logQueued == null)
-                                {
-                                    logQueued = new List<FileChange>(Helpers.EnumerateSingleItem(assignmentsWithDependencies[logIndex].Value));
-                                }
-                                else
-                                {
-                                    logQueued.Add(assignmentsWithDependencies[logIndex].Value);
-                                }
-                                break;
+                            //// no queued changes for post-communication dependency processing
+                            //case FileChangeSource.QueuedChanges:
+                            //    if (logQueued == null)
+                            //    {
+                            //        logQueued = new List<FileChange>(Helpers.EnumerateSingleItem(assignmentsWithDependencies[logIndex].Value));
+                            //    }
+                            //    else
+                            //    {
+                            //        logQueued.Add(assignmentsWithDependencies[logIndex].Value);
+                            //    }
+                            //    break;
 
                             case FileChangeSource.FailureQueue:
                                 if (logFailure == null)
@@ -2432,15 +2434,16 @@ namespace Cloud.FileMonitor
                         }
                     }
 
-                    if (logQueued != null)
-                    {
-                        ComTrace.LogFileChangeFlow(
-                            this._syncbox.CopiedSettings.TraceLocation,
-                            this._syncbox.CopiedSettings.DeviceId,
-                            this._syncbox.SyncboxId,
-                            FileChangeFlowEntryPositionInFlow.FileMonitorAssignDependenciesQueuedChanges,
-                            logQueued);
-                    }
+                    //// no queued changes for post-communication dependency processing
+                    //if (logQueued != null)
+                    //{
+                    //    ComTrace.LogFileChangeFlow(
+                    //        this._syncbox.CopiedSettings.TraceLocation,
+                    //        this._syncbox.CopiedSettings.DeviceId,
+                    //        this._syncbox.SyncboxId,
+                    //        FileChangeFlowEntryPositionInFlow.FileMonitorAssignDependenciesQueuedChanges,
+                    //        logQueued);
+                    //}
 
                     if (logFailure != null)
                     {
@@ -2633,6 +2636,11 @@ namespace Cloud.FileMonitor
                                 {
                                     if (loggingEnabled)
                                     {
+                                        //// todo: debug only code remove
+                                        //if (currentFileChange.Value.Value.Type == FileChangeType.Deleted)
+                                        //{
+                                        //}
+
                                         switch (currentFileChange.Key)
                                         {
                                             case FileChangeSource.QueuedChanges:
@@ -2750,6 +2758,11 @@ namespace Cloud.FileMonitor
                             OriginalFileChangeMappings,
                             out PulledChanges,
                             originalQueuedChangesIndexesByInMemoryIdsWrapped);
+
+                        // todo: need to handle changes which were made to FileChanges with FileChangeSource.QueuedChanges:
+                        // dependencyChanges[2].Key == FileChangeSource.QueuedChanges && (OriginalFileChangeMappings[dependencyChanges[2].Value].Key.Type != dependencyChanges[2].Value.Type || !FilePathComparer.Instance.Equals(OriginalFileChangeMappings[dependencyChanges[2].Value].Key.NewPath, dependencyChanges[2].Value.NewPath) || !FilePathComparer.Instance.Equals(OriginalFileChangeMappings[dependencyChanges[2].Value].Key.OldPath, dependencyChanges[2].Value.OldPath))
+                        // QueuedChanges[originalQueuedChangesIndexesByInMemoryIds[AllFileChanges[2].OriginalFileChange.InMemoryId]]
+
                         List<PossiblyStreamableFileChange> OutputChangesList = new List<PossiblyStreamableFileChange>();
                         List<PossiblyPreexistingFileChangeInError> OutputFailuresList = new List<PossiblyPreexistingFileChangeInError>();
 

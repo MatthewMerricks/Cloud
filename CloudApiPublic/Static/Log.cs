@@ -154,6 +154,8 @@ namespace Cloud.Static
 
         private bool eventIdFieldSpecified;
 
+        private int revisionChangerHashCodeField;
+
         private string newPathField;
 
         private string oldPathField;
@@ -223,6 +225,19 @@ namespace Cloud.Static
             set
             {
                 this.eventIdField = value;
+            }
+        }
+
+        /// <remarks />
+        public int RevisionChangerHashCode
+        {
+            get
+            {
+                return this.revisionChangerHashCodeField;
+            }
+            set
+            {
+                this.revisionChangerHashCodeField = value;
             }
         }
 
@@ -781,9 +796,6 @@ namespace Cloud.Static
 
         /// <remarks/>
         SyncRunPostCommunicationDequeuedFailures,
-
-        /// <remarks/>
-        FileMonitorAssignDependenciesQueuedChanges,
 
         /// <remarks/>
         FileMonitorAssignDependenciesFailureQueue,

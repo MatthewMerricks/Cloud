@@ -118,7 +118,6 @@
                 <xs:enumeration value="CommunicationIncompletedChanges" />
                 <xs:enumeration value="CommunicationChangesInError" />
                 <xs:enumeration value="SyncRunPostCommunicationDequeuedFailures" />
-                <xs:enumeration value="FileMonitorAssignDependenciesQueuedChanges" />
                 <xs:enumeration value="FileMonitorAssignDependenciesFailureQueue" />
                 <xs:enumeration value="FileMonitorAssignDependenciesProcessingChanges" />
                 <xs:enumeration value="FileMonitorAssignDependenciesFailedOutList" />
@@ -161,6 +160,7 @@
     <xs:all>
       <xs:element name="ServerUid" minOccurs="0" maxOccurs="1" type="xs:string" />
       <xs:element name="EventId" minOccurs="0" maxOccurs="1" type="xs:long" />
+      <xs:element name="RevisionChangerHashCode" minOccurs="1" maxOccurs="1" type="xs:int" />
       <xs:element name="NewPath" minOccurs="1" maxOccurs="1" type="xs:string" />
       <xs:element name="OldPath" minOccurs="0" maxOccurs="1" type="xs:string" />
       <xs:element name="IsFolder" minOccurs="1" maxOccurs="1" type="xs:boolean" />
