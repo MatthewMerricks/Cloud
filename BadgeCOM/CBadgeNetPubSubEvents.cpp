@@ -413,8 +413,8 @@ void CBadgeNetPubSubEvents::WatchingThreadProc(LPVOID pUserState)
             fRestartSubscribingThread = false;
 			CLTRACE(9, "CBadgeNetPubSubEvents: WatchingThreadProc: Wait until the next look.");
             boost::system_time const timeout = boost::get_system_time() + boost::posix_time::milliseconds(pThis->_knTimeBetweenWatchingThreadChecksMs);
-			CLTRACE(9, "CBadgeNetPubSubEvents: WatchingThreadProc: Out of wait.  Check on subscribing thread.");
             pThis->_semWatcher.wait(timeout);
+			CLTRACE(9, "CBadgeNetPubSubEvents: WatchingThreadProc: Out of wait.  Check on subscribing thread.");
 
             // Exit if we should
             if (pThis->_fRequestWatchingThreadExit || pThis->_fTerminating)
