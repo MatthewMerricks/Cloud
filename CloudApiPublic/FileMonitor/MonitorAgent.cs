@@ -913,21 +913,21 @@ namespace Cloud.FileMonitor
                         root = rootPath,
                         creationTime = new GenericHolder<Nullable<DateTime>>(null),
                         lastTime = new GenericHolder<Nullable<DateTime>>(null),
-                        serverUid = new GenericHolder<string>(null)
+                        serverUidId = new GenericHolder<Nullable<long>>(null)
                     },
                     (Data, errorToAccumulate) =>
                     {
                         FilePath storeToCreate = Data.toCreate.Value;
                         Nullable<DateTime> storeCreationTime = Data.creationTime.Value;
                         Nullable<DateTime> storeLastTime = Data.lastTime.Value;
-                        string storeServerUid = Data.serverUid.Value;
+                        Nullable<long> storeServerUidId = Data.serverUidId.Value;
 
                         if (!FilePathComparer.Instance.Equals(storeToCreate, Data.root))
                         {
                             Data.toCreate.Value = storeToCreate.Parent;
                             Data.creationTime.Value = null;
                             Data.lastTime.Value = null;
-                            Data.serverUid.Value = null;
+                            Data.serverUidId.Value = null;
 
                             Data.thisDelegate.Value.Process();
 
@@ -946,14 +946,28 @@ namespace Cloud.FileMonitor
                             {
                                 CreateDirectoryWithAttributes(storeToCreate, storeCreationTime, storeLastTime, out createdLastWriteUtc, out createdCreationUtc);
 
+                                long nonNullServerUidId;
+                                if (storeServerUidId == null)
+                                {
+                                    CLError createServerUidError = Data.thisAgent._syncData.CreateNewServerUid(serverUid: null, revision: null, ServerUidId: out nonNullServerUidId);
+
+                                    if (createServerUidError != null)
+                                    {
+                                        throw new AggregateException("Error creating ServerUid", createServerUidError.GrabExceptions());
+                                    }
+                                }
+                                else
+                                {
+                                    nonNullServerUidId = (long)storeServerUidId;
+                                }
+
                                 new ChangeAllPathsAdd(Data.thisAgent, storeToCreate,
-                                    new FileMetadata()
+                                    new FileMetadata(nonNullServerUidId)
                                     {
                                         HashableProperties = new FileMetadataHashableProperties(true,
                                             createdLastWriteUtc,
                                             createdCreationUtc,
-                                            null),
-                                        ServerUid = storeServerUid
+                                            null)
                                     });
                             }
                         }
@@ -1066,11 +1080,9 @@ namespace Cloud.FileMonitor
                                             }
 
                                             new ChangeAllPathsIndexSet(this, toApply.NewPath,
-                                                new FileMetadata()
+                                                new FileMetadata(toApply.Metadata.ServerUidId)
                                                 {
-                                                    HashableProperties = toApply.Metadata.HashableProperties,
-                                                    ServerUid = toApply.Metadata.ServerUid,
-                                                    Revision = toApply.Metadata.Revision
+                                                    HashableProperties = toApply.Metadata.HashableProperties
                                                 });
                                         }
                                     }
@@ -1730,9 +1742,9 @@ namespace Cloud.FileMonitor
                                         Type = currentChange.Type,
                                         DoNotAddToSQLIndex = currentChange.DoNotAddToSQLIndex,
                                         EventId = currentChange.EventId,
-                                        Direction = currentChange.Direction
+                                        Direction = currentChange.Direction,
+                                        Metadata = currentChange.Metadata
                                     };
-                                toQueue.Metadata = currentChange.Metadata.CopyWithDifferentRevisionChanger(currentChange.Metadata.RevisionChanger, Helpers.CreateFileChangeRevisionChangedHandler(toQueue, _syncData));
 
                                 QueueFileChange(toQueue, newProcessingAction);
                             }
@@ -2358,7 +2370,6 @@ namespace Cloud.FileMonitor
                         {
                             throw new AggregateException("Error converting FileChange to FileChangeWithDependencies", conversionError.GrabExceptions());
                         }
-                        outputChange.Metadata = outputChange.Metadata.CopyWithDifferentRevisionChanger(outputChange.Metadata.RevisionChanger, Helpers.CreateFileChangeRevisionChangedHandler(outputChange, _syncData));
                         originalChangeMappings[outputChange] = new KeyValuePair<FileChange, FileChangeSource>(inputChange.FileChange, originalSource);
                         streamMappings[outputChange] = new KeyValuePair<GenericHolder<bool>, StreamContext>(new GenericHolder<bool>(false), inputChange.StreamContext);
                         return outputChange;
@@ -2580,8 +2591,6 @@ namespace Cloud.FileMonitor
                                 {
                                     throw new AggregateException("Error converting FileChange to FileChangeWithDependencies", conversionError.GrabExceptions());
                                 }
-
-                                converted.Metadata = converted.Metadata.CopyWithDifferentRevisionChanger(converted.Metadata.RevisionChanger, Helpers.CreateFileChangeRevisionChangedHandler(converted, _syncData));
 
                                 if (DependencyDebugging
                                     && (toConvert.Value.Value is FileChangeWithDependencies)
@@ -3846,10 +3855,9 @@ namespace Cloud.FileMonitor
                                                     {
                                                         NewPath = pathObject,
                                                         Type = FileChangeType.Modified,
-                                                        Direction = SyncDirection.To // detected that a file or folder was modified locally, so Sync To to update server
+                                                        Direction = SyncDirection.To, // detected that a file or folder was modified locally, so Sync To to update server
+                                                        Metadata = newMetadata
                                                     };
-
-                                                    toQueue.Metadata = newMetadata.CopyWithDifferentRevisionChanger(newMetadata.RevisionChanger, Helpers.CreateFileChangeRevisionChangedHandler(toQueue, _syncData));
 
                                                     QueueFileChange(toQueue, startProcessingAction);
                                                 }
@@ -3864,8 +3872,16 @@ namespace Cloud.FileMonitor
                                                 debugEntry.NewChangeType = new WatcherChangeCreated();
                                             }
 
+                                            long uidId;
+                                            CLError newUidError = _syncData.CreateNewServerUid(serverUid: null, revision: null, ServerUidId: out uidId);
+
+                                            if (newUidError != null)
+                                            {
+                                                throw new AggregateException("Unable to create new ServerUid", newUidError.GrabExceptions());
+                                            }
+
                                             FileMetadata addedMetadata =
-                                                new FileMetadata()
+                                                new FileMetadata(uidId)
                                                 {
                                                     HashableProperties = new FileMetadataHashableProperties(isFolder,
                                                         lastTime,
@@ -3875,14 +3891,14 @@ namespace Cloud.FileMonitor
                                             // add new index
                                             new ChangeAllPathsAdd(this, pathObject, addedMetadata);
                                             // queue file change for create
+
                                             FileChange toQueue = new FileChange(QueuedChanges)
                                             {
                                                 NewPath = pathObject,
                                                 Type = FileChangeType.Created,
-                                                Direction = SyncDirection.To // detected that a file or folder was created locally, so Sync To to update server
+                                                Direction = SyncDirection.To, // detected that a file or folder was created locally, so Sync To to update server
+                                                Metadata = addedMetadata
                                             };
-
-                                            toQueue.Metadata = addedMetadata.CopyWithDifferentRevisionChanger(addedMetadata.RevisionChanger, Helpers.CreateFileChangeRevisionChangedHandler(toQueue, _syncData));
 
                                             QueueFileChange(toQueue, startProcessingAction);
                                         }
@@ -3897,17 +3913,16 @@ namespace Cloud.FileMonitor
                                             debugEntry.NewChangeType = new WatcherChangeDeleted();
                                         }
 
+                                        FileMetadata existingMetadata = AllPaths[pathObject];
+
                                         // queue file change for delete
                                         FileChange toQueue = new FileChange(QueuedChanges)
                                         {
                                             NewPath = pathObject,
                                             Type = FileChangeType.Deleted,
-                                            Direction = SyncDirection.To // detected that a file or folder was deleted locally, so Sync To to update server
+                                            Direction = SyncDirection.To, // detected that a file or folder was deleted locally, so Sync To to update server
+                                            Metadata = existingMetadata
                                         };
-
-                                        FileMetadata existingMetadata = AllPaths[pathObject];
-
-                                        toQueue.Metadata = existingMetadata.CopyWithDifferentRevisionChanger(existingMetadata.RevisionChanger, Helpers.CreateFileChangeRevisionChangedHandler(toQueue, _syncData));
 
                                         QueueFileChange(toQueue, startProcessingAction);
                                         // remove index
@@ -4053,10 +4068,9 @@ namespace Cloud.FileMonitor
                                                     {
                                                         NewPath = pathObject,
                                                         Type = FileChangeType.Modified,
-                                                        Direction = SyncDirection.To // detected that a file or folder was modified locally, so Sync To to update server
+                                                        Direction = SyncDirection.To, // detected that a file or folder was modified locally, so Sync To to update server
+                                                        Metadata = newMetadata
                                                     };
-
-                                                    toQueue.Metadata = newMetadata.CopyWithDifferentRevisionChanger(newMetadata.RevisionChanger, Helpers.CreateFileChangeRevisionChangedHandler(toQueue, _syncData));
 
                                                     QueueFileChange(toQueue, startProcessingAction);
                                                 }
@@ -4103,17 +4117,16 @@ namespace Cloud.FileMonitor
                                                 debugEntry.NewChangeType = new WatcherChangeDeleted();
                                             }
 
+                                            FileMetadata existingMetadata = AllPaths[pathObject];
+
                                             // queue file change for delete at new path
                                             FileChange toQueue = new FileChange(QueuedChanges)
                                             {
                                                 NewPath = pathObject,
                                                 Type = FileChangeType.Deleted,
-                                                Direction = SyncDirection.To // detected that a file or folder was deleted locally, so Sync To to update server
+                                                Direction = SyncDirection.To, // detected that a file or folder was deleted locally, so Sync To to update server
+                                                Metadata = existingMetadata
                                             };
-
-                                            FileMetadata existingMetadata = AllPaths[pathObject];
-
-                                            toQueue.Metadata = existingMetadata.CopyWithDifferentRevisionChanger(existingMetadata.RevisionChanger, Helpers.CreateFileChangeRevisionChangedHandler(toQueue, _syncData));
 
                                             QueueFileChange(toQueue, startProcessingAction);
 
@@ -4133,17 +4146,16 @@ namespace Cloud.FileMonitor
                                                 debugEntry.NewIndexedSpecified = true;
                                             }
 
+                                            FileMetadata existingMetadata = AllPaths[oldPathObject];
+
                                             // queue file change for delete at previous path
                                             FileChange toQueue = new FileChange(QueuedChanges)
                                             {
                                                 NewPath = oldPathObject,
                                                 Type = FileChangeType.Deleted,
-                                                Direction = SyncDirection.To // detected that a file or folder was deleted locally, so Sync To to update server
+                                                Direction = SyncDirection.To, // detected that a file or folder was deleted locally, so Sync To to update server
+                                                Metadata = existingMetadata
                                             };
-
-                                            FileMetadata existingMetadata = AllPaths[oldPathObject];
-
-                                            toQueue.Metadata = existingMetadata.CopyWithDifferentRevisionChanger(existingMetadata.RevisionChanger, Helpers.CreateFileChangeRevisionChangedHandler(toQueue, _syncData));
 
                                             QueueFileChange(toQueue, startProcessingAction);
 
@@ -4217,18 +4229,17 @@ namespace Cloud.FileMonitor
                                         }
                                         new ChangeAllPathsIndexSet(this, pathObject, newMetadata ?? previousMetadata);
 
+                                        FileMetadata metadataToUse = newMetadata ?? previousMetadata;
+
                                         // queue file change for rename (use changed metadata if it exists otherwise the previous metadata)
                                         FileChange toQueue = new FileChange(QueuedChanges)
                                         {
                                             NewPath = pathObject,
                                             OldPath = oldPathObject,
                                             Type = FileChangeType.Renamed,
-                                            Direction = SyncDirection.To // detected that a file or folder was renamed locally, so Sync To to update server
+                                            Direction = SyncDirection.To, // detected that a file or folder was renamed locally, so Sync To to update server
+                                            Metadata = metadataToUse
                                         };
-
-                                        FileMetadata metadataToUse = newMetadata ?? previousMetadata;
-
-                                        toQueue.Metadata = metadataToUse.CopyWithDifferentRevisionChanger(metadataToUse.RevisionChanger, Helpers.CreateFileChangeRevisionChangedHandler(toQueue, _syncData));
 
                                         QueueFileChange(toQueue, startProcessingAction);
                                     }
@@ -4276,17 +4287,17 @@ namespace Cloud.FileMonitor
                                                     creationTime,
                                                     fileLength)
                                             });
+
+                                        FileMetadata existingMetadata = AllPaths[pathObject];
+
                                         // queue file change for create for new path
                                         FileChange toQueue = new FileChange(QueuedChanges)
                                         {
                                             NewPath = pathObject,
                                             Type = FileChangeType.Created,
-                                            Direction = SyncDirection.To // detected that a file or folder was created locally, so Sync To to update server
+                                            Direction = SyncDirection.To, // detected that a file or folder was created locally, so Sync To to update server
+                                            Metadata = existingMetadata
                                         };
-
-                                        FileMetadata existingMetadata = AllPaths[pathObject];
-
-                                        toQueue.Metadata = existingMetadata.CopyWithDifferentRevisionChanger(existingMetadata.RevisionChanger, Helpers.CreateFileChangeRevisionChangedHandler(toQueue, _syncData));
 
                                         QueueFileChange(toQueue, startProcessingAction);
                                     }
@@ -4326,15 +4337,15 @@ namespace Cloud.FileMonitor
 
                                                     // replace index at current path
                                                     new ChangeAllPathsIndexSet(this, pathObject, newMetadata);
+
                                                     // queue file change for modify
                                                     FileChange toQueue = new FileChange(QueuedChanges)
                                                     {
                                                         NewPath = pathObject,
                                                         Type = FileChangeType.Modified,
-                                                        Direction = SyncDirection.To // detected that a file or folder was modified locally, so Sync To to update server
+                                                        Direction = SyncDirection.To, // detected that a file or folder was modified locally, so Sync To to update server
+                                                        Metadata = newMetadata
                                                     };
-
-                                                    toQueue.Metadata = newMetadata.CopyWithDifferentRevisionChanger(newMetadata.RevisionChanger, Helpers.CreateFileChangeRevisionChangedHandler(toQueue, _syncData));
 
                                                     QueueFileChange(toQueue, startProcessingAction);
                                                 }
@@ -4360,17 +4371,16 @@ namespace Cloud.FileMonitor
                                             debugEntry.NewChangeType = new WatcherChangeDeleted();
                                         }
 
+                                        FileMetadata existingMetadata = AllPaths[pathObject];
+
                                         // queue file change for delete
                                         FileChange toQueue = new FileChange(QueuedChanges)
                                         {
                                             NewPath = pathObject,
                                             Type = FileChangeType.Deleted,
-                                            Direction = SyncDirection.To // detected that a file or folder was deleted locally, so Sync To to update server
+                                            Direction = SyncDirection.To, // detected that a file or folder was deleted locally, so Sync To to update server
+                                            Metadata = existingMetadata
                                         };
-
-                                        FileMetadata existingMetadata = AllPaths[pathObject];
-
-                                        toQueue.Metadata = existingMetadata.CopyWithDifferentRevisionChanger(existingMetadata.RevisionChanger, Helpers.CreateFileChangeRevisionChangedHandler(toQueue, _syncData));
 
                                         QueueFileChange(toQueue, startProcessingAction);
 
@@ -4717,10 +4727,12 @@ namespace Cloud.FileMonitor
                                             // delete caused AllPaths to lose metadata fields, but since we're cancelling the delete, they need to be put back
                                             // since all cases from CheckMetadataAgainstFile which led to this creation change assigned Metadata directly from AllPaths, we can change the fields here to propagate back
 
-                                            toChange.Metadata = toChange.Metadata.CopyWithDifferentRevisionChanger(previousChange.Metadata.RevisionChanger, Helpers.CreateFileChangeRevisionChangedHandler(toChange, _syncData));
+                                            //NEWRKS
+                                            toChange.Metadata = toChange.Metadata.CopyWithNewServerUidId(previousChange.Metadata.ServerUidId);
+                                            //toChange.Metadata = toChange.Metadata.CopyWithDifferentRevisionChanger(previousChange.Metadata.RevisionChanger, Helpers.CreateFileChangeRevisionChangedHandler(toChange, _syncData));
                                             toChange.Metadata.MimeType = previousChange.Metadata.MimeType;
-                                            toChange.Metadata.Revision = previousChange.Metadata.Revision;
-                                            toChange.Metadata.ServerUid = previousChange.Metadata.ServerUid;
+                                            //toChange.Metadata.Revision = previousChange.Metadata.Revision;
+                                            //toChange.Metadata.ServerUid = previousChange.Metadata.ServerUid;
                                             toChange.Metadata.StorageKey = previousChange.Metadata.StorageKey;
                                         }
                                         // For files with different metadata, process as a modify
@@ -4733,10 +4745,12 @@ namespace Cloud.FileMonitor
                                             // delete caused AllPaths to lose metadata fields, but since we're cancelling the delete, they need to be put back
                                             // since all cases from CheckMetadataAgainstFile which led to this creation change assigned Metadata directly from AllPaths, we can change the fields here to propagate back
 
-                                            toChange.Metadata = toChange.Metadata.CopyWithDifferentRevisionChanger(previousChange.Metadata.RevisionChanger, Helpers.CreateFileChangeRevisionChangedHandler(toChange, _syncData));
+                                            //NEWRKS
+                                            toChange.Metadata = toChange.Metadata.CopyWithNewServerUidId(previousChange.Metadata.ServerUidId);
+                                            //toChange.Metadata = toChange.Metadata.CopyWithDifferentRevisionChanger(previousChange.Metadata.RevisionChanger, Helpers.CreateFileChangeRevisionChangedHandler(toChange, _syncData));
                                             toChange.Metadata.MimeType = previousChange.Metadata.MimeType;
-                                            toChange.Metadata.Revision = previousChange.Metadata.Revision;
-                                            toChange.Metadata.ServerUid = previousChange.Metadata.ServerUid;
+                                            //toChange.Metadata.Revision = previousChange.Metadata.Revision;
+                                            //toChange.Metadata.ServerUid = previousChange.Metadata.ServerUid;
                                             toChange.Metadata.StorageKey = previousChange.Metadata.StorageKey;
                                         }
                                         break;
@@ -4846,10 +4860,9 @@ namespace Cloud.FileMonitor
                                                 {
                                                     NewPath = toChange.OldPath,
                                                     Type = FileChangeType.Deleted,
-                                                    Direction = SyncDirection.To // detected that a file or folder was deleted locally, so Sync To to update server
+                                                    Direction = SyncDirection.To, // detected that a file or folder was deleted locally, so Sync To to update server
+                                                    Metadata = toChange.Metadata
                                                 };
-
-                                            oldLocationDelete.Metadata = toChange.Metadata.CopyWithDifferentRevisionChanger(toChange.Metadata.RevisionChanger, Helpers.CreateFileChangeRevisionChangedHandler(toChange, _syncData));
 
                                             if (QueuedChanges.ContainsKey(toChange.OldPath))
                                             {
@@ -4919,17 +4932,7 @@ namespace Cloud.FileMonitor
                     if (toChange.Metadata != null
                         && matchedFileChangeForRename.Metadata != null)
                     {
-                        toChange.Metadata = toChange.Metadata.CopyWithDifferentRevisionChanger(matchedFileChangeForRename.Metadata.RevisionChanger, Helpers.CreateFileChangeRevisionChangedHandler(toChange, _syncData));
-
-                        if (toChange.Metadata.ServerUid == null)
-                        {
-                            toChange.Metadata.ServerUid = matchedFileChangeForRename.Metadata.ServerUid;
-                        }
-
-                        if (toChange.Metadata.Revision == null)
-                        {
-                            toChange.Metadata.Revision = matchedFileChangeForRename.Metadata.Revision;
-                        }
+                        toChange.Metadata = toChange.Metadata.CopyWithNewServerUidId(matchedFileChangeForRename.Metadata.ServerUidId);
                     }
 
                     matchedFileChangeForRename.Metadata = toChange.Metadata;

@@ -100,6 +100,33 @@ namespace Cloud.Sync
             OtherError
         }
 
+        private sealed class UidRevisionHolder
+        {
+            public string ServerUid
+            {
+                get
+                {
+                    return _serverUid;
+                }
+            }
+            private readonly string _serverUid;
+
+            public string Revision
+            {
+                get
+                {
+                    return _revision;
+                }
+            }
+            private readonly string _revision;
+
+            public UidRevisionHolder(string ServerUid, string Revision)
+            {
+                this._serverUid = ServerUid;
+                this._revision = Revision;
+            }
+        }
+
         /// <summary>
         /// Engine constructor
         /// </summary>
@@ -1311,6 +1338,8 @@ namespace Cloud.Sync
             GenericHolder<IEnumerable<FileChange>> commonTopLevelErrors = new GenericHolder<IEnumerable<FileChange>>(null);
 
             GenericHolder<List<PossiblyStreamableFileChange>> commonUploadsRemovedUponDuplicateFound = new GenericHolder<List<PossiblyStreamableFileChange>>(null);
+
+            Dictionary<long, UidRevisionHolder> queriedUids = new Dictionary<long, UidRevisionHolder>();
 
             #endregion
 
@@ -4649,7 +4678,8 @@ namespace Cloud.Sync
             ProcessingQueuesTimer failureTimer, // timer of failure queue
             out Nullable<long> immediateSuccessEventId, // output synchronously succesful event id
             out Nullable<AsyncUploadDownloadTask> asyncTask, // output asynchronous task which still needs to run
-            string TempDownloadsFolder) // full path location to folder which will contain temp downloads
+            string TempDownloadsFolder, // full path location to folder which will contain temp downloads
+            Dictionary<long, UidRevisionHolder> uidStorage)
         {
             // try/catch to perform the whole FileChange, returning any exception to the calling method
             try
@@ -4694,7 +4724,7 @@ namespace Cloud.Sync
                             try
                             {
                                 _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: CompleteFileChange: Set MD5 from revision because there was no MD5."));
-                                toCompleteBytes = Helpers.ParseHexadecimalStringToByteArray(toComplete.FileChange.Metadata.Revision);
+                                toCompleteBytes = Helpers.ParseHexadecimalStringToByteArray(ReturnAndPossiblyFillUidAndRevision(uidStorage, toComplete.FileChange.Metadata.ServerUidId).Revision);
                             }
                             catch
                             {
@@ -6808,6 +6838,30 @@ namespace Cloud.Sync
             }
         }
 
+        private UidRevisionHolder ReturnAndPossiblyFillUidAndRevision(Dictionary<long, UidRevisionHolder> uidStorage, long serverUidId, SQLIndexer.Model.SQLTransactionalBase existingTransaction = null)
+        {
+            UidRevisionHolder toReturn;
+            if (!uidStorage.TryGetValue(serverUidId, out toReturn))
+            {
+                string serverUid;
+                string revision;
+                CLError getUidError = syncData.QueryServerUid(serverUidId,
+                    out serverUid,
+                    out revision,
+                    existingTransaction);
+
+                if (getUidError != null)
+                {
+                    throw new AggregateException("Unable to retrieve ServerUid from database", getUidError.GrabExceptions());
+                }
+
+                uidStorage[serverUidId] = toReturn = new UidRevisionHolder(
+                    serverUid,
+                    revision);
+            }
+            return toReturn;
+        }
+
         /// <summary>
         /// Perform the Sync From or Sync To communication with the server; returns any exceptions so they do not bubble up to the calling method
         /// </summary>
@@ -6826,7 +6880,8 @@ namespace Cloud.Sync
             out IEnumerable<PossiblyChangedFileChange> pseudoFileCreationsForDownload,
             out string newSyncId,
             out CredentialErrorType credentialsError,
-            out string syncRootUid)
+            out string syncRootUid,
+            Dictionary<long, UidRevisionHolder> uidStorage)
         {
             credentialsError = CredentialErrorType.NoError;
             syncRootUid = null;
@@ -7079,24 +7134,47 @@ namespace Cloud.Sync
                         string findRevision,
                         string findStorageKey,
                         string findMimeType,
-                        ISyncDataObject innerSyncData)
+                        ISyncDataObject innerSyncData,
+                        Dictionary<long, UidRevisionHolder> innerUidStorage)
                     {
                         // set the metadata for the current FileChange (copying the RevisionChanger if a previous matched FileChange was found)
-                        currentChange.Metadata = new FileMetadata(matchedChange == null ? null : ((PossiblyStreamableFileChange)matchedChange).FileChange.Metadata.RevisionChanger, // copy previous RevisionChanger if possible
-                            Helpers.CreateFileChangeRevisionChangedHandler(currentChange, innerSyncData))
+
+                        long serverUidId;
+                        if (matchedChange == null)
                         {
-                            ServerUid = findServerUid, // set the server unique id
+                            CLError createServerUidError = innerSyncData.CreateNewServerUid(
+                                findServerUid,
+                                findRevision,
+                                out serverUidId);
+
+                            if (createServerUidError != null)
+                            {
+                                throw new AggregateException("Error creating ServerUid", createServerUidError.GrabExceptions());
+                            }
+                        }
+                        else
+                        {
+                            serverUidId = ((PossiblyStreamableFileChange)matchedChange).FileChange.Metadata.ServerUidId;
+
+                            CLError updateServerUidError = innerSyncData.UpdateServerUid(
+                                serverUidId,
+                                findServerUid,
+                                findRevision);
+
+                            if (updateServerUidError != null)
+                            {
+                                throw new AggregateException("Error updating ServerUid", updateServerUidError.GrabExceptions());
+                            }
+                        }
+                        innerUidStorage[serverUidId] = new UidRevisionHolder(findServerUid, findRevision);
+
+                        currentChange.Metadata = new FileMetadata(serverUidId)
+                        {
                             ParentFolderServerUid = findParentUid, // set the unique parent folder server id
                             HashableProperties = findHashableProperties, // set the metadata properties
-                            Revision = findRevision, // set the file revision, or null for non-files
                             StorageKey = findStorageKey, // set the storage key, or null for non-files
                             MimeType = findMimeType // never set on Windows
                         };
-                        if (matchedChange != null
-                            && ((PossiblyStreamableFileChange)matchedChange).FileChange.Metadata.Revision != findRevision)
-                        {
-                            currentChange.Metadata.RevisionChanger.FireRevisionChanged(currentChange.Metadata);
-                        }
 
                         // if a matched change was set, then use the Stream from the previous FileChange as the current Stream
                         if (matchedChange != null)
@@ -7504,6 +7582,7 @@ namespace Cloud.Sync
                         long lastEventId = currentBatch.OrderByDescending(currentEvent => ensureNonZeroEventId(currentEvent.FileChange.EventId)).First().FileChange.EventId;
 
                         // create the json Sync To object for the request body
+                        // RKS How to implement this section?
                         To syncTo = new To()
                         {
                             SyncId = syncString, // previous sync id, server should send all newer events
@@ -7791,6 +7870,7 @@ namespace Cloud.Sync
                                     else if (currentEvent.Header.Status != CLDefinitions.CLEventTypeDownload) // exception for download when looking for dependencies since we actually want the Sync From event
                                     {
                                         // add the file path to eventsByPath (Sync To paths) from either the original change (rename events only) or produce it from the root folder path plus the metadata path
+                                        // RKS how to implement this section
                                         syncToEventsByUidToEventIndex[currentEvent.Metadata == null
 
                                             // if the current event does not have metadata (a sign of a rename event??), then find the original change sent to the server which matches by event id and use its file path
@@ -8526,8 +8606,6 @@ namespace Cloud.Sync
                                                                                     throw new AggregateException("Error copying duplicate file change for upload processing: " + createCopyDuplicateChange.errorDescription, createCopyDuplicateChange.GrabExceptions());
                                                                                 }
 
-                                                                                copyDuplicateChange.Metadata = copyDuplicateChange.Metadata.CopyWithDifferentRevisionChanger(copyDuplicateChange.Metadata.RevisionChanger, Helpers.CreateFileChangeRevisionChangedHandler(copyDuplicateChange, syncData));
-
                                                                                 AddToIncompleteChanges(incompleteChangesList, copyDuplicateChange, StreamContext.Create(uploadStreamForDuplication), /* different metadata since this is new */true);
 
                                                                                 uploadStreamForDuplication = null; // prevents disposal on finally since the Stream will now be sent off for async processing
@@ -8636,6 +8714,7 @@ namespace Cloud.Sync
                                                 fileChangeForOriginalMetadata = ((PossiblyStreamableFileChange)matchedChange).FileChange;
 
                                                 // puts back the latest updated revision from the server (which would have been lost when the metadata instance would be replaced next below), update revision changer for difference
+                                                // RKS Save the revision to the DB here.  What about the serverUid?
                                                 if (fileChangeForOriginalMetadata.Metadata != null
                                                     && string.IsNullOrEmpty(fileChangeForOriginalMetadata.Metadata.Revision)
                                                     && currentChange.Metadata != null
@@ -8748,6 +8827,7 @@ namespace Cloud.Sync
                                                     || !(sameLastTime = Helpers.DateTimesWithinOneSecond(((PossiblyStreamableFileChange)matchedChange).FileChange.Metadata.HashableProperties.LastTime, currentChange.Metadata.HashableProperties.LastTime)))); // different by last modified time; compare within 1 second since communication drops subseconds
 
                                         // if something is new or different for the current FileChange, then keep associated metadata revisions up to date
+                                        // RKS Save the different revision and serverUid here.
                                         if (metadataIsDifferent
                                             || (matchedChange != null && ((PossiblyStreamableFileChange)matchedChange).FileChange.Metadata.ServerUid == null))
                                         {
@@ -8809,8 +8889,6 @@ namespace Cloud.Sync
                                                 {
                                                     throw new AggregateException("Error converting matchedChange to FileChangeWithDependencies", convertMatchedChangeError.GrabExceptions());
                                                 }
-
-                                                currentChange.Metadata = currentChange.Metadata.CopyWithDifferentRevisionChanger(currentChange.Metadata.RevisionChanger, Helpers.CreateFileChangeRevisionChangedHandler(currentChange, syncData));
                                             }
                                         }
 
@@ -8856,6 +8934,7 @@ namespace Cloud.Sync
                                                             // remove old path since creation does not have one
                                                             currentChange.OldPath = null;
                                                             // clear the server UID since it should be unique for a new creation
+                                                            // RKS Create a new ServerUid record here.
                                                             currentChange.Metadata.ServerUid = null;
                                                             // clear revision since new file system objects never need one
                                                             currentChange.Metadata.Revision = null;
@@ -9322,6 +9401,7 @@ namespace Cloud.Sync
                                                                     currentChange.NewPath = finalizedNewPath;
                                                                     // <David fix for a file creation with an old path> file creations should not have an old path (only for renames)
                                                                     currentChange.OldPath = null;
+                                                                    // RKS Create a new serverUid record here?
                                                                     // clear the server UID since it should be unique for a new creation
                                                                     currentChange.Metadata.ServerUid = null;
                                                                     // clear the revision (since it will be a new file)
@@ -9441,6 +9521,7 @@ namespace Cloud.Sync
                                                                         // if there was an error adding the local rename change, then readd the reverted conflict change to the event source database and rethrow the error
                                                                         if (addRenameToConflictPath != null)
                                                                         {
+                                                                            // RKS Update the serverUid record here?
                                                                             currentChange.Type = storeType;
                                                                             currentChange.NewPath = storePath;
                                                                             currentChange.Metadata.ServerUid = storeServerUid;
@@ -9461,6 +9542,7 @@ namespace Cloud.Sync
                                                                         // if an error occurred writing the original conflict as a file creation, then remove the added rename change and readd the reverted conflict change to the event source database and rethrow the error
                                                                         if (addModifiedConflictAsCreate != null)
                                                                         {
+                                                                            // RKS Update the serverUid record here?
                                                                             currentChange.EventId = storeEventId;
                                                                             currentChange.Type = storeType;
                                                                             currentChange.NewPath = storePath;
@@ -9499,6 +9581,7 @@ namespace Cloud.Sync
                                                                 {
                                                                     // revert the changes to the current conflict and rethrow the error
 
+                                                                    // RKS Update the serverUid record here?
                                                                     currentChange.Type = storeType;
                                                                     currentChange.NewPath = storePath;
                                                                     currentChange.Metadata.ServerUid = storeServerUid;
@@ -9509,6 +9592,7 @@ namespace Cloud.Sync
                                                             }
                                                             catch (Exception ex)
                                                             {
+                                                                // RKS What to do here?
                                                                 bool reversedRevision = currentChange.Metadata.Revision != previousRevisionOnConflictException;
                                                                 // revert the revision to the value before communication so it will get a conflict the next iteration through Sync to attempt to handle it again
                                                                 currentChange.Metadata.Revision = previousRevisionOnConflictException;
@@ -9942,6 +10026,7 @@ namespace Cloud.Sync
                                         Type = ParseEventStringToType(currentEvent.Action ?? currentEvent.Header.Action) // grab the type of change from the action string
                                     };
 
+                                // RKS Create a new serverUid record here?
                                 PossiblyStreamableAndPossiblyChangedFileChange storeConvertedChange = new PossiblyStreamableAndPossiblyChangedFileChange(resultOrder++,
                                     /* needs to update SQL */ true, // all Sync From events are new and should thus be added to the event source database
                                         CreateFileChangeFromBaseChangePlusHash(baseConvertedChange,
@@ -10234,6 +10319,7 @@ namespace Cloud.Sync
                                                 DependencyDebugging,
                                                 syncData);
 
+                                            // RKS What to do here?
                                             newPathCreation.Metadata = new FileMetadata(revisionChanger: null, onRevisionChanged: Helpers.CreateFileChangeRevisionChangedHandler(newPathCreation, syncData))
                                                 {
                                                     //Need to find what key this is //LinkTargetPath <-- what does this comment mean?
@@ -10664,7 +10750,8 @@ namespace Cloud.Sync
             string findRevision,
             string findStorageKey,
             string findMimeType,
-            ISyncDataObject innerSyncData);
+            ISyncDataObject innerSyncData,
+            Dictionary<long, UidRevisionHolder> innerUidStorage);
 
         private static void AppendRandomSubSecondTicksToSyncFromFolderCreationTimes(Event[] deserializedResponseEvents)
         {
@@ -10746,7 +10833,8 @@ namespace Cloud.Sync
 
             if (changeMetadata != null)
             {
-                returnedChange.Metadata = changeMetadata.CopyWithDifferentRevisionChanger(changeMetadata.RevisionChanger, Helpers.CreateFileChangeRevisionChangedHandler(returnedChange, syncData));
+                returnedChange.Metadata = changeMetadata.CopyWithNewServerUidId(changeMetadata.ServerUidId);
+                //RKS Check above.  returnedChange.Metadata = changeMetadata.CopyWithDifferentRevisionChanger(changeMetadata.RevisionChanger, Helpers.CreateFileChangeRevisionChangedHandler(returnedChange, syncData));
             }
 
             if (DependencyDebugging

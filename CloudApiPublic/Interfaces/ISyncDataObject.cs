@@ -47,6 +47,12 @@ namespace Cloud.Interfaces
             out bool nullChangeFound,
             List<FileChange> failedOutChanges = null);
 
+        CLError CreateNewServerUid(string serverUid, string revision, out long ServerUidId, SQLTransactionalBase existingTransaction = null);
+
+        CLError UpdateServerUid(long serverUidId, string serverUid, string revision, SQLTransactionalBase existingTransaction = null);
+
+        CLError QueryServerUid(long serverUidid, out string serverUid, out string revision, SQLTransactionalBase existingTransaction = null);
+
         /// <summary>
         /// Creates a new transactional object which can be passed back into database access calls and externalizes the ability to dispose or commit the transaction
         /// </summary>

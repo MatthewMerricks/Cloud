@@ -13,7 +13,7 @@ using System.Text;
 namespace Cloud.SQLIndexer.SqlModel
 {
     [SqlAccess.Class("FileSystemObjects")]
-    internal class FileSystemObject
+    internal sealed class FileSystemObject
     {
         [SqlAccess.Property]
         public long FileSystemObjectId { get; set; }
@@ -37,9 +37,6 @@ namespace Cloud.SQLIndexer.SqlModel
         public Nullable<long> Size { get; set; }
 
         [SqlAccess.Property]
-        public string Revision { get; set; }
-
-        [SqlAccess.Property]
         public string StorageKey { get; set; }
 
         [SqlAccess.Property]
@@ -61,7 +58,7 @@ namespace Cloud.SQLIndexer.SqlModel
         public Nullable<int> Version { get; set; }
 
         [SqlAccess.Property]
-        public string ServerUid { get; set; }
+        public long ServerUidId { get; set; }
         
         [SqlAccess.Property]
         public bool Pending { get; set; }
@@ -95,5 +92,8 @@ namespace Cloud.SQLIndexer.SqlModel
 
         [SqlAccess.Property(SqlAccess.FieldType.JoinedTable)]
         public Sync Sync { get; set; }
+
+        [SqlAccess.Property(Constants.SqlServerUidName, SqlAccess.FieldType.JoinedTable)]
+        public SqlServerUid ServerUid { get; set; }
     }
 }

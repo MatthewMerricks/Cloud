@@ -23,10 +23,6 @@ namespace Cloud.Model
         /// </summary>
         public FileMetadataHashableProperties HashableProperties { get; set; }
         /// <summary>
-        /// Revision from server to identify file change version
-        /// </summary>
-        public string Revision { get; set; }
-        /// <summary>
         /// Storage key to identify server location for MDS events
         /// </summary>
         public string StorageKey { get; set; }
@@ -39,9 +35,16 @@ namespace Cloud.Model
         /// </summary>
         public Nullable<int> Version { get; set; }
         /// <summary>
-        /// "uid" from server which uniquely represents a file or a folder regardless of where it moves
+        /// Id to the "uid" from server which uniquely represents a file or a folder regardless of where it moves
         /// </summary>
-        public string ServerUid { get; set; }
+        public long ServerUidId
+        {
+            get
+            {
+                return _serverUidId;
+            }
+        }
+        private readonly long _serverUidId;
         /// <summary>
         /// "uid" of the parent folder which uniquely identifies it on the server
         /// </summary>
@@ -59,76 +62,27 @@ namespace Cloud.Model
         /// </summary>
         public DateTime EventTime { get; set; }
 
-        internal RevisionChanger RevisionChanger
+        //// Todo: add this constructor back when FileMetadata is programmed to work with the new ServerUids
+        //public FileMetadata() : this(0) { }
+
+        internal FileMetadata(long ServerUidId)
         {
-            get
-            {
-                return _revisionChanger;
-            }
-        }
-        private readonly RevisionChanger _revisionChanger;
-
-        internal readonly Func<object> onRevisionChanged;
-
-        public FileMetadata() : this(null, null) { }
-
-        internal FileMetadata(RevisionChanger revisionChanger, Func<object> onRevisionChanged)
-        {
-            if (revisionChanger == null)
-            {
-                this._revisionChanger = new RevisionChanger();
-            }
-            else
-            {
-                this._revisionChanger = revisionChanger;
-            }
-            lock (this.RevisionChanger.RevisionChangeLocker)
-            {
-                this.RevisionChanger.RevisionChanged += OnRevisionChanged;
-                this.onRevisionChanged = onRevisionChanged;
-            }
+            this._serverUidId = ServerUidId;
         }
 
-        internal FileMetadata CopyWithDifferentRevisionChanger(RevisionChanger replacementChanger, Func<object> onRevisionChanged)
+        internal FileMetadata CopyWithNewServerUidId(long ServerUidId)
         {
-            return new FileMetadata(replacementChanger, onRevisionChanged)
+            return new FileMetadata(ServerUidId)
             {
-                EventTime = EventTime,
-                HashableProperties = HashableProperties,
-                IsShare = IsShare,
-                MimeType = MimeType,
-                ParentFolderServerUid = ParentFolderServerUid,
-                Permissions = Permissions,
-                Revision = Revision,
-                ServerUid = ServerUid,
-                StorageKey = StorageKey,
-                Version = Version
+                EventTime = this.EventTime,
+                HashableProperties = this.HashableProperties,
+                IsShare = this.IsShare,
+                MimeType = this.MimeType,
+                ParentFolderServerUid = this.ParentFolderServerUid,
+                Permissions = this.Permissions,
+                StorageKey = this.StorageKey,
+                Version = this.Version
             };
-        }
-
-        private void OnRevisionChanged(object sender, RevisionAndOtherDataEventArgs e)
-        {
-            if (this != sender)
-            {
-                bool somethingChanged = false;
-
-                if (this.Revision != e.Revision)
-                {
-                    this.Revision = e.Revision;
-                    somethingChanged = true;
-                }
-                if (this.ServerUid != e.ServerUid)
-                {
-                    this.ServerUid = e.ServerUid;
-                    somethingChanged = true;
-                }
-
-                if (somethingChanged
-                    && this.onRevisionChanged != null)
-                {
-                    this.onRevisionChanged();
-                }
-            }
         }
     }
     /// <summary>

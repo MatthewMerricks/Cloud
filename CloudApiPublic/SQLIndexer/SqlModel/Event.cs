@@ -13,7 +13,7 @@ using System.Text;
 namespace Cloud.SQLIndexer.SqlModel
 {
     [SqlAccess.Class("Events")]
-    internal class Event
+    internal sealed class Event
     {
         [SqlAccess.Property]
         public long EventId { get; set; }

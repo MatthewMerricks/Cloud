@@ -254,6 +254,7 @@
     <Compile Include="SQLIndexer\SqlModel\FileSystemObject.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="SQLIndexer\SqlModel\SqlServerUid.cs" />
     <Compile Include="SQLIndexer\SqlModel\SqlAccessor.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -333,7 +334,6 @@
     <Compile Include="Model\HandleableEventArgs.cs" />
     <Compile Include="Model\PossiblyPreexistingFileChangeInError.cs" />
     <Compile Include="Model\PossiblyStreamableFileChange.cs" />
-    <Compile Include="Model\RevisionChanger.cs" />
     <Compile Include="Model\UpdatePathArgs.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Resources\Resources.Designer.cs">
@@ -382,7 +382,7 @@
     </EmbeddedResource>
     <EmbeddedResource Include="SQLIndexer\IndexDBScripts\4Enums.table.sql" />
     <EmbeddedResource Include="SQLIndexer\IndexDBScripts\7Events.table.sql" />
-    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\9FileSystemObjects.table.sql" />
+    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\10FileSystemObjects.table.sql" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\Resources.fr.resx">
@@ -402,15 +402,15 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\15FileSystemObjects_EventTimeUTCTicks.index.sql" />
+    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\16FileSystemObjects_EventTimeUTCTicks.index.sql" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\10FileSystemObjects_Name.index.sql" />
-    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\11FileSystemObjects_ParentFolderId.index.sql" />
-    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\12FileSystemObjects_EventId.index.sql" />
-    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\13FileSystemObjects_ServerUid.index.sql" />
-    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\14FileSystemObjects_Pending.index.sql" />
-    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\27Finalize.pragma.sql" />
+    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\11FileSystemObjects_Name.index.sql" />
+    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\12FileSystemObjects_ParentFolderId.index.sql" />
+    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\13FileSystemObjects_EventId.index.sql" />
+    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\14FileSystemObjects_ServerUid.index.sql" />
+    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\15FileSystemObjects_Pending.index.sql" />
+    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\28Finalize.pragma.sql" />
     <EmbeddedResource Include="SQLIndexer\IndexDBScripts\1Initialize.pragma.sql" />
     <EmbeddedResource Include="SQLIndexer\IndexDBScripts\2EnumCategories.table.sql" />
     <EmbeddedResource Include="SQLIndexer\IndexDBScripts\3AddFileChangeTypeEnumCategory.data.sql" />
@@ -419,26 +419,29 @@
     <EmbeddedResource Include="SQLIndexer\IndexDBScripts\8Events_GroupId.index.sql" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\17FileSystemObjects_ParentFolderId_Update.trigger.sql" />
+    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\18FileSystemObjects_ParentFolderId_Update.trigger.sql" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\16FileSystemObjects_CalculatedFullPath.index.sql" />
-    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\18FileSystemObjects_Name_Update.trigger.sql" />
-    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\19FileSystemObjects_CalculatedFullPath_Incorrect_Update.trigger.sql" />
-    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\20FileSystemObjects_CalculatedFullPath_Correct_Update.trigger.sql" />
-    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\21FileSystemObjects_Incorrect_Insert.trigger.sql" />
-    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\22FileSystemObjects_Correct_Insert.trigger.sql" />
-    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\23FileSystemObjects_Before_Delete.trigger.sql" />
-    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\24FileSystemObjects_After_Delete.trigger.sql" />
+    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\17FileSystemObjects_CalculatedFullPath.index.sql" />
+    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\19FileSystemObjects_Name_Update.trigger.sql" />
+    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\20FileSystemObjects_CalculatedFullPath_Incorrect_Update.trigger.sql" />
+    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\21FileSystemObjects_CalculatedFullPath_Correct_Update.trigger.sql" />
+    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\22FileSystemObjects_Incorrect_Insert.trigger.sql" />
+    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\23FileSystemObjects_Correct_Insert.trigger.sql" />
+    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\24FileSystemObjects_Before_Delete.trigger.sql" />
+    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\25FileSystemObjects_After_Delete.trigger.sql" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\25FileSystemObjects_EventId_Update.trigger.sql" />
+    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\26FileSystemObjects_EventId_Update.trigger.sql" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\26FileSystemObjects_EventOrder.index.sql" />
+    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\27FileSystemObjects_EventOrder.index.sql" />
   </ItemGroup>
   <ItemGroup>
     <None Include="WindowsSdkReleaseNotes.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\9ServerUids.table.sql" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

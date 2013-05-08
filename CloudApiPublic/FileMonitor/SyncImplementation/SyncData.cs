@@ -40,6 +40,22 @@ namespace Cloud.FileMonitor.SyncImplementation
         {
             return this.Indexer.RecordCompletedSync(communicatedChanges, syncId, syncedEventIds, out syncCounter, rootFolderUID);
         }
+
+        public CLError CreateNewServerUid(string serverUid, string revision, out long ServerUidId, SQLTransactionalBase existingTransaction = null)
+        {
+            return this.Indexer.CreateNewServerUid(serverUid, revision, out ServerUidId, existingTransaction);
+        }
+
+        public CLError UpdateServerUid(long serverUidId, string serverUid, string revision, SQLTransactionalBase existingTransaction = null)
+        {
+            return this.Indexer.UpdateServerUid(serverUidId, serverUid, revision, existingTransaction);
+        }
+
+        public CLError QueryServerUid(long serverUidid, out string serverUid, out string revision, SQLTransactionalBase existingTransaction = null)
+        {
+            return this.Indexer.QueryServerUid(serverUidid, out serverUid, out revision, existingTransaction);
+        }
+
         
         /// <summary>
         /// ¡¡ Call this carefully, completely wipes index database (use when user deletes local repository or relinks) !!
