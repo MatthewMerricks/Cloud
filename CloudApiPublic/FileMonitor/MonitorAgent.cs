@@ -2636,11 +2636,6 @@ namespace Cloud.FileMonitor
                                 {
                                     if (loggingEnabled)
                                     {
-                                        //// todo: debug only code remove
-                                        //if (currentFileChange.Value.Value.Type == FileChangeType.Deleted)
-                                        //{
-                                        //}
-
                                         switch (currentFileChange.Key)
                                         {
                                             case FileChangeSource.QueuedChanges:
@@ -2759,9 +2754,8 @@ namespace Cloud.FileMonitor
                             out PulledChanges,
                             originalQueuedChangesIndexesByInMemoryIdsWrapped);
 
-                        // todo: need to handle changes which were made to FileChanges with FileChangeSource.QueuedChanges:
-                        // dependencyChanges[2].Key == FileChangeSource.QueuedChanges && (OriginalFileChangeMappings[dependencyChanges[2].Value].Key.Type != dependencyChanges[2].Value.Type || !FilePathComparer.Instance.Equals(OriginalFileChangeMappings[dependencyChanges[2].Value].Key.NewPath, dependencyChanges[2].Value.NewPath) || !FilePathComparer.Instance.Equals(OriginalFileChangeMappings[dependencyChanges[2].Value].Key.OldPath, dependencyChanges[2].Value.OldPath))
-                        // QueuedChanges[originalQueuedChangesIndexesByInMemoryIds[AllFileChanges[2].OriginalFileChange.InMemoryId]]
+                         //dependencyChanges[2].Key == FileChangeSource.QueuedChanges && (OriginalFileChangeMappings[dependencyChanges[2].Value].Key.Type != dependencyChanges[2].Value.Type || !FilePathComparer.Instance.Equals(OriginalFileChangeMappings[dependencyChanges[2].Value].Key.NewPath, dependencyChanges[2].Value.NewPath) || !FilePathComparer.Instance.Equals(OriginalFileChangeMappings[dependencyChanges[2].Value].Key.OldPath, dependencyChanges[2].Value.OldPath))
+                         //QueuedChanges[originalQueuedChangesIndexesByInMemoryIds[AllFileChanges[2].OriginalFileChange.InMemoryId]]
 
                         List<PossiblyStreamableFileChange> OutputChangesList = new List<PossiblyStreamableFileChange>();
                         List<PossiblyPreexistingFileChangeInError> OutputFailuresList = new List<PossiblyPreexistingFileChangeInError>();
@@ -2977,6 +2971,25 @@ namespace Cloud.FileMonitor
                                         {
                                             failedOutChanges.Add(CurrentDependencyTree.DependencyFileChange);
                                         }
+                                    }
+                                    // changes might have been made to the FileChangeWithDependencies which matches a FileChange in QueuedChanges:
+                                    // these changes need to be found and propagated;
+                                    // need to double check exactly which fields may have changed for comparison since now we're only checking Type, NewPath and OldPath
+                                    else if (CurrentDependencyTree.DependencyFileChange.Type != CurrentDependencyTree.OriginalFileChange.Type
+                                        || !FilePathComparer.Instance.Equals(CurrentDependencyTree.DependencyFileChange.NewPath, CurrentDependencyTree.OriginalFileChange.NewPath)
+                                        || !FilePathComparer.Instance.Equals(CurrentDependencyTree.DependencyFileChange.OldPath, CurrentDependencyTree.OriginalFileChange.OldPath))
+                                    {
+                                        FilePath pathInQueuedChanges = originalQueuedChangesIndexesByInMemoryIds[CurrentDependencyTree.OriginalFileChange.InMemoryId];
+                                        if (!FilePathComparer.Instance.Equals(CurrentDependencyTree.DependencyFileChange.NewPath, pathInQueuedChanges))
+                                        {
+                                            QueuedChanges.Remove(pathInQueuedChanges);
+                                        }
+
+                                        CurrentDependencyTree.OriginalFileChange.Type = CurrentDependencyTree.DependencyFileChange.Type;
+                                        CurrentDependencyTree.OriginalFileChange.NewPath = CurrentDependencyTree.DependencyFileChange.NewPath;
+                                        CurrentDependencyTree.OriginalFileChange.OldPath = CurrentDependencyTree.DependencyFileChange.OldPath;
+
+                                        QueuedChanges[CurrentDependencyTree.OriginalFileChange.NewPath] = CurrentDependencyTree.OriginalFileChange;
                                     }
                                 }
                             }
