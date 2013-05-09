@@ -2754,9 +2754,6 @@ namespace Cloud.FileMonitor
                             out PulledChanges,
                             originalQueuedChangesIndexesByInMemoryIdsWrapped);
 
-                         //dependencyChanges[2].Key == FileChangeSource.QueuedChanges && (OriginalFileChangeMappings[dependencyChanges[2].Value].Key.Type != dependencyChanges[2].Value.Type || !FilePathComparer.Instance.Equals(OriginalFileChangeMappings[dependencyChanges[2].Value].Key.NewPath, dependencyChanges[2].Value.NewPath) || !FilePathComparer.Instance.Equals(OriginalFileChangeMappings[dependencyChanges[2].Value].Key.OldPath, dependencyChanges[2].Value.OldPath))
-                         //QueuedChanges[originalQueuedChangesIndexesByInMemoryIds[AllFileChanges[2].OriginalFileChange.InMemoryId]]
-
                         List<PossiblyStreamableFileChange> OutputChangesList = new List<PossiblyStreamableFileChange>();
                         List<PossiblyPreexistingFileChangeInError> OutputFailuresList = new List<PossiblyPreexistingFileChangeInError>();
 
