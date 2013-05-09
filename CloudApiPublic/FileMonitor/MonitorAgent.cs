@@ -949,7 +949,7 @@ namespace Cloud.FileMonitor
                                 long nonNullServerUidId;
                                 if (storeServerUidId == null)
                                 {
-                                    CLError createServerUidError = Data.thisAgent._syncData.CreateNewServerUid(serverUid: null, revision: null, ServerUidId: out nonNullServerUidId);
+                                    CLError createServerUidError = Data.thisAgent._syncData.CreateNewServerUid(serverUid: null, revision: null, ServerUidId: out nonNullServerUidId);  // no transaction
 
                                     if (createServerUidError != null)
                                     {
@@ -1431,13 +1431,33 @@ namespace Cloud.FileMonitor
                                     }
 
                                     new ChangeAllPathsRemove(this, toApply.OldPath);
+
+                                    // Create a new ServerUid record.  Required below.
+                                    long serverUidId;
+                                    CLError createServerUidError = _syncData.CreateNewServerUid(serverUid: null, revision: null, ServerUidId: out serverUidId);  // no transaction
+
+                                    if (createServerUidError != null)
+                                    {
+                                        throw new AggregateException("Error creating ServerUid", createServerUidError.GrabExceptions());
+                                    }
+
+
+                                    //&&&& old code
+                                    //new ChangeAllPathsIndexSet(this, toApply.NewPath,
+                                    //    new FileMetadata(toApply.Metadata.RevisionChanger, onRevisionChanged: null)
+                                    //    {
+                                    //        ServerUid = toApply.Metadata.ServerUid,
+                                    //        HashableProperties = toApply.Metadata.HashableProperties,
+                                    //        Revision = toApply.Metadata.Revision
+                                    //    });
+                                    //&&&& end old code
+                                    //&&&& new code
                                     new ChangeAllPathsIndexSet(this, toApply.NewPath,
-                                        new FileMetadata(toApply.Metadata.RevisionChanger, onRevisionChanged: null)
+                                        new FileMetadata(serverUidId)
                                         {
-                                            ServerUid = toApply.Metadata.ServerUid,
-                                            HashableProperties = toApply.Metadata.HashableProperties,
-                                            Revision = toApply.Metadata.Revision
+                                            HashableProperties = toApply.Metadata.HashableProperties
                                         });
+                                    //&&&& end new code
                                     break;
                             }
                         }
@@ -3873,7 +3893,7 @@ namespace Cloud.FileMonitor
                                             }
 
                                             long uidId;
-                                            CLError newUidError = _syncData.CreateNewServerUid(serverUid: null, revision: null, ServerUidId: out uidId);
+                                            CLError newUidError = _syncData.CreateNewServerUid(serverUid: null, revision: null, ServerUidId: out uidId);   // no transaction
 
                                             if (newUidError != null)
                                             {
@@ -4555,12 +4575,19 @@ namespace Cloud.FileMonitor
             if (!FileMetadataHashableComparer.Default.Equals(previousMetadata.HashableProperties, forCompare))
             {
                 // metadata change detected
-                return new FileMetadata(previousMetadata.RevisionChanger, onRevisionChanged: null)
-                {
-                    ServerUid = previousMetadata.ServerUid,
-                    HashableProperties = forCompare,
-                    Revision = previousMetadata.Revision
-                };
+                //&&&& old code
+                //return new FileMetadata(previousMetadata.RevisionChanger, onRevisionChanged: null)
+                //{
+                //    ServerUid = previousMetadata.ServerUid,
+                //    HashableProperties = forCompare,
+                //    Revision = previousMetadata.Revision
+                //};
+                //&&&& end old code
+                //&&&& new code   &&&& really check this.
+                FileMetadata toReturn = previousMetadata.CopyWithNewServerUidId(previousMetadata.ServerUidId);
+                toReturn.HashableProperties = forCompare;
+                return toReturn;
+                //&&&& end new code
             }
             return null;
         }
@@ -4727,7 +4754,7 @@ namespace Cloud.FileMonitor
                                             // delete caused AllPaths to lose metadata fields, but since we're cancelling the delete, they need to be put back
                                             // since all cases from CheckMetadataAgainstFile which led to this creation change assigned Metadata directly from AllPaths, we can change the fields here to propagate back
 
-                                            //NEWRKS
+                                            //&&&& new code
                                             toChange.Metadata = toChange.Metadata.CopyWithNewServerUidId(previousChange.Metadata.ServerUidId);
                                             //toChange.Metadata = toChange.Metadata.CopyWithDifferentRevisionChanger(previousChange.Metadata.RevisionChanger, Helpers.CreateFileChangeRevisionChangedHandler(toChange, _syncData));
                                             toChange.Metadata.MimeType = previousChange.Metadata.MimeType;
@@ -4745,7 +4772,7 @@ namespace Cloud.FileMonitor
                                             // delete caused AllPaths to lose metadata fields, but since we're cancelling the delete, they need to be put back
                                             // since all cases from CheckMetadataAgainstFile which led to this creation change assigned Metadata directly from AllPaths, we can change the fields here to propagate back
 
-                                            //NEWRKS
+                                            //&&&& new code
                                             toChange.Metadata = toChange.Metadata.CopyWithNewServerUidId(previousChange.Metadata.ServerUidId);
                                             //toChange.Metadata = toChange.Metadata.CopyWithDifferentRevisionChanger(previousChange.Metadata.RevisionChanger, Helpers.CreateFileChangeRevisionChangedHandler(toChange, _syncData));
                                             toChange.Metadata.MimeType = previousChange.Metadata.MimeType;

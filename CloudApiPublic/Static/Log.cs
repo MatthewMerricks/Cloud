@@ -148,13 +148,11 @@ namespace Cloud.Static
     public partial class TraceFileChange
     {
 
-        private string serverUidField;
-
         private long eventIdField;
 
         private bool eventIdFieldSpecified;
 
-        private int revisionChangerHashCodeField;
+        private long serverUidIdField;
 
         private string newPathField;
 
@@ -196,24 +194,9 @@ namespace Cloud.Static
 
         private string mD5Field;
 
-        private string revisionField;
-
         private string storageKeyField;
 
         private TraceFileChange[] dependenciesField;
-
-        /// <remarks />
-        public string ServerUid
-        {
-            get
-            {
-                return this.serverUidField;
-            }
-            set
-            {
-                this.serverUidField = value;
-            }
-        }
 
         /// <remarks />
         public long EventId
@@ -229,15 +212,15 @@ namespace Cloud.Static
         }
 
         /// <remarks />
-        public int RevisionChangerHashCode
+        public long ServerUidId
         {
             get
             {
-                return this.revisionChangerHashCodeField;
+                return this.serverUidIdField;
             }
             set
             {
-                this.revisionChangerHashCodeField = value;
+                this.serverUidIdField = value;
             }
         }
 
@@ -522,19 +505,6 @@ namespace Cloud.Static
         }
 
         /// <remarks/>
-        public string Revision
-        {
-            get
-            {
-                return this.revisionField;
-            }
-            set
-            {
-                this.revisionField = value;
-            }
-        }
-
-        /// <remarks/>
         public string StorageKey
         {
             get
@@ -585,6 +555,7 @@ namespace Cloud.Static
 
     /// <remarks/>
     [System.Xml.Serialization.XmlIncludeAttribute(typeof(FileChangeFlowEntry))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(ServerUidRevisionEntry))]
     [System.Xml.Serialization.XmlIncludeAttribute(typeof(CommunicationEntry))]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "4.0.30319.17929")]
     [System.SerializableAttribute()]
@@ -683,6 +654,47 @@ namespace Cloud.Static
             set
             {
                 this.syncboxIdFieldSpecified = value;
+            }
+        }
+    }
+
+    /// <remarks/>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "4.0.30319.17929")]
+    [System.SerializableAttribute()]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace = "http://www.cloud.com/TraceLog.xsd")]
+    [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+    public partial class ServerUidRevisionEntry : Entry
+    {
+
+        private string serverUid;
+
+        /// <remarks/>
+        public string ServerUid
+        {
+            get
+            {
+                return this.serverUid;
+            }
+            set
+            {
+                this.serverUid = value;
+            }
+        }
+
+        private string revision;
+
+        /// <remarks/>
+        public string Revision
+        {
+            get
+            {
+                return this.revision;
+            }
+            set
+            {
+                this.revision = value;
             }
         }
     }

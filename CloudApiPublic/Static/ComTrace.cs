@@ -958,10 +958,8 @@ namespace Cloud.Static
 
                             currentArray[currentIndex] = new TraceFileChange()
                             {
-                                ServerUid = currentChange.Metadata.ServerUid,
                                 EventId = currentChange.EventId,
                                 EventIdSpecified = currentChange.EventId != 0,
-                                RevisionChangerHashCode = currentChange.Metadata.RevisionChanger.GetHashCode(),
                                 NewPath = (currentChange.NewPath == null ? "{Possibly cancelled upload or download}" : currentChange.NewPath.ToString()),
                                 OldPath = (currentChange.OldPath == null ? null : currentChange.OldPath.ToString()),
                                 IsFolder = currentChange.Metadata.HashableProperties.IsFolder,
@@ -982,7 +980,6 @@ namespace Cloud.Static
                                 SizeSpecified = currentChange.Metadata.HashableProperties.Size != null,
                                 IsSyncFrom = IsSyncFromBySyncDirection(currentChange.Direction),
                                 MD5 = PullMD5(currentChange),
-                                Revision = currentChange.Metadata.Revision,
                                 StorageKey = currentChange.Metadata.StorageKey,
                                 Dependencies = innerTraceArray
                             };

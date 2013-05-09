@@ -576,8 +576,9 @@ namespace Cloud.SQLIndexer
                     // prefers latest event even if pending
                     if (!SqlAccessor<object>.TrySelectScalar<string>(
                         indexDB,
-                        "SELECT FileSystemObjects.ServerUid " +
+                        "SELECT ServerUids.ServerUid " +
                         "FROM FileSystemObjects " +
+                        "INNER JOIN ServerUids ON FileSystemObjects.ServerUidId = ServerUids.ServerUidID " +
                         "WHERE FileSystemObjects.CalculatedFullPath = ? " +
                         "ORDER BY " +
                         "CASE WHEN FileSystemObjects.EventOrder IS NULL " +
@@ -3442,10 +3443,21 @@ namespace Cloud.SQLIndexer
                     string parentFolderServerUid;
                     if (combinedIndexPlusChanges.TryGetValue(deletedPathObject.Parent, out parentFolderMetadata))
                     {
-                        parentFolderServerUid = parentFolderMetadata.ServerUid;
+                        // Get the ServerUid for the deleted path's parent folder
+                        string serverUid;
+                        string revision;
+                        CLError queryUidError = QueryServerUid(parentFolderMetadata.ServerUidId, out serverUid, out revision);
+
+                        if (queryUidError != null)
+                        {
+                            throw new AggregateException(string.Format("Unable to query ServerUid with id {0}", parentFolderMetadata.ServerUidId), queryUidError.GrabExceptions());
+                        }
+
+                        parentFolderServerUid = serverUid;
                     }
                     else
                     {
+                        // Parent might not be communicated yet.
                         parentFolderServerUid = null;
                     }
 
@@ -3541,7 +3553,7 @@ namespace Cloud.SQLIndexer
         /// <param name="AddEventCallback">Callback to fire if a database event needs to be added</param>
         /// <param name="uncoveredChanges">Optional list of changes which no longer have a corresponding local path, only set when self-recursing</param>
         /// <returns>Returns the list of paths traversed</returns>
-        private static IEnumerable<string> RecurseIndexDirectory(List<FileChange> changeList, FilePathDictionary<FileMetadata> indexPaths, FilePathDictionary<FileMetadata> combinedIndexPlusChanges, Func<long, CLError> RemoveEventCallback, string currentDirectoryFullPath, FindFileResult currentDirectory = null, Dictionary<FilePath, LinkedList<FileChange>> uncoveredChanges = null)
+        private IEnumerable<string> RecurseIndexDirectory(List<FileChange> changeList, FilePathDictionary<FileMetadata> indexPaths, FilePathDictionary<FileMetadata> combinedIndexPlusChanges, Func<long, CLError> RemoveEventCallback, string currentDirectoryFullPath, FindFileResult currentDirectory = null, Dictionary<FilePath, LinkedList<FileChange>> uncoveredChanges = null)
         {
             // Store whether the current method call is outermost or a recursion,
             // only the outermost method call has a null uncoveredChanges parameter
@@ -3640,14 +3652,33 @@ namespace Cloud.SQLIndexer
                         string parentFolderServerUid;
                         if (combinedIndexPlusChanges.TryGetValue(subDirectoryPathObject.Parent, out parentFolderMetadata))
                         {
-                            parentFolderServerUid = parentFolderMetadata.ServerUid;
+                            // Get the ServerUid for the current directory's parent folder
+                            string serverUid;
+                            string revision;
+                            CLError queryUidError = QueryServerUid(parentFolderMetadata.ServerUidId, out serverUid, out revision);
+
+                            if (queryUidError != null)
+                            {
+                                throw new AggregateException(string.Format("Unable to query ServerUid with id {0}", parentFolderMetadata.ServerUidId), queryUidError.GrabExceptions());
+                            }
+
+                            parentFolderServerUid = serverUid;
                         }
                         else
                         {
+                            // This change may not have been communicated.
                             parentFolderServerUid = null;
                         }
 
-                        FileMetadata newDirectoryMetadata = new FileMetadata()
+                        long serverUidId;
+                        CLError createServerUidError = CreateNewServerUid(serverUid: null, revision: null, ServerUidId: out serverUidId);
+
+                        if (createServerUidError != null)
+                        {
+                            throw new AggregateException("Error creating new ServerUid", createServerUidError.GrabExceptions());
+                        }
+
+                        FileMetadata newDirectoryMetadata = new FileMetadata(serverUidId)
                         {
                             HashableProperties = compareProperties,
                             ParentFolderServerUid = parentFolderServerUid
@@ -3704,10 +3735,21 @@ namespace Cloud.SQLIndexer
                             string parentFolderServerUid;
                             if (combinedIndexPlusChanges.TryGetValue(currentFilePathObject.Parent, out parentFolderMetadata))
                             {
-                                parentFolderServerUid = parentFolderMetadata.ServerUid;
+                                // Get the ServerUid for the current directory's parent folder
+                                string serverUid;
+                                string revision;
+                                CLError queryUidError = QueryServerUid(parentFolderMetadata.ServerUidId, out serverUid, out revision);
+
+                                if (queryUidError != null)
+                                {
+                                    throw new AggregateException(string.Format("Unable to query ServerUid with id {0}", parentFolderMetadata.ServerUidId), queryUidError.GrabExceptions());
+                                }
+
+                                parentFolderServerUid = serverUid;
                             }
                             else
                             {
+                                // May not have been communicated yet.
                                 parentFolderServerUid = null;
                             }
 
@@ -3737,14 +3779,33 @@ namespace Cloud.SQLIndexer
                         string parentFolderServerUid;
                         if (combinedIndexPlusChanges.TryGetValue(currentFilePathObject.Parent, out parentFolderMetadata))
                         {
-                            parentFolderServerUid = parentFolderMetadata.ServerUid;
+                            // Get the ServerUid for the current directory's parent folder
+                            string serverUid;
+                            string revision;
+                            CLError queryUidError = QueryServerUid(parentFolderMetadata.ServerUidId, out serverUid, out revision);
+
+                            if (queryUidError != null)
+                            {
+                                throw new AggregateException(string.Format("Unable to query ServerUid with id {0}", parentFolderMetadata.ServerUidId), queryUidError.GrabExceptions());
+                            }
+
+                            parentFolderServerUid = serverUid;
                         }
                         else
                         {
+                            // May not have been communicated yet.
                             parentFolderServerUid = null;
                         }
 
-                        FileMetadata fileCreatedMetadata = new FileMetadata()
+                        long serverUidId;
+                        CLError createServerUidError = CreateNewServerUid(serverUid: null, revision: null, ServerUidId: out serverUidId);
+
+                        if (createServerUidError != null)
+                        {
+                            throw new AggregateException("Error creating new ServerUid", createServerUidError.GrabExceptions());
+                        }
+
+                        FileMetadata fileCreatedMetadata = new FileMetadata(serverUidId)
                         {
                             HashableProperties = compareProperties,
                             ParentFolderServerUid = parentFolderServerUid//,
