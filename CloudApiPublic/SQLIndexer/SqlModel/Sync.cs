@@ -9,10 +9,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Cloud.Static;
 
 namespace Cloud.SQLIndexer.SqlModel
 {
-    [SqlAccess.Class("Syncs")]
+    [SqlAccess.Class(CLDefinitions.Sync_Syncs)]
     internal class Sync
     {
         [SqlAccess.Property]

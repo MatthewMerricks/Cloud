@@ -1188,4 +1188,112 @@
   <data name="UpdatePathArgsPathToBadgeCannotBeNull" xml:space="preserve">
     <value>PathToBadge cannot be null</value>
   </data>
+  <data name="CLNotificationSseEngineAlreadyInitialized" xml:space="preserve">
+    <value>Already initialized</value>
+  </data>
+  <data name="CLNotificationSseEngineDelegateCancelEngineTimeoutMustNotBeNull" xml:space="preserve">
+    <value>delegateCancelEngineTimeout must not be null</value>
+  </data>
+  <data name="CLNotificationSseEngineDelegateCreateEngineTimerMustNotBeNull" xml:space="preserve">
+    <value>delegateCreateEngineTimer must not be null</value>
+  </data>
+  <data name="CLNotificationSseEngineDelegateDisposeEngineTimerMustNotBeNull" xml:space="preserve">
+    <value>delegateDisposeEngineTimer must not be null</value>
+  </data>
+  <data name="CLNotificationSseEngineDelegateSendNotificationEventMustNotBeNull" xml:space="preserve">
+    <value>delegateSendNotificationEvent must not be null</value>
+  </data>
+  <data name="CLNotificationSseEnginedelegateStartEngineTimeoutMustNotBeNull" xml:space="preserve">
+    <value>delegateStartEngineTimeout must not be null</value>
+  </data>
+  <data name="CLNotificationSseEngineErrorExceptionMsg0" xml:space="preserve">
+    <value>CLNotificationSseEngine: StartThreadProc: ERROR: Exception: Msg: {0}.</value>
+  </data>
+  <data name="CLNotificationSseEngineObjectMustBeCLNNotificationService" xml:space="preserve">
+    <value>obj must be a CLNotificationSseEngine</value>
+  </data>
+  <data name="CLNotificationSseEngineProcessReceivedCharacterErrorNotExpectingChar0" xml:space="preserve">
+    <value>CLNotificationSseEngine: ProcessReceivedCharacter: ERROR. Not expecting char: {0}.</value>
+  </data>
+  <data name="CLNotificationSseEngineProcessReceivedCharacterValueIsNotAnInt0" xml:space="preserve">
+    <value>CLNotificationSseEngine: ProcessReceivedCharacter: Value is not an int: {0}.</value>
+  </data>
+  <data name="CLNotificationSseEngineReceivedInvalidStatusCode" xml:space="preserve">
+    <value>CLNotificationSseEngine: StartThreadProc: Received invalid status code.</value>
+  </data>
+  <data name="CLNotificationSseEngineReceivedNoContentFromServer" xml:space="preserve">
+    <value>CLNotificationSseEngine: StartThreadProc: Received no content from server.</value>
+  </data>
+  <data name="CLNotificationSseEngineSSEEngine" xml:space="preserve">
+    <value>SSE Engine</value>
+  </data>
+  <data name="CLNotificationSseEngineStartEngineThreadErrorExceptionMsg0" xml:space="preserve">
+    <value>CLNotificationSseEngine: StartEngineThread: ERROR: Exception: Msg: {0}.</value>
+  </data>
+  <data name="CLNotificationSseEngineStartEngineThreadExit" xml:space="preserve">
+    <value>CLNotificationSseEngine: StartEngineThread: Exit.</value>
+  </data>
+  <data name="CLNotificationSseEngineStartEntry" xml:space="preserve">
+    <value>CLNotificationSseEngine: Start: Entry.</value>
+  </data>
+  <data name="CLNotificationSseEngineStartErrorExceptionMsg0" xml:space="preserve">
+    <value>CLNotificationSseEngine: Start: ERROR: Exception: Msg: {0}.</value>
+  </data>
+  <data name="CLNotificationSseEngineStartExitReturn0" xml:space="preserve">
+    <value>CLNotificationSseEngine: Start: Exit.  Return: {0}.</value>
+  </data>
+  <data name="CLNotificationSseEngineStartThreadProcEntry" xml:space="preserve">
+    <value>CLNotificationSseEngine: StartThreadProc: Entry.</value>
+  </data>
+  <data name="CLNotificationSseEngineStartThreadProcErrorException3Msg0" xml:space="preserve">
+    <value>CLNotificationSseEngine: StartThreadProc: ERROR: Exception (3): Msg: {0}.</value>
+  </data>
+  <data name="CLNotificationSseEngineStartThreadProcErrorException4Msg0" xml:space="preserve">
+    <value>CLNotificationSseEngine: StartThreadProc: ERROR: Exception (4): Msg: {0}.</value>
+  </data>
+  <data name="CLNotificationSseEngineStartThreadProcReceived204NoContent" xml:space="preserve">
+    <value>CLNotificationSseEngine: StartThreadProc: Received 204 no content.</value>
+  </data>
+  <data name="CLNotificationSseEngineStartThreadProcStartReadingDataFromResponseStream" xml:space="preserve">
+    <value>CLNotificationSseEngine: StartThreadProc: Start reading data from the response stream.</value>
+  </data>
+  <data name="CLNotificationSseEngineStopEntry" xml:space="preserve">
+    <value>CLNotificationSseEngine: Stop: Entry.</value>
+  </data>
+  <data name="CLNotificationSseEngineSyncboxCannotBeNull" xml:space="preserve">
+    <value>syncbox must not be null</value>
+  </data>
+  <data name="CLNotificationSseEngineSyncboxHttpRestCannotBeNull" xml:space="preserve">
+    <value>_syncbox.HttpRestClient must not be null</value>
+  </data>
+  <data name="CLNotificationSseEngineSyncboxMustNotBeNull" xml:space="preserve">
+    <value>_syncbox must not be null</value>
+  </data>
+  <data name="CLNotificationSseEngineTimerExpiredAbortTheEngineThread" xml:space="preserve">
+    <value>CLNotificationSseEngine: TimerExpired: Abort the engine thread.</value>
+  </data>
+  <data name="CLNotificationSseEngineTimerExpiredCleanUpResource0" xml:space="preserve">
+    <value>CLNotificationSseEngine: TimerExpired: Clean up resource: {0}.</value>
+  </data>
+  <data name="CLNotificationSseEngineTimerExpiredEntry" xml:space="preserve">
+    <value>CLNotificationSseEngine: TimerExpired: Entry.</value>
+  </data>
+  <data name="CLNotificationSseEngineTimerExpiredErrorExceptionMsg0" xml:space="preserve">
+    <value>CLNotificationSseEngine: TimerExpired: ERROR: Exception: Msg: {0}.</value>
+  </data>
+  <data name="CLNotificationSseEngineTimerExpiredErrorImproperUserState" xml:space="preserve">
+    <value>CLNotificationSseEngine: TimerExpired: ERROR: Improper user state.</value>
+  </data>
+  <data name="CLNotificationSseEngineTimerExpiredErrorMsg0" xml:space="preserve">
+    <value>CLNotificationSseEngine: TimerExpired: ERROR: Msg: {0}.</value>
+  </data>
+  <data name="CLNotificationSseEngineTimerExpiredExit" xml:space="preserve">
+    <value>CLNotificationSseEngine: TimerExpired: Exit.</value>
+  </data>
+  <data name="CLNotificationSseEngineWebExceptionThrownWithoutAResponse" xml:space="preserve">
+    <value>WebException thrown without a Response</value>
+  </data>
+  <data name="CLNotificationsSseEngineDefaultConstructorNotSupported" xml:space="preserve">
+    <value>Default constructor not supported</value>
+  </data>
 </root>

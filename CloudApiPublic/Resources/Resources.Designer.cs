@@ -1061,6 +1061,330 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Already initialized.
+        /// </summary>
+        internal static string CLNotificationSseEngineAlreadyInitialized {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEngineAlreadyInitialized", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to delegateCancelEngineTimeout must not be null.
+        /// </summary>
+        internal static string CLNotificationSseEngineDelegateCancelEngineTimeoutMustNotBeNull {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEngineDelegateCancelEngineTimeoutMustNotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to delegateCreateEngineTimer must not be null.
+        /// </summary>
+        internal static string CLNotificationSseEngineDelegateCreateEngineTimerMustNotBeNull {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEngineDelegateCreateEngineTimerMustNotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to delegateDisposeEngineTimer must not be null.
+        /// </summary>
+        internal static string CLNotificationSseEngineDelegateDisposeEngineTimerMustNotBeNull {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEngineDelegateDisposeEngineTimerMustNotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to delegateSendNotificationEvent must not be null.
+        /// </summary>
+        internal static string CLNotificationSseEngineDelegateSendNotificationEventMustNotBeNull {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEngineDelegateSendNotificationEventMustNotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to delegateStartEngineTimeout must not be null.
+        /// </summary>
+        internal static string CLNotificationSseEnginedelegateStartEngineTimeoutMustNotBeNull {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEnginedelegateStartEngineTimeoutMustNotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationSseEngine: StartThreadProc: ERROR: Exception: Msg: {0}..
+        /// </summary>
+        internal static string CLNotificationSseEngineErrorExceptionMsg0 {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEngineErrorExceptionMsg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to obj must be a CLNotificationSseEngine.
+        /// </summary>
+        internal static string CLNotificationSseEngineObjectMustBeCLNNotificationService {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEngineObjectMustBeCLNNotificationService", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationSseEngine: ProcessReceivedCharacter: ERROR. Not expecting char: {0}..
+        /// </summary>
+        internal static string CLNotificationSseEngineProcessReceivedCharacterErrorNotExpectingChar0 {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEngineProcessReceivedCharacterErrorNotExpectingChar0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationSseEngine: ProcessReceivedCharacter: Value is not an int: {0}..
+        /// </summary>
+        internal static string CLNotificationSseEngineProcessReceivedCharacterValueIsNotAnInt0 {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEngineProcessReceivedCharacterValueIsNotAnInt0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationSseEngine: StartThreadProc: Received invalid status code..
+        /// </summary>
+        internal static string CLNotificationSseEngineReceivedInvalidStatusCode {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEngineReceivedInvalidStatusCode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationSseEngine: StartThreadProc: Received no content from server..
+        /// </summary>
+        internal static string CLNotificationSseEngineReceivedNoContentFromServer {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEngineReceivedNoContentFromServer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SSE Engine.
+        /// </summary>
+        internal static string CLNotificationSseEngineSSEEngine {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEngineSSEEngine", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationSseEngine: StartEngineThread: ERROR: Exception: Msg: {0}..
+        /// </summary>
+        internal static string CLNotificationSseEngineStartEngineThreadErrorExceptionMsg0 {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEngineStartEngineThreadErrorExceptionMsg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationSseEngine: StartEngineThread: Exit..
+        /// </summary>
+        internal static string CLNotificationSseEngineStartEngineThreadExit {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEngineStartEngineThreadExit", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationSseEngine: Start: Entry..
+        /// </summary>
+        internal static string CLNotificationSseEngineStartEntry {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEngineStartEntry", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationSseEngine: Start: ERROR: Exception: Msg: {0}..
+        /// </summary>
+        internal static string CLNotificationSseEngineStartErrorExceptionMsg0 {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEngineStartErrorExceptionMsg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationSseEngine: Start: Exit.  Return: {0}..
+        /// </summary>
+        internal static string CLNotificationSseEngineStartExitReturn0 {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEngineStartExitReturn0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationSseEngine: StartThreadProc: Entry..
+        /// </summary>
+        internal static string CLNotificationSseEngineStartThreadProcEntry {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEngineStartThreadProcEntry", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationSseEngine: StartThreadProc: ERROR: Exception (3): Msg: {0}..
+        /// </summary>
+        internal static string CLNotificationSseEngineStartThreadProcErrorException3Msg0 {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEngineStartThreadProcErrorException3Msg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationSseEngine: StartThreadProc: ERROR: Exception (4): Msg: {0}..
+        /// </summary>
+        internal static string CLNotificationSseEngineStartThreadProcErrorException4Msg0 {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEngineStartThreadProcErrorException4Msg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationSseEngine: StartThreadProc: Received 204 no content..
+        /// </summary>
+        internal static string CLNotificationSseEngineStartThreadProcReceived204NoContent {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEngineStartThreadProcReceived204NoContent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationSseEngine: StartThreadProc: Start reading data from the response stream..
+        /// </summary>
+        internal static string CLNotificationSseEngineStartThreadProcStartReadingDataFromResponseStream {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEngineStartThreadProcStartReadingDataFromResponseStream", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationSseEngine: Stop: Entry..
+        /// </summary>
+        internal static string CLNotificationSseEngineStopEntry {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEngineStopEntry", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to syncbox must not be null.
+        /// </summary>
+        internal static string CLNotificationSseEngineSyncboxCannotBeNull {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEngineSyncboxCannotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to _syncbox.HttpRestClient must not be null.
+        /// </summary>
+        internal static string CLNotificationSseEngineSyncboxHttpRestCannotBeNull {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEngineSyncboxHttpRestCannotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to _syncbox must not be null.
+        /// </summary>
+        internal static string CLNotificationSseEngineSyncboxMustNotBeNull {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEngineSyncboxMustNotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationSseEngine: TimerExpired: Abort the engine thread..
+        /// </summary>
+        internal static string CLNotificationSseEngineTimerExpiredAbortTheEngineThread {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEngineTimerExpiredAbortTheEngineThread", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationSseEngine: TimerExpired: Clean up resource: {0}..
+        /// </summary>
+        internal static string CLNotificationSseEngineTimerExpiredCleanUpResource0 {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEngineTimerExpiredCleanUpResource0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationSseEngine: TimerExpired: Entry..
+        /// </summary>
+        internal static string CLNotificationSseEngineTimerExpiredEntry {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEngineTimerExpiredEntry", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationSseEngine: TimerExpired: ERROR: Exception: Msg: {0}..
+        /// </summary>
+        internal static string CLNotificationSseEngineTimerExpiredErrorExceptionMsg0 {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEngineTimerExpiredErrorExceptionMsg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationSseEngine: TimerExpired: ERROR: Improper user state..
+        /// </summary>
+        internal static string CLNotificationSseEngineTimerExpiredErrorImproperUserState {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEngineTimerExpiredErrorImproperUserState", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationSseEngine: TimerExpired: ERROR: Msg: {0}..
+        /// </summary>
+        internal static string CLNotificationSseEngineTimerExpiredErrorMsg0 {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEngineTimerExpiredErrorMsg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationSseEngine: TimerExpired: Exit..
+        /// </summary>
+        internal static string CLNotificationSseEngineTimerExpiredExit {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEngineTimerExpiredExit", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to WebException thrown without a Response.
+        /// </summary>
+        internal static string CLNotificationSseEngineWebExceptionThrownWithoutAResponse {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEngineWebExceptionThrownWithoutAResponse", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Default constructor not supported.
+        /// </summary>
+        internal static string CLNotificationsSseEngineDefaultConstructorNotSupported {
+            get {
+                return ResourceManager.GetString("CLNotificationsSseEngineDefaultConstructorNotSupported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Unknown engine index.
         /// </summary>
         internal static string CLNotificationUnknownEngineIndex {

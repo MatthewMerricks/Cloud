@@ -9,10 +9,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Cloud.Static;
 
 namespace Cloud.SQLIndexer.SqlModel
 {
-    [SqlAccess.Class("Enums")]
+    [SqlAccess.Class(CLDefinitions.SqlEnum_Events)]
     internal class SqlEnum
     {
         [SqlAccess.Property]

@@ -5,6 +5,7 @@
 // Created By DavidBruck.
 // Copyright (c) Cloud.com. All rights reserved.
 
+using Cloud.Static;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,7 +14,7 @@ using System.Threading.Tasks;
 
 namespace Cloud.SQLIndexer.SqlModel
 {
-    [SqlAccess.Class("EnumCategories")]
+    [SqlAccess.Class(CLDefinitions.EnumCategory_EnumCategories)]
     internal class EnumCategory
     {
         [SqlAccess.Property]

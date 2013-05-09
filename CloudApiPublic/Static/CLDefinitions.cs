@@ -35,7 +35,7 @@ namespace Cloud.Static
         // Define the subdomain
 #if URL_API
         public const string SubDomainPrefix = "api.";
-        public const string CloudAppSubDomainPrefix = "cloudapp.";
+        public const string CloudAppSubDomainPrefix = "cloudapp."; 
 #else
         public const string SubDomainPrefix = "";
         public const string CloudAppSubDomainPrefix = "cloudapp";
@@ -160,6 +160,14 @@ namespace Cloud.Static
         #region Notification operations
         public const string MethodPathPushSubscribe = VersionPrefix + "/sync/notifications/subscribe";                  // GET
         public const string MethodPathPushUnsubscribe = VersionPrefix + "/sync/notifications/unsubscribe";              // POST
+        #endregion
+
+        #region Attributes
+        internal const string EnumCategory_EnumCategories = "EnumCategories";
+        internal const string SqlEnum_Events = "Events";
+        internal const string EnumCategory_Enum = "Enums";
+        internal const string FileSystemObjects = "FileSystemObjects";
+        internal const string Sync_Syncs = "Syncs";
         #endregion
 
         #region Platform Management operations

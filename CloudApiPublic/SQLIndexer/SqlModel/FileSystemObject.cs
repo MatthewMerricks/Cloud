@@ -9,10 +9,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Cloud.Static;
 
 namespace Cloud.SQLIndexer.SqlModel
 {
-    [SqlAccess.Class("FileSystemObjects")]
+    [SqlAccess.Class(CLDefinitions.FileSystemObjects)]
     internal class FileSystemObject
     {
         [SqlAccess.Property]
