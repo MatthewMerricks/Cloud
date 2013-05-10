@@ -7134,9 +7134,12 @@ namespace Cloud.Sync
                     {
                         // set the metadata for the current FileChange (copying the RevisionChanger if a previous matched FileChange was found)
 
+                        Nullable<long> removedServerUidIdToInvalidate;
                         long serverUidId;
                         if (matchedChange == null)
                         {
+                            removedServerUidIdToInvalidate = null;
+
                             CLError queryServerUidError = innerSyncData.QueryOrCreateServerUid(
                                 findServerUid,
                                 out serverUidId,
@@ -7154,12 +7157,18 @@ namespace Cloud.Sync
                             CLError updateServerUidError = innerSyncData.UpdateServerUid(
                                 serverUidId,
                                 findServerUid,
-                                findRevision);  // no transaction
+                                findRevision,
+                                out removedServerUidIdToInvalidate); // no transaction
 
                             if (updateServerUidError != null)
                             {
                                 throw new AggregateException("Error updating ServerUid", updateServerUidError.GrabExceptions());
                             }
+                        }
+
+                        if (removedServerUidIdToInvalidate != null)
+                        {
+                            innerUidStorage.Remove((long)removedServerUidIdToInvalidate);
                         }
                         innerUidStorage[serverUidId] = new UidRevisionHolder(findServerUid, findRevision);
 
@@ -8443,11 +8452,22 @@ namespace Cloud.Sync
 
                                                             if (currentChangeUidHolder.Revision != newMetadata.Revision)
                                                             {
-                                                                CLError updateRevisionError = syncData.UpdateServerUid(currentChange.Metadata.ServerUidId, currentChangeUidHolder.ServerUid, newMetadata.Revision);
+                                                                Nullable<long> removedServerUidIdToInvalidate;
+                                                                CLError updateRevisionError = syncData.UpdateServerUid(
+                                                                    currentChange.Metadata.ServerUidId,
+                                                                    currentChangeUidHolder.ServerUid,
+                                                                    newMetadata.Revision,
+                                                                    out removedServerUidIdToInvalidate);
                                                                 if (updateRevisionError != null)
                                                                 {
                                                                     throw new AggregateException("Error updating revision only", updateRevisionError.GrabExceptions());
                                                                 }
+
+                                                                if (removedServerUidIdToInvalidate != null)
+                                                                {
+                                                                    uidStorage.Remove((long)removedServerUidIdToInvalidate);
+                                                                }
+                                                                uidStorage[currentChange.Metadata.ServerUidId] = new UidRevisionHolder(currentChangeUidHolder.ServerUid, newMetadata.Revision);
                                                             }
 
                                                             // create and initialize the FileChange for the new file creation by combining data from the current rename event with the metadata from the server, also adds the hash
@@ -8676,10 +8696,12 @@ namespace Cloud.Sync
 
                                                                             //&&&& Old code: duplicateChange.Metadata.Revision = postDuplicateChangeResult.Metadata.Revision;
                                                                             //&&&& New code:
+                                                                            Nullable<long> removedServerUidIdToInvalidate;
                                                                             CLError errorFromUpdateServerUid = syncData.UpdateServerUid(
-                                                                                duplicateChange.Metadata.ServerUidId, 
+                                                                                duplicateChange.Metadata.ServerUidId,
                                                                                 postDuplicateChangeResult.Metadata.ServerUid,
-                                                                                postDuplicateChangeResult.Metadata.Revision);   // no transaction
+                                                                                postDuplicateChangeResult.Metadata.Revision,
+                                                                                out removedServerUidIdToInvalidate); // no transaction
 
                                                                             if (errorFromUpdateServerUid != null)
                                                                             {
@@ -8687,6 +8709,10 @@ namespace Cloud.Sync
                                                                             }
 
                                                                             //&&&&& Note: ServerUid was not updated before.  It seems that it should be.
+                                                                            if (removedServerUidIdToInvalidate != null)
+                                                                            {
+                                                                                uidStorage.Remove((long)removedServerUidIdToInvalidate);
+                                                                            }
                                                                             uidStorage[duplicateChange.Metadata.ServerUidId] = new UidRevisionHolder(postDuplicateChangeResult.Metadata.ServerUid, postDuplicateChangeResult.Metadata.Revision);
                                                                             //&&&& End new code
 
@@ -10761,16 +10787,22 @@ namespace Cloud.Sync
                                                             //duplicateChange.Metadata.Revision = postDuplicateChangeResult.Metadata.Revision;
                                                             //&&&& end old code
                                                             //&&&& new code
+                                                            Nullable<long> removedServerUidIdToInvalidate;
                                                             CLError updateServerUidError = syncData.UpdateServerUid(
                                                                 innerServerUidId,
                                                                 postDuplicateChangeResult.Metadata.ServerUid,
-                                                                postDuplicateChangeResult.Metadata.Revision);  // no transaction
+                                                                postDuplicateChangeResult.Metadata.Revision,
+                                                                out removedServerUidIdToInvalidate);  // no transaction
 
                                                             if (updateServerUidError != null)
                                                             {
                                                                 throw new AggregateException("Error updating ServerUid", updateServerUidError.GrabExceptions());
                                                             }
 
+                                                            if (removedServerUidIdToInvalidate != null)
+                                                            {
+                                                                uidStorage.Remove((long)removedServerUidIdToInvalidate);
+                                                            }
                                                             uidStorage[innerServerUidId] = new UidRevisionHolder(ServerUid: postDuplicateChangeResult.Metadata.ServerUid, Revision: postDuplicateChangeResult.Metadata.Revision);
                                                             //&&&& end new code
 

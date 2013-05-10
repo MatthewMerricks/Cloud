@@ -40,6 +40,8 @@ namespace Cloud.SQLIndexer
         private long rootFileSystemObjectId = 0;
         private long rootFileSystemObjectServerUidId = 0;
 
+        private readonly Dictionary<long, long> migratedServerUidIds = new Dictionary<long, long>();
+
         #region SQLite
         private readonly string indexDBLocation;
         private const string indexDBPassword = "Q29weXJpZ2h0Q2xvdWQuY29tQ3JlYXRlZEJ5RGF2aWRCcnVjaw=="; // <-- if you change this password, you will likely break all clients with older databases
@@ -169,7 +171,7 @@ namespace Cloud.SQLIndexer
             return toReturn;
         }
 
-        public CLError UpdateServerUid(long serverUidId, string serverUid, string revision, SQLTransactionalBase existingTransaction = null)
+        public CLError UpdateServerUid(long serverUidId, string serverUid, string revision, out Nullable<long> existingServerUidIdRequiringMerging, SQLTransactionalBase existingTransaction = null)
         {
             _trace.writeToLog(9, "IndexingAgent: Entry: UpdateServerUid: serverUidId: {0}. serverUid: {1}. revision: {2}. existingTransaction: {3}.", serverUidId, serverUid, revision, existingTransaction == null ? "null" : "notNull");
             CLError toReturn = null;
@@ -198,34 +200,139 @@ namespace Cloud.SQLIndexer
                         indexDB.BeginTransaction(System.Data.IsolationLevel.Serializable));
                 }
 
-                SqlServerUid updateUid = new SqlServerUid()
-                {
-                    ServerUidId = serverUidId,
-                    ServerUid = serverUid,
-                    Revision = revision
-                };
+                SqlServerUid existingUid = SqlAccessor<SqlServerUid>.SelectResultSet(
+                        castTransaction.sqlConnection,
+                        "SELECT * " +
+                        "FROM ServerUids " +
+                        "WHERE ServerUids.ServerUid = ?", // <-- parameter 1
+                        transaction: castTransaction.sqlTransaction,
+                        selectParameters: Helpers.EnumerateSingleItem(serverUid))
+                    .FirstOrDefault();
 
-                if (!SqlAccessor<SqlServerUid>.UpdateRow(
-                    castTransaction.sqlConnection,
-                    updateUid,
-                    castTransaction.sqlTransaction))
+                if (existingUid != null
+                    && existingUid.ServerUidId == serverUidId
+                    && existingUid.Revision == revision)
                 {
-                    throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, string.Format("Unable to update server \"uid\" and revision for id {0}", serverUidId));
+                    // no op, row already exists and matches current data
+
+                    existingServerUidIdRequiringMerging = null;
                 }
-
-                if (!inputTransactionSet
-                    && castTransaction != null)
+                else
                 {
-                    castTransaction.Commit();
-                }
+                    Nullable<long> previousMigrationTarget = null;
+                    bool migratedExistingUid = false;
 
-                if ((syncbox.CopiedSettings.TraceType & TraceType.ServerUid) == TraceType.ServerUid)
-                {
-                    ComTrace.LogServerUid(syncbox.CopiedSettings.TraceLocation, syncbox.CopiedSettings.DeviceId, syncbox.SyncboxId, serverUidId, serverUid, revision);
+                    try
+                    {
+                        if (existingUid == null
+                            || existingUid.ServerUidId == serverUidId)
+                        {
+                            // either serverUid does not already exist in the database and can be added,
+                            // or row matches current row and revision needs to be updated
+
+                            // in this condition, only the existing row will be updated (after else condition below)
+
+                            existingServerUidIdRequiringMerging = null;
+                        }
+                        else
+                        {
+                            // another row already is using the same ServerUid,
+                            // need to move all rows forward to use this ServerUidId and remove the other one and update the current ServerUidId to the latest values
+
+                            existingServerUidIdRequiringMerging = existingUid.ServerUidId;
+
+                            lock (migratedServerUidIds)
+                            {
+                                long grabExistingTarget;
+                                if (migratedServerUidIds.TryGetValue(existingUid.ServerUidId, out grabExistingTarget))
+                                {
+                                    previousMigrationTarget = grabExistingTarget;
+                                    migratedServerUidIds[existingUid.ServerUidId] = serverUidId;
+                                }
+                                else
+                                {
+                                    migratedServerUidIds.Add(existingUid.ServerUidId, serverUidId);
+                                }
+                            }
+                            migratedExistingUid = true;
+
+                            using (ISQLiteCommand moveServerUidIds = castTransaction.sqlConnection.CreateCommand())
+                            {
+                                moveServerUidIds.Transaction = castTransaction.sqlTransaction;
+
+                                moveServerUidIds.CommandText = "UPDATE FileSystemObjects " +
+                                    "SET ServerUidId = ? " + // <-- parameter 1
+                                    "WHERE ServerUidId = ?;" + // <-- parameter 2
+                                    "DELETE FROM ServerUids " +
+                                    "WHERE ServerUidId = ?;"; // <-- paramter 3 (equivalent to parameter 2)
+
+                                ISQLiteParameter uidIdToKeep = moveServerUidIds.CreateParameter();
+                                uidIdToKeep.Value = serverUidId;
+                                moveServerUidIds.Parameters.Add(uidIdToKeep);
+
+                                ISQLiteParameter uidIdToRemoveOne = moveServerUidIds.CreateParameter();
+                                uidIdToRemoveOne.Value = existingUid.ServerUidId;
+                                moveServerUidIds.Parameters.Add(uidIdToRemoveOne);
+
+                                ISQLiteParameter uidIdToRemoveTwo = moveServerUidIds.CreateParameter();
+                                uidIdToRemoveTwo.Value = existingUid.ServerUidId;
+                                moveServerUidIds.Parameters.Add(uidIdToRemoveTwo);
+
+                                moveServerUidIds.ExecuteNonQuery();
+                            }
+                        }
+
+                        SqlServerUid updateUid = new SqlServerUid()
+                        {
+                            ServerUidId = serverUidId,
+                            ServerUid = serverUid,
+                            Revision = revision
+                        };
+
+                        if (!SqlAccessor<SqlServerUid>.UpdateRow(
+                            castTransaction.sqlConnection,
+                            updateUid,
+                            castTransaction.sqlTransaction))
+                        {
+                            throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, string.Format("Unable to update server \"uid\" and revision for id {0}", serverUidId));
+                        }
+
+                        if (!inputTransactionSet
+                            && castTransaction != null)
+                        {
+                            castTransaction.Commit();
+                        }
+                    }
+                    catch
+                    {
+                        if (migratedExistingUid)
+                        {
+                            lock (migratedServerUidIds)
+                            {
+                                if (previousMigrationTarget == null)
+                                {
+                                    migratedServerUidIds.Remove(existingUid.ServerUidId);
+                                }
+                                else
+                                {
+                                    migratedServerUidIds[existingUid.ServerUidId] = ((long)previousMigrationTarget);
+                                }
+                            }
+                        }
+
+                        throw;
+                    }
+
+                    if ((syncbox.CopiedSettings.TraceType & TraceType.ServerUid) == TraceType.ServerUid)
+                    {
+                        ComTrace.LogServerUid(syncbox.CopiedSettings.TraceLocation, syncbox.CopiedSettings.DeviceId, syncbox.SyncboxId, serverUidId, serverUid, revision);
+                    }
                 }
             }
             catch (Exception ex)
             {
+                existingServerUidIdRequiringMerging = null;
+
                 toReturn += ex;
             }
             finally
@@ -268,14 +375,24 @@ namespace Cloud.SQLIndexer
                         indexDB.BeginTransaction(System.Data.IsolationLevel.Serializable));
                 }
 
-                SqlServerUid retrievedUid = SqlAccessor<SqlServerUid>.SelectResultSet(
-                        castTransaction.sqlConnection,
-                        "SELECT * " +
-                            "FROM ServerUids " +
-                            "WHERE ServerUids.ServerUidId = ?",
-                        transaction: castTransaction.sqlTransaction,
-                        selectParameters: Helpers.EnumerateSingleItem(serverUidId))
-                    .FirstOrDefault();
+                SqlServerUid retrievedUid;
+                lock (migratedServerUidIds)
+                {
+                    long nextServerUidId;
+                    while (migratedServerUidIds.TryGetValue(serverUidId, out nextServerUidId))
+                    {
+                        serverUidId = nextServerUidId;
+                    }
+
+                    retrievedUid = SqlAccessor<SqlServerUid>.SelectResultSet(
+                            castTransaction.sqlConnection,
+                            "SELECT * " +
+                                "FROM ServerUids " +
+                                "WHERE ServerUids.ServerUidId = ?",
+                            transaction: castTransaction.sqlTransaction,
+                            selectParameters: Helpers.EnumerateSingleItem(serverUidId))
+                        .FirstOrDefault();
+                }
 
                 if (retrievedUid == null)
                 {

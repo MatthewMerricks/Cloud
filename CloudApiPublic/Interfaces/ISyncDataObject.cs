@@ -49,7 +49,7 @@ namespace Cloud.Interfaces
 
         CLError CreateNewServerUid(string serverUid, string revision, out long serverUidId, SQLTransactionalBase existingTransaction = null);
 
-        CLError UpdateServerUid(long serverUidId, string serverUid, string revision, SQLTransactionalBase existingTransaction = null);
+        CLError UpdateServerUid(long serverUidId, string serverUid, string revision, out Nullable<long> existingServerUidIdRequiringMerging, SQLTransactionalBase existingTransaction = null);
 
         CLError QueryServerUid(long serverUidId, out string serverUid, out string revision, SQLTransactionalBase existingTransaction = null);
 
