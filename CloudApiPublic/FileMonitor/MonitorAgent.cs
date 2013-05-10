@@ -5185,7 +5185,8 @@ namespace Cloud.FileMonitor
                 }
                 while (operationsRemaining()); // flush remaining operations before starting processing timer
 
-                if (mergeAll.Count > 0)
+                if (mergeAll.Count > 0
+                    || senderToAdd != null)
                 {
                     lock (QueuedChanges)
                     {
