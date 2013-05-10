@@ -1877,23 +1877,42 @@ namespace Cloud.FileMonitor
                                                 if (OriginalFileChangeMappings != null
                                                     && OriginalFileChangeMappings.TryGetValue(CurrentDisposal, out CurrentOriginalMapping))
                                                 {
-                                                	_trace.writeToMemory(() => _trace.trcFmtStr(2, "MonitorAgent: AssignDependencies: CurrentOriginalMapping: Direction: {0}. Type: {1}. OldPath: {2}. NewPath: {3}.",
-                                                        CurrentOriginalMapping.Key.Direction.ToString(),
-                                                        CurrentOriginalMapping.Key.Type.ToString(),
-                                                        CurrentOriginalMapping.Key.OldPath != null ? CurrentOriginalMapping.Key.OldPath : "NoOldPath",
-                                                        CurrentOriginalMapping.Key.NewPath != null ? CurrentOriginalMapping.Key.NewPath : "NoNewPath"));
-                                                    CurrentOriginalMapping.Key.Dispose();
+                                                    LinkedList<FileChange> currentRemoveQueue = new LinkedList<FileChange>(Helpers.EnumerateSingleItem(CurrentOriginalMapping.Key));
 
-                                                	if (CurrentOriginalMapping.Value == FileChangeSource.QueuedChanges)
-                                                	{
-                                                    	_trace.writeToMemory(() => _trace.trcFmtStr(2, "MonitorAgent: AssignDependencies: CurrentOriginalMapping: Remove this CurrentOriginalMapping from originalQueuedChangesIndexesByInMemoryIds."));
-                                                    	RemoveFileChangeFromQueuedChanges(CurrentOriginalMapping.Key, originalQueuedChangesIndexesByInMemoryIds);
-                                                	}
-
-                                                    if (CurrentDisposal.EventId != 0)
+                                                    while (currentRemoveQueue.Count > 0)
                                                     {
-                                                        _trace.writeToMemory(() => _trace.trcFmtStr(2, "MonitorAgent: AssignDependencies: CurrentOriginalMapping: Add CurrentDisposal to removeFromSql."));
-                                                        removeFromSql.Add(CurrentDisposal);
+                                                        FileChange currentDequeuedChangeToDispose = currentRemoveQueue.First.Value;
+                                                        currentRemoveQueue.RemoveFirst();
+
+                                                        FileChangeWithDependencies castDequeuedChangeToDispose = currentDequeuedChangeToDispose as FileChangeWithDependencies;
+                                                        if (castDequeuedChangeToDispose != null
+                                                            && castDequeuedChangeToDispose.DependenciesCount > 0)
+                                                        {
+                                                            foreach (FileChange firstDependency in castDequeuedChangeToDispose.Dependencies.Reverse())
+                                                            {
+                                                                currentRemoveQueue.AddFirst(firstDependency);
+                                                            }
+                                                        }
+
+                                                        _trace.writeToMemory(() => _trace.trcFmtStr(2, "MonitorAgent: AssignDependencies: CurrentOriginalMapping: Direction: {0}. Type: {1}. OldPath: {2}. NewPath: {3}.",
+                                                            currentDequeuedChangeToDispose.Direction.ToString(),
+                                                            currentDequeuedChangeToDispose.Type.ToString(),
+                                                            currentDequeuedChangeToDispose.OldPath != null ? currentDequeuedChangeToDispose.OldPath : "NoOldPath",
+                                                            currentDequeuedChangeToDispose.NewPath != null ? currentDequeuedChangeToDispose.NewPath : "NoNewPath"));
+                                                        currentDequeuedChangeToDispose.Dispose();
+
+                                                        if (currentDequeuedChangeToDispose == CurrentOriginalMapping.Key
+                                                            && CurrentOriginalMapping.Value == FileChangeSource.QueuedChanges)
+                                                        {
+                                                            _trace.writeToMemory(() => _trace.trcFmtStr(2, "MonitorAgent: AssignDependencies: CurrentOriginalMapping: Remove this CurrentOriginalMapping from originalQueuedChangesIndexesByInMemoryIds."));
+                                                            RemoveFileChangeFromQueuedChanges(currentDequeuedChangeToDispose, originalQueuedChangesIndexesByInMemoryIds);
+                                                        }
+
+                                                        if (currentDequeuedChangeToDispose.EventId != 0)
+                                                        {
+                                                            _trace.writeToMemory(() => _trace.trcFmtStr(2, "MonitorAgent: AssignDependencies: CurrentOriginalMapping: Add CurrentDisposal to removeFromSql."));
+                                                            removeFromSql.Add(currentDequeuedChangeToDispose);
+                                                        }
                                                     }
                                                 }
                                             	else
@@ -5030,8 +5049,6 @@ namespace Cloud.FileMonitor
         /// <param name="remainingOperations">Number of operations remaining across all FileChange (via DelayProcessable)</param>
         private void ProcessFileChange(FileChange sender, object state, int remainingOperations)
         {
-            RemoveFileChangeFromQueuedChanges(sender, new originalQueuedChangesIndexesByInMemoryIdsOneValue(sender.InMemoryId, sender.NewPath));
-
             if (remainingOperations == 0) // flush remaining operations before starting processing timer
             {
                 lock (NeedsMergeToSql)
@@ -5246,34 +5263,42 @@ namespace Cloud.FileMonitor
 
                 if (mergeAll.Count > 0)
                 {
-                    lock (QueuesTimer.TimerRunningLocker)
+                    lock (QueuedChanges)
                     {
                         foreach (FileChange nextMerge in mergeAll)
                         {
-                            if (nextMerge.EventId == 0)
+                            RemoveFileChangeFromQueuedChanges(nextMerge, new originalQueuedChangesIndexesByInMemoryIdsOneValue(nextMerge.InMemoryId, nextMerge.NewPath));
+                        }
+
+                        lock (QueuesTimer.TimerRunningLocker)
+                        {
+                            foreach (FileChange nextMerge in mergeAll)
                             {
-                                string noEventIdErrorMessage = "EventId was zero on a FileChange to queue to ProcessingChanges: " +
-                                    nextMerge.ToString() + " " + (nextMerge.NewPath == null ? "nullPath" : nextMerge.NewPath.ToString());
+                                if (nextMerge.EventId == 0)
+                                {
+                                    string noEventIdErrorMessage = "EventId was zero on a FileChange to queue to ProcessingChanges: " +
+                                        nextMerge.ToString() + " " + (nextMerge.NewPath == null ? "nullPath" : nextMerge.NewPath.ToString());
 
-                                // forces logging even if the setting is turned off in the severe case since a message box had to appear
-                                ((CLError)new Exception(noEventIdErrorMessage)).LogErrors(_syncbox.CopiedSettings.TraceLocation, true);
+                                    // forces logging even if the setting is turned off in the severe case since a message box had to appear
+                                    ((CLError)new Exception(noEventIdErrorMessage)).LogErrors(_syncbox.CopiedSettings.TraceLocation, true);
 
-                                MessageEvents.FireNewEventMessage(
-                                    noEventIdErrorMessage,
-                                    EventMessageLevel.Important,
-                                    new HaltAllOfCloudSDKErrorInfo());
+                                    MessageEvents.FireNewEventMessage(
+                                        noEventIdErrorMessage,
+                                        EventMessageLevel.Important,
+                                        new HaltAllOfCloudSDKErrorInfo());
+                                }
+
+                                ProcessingChanges.AddLast(nextMerge);
                             }
 
-                            ProcessingChanges.AddLast(nextMerge);
-                        }
-
-                        if (ProcessingChanges.Count > MaxProcessingChangesBeforeTrigger)
-                        {
-                            QueuesTimer.TriggerTimerCompletionImmediately();
-                        }
-                        else
-                        {
-                            QueuesTimer.StartTimerIfNotRunning();
+                            if (ProcessingChanges.Count > MaxProcessingChangesBeforeTrigger)
+                            {
+                                QueuesTimer.TriggerTimerCompletionImmediately();
+                            }
+                            else
+                            {
+                                QueuesTimer.StartTimerIfNotRunning();
+                            }
                         }
                     }
                 }
