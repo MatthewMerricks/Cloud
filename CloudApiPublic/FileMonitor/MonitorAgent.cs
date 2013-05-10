@@ -949,7 +949,7 @@ namespace Cloud.FileMonitor
                                 long nonNullServerUidId;
                                 if (storeServerUidId == null)
                                 {
-                                    CLError createServerUidError = Data.thisAgent._syncData.CreateNewServerUid(serverUid: null, revision: null, ServerUidId: out nonNullServerUidId);  // no transaction
+                                    CLError createServerUidError = Data.thisAgent._syncData.CreateNewServerUid(serverUid: null, revision: null, serverUidId: out nonNullServerUidId);  // no transaction
 
                                     if (createServerUidError != null)
                                     {
@@ -1432,16 +1432,6 @@ namespace Cloud.FileMonitor
 
                                     new ChangeAllPathsRemove(this, toApply.OldPath);
 
-                                    // Create a new ServerUid record.  Required below.
-                                    long serverUidId;
-                                    CLError createServerUidError = _syncData.CreateNewServerUid(serverUid: null, revision: null, ServerUidId: out serverUidId);  // no transaction
-
-                                    if (createServerUidError != null)
-                                    {
-                                        throw new AggregateException("Error creating ServerUid", createServerUidError.GrabExceptions());
-                                    }
-
-
                                     //&&&& old code
                                     //new ChangeAllPathsIndexSet(this, toApply.NewPath,
                                     //    new FileMetadata(toApply.Metadata.RevisionChanger, onRevisionChanged: null)
@@ -1453,7 +1443,7 @@ namespace Cloud.FileMonitor
                                     //&&&& end old code
                                     //&&&& new code
                                     new ChangeAllPathsIndexSet(this, toApply.NewPath,
-                                        new FileMetadata(serverUidId)
+                                        new FileMetadata(toApply.Metadata.ServerUidId)
                                         {
                                             HashableProperties = toApply.Metadata.HashableProperties
                                         });
@@ -3922,7 +3912,7 @@ namespace Cloud.FileMonitor
                                             }
 
                                             long uidId;
-                                            CLError newUidError = _syncData.CreateNewServerUid(serverUid: null, revision: null, ServerUidId: out uidId);   // no transaction
+                                            CLError newUidError = _syncData.CreateNewServerUid(serverUid: null, revision: null, serverUidId: out uidId);   // no transaction
 
                                             if (newUidError != null)
                                             {
@@ -4328,7 +4318,7 @@ namespace Cloud.FileMonitor
                                         }
 
                                         long serverUidId;
-                                        CLError createServerUidError = _syncData.CreateNewServerUid(serverUid: null, revision: null, ServerUidId: out serverUidId);  // no transaction
+                                        CLError createServerUidError = _syncData.CreateNewServerUid(serverUid: null, revision: null, serverUidId: out serverUidId);  // no transaction
 
                                         if (createServerUidError != null)
                                         {

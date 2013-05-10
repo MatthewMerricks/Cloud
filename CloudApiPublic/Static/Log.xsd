@@ -159,6 +159,7 @@
     <xs:complexContent>
       <xs:extension base="Entry">
         <xs:sequence>
+          <xs:element name="ServerUidId" minOccurs="1" maxOccurs="1" type="xs:long" />
           <xs:element name="ServerUid" minOccurs="0" maxOccurs="1" type="xs:string" />
           <xs:element name="Revision" minOccurs="0" maxOccurs="1" type="xs:string" />
         </xs:sequence>
@@ -180,7 +181,6 @@
   </xs:complexType>
   <xs:complexType name="TraceFileChange">
     <xs:all>
-      <xs:element name="ServerUid" minOccurs="0" maxOccurs="1" type="xs:string" />
       <xs:element name="EventId" minOccurs="0" maxOccurs="1" type="xs:long" />
       <xs:element name="ServerUidId" minOccurs="1" maxOccurs="1" type="xs:long" />
       <xs:element name="NewPath" minOccurs="1" maxOccurs="1" type="xs:string" />

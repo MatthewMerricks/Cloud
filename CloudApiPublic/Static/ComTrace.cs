@@ -963,6 +963,7 @@ namespace Cloud.Static
                             {
                                 EventId = currentChange.EventId,
                                 EventIdSpecified = currentChange.EventId != 0,
+                                ServerUidId = currentChange.Metadata.ServerUidId,
                                 NewPath = (currentChange.NewPath == null ? "{Possibly cancelled upload or download}" : currentChange.NewPath.ToString()),
                                 OldPath = (currentChange.OldPath == null ? null : currentChange.OldPath.ToString()),
                                 IsFolder = currentChange.Metadata.HashableProperties.IsFolder,
@@ -1011,6 +1012,30 @@ namespace Cloud.Static
                         fillIndexInTraceFileChangeArray(fillIndexInTraceFileChangeArray, traceChangesArray, outerChangeIndex, changesArray[outerChangeIndex]);
                     }
                 }
+
+                WriteLogEntry(newEntry, traceLocation, UserDeviceId, SyncboxId);
+            }
+            catch
+            {
+            }
+        }
+
+        public static void LogServerUid(string traceLocation, string UserDeviceId, Nullable<long> SyncboxId, long serverUidId, string serverUid, string revision)
+        {
+            try
+            {
+                Entry newEntry = new ServerUidRevisionEntry()
+                {
+                    Type = (int)TraceType.FileChangeFlow,
+                    Time = DateTime.UtcNow,
+                    ProcessId = System.Diagnostics.Process.GetCurrentProcess().Id,
+                    ThreadId = System.Threading.Thread.CurrentThread.ManagedThreadId,
+                    SyncboxId = SyncboxId ?? 0,
+                    SyncboxIdSpecified = SyncboxId != null,
+                    ServerUidId = serverUidId,
+                    ServerUid = serverUid,
+                    Revision = revision
+                };
 
                 WriteLogEntry(newEntry, traceLocation, UserDeviceId, SyncboxId);
             }

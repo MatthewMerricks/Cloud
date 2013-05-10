@@ -100,8 +100,10 @@ namespace Cloud.SQLIndexer
         }
 
         #region public methods
-        public CLError CreateNewServerUid(string serverUid, string revision, out long ServerUidId, SQLTransactionalBase existingTransaction = null)
+        public CLError CreateNewServerUid(string serverUid, string revision, out long serverUidId, SQLTransactionalBase existingTransaction = null)
         {
+            _trace.writeToLog(9, "IndexingAgent: Entry: CreateNewServerUid: serverUid: {0}. revision: {1}. existingTransaction: {2}.", serverUid, revision, existingTransaction == null ? "null" : "notNull");
+
             CLError toReturn = null;
             SQLTransactionalImplementation castTransaction = existingTransaction as SQLTransactionalImplementation;
             if (existingTransaction != null
@@ -134,7 +136,7 @@ namespace Cloud.SQLIndexer
                     Revision = revision
                 };
 
-                ServerUidId = SqlAccessor<SqlServerUid>.InsertRow<long>(
+                serverUidId = SqlAccessor<SqlServerUid>.InsertRow<long>(
                     castTransaction.sqlConnection,
                     newUid,
                     transaction: castTransaction.sqlTransaction);
@@ -144,10 +146,15 @@ namespace Cloud.SQLIndexer
                 {
                     castTransaction.Commit();
                 }
+                _trace.writeToLog(9, "IndexingAgent: CreateNewServerUid: Return serverUidId: {0}.", serverUidId);
+                if ((syncbox.CopiedSettings.TraceType & TraceType.ServerUid) == TraceType.ServerUid)
+                {
+                    ComTrace.LogServerUid(syncbox.CopiedSettings.TraceLocation, syncbox.CopiedSettings.DeviceId, syncbox.SyncboxId, serverUidId, serverUid, revision);
+                }
             }
             catch (Exception ex)
             {
-                ServerUidId = Helpers.DefaultForType<long>();
+                serverUidId = Helpers.DefaultForType<long>();
 
                 toReturn += ex;
             }
@@ -164,6 +171,7 @@ namespace Cloud.SQLIndexer
 
         public CLError UpdateServerUid(long serverUidId, string serverUid, string revision, SQLTransactionalBase existingTransaction = null)
         {
+            _trace.writeToLog(9, "IndexingAgent: Entry: UpdateServerUid: serverUidId: {0}. serverUid: {1}. revision: {2}. existingTransaction: {3}.", serverUidId, serverUid, revision, existingTransaction == null ? "null" : "notNull");
             CLError toReturn = null;
             SQLTransactionalImplementation castTransaction = existingTransaction as SQLTransactionalImplementation;
             if (existingTransaction != null
@@ -210,6 +218,11 @@ namespace Cloud.SQLIndexer
                 {
                     castTransaction.Commit();
                 }
+
+                if ((syncbox.CopiedSettings.TraceType & TraceType.ServerUid) == TraceType.ServerUid)
+                {
+                    ComTrace.LogServerUid(syncbox.CopiedSettings.TraceLocation, syncbox.CopiedSettings.DeviceId, syncbox.SyncboxId, serverUidId, serverUid, revision);
+                }
             }
             catch (Exception ex)
             {
@@ -226,8 +239,9 @@ namespace Cloud.SQLIndexer
             return toReturn;
         }
 
-        public CLError QueryServerUid(long serverUidid, out string serverUid, out string revision, SQLTransactionalBase existingTransaction = null)
+        public CLError QueryServerUid(long serverUidId, out string serverUid, out string revision, SQLTransactionalBase existingTransaction = null)
         {
+            _trace.writeToLog(9, "IndexingAgent: Entry: QueryServerUid: serverUidId: {0}. existingTransaction: {1}.", serverUidId, existingTransaction == null ? "null" : "notNull");
             CLError toReturn = null;
             SQLTransactionalImplementation castTransaction = existingTransaction as SQLTransactionalImplementation;
             if (existingTransaction != null
@@ -260,12 +274,12 @@ namespace Cloud.SQLIndexer
                             "FROM ServerUids " +
                             "WHERE ServerUids.ServerUidId = ?",
                         transaction: castTransaction.sqlTransaction,
-                        selectParameters: Helpers.EnumerateSingleItem(serverUidid))
+                        selectParameters: Helpers.EnumerateSingleItem(serverUidId))
                     .FirstOrDefault();
 
                 if (retrievedUid == null)
                 {
-                    throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, string.Format("Unable to retrieve ServerUid with id {0}", serverUidid));
+                    throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, string.Format("Unable to retrieve ServerUid with id {0}", serverUidId));
                 }
 
                 serverUid = retrievedUid.ServerUid;
@@ -275,6 +289,11 @@ namespace Cloud.SQLIndexer
                     && castTransaction != null)
                 {
                     castTransaction.Commit();
+                }
+                _trace.writeToLog(9, "IndexingAgent: QueryServerUid: Return: serverUid: {0}. revision: {1}.", serverUid, revision);
+                if ((syncbox.CopiedSettings.TraceType & TraceType.ServerUid) == TraceType.ServerUid)
+                {
+                    ComTrace.LogServerUid(syncbox.CopiedSettings.TraceLocation, syncbox.CopiedSettings.DeviceId, syncbox.SyncboxId, serverUidId, serverUid, revision);
                 }
             }
             catch (Exception ex)
@@ -297,6 +316,7 @@ namespace Cloud.SQLIndexer
 
         public CLError QueryOrCreateServerUid(string serverUid, out long serverUidId, string revision, SQLTransactionalBase existingTransaction = null)
         {
+            _trace.writeToLog(9, "IndexingAgent: Entry: QueryOrCreateServerUid: serverUid: {0}. revision: {1}. existingTransaction: {2}.", serverUid, revision, existingTransaction == null ? "null" : "notNull");
             CLError toReturn = null;
             SQLTransactionalImplementation castTransaction = existingTransaction as SQLTransactionalImplementation;
             if (existingTransaction != null
@@ -366,6 +386,11 @@ namespace Cloud.SQLIndexer
                     && castTransaction != null)
                 {
                     castTransaction.Commit();
+                }
+                _trace.writeToLog(9, "IndexingAgent: QueryOrCreateServerUid: Return: serverUidid: {0}.", serverUidId);
+                if ((syncbox.CopiedSettings.TraceType & TraceType.ServerUid) == TraceType.ServerUid)
+                {
+                    ComTrace.LogServerUid(syncbox.CopiedSettings.TraceLocation, syncbox.CopiedSettings.DeviceId, syncbox.SyncboxId, serverUidId, serverUid, revision);
                 }
             }
             catch (Exception ex)
@@ -3138,7 +3163,7 @@ namespace Cloud.SQLIndexer
                                 {
                                     if (lastInsert)
                                     {
-                                        CLError createRootServerUid = CreateNewServerUid(serverUid: null, revision: null, ServerUidId: out rootFileSystemObjectServerUidId);
+                                        CLError createRootServerUid = CreateNewServerUid(serverUid: null, revision: null, serverUidId: out rootFileSystemObjectServerUidId);
 
                                         if (createRootServerUid != null)
                                         {
@@ -4015,7 +4040,7 @@ namespace Cloud.SQLIndexer
                         }
 
                         long serverUidId;
-                        CLError createServerUidError = CreateNewServerUid(serverUid: null, revision: null, ServerUidId: out serverUidId);
+                        CLError createServerUidError = CreateNewServerUid(serverUid: null, revision: null, serverUidId: out serverUidId);
 
                         if (createServerUidError != null)
                         {
@@ -4142,7 +4167,7 @@ namespace Cloud.SQLIndexer
                         }
 
                         long serverUidId;
-                        CLError createServerUidError = CreateNewServerUid(serverUid: null, revision: null, ServerUidId: out serverUidId);
+                        CLError createServerUidError = CreateNewServerUid(serverUid: null, revision: null, serverUidId: out serverUidId);
 
                         if (createServerUidError != null)
                         {

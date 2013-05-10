@@ -41,9 +41,9 @@ namespace Cloud.FileMonitor.SyncImplementation
             return this.Indexer.RecordCompletedSync(communicatedChanges, syncId, syncedEventIds, out syncCounter, rootFolderUID);
         }
 
-        public CLError CreateNewServerUid(string serverUid, string revision, out long ServerUidId, SQLTransactionalBase existingTransaction = null)
+        public CLError CreateNewServerUid(string serverUid, string revision, out long serverUidId, SQLTransactionalBase existingTransaction = null)
         {
-            return this.Indexer.CreateNewServerUid(serverUid, revision, out ServerUidId, existingTransaction);
+            return this.Indexer.CreateNewServerUid(serverUid, revision, out serverUidId, existingTransaction);
         }
 
         public CLError UpdateServerUid(long serverUidId, string serverUid, string revision, SQLTransactionalBase existingTransaction = null)
@@ -51,9 +51,9 @@ namespace Cloud.FileMonitor.SyncImplementation
             return this.Indexer.UpdateServerUid(serverUidId, serverUid, revision, existingTransaction);
         }
 
-        public CLError QueryServerUid(long serverUidid, out string serverUid, out string revision, SQLTransactionalBase existingTransaction = null)
+        public CLError QueryServerUid(long serverUidId, out string serverUid, out string revision, SQLTransactionalBase existingTransaction = null)
         {
-            return this.Indexer.QueryServerUid(serverUidid, out serverUid, out revision, existingTransaction);
+            return this.Indexer.QueryServerUid(serverUidId, out serverUid, out revision, existingTransaction);
         }
 
         public CLError QueryOrCreateServerUid(string serverUid, out long serverUidId, string revision, SQLTransactionalBase existingTransaction = null)

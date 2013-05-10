@@ -668,33 +668,48 @@ namespace Cloud.Static
     public partial class ServerUidRevisionEntry : Entry
     {
 
-        private string serverUid;
+        private long serverUidIdField;
+
+        private string serverUidField;
+
+        private string revisionField;
+
+        /// <remarks/>
+        public long ServerUidId
+        {
+            get
+            {
+                return this.serverUidIdField;
+            }
+            set
+            {
+                this.serverUidIdField = value;
+            }
+        }
 
         /// <remarks/>
         public string ServerUid
         {
             get
             {
-                return this.serverUid;
+                return this.serverUidField;
             }
             set
             {
-                this.serverUid = value;
+                this.serverUidField = value;
             }
         }
-
-        private string revision;
 
         /// <remarks/>
         public string Revision
         {
             get
             {
-                return this.revision;
+                return this.revisionField;
             }
             set
             {
-                this.revision = value;
+                this.revisionField = value;
             }
         }
     }

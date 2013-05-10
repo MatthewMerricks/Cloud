@@ -47,11 +47,11 @@ namespace Cloud.Interfaces
             out bool nullChangeFound,
             List<FileChange> failedOutChanges = null);
 
-        CLError CreateNewServerUid(string serverUid, string revision, out long ServerUidId, SQLTransactionalBase existingTransaction = null);
+        CLError CreateNewServerUid(string serverUid, string revision, out long serverUidId, SQLTransactionalBase existingTransaction = null);
 
         CLError UpdateServerUid(long serverUidId, string serverUid, string revision, SQLTransactionalBase existingTransaction = null);
 
-        CLError QueryServerUid(long serverUidid, out string serverUid, out string revision, SQLTransactionalBase existingTransaction = null);
+        CLError QueryServerUid(long serverUidId, out string serverUid, out string revision, SQLTransactionalBase existingTransaction = null);
 
         CLError QueryOrCreateServerUid(string serverUid, out long serverUidId, string revision, SQLTransactionalBase existingTransaction = null);
 

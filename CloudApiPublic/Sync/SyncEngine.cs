@@ -8593,7 +8593,7 @@ namespace Cloud.Sync
                                                                             //&&&& New code
                                                                             // Create a new ServerUid record
                                                                             long innerServerUidId;
-                                                                            CLError innerCreateServerUidError = syncData.CreateNewServerUid(serverUid: null, revision: null, ServerUidId: out innerServerUidId);  // no transaction
+                                                                            CLError innerCreateServerUidError = syncData.CreateNewServerUid(serverUid: null, revision: null, serverUidId: out innerServerUidId);  // no transaction
 
                                                                             if (innerCreateServerUidError != null)
                                                                             {
@@ -8831,33 +8831,9 @@ namespace Cloud.Sync
                                                 }
                                             }
                                             // else if a previous matched change for the current event was found, then set the FileChange to use for previous metadata from the matched change
-                                            //&&&& RKS Added.  Check this.
                                             else
                                             {
                                                 fileChangeForOriginalMetadata = ((PossiblyStreamableFileChange)matchedChange).FileChange;
-
-                                                // puts back the latest updated revision from the server (which would have been lost when the metadata instance would be replaced next below), update revision changer for difference
-                                                //&&&& Re-added and updated. RKS Save the revision to the DB here.  What about the serverUid?
-                                                //&&&& old code
-                                                //if (fileChangeForOriginalMetadata.Metadata != null
-                                                //    && string.IsNullOrEmpty(fileChangeForOriginalMetadata.Metadata.Revision)
-                                                //    && currentChange.Metadata != null
-                                                //    && !string.IsNullOrEmpty(currentChange.Metadata.Revision))
-                                                //{
-                                                //    fileChangeForOriginalMetadata.Metadata.Revision = currentChange.Metadata.Revision;
-
-                                                //    fileChangeForOriginalMetadata.Metadata.RevisionChanger.FireRevisionChanged(fileChangeForOriginalMetadata.Metadata);
-                                                //}
-                                                //&&&& end old code
-                                                //&&&& new code
-                                                if (fileChangeForOriginalMetadata.Metadata != null
-                                                    && string.IsNullOrEmpty(ReturnAndPossiblyFillUidAndRevision(uidStorage, syncData, fileChangeForOriginalMetadata.Metadata.ServerUidId).Revision)
-                                                    && currentChange.Metadata != null
-                                                    && !string.IsNullOrEmpty(ReturnAndPossiblyFillUidAndRevision(uidStorage, syncData, currentChange.Metadata.ServerUidId).Revision))
-                                                {
-                                                    fileChangeForOriginalMetadata.Metadata = fileChangeForOriginalMetadata.Metadata.CopyWithNewServerUidId(currentChange.Metadata.ServerUidId);
-                                                }
-                                                //&&&& end new code
                                             }
 
                                             // set the metadata of the current FileChange as the metadata from the previous change (or fake previous change if server was queried for new metadata)
@@ -9071,7 +9047,7 @@ namespace Cloud.Sync
                                                             //&&&& New code
                                                             // Create a new ServerUid record here.
                                                             long serverUidId;
-                                                            CLError createServerUidError = syncData.CreateNewServerUid(serverUid: null, revision: null, ServerUidId: out serverUidId);  // no transaction
+                                                            CLError createServerUidError = syncData.CreateNewServerUid(serverUid: null, revision: null, serverUidId: out serverUidId);  // no transaction
 
                                                             if (createServerUidError != null)
                                                             {
@@ -9566,7 +9542,7 @@ namespace Cloud.Sync
                                                                     //&&&& End old code
                                                                     //&&&& New code
                                                                     long serverUidId;           //&&&& not used?
-                                                                    CLError createServerUidError = syncData.CreateNewServerUid(serverUid: null, revision: null, ServerUidId: out serverUidId);  // no transaction
+                                                                    CLError createServerUidError = syncData.CreateNewServerUid(serverUid: null, revision: null, serverUidId: out serverUidId);  // no transaction
 
                                                                     if (createServerUidError != null)
                                                                     {
@@ -9802,7 +9778,7 @@ namespace Cloud.Sync
                                                                 if (storeOldServerUidId == null)
                                                                 {
                                                                     long revertToNewUidId;
-                                                                    CLError revertToNewUidError = syncData.CreateNewServerUid(serverUid: null, revision: null, ServerUidId: out revertToNewUidId);
+                                                                    CLError revertToNewUidError = syncData.CreateNewServerUid(serverUid: null, revision: null, serverUidId: out revertToNewUidId);
 
                                                                     if (revertToNewUidError != null)
                                                                     {
@@ -10718,7 +10694,7 @@ namespace Cloud.Sync
                                                             //&&&& end old code
                                                             //&&&& new code
                                                             long innerServerUidId;
-                                                            CLError innerCreateServerUidError = syncData.CreateNewServerUid(serverUid: null, revision: null, ServerUidId: out innerServerUidId);  // no transaction
+                                                            CLError innerCreateServerUidError = syncData.CreateNewServerUid(serverUid: null, revision: null, serverUidId: out innerServerUidId);  // no transaction
 
                                                             if (innerCreateServerUidError != null)
                                                             {
