@@ -856,10 +856,11 @@ namespace Cloud.SQLIndexer
                             indexDB,
                             "SELECT * " +
                                 "FROM FileSystemObjects " +
+                                "INNER JOIN ServerUids ON FileSystemObjects.ServerUidId = ServerUids.ServerUidId " +
                                 "WHERE CalculatedFullPath = ? " + // <-- parameter 1
                                 (revision == null
                                     ? string.Empty
-                                    : "AND Revision = ?") + // <-- conditional parameter 2
+                                    : "AND ServerUids.Revision = ? ") + // <-- conditional parameter 2
                                 "ORDER BY " +
                                 "CASE WHEN FileSystemObjects.EventOrder IS NULL " +
                                 "THEN 0 " +
