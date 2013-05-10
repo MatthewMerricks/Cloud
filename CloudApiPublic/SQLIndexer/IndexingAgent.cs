@@ -36,6 +36,7 @@ namespace Cloud.SQLIndexer
         // store the path that represents the root of indexing
         private string indexedPath = null;
         private readonly CLSyncbox syncbox;
+        private readonly bool copyDatabaseBetweenChanges;
         private long rootFileSystemObjectId = 0;
 
         #region SQLite
@@ -48,6 +49,8 @@ namespace Cloud.SQLIndexer
         // will be filled in during startup
         private static Dictionary<long, FileChangeType> changeEnums = null;
         private static Dictionary<FileChangeType, long> changeEnumsBackward = null;
+
+        private readonly GenericHolder<int> dbCopyNumber = new GenericHolder<int>(0);
 
         // category in SQL that represents the Enumeration type FileChangeType
         private static long changeCategoryId = 0;
@@ -70,13 +73,13 @@ namespace Cloud.SQLIndexer
         /// <param name="newIndexer">Output indexing agent</param>
         /// <param name="syncbox">Syncbox to index</param>
         /// <returns>Returns the error that occurred during creation, if any</returns>
-        public static CLError CreateNewAndInitialize(out IndexingAgent newIndexer, CLSyncbox syncbox)
+        public static CLError CreateNewAndInitialize(out IndexingAgent newIndexer, CLSyncbox syncbox, bool copyDatabaseBetweenChanges = false)
         {
             // Fill in output with constructor
             IndexingAgent newAgent;
             try
             {
-                newIndexer = newAgent = new IndexingAgent(syncbox); // this double instance setting is required for some reason to prevent a "does not exist in the current context" compiler error
+                newIndexer = newAgent = new IndexingAgent(syncbox, copyDatabaseBetweenChanges); // this double instance setting is required for some reason to prevent a "does not exist in the current context" compiler error
             }
             catch (Exception ex)
             {
@@ -1643,6 +1646,48 @@ namespace Cloud.SQLIndexer
         /// <returns>Returns an error that occurred during recording the sync, if any</returns>
         public CLError RecordCompletedSync(IEnumerable<PossiblyChangedFileChange> communicatedChanges, string syncId, IEnumerable<long> syncedEventIds, out long syncCounter, string rootFolderUID = null)
         {
+            if (copyDatabaseBetweenChanges)
+            {
+                try
+                {
+                    lock (dbCopyNumber)
+                    {
+                        string stack;
+                        try
+                        {
+                            stack = (new System.Diagnostics.StackTrace()).ToString();
+                        }
+                        catch (Exception ex)
+                        {
+                            stack = ex.StackTrace;
+                        }
+
+                        string dbName = indexDBLocation.Substring(0, indexDBLocation.LastIndexOf('.'));
+
+                        File.Copy(indexDBLocation,
+                            string.Format(
+                                "{0}{1}.db",
+                                dbName,
+                                dbCopyNumber.Value++));
+
+                        File.AppendAllText(
+                            string.Format(
+                                "{0}.txt",
+                                dbName),
+                            string.Format(
+                                "DB #{0}:{1}{2}{3}{4}",
+                                dbCopyNumber.Value,
+                                Environment.NewLine,
+                                stack,
+                                Environment.NewLine,
+                                Environment.NewLine));
+                    }
+                }
+                catch
+                {
+                }
+            }
+
             try
             {
                 using (SQLTransactionalImplementation connAndTran = GetNewTransactionPrivate())
@@ -1806,6 +1851,48 @@ namespace Cloud.SQLIndexer
         /// </summary>
         public SQLTransactionalBase GetNewTransaction()
         {
+            if (copyDatabaseBetweenChanges)
+            {
+                try
+                {
+                    lock (dbCopyNumber)
+                    {
+                        string stack;
+                        try
+                        {
+                            stack = (new System.Diagnostics.StackTrace()).ToString();
+                        }
+                        catch (Exception ex)
+                        {
+                            stack = ex.StackTrace;
+                        }
+
+                        string dbName = indexDBLocation.Substring(0, indexDBLocation.LastIndexOf('.'));
+
+                        File.Copy(indexDBLocation,
+                            string.Format(
+                                "{0}{1}.db",
+                                dbName,
+                                dbCopyNumber.Value++));
+
+                        File.AppendAllText(
+                            string.Format(
+                                "{0}.txt",
+                                dbName),
+                            string.Format(
+                                "DB #{0}:{1}{2}{3}{4}",
+                                dbCopyNumber.Value,
+                                Environment.NewLine,
+                                stack,
+                                Environment.NewLine,
+                                Environment.NewLine));
+                    }
+                }
+                catch
+                {
+                }
+            }
+
             return GetNewTransactionPrivate();
         }
 
@@ -1824,6 +1911,49 @@ namespace Cloud.SQLIndexer
         /// <returns>Returns an error from merging the events, if any</returns>
         public CLError MergeEventsIntoDatabase(IEnumerable<FileChangeMerge> mergeToFroms, SQLTransactionalBase existingTransaction = null)
         {
+            if (existingTransaction == null
+                && copyDatabaseBetweenChanges)
+            {
+                try
+                {
+                    lock (dbCopyNumber)
+                    {
+                        string stack;
+                        try
+                        {
+                            stack = (new System.Diagnostics.StackTrace()).ToString();
+                        }
+                        catch (Exception ex)
+                        {
+                            stack = ex.StackTrace;
+                        }
+
+                        string dbName = indexDBLocation.Substring(0, indexDBLocation.LastIndexOf('.'));
+
+                        File.Copy(indexDBLocation,
+                            string.Format(
+                                "{0}{1}.db",
+                                dbName,
+                                dbCopyNumber.Value++));
+
+                        File.AppendAllText(
+                            string.Format(
+                                "{0}.txt",
+                                dbName),
+                            string.Format(
+                                "DB #{0}:{1}{2}{3}{4}",
+                                dbCopyNumber.Value,
+                                Environment.NewLine,
+                                stack,
+                                Environment.NewLine,
+                                Environment.NewLine));
+                    }
+                }
+                catch
+                {
+                }
+            }
+
             return MergeEventsIntoDatabase(null, mergeToFroms, existingTransaction);
         }
         private CLError MergeEventsIntoDatabase(Nullable<long> syncCounter, IEnumerable<FileChangeMerge> mergeToFroms, SQLTransactionalBase existingTransaction)
@@ -2418,6 +2548,49 @@ namespace Cloud.SQLIndexer
         /// <returns>Returns an error that occurred marking the event complete, if any</returns>
         public CLError MarkEventAsCompletedOnPreviousSync(long eventId, SQLTransactionalBase existingTransaction = null)
         {
+            if (existingTransaction == null
+                && copyDatabaseBetweenChanges)
+            {
+                try
+                {
+                    lock (dbCopyNumber)
+                    {
+                        string stack;
+                        try
+                        {
+                            stack = (new System.Diagnostics.StackTrace()).ToString();
+                        }
+                        catch (Exception ex)
+                        {
+                            stack = ex.StackTrace;
+                        }
+
+                        string dbName = indexDBLocation.Substring(0, indexDBLocation.LastIndexOf('.'));
+
+                        File.Copy(indexDBLocation,
+                            string.Format(
+                                "{0}{1}.db",
+                                dbName,
+                                dbCopyNumber.Value++));
+
+                        File.AppendAllText(
+                            string.Format(
+                                "{0}.txt",
+                                dbName),
+                            string.Format(
+                                "DB #{0}:{1}{2}{3}{4}",
+                                dbCopyNumber.Value,
+                                Environment.NewLine,
+                                stack,
+                                Environment.NewLine,
+                                Environment.NewLine));
+                    }
+                }
+                catch
+                {
+                }
+            }
+
             CLError toReturn = null;
             SQLTransactionalImplementation castTransaction = existingTransaction as SQLTransactionalImplementation;
             if (existingTransaction != null
@@ -2854,7 +3027,7 @@ namespace Cloud.SQLIndexer
         /// Private constructor to ensure IndexingAgent is created through public static initializer (to return a CLError)
         /// </summary>
         /// <param name="syncbox">Syncbox to index</param>
-        private IndexingAgent(CLSyncbox syncbox)
+        private IndexingAgent(CLSyncbox syncbox, bool copyDatabaseBetweenChanges)
         {
             if (syncbox == null)
             {
@@ -2868,6 +3041,7 @@ namespace Cloud.SQLIndexer
             this.indexDBLocation = Helpers.CalculateDatabasePath(syncbox);
 
             this.syncbox = syncbox;
+            this.copyDatabaseBetweenChanges = copyDatabaseBetweenChanges;
         }
 
         private bool InitializeDatabase(string syncRoot, bool createEvenIfExisting = false)
@@ -3054,6 +3228,19 @@ namespace Cloud.SQLIndexer
 
                         throw;
                     }
+                }
+
+                if (copyDatabaseBetweenChanges)
+                {
+                    string indexLocationWithoutExtension = indexDBLocation.Substring(0, indexDBLocation.LastIndexOf('.'));
+                    int highestExistingCopyIndex = 2;
+                    while (File.Exists(string.Format("{0}{1}.db", indexLocationWithoutExtension, highestExistingCopyIndex)))
+                    {
+                        highestExistingCopyIndex++;
+                    }
+
+                    // no need to lock since initialization must be atomic with initial database operations
+                    dbCopyNumber.Value = highestExistingCopyIndex;
                 }
             }
 

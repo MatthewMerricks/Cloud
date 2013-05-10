@@ -147,6 +147,34 @@ namespace Cloud
         // \endcond
         #endregion
 
+        // following flag should always be false except for when debugging database by copying on every change
+        private readonly GenericHolder<bool> copyDatabaseBetweenChanges = new GenericHolder<bool>(false);
+
+        #region hidden copy database debug
+        //// --------- adding \cond and \endcond makes the section in between hidden from doxygen
+
+        // \cond
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+        public bool DebugCopyDatabase
+        {
+            get
+            {
+                lock (copyDatabaseBetweenChanges)
+                {
+                    return copyDatabaseBetweenChanges.Value;
+                }
+            }
+            set
+            {
+                lock (copyDatabaseBetweenChanges)
+                {
+                    copyDatabaseBetweenChanges.Value = value;
+                }
+            }
+        }
+        // \endcond
+        #endregion
+
         //// Not sure if we want to expose access to the contained Syncbox since it is set on Start and not on construction (it changes during usage)s
         //
         ///// <summary>
@@ -688,7 +716,7 @@ namespace Cloud
                     CLError indexCreationError;
                     lock (_locker)
                     {
-                        indexCreationError = IndexingAgent.CreateNewAndInitialize(out _indexer, this._syncbox);
+                        indexCreationError = IndexingAgent.CreateNewAndInitialize(out _indexer, this._syncbox, this.DebugCopyDatabase);
                     }
                     if (indexCreationError != null)
                     {
