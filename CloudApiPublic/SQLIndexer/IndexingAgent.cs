@@ -38,6 +38,7 @@ namespace Cloud.SQLIndexer
         private readonly CLSyncbox syncbox;
         private readonly bool copyDatabaseBetweenChanges;
         private long rootFileSystemObjectId = 0;
+        private long rootFileSystemObjectServerUidId = 0;
 
         #region SQLite
         private readonly string indexDBLocation;
@@ -637,7 +638,8 @@ namespace Cloud.SQLIndexer
                             "FROM FileSystemObjects " +
                             "INNER JOIN (SELECT ? AS ExcludedEventId) ConstantJoin " + // <-- parameter 1
                             "LEFT OUTER JOIN Events ON FileSystemObjects.EventId = Events.EventId " +
-                            "WHERE FileSystemObjects.ServerUid = ? " + // <-- parameter 2
+                            "INNER JOIN ServerUids ON FileSystemObjects.ServerUidId = ServerUids.ServerUidId " +
+                            "WHERE ServerUids.ServerUid = ? " + // <-- parameter 2
                             "AND (ConstantJoin.ExcludedEventId IS NULL OR FileSystemObjects.EventId IS NULL OR ConstantJoin.ExcludedEventId > FileSystemObjects.EventId) " +
                             "ORDER BY " +
                             "CASE WHEN FileSystemObjects.EventId IS NOT NULL " +
@@ -1706,13 +1708,11 @@ namespace Cloud.SQLIndexer
                             updateRootFolderUID.Transaction = connAndTran.sqlTransaction;
 
                             updateRootFolderUID.CommandText = "UPDATE FileSystemObjects " +
-                                "SET ServerUid = ?, " + // <-- parameter 1
-                                "SyncCounter = ?" + // <-- parameter 2
-                                "WHERE FileSystemObjectId = ?"; // <-- parameter 3
-
-                            ISQLiteParameter rootUID = updateRootFolderUID.CreateParameter();
-                            rootUID.Value = rootFolderUID;
-                            updateRootFolderUID.Parameters.Add(rootUID);
+                                "SET SyncCounter = ?" + // <-- parameter 1
+                                "WHERE FileSystemObjectId = ?;" + // <-- parameter 2
+                                "UPDATE ServerUids " +
+                                "SET ServerUid = ? " + // <-- parameter 3
+                                "WHERE ServerUidId = ?"; // <-- parameter 4
 
                             ISQLiteParameter firstSyncCounter = updateRootFolderUID.CreateParameter();
                             firstSyncCounter.Value = syncCounter;
@@ -1721,6 +1721,14 @@ namespace Cloud.SQLIndexer
                             ISQLiteParameter rootPK = updateRootFolderUID.CreateParameter();
                             rootPK.Value = rootFileSystemObjectId;
                             updateRootFolderUID.Parameters.Add(rootPK);
+
+                            ISQLiteParameter rootUID = updateRootFolderUID.CreateParameter();
+                            rootUID.Value = rootFolderUID;
+                            updateRootFolderUID.Parameters.Add(rootUID);
+
+                            ISQLiteParameter rootUIDID = updateRootFolderUID.CreateParameter();
+                            rootUIDID.Value = rootFileSystemObjectServerUidId;
+                            updateRootFolderUID.Parameters.Add(rootUIDID);
 
                             updateRootFolderUID.ExecuteNonQuery();
                         }
@@ -2679,17 +2687,20 @@ namespace Cloud.SQLIndexer
                         "SELECT " +
                         SqlAccessor<FileSystemObject>.GetSelectColumns() + ", " +
                         SqlAccessor<Event>.GetSelectColumns("Event") + ", " +
-                        SqlAccessor<FileSystemObject>.GetSelectColumns("Event.Previous", "Previouses") +
+                        SqlAccessor<FileSystemObject>.GetSelectColumns("Event.Previous", "Previouses") + ", " +
+                        SqlAccessor<SqlServerUid>.GetSelectColumns("ServerUid") +
                         " FROM FileSystemObjects" +
                         " INNER JOIN Events ON FileSystemObjects.EventId = Events.EventId" +
                         " LEFT OUTER JOIN FileSystemObjects Previouses ON Events.PreviousId = Previouses.FileSystemObjectId" +
+                        " INNER JOIN ServerUids ON FileSystemObjects.ServerUidId = ServerUids.ServerUidId" +
                         " WHERE FileSystemObjects.EventId = ?" + // <-- parameter 1
                         " ORDER BY FileSystemObjects.FileSystemObjectId DESC" +
                         " LIMIT 1",
                         new[]
                         {
                             "Event",
-                            "Event.Previous"
+                            "Event.Previous",
+                            "ServerUid"
                         },
                         castTransaction.sqlTransaction,
                         Helpers.EnumerateSingleItem(eventId))
@@ -2707,7 +2718,7 @@ namespace Cloud.SQLIndexer
                 {
                     throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "The root folder object should never have been pending to complete");
                 }
-                if (existingEventObject.ServerUid == null)
+                if (existingEventObject.ServerUid.ServerUid == null)
                 {
                     throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Existing event cannot be completed if it does not have a ServerUid");
                 }
@@ -3050,7 +3061,7 @@ namespace Cloud.SQLIndexer
             bool dbNeedsDeletion;
             bool dbNeedsCreation;
 
-            CheckDatabaseFileState(createEvenIfExisting, out dbInfo, out dbNeedsDeletion, out dbNeedsCreation, indexDBLocation, syncbox);
+            CheckDatabaseFileState(createEvenIfExisting, out dbInfo, out dbNeedsDeletion, out dbNeedsCreation, indexDBLocation, syncbox, out rootFileSystemObjectId, out rootFileSystemObjectServerUidId);
 
             if (dbNeedsDeletion)
             {
@@ -3127,8 +3138,7 @@ namespace Cloud.SQLIndexer
                                 {
                                     if (lastInsert)
                                     {
-                                        long rootServerUidId;
-                                        CLError createRootServerUid = CreateNewServerUid(serverUid: null, revision: null, ServerUidId: out rootServerUidId);
+                                        CLError createRootServerUid = CreateNewServerUid(serverUid: null, revision: null, ServerUidId: out rootFileSystemObjectServerUidId);
 
                                         if (createRootServerUid != null)
                                         {
@@ -3143,7 +3153,7 @@ namespace Cloud.SQLIndexer
                                                     IsFolder = true,
                                                     Name = syncRoot,
                                                     Pending = false,
-                                                    ServerUidId = rootServerUidId
+                                                    ServerUidId = rootFileSystemObjectServerUidId
                                                 });
                                     }
 
@@ -3249,10 +3259,11 @@ namespace Cloud.SQLIndexer
 
         public static void CheckDatabaseFileState(bool createEvenIfExisting, out FileInfo dbInfo, out bool dbNeedsDeletion, out bool dbNeedsCreation, string indexDBLocation)
         {
-            CheckDatabaseFileState(createEvenIfExisting, out dbInfo, out dbNeedsDeletion, out dbNeedsCreation, indexDBLocation, syncbox: null);
+            long doNotUse;
+            CheckDatabaseFileState(createEvenIfExisting, out dbInfo, out dbNeedsDeletion, out dbNeedsCreation, indexDBLocation, syncbox: null, rootObjectId: out doNotUse, rootObjectServerUidId: out doNotUse);
         }
 
-        private static void CheckDatabaseFileState(bool createEvenIfExisting, out FileInfo dbInfo, out bool dbNeedsDeletion, out bool dbNeedsCreation, string indexDBLocation, CLSyncbox syncbox)
+        private static void CheckDatabaseFileState(bool createEvenIfExisting, out FileInfo dbInfo, out bool dbNeedsDeletion, out bool dbNeedsCreation, string indexDBLocation, CLSyncbox syncbox, out long rootObjectId, out long rootObjectServerUidId)
         {
             dbInfo = new FileInfo(indexDBLocation);
 
@@ -3260,6 +3271,9 @@ namespace Cloud.SQLIndexer
             {
                 if (createEvenIfExisting)
                 {
+                    rootObjectId = Helpers.DefaultForType<long>();
+                    rootObjectServerUidId = Helpers.DefaultForType<long>();
+
                     dbNeedsDeletion = true;
                     dbNeedsCreation = true;
                 }
@@ -3283,6 +3297,9 @@ namespace Cloud.SQLIndexer
                             {
                                 // database was never finalized (version is changed from 1 to [current database version] via the last initialization script, which identifies successful creation)
                                 // the very first implementation of this database will be version 2 so we can compare on less than 2
+
+                                rootObjectId = Helpers.DefaultForType<long>();
+                                rootObjectServerUidId = Helpers.DefaultForType<long>();
 
                                 dbNeedsCreation = true;
                                 dbNeedsDeletion = true;
@@ -3309,6 +3326,22 @@ namespace Cloud.SQLIndexer
                                     }
                                 }
 
+                                FileSystemObject rootObject = SqlAccessor<FileSystemObject>.SelectResultSet(
+                                        verifyAndUpdateConnection,
+                                        "SELECT * " +
+                                        "FROM FileSystemObjects " +
+                                        "WHERE FileSystemObjects.ParentFolderId IS NULL " +
+                                        "LIMIT 1")
+                                    .FirstOrDefault();
+
+                                if (rootObject == null)
+                                {
+                                    throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Unable to find FileSystemObjects row for root object");
+                                }
+
+                                rootObjectId = rootObject.FileSystemObjectId;
+                                rootObjectServerUidId = rootObject.ServerUidId;
+
                                 dbNeedsCreation = false;
                                 dbNeedsDeletion = false;
                             }
@@ -3327,6 +3360,9 @@ namespace Cloud.SQLIndexer
                                 syncbox.CopiedSettings.DeviceId);
                         }
 
+                        rootObjectId = Helpers.DefaultForType<long>();
+                        rootObjectServerUidId = Helpers.DefaultForType<long>();
+
                         dbNeedsDeletion = true;
                         dbNeedsCreation = true;
                     }
@@ -3342,6 +3378,9 @@ namespace Cloud.SQLIndexer
                         SyncboxId: syncbox.SyncboxId,
                         DeviceId: syncbox.CopiedSettings.DeviceId);
                 }
+
+                rootObjectId = Helpers.DefaultForType<long>();
+                rootObjectServerUidId = Helpers.DefaultForType<long>();
 
                 dbNeedsCreation = true;
                 dbNeedsDeletion = false;
