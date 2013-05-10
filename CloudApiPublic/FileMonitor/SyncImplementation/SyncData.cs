@@ -56,6 +56,10 @@ namespace Cloud.FileMonitor.SyncImplementation
             return this.Indexer.QueryServerUid(serverUidid, out serverUid, out revision, existingTransaction);
         }
 
+        public CLError QueryOrCreateServerUid(string serverUid, out long serverUidId, string revision, SQLTransactionalBase existingTransaction = null)
+        {
+            return this.Indexer.QueryOrCreateServerUid(serverUid, out serverUidId, revision, existingTransaction);
+        }
         
         /// <summary>
         /// ¡¡ Call this carefully, completely wipes index database (use when user deletes local repository or relinks) !!

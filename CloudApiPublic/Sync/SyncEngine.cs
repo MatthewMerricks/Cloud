@@ -7137,14 +7137,14 @@ namespace Cloud.Sync
                         long serverUidId;
                         if (matchedChange == null)
                         {
-                            CLError createServerUidError = innerSyncData.CreateNewServerUid(
+                            CLError queryServerUidError = innerSyncData.QueryOrCreateServerUid(
                                 findServerUid,
-                                findRevision,
-                                out serverUidId);  // no transaction
+                                out serverUidId,
+                                findRevision);  // no transaction
 
-                            if (createServerUidError != null)
+                            if (queryServerUidError != null)
                             {
-                                throw new AggregateException("Error creating ServerUid", createServerUidError.GrabExceptions());
+                                throw new AggregateException("Error creating ServerUid", queryServerUidError.GrabExceptions());
                             }
                         }
                         else
@@ -8094,10 +8094,16 @@ namespace Cloud.Sync
                                 FileChangeWithDependencies currentChange = null;
                                 // define the current Stream, defaulting to null
                                 StreamContext currentStreamContext = null;
-                                // define a string for storing an event's revision which will be used to replace a Sync To event revision upon certain conflict conditions
-                                string previousRevisionOnConflictException = null;
-                                //&&&& new code
-                                string previousServerUidOnConflictException = null;
+
+                                // store the previous values for revision and server uid since firing the revision changer will change these;
+                                // the originals are needed for comparison to see if metadata has changed
+                                //&&&& Old code
+                                //string storeOldRevision = (matchedChange == null ? null : ((PossiblyStreamableFileChange)matchedChange).FileChange.Metadata.Revision);
+                                //string storeOldServerUid = (matchedChange == null ? null : ((PossiblyStreamableFileChange)matchedChange).FileChange.Metadata.ServerUid);
+                                //&&&& End old code
+                                //&&&& New code
+                                Nullable<long> storeOldServerUidId = null;
+                                //&&&& End code
                                 //&&&& new code
 
                                 // try/catch create a FileChange out of the current event, handle special rename conditions, decide if the metadata has changed to update SQL, and case-switch to decide what to do with the FileChange, on catch add the FileChange as an error to be reprocessed
@@ -8176,6 +8182,11 @@ namespace Cloud.Sync
                                             out findMimeType);
                                     }
 
+                                    if (matchedChange != null)
+                                    {
+                                        storeOldServerUidId = ((PossiblyStreamableFileChange)matchedChange).FileChange.Metadata.ServerUidId;
+                                    }
+
                                     // create a FileChange with dependencies using a new FileChange from the stored FileChange data (except metadata) and adding the MD5 hash (null for non-files)
                                     currentChange = implementationConvertSyncToEventToFileChangePart2(
                                         currentEvent,
@@ -8185,28 +8196,6 @@ namespace Cloud.Sync
                                         DependencyDebugging);
 
                                     // implementation part 3 used to be run here, but instead, pieces of it are run above, should be added back correctly; for now the remainder is copied below instead
-
-                                    // if a matched change was set and has metadata, then record its revision as the previous revision to set for conflicts
-                                    if (matchedChange != null
-                                        && ((PossiblyStreamableFileChange)matchedChange).FileChange.Metadata != null)
-                                    {
-                                        //&&&& Old code: previousRevisionOnConflictException = ((PossiblyStreamableFileChange)matchedChange).FileChange.Metadata.Revision;
-                                        //&&&& new code
-                                        UidRevisionHolder storeHolder = ReturnAndPossiblyFillUidAndRevision(uidStorage, syncData, ((PossiblyStreamableFileChange)matchedChange).FileChange.Metadata.ServerUidId);
-                                        previousRevisionOnConflictException = storeHolder.Revision;
-                                        previousServerUidOnConflictException = storeHolder.ServerUid;
-                                        //&&&& end new code
-                                    }
-
-                                    // store the previous values for revision and server uid since firing the revision changer will change these;
-                                    // the originals are needed for comparison to see if metadata has changed
-                                    //&&&& Old code
-                                    //string storeOldRevision = (matchedChange == null ? null : ((PossiblyStreamableFileChange)matchedChange).FileChange.Metadata.Revision);
-                                    //string storeOldServerUid = (matchedChange == null ? null : ((PossiblyStreamableFileChange)matchedChange).FileChange.Metadata.ServerUid);
-                                    //&&&& End old code
-                                    //&&&& New code
-                                    Nullable<long> storeOldServerUidId = (matchedChange == null ? (Nullable<long>)null : ((PossiblyStreamableFileChange)matchedChange).FileChange.Metadata.ServerUidId);
-                                    //&&&& End code
 
                                     StreamContext storePart4Output = implementationConvertSyncToEventToFileChangePart4(
                                         currentChange,
@@ -8932,14 +8921,6 @@ namespace Cloud.Sync
                                             // different if the old location is different (for renames)
                                             || !((((PossiblyStreamableFileChange)matchedChange).FileChange.OldPath == null && currentChange.OldPath == null)
                                                 || (((PossiblyStreamableFileChange)matchedChange).FileChange.OldPath != null && currentChange.OldPath != null && FilePathComparer.Instance.Equals(((PossiblyStreamableFileChange)matchedChange).FileChange.OldPath, currentChange.OldPath)))
-
-                                            // different if FileChanges have mismatching unique server ids
-                                            //&&&& Old code: || storeOldServerUid != currentChange.Metadata.ServerUid
-                                            || storeOldServerUid != ReturnAndPossiblyFillUidAndRevision(uidStorage, syncData, currentChange.Metadata.ServerUidId).ServerUid
-
-                                            // different if the revision is different
-                                            //&&&& Old code: || storeOldRevision != currentChange.Metadata.Revision
-                                            || storeOldRevision != ReturnAndPossiblyFillUidAndRevision(uidStorage, syncData, currentChange.Metadata.ServerUidId).Revision
 
                                             // different if the change is not a rename and any remaining metadata is different (rename is not checked for other metadata here because the remaining metadata properties were copied from previous metadata and are therefore known to match)
                                             || (currentChange.Type != FileChangeType.Renamed
@@ -9800,20 +9781,13 @@ namespace Cloud.Sync
                                                                     }
 
                                                                     currentChange.Metadata = currentChange.Metadata.CopyWithNewServerUidId(revertToNewUidId);
+
+                                                                    uidStorage[revertToNewUidId] = new UidRevisionHolder(ServerUid: null, Revision: null);
                                                                 }
                                                                 else
                                                                 {
                                                                     currentChange.Metadata = currentChange.Metadata.CopyWithNewServerUidId((long)storeOldServerUidId);
                                                                 }
-
-                                                                CLError updateServerUidError = syncData.UpdateServerUid(currentChange.Metadata.ServerUidId, previousServerUidOnConflictException, previousRevisionOnConflictException);  // no transaction
-
-                                                                if (updateServerUidError != null)
-                                                                {
-                                                                    throw new AggregateException("Error updating ServerUid", updateServerUidError.GrabExceptions());
-                                                                }
-
-                                                                uidStorage[currentChange.Metadata.ServerUidId] = new UidRevisionHolder(previousServerUidOnConflictException, previousRevisionOnConflictException);
                                                                 //&&&& end new code
 
                                                                 // store the exception that occurred processing the conflict
@@ -10243,17 +10217,17 @@ namespace Cloud.Sync
                                         Type = ParseEventStringToType(currentEvent.Action ?? currentEvent.Header.Action) // grab the type of change from the action string
                                     };
 
-                                //&&&& New code
-                                // Create a new ServerUid record.  Required below.
-                                long serverUidId;
-                                CLError createServerUidError = syncData.CreateNewServerUid(serverUid: null, revision: null, ServerUidId: out serverUidId);  // no transaction
+                                long currentEventUidId;
+                                CLError queryServerUidError = syncData.QueryOrCreateServerUid(currentEvent.Metadata.ServerUid, out currentEventUidId, currentEvent.Metadata.Revision);
 
-                                if (createServerUidError != null)
+                                if (queryServerUidError != null)
                                 {
-                                    throw new AggregateException("Error creating ServerUid", createServerUidError.GrabExceptions());
+                                    throw new AggregateException("Error querying or creating ServerUid", queryServerUidError.GrabExceptions());
                                 }
 
-                                uidStorage[serverUidId] = new UidRevisionHolder(ServerUid: null, Revision: null);
+                                //&&&& New code
+                                // Create a new ServerUid record.  Required below.
+                                uidStorage[currentEventUidId] = new UidRevisionHolder(ServerUid: currentEvent.Metadata.ServerUid, Revision: currentEvent.Metadata.Revision);
                                 //&&&& End new code
 
                                 PossiblyStreamableAndPossiblyChangedFileChange storeConvertedChange = new PossiblyStreamableAndPossiblyChangedFileChange(resultOrder++,
@@ -10276,7 +10250,7 @@ namespace Cloud.Sync
                                             //    },
                                             //&&&& end old code
                                             //&&&& new code
-                                            new FileMetadata(serverUidId)
+                                            new FileMetadata(currentEventUidId)
                                             {
                                                 //Need to find what key this is //LinkTargetPath <-- what does this comment mean?
 
@@ -10583,11 +10557,11 @@ namespace Cloud.Sync
                                             //&&&& New code
                                             // Create a new ServerUid record
                                             long serverUidId;
-                                            CLError createServerUidError = syncData.CreateNewServerUid(serverUid: newMetadata.ServerUid, revision: newMetadata.Revision, ServerUidId: out serverUidId);  // no transaction
+                                            CLError queryServerUidError = syncData.QueryOrCreateServerUid(serverUid: newMetadata.ServerUid, serverUidId: out serverUidId, revision: newMetadata.Revision);  // no transaction
 
-                                            if (createServerUidError != null)
+                                            if (queryServerUidError != null)
                                             {
-                                                throw new AggregateException("Error creating ServerUid", createServerUidError.GrabExceptions());
+                                                throw new AggregateException("Error querying or creating ServerUid", queryServerUidError.GrabExceptions());
                                             }
 
                                             uidStorage[serverUidId] = new UidRevisionHolder(ServerUid: newMetadata.ServerUid, Revision: newMetadata.Revision);

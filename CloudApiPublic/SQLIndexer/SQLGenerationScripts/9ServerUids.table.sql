@@ -13,5 +13,6 @@ CREATE TABLE ServerUids
       CHECK (ServerUid IS NULL OR TYPEOF(ServerUid) = 'text'),
     Revision TEXT CONSTRAINT CHK_ServerUids_Revision_TEXT
       CHECK (Revision IS NULL OR TYPEOF(Revision) = 'text'),
-    PRIMARY KEY (ServerUidId ASC)
+    PRIMARY KEY (ServerUidId ASC),
+    UNIQUE (ServerUid)
 );

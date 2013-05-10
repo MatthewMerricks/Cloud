@@ -408,7 +408,7 @@
     <EmbeddedResource Include="SQLIndexer\IndexDBScripts\11FileSystemObjects_Name.index.sql" />
     <EmbeddedResource Include="SQLIndexer\IndexDBScripts\12FileSystemObjects_ParentFolderId.index.sql" />
     <EmbeddedResource Include="SQLIndexer\IndexDBScripts\13FileSystemObjects_EventId.index.sql" />
-    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\14FileSystemObjects_ServerUid.index.sql" />
+    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\14ServerUids_ServerUid.index.sql" />
     <EmbeddedResource Include="SQLIndexer\IndexDBScripts\15FileSystemObjects_Pending.index.sql" />
     <EmbeddedResource Include="SQLIndexer\IndexDBScripts\28Finalize.pragma.sql" />
     <EmbeddedResource Include="SQLIndexer\IndexDBScripts\1Initialize.pragma.sql" />

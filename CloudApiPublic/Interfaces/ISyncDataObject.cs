@@ -53,6 +53,8 @@ namespace Cloud.Interfaces
 
         CLError QueryServerUid(long serverUidid, out string serverUid, out string revision, SQLTransactionalBase existingTransaction = null);
 
+        CLError QueryOrCreateServerUid(string serverUid, out long serverUidId, string revision, SQLTransactionalBase existingTransaction = null);
+
         /// <summary>
         /// Creates a new transactional object which can be passed back into database access calls and externalizes the ability to dispose or commit the transaction
         /// </summary>

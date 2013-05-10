@@ -134,6 +134,12 @@ namespace Cloud.SQLIndexer
                     castTransaction.sqlConnection,
                     newUid,
                     transaction: castTransaction.sqlTransaction);
+
+                if (!inputTransactionSet
+                    && castTransaction != null)
+                {
+                    castTransaction.Commit();
+                }
             }
             catch (Exception ex)
             {
@@ -146,8 +152,6 @@ namespace Cloud.SQLIndexer
                 if (!inputTransactionSet
                     && castTransaction != null)
                 {
-                    castTransaction.Commit();
-
                     castTransaction.Dispose();
                 }
             }
@@ -196,6 +200,12 @@ namespace Cloud.SQLIndexer
                 {
                     throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, string.Format("Unable to update server \"uid\" and revision for id {0}", serverUidId));
                 }
+
+                if (!inputTransactionSet
+                    && castTransaction != null)
+                {
+                    castTransaction.Commit();
+                }
             }
             catch (Exception ex)
             {
@@ -206,8 +216,6 @@ namespace Cloud.SQLIndexer
                 if (!inputTransactionSet
                     && castTransaction != null)
                 {
-                    castTransaction.Commit();
-
                     castTransaction.Dispose();
                 }
             }
@@ -258,6 +266,12 @@ namespace Cloud.SQLIndexer
 
                 serverUid = retrievedUid.ServerUid;
                 revision = retrievedUid.Revision;
+
+                if (!inputTransactionSet
+                    && castTransaction != null)
+                {
+                    castTransaction.Commit();
+                }
             }
             catch (Exception ex)
             {
@@ -271,8 +285,96 @@ namespace Cloud.SQLIndexer
                 if (!inputTransactionSet
                     && castTransaction != null)
                 {
-                    castTransaction.Commit();
+                    castTransaction.Dispose();
+                }
+            }
+            return toReturn;
+        }
 
+        public CLError QueryOrCreateServerUid(string serverUid, out long serverUidId, string revision, SQLTransactionalBase existingTransaction = null)
+        {
+            CLError toReturn = null;
+            SQLTransactionalImplementation castTransaction = existingTransaction as SQLTransactionalImplementation;
+            if (existingTransaction != null
+                && castTransaction == null)
+            {
+                try
+                {
+                    throw new NullReferenceException("existingTransaction is not implemented as private derived type. It should be retrieved via method GetNewTransaction method. Creating a new transaction instead which will be committed immediately.");
+                }
+                catch (Exception ex)
+                {
+                    toReturn += ex;
+                }
+            }
+
+            bool inputTransactionSet = castTransaction != null;
+            try
+            {
+                if (castTransaction == null)
+                {
+                    ISQLiteConnection indexDB;
+                    castTransaction = new SQLTransactionalImplementation(
+                        indexDB = CreateAndOpenCipherConnection(),
+                        indexDB.BeginTransaction(System.Data.IsolationLevel.Serializable));
+                }
+
+                SqlServerUid retrievedUid = SqlAccessor<SqlServerUid>.SelectResultSet(
+                        castTransaction.sqlConnection,
+                        "SELECT * " +
+                            "FROM ServerUids " +
+                            "WHERE ServerUids.ServerUid = ?",
+                        transaction: castTransaction.sqlTransaction,
+                        selectParameters: Helpers.EnumerateSingleItem(serverUid))
+                    .FirstOrDefault();
+
+                if (retrievedUid == null)
+                {
+                    retrievedUid = new SqlServerUid()
+                    {
+                        ServerUid = serverUid,
+                        Revision = revision
+                    };
+
+                    serverUidId = SqlAccessor<SqlServerUid>.InsertRow<long>(
+                        castTransaction.sqlConnection,
+                        retrievedUid,
+                        transaction: castTransaction.sqlTransaction);
+                }
+                else
+                {
+                    serverUidId = retrievedUid.ServerUidId;
+
+                    if (revision != retrievedUid.Revision)
+                    {
+                        retrievedUid.Revision = revision;
+
+                        if (!SqlAccessor<SqlServerUid>.UpdateRow(castTransaction.sqlConnection,
+                            retrievedUid,
+                            castTransaction.sqlTransaction))
+                        {
+                            throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Unable to update ServerUid with different revision");
+                        }
+                    }
+                }
+
+                if (!inputTransactionSet
+                    && castTransaction != null)
+                {
+                    castTransaction.Commit();
+                }
+            }
+            catch (Exception ex)
+            {
+                serverUidId = Helpers.DefaultForType<long>();
+
+                toReturn += ex;
+            }
+            finally
+            {
+                if (!inputTransactionSet
+                    && castTransaction != null)
+                {
                     castTransaction.Dispose();
                 }
             }
@@ -1279,6 +1381,12 @@ namespace Cloud.SQLIndexer
                     }
                 }
                 while (currentChangeIndex != lastHighestChangeIndex);
+
+                if (!inputTransactionSet
+                    && castTransaction != null)
+                {
+                    castTransaction.Commit();
+                }
             }
             catch (Exception ex)
             {
@@ -1289,8 +1397,6 @@ namespace Cloud.SQLIndexer
                 if (!inputTransactionSet
                     && castTransaction != null)
                 {
-                    castTransaction.Commit();
-
                     castTransaction.Dispose();
                 }
             }
@@ -1504,6 +1610,12 @@ namespace Cloud.SQLIndexer
                         }
                     }
                 }
+
+                if (!inputTransactionSet
+                    && castTransaction != null)
+                {
+                    castTransaction.Commit();
+                }
             }
             catch (Exception ex)
             {
@@ -1514,8 +1626,6 @@ namespace Cloud.SQLIndexer
                 if (!inputTransactionSet
                     && castTransaction != null)
                 {
-                    castTransaction.Commit();
-
                     castTransaction.Dispose();
                 }
             }
@@ -2275,6 +2385,12 @@ namespace Cloud.SQLIndexer
                             }
                         }
                     }
+
+                    if (!inputTransactionSet
+                        && castTransaction != null)
+                    {
+                        castTransaction.Commit();
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -2285,8 +2401,6 @@ namespace Cloud.SQLIndexer
                     if (!inputTransactionSet
                         && castTransaction != null)
                     {
-                        castTransaction.Commit();
-
                         castTransaction.Dispose();
                     }
                 }
@@ -2654,6 +2768,12 @@ namespace Cloud.SQLIndexer
                     default:
                         throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Existing event object had a FileChangeTypeEnumId which did not match to a known FileChangeType");
                 }
+
+                if (!inputTransactionSet
+                    && castTransaction != null)
+                {
+                    castTransaction.Commit();
+                }
             }
             catch (Exception ex)
             {
@@ -2668,8 +2788,6 @@ namespace Cloud.SQLIndexer
                 if (!inputTransactionSet
                     && castTransaction != null)
                 {
-                    castTransaction.Commit();
-
                     castTransaction.Dispose();
                 }
             }

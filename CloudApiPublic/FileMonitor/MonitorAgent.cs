@@ -1036,7 +1036,7 @@ namespace Cloud.FileMonitor
                                     recurseFolderCreationToRoot.TypedData.toCreate.Value = toApply.NewPath;
                                     recurseFolderCreationToRoot.TypedData.creationTime.Value = toApply.Metadata.HashableProperties.CreationTime;
                                     recurseFolderCreationToRoot.TypedData.lastTime.Value = toApply.Metadata.HashableProperties.LastTime;
-                                    recurseFolderCreationToRoot.TypedData.serverUid.Value = toApply.Metadata.ServerUid;
+                                    recurseFolderCreationToRoot.TypedData.serverUidId.Value = toApply.Metadata.ServerUidId;
                                     recurseFolderCreationToRoot.Process();
 
                                     Exception creationToRethrow = null;
@@ -4012,7 +4012,7 @@ namespace Cloud.FileMonitor
 
                                             FileMetadata existingMetadata = AllPaths[oldPathObject];
 
-                                            toQueue.Metadata = existingMetadata.CopyWithDifferentRevisionChanger(existingMetadata.RevisionChanger, Helpers.CreateFileChangeRevisionChangedHandler(toQueue, _syncData));
+                                            toQueue.Metadata = existingMetadata.CopyWithNewServerUidId(existingMetadata.ServerUidId);
 
                                             QueueFileChange(toQueue, startProcessingAction);
 
@@ -4298,9 +4298,17 @@ namespace Cloud.FileMonitor
                                             debugEntry.NewChangeType = new WatcherChangeCreated();
                                         }
 
+                                        long serverUidId;
+                                        CLError createServerUidError = _syncData.CreateNewServerUid(serverUid: null, revision: null, ServerUidId: out serverUidId);  // no transaction
+
+                                        if (createServerUidError != null)
+                                        {
+                                            throw new AggregateException("Error creating ServerUid", createServerUidError.GrabExceptions());
+                                        }
+
                                         // add new index at new path
                                         new ChangeAllPathsAdd(this, pathObject,
-                                            new FileMetadata()
+                                            new FileMetadata(serverUidId)
                                             {
                                                 HashableProperties = new FileMetadataHashableProperties(isFolder,
                                                     lastTime,
