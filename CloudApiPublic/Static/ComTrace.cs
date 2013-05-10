@@ -34,7 +34,10 @@ namespace Cloud.Static
                 {
                     TextReader textStream = new StreamReader(body, Encoding.UTF8);
                     bodyString = textStream.ReadToEnd();
-                    body.Seek(0, SeekOrigin.Begin);
+                    if (body is MemoryStream) // case for when we copied the http stream for logging, it needs to be reset so it can be used again for deserialization
+                    {
+                        body.Seek(0, SeekOrigin.Begin);
+                    }
                 }
                 catch
                 {
