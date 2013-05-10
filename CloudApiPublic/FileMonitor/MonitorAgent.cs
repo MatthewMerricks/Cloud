@@ -4783,6 +4783,7 @@ namespace Cloud.FileMonitor
 
                                             //&&&& new code
                                             toChange.Metadata = toChange.Metadata.CopyWithNewServerUidId(previousChange.Metadata.ServerUidId);
+                                            AllPaths[toChange.NewPath] = toChange.Metadata;
                                             //toChange.Metadata = toChange.Metadata.CopyWithDifferentRevisionChanger(previousChange.Metadata.RevisionChanger, Helpers.CreateFileChangeRevisionChangedHandler(toChange, _syncData));
                                             toChange.Metadata.MimeType = previousChange.Metadata.MimeType;
                                             //toChange.Metadata.Revision = previousChange.Metadata.Revision;
@@ -4801,6 +4802,7 @@ namespace Cloud.FileMonitor
 
                                             //&&&& new code
                                             toChange.Metadata = toChange.Metadata.CopyWithNewServerUidId(previousChange.Metadata.ServerUidId);
+                                            AllPaths[toChange.NewPath] = toChange.Metadata;
                                             //toChange.Metadata = toChange.Metadata.CopyWithDifferentRevisionChanger(previousChange.Metadata.RevisionChanger, Helpers.CreateFileChangeRevisionChangedHandler(toChange, _syncData));
                                             toChange.Metadata.MimeType = previousChange.Metadata.MimeType;
                                             //toChange.Metadata.Revision = previousChange.Metadata.Revision;
@@ -4963,6 +4965,15 @@ namespace Cloud.FileMonitor
                         && (matchedFileChangeForRename = QueuedChangesByMetadata[toChange.Metadata.HashableProperties]).Type == FileChangeType.Deleted
                         && !matchedFileChangeForRename.DelayCompleted)
                 {
+                    // PreviouslyModified means that order was modify then delete then create; need to keep both the modify and the "move",
+                    // otherwise ignore the more recent event and process the delete as a move instead
+                    //
+                    // recent event: toChange
+                    // previous event: matchedFileChangeForRename
+                    //
+                    // in both cases, the ServerUidId was lost upon removing the item from AllPaths from the previous deletion,
+                    // so reset the metadata on the later change with the previous ServerUidId and set that metadata in AllPaths over the create
+
                     FilePath removeFromQueuedChanges = matchedFileChangeForRename.NewPath;
                     if (matchedFileChangeForRename.PreviouslyModified)
                     {
@@ -4987,6 +4998,8 @@ namespace Cloud.FileMonitor
                         && matchedFileChangeForRename.Metadata != null)
                     {
                         toChange.Metadata = toChange.Metadata.CopyWithNewServerUidId(matchedFileChangeForRename.Metadata.ServerUidId);
+
+                        AllPaths[toChange.NewPath] = toChange.Metadata;
                     }
 
                     matchedFileChangeForRename.Metadata = toChange.Metadata;
