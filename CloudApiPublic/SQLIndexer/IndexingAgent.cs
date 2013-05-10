@@ -2110,6 +2110,9 @@ namespace Cloud.SQLIndexer
         private CLError MergeEventsIntoDatabase(Nullable<long> syncCounter, IEnumerable<FileChangeMerge> mergeToFroms, SQLTransactionalBase existingTransaction)
         {
             // no point trying to perform multiple simultaneous merges since they will block each other via the SQLite transaction
+            //
+            // actually, there is a point in blocking with a local lock: if we decide two identical FileChanges need to be added to sql before the first contention happens,
+            // then it will try adding twice instead of one add and one update
             lock (MergeEventsLocker)
             {
                 CLError toReturn = null;

@@ -5104,8 +5104,6 @@ namespace Cloud.FileMonitor
 
                 List<FileChange> mergeAll = new List<FileChange>();
 
-                List<FileChange> mergeBatch = new List<FileChange>();
-
                 Func<bool> operationsRemaining = () =>
                     {
                         lock (NeedsMergeToSql)
@@ -5180,125 +5178,10 @@ namespace Cloud.FileMonitor
                                 || nextMerge.OldPath == null
                                 || !FilePathComparer.Instance.Equals(nextMerge.OldPath, nextMerge.NewPath)) // check for same path rename, only other events should be processed
                             {
-                                mergeBatch.Add(nextMerge);
                                 mergeAll.Add(nextMerge);
                             }
                         }
                     }
-
-                    KeyValuePair<FilePathDictionary<List<FileChange>>, CLError> upDownsWrapped = GetUploadDownloadTransfersInProgress(CurrentFolderPath);
-                    if (upDownsWrapped.Value == null
-                        && upDownsWrapped.Key != null)
-                    {
-                        FilePathDictionary<List<FileChange>> upDowns = upDownsWrapped.Key;
-
-                        // add the stored change for the current call to this method, must be added to then end of the batch;
-                        // before, it was being added to the beginning which was out of order
-                        if (senderToAdd != null)
-                        {
-                            mergeBatch.Add(senderToAdd);
-                            mergeAll.Add(senderToAdd);
-
-                            senderToAdd = null;
-                        }
-
-                        foreach (FileChange currentMerge in mergeBatch)
-                        {
-                            if (currentMerge.Direction == SyncDirection.To
-                                && (currentMerge.Type == FileChangeType.Deleted
-                                    || currentMerge.Type == FileChangeType.Renamed))
-                            {
-                                FilePathHierarchicalNode<List<FileChange>> matchedHierarchy;
-                                CLError matchedHierarchyError = upDowns.GrabHierarchyForPath(
-                                    (currentMerge.Type == FileChangeType.Deleted
-                                        ? currentMerge.NewPath
-                                        : /* currentMerge.Type == FileChangeType.Renamed */ currentMerge.OldPath),
-                                    out matchedHierarchy,
-                                    suppressException: true);
-                                if (matchedHierarchyError == null)
-                                {
-                                    recurseHierarchyAndAddSyncFromsToHashSet.TypedData.innerHierarchy.Value = matchedHierarchy;
-                                    recurseHierarchyAndAddSyncFromsToHashSet.Process();
-
-                                    foreach (FileChange currentMatchedDownload in recurseHierarchyAndAddSyncFromsToHashSet.TypedData.matchedChanges)
-                                    {
-                                        if (currentMatchedDownload.fileDownloadMoveLocker != null)
-                                        {
-                                            Monitor.Enter(currentMatchedDownload.fileDownloadMoveLocker);
-                                        }
-
-                                        try
-                                        {
-                                            if (currentMerge.Type == FileChangeType.Renamed)
-                                            {
-                                                FilePath previousNewPath = currentMatchedDownload.NewPath;
-                                                if (previousNewPath != null)
-                                                {
-                                                    FilePath rebuiltNewPath = previousNewPath.Copy();
-                                                    FilePath.ApplyRename(rebuiltNewPath, currentMerge.OldPath, currentMerge.NewPath);
-                                                    currentMatchedDownload.NewPath = rebuiltNewPath;
-                                                }
-                                            }
-                                            else /* currentMerge.Type == FileChangeType.Deleted */
-                                            {
-                                                currentMatchedDownload.NewPath = null; // will trigger donwload to stop and not to copy to the final location
-                                            }
-                                        }
-                                        catch
-                                        {
-                                        }
-                                        finally
-                                        {
-                                            if (currentMatchedDownload.fileDownloadMoveLocker != null)
-                                            {
-                                                Monitor.Exit(currentMatchedDownload.fileDownloadMoveLocker);
-                                            }
-                                        }
-                                    }
-                                }
-                                else
-                                {
-                                    MessageEvents.FireNewEventMessage(
-                                        "Error grabbing hierarchy from uploads and downloads in progress before merging new events to the database: " + matchedHierarchyError.errorDescription,
-                                        EventMessageLevel.Important,
-                                        new GeneralErrorInfo());
-                                }
-                            }
-                        }
-                    }
-                    else
-                    {
-                        MessageEvents.FireNewEventMessage(
-                            "An error occurred checking against uploads or downloads in progress before merging new events into the database: " + (upDownsWrapped.Value == null ? "{null}" : upDownsWrapped.Value.errorDescription),
-                            EventMessageLevel.Important,
-                            new GeneralErrorInfo());
-                    }
-
-                    CLError mergeError = Indexer.MergeEventsIntoDatabase(mergeBatch.Select(currentMerge => new FileChangeMerge(currentMerge, null)));
-                    if (mergeError != null)
-                    {
-                        // forces logging even if the setting is turned off in the severe case since a message box had to appear
-                        mergeError.LogErrors(_syncbox.CopiedSettings.TraceLocation, true);
-
-                        // errors may be more common now that our database is hierarchichal and simple event ordering problems could throw an error adding to database (file before parent folder),
-                        // TODO: better error recovery instead of halting whole SDK
-                        MessageEvents.FireNewEventMessage(
-                            "An error occurred adding a file system event to the database:" + Environment.NewLine +
-                                string.Join(Environment.NewLine,
-                                    mergeError.GrabExceptions().Select(currentError => (currentError is AggregateException
-                                        ? string.Join(Environment.NewLine, ((AggregateException)currentError).Flatten().InnerExceptions.Select(innerError => innerError.Message).ToArray())
-                                        : currentError.Message)).ToArray()),
-                            EventMessageLevel.Important,
-                            new HaltAllOfCloudSDKErrorInfo());
-                    }
-
-                    if ((_syncbox.CopiedSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
-                    {
-                        ComTrace.LogFileChangeFlow(_syncbox.CopiedSettings.TraceLocation, _syncbox.CopiedSettings.DeviceId, _syncbox.SyncboxId, FileChangeFlowEntryPositionInFlow.FileMonitorAddingBatchToSQL, mergeBatch);
-                    }
-
-                    // clear out batch for merge for next set of remaining operations
-                    mergeBatch.Clear();
                 }
                 while (operationsRemaining()); // flush remaining operations before starting processing timer
 
@@ -5306,9 +5189,115 @@ namespace Cloud.FileMonitor
                 {
                     lock (QueuedChanges)
                     {
-                        foreach (FileChange nextMerge in mergeAll)
+                        KeyValuePair<FilePathDictionary<List<FileChange>>, CLError> upDownsWrapped = GetUploadDownloadTransfersInProgress(CurrentFolderPath);
+                        if (upDownsWrapped.Value == null
+                            && upDownsWrapped.Key != null)
                         {
-                            RemoveFileChangeFromQueuedChanges(nextMerge, new originalQueuedChangesIndexesByInMemoryIdsOneValue(nextMerge.InMemoryId, nextMerge.NewPath));
+                            FilePathDictionary<List<FileChange>> upDowns = upDownsWrapped.Key;
+
+                            // add the stored change for the current call to this method, must be added to then end of the batch;
+                            // before, it was being added to the beginning which was out of order
+                            if (senderToAdd != null)
+                            {
+                                mergeAll.Add(senderToAdd);
+
+                                senderToAdd = null;
+                            }
+                            foreach (FileChange nextMerge in mergeAll)
+                            {
+                                if (nextMerge.Direction == SyncDirection.To
+                                    && (nextMerge.Type == FileChangeType.Deleted
+                                        || nextMerge.Type == FileChangeType.Renamed))
+                                {
+                                    FilePathHierarchicalNode<List<FileChange>> matchedHierarchy;
+                                    CLError matchedHierarchyError = upDowns.GrabHierarchyForPath(
+                                        (nextMerge.Type == FileChangeType.Deleted
+                                            ? nextMerge.NewPath
+                                            : /* currentMerge.Type == FileChangeType.Renamed */ nextMerge.OldPath),
+                                        out matchedHierarchy,
+                                        suppressException: true);
+                                    if (matchedHierarchyError == null)
+                                    {
+                                        recurseHierarchyAndAddSyncFromsToHashSet.TypedData.innerHierarchy.Value = matchedHierarchy;
+                                        recurseHierarchyAndAddSyncFromsToHashSet.Process();
+
+                                        foreach (FileChange currentMatchedDownload in recurseHierarchyAndAddSyncFromsToHashSet.TypedData.matchedChanges)
+                                        {
+                                            if (currentMatchedDownload.fileDownloadMoveLocker != null)
+                                            {
+                                                Monitor.Enter(currentMatchedDownload.fileDownloadMoveLocker);
+                                            }
+
+                                            try
+                                            {
+                                                if (nextMerge.Type == FileChangeType.Renamed)
+                                                {
+                                                    FilePath previousNewPath = currentMatchedDownload.NewPath;
+                                                    if (previousNewPath != null)
+                                                    {
+                                                        FilePath rebuiltNewPath = previousNewPath.Copy();
+                                                        FilePath.ApplyRename(rebuiltNewPath, nextMerge.OldPath, nextMerge.NewPath);
+                                                        currentMatchedDownload.NewPath = rebuiltNewPath;
+                                                    }
+                                                }
+                                                else /* currentMerge.Type == FileChangeType.Deleted */
+                                                {
+                                                    currentMatchedDownload.NewPath = null; // will trigger donwload to stop and not to copy to the final location
+                                                }
+                                            }
+                                            catch
+                                            {
+                                            }
+                                            finally
+                                            {
+                                                if (currentMatchedDownload.fileDownloadMoveLocker != null)
+                                                {
+                                                    Monitor.Exit(currentMatchedDownload.fileDownloadMoveLocker);
+                                                }
+                                            }
+                                        }
+                                    }
+                                    else
+                                    {
+                                        MessageEvents.FireNewEventMessage(
+                                            "Error grabbing hierarchy from uploads and downloads in progress before merging new events to the database: " + matchedHierarchyError.errorDescription,
+                                            EventMessageLevel.Important,
+                                            new GeneralErrorInfo());
+                                    }
+                                }
+
+                                RemoveFileChangeFromQueuedChanges(nextMerge, new originalQueuedChangesIndexesByInMemoryIdsOneValue(nextMerge.InMemoryId, nextMerge.NewPath));
+                            }
+
+                            CLError mergeError = Indexer.MergeEventsIntoDatabase(mergeAll.Select(currentMerge => new FileChangeMerge(currentMerge, null)));
+                            if (mergeError != null)
+                            {
+                                // forces logging even if the setting is turned off in the severe case since a message box had to appear
+                                mergeError.LogErrors(_syncbox.CopiedSettings.TraceLocation, true);
+
+                                // errors may be more common now that our database is hierarchichal and simple event ordering problems could throw an error adding to database (file before parent folder),
+                                // TODO: better error recovery instead of halting whole SDK
+                                MessageEvents.FireNewEventMessage(
+                                    "An error occurred adding a file system event to the database:" + Environment.NewLine +
+                                        string.Join(Environment.NewLine,
+                                            mergeError.GrabExceptions().Select(currentError => (currentError is AggregateException
+                                                ? string.Join(Environment.NewLine, ((AggregateException)currentError).Flatten().InnerExceptions.Select(innerError => innerError.Message).ToArray())
+                                                : currentError.Message)).ToArray()),
+                                    EventMessageLevel.Important,
+                                    new HaltAllOfCloudSDKErrorInfo());
+                            }
+
+                            if ((_syncbox.CopiedSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
+                            {
+                                ComTrace.LogFileChangeFlow(_syncbox.CopiedSettings.TraceLocation, _syncbox.CopiedSettings.DeviceId, _syncbox.SyncboxId, FileChangeFlowEntryPositionInFlow.FileMonitorAddingBatchToSQL, mergeAll);
+                            }
+                        }
+                        else
+                        {
+                            MessageEvents.FireNewEventMessage(
+                                "An error occurred checking against uploads or downloads in progress before merging new events into the database: " + (upDownsWrapped.Value == null ? "{null}" : upDownsWrapped.Value.errorDescription),
+                                EventMessageLevel.Important,
+                                new GeneralErrorInfo());
                         }
 
                         lock (QueuesTimer.TimerRunningLocker)
