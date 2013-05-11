@@ -3169,7 +3169,29 @@ namespace Cloud.SQLIndexer
                 }
                 if (existingEventObject.ServerUid.ServerUid == null)
                 {
-                    throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Existing event cannot be completed if it does not have a ServerUid");
+                    // server "uid" can be null for conflicts where we rename the local item and have a dependent creation at the new path (since the rename was technically never communicated)
+
+                    bool foundLaterCreate;
+                    if (existingEventObject.EventOrder == null
+                        || !SqlAccessor<object>.TrySelectScalar<bool>(
+                            castTransaction.sqlConnection,
+                            "SELECT EXISTS " +
+                            "(" +
+                                "SELECT NULL " +
+                                "FROM FileSystemObjects " +
+                                "INNER JOIN Events ON Events.EventId = FileSystemObjects.EventId " +
+                                "WHERE FileSystemObjects.ServerUidId = ? " + // <-- parameter 1
+                                "AND FileSystemObjects.Pending = 1 " +
+                                "AND Events.FileChangeTypeEnumId = " + changeEnumsBackward[FileChangeType.Created].ToString() +
+                                " AND EventOrder > ?" + // <-- parameter 2
+                            ") AS EXIST",
+                            out foundLaterCreate,
+                            castTransaction.sqlTransaction,
+                            new[] { existingEventObject.ServerUidId, (long)existingEventObject.EventOrder })
+                        || !foundLaterCreate)
+                    {
+                        throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Existing event cannot be completed if it does not have a ServerUid");
+                    }
                 }
                 if (existingEventObject.Event.PreviousId != null
                     && existingEventObject.Event.Previous == null)
