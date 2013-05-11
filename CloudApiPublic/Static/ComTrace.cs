@@ -1026,7 +1026,7 @@ namespace Cloud.Static
             {
                 Entry newEntry = new ServerUidRevisionEntry()
                 {
-                    Type = (int)TraceType.FileChangeFlow,
+                    Type = (int)TraceType.ServerUid,
                     Time = DateTime.UtcNow,
                     ProcessId = System.Diagnostics.Process.GetCurrentProcess().Id,
                     ThreadId = System.Threading.Thread.CurrentThread.ManagedThreadId,

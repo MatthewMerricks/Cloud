@@ -153,9 +153,9 @@ namespace Cloud.FileMonitor
         /// <summary>
         /// Must already be holding lock on AllPaths
         /// </summary>
-        private abstract class ChangeAllPathsBase
+        private static class ChangeAllPathsBase
         {
-            protected ChangeAllPathsBase(ChangeAllPathsType Type, MonitorAgent Agent, FilePath OldPath = null, FilePath NewPath = null, FileMetadata Metadata = null/*, Nullable<FileMetadataHashableProperties> NewHashables = null*/) // NewHashables commented out because ChangeMetadataHashableProperties was not needed
+            private static void Base(ChangeAllPathsType Type, MonitorAgent Agent, FilePath OldPath = null, FilePath NewPath = null, FileMetadata Metadata = null/*, Nullable<FileMetadataHashableProperties> NewHashables = null*/) // NewHashables commented out because ChangeMetadataHashableProperties was not needed
             {
                 switch (Type)
                 {
@@ -406,31 +406,31 @@ namespace Cloud.FileMonitor
                         break;
                 }
             }
-        }
-        private sealed class ChangeAllPathsAdd : ChangeAllPathsBase
-        {
-            public ChangeAllPathsAdd(MonitorAgent Agent, FilePath NewPath, FileMetadata Metadata)
-                : base(ChangeAllPathsType.Add, Agent, NewPath: NewPath, Metadata: Metadata) { }
-        }
-        private sealed class ChangeAllPathsRemove : ChangeAllPathsBase
-        {
-            public ChangeAllPathsRemove(MonitorAgent Agent, FilePath NewPath)
-                : base(ChangeAllPathsType.Remove, Agent, NewPath: NewPath) { }
-        }
-        private sealed class ChangeAllPathsRename : ChangeAllPathsBase
-        {
-            public ChangeAllPathsRename(MonitorAgent Agent, FilePath OldPath, FilePath NewPath)
-                : base(ChangeAllPathsType.Rename, Agent, OldPath: OldPath, NewPath: NewPath) { }
-        }
-        private sealed class ChangeAllPathsClear : ChangeAllPathsBase
-        {
-            public ChangeAllPathsClear(MonitorAgent Agent)
-                : base(ChangeAllPathsType.Clear, Agent) { }
-        }
-        private sealed class ChangeAllPathsIndexSet : ChangeAllPathsBase
-        {
-            public ChangeAllPathsIndexSet(MonitorAgent Agent, FilePath NewPath, FileMetadata Metadata)
-                : base(ChangeAllPathsType.IndexSet, Agent, NewPath: NewPath, Metadata: Metadata) { }
+
+            public static void Add(MonitorAgent Agent, FilePath NewPath, FileMetadata Metadata)
+            {
+                Base(ChangeAllPathsType.Add, Agent, NewPath: NewPath, Metadata: Metadata);
+            }
+
+            public static void Remove(MonitorAgent Agent, FilePath NewPath)
+            {
+                Base(ChangeAllPathsType.Remove, Agent, NewPath: NewPath);
+            }
+
+            public static void Rename(MonitorAgent Agent, FilePath OldPath, FilePath NewPath)
+            {
+                Base(ChangeAllPathsType.Rename, Agent, OldPath: OldPath, NewPath: NewPath);
+            }
+
+            public static void Clear(MonitorAgent Agent)
+            {
+                Base(ChangeAllPathsType.Clear, Agent);
+            }
+
+            public static void IndexSet(MonitorAgent Agent, FilePath NewPath, FileMetadata Metadata)
+            {
+                Base(ChangeAllPathsType.IndexSet, Agent, NewPath: NewPath, Metadata: Metadata);
+            }
         }
 
         #endregion
@@ -961,7 +961,7 @@ namespace Cloud.FileMonitor
                                     nonNullServerUidId = (long)storeServerUidId;
                                 }
 
-                                new ChangeAllPathsAdd(Data.thisAgent, storeToCreate,
+                                ChangeAllPathsBase.Add(Data.thisAgent, storeToCreate,
                                     new FileMetadata(nonNullServerUidId)
                                     {
                                         HashableProperties = new FileMetadataHashableProperties(true,
@@ -1079,7 +1079,7 @@ namespace Cloud.FileMonitor
                                                 }
                                             }
 
-                                            new ChangeAllPathsIndexSet(this, toApply.NewPath,
+                                            ChangeAllPathsBase.IndexSet(this, toApply.NewPath,
                                                 new FileMetadata(toApply.Metadata.ServerUidId)
                                                 {
                                                     HashableProperties = toApply.Metadata.HashableProperties
@@ -1163,7 +1163,7 @@ namespace Cloud.FileMonitor
                                         }
                                     }
 
-                                    new ChangeAllPathsRemove(this, toApply.NewPath);
+                                    ChangeAllPathsBase.Remove(this, toApply.NewPath);
                                     break;
                                 case FileChangeType.Renamed:
                                     recurseFolderCreationToRoot.TypedData.toCreate.Value = toApply.NewPath.Parent;
@@ -1430,10 +1430,10 @@ namespace Cloud.FileMonitor
                                         }
                                     }
 
-                                    new ChangeAllPathsRemove(this, toApply.OldPath);
+                                    ChangeAllPathsBase.Remove(this, toApply.OldPath);
 
                                     //&&&& old code
-                                    //new ChangeAllPathsIndexSet(this, toApply.NewPath,
+                                    //ChangeAllPathsBase.IndexSet(this, toApply.NewPath,
                                     //    new FileMetadata(toApply.Metadata.RevisionChanger, onRevisionChanged: null)
                                     //    {
                                     //        ServerUid = toApply.Metadata.ServerUid,
@@ -1442,7 +1442,7 @@ namespace Cloud.FileMonitor
                                     //    });
                                     //&&&& end old code
                                     //&&&& new code
-                                    new ChangeAllPathsIndexSet(this, toApply.NewPath,
+                                    ChangeAllPathsBase.IndexSet(this, toApply.NewPath,
                                         new FileMetadata(toApply.Metadata.ServerUidId)
                                         {
                                             HashableProperties = toApply.Metadata.HashableProperties
@@ -3196,7 +3196,7 @@ namespace Cloud.FileMonitor
                         lock (AllPaths)
                         {
                             // clear current index storage
-                            new ChangeAllPathsClear(this);
+                            ChangeAllPathsBase.Clear(this);
                         }
 
                         // protect root directory from changes such as deletion
@@ -3887,7 +3887,7 @@ namespace Cloud.FileMonitor
                                                     }
 
                                                     // replace index at current path
-                                                    new ChangeAllPathsIndexSet(this, pathObject, newMetadata);
+                                                    ChangeAllPathsBase.IndexSet(this, pathObject, newMetadata);
                                                     // queue file change for modify
                                                     
                                                     FileChange toQueue = new FileChange(QueuedChanges)
@@ -3928,7 +3928,7 @@ namespace Cloud.FileMonitor
                                                         fileLength)
                                                 };
                                             // add new index
-                                            new ChangeAllPathsAdd(this, pathObject, addedMetadata);
+                                            ChangeAllPathsBase.Add(this, pathObject, addedMetadata);
                                             // queue file change for create
 
                                             FileChange toQueue = new FileChange(QueuedChanges)
@@ -3965,7 +3965,7 @@ namespace Cloud.FileMonitor
 
                                         QueueFileChange(toQueue, startProcessingAction);
                                         // remove index
-                                        new ChangeAllPathsRemove(this, pathObject);
+                                        ChangeAllPathsBase.Remove(this, pathObject);
                                     }
                                     else if (debugMemory)
                                     {
@@ -4036,7 +4036,7 @@ namespace Cloud.FileMonitor
                                             QueueFileChange(toQueue, startProcessingAction);
 
                                             // remove index at previous path
-                                            new ChangeAllPathsRemove(this, oldPathObject);
+                                            ChangeAllPathsBase.Remove(this, oldPathObject);
                                         }
                                     }
                                     else if (debugMemory)
@@ -4101,7 +4101,7 @@ namespace Cloud.FileMonitor
                                                     }
 
                                                     // replace index at current path
-                                                    new ChangeAllPathsIndexSet(this, pathObject, newMetadata);
+                                                    ChangeAllPathsBase.IndexSet(this, pathObject, newMetadata);
                                                     // queue file change for modify
                                                     FileChange toQueue = new FileChange(QueuedChanges)
                                                     {
@@ -4170,7 +4170,7 @@ namespace Cloud.FileMonitor
                                             QueueFileChange(toQueue, startProcessingAction);
 
                                             // remove index for new path
-                                            new ChangeAllPathsRemove(this, pathObject);
+                                            ChangeAllPathsBase.Remove(this, pathObject);
 
                                             // no need to continue and check possibeRename since it required exists to be true, return now
                                             return;
@@ -4199,7 +4199,7 @@ namespace Cloud.FileMonitor
                                             QueueFileChange(toQueue, startProcessingAction);
 
                                             // remove index at the previous path
-                                            new ChangeAllPathsRemove(this, oldPathObject);
+                                            ChangeAllPathsBase.Remove(this, oldPathObject);
                                         }
                                     }
                                     // if precursor condition was set for a file change for rename
@@ -4266,7 +4266,8 @@ namespace Cloud.FileMonitor
                                         {
                                             MoveOldPathsToNewPaths(oldPathHierarchy, oldPathObject, pathObject);
                                         }
-                                        new ChangeAllPathsIndexSet(this, pathObject, newMetadata ?? previousMetadata);
+
+                                        ChangeAllPathsBase.IndexSet(this, pathObject, newMetadata ?? previousMetadata);
 
                                         FileMetadata metadataToUse = newMetadata ?? previousMetadata;
 
@@ -4326,7 +4327,7 @@ namespace Cloud.FileMonitor
                                         }
 
                                         // add new index at new path
-                                        new ChangeAllPathsAdd(this, pathObject,
+                                        ChangeAllPathsBase.Add(this, pathObject,
                                             new FileMetadata(serverUidId)
                                             {
                                                 HashableProperties = new FileMetadataHashableProperties(isFolder,
@@ -4383,7 +4384,7 @@ namespace Cloud.FileMonitor
                                                     }
 
                                                     // replace index at current path
-                                                    new ChangeAllPathsIndexSet(this, pathObject, newMetadata);
+                                                    ChangeAllPathsBase.IndexSet(this, pathObject, newMetadata);
 
                                                     // queue file change for modify
                                                     FileChange toQueue = new FileChange(QueuedChanges)
@@ -4432,7 +4433,7 @@ namespace Cloud.FileMonitor
                                         QueueFileChange(toQueue, startProcessingAction);
 
                                         // remove index
-                                        new ChangeAllPathsRemove(this, pathObject);
+                                        ChangeAllPathsBase.Remove(this, pathObject);
                                     }
                                     else if (debugMemory)
                                     {
@@ -4506,13 +4507,13 @@ namespace Cloud.FileMonitor
             FilePathHierarchicalNodeWithValue<FileMetadata> oldPathHierarchyWithValue = oldPathHierarchy as FilePathHierarchicalNodeWithValue<FileMetadata>;
             if (oldPathHierarchyWithValue != null)
             {
-                new ChangeAllPathsIndexSet(this, oldPathHierarchyWithValue.Value.Key, null);
+                ChangeAllPathsBase.IndexSet(this, oldPathHierarchyWithValue.Value.Key, null);
 
-                if (!FilePathComparer.Instance.Equals(oldPathHierarchyWithValue.Value.Key, oldPath))
+                if (FilePathComparer.Instance.Equals(oldPathHierarchyWithValue.Value.Key, oldPath))
                 {
                     FilePath rebuiltNewPath = oldPathHierarchyWithValue.Value.Key.Copy();
                     FilePath.ApplyRename(rebuiltNewPath, oldPath, newPath);
-                    new ChangeAllPathsIndexSet(this, rebuiltNewPath, oldPathHierarchyWithValue.Value.Value);
+                    ChangeAllPathsBase.IndexSet(this, rebuiltNewPath, oldPathHierarchyWithValue.Value.Value);
                 }
             }
 
@@ -4783,7 +4784,7 @@ namespace Cloud.FileMonitor
 
                                             //&&&& new code
                                             toChange.Metadata = toChange.Metadata.CopyWithNewServerUidId(previousChange.Metadata.ServerUidId);
-                                            AllPaths[toChange.NewPath] = toChange.Metadata;
+                                            ChangeAllPathsBase.IndexSet(this, toChange.NewPath, toChange.Metadata);
                                             //toChange.Metadata = toChange.Metadata.CopyWithDifferentRevisionChanger(previousChange.Metadata.RevisionChanger, Helpers.CreateFileChangeRevisionChangedHandler(toChange, _syncData));
                                             toChange.Metadata.MimeType = previousChange.Metadata.MimeType;
                                             //toChange.Metadata.Revision = previousChange.Metadata.Revision;
@@ -4802,7 +4803,7 @@ namespace Cloud.FileMonitor
 
                                             //&&&& new code
                                             toChange.Metadata = toChange.Metadata.CopyWithNewServerUidId(previousChange.Metadata.ServerUidId);
-                                            AllPaths[toChange.NewPath] = toChange.Metadata;
+                                            ChangeAllPathsBase.IndexSet(this, toChange.NewPath, toChange.Metadata);
                                             //toChange.Metadata = toChange.Metadata.CopyWithDifferentRevisionChanger(previousChange.Metadata.RevisionChanger, Helpers.CreateFileChangeRevisionChangedHandler(toChange, _syncData));
                                             toChange.Metadata.MimeType = previousChange.Metadata.MimeType;
                                             //toChange.Metadata.Revision = previousChange.Metadata.Revision;
@@ -4999,7 +5000,7 @@ namespace Cloud.FileMonitor
                     {
                         toChange.Metadata = toChange.Metadata.CopyWithNewServerUidId(matchedFileChangeForRename.Metadata.ServerUidId);
 
-                        AllPaths[toChange.NewPath] = toChange.Metadata;
+                        ChangeAllPathsBase.IndexSet(this, toChange.NewPath, toChange.Metadata);
                     }
 
                     matchedFileChangeForRename.Metadata = toChange.Metadata;
@@ -5035,28 +5036,13 @@ namespace Cloud.FileMonitor
                     matchedFileChangeForRename.Type = FileChangeType.Renamed;
                     matchedFileChangeForRename.OldPath = toChange.NewPath;
 
+                    matchedFileChangeForRename.Metadata = matchedFileChangeForRename.Metadata.CopyWithNewServerUidId(toChange.Metadata.ServerUidId);
                     // the later deletion caused the metatadata to be lost in AllPaths,
                     // so need to add it back here;
                     // already under a lock on AllPaths since QueueFileChange must be called under such lock
-                    if (AllPaths.ContainsKey(matchedFileChangeForRename.OldPath))
-                    {
-                        AllPaths[matchedFileChangeForRename.NewPath] = null; // ensure no error with the rename
-                        AllPaths.Rename(matchedFileChangeForRename.OldPath, matchedFileChangeForRename.NewPath); // should move the existing metadata at path forwards
-                    }
+                    ChangeAllPathsBase.IndexSet(this, matchedFileChangeForRename.NewPath, matchedFileChangeForRename.Metadata); // no reason to try rename since the delete should have wiped the metadata from AllPaths
 
-
-                    if (QueuedChanges.ContainsKey(matchedFileChangeForRename.NewPath))
-                    {
-                        if (QueuedChanges[matchedFileChangeForRename.NewPath] != matchedFileChangeForRename)
-                        {
-                            QueuedChanges[matchedFileChangeForRename.NewPath] = matchedFileChangeForRename;
-                        }
-                    }
-                    else
-                    {
-                        QueuedChanges.Add(matchedFileChangeForRename.NewPath,
-                            matchedFileChangeForRename);
-                    }
+                    QueuedChanges[matchedFileChangeForRename.NewPath] = matchedFileChangeForRename;
 
                     matchedFileChangeForRename.SetDelayBackToInitialValue();
                     // add old/new path pairs for recursive rename processing
@@ -5190,6 +5176,8 @@ namespace Cloud.FileMonitor
                 {
                     lock (QueuedChanges)
                     {
+                        HashSet<FileChange> alreadyRemovedFileChanges = new HashSet<FileChange>();
+
                         KeyValuePair<FilePathDictionary<List<FileChange>>, CLError> upDownsWrapped = GetUploadDownloadTransfersInProgress(CurrentFolderPath);
                         if (upDownsWrapped.Value == null
                             && upDownsWrapped.Key != null)
@@ -5204,6 +5192,7 @@ namespace Cloud.FileMonitor
 
                                 senderToAdd = null;
                             }
+
                             foreach (FileChange nextMerge in mergeAll)
                             {
                                 if (nextMerge.Direction == SyncDirection.To
@@ -5267,10 +5256,19 @@ namespace Cloud.FileMonitor
                                     }
                                 }
 
-                                RemoveFileChangeFromQueuedChanges(nextMerge, new originalQueuedChangesIndexesByInMemoryIdsOneValue(nextMerge.InMemoryId, nextMerge.NewPath));
+                                if (!RemoveFileChangeFromQueuedChanges(nextMerge, new originalQueuedChangesIndexesByInMemoryIdsOneValue(nextMerge.InMemoryId, nextMerge.NewPath)))
+                                {
+                                    alreadyRemovedFileChanges.Add(nextMerge);
+                                }
                             }
 
-                            CLError mergeError = Indexer.MergeEventsIntoDatabase(mergeAll.Select(currentMerge => new FileChangeMerge(currentMerge, null)));
+
+
+                            CLError mergeError = Indexer.MergeEventsIntoDatabase(
+                                mergeAll
+                                    // do not update sql with possibly old data; FileChanges removed from QueuedChanges in dependency processing will be added to SQL there instead
+                                    .Where(currentMerge => !alreadyRemovedFileChanges.Contains(currentMerge))
+                                    .Select(currentMerge => new FileChangeMerge(currentMerge, null)));
                             if (mergeError != null)
                             {
                                 // forces logging even if the setting is turned off in the severe case since a message box had to appear
@@ -5290,7 +5288,7 @@ namespace Cloud.FileMonitor
 
                             if ((_syncbox.CopiedSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
                             {
-                                ComTrace.LogFileChangeFlow(_syncbox.CopiedSettings.TraceLocation, _syncbox.CopiedSettings.DeviceId, _syncbox.SyncboxId, FileChangeFlowEntryPositionInFlow.FileMonitorAddingBatchToSQL, mergeAll);
+                                ComTrace.LogFileChangeFlow(_syncbox.CopiedSettings.TraceLocation, _syncbox.CopiedSettings.DeviceId, _syncbox.SyncboxId, FileChangeFlowEntryPositionInFlow.FileMonitorAddingBatchToSQL, mergeAll.Where(currentMerge => !alreadyRemovedFileChanges.Contains(currentMerge)));
                             }
                         }
                         else
@@ -5303,7 +5301,9 @@ namespace Cloud.FileMonitor
 
                         lock (QueuesTimer.TimerRunningLocker)
                         {
-                            foreach (FileChange nextMerge in mergeAll)
+                            bool atLeastOneChangeAddedForProcessing = false;
+
+                            foreach (FileChange nextMerge in mergeAll.Where(currentMerge => !alreadyRemovedFileChanges.Contains(currentMerge)))
                             {
                                 if (nextMerge.EventId == 0)
                                 {
@@ -5320,15 +5320,20 @@ namespace Cloud.FileMonitor
                                 }
 
                                 ProcessingChanges.AddLast(nextMerge);
+
+                                atLeastOneChangeAddedForProcessing = true;
                             }
 
-                            if (ProcessingChanges.Count > MaxProcessingChangesBeforeTrigger)
+                            if (atLeastOneChangeAddedForProcessing)
                             {
-                                QueuesTimer.TriggerTimerCompletionImmediately();
-                            }
-                            else
-                            {
-                                QueuesTimer.StartTimerIfNotRunning();
+                                if (ProcessingChanges.Count > MaxProcessingChangesBeforeTrigger)
+                                {
+                                    QueuesTimer.TriggerTimerCompletionImmediately();
+                                }
+                                else
+                                {
+                                    QueuesTimer.StartTimerIfNotRunning();
+                                }
                             }
                         }
                     }
