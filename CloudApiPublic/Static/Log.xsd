@@ -107,6 +107,7 @@
               <xs:restriction base="xs:string">
                 <xs:enumeration value="FileMonitorAddingToQueuedChanges" />
                 <xs:enumeration value="FileMonitorAddingBatchToSQL" />
+                <xs:enumeration value="FileMonitorAlreadyRemovedFileChanges" />
                 <xs:enumeration value="SyncRunInitialErrors" />
                 <xs:enumeration value="FileMonitorGrabPreprocessedQueuedChanges" />
                 <xs:enumeration value="FileMonitorGrabPreprocessedFailureQueue" />

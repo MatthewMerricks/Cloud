@@ -771,6 +771,9 @@ namespace Cloud.Static
         FileMonitorAddingBatchToSQL,
 
         /// <remarks/>
+        FileMonitorAlreadyRemovedFileChanges,
+
+        /// <remarks/>
         SyncRunInitialErrors,
 
         /// <remarks/>

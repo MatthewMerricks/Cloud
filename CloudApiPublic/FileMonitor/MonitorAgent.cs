@@ -437,6 +437,7 @@ namespace Cloud.FileMonitor
 
         // Storage of changes queued to process (QueuedChanges used as the locker for both and keyed by file path, QueuedChangesByMetadata keyed by the hashable metadata properties)
         private Dictionary<FilePath, FileChange> QueuedChanges = new Dictionary<FilePath, FileChange>(FilePathComparer.Instance);
+        private HashSet<FileChange> QueuedChangesForceProcessing = new HashSet<FileChange>(); // force processing for modify file followed by rename since these events cannot be aggregated, the modify must be allowed to continue
         private Dictionary<FilePath, FilePath> OldToNewPathRenames = new Dictionary<FilePath, FilePath>(FilePathComparer.Instance);
         private static readonly FileMetadataHashableComparer QueuedChangesMetadataComparer = new FileMetadataHashableComparer();// Comparer has improved hashing by using only the fastest changing bits
         private Dictionary<FileMetadataHashableProperties, FileChange> QueuedChangesByMetadata = new Dictionary<FileMetadataHashableProperties, FileChange>(QueuedChangesMetadataComparer);// Use custom comparer for improved hashing
@@ -2668,6 +2669,7 @@ namespace Cloud.FileMonitor
                             .Concat((failedOutChanges ?? Enumerable.Empty<FileChange>()).Select(currentFailedOut => new KeyValuePair<FileChangeSource, KeyValuePair<bool, FileChange>>(FileChangeSource.FailedOutList, new KeyValuePair<bool,FileChange>(false, currentFailedOut))))
                             .OrderBy(eventOrdering => eventOrdering.Value.Value.EventId)
                             .Concat(QueuedChanges
+                                .Concat(QueuedChangesForceProcessing.Select(forcedToProcess => new KeyValuePair<FilePath, FileChange>(/* FilePath */ null, forcedToProcess)))
                                 .OrderBy(memoryIdOrdering => memoryIdOrdering.Value.InMemoryId)
                                 .Select(queuedChange => reselectQueuedChangeAndAddToMapping(queuedChange, originalQueuedChangesIndexesByInMemoryIds)))
                             .Select(currentFileChange =>
@@ -3015,7 +3017,11 @@ namespace Cloud.FileMonitor
                                         || !FilePathComparer.Instance.Equals(CurrentDependencyTree.DependencyFileChange.OldPath, CurrentDependencyTree.OriginalFileChange.OldPath))
                                     {
                                         FilePath pathInQueuedChanges = originalQueuedChangesIndexesByInMemoryIds[CurrentDependencyTree.OriginalFileChange.InMemoryId];
-                                        if (!FilePathComparer.Instance.Equals(CurrentDependencyTree.DependencyFileChange.NewPath, pathInQueuedChanges))
+
+                                        // pathInQueuedChanges is null if changed was marked for force-processing (QueuedChangesForceProcessing)
+
+                                        if (pathInQueuedChanges != null
+                                            && !FilePathComparer.Instance.Equals(CurrentDependencyTree.DependencyFileChange.NewPath, pathInQueuedChanges))
                                         {
                                             QueuedChanges.Remove(pathInQueuedChanges);
                                         }
@@ -3024,7 +3030,10 @@ namespace Cloud.FileMonitor
                                         CurrentDependencyTree.OriginalFileChange.NewPath = CurrentDependencyTree.DependencyFileChange.NewPath;
                                         CurrentDependencyTree.OriginalFileChange.OldPath = CurrentDependencyTree.DependencyFileChange.OldPath;
 
-                                        QueuedChanges[CurrentDependencyTree.OriginalFileChange.NewPath] = CurrentDependencyTree.OriginalFileChange;
+                                        if (pathInQueuedChanges != null)
+                                        {
+                                            QueuedChanges[CurrentDependencyTree.OriginalFileChange.NewPath] = CurrentDependencyTree.OriginalFileChange;
+                                        }
                                     }
                                 }
                             }
@@ -4705,6 +4714,8 @@ namespace Cloud.FileMonitor
                     // need to replace the file change in the queue (which will start it's own processing later on a new delay)
                     if (previousChange.DelayCompleted)
                     {
+                        QueuedChangesForceProcessing.Add(previousChange);
+
                         // replace file change in the queue at the same location with the new change
                         QueuedChanges[toChange.NewPath] = toChange;
 
@@ -4761,6 +4772,8 @@ namespace Cloud.FileMonitor
                                             {
                                                 QueuedChangesByMetadata[toChange.Metadata.HashableProperties] = toChange;
                                             }
+
+                                            QueuedChangesForceProcessing.Add(previousChange);
 
                                             QueuedChanges[toChange.NewPath] = toChange; // the previous folder deletion change will now be removed from the queued changes queue, and nothing will stop it from continuing to process
 
@@ -4884,6 +4897,8 @@ namespace Cloud.FileMonitor
                                         {
                                             QueuedChangesByMetadata[toChange.Metadata.HashableProperties] = toChange;
                                         }
+
+                                        QueuedChangesForceProcessing.Add(previousChange);
 
                                         QueuedChanges[toChange.NewPath] = toChange; // the previous file rename change will now be removed from the queued changes queue, and nothing will stop it from continuing to process
 
@@ -5011,14 +5026,25 @@ namespace Cloud.FileMonitor
                     {
                         StartDelay(toChange, startProcessingAction);
 
-                        QueuedChanges[toChange.NewPath] = toChange;
+                        QueuedChanges.Add(toChange.NewPath, toChange); // toChange is now the rename of the modified file to a new path
+
+                        // matchedFileChangeForRename was left alone in QueuedChanges to continue processing as a modify first
                     }
                     else
                     {
                         matchedFileChangeForRename.SetDelayBackToInitialValue();
 
+                        // matchedFileChangeForRename was converted into a rename and needs to be placed at the new path and possibly have its old path index removed
                         QueuedChanges.Add(matchedFileChangeForRename.NewPath,
                             matchedFileChangeForRename);
+                        FileChange changeAtOldPath;
+                        if (QueuedChanges.TryGetValue(matchedFileChangeForRename.OldPath, out changeAtOldPath)
+                            && changeAtOldPath == matchedFileChangeForRename)
+                        {
+                            QueuedChanges.Remove(matchedFileChangeForRename.OldPath);
+                        }
+
+                        // toChange will not be processed since it was merged to form the rename
                     }
 
                     // add old/new path pairs for recursive rename processing
@@ -5042,11 +5068,12 @@ namespace Cloud.FileMonitor
                     // already under a lock on AllPaths since QueueFileChange must be called under such lock
                     ChangeAllPathsBase.IndexSet(this, matchedFileChangeForRename.NewPath, matchedFileChangeForRename.Metadata); // no reason to try rename since the delete should have wiped the metadata from AllPaths
 
-                    QueuedChanges[matchedFileChangeForRename.NewPath] = matchedFileChangeForRename;
-
                     matchedFileChangeForRename.SetDelayBackToInitialValue();
                     // add old/new path pairs for recursive rename processing
                     OldToNewPathRenames[matchedFileChangeForRename.OldPath] = matchedFileChangeForRename.NewPath;
+
+                    // matchedFileChangeForRename was already in QueuedChanges at its correct NewPath
+                    // toChange will not be processed since it was merged to form the rename
                 }
 
                 // if file change does not exist in the queue at the same file path and the change was not marked to be converted to a rename
@@ -5262,8 +5289,6 @@ namespace Cloud.FileMonitor
                                 }
                             }
 
-
-
                             CLError mergeError = Indexer.MergeEventsIntoDatabase(
                                 mergeAll
                                     // do not update sql with possibly old data; FileChanges removed from QueuedChanges in dependency processing will be added to SQL there instead
@@ -5288,7 +5313,16 @@ namespace Cloud.FileMonitor
 
                             if ((_syncbox.CopiedSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
                             {
-                                ComTrace.LogFileChangeFlow(_syncbox.CopiedSettings.TraceLocation, _syncbox.CopiedSettings.DeviceId, _syncbox.SyncboxId, FileChangeFlowEntryPositionInFlow.FileMonitorAddingBatchToSQL, mergeAll.Where(currentMerge => !alreadyRemovedFileChanges.Contains(currentMerge)));
+                                if (alreadyRemovedFileChanges.Count > 0)
+                                {
+                                    ComTrace.LogFileChangeFlow(_syncbox.CopiedSettings.TraceLocation, _syncbox.CopiedSettings.DeviceId, _syncbox.SyncboxId, FileChangeFlowEntryPositionInFlow.FileMonitorAlreadyRemovedFileChanges, alreadyRemovedFileChanges);
+                                }
+
+                                FileChange[] nonRemovedFileChanges = mergeAll.Where(currentMerge => !alreadyRemovedFileChanges.Contains(currentMerge)).ToArray();
+                                if (nonRemovedFileChanges.Length > 0)
+                                {
+                                    ComTrace.LogFileChangeFlow(_syncbox.CopiedSettings.TraceLocation, _syncbox.CopiedSettings.DeviceId, _syncbox.SyncboxId, FileChangeFlowEntryPositionInFlow.FileMonitorAddingBatchToSQL, nonRemovedFileChanges);
+                                }
                             }
                         }
                         else
@@ -5380,12 +5414,17 @@ namespace Cloud.FileMonitor
                 return false;
             }
 
-            if (QueuedChanges.ContainsKey(originalNewPath)
-                && QueuedChanges[originalNewPath] == toRemove)
+            FileChange queuedChangeAtPath;
+            if (originalNewPath != null // originalNewPath is null if we knew the change came from QueuedChangesForcedProcessing, no need to check QueuedChanges
+                && QueuedChanges.TryGetValue(originalNewPath, out queuedChangeAtPath)
+                && queuedChangeAtPath == toRemove)
             {
                 return QueuedChanges.Remove(originalNewPath);
             }
-            return false;
+            else
+            {
+                return QueuedChangesForceProcessing.Remove(toRemove);
+            }
         }
         private abstract class originalQueuedChangesIndexesByInMemoryIdsBase
         {
