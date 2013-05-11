@@ -2766,6 +2766,7 @@ namespace Cloud.SQLIndexer
             string storeOldPath;
             bool storeWhetherEventIsASyncFrom;
 
+            bool foundOtherPendingAtCompletedPath;
             try
             {
                 if (castTransaction == null)
@@ -2852,7 +2853,8 @@ namespace Cloud.SQLIndexer
                         Helpers.EnumerateSingleItem(eventId))
                     .SingleOrDefault();
 
-                if (existingEventObject == null)
+                if (existingEventObject == null
+                    || existingEventObject.Event == null)
                 {
                     throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Unable to find existing event to complete");
                 }
@@ -2867,6 +2869,11 @@ namespace Cloud.SQLIndexer
                 if (existingEventObject.ServerUid.ServerUid == null)
                 {
                     throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Existing event cannot be completed if it does not have a ServerUid");
+                }
+                if (existingEventObject.Event.PreviousId != null
+                    && existingEventObject.Event.Previous == null)
+                {
+                    throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Unable to find previous object for rename");
                 }
 
                 storeExistingChangeType = changeEnums[existingEventObject.Event.FileChangeTypeEnumId];
@@ -3075,13 +3082,14 @@ namespace Cloud.SQLIndexer
                             throw new AggregateException("An error occurred moving objects to new parent", moveObjectsToNewParentError.Value.GrabExceptions());
                         }
 
-                        if (!SqlAccessor<FileSystemObject>.DeleteRow(
-                            castTransaction.sqlConnection,
-                            new FileSystemObject()
-                            {
-                                FileSystemObjectId = storePreviousId
-                            },
-                            castTransaction.sqlTransaction))
+                        if (!existingEventObject.Event.Previous.Pending
+                            && !SqlAccessor<FileSystemObject>.DeleteRow(
+                                castTransaction.sqlConnection,
+                                new FileSystemObject()
+                                {
+                                    FileSystemObjectId = storePreviousId
+                                },
+                                castTransaction.sqlTransaction))
                         {
                             throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Unable to delete previous object for rename event");
                         }
@@ -3099,6 +3107,23 @@ namespace Cloud.SQLIndexer
                         throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Existing event object had a FileChangeTypeEnumId which did not match to a known FileChangeType");
                 }
 
+                if (!SqlAccessor<object>.TrySelectScalar<bool>(
+                    castTransaction.sqlConnection,
+                    "SELECT EXISTS" +
+                    "(" +
+                        "SELECT NULL " +
+                        "FROM FileSystemObjects " +
+                        "WHERE FileSystemObjects.Name = ? " +
+                        "AND FileSystemObjects.ParentFolderId = ? " +
+                        "AND FileSystemObjects.Pending = 1" +
+                    ") AS EXIST",
+                    out foundOtherPendingAtCompletedPath,
+                    castTransaction.sqlTransaction,
+                    new[] { (object)existingEventObject.Name, ((long)existingEventObject.ParentFolderId) }))
+                {
+                    throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Unable to determine whether other events are pending at the current completion path");
+                }
+
                 if (!inputTransactionSet
                     && castTransaction != null)
                 {
@@ -3111,6 +3136,7 @@ namespace Cloud.SQLIndexer
                 storeNewPath = Helpers.DefaultForType<string>();
                 storeOldPath = Helpers.DefaultForType<string>();
                 storeWhetherEventIsASyncFrom = Helpers.DefaultForType<bool>();
+                foundOtherPendingAtCompletedPath = Helpers.DefaultForType<bool>();
                 toReturn += ex;
             }
             finally
@@ -3122,7 +3148,8 @@ namespace Cloud.SQLIndexer
                 }
             }
 
-            if (toReturn == null)
+            if (toReturn == null
+                && !foundOtherPendingAtCompletedPath)
             {
                 try
                 {
