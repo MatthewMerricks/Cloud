@@ -39,6 +39,7 @@ namespace Cloud.SQLIndexer
         private readonly bool copyDatabaseBetweenChanges;
         private long rootFileSystemObjectId = 0;
         private long rootFileSystemObjectServerUidId = 0;
+        private bool disposed = false;
 
         private readonly Dictionary<long, long> migratedServerUidIds = new Dictionary<long, long>();
 
@@ -104,6 +105,19 @@ namespace Cloud.SQLIndexer
         #region public methods
         public CLError CreateNewServerUid(string serverUid, string revision, out long serverUidId, SQLTransactionalBase existingTransaction = null)
         {
+            if (disposed)
+            {
+                try
+                {
+                    throw new ObjectDisposedException("This IndexingAgent");
+                }
+                catch (Exception ex)
+                {
+                    serverUidId = Helpers.DefaultForType<long>();
+                    return ex;
+                }
+            }
+
             _trace.writeToLog(9, "IndexingAgent: Entry: CreateNewServerUid: serverUid: {0}. revision: {1}. existingTransaction: {2}.", serverUid, revision, existingTransaction == null ? "null" : "notNull");
 
             CLError toReturn = null;
@@ -173,6 +187,20 @@ namespace Cloud.SQLIndexer
 
         public CLError UpdateServerUid(long serverUidId, string serverUid, string revision, out Nullable<long> existingServerUidIdRequiringMerging, SQLTransactionalBase existingTransaction = null)
         {
+            if (disposed)
+            {
+                try
+                {
+                    throw new ObjectDisposedException("This IndexingAgent");
+                }
+                catch (Exception ex)
+                {
+                    existingServerUidIdRequiringMerging = null;
+
+                    return ex;
+                }
+            }
+
             _trace.writeToLog(9, "IndexingAgent: Entry: UpdateServerUid: serverUidId: {0}. serverUid: {1}. revision: {2}. existingTransaction: {3}.", serverUidId, serverUid, revision, existingTransaction == null ? "null" : "notNull");
             CLError toReturn = null;
             SQLTransactionalImplementation castTransaction = existingTransaction as SQLTransactionalImplementation;
@@ -348,6 +376,21 @@ namespace Cloud.SQLIndexer
 
         public CLError QueryServerUid(long serverUidId, out string serverUid, out string revision, SQLTransactionalBase existingTransaction = null)
         {
+            if (disposed)
+            {
+                try
+                {
+                    throw new ObjectDisposedException("This IndexingAgent");
+                }
+                catch (Exception ex)
+                {
+                    serverUid = Helpers.DefaultForType<string>();
+                    revision = Helpers.DefaultForType<string>();
+
+                    return ex;
+                }
+            }
+
             _trace.writeToLog(9, "IndexingAgent: Entry: QueryServerUid: serverUidId: {0}. existingTransaction: {1}.", serverUidId, existingTransaction == null ? "null" : "notNull");
             CLError toReturn = null;
             SQLTransactionalImplementation castTransaction = existingTransaction as SQLTransactionalImplementation;
@@ -433,6 +476,20 @@ namespace Cloud.SQLIndexer
 
         public CLError QueryOrCreateServerUid(string serverUid, out long serverUidId, string revision, SQLTransactionalBase existingTransaction = null)
         {
+            if (disposed)
+            {
+                try
+                {
+                    throw new ObjectDisposedException("This IndexingAgent");
+                }
+                catch (Exception ex)
+                {
+                    serverUidId = Helpers.DefaultForType<long>();
+
+                    return ex;
+                }
+            }
+
             _trace.writeToLog(9, "IndexingAgent: Entry: QueryOrCreateServerUid: serverUid: {0}. revision: {1}. existingTransaction: {2}.", serverUid, revision, existingTransaction == null ? "null" : "notNull");
             CLError toReturn = null;
             SQLTransactionalImplementation castTransaction = existingTransaction as SQLTransactionalImplementation;
@@ -537,6 +594,22 @@ namespace Cloud.SQLIndexer
         /// <returns>Returns any error which occurred querying the database, if any</returns>
         public CLError QueryFileChangeByEventId(long eventId, out FileChange queryResult, out bool isPending, out FileChangeQueryStatus status)
         {
+            if (disposed)
+            {
+                try
+                {
+                    throw new ObjectDisposedException("This IndexingAgent");
+                }
+                catch (Exception ex)
+                {
+                    queryResult = Helpers.DefaultForType<FileChange>();
+                    isPending = Helpers.DefaultForType<bool>();
+                    status = FileChangeQueryStatus.ErrorDisposed;
+
+                    return ex;
+                }
+            }
+
             try
             {
                 if (eventId <= 0)
@@ -629,6 +702,7 @@ namespace Cloud.SQLIndexer
                 queryResult = Helpers.DefaultForType<FileChange>();
                 isPending = Helpers.DefaultForType<bool>();
                 status = FileChangeQueryStatus.ErrorUnknown;
+
                 return ex;
             }
             return null;
@@ -645,6 +719,18 @@ namespace Cloud.SQLIndexer
         public CLError StartInitialIndexing(Action<IEnumerable<KeyValuePair<FilePath, FileMetadata>>, IEnumerable<FileChange>> indexCompletionCallback,
             Func<string> getPath)
         {
+            if (disposed)
+            {
+                try
+                {
+                    throw new ObjectDisposedException("This IndexingAgent");
+                }
+                catch (Exception ex)
+                {
+                    return ex;
+                }
+            }
+
             try
             {
                 this.indexedPath = getPath();
@@ -660,6 +746,18 @@ namespace Cloud.SQLIndexer
 
         public void SwapOrderBetweenTwoEventIds(long eventIdA, long eventIdB, SQLTransactionalBase requiredTransaction)
         {
+            if (disposed)
+            {
+                try
+                {
+                    throw new ObjectDisposedException("This IndexingAgent");
+                }
+                catch
+                {
+                    return;
+                }
+            }
+
             if (requiredTransaction == null)
             {
                 throw new NullReferenceException("requiredTransaction cannot be null");
@@ -762,6 +860,20 @@ namespace Cloud.SQLIndexer
 
         public CLError GetCalculatedFullPathByServerUid(string serverUid, out string calculatedFullPath, Nullable<long> excludedEventId = null)
         {
+            if (disposed)
+            {
+                try
+                {
+                    throw new ObjectDisposedException("This IndexingAgent");
+                }
+                catch (Exception ex)
+                {
+                    calculatedFullPath = Helpers.DefaultForType<string>();
+
+                    return ex;
+                }
+            }
+
             try
             {
                 if (serverUid == null)
@@ -806,6 +918,7 @@ namespace Cloud.SQLIndexer
             catch (Exception ex)
             {
                 calculatedFullPath = Helpers.DefaultForType<string>();
+
                 return ex;
             }
             return null;
@@ -813,6 +926,20 @@ namespace Cloud.SQLIndexer
 
         public CLError GetServerUidByNewPath(string newPath, out string serverUid)
         {
+            if (disposed)
+            {
+                try
+                {
+                    throw new ObjectDisposedException("This IndexingAgent");
+                }
+                catch (Exception ex)
+                {
+                    serverUid = Helpers.DefaultForType<string>();
+
+                    return ex;
+                }
+            }
+
             try
             {
                 if (newPath == null)
@@ -845,6 +972,7 @@ namespace Cloud.SQLIndexer
             catch (Exception ex)
             {
                 serverUid = Helpers.DefaultForType<string>();
+
                 return ex;
             }
             return null;
@@ -859,6 +987,17 @@ namespace Cloud.SQLIndexer
         ///// <returns>Returns an error that occurred retrieving the file system state, if any</returns>
         //public CLError GetLastSyncStates(out FilePathDictionary<SyncedObject> syncStates)
         //{
+            //if (disposed)
+            //{
+            //    try
+            //    {
+            //        throw new ObjectDisposedException("This IndexingAgent");
+            //    }
+            //    catch (Exception ex)
+            //    {
+            //        return ex;
+            //    }
+            //}
         //    throw new NotImplementedException("2");
         //    //ExternalSQLLocker.EnterReadLock();
         //    //try
@@ -960,6 +1099,20 @@ namespace Cloud.SQLIndexer
 
         public CLError GetMetadataByPathAndRevision(string path, string revision, out FileMetadata metadata)
         {
+            if (disposed)
+            {
+                try
+                {
+                    throw new ObjectDisposedException("This IndexingAgent");
+                }
+                catch (Exception ex)
+                {
+                    metadata = Helpers.DefaultForType<FileMetadata>();
+
+                    return ex;
+                }
+            }
+
             try
             {
                 if (string.IsNullOrEmpty(path))
@@ -1017,6 +1170,7 @@ namespace Cloud.SQLIndexer
             catch (Exception ex)
             {
                 metadata = Helpers.DefaultForType<FileMetadata>();
+
                 return ex;
             }
             return null;
@@ -1028,7 +1182,19 @@ namespace Cloud.SQLIndexer
         ///// <param name="changeEvents">Outputs the unprocessed events</param>
         ///// <returns>Returns an error that occurred filling the unprocessed events, if any</returns>
         //public CLError GetPendingEvents(out List<KeyValuePair<FilePath, FileChange>> changeEvents)
-        //{
+        //{            //if (disposed)
+            //{
+            //    try
+            //    {
+            //        throw new ObjectDisposedException("This IndexingAgent");
+            //    }
+            //    catch (Exception ex)
+            //    {
+            //        return ex;
+            //    }
+            //}
+        //
+        //
         //    ExternalSQLLocker.EnterReadLock();
         //    try
         //    {
@@ -1096,10 +1262,34 @@ namespace Cloud.SQLIndexer
         /// <returns>Returns error that occurred when adding the event to database, if any</returns>
         public CLError AddEvents(IEnumerable<FileChange> newEvents, SQLTransactionalBase existingTransaction = null)
         {
+            if (disposed)
+            {
+                try
+                {
+                    throw new ObjectDisposedException("This IndexingAgent");
+                }
+                catch (Exception ex)
+                {
+                    return ex;
+                }
+            }
+
             return AddEvents(null, newEvents, existingTransaction);
         }
         private CLError AddEvents(Nullable<long> syncCounter, IEnumerable<FileChange> newEvents, SQLTransactionalBase existingTransaction)
         {
+            if (disposed)
+            {
+                try
+                {
+                    throw new ObjectDisposedException("This IndexingAgent");
+                }
+                catch (Exception ex)
+                {
+                    return ex;
+                }
+            }
+
             CLError toReturn = null;
             SQLTransactionalImplementation castTransaction = existingTransaction as SQLTransactionalImplementation;
             if (existingTransaction != null
@@ -1558,6 +1748,18 @@ namespace Cloud.SQLIndexer
         /// <returns>Returns an error in removing the event, if any</returns>
         public CLError RemoveEventById(long eventId, SQLTransactionalBase existingTransaction = null)
         {
+            if (disposed)
+            {
+                try
+                {
+                    throw new ObjectDisposedException("This IndexingAgent");
+                }
+                catch (Exception ex)
+                {
+                    return ex;
+                }
+            }
+
             return RemoveEventsByIds(Helpers.EnumerateSingleItem(eventId), existingTransaction);
         }
 
@@ -1568,6 +1770,18 @@ namespace Cloud.SQLIndexer
         /// <returns>Returns an error in removing events, if any</returns>
         public CLError RemoveEventsByIds(IEnumerable<long> eventIds, SQLTransactionalBase existingTransaction = null)
         {
+            if (disposed)
+            {
+                try
+                {
+                    throw new ObjectDisposedException("This IndexingAgent");
+                }
+                catch (Exception ex)
+                {
+                    return ex;
+                }
+            }
+
             if (eventIds == null)
             {
                 try
@@ -1791,6 +2005,20 @@ namespace Cloud.SQLIndexer
         /// <returns>Returns an error that occurred during recording the sync, if any</returns>
         public CLError RecordCompletedSync(IEnumerable<PossiblyChangedFileChange> communicatedChanges, string syncId, IEnumerable<long> syncedEventIds, out long syncCounter, string rootFolderUID = null)
         {
+            if (disposed)
+            {
+                try
+                {
+                    throw new ObjectDisposedException("This IndexingAgent");
+                }
+                catch (Exception ex)
+                {
+                    syncCounter = Helpers.DefaultForType<long>();
+
+                    return ex;
+                }
+            }
+
             if (copyDatabaseBetweenChanges)
             {
                 try
@@ -1975,6 +2203,7 @@ namespace Cloud.SQLIndexer
             catch (Exception ex)
             {
                 syncCounter = Helpers.DefaultForType<long>();
+
                 return ex;
             }
             return null;
@@ -1986,6 +2215,18 @@ namespace Cloud.SQLIndexer
         /// <returns></returns>
         public CLError WipeIndex(string newRootPath)
         {
+            if (disposed)
+            {
+                try
+                {
+                    throw new ObjectDisposedException("This IndexingAgent");
+                }
+                catch (Exception ex)
+                {
+                    return ex;
+                }
+            }
+
             try
             {
                 InitializeDatabase(newRootPath, createEvenIfExisting: true);
@@ -2002,6 +2243,18 @@ namespace Cloud.SQLIndexer
         /// </summary>
         public SQLTransactionalBase GetNewTransaction()
         {
+            if (disposed)
+            {
+                try
+                {
+                    throw new ObjectDisposedException("This IndexingAgent");
+                }
+                catch (Exception ex)
+                {
+                    return null;
+                }
+            }
+
             if (copyDatabaseBetweenChanges)
             {
                 try
@@ -2049,6 +2302,18 @@ namespace Cloud.SQLIndexer
 
         private SQLTransactionalImplementation GetNewTransactionPrivate()
         {
+            if (disposed)
+            {
+                try
+                {
+                    throw new ObjectDisposedException("This IndexingAgent");
+                }
+                catch
+                {
+                    return null;
+                }
+            }
+
             ISQLiteConnection indexDB;
             return new SQLTransactionalImplementation(
                 indexDB = CreateAndOpenCipherConnection(),
@@ -2062,6 +2327,18 @@ namespace Cloud.SQLIndexer
         /// <returns>Returns an error from merging the events, if any</returns>
         public CLError MergeEventsIntoDatabase(IEnumerable<FileChangeMerge> mergeToFroms, SQLTransactionalBase existingTransaction = null)
         {
+            if (disposed)
+            {
+                try
+                {
+                    throw new ObjectDisposedException("This IndexingAgent");
+                }
+                catch (Exception ex)
+                {
+                    return ex;
+                }
+            }
+
             if (existingTransaction == null
                 && copyDatabaseBetweenChanges)
             {
@@ -2109,6 +2386,18 @@ namespace Cloud.SQLIndexer
         }
         private CLError MergeEventsIntoDatabase(Nullable<long> syncCounter, IEnumerable<FileChangeMerge> mergeToFroms, SQLTransactionalBase existingTransaction)
         {
+            if (disposed)
+            {
+                try
+                {
+                    throw new ObjectDisposedException("This IndexingAgent");
+                }
+                catch (Exception ex)
+                {
+                    return ex;
+                }
+            }
+
             // no point trying to perform multiple simultaneous merges since they will block each other via the SQLite transaction
             //
             // actually, there is a point in blocking with a local lock: if we decide two identical FileChanges need to be added to sql before the first contention happens,
@@ -2702,6 +2991,18 @@ namespace Cloud.SQLIndexer
         /// <returns>Returns an error that occurred marking the event complete, if any</returns>
         public CLError MarkEventAsCompletedOnPreviousSync(long eventId, SQLTransactionalBase existingTransaction = null)
         {
+            if (disposed)
+            {
+                try
+                {
+                    throw new ObjectDisposedException("This IndexingAgent");
+                }
+                catch (Exception ex)
+                {
+                    return ex;
+                }
+            }
+
             if (existingTransaction == null
                 && copyDatabaseBetweenChanges)
             {
@@ -3169,6 +3470,18 @@ namespace Cloud.SQLIndexer
         /// </summary>
         public CLError ChangeSyncRoot(string newSyncRoot)
         {
+            if (disposed)
+            {
+                try
+                {
+                    throw new ObjectDisposedException("This IndexingAgent");
+                }
+                catch (Exception ex)
+                {
+                    return ex;
+                }
+            }
+
             try
             {
                 if (string.IsNullOrEmpty(newSyncRoot))
@@ -3230,6 +3543,18 @@ namespace Cloud.SQLIndexer
 
         private bool InitializeDatabase(string syncRoot, bool createEvenIfExisting = false)
         {
+            if (disposed)
+            {
+                try
+                {
+                    throw new ObjectDisposedException("This IndexingAgent");
+                }
+                catch
+                {
+                    return true; // logically it makes sense to return false, but the only place the return value is used will actually perform more code if false so instead return true
+                }
+            }
+
             FileInfo dbInfo;
             bool dbNeedsDeletion;
             bool dbNeedsCreation;
@@ -3562,6 +3887,18 @@ namespace Cloud.SQLIndexer
 
         private void MarkBadgeSyncedAfterEventCompletion(FileChangeType storeExistingChangeType, string storeNewPath, string storeOldPath, bool storeWhetherEventIsASyncFrom)
         {
+            if (disposed)
+            {
+                try
+                {
+                    throw new ObjectDisposedException("This IndexingAgent");
+                }
+                catch
+                {
+                    return;
+                }
+            }
+
             Action<FilePath> setBadgeSynced = syncedPath =>
             {
                 MessageEvents.QueueSetBadge(this, new SetBadge(PathState.Synced, syncedPath));   // Message to invoke BadgeNet.IconOverlay.QueueSetBadge(PathState.Synced, syncedPath);
@@ -3643,6 +3980,18 @@ namespace Cloud.SQLIndexer
 
         private ISQLiteConnection CreateAndOpenCipherConnection(bool enforceForeignKeyConstraints = true)
         {
+            if (disposed)
+            {
+                try
+                {
+                    throw new ObjectDisposedException("This IndexingAgent");
+                }
+                catch
+                {
+                    return null;
+                }
+            }
+
             return StaticCreateAndOpenCipherConnection(enforceForeignKeyConstraints, indexDBLocation);
         }
 
@@ -3679,6 +4028,18 @@ namespace Cloud.SQLIndexer
         /// <param name="indexCompletionCallback">Callback should be the BeginProcessing method of the FileMonitor to forward the initial index</param>
         private void BuildIndex(Action<IEnumerable<KeyValuePair<FilePath, FileMetadata>>, IEnumerable<FileChange>> indexCompletionCallback)
         {
+            if (disposed)
+            {
+                try
+                {
+                    throw new ObjectDisposedException("This IndexingAgent");
+                }
+                catch
+                {
+                    return;
+                }
+            }
+
             FilePath baseComparePath = indexedPath;
 
             // Create the initial index dictionary, throwing any exceptions that occurred in the process
@@ -4072,6 +4433,18 @@ namespace Cloud.SQLIndexer
         /// <returns>Returns the list of paths traversed</returns>
         private IEnumerable<string> RecurseIndexDirectory(List<FileChange> changeList, FilePathDictionary<FileMetadata> indexPaths, FilePathDictionary<FileMetadata> combinedIndexPlusChanges, Func<long, CLError> RemoveEventCallback, string currentDirectoryFullPath, FindFileResult currentDirectory = null, Dictionary<FilePath, LinkedList<FileChange>> uncoveredChanges = null)
         {
+            if (disposed)
+            {
+                try
+                {
+                    throw new ObjectDisposedException("This IndexingAgent");
+                }
+                catch
+                {
+                    return null;
+                }
+            }
+
             // Store whether the current method call is outermost or a recursion,
             // only the outermost method call has a null uncoveredChanges parameter
             bool outermostMethodCall = (uncoveredChanges == null);
@@ -4421,23 +4794,28 @@ namespace Cloud.SQLIndexer
         {
             lock (this)
             {
-                // Run dispose on inner managed objects based on disposing condition
-                if (disposing)
+                if (!disposed)
                 {
-                    lock (changeEnumsLocker)
+                    // Run dispose on inner managed objects based on disposing condition
+                    if (disposing)
                     {
-                        if (changeEnums != null)
+                        lock (changeEnumsLocker)
                         {
-                            changeEnums.Clear();
-                            changeEnums = null;
-                        }
+                            if (changeEnums != null)
+                            {
+                                changeEnums.Clear();
+                                changeEnums = null;
+                            }
 
-                        if (changeEnumsBackward != null)
-                        {
-                            changeEnumsBackward.Clear();
-                            changeEnumsBackward = null;
+                            if (changeEnumsBackward != null)
+                            {
+                                changeEnumsBackward.Clear();
+                                changeEnumsBackward = null;
+                            }
                         }
                     }
+
+                    disposed = true;
                 }
             }
         }

@@ -4621,9 +4621,10 @@ namespace Cloud.FileMonitor
                 //};
                 //&&&& end old code
                 //&&&& new code   &&&& really check this.
-                FileMetadata toReturn = previousMetadata.CopyWithNewServerUidId(previousMetadata.ServerUidId);
-                toReturn.HashableProperties = forCompare;
-                return toReturn;
+                return new FileMetadata(previousMetadata.ServerUidId)
+                {
+                    HashableProperties = forCompare
+                };
                 //&&&& end new code
             }
             return null;
