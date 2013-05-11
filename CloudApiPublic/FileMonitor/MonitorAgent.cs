@@ -947,29 +947,17 @@ namespace Cloud.FileMonitor
                             {
                                 CreateDirectoryWithAttributes(storeToCreate, storeCreationTime, storeLastTime, out createdLastWriteUtc, out createdCreationUtc);
 
-                                long nonNullServerUidId;
-                                if (storeServerUidId == null)
+                                if (storeServerUidId != null)
                                 {
-                                    CLError createServerUidError = Data.thisAgent._syncData.CreateNewServerUid(serverUid: null, revision: null, serverUidId: out nonNullServerUidId);  // no transaction
-
-                                    if (createServerUidError != null)
-                                    {
-                                        throw new AggregateException("Error creating ServerUid", createServerUidError.GrabExceptions());
-                                    }
+                                    ChangeAllPathsBase.Add(Data.thisAgent, storeToCreate,
+                                        new FileMetadata((long)storeServerUidId)
+                                        {
+                                            HashableProperties = new FileMetadataHashableProperties(true,
+                                                createdLastWriteUtc,
+                                                createdCreationUtc,
+                                                null)
+                                        });
                                 }
-                                else
-                                {
-                                    nonNullServerUidId = (long)storeServerUidId;
-                                }
-
-                                ChangeAllPathsBase.Add(Data.thisAgent, storeToCreate,
-                                    new FileMetadata(nonNullServerUidId)
-                                    {
-                                        HashableProperties = new FileMetadataHashableProperties(true,
-                                            createdLastWriteUtc,
-                                            createdCreationUtc,
-                                            null)
-                                    });
                             }
                         }
                     },
