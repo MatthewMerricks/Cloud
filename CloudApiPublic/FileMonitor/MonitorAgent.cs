@@ -3643,6 +3643,9 @@ namespace Cloud.FileMonitor
                         DirectoryInfo folder;
                         pathObject = folder = new DirectoryInfo(newPath);
 
+                        FileMetadata newIndexedValue;
+                        bool newIndexed = AllPaths.TryGetValue(pathObject, out newIndexedValue);
+
                         // object for gathering file info (set conditionally later in case we know change is not a file)
                         FileInfo file = null;
                         // field used to determine if change is a file or folder
@@ -3695,6 +3698,12 @@ namespace Cloud.FileMonitor
                                 {
                                 }
                             }
+                            else if (newIndexed
+                                && newIndexedValue.HashableProperties.IsFolder)
+                            {
+                                // convert back to folder since we did not find anything, but we previously knew the current path was a folder
+                                isFolder = true;
+                            }
                         }
 
                         // folder move handling: both delete then create or create then delete, we only check on the first event that comes in, the next one should short the more complex processing
@@ -3706,7 +3715,7 @@ namespace Cloud.FileMonitor
                             {
                                 case WatcherChangeTypes.Created:
                                     if (exists
-                                        && !AllPaths.ContainsKey(pathObject))
+                                        && !newIndexed)
                                     {
                                         DateTime addFolderCreationTime = folder.CreationTimeUtc;
                                         long addFolderCreationTimeUtcTicks = addFolderCreationTime.Ticks;
@@ -3739,10 +3748,8 @@ namespace Cloud.FileMonitor
                                     break;
 
                                 case WatcherChangeTypes.Deleted:
-                                    FileMetadata deletedMetadata;
-
                                     if (!exists
-                                        && AllPaths.TryGetValue(pathObject, out deletedMetadata))
+                                        && newIndexed)
                                     {
                                         bool rootError;
                                         // horribly inefficient (does a full index of every folder on disk)...but I found no way to do a WMI query on winmgmts:\\.\root\cimv2\Win32_Directory for all recursive folders within the sync root with a matching CreationDate
@@ -3797,7 +3804,7 @@ namespace Cloud.FileMonitor
                                         {
                                             for (int folderInRootIdx = 0; folderInRootIdx < outermostSearch.Count; folderInRootIdx++)
                                             {
-                                                checkThroughFolderResults(outermostSearch[folderInRootIdx], deletedMetadata.HashableProperties.CreationTime, AllPaths, firstFoundMatchingTime, checkThroughFolderResults);
+                                                checkThroughFolderResults(outermostSearch[folderInRootIdx], newIndexedValue.HashableProperties.CreationTime, AllPaths, firstFoundMatchingTime, checkThroughFolderResults);
 
                                                 if (firstFoundMatchingTime.Value != null)
                                                 {
@@ -3811,6 +3818,7 @@ namespace Cloud.FileMonitor
                                             oldPath = newPath;
                                             newPath = firstFoundMatchingTime.Value.FullName;
                                             pathObject = folder = new DirectoryInfo(newPath);
+                                            newIndexed = AllPaths.TryGetValue(pathObject, out newIndexedValue);
                                             changeType = WatcherChangeTypes.Renamed;
                                             exists = true; // exists was previously calculated as the 'deletion' of 'new path' which is now the old path, so exists should now be true since we found a folder at the 'renamed' 'new path'
                                         }
@@ -3954,7 +3962,7 @@ namespace Cloud.FileMonitor
                                     if (exists)
                                     {
                                         // if index exists at specified path
-                                        if (AllPaths.ContainsKey(pathObject))
+                                        if (newIndexed)
                                         {
                                             _trace.writeToMemory(() => _trace.trcFmtStr(2, "MonitorAgent: CheckMetadataAgainstFile: AllPaths contains this item: {0}.", pathObject.Name));
                                             if (debugMemory)
@@ -4043,7 +4051,7 @@ namespace Cloud.FileMonitor
                                         }
                                     }
                                     // if file file does not exist, but an index exists
-                                    else if (AllPaths.ContainsKey(pathObject))
+                                    else if (newIndexed)
                                     {
                                         if (debugMemory)
                                         {
@@ -4146,7 +4154,7 @@ namespace Cloud.FileMonitor
                                     }
 
                                     // if index exists at current path (irrespective of last condition on previous path index)
-                                    if (AllPaths.ContainsKey(pathObject))
+                                    if (newIndexed)
                                     {
                                         // if file or folder exists at the current path
                                         if (exists)
@@ -4457,7 +4465,7 @@ namespace Cloud.FileMonitor
                                     if (exists)
                                     {
                                         // if index exists and check for folder modify passes
-                                        if (AllPaths.ContainsKey(pathObject))
+                                        if (newIndexed)
                                         {
                                             if (
                                                 // No need to send modified events for folders
@@ -4510,7 +4518,7 @@ namespace Cloud.FileMonitor
                                         }
                                     }
                                     // if file or folder does not exist but index exists for current path
-                                    else if (AllPaths.ContainsKey(pathObject))
+                                    else if (newIndexed)
                                     {
                                         if (debugMemory)
                                         {
