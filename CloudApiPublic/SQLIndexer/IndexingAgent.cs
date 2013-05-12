@@ -711,7 +711,19 @@ namespace Cloud.SQLIndexer
             try
             {
                 this.indexedPath = getPath();
-                ThreadPool.QueueUserWorkItem(state => this.BuildIndex((Action<IEnumerable<KeyValuePair<FilePath, FileMetadata>>, IEnumerable<FileChange>>)state),
+                ThreadPool.QueueUserWorkItem(state => 
+                    {
+                        try 
+	                    {
+                            this.BuildIndex((Action<IEnumerable<KeyValuePair<FilePath, FileMetadata>>, IEnumerable<FileChange>>)state);
+	                    }
+	                    catch (Exception ex)
+	                    {
+                            CLError error = new AggregateException("Error building the index", ex);
+                            error.LogErrors(_trace.TraceLocation, _trace.LogErrors);
+                            _trace.writeToLog(1, "IndexingAgent: StartInitialIndexing: ERROR: Exception: Error building the initial index. Msg: <{0}>.", ex.Message);
+	                    }
+                    },
                     indexCompletionCallback);
             }
             catch (Exception ex)
