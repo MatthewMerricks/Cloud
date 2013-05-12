@@ -2164,6 +2164,7 @@ namespace Cloud.FileMonitor
                                         }
 
                                         DependenciesAddedToLaterChange = true;
+                                        breakOutOfEnumeration = true;
                                     }
                                     else if (!DependenciesAddedToLaterChange)
                                     {
@@ -3800,7 +3801,8 @@ namespace Cloud.FileMonitor
                                                 }
                                             };
 
-                                        if (outermostSearch != null)
+                                        if (!rootError
+                                            && outermostSearch != null)
                                         {
                                             for (int folderInRootIdx = 0; folderInRootIdx < outermostSearch.Count; folderInRootIdx++)
                                             {
@@ -3829,7 +3831,7 @@ namespace Cloud.FileMonitor
                                 && changeType == WatcherChangeTypes.Renamed)
                             {
                                 bool rootError;
-                                IList<SQLIndexer.Model.FindFileResult> outermostSearch = SQLIndexer.Model.FindFileResult.RecursiveDirectorySearch(
+                                IList<SQLIndexer.Model.FindFileResult> fireAllModifies = SQLIndexer.Model.FindFileResult.RecursiveDirectorySearch(
                                         GetCurrentPath(), // start search in sync root
                                         (FileAttributes.Hidden // ignore hidden files
                                             | FileAttributes.Offline // ignore offline files (data is not available on them)
@@ -3837,12 +3839,13 @@ namespace Cloud.FileMonitor
                                             | FileAttributes.Temporary), // ignore temporary files
                                         out rootError);
 
-                                if (!rootError)
+                                if (!rootError
+                                    && fireAllModifies != null)
                                 {
                                     var recheckAllAsModifies = DelegateAndDataHolder.Create(
                                         new
                                         {
-                                            currentListToSearch = new GenericHolder<IList<SQLIndexer.Model.FindFileResult>>(outermostSearch),
+                                            currentListToSearch = new GenericHolder<IList<SQLIndexer.Model.FindFileResult>>(fireAllModifies),
                                             watcherChange = new watcher_ChangedDelegate(watcher_Changed),
                                             thisDelegate = new GenericHolder<DelegateAndDataHolder>(null)
                                         },
@@ -3906,17 +3909,18 @@ namespace Cloud.FileMonitor
                         {
                             // Only process file/folder event if it does not exist or if its FileAttributes does not contain any unwanted attributes
                             // Also ensure if it is a file that the file is not a shortcut
-                            if (!exists// file/folder does not exist so no need to check attributes
-                                || ((FileAttributes)0 == // compare bitwise and of FileAttributes and all unwanted attributes to '0'
-                                    ((isFolder // need to grab FileAttributes based on whether change is on a file or folder
-                                    ? folder.Attributes // change is on folder, grab folder attributes
-                                    : file.Attributes) // change is on file, grab file attributes
-                                        & (FileAttributes.Hidden // ignore hidden files
-                                            | FileAttributes.Offline // ignore offline files (data is not available on them)
-                                            | FileAttributes.System // ignore system files
-                                            | FileAttributes.Temporary)) // ignore temporary files
-                                    //RKSCHANGE:&& (isFolder ? true : !FileIsShortcut(file)))) // allow change if it is a folder or if it is a file that is not a shortcut
-                                    ))
+                            if ((!isFolder || changeType != WatcherChangeTypes.Changed) // 
+                                && (!exists// file/folder does not exist so no need to check attributes
+                                    || ((FileAttributes)0 == // compare bitwise and of FileAttributes and all unwanted attributes to '0'
+                                        ((isFolder // need to grab FileAttributes based on whether change is on a file or folder
+                                        ? folder.Attributes // change is on folder, grab folder attributes
+                                        : file.Attributes) // change is on file, grab file attributes
+                                            & (FileAttributes.Hidden // ignore hidden files
+                                                | FileAttributes.Offline // ignore offline files (data is not available on them)
+                                                | FileAttributes.System // ignore system files
+                                                | FileAttributes.Temporary)) // ignore temporary files
+                                        //RKSCHANGE:&& (isFolder ? true : !FileIsShortcut(file)))) // allow change if it is a folder or if it is a file that is not a shortcut
+                                        )))
                             {
                                 DateTime lastTime;
                                 DateTime creationTime;
@@ -3978,7 +3982,7 @@ namespace Cloud.FileMonitor
                                             {
                                                 _trace.writeToMemory(() => _trace.trcFmtStr(2, "MonitorAgent: CheckMetadataAgainstFile: Not folder, and not ignoring folder modifies. Call ReplacementMetadataIfDifferent."));
                                                 // retrieve stored index
-                                                FileMetadata previousMetadata = AllPaths[pathObject];
+                                                FileMetadata previousMetadata = newIndexedValue;
                                                 // compare stored index with values from file info
                                                 FileMetadata newMetadata = ReplacementMetadataIfDifferent(previousMetadata,
                                                     isFolder,
@@ -4060,7 +4064,7 @@ namespace Cloud.FileMonitor
                                             debugEntry.NewChangeType = new WatcherChangeDeleted();
                                         }
 
-                                        FileMetadata existingMetadata = AllPaths[pathObject];
+                                        FileMetadata existingMetadata = newIndexedValue;
 
                                         // queue file change for delete
                                         FileChange toQueue = new FileChange(QueuedChanges)
@@ -4165,7 +4169,7 @@ namespace Cloud.FileMonitor
                                                 || !IgnoreFolderModifies)
                                             {
                                                 // retrieve stored index at current path
-                                                FileMetadata previousMetadata = AllPaths[pathObject];
+                                                FileMetadata previousMetadata = newIndexedValue;
                                                 // compare stored index with values from file info
                                                 FileMetadata newMetadata = ReplacementMetadataIfDifferent(previousMetadata,
                                                     isFolder,
@@ -4264,7 +4268,7 @@ namespace Cloud.FileMonitor
                                                 debugEntry.NewChangeType = new WatcherChangeDeleted();
                                             }
 
-                                            FileMetadata existingMetadata = AllPaths[pathObject];
+                                            FileMetadata existingMetadata = newIndexedValue;
 
                                             // queue file change for delete at new path
                                             FileChange toQueue = new FileChange(QueuedChanges)
@@ -4444,7 +4448,7 @@ namespace Cloud.FileMonitor
                                                     fileLength)
                                             });
 
-                                        FileMetadata existingMetadata = AllPaths[pathObject];
+                                        FileMetadata existingMetadata = newIndexedValue;
 
                                         // queue file change for create for new path
                                         FileChange toQueue = new FileChange(QueuedChanges)
@@ -4474,7 +4478,7 @@ namespace Cloud.FileMonitor
                                                     || !IgnoreFolderModifies)
                                             {
                                                 // retrieve stored index at current path
-                                                FileMetadata previousMetadata = AllPaths[pathObject];
+                                                FileMetadata previousMetadata = newIndexedValue;
                                                 // compare stored index with values from file info
                                                 FileMetadata newMetadata = ReplacementMetadataIfDifferent(previousMetadata,
                                                     isFolder,
@@ -4527,7 +4531,7 @@ namespace Cloud.FileMonitor
                                             debugEntry.NewChangeType = new WatcherChangeDeleted();
                                         }
 
-                                        FileMetadata existingMetadata = AllPaths[pathObject];
+                                        FileMetadata existingMetadata = newIndexedValue;
 
                                         // queue file change for delete
                                         FileChange toQueue = new FileChange(QueuedChanges)
