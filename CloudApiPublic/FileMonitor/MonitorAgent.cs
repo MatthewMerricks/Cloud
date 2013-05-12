@@ -4851,14 +4851,15 @@ namespace Cloud.FileMonitor
                                         else
                                         {
                                             previousChange.Type = FileChangeType.Modified;
-                                            previousChange.Metadata = toChange.Metadata;
+                                            FileMetadata toSetTwice = toChange.Metadata.CopyWithNewServerUidId(previousChange.Metadata.ServerUidId);
+                                            toChange.Metadata = toSetTwice;
+                                            previousChange.Metadata = toSetTwice;
                                             previousChange.SetDelayBackToInitialValue();
 
                                             // delete caused AllPaths to lose metadata fields, but since we're cancelling the delete, they need to be put back
                                             // since all cases from CheckMetadataAgainstFile which led to this creation change assigned Metadata directly from AllPaths, we can change the fields here to propagate back
 
                                             //&&&& new code
-                                            toChange.Metadata = toChange.Metadata.CopyWithNewServerUidId(previousChange.Metadata.ServerUidId);
                                             ChangeAllPathsBase.IndexSet(this, toChange.NewPath, toChange.Metadata);
                                             //toChange.Metadata = toChange.Metadata.CopyWithDifferentRevisionChanger(previousChange.Metadata.RevisionChanger, Helpers.CreateFileChangeRevisionChangedHandler(toChange, _syncData));
                                             toChange.Metadata.MimeType = previousChange.Metadata.MimeType;
