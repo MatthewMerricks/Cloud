@@ -26,6 +26,11 @@ namespace Cloud.Interfaces
         /// <param name="newRootPath">Full path string to directory to sync without any trailing slash (except for drive letter root)</param>
         /// <returns>Returns any error that occurred while wiping the database index</returns>
         CLError WipeIndex(string newRootPath);
+        
+        /// <summary>
+        /// Call this when the location of the sync folder has changed (while syncing is stopped) to update the entire index to all new paths based in the new root folder
+        /// </summary>
+        CLError ChangeSyncRoot(string newSyncRoot);
 
         /// <summary>
         /// Callback from SyncEngine to retrieve events to process, with dependencies assigned;

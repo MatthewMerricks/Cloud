@@ -105,35 +105,30 @@ namespace Cloud.SQLIndexer
         #region public methods
         public CLError CreateNewServerUid(string serverUid, string revision, out long serverUidId, SQLTransactionalBase existingTransaction = null)
         {
-            if (disposed)
+            SQLTransactionalImplementation castTransaction = existingTransaction as SQLTransactionalImplementation;
+            try
             {
-                try
+                if (disposed)
                 {
                     throw new ObjectDisposedException("This IndexingAgent");
                 }
-                catch (Exception ex)
-                {
-                    serverUidId = Helpers.DefaultForType<long>();
-                    return ex;
-                }
-            }
 
-            _trace.writeToLog(9, "IndexingAgent: Entry: CreateNewServerUid: serverUid: {0}. revision: {1}. existingTransaction: {2}.", serverUid, revision, existingTransaction == null ? "null" : "notNull");
+                _trace.writeToLog(9, "IndexingAgent: Entry: CreateNewServerUid: serverUid: {0}. revision: {1}. existingTransaction: {2}.", serverUid, revision, existingTransaction == null ? "null" : "notNull");
 
-            CLError toReturn = null;
-            SQLTransactionalImplementation castTransaction = existingTransaction as SQLTransactionalImplementation;
-            if (existingTransaction != null
-                && castTransaction == null)
-            {
-                try
+                if (existingTransaction != null
+                    && castTransaction == null)
                 {
                     throw new NullReferenceException("existingTransaction is not implemented as private derived type. It should be retrieved via method GetNewTransaction method. Creating a new transaction instead which will be committed immediately.");
                 }
-                catch (Exception ex)
-                {
-                    toReturn += ex;
-                }
             }
+            catch (Exception ex)
+            {
+                serverUidId = Helpers.DefaultForType<long>();
+
+                return ex;
+            }
+
+            CLError toReturn = null;
 
             bool inputTransactionSet = castTransaction != null;
             try
@@ -187,36 +182,30 @@ namespace Cloud.SQLIndexer
 
         public CLError UpdateServerUid(long serverUidId, string serverUid, string revision, out Nullable<long> existingServerUidIdRequiringMerging, SQLTransactionalBase existingTransaction = null)
         {
-            if (disposed)
+            SQLTransactionalImplementation castTransaction = existingTransaction as SQLTransactionalImplementation;
+            try
             {
-                try
+                if (disposed)
                 {
                     throw new ObjectDisposedException("This IndexingAgent");
                 }
-                catch (Exception ex)
-                {
-                    existingServerUidIdRequiringMerging = null;
 
-                    return ex;
-                }
-            }
+                _trace.writeToLog(9, "IndexingAgent: Entry: UpdateServerUid: serverUidId: {0}. serverUid: {1}. revision: {2}. existingTransaction: {3}.", serverUidId, serverUid, revision, existingTransaction == null ? "null" : "notNull");
 
-            _trace.writeToLog(9, "IndexingAgent: Entry: UpdateServerUid: serverUidId: {0}. serverUid: {1}. revision: {2}. existingTransaction: {3}.", serverUidId, serverUid, revision, existingTransaction == null ? "null" : "notNull");
-            CLError toReturn = null;
-            SQLTransactionalImplementation castTransaction = existingTransaction as SQLTransactionalImplementation;
-            if (existingTransaction != null
-                && castTransaction == null)
-            {
-                try
+                if (existingTransaction != null
+                    && castTransaction == null)
                 {
                     throw new NullReferenceException("existingTransaction is not implemented as private derived type. It should be retrieved via method GetNewTransaction method. Creating a new transaction instead which will be committed immediately.");
                 }
-                catch (Exception ex)
-                {
-                    toReturn += ex;
-                }
+            }
+            catch (Exception ex)
+            {
+                existingServerUidIdRequiringMerging = null;
+
+                return ex;
             }
 
+            CLError toReturn = null;
             bool inputTransactionSet = castTransaction != null;
             try
             {
@@ -376,37 +365,31 @@ namespace Cloud.SQLIndexer
 
         public CLError QueryServerUid(long serverUidId, out string serverUid, out string revision, SQLTransactionalBase existingTransaction = null)
         {
-            if (disposed)
+            SQLTransactionalImplementation castTransaction = existingTransaction as SQLTransactionalImplementation;
+            try
             {
-                try
+                if (disposed)
                 {
                     throw new ObjectDisposedException("This IndexingAgent");
                 }
-                catch (Exception ex)
-                {
-                    serverUid = Helpers.DefaultForType<string>();
-                    revision = Helpers.DefaultForType<string>();
 
-                    return ex;
-                }
-            }
+                _trace.writeToLog(9, "IndexingAgent: Entry: QueryServerUid: serverUidId: {0}. existingTransaction: {1}.", serverUidId, existingTransaction == null ? "null" : "notNull");
 
-            _trace.writeToLog(9, "IndexingAgent: Entry: QueryServerUid: serverUidId: {0}. existingTransaction: {1}.", serverUidId, existingTransaction == null ? "null" : "notNull");
-            CLError toReturn = null;
-            SQLTransactionalImplementation castTransaction = existingTransaction as SQLTransactionalImplementation;
-            if (existingTransaction != null
-                && castTransaction == null)
-            {
-                try
+                if (existingTransaction != null
+                    && castTransaction == null)
                 {
                     throw new NullReferenceException("existingTransaction is not implemented as private derived type. It should be retrieved via method GetNewTransaction method. Creating a new transaction instead which will be committed immediately.");
                 }
-                catch (Exception ex)
-                {
-                    toReturn += ex;
-                }
+            }
+            catch (Exception ex)
+            {
+                serverUid = Helpers.DefaultForType<string>();
+                revision = Helpers.DefaultForType<string>();
+
+                return ex;
             }
 
+            CLError toReturn = null;
             bool inputTransactionSet = castTransaction != null;
             try
             {
@@ -476,36 +459,30 @@ namespace Cloud.SQLIndexer
 
         public CLError QueryOrCreateServerUid(string serverUid, out long serverUidId, string revision, SQLTransactionalBase existingTransaction = null)
         {
-            if (disposed)
+            SQLTransactionalImplementation castTransaction = existingTransaction as SQLTransactionalImplementation;
+            try
             {
-                try
+                if (disposed)
                 {
                     throw new ObjectDisposedException("This IndexingAgent");
                 }
-                catch (Exception ex)
-                {
-                    serverUidId = Helpers.DefaultForType<long>();
 
-                    return ex;
-                }
-            }
+                _trace.writeToLog(9, "IndexingAgent: Entry: QueryOrCreateServerUid: serverUid: {0}. revision: {1}. existingTransaction: {2}.", serverUid, revision, existingTransaction == null ? "null" : "notNull");
 
-            _trace.writeToLog(9, "IndexingAgent: Entry: QueryOrCreateServerUid: serverUid: {0}. revision: {1}. existingTransaction: {2}.", serverUid, revision, existingTransaction == null ? "null" : "notNull");
-            CLError toReturn = null;
-            SQLTransactionalImplementation castTransaction = existingTransaction as SQLTransactionalImplementation;
-            if (existingTransaction != null
-                && castTransaction == null)
-            {
-                try
+                if (existingTransaction != null
+                    && castTransaction == null)
                 {
                     throw new NullReferenceException("existingTransaction is not implemented as private derived type. It should be retrieved via method GetNewTransaction method. Creating a new transaction instead which will be committed immediately.");
                 }
-                catch (Exception ex)
-                {
-                    toReturn += ex;
-                }
+            }
+            catch (Exception ex)
+            {
+                serverUidId = Helpers.DefaultForType<long>();
+
+                return ex;
             }
 
+            CLError toReturn = null;
             bool inputTransactionSet = castTransaction != null;
             try
             {
@@ -1278,33 +1255,26 @@ namespace Cloud.SQLIndexer
         }
         private CLError AddEvents(Nullable<long> syncCounter, IEnumerable<FileChange> newEvents, SQLTransactionalBase existingTransaction)
         {
-            if (disposed)
+            SQLTransactionalImplementation castTransaction = existingTransaction as SQLTransactionalImplementation;
+            try
             {
-                try
+                if (disposed)
                 {
                     throw new ObjectDisposedException("This IndexingAgent");
                 }
-                catch (Exception ex)
-                {
-                    return ex;
-                }
-            }
 
-            CLError toReturn = null;
-            SQLTransactionalImplementation castTransaction = existingTransaction as SQLTransactionalImplementation;
-            if (existingTransaction != null
-                && castTransaction == null)
-            {
-                try
+                if (existingTransaction != null
+                    && castTransaction == null)
                 {
                     throw new NullReferenceException("existingTransaction is not implemented as private derived type. It should be retrieved via method GetNewTransaction method. Creating a new transaction instead which will be committed immediately.");
                 }
-                catch (Exception ex)
-                {
-                    toReturn += ex;
-                }
+            }
+            catch (Exception ex)
+            {
+                return ex;
             }
 
+            CLError toReturn = null;
             bool inputTransactionSet = castTransaction != null;
             try
             {
@@ -1770,45 +1740,31 @@ namespace Cloud.SQLIndexer
         /// <returns>Returns an error in removing events, if any</returns>
         public CLError RemoveEventsByIds(IEnumerable<long> eventIds, SQLTransactionalBase existingTransaction = null)
         {
-            if (disposed)
+            SQLTransactionalImplementation castTransaction = existingTransaction as SQLTransactionalImplementation;
+            try
             {
-                try
+                if (disposed)
                 {
                     throw new ObjectDisposedException("This IndexingAgent");
                 }
-                catch (Exception ex)
-                {
-                    return ex;
-                }
-            }
 
-            if (eventIds == null)
-            {
-                try
+                if (eventIds == null)
                 {
                     throw new NullReferenceException("eventIds cannot be null");
                 }
-                catch (Exception ex)
-                {
-                    return ex;
-                }
-            }
 
-            CLError toReturn = null;
-            SQLTransactionalImplementation castTransaction = existingTransaction as SQLTransactionalImplementation;
-            if (existingTransaction != null
-                && castTransaction == null)
-            {
-                try
+                if (existingTransaction != null
+                    && castTransaction == null)
                 {
                     throw new NullReferenceException("existingTransaction is not implemented as private derived type. It should be retrieved via method GetNewTransaction method. Creating a new transaction instead which will be committed immediately.");
                 }
-                catch (Exception ex)
-                {
-                    toReturn += ex;
-                }
+            }
+            catch (Exception ex)
+            {
+                return ex;
             }
 
+            CLError toReturn = null;
             bool inputTransactionSet = castTransaction != null;
             try
             {
@@ -2386,16 +2342,31 @@ namespace Cloud.SQLIndexer
         }
         private CLError MergeEventsIntoDatabase(Nullable<long> syncCounter, IEnumerable<FileChangeMerge> mergeToFroms, SQLTransactionalBase existingTransaction)
         {
-            if (disposed)
+            SQLTransactionalImplementation castTransaction = existingTransaction as SQLTransactionalImplementation;
+            try
             {
-                try
+                if (disposed)
                 {
                     throw new ObjectDisposedException("This IndexingAgent");
                 }
-                catch (Exception ex)
+
+                if (existingTransaction != null
+                    && castTransaction == null)
                 {
-                    return ex;
+                    throw new NullReferenceException("existingTransaction is not implemented as private derived type. It should be retrieved via method GetNewTransaction method. Creating a new transaction instead which will be committed immediately.");
                 }
+
+                if (castTransaction == null)
+                {
+                    ISQLiteConnection indexDB;
+                    castTransaction = new SQLTransactionalImplementation(
+                        indexDB = CreateAndOpenCipherConnection(),
+                        indexDB.BeginTransaction(System.Data.IsolationLevel.Serializable));
+                }
+            }
+            catch (Exception ex)
+            {
+                return ex;
             }
 
             // no point trying to perform multiple simultaneous merges since they will block each other via the SQLite transaction
@@ -2405,20 +2376,6 @@ namespace Cloud.SQLIndexer
             lock (MergeEventsLocker)
             {
                 CLError toReturn = null;
-                SQLTransactionalImplementation castTransaction = existingTransaction as SQLTransactionalImplementation;
-                if (existingTransaction != null
-                    && castTransaction == null)
-                {
-                    try
-                    {
-                        throw new NullReferenceException("existingTransaction is not implemented as private derived type. It should be retrieved via method GetNewTransaction method. Creating a new transaction instead which will be committed immediately.");
-                    }
-                    catch (Exception ex)
-                    {
-                        toReturn += ex;
-                    }
-                }
-
                 bool inputTransactionSet = castTransaction != null;
                 try
                 {
@@ -2482,14 +2439,6 @@ namespace Cloud.SQLIndexer
                                                 else if (currentMerge.MergeTo.NewPath == null)
                                                 {
                                                     throw new NullReferenceException("currentMerge.MergeTo cannot have null NewPath");
-                                                }
-
-                                                if (castTransaction == null)
-                                                {
-                                                    ISQLiteConnection indexDB;
-                                                    castTransaction = new SQLTransactionalImplementation(
-                                                        indexDB = CreateAndOpenCipherConnection(),
-                                                        indexDB.BeginTransaction(System.Data.IsolationLevel.Serializable));
                                                 }
 
                                                 ////possibilities for old event:
@@ -2761,10 +2710,10 @@ namespace Cloud.SQLIndexer
                                                                 " AND FileSystemObjects.ParentFolderId IS NOT NULL" +
                                                                 " LIMIT 1",
                                                             new[]
-                                                            {
-                                                                "Event",
-                                                                "Event.Previous"
-                                                            },
+                                                        {
+                                                            "Event",
+                                                            "Event.Previous"
+                                                        },
                                                             castTransaction.sqlTransaction,
                                                             Helpers.EnumerateSingleItem((long)toUpdate.EventId))
                                                         .SingleOrDefault();
@@ -3580,8 +3529,9 @@ namespace Cloud.SQLIndexer
             FileInfo dbInfo;
             bool dbNeedsDeletion;
             bool dbNeedsCreation;
+            string notUsedExistingFullPath;
 
-            CheckDatabaseFileState(createEvenIfExisting, out dbInfo, out dbNeedsDeletion, out dbNeedsCreation, indexDBLocation, syncbox, out rootFileSystemObjectId, out rootFileSystemObjectServerUidId);
+            CheckDatabaseFileState(createEvenIfExisting, out dbInfo, out dbNeedsDeletion, out dbNeedsCreation, indexDBLocation, out notUsedExistingFullPath, syncbox, out rootFileSystemObjectId, out rootFileSystemObjectServerUidId);
 
             if (dbNeedsDeletion)
             {
@@ -3777,13 +3727,13 @@ namespace Cloud.SQLIndexer
             return dbNeedsCreation;
         }
 
-        public static void CheckDatabaseFileState(bool createEvenIfExisting, out FileInfo dbInfo, out bool dbNeedsDeletion, out bool dbNeedsCreation, string indexDBLocation)
+        public static void CheckDatabaseFileState(bool createEvenIfExisting, out FileInfo dbInfo, out bool dbNeedsDeletion, out bool dbNeedsCreation, string indexDBLocation, out string rootObjectCalculatedFullPath)
         {
             long doNotUse;
-            CheckDatabaseFileState(createEvenIfExisting, out dbInfo, out dbNeedsDeletion, out dbNeedsCreation, indexDBLocation, syncbox: null, rootObjectId: out doNotUse, rootObjectServerUidId: out doNotUse);
+            CheckDatabaseFileState(createEvenIfExisting, out dbInfo, out dbNeedsDeletion, out dbNeedsCreation, indexDBLocation, out rootObjectCalculatedFullPath, syncbox: null, rootObjectId: out doNotUse, rootObjectServerUidId: out doNotUse);
         }
 
-        private static void CheckDatabaseFileState(bool createEvenIfExisting, out FileInfo dbInfo, out bool dbNeedsDeletion, out bool dbNeedsCreation, string indexDBLocation, CLSyncbox syncbox, out long rootObjectId, out long rootObjectServerUidId)
+        private static void CheckDatabaseFileState(bool createEvenIfExisting, out FileInfo dbInfo, out bool dbNeedsDeletion, out bool dbNeedsCreation, string indexDBLocation, out string rootObjectCalculatedFullPath, CLSyncbox syncbox, out long rootObjectId, out long rootObjectServerUidId)
         {
             dbInfo = new FileInfo(indexDBLocation);
 
@@ -3791,6 +3741,7 @@ namespace Cloud.SQLIndexer
             {
                 if (createEvenIfExisting)
                 {
+                    rootObjectCalculatedFullPath = Helpers.DefaultForType<string>();
                     rootObjectId = Helpers.DefaultForType<long>();
                     rootObjectServerUidId = Helpers.DefaultForType<long>();
 
@@ -3818,6 +3769,7 @@ namespace Cloud.SQLIndexer
                                 // database was never finalized (version is changed from 1 to [current database version] via the last initialization script, which identifies successful creation)
                                 // the very first implementation of this database will be version 2 so we can compare on less than 2
 
+                                rootObjectCalculatedFullPath = Helpers.DefaultForType<string>();
                                 rootObjectId = Helpers.DefaultForType<long>();
                                 rootObjectServerUidId = Helpers.DefaultForType<long>();
 
@@ -3859,6 +3811,7 @@ namespace Cloud.SQLIndexer
                                     throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Unable to find FileSystemObjects row for root object");
                                 }
 
+                                rootObjectCalculatedFullPath = rootObject.CalculatedFullPath;
                                 rootObjectId = rootObject.FileSystemObjectId;
                                 rootObjectServerUidId = rootObject.ServerUidId;
 
@@ -3880,6 +3833,7 @@ namespace Cloud.SQLIndexer
                                 syncbox.CopiedSettings.DeviceId);
                         }
 
+                        rootObjectCalculatedFullPath = Helpers.DefaultForType<string>();
                         rootObjectId = Helpers.DefaultForType<long>();
                         rootObjectServerUidId = Helpers.DefaultForType<long>();
 
@@ -3899,6 +3853,7 @@ namespace Cloud.SQLIndexer
                         DeviceId: syncbox.CopiedSettings.DeviceId);
                 }
 
+                rootObjectCalculatedFullPath = Helpers.DefaultForType<string>();
                 rootObjectId = Helpers.DefaultForType<long>();
                 rootObjectServerUidId = Helpers.DefaultForType<long>();
 

@@ -135,9 +135,18 @@ namespace Cloud.Static
         /// <returns>The full path of the sync database file.</returns>
         public static string CalculateDatabasePath(CLSyncbox syncbox)
         {
-            return (string.IsNullOrEmpty(syncbox.CopiedSettings.DatabaseFolder)
-                ? Helpers.GetDefaultDatabasePath(syncbox.CopiedSettings.DeviceId, syncbox.SyncboxId) + "\\" + CLDefinitions.kSyncDatabaseFileName
-                : syncbox.CopiedSettings.DatabaseFolder + "\\" + CLDefinitions.kSyncDatabaseFileName);
+            return CalculateDatabasePath(
+                syncbox.CopiedSettings.DatabaseFolder,
+                syncbox.CopiedSettings.DeviceId,
+                syncbox.SyncboxId);
+        }
+        internal static string CalculateDatabasePath(string settingsDatabaseFolder,
+            string settingsDeviceId,
+            long syncboxId)
+        {
+            return (string.IsNullOrEmpty(settingsDatabaseFolder)
+                ? Helpers.GetDefaultDatabasePath(settingsDeviceId, syncboxId) + "\\" + CLDefinitions.kSyncDatabaseFileName
+                : settingsDatabaseFolder + "\\" + CLDefinitions.kSyncDatabaseFileName);
         }
 
         /// <summary>

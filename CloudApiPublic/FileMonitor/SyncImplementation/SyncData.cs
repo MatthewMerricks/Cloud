@@ -71,6 +71,11 @@ namespace Cloud.FileMonitor.SyncImplementation
             return this.Indexer.WipeIndex(newRootPath);
         }
 
+        public CLError ChangeSyncRoot(string newSyncRoot)
+        {
+            return this.Indexer.ChangeSyncRoot(newSyncRoot);
+        }
+
         /// <summary>
         /// The SyncData constructor.  Specify the file monitor agent and
         /// the indexing agent to use.
