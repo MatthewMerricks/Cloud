@@ -3506,6 +3506,7 @@ namespace Cloud.FileMonitor
                 }
             }
         }
+        delegate void watcher_ChangedDelegate(object sender, FileSystemEventArgs e, bool folderOnly);
 
         /// <summary>
         /// Refactored processing logic for watcher_Changed eventhandler so it can process on a seperate reader thread (thus clearing out the FileSystemWatcher buffer quicker)
@@ -3700,6 +3701,7 @@ namespace Cloud.FileMonitor
                         // move is accomplished by changing the input param references so we now have a renamed change with their required oldpath\newpath combination
                         if (isFolder)
                         {
+                            bool changeTypeStartedAsNotRename = changeType != WatcherChangeTypes.Renamed;
                             switch (changeType)
                             {
                                 case WatcherChangeTypes.Created:
@@ -3745,13 +3747,13 @@ namespace Cloud.FileMonitor
                                         bool rootError;
                                         // horribly inefficient (does a full index of every folder on disk)...but I found no way to do a WMI query on winmgmts:\\.\root\cimv2\Win32_Directory for all recursive folders within the sync root with a matching CreationDate
                                         IList<SQLIndexer.Model.FindFileResult> outermostSearch = SQLIndexer.Model.FindFileResult.RecursiveDirectorySearch(
-                                                GetCurrentPath(), // start search in sync root
-                                                (FileAttributes.Hidden // ignore hidden files
-                                                    | FileAttributes.Offline // ignore offline files (data is not available on them)
-                                                    | FileAttributes.System // ignore system files
-                                                    | FileAttributes.Temporary), // ignore temporary files
-                                                out rootError,
-                                                returnFoldersOnly: true);
+                                            GetCurrentPath(), // start search in sync root
+                                            (FileAttributes.Hidden // ignore hidden files
+                                                | FileAttributes.Offline // ignore offline files (data is not available on them)
+                                                | FileAttributes.System // ignore system files
+                                                | FileAttributes.Temporary), // ignore temporary files
+                                            out rootError,
+                                            returnFoldersOnly: true);
 
                                         GenericHolder<SQLIndexer.Model.FindFileResult> firstFoundMatchingTime = new GenericHolder<SQLIndexer.Model.FindFileResult>();
 
@@ -3814,6 +3816,50 @@ namespace Cloud.FileMonitor
                                         }
                                     }
                                     break;
+                            }
+                            if (changeTypeStartedAsNotRename
+                                && changeType == WatcherChangeTypes.Renamed)
+                            {
+                                bool rootError;
+                                IList<SQLIndexer.Model.FindFileResult> outermostSearch = SQLIndexer.Model.FindFileResult.RecursiveDirectorySearch(
+                                        GetCurrentPath(), // start search in sync root
+                                        (FileAttributes.Hidden // ignore hidden files
+                                            | FileAttributes.Offline // ignore offline files (data is not available on them)
+                                            | FileAttributes.System // ignore system files
+                                            | FileAttributes.Temporary), // ignore temporary files
+                                        out rootError);
+
+                                var recheckAllAsModifies = DelegateAndDataHolder.Create(
+                                    new
+                                    {
+                                        currentListToSearch = new GenericHolder<IList<SQLIndexer.Model.FindFileResult>>(outermostSearch),
+                                        watcherChange = new watcher_ChangedDelegate(watcher_Changed),
+                                        thisDelegate = new GenericHolder<DelegateAndDataHolder>(null)
+                                    },
+                                    (Data, errorToAccumulate) =>
+                                    {
+                                        IList<SQLIndexer.Model.FindFileResult> currentIterations = Data.currentListToSearch.Value;
+                                        for (int currentIterationIdx = 0; currentIterationIdx < currentIterations.Count; currentIterationIdx++)
+                                        {
+                                            SQLIndexer.Model.FindFileResult currentResult = currentIterations[currentIterationIdx];
+
+                                            Data.watcherChange(/* sender: */ null,
+                                                new FileSystemEventArgs(WatcherChangeTypes.Changed,
+                                                    currentResult.Parent.FullName,
+                                                    currentResult.Name),
+                                                folderOnly: false);
+
+                                            if (currentResult.Children != null)
+                                            {
+                                                Data.currentListToSearch.Value = currentResult.Children;
+                                                Data.thisDelegate.Value.Process();
+                                            }
+                                        }
+                                    },
+                                    null);
+                                recheckAllAsModifies.TypedData.thisDelegate.Value = recheckAllAsModifies;
+
+                                recheckAllAsModifies.Process();
                             }
                         }
 
