@@ -2805,6 +2805,11 @@ namespace Cloud.FileMonitor
                             out PulledChanges,
                             originalQueuedChangesIndexesByInMemoryIdsWrapped);
 
+                        if (assignmentError != null)
+                        {
+                            throw new AggregateException("Error on inner AssignDependencies", assignmentError.GrabExceptions());
+                        }
+
                         List<PossiblyStreamableFileChange> OutputChangesList = new List<PossiblyStreamableFileChange>();
                         List<PossiblyPreexistingFileChangeInError> OutputFailuresList = new List<PossiblyPreexistingFileChangeInError>();
 

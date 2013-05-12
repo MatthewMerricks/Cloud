@@ -106,6 +106,7 @@ namespace Cloud.SQLIndexer
         public CLError CreateNewServerUid(string serverUid, string revision, out long serverUidId, SQLTransactionalBase existingTransaction = null)
         {
             SQLTransactionalImplementation castTransaction = existingTransaction as SQLTransactionalImplementation;
+            bool inputTransactionSet = castTransaction != null;
             try
             {
                 if (disposed)
@@ -130,7 +131,6 @@ namespace Cloud.SQLIndexer
 
             CLError toReturn = null;
 
-            bool inputTransactionSet = castTransaction != null;
             try
             {
                 if (castTransaction == null)
@@ -183,6 +183,7 @@ namespace Cloud.SQLIndexer
         public CLError UpdateServerUid(long serverUidId, string serverUid, string revision, out Nullable<long> existingServerUidIdRequiringMerging, SQLTransactionalBase existingTransaction = null)
         {
             SQLTransactionalImplementation castTransaction = existingTransaction as SQLTransactionalImplementation;
+            bool inputTransactionSet = castTransaction != null;
             try
             {
                 if (disposed)
@@ -206,7 +207,6 @@ namespace Cloud.SQLIndexer
             }
 
             CLError toReturn = null;
-            bool inputTransactionSet = castTransaction != null;
             try
             {
                 if (castTransaction == null)
@@ -366,6 +366,7 @@ namespace Cloud.SQLIndexer
         public CLError QueryServerUid(long serverUidId, out string serverUid, out string revision, SQLTransactionalBase existingTransaction = null)
         {
             SQLTransactionalImplementation castTransaction = existingTransaction as SQLTransactionalImplementation;
+            bool inputTransactionSet = castTransaction != null;
             try
             {
                 if (disposed)
@@ -390,7 +391,6 @@ namespace Cloud.SQLIndexer
             }
 
             CLError toReturn = null;
-            bool inputTransactionSet = castTransaction != null;
             try
             {
                 if (castTransaction == null)
@@ -460,6 +460,7 @@ namespace Cloud.SQLIndexer
         public CLError QueryOrCreateServerUid(string serverUid, out long serverUidId, string revision, SQLTransactionalBase existingTransaction = null)
         {
             SQLTransactionalImplementation castTransaction = existingTransaction as SQLTransactionalImplementation;
+            bool inputTransactionSet = castTransaction != null;
             try
             {
                 if (disposed)
@@ -483,7 +484,6 @@ namespace Cloud.SQLIndexer
             }
 
             CLError toReturn = null;
-            bool inputTransactionSet = castTransaction != null;
             try
             {
                 if (castTransaction == null)
@@ -1256,6 +1256,7 @@ namespace Cloud.SQLIndexer
         private CLError AddEvents(Nullable<long> syncCounter, IEnumerable<FileChange> newEvents, SQLTransactionalBase existingTransaction)
         {
             SQLTransactionalImplementation castTransaction = existingTransaction as SQLTransactionalImplementation;
+            bool inputTransactionSet = castTransaction != null;
             try
             {
                 if (disposed)
@@ -1275,7 +1276,6 @@ namespace Cloud.SQLIndexer
             }
 
             CLError toReturn = null;
-            bool inputTransactionSet = castTransaction != null;
             try
             {
                 // Ensure input parameter is set
@@ -1741,6 +1741,7 @@ namespace Cloud.SQLIndexer
         public CLError RemoveEventsByIds(IEnumerable<long> eventIds, SQLTransactionalBase existingTransaction = null)
         {
             SQLTransactionalImplementation castTransaction = existingTransaction as SQLTransactionalImplementation;
+            bool inputTransactionSet = castTransaction != null;
             try
             {
                 if (disposed)
@@ -1765,7 +1766,6 @@ namespace Cloud.SQLIndexer
             }
 
             CLError toReturn = null;
-            bool inputTransactionSet = castTransaction != null;
             try
             {
                 if (castTransaction == null)
@@ -2343,6 +2343,7 @@ namespace Cloud.SQLIndexer
         private CLError MergeEventsIntoDatabase(Nullable<long> syncCounter, IEnumerable<FileChangeMerge> mergeToFroms, SQLTransactionalBase existingTransaction)
         {
             SQLTransactionalImplementation castTransaction = existingTransaction as SQLTransactionalImplementation;
+            bool inputTransactionSet = castTransaction != null;
             try
             {
                 if (disposed)
@@ -2376,7 +2377,6 @@ namespace Cloud.SQLIndexer
             lock (MergeEventsLocker)
             {
                 CLError toReturn = null;
-                bool inputTransactionSet = castTransaction != null;
                 try
                 {
                     if (mergeToFroms != null)
@@ -2997,6 +2997,7 @@ namespace Cloud.SQLIndexer
 
             CLError toReturn = null;
             SQLTransactionalImplementation castTransaction = existingTransaction as SQLTransactionalImplementation;
+            bool inputTransactionSet = castTransaction != null;
             if (existingTransaction != null
                 && castTransaction == null)
             {
@@ -3010,7 +3011,6 @@ namespace Cloud.SQLIndexer
                 }
             }
 
-            bool inputTransactionSet = castTransaction != null;
             FileChangeType storeExistingChangeType;
             string storeNewPath;
             string storeOldPath;

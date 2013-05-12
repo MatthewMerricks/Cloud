@@ -1732,6 +1732,11 @@ namespace Cloud.Sync
                                 out nullChangeFoundInFileSystemMonitor,
                                 Data.commonThisEngine.FailedOutChanges);
 
+                            if (errorToAccumulate.Value != null)
+                            {
+                                throw new AggregateException("Error grabbing output changes from file monitor", errorToAccumulate.Value.GrabExceptions());
+                            }
+
                             Data.commonOutputChanges.Value = outputChanges;
                             Data.commonDequeuedFailuresExcludingNulls.Value = outputChangesInError;
 
