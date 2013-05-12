@@ -714,8 +714,8 @@ namespace Cloud.SQLIndexer
                 ThreadPool.QueueUserWorkItem(state => 
                     {
                         try 
-	                    {	        
-                            this.BuildIndex((Action<IEnumerable<KeyValuePair<FilePath, FileMetadata>>, IEnumerable<FileChange>>)state)
+	                    {
+                            this.BuildIndex((Action<IEnumerable<KeyValuePair<FilePath, FileMetadata>>, IEnumerable<FileChange>>)state);
 	                    }
 	                    catch (Exception ex)
 	                    {
