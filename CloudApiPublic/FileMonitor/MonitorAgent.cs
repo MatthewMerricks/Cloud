@@ -3829,37 +3829,40 @@ namespace Cloud.FileMonitor
                                             | FileAttributes.Temporary), // ignore temporary files
                                         out rootError);
 
-                                var recheckAllAsModifies = DelegateAndDataHolder.Create(
-                                    new
-                                    {
-                                        currentListToSearch = new GenericHolder<IList<SQLIndexer.Model.FindFileResult>>(outermostSearch),
-                                        watcherChange = new watcher_ChangedDelegate(watcher_Changed),
-                                        thisDelegate = new GenericHolder<DelegateAndDataHolder>(null)
-                                    },
-                                    (Data, errorToAccumulate) =>
-                                    {
-                                        IList<SQLIndexer.Model.FindFileResult> currentIterations = Data.currentListToSearch.Value;
-                                        for (int currentIterationIdx = 0; currentIterationIdx < currentIterations.Count; currentIterationIdx++)
+                                if (!rootError)
+                                {
+                                    var recheckAllAsModifies = DelegateAndDataHolder.Create(
+                                        new
                                         {
-                                            SQLIndexer.Model.FindFileResult currentResult = currentIterations[currentIterationIdx];
-
-                                            Data.watcherChange(/* sender: */ null,
-                                                new FileSystemEventArgs(WatcherChangeTypes.Changed,
-                                                    currentResult.Parent.FullName,
-                                                    currentResult.Name),
-                                                folderOnly: false);
-
-                                            if (currentResult.Children != null)
+                                            currentListToSearch = new GenericHolder<IList<SQLIndexer.Model.FindFileResult>>(outermostSearch),
+                                            watcherChange = new watcher_ChangedDelegate(watcher_Changed),
+                                            thisDelegate = new GenericHolder<DelegateAndDataHolder>(null)
+                                        },
+                                        (Data, errorToAccumulate) =>
+                                        {
+                                            IList<SQLIndexer.Model.FindFileResult> currentIterations = Data.currentListToSearch.Value;
+                                            for (int currentIterationIdx = 0; currentIterationIdx < currentIterations.Count; currentIterationIdx++)
                                             {
-                                                Data.currentListToSearch.Value = currentResult.Children;
-                                                Data.thisDelegate.Value.Process();
-                                            }
-                                        }
-                                    },
-                                    null);
-                                recheckAllAsModifies.TypedData.thisDelegate.Value = recheckAllAsModifies;
+                                                SQLIndexer.Model.FindFileResult currentResult = currentIterations[currentIterationIdx];
 
-                                recheckAllAsModifies.Process();
+                                                Data.watcherChange(/* sender: */ null,
+                                                    new FileSystemEventArgs(WatcherChangeTypes.Changed,
+                                                        currentResult.Parent.FullName,
+                                                        currentResult.Name),
+                                                    folderOnly: false);
+
+                                                if (currentResult.Children != null)
+                                                {
+                                                    Data.currentListToSearch.Value = currentResult.Children;
+                                                    Data.thisDelegate.Value.Process();
+                                                }
+                                            }
+                                        },
+                                        null);
+                                    recheckAllAsModifies.TypedData.thisDelegate.Value = recheckAllAsModifies;
+
+                                    recheckAllAsModifies.Process();
+                                }
                             }
                         }
 
