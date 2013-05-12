@@ -1500,7 +1500,6 @@ namespace SampleLiveSync.ViewModels
                     Properties.Settings.Default.ShouldResetSync = true;
                     Properties.Settings.Default.Save();
                 }
-
             }
             catch (Exception ex)
             {

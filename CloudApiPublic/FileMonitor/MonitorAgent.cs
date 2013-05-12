@@ -2657,7 +2657,30 @@ namespace Cloud.FileMonitor
                             .Concat((failedOutChanges ?? Enumerable.Empty<FileChange>()).Select(currentFailedOut => new KeyValuePair<FileChangeSource, KeyValuePair<bool, FileChange>>(FileChangeSource.FailedOutList, new KeyValuePair<bool,FileChange>(false, currentFailedOut))))
                             .OrderBy(eventOrdering => eventOrdering.Value.Value.EventId)
                             .Concat(QueuedChanges
-                                .Concat(QueuedChangesForceProcessing.Select(forcedToProcess => new KeyValuePair<FilePath, FileChange>(/* FilePath */ null, forcedToProcess)))
+                                .Where(queuedChange => // just in case there was a leftover change in one of the queues and the event probably already continued to processing
+                                    {
+                                        if (queuedChange.Value.EventId == 0)
+                                        {
+                                            return true;
+                                        }
+
+                                        QueuedChanges.Remove(queuedChange.Key); // cleanup the orphaned change
+
+                                        return false;
+                                    })
+                                .Concat(QueuedChangesForceProcessing
+                                    .Where(forcedToProcess => // just in case there was a leftover change in one of the queues and the event probably already continued to processing
+                                        {
+                                            if (forcedToProcess.EventId == 0)
+                                            {
+                                                return true;
+                                            }
+
+                                            QueuedChangesForceProcessing.Remove(forcedToProcess); // cleanup the orphaned change
+
+                                            return false;
+                                        })
+                                    .Select(forcedToProcess => new KeyValuePair<FilePath, FileChange>(/* FilePath */ null, forcedToProcess)))
                                 .OrderBy(memoryIdOrdering => memoryIdOrdering.Value.InMemoryId)
                                 .Select(queuedChange => reselectQueuedChangeAndAddToMapping(queuedChange, originalQueuedChangesIndexesByInMemoryIds)))
                             .Select(currentFileChange =>
@@ -5408,7 +5431,16 @@ namespace Cloud.FileMonitor
                 && QueuedChanges.TryGetValue(originalNewPath, out queuedChangeAtPath)
                 && queuedChangeAtPath == toRemove)
             {
-                return QueuedChanges.Remove(originalNewPath);
+                // just in case the change is also in the ForceProcessing HashSet (should be an error), try to remove from both and succeed if either removes successfully
+
+                bool toReturn = QueuedChanges.Remove(originalNewPath);
+
+                if (QueuedChangesForceProcessing.Remove(toRemove)) // just in case 
+                {
+                    toReturn = true;
+                }
+
+                return toReturn;
             }
             else
             {
