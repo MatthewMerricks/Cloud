@@ -40,7 +40,7 @@ namespace Cloud.SQLIndexer.Model
                 return Parent.FullName + "\\" + Name;
             }
         }
-        private IFileResultParent Parent { get; set; }
+        public IFileResultParent Parent { get; private set; }
 
         public static IList<FindFileResult> RecursiveDirectorySearch(string fullDirectoryPath, FileAttributes toIgnore, out bool rootNotFound, bool returnFoldersOnly = false)
         {

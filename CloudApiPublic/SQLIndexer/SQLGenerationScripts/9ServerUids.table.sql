@@ -8,11 +8,10 @@
 
 CREATE TABLE ServerUids
 (
-    ServerUidId INTEGER NOT NULL,
+    ServerUidId INTEGER PRIMARY KEY AUTOINCREMENT,
     ServerUid TEXT CONSTRAINT CHK_ServerUids_ServerUid_TEXT
       CHECK (ServerUid IS NULL OR TYPEOF(ServerUid) = 'text'),
     Revision TEXT CONSTRAINT CHK_ServerUids_Revision_TEXT
       CHECK (Revision IS NULL OR TYPEOF(Revision) = 'text'),
-    PRIMARY KEY (ServerUidId ASC),
     UNIQUE (ServerUid)
 );

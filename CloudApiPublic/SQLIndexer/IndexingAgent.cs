@@ -226,6 +226,16 @@ namespace Cloud.SQLIndexer
                         selectParameters: Helpers.EnumerateSingleItem(serverUid))
                     .FirstOrDefault();
 
+                lock (migratedServerUidIds)
+                {
+                    long nextServerUidId;
+                    while (migratedServerUidIds.TryGetValue(serverUidId, out nextServerUidId))
+                    {
+                        serverUidId = nextServerUidId;
+                        _trace.writeToLog(9, "IndexingAgent: UpdateServerUid: Migrated forwards: serverUidId: {0}.", serverUidId);
+                    }
+                }
+
                 if (existingUid != null
                     && existingUid.ServerUidId == serverUidId
                     && existingUid.Revision == revision)
@@ -408,6 +418,7 @@ namespace Cloud.SQLIndexer
                     while (migratedServerUidIds.TryGetValue(serverUidId, out nextServerUidId))
                     {
                         serverUidId = nextServerUidId;
+                        _trace.writeToLog(9, "IndexingAgent: QueryServerUid: Migrated forwards: serverUidId: {0}.", serverUidId);
                     }
 
                     retrievedUid = SqlAccessor<SqlServerUid>.SelectResultSet(
@@ -880,11 +891,19 @@ namespace Cloud.SQLIndexer
                         indexDB,
                         "SELECT FileSystemObjects.CalculatedFullPath " +
                             "FROM FileSystemObjects " +
-                            "INNER JOIN (SELECT ? AS ExcludedEventId) ConstantJoin " + // <-- parameter 1
+                            "LEFT OUTER JOIN " +
+                            "(" +
+                                "SELECT InnerObjects.EventOrder " +
+                                "FROM FileSystemObjects InnerObjects " +
+                                "WHERE InnerObjects.EventId IS NOT NULL " +
+                                "AND InnerObjects.EventOrder IS NOT NULL " +
+                                "AND InnerObjects.EventId = ? " + // <-- parameter 1
+                                "LIMIT 1" +
+                            ") ConstantJoin " +
                             "LEFT OUTER JOIN Events ON FileSystemObjects.EventId = Events.EventId " +
                             "INNER JOIN ServerUids ON FileSystemObjects.ServerUidId = ServerUids.ServerUidId " +
                             "WHERE ServerUids.ServerUid = ? " + // <-- parameter 2
-                            "AND (ConstantJoin.ExcludedEventId IS NULL OR FileSystemObjects.EventId IS NULL OR ConstantJoin.ExcludedEventId > FileSystemObjects.EventId) " +
+                            "AND (ConstantJoin.EventOrder IS NULL OR FileSystemObjects.EventId IS NULL OR ConstantJoin.EventOrder > FileSystemObjects.EventOrder) " +
                             "ORDER BY " +
                             "CASE WHEN FileSystemObjects.EventId IS NOT NULL " +
                             "AND Events.FileChangeTypeEnumId = " + changeEnumsBackward[FileChangeType.Renamed].ToString() +

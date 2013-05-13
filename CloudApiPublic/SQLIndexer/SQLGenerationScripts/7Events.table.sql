@@ -8,7 +8,7 @@
 
 CREATE TABLE Events
 (
-    EventId INTEGER NOT NULL,
+    EventId INTEGER PRIMARY KEY AUTOINCREMENT,
     FileChangeTypeCategoryId INTEGER NOT NULL DEFAULT 0 CONSTRAINT CHK_Events_FileChangeTypeCategoryId_Zero
       CHECK (FileChangeTypeCategoryId = 0),
     FileChangeTypeEnumId INTEGER NOT NULL,
@@ -19,9 +19,8 @@ CREATE TABLE Events
     GroupOrder INTEGER CONSTRAINT CHK_Events_GroupOrder_INTEGER
       CHECK (GroupOrder IS NULL OR TYPEOF(GroupOrder) = 'integer'),
     PreviousId INTEGER,
-	FileDownloadPendingRevision TEXT CONSTRAINT CHK_Events_FileDownloadPendingRevision_TEXT
+    FileDownloadPendingRevision TEXT CONSTRAINT CHK_Events_FileDownloadPendingRevision_TEXT
       CHECK (FileDownloadPendingRevision IS NULL OR TYPEOF(FileDownloadPendingRevision) = 'text'),
-    PRIMARY KEY (EventId ASC),
     CONSTRAINT IDX_Events_GroupOrder_GroupId
       UNIQUE (GroupOrder ASC, GroupId ASC),
     CONSTRAINT FK_Events_FileChangeTypeEnumId_FileChangeTypeCategoryId__Enums_EnumId_EnumCategoryId
