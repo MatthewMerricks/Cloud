@@ -10024,6 +10024,14 @@ namespace Cloud.Sync
                                 }
                                 catch (Exception ex)
                                 {
+                                    // if the event from the server cannot be matched to a known FileChange which can be repeated,
+                                    // then we must bubble to exception to prevent a new "sid" from being written which would lose the current change
+                                    if (currentEvent.EventId == null
+                                        && currentEvent.Header.EventId == null)
+                                    {
+                                        throw new NullReferenceException("EventId cannot be null to retry a sync change", ex);
+                                    }
+
                                     // wrap the current FileChange so it can be added to the changes in error
                                     PossiblyStreamableAndPossiblyChangedFileChangeWithError addErrorChange = new PossiblyStreamableAndPossiblyChangedFileChangeWithError(resultOrder++,
                                         currentChange != null, // update database if a change exists
