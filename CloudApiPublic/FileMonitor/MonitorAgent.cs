@@ -4916,6 +4916,8 @@ namespace Cloud.FileMonitor
                                             previousChange.Metadata = toSetTwice;
                                             previousChange.SetDelayBackToInitialValue();
 
+                                            FileChange.SwapInMemoryIds(previousChange, toChange);
+
                                             // delete caused AllPaths to lose metadata fields, but since we're cancelling the delete, they need to be put back
                                             // since all cases from CheckMetadataAgainstFile which led to this creation change assigned Metadata directly from AllPaths, we can change the fields here to propagate back
 
@@ -4958,6 +4960,8 @@ namespace Cloud.FileMonitor
                                         previousChange.Type = FileChangeType.Deleted;
                                         previousChange.Metadata = toChange.Metadata;
                                         previousChange.SetDelayBackToInitialValue();
+
+                                        FileChange.SwapInMemoryIds(previousChange, toChange);
                                         break;
                                     case FileChangeType.Renamed:
                                         previousChange.NewPath = previousChange.OldPath;
@@ -4967,6 +4971,8 @@ namespace Cloud.FileMonitor
                                         previousChange.SetDelayBackToInitialValue();
                                         // remove the old/new path pair for a rename
                                         OldToNewPathRenames.Remove(previousChange.NewPath);
+
+                                        FileChange.SwapInMemoryIds(previousChange, toChange);
                                         break;
                                 }
                                 break;
@@ -4976,6 +4982,8 @@ namespace Cloud.FileMonitor
                                     case FileChangeType.Created:
                                         previousChange.Metadata = toChange.Metadata;
                                         previousChange.SetDelayBackToInitialValue();
+
+                                        FileChange.SwapInMemoryIds(previousChange, toChange);
                                         break;
                                     case FileChangeType.Deleted:
                                         // error condition
@@ -4983,6 +4991,8 @@ namespace Cloud.FileMonitor
                                     case FileChangeType.Modified:
                                         previousChange.Metadata = toChange.Metadata;
                                         previousChange.SetDelayBackToInitialValue();
+
+                                        FileChange.SwapInMemoryIds(previousChange, toChange);
                                         break;
                                     case FileChangeType.Renamed:
                                         // updating a rename with new metadata will not cause the server to process both modification and rename,
@@ -5025,12 +5035,16 @@ namespace Cloud.FileMonitor
                                             previousChange.NewPath = toChange.OldPath;
                                             previousChange.Metadata = toChange.Metadata;
                                             previousChange.SetDelayBackToInitialValue();
+
+                                            FileChange.SwapInMemoryIds(previousChange, toChange);
                                         }
                                         else
                                         {
                                             previousChange.Metadata = toChange.Metadata;
                                             previousChange.Type = FileChangeType.Modified;
                                             previousChange.SetDelayBackToInitialValue();
+
+                                            FileChange.SwapInMemoryIds(previousChange, toChange);
 
                                             FileChange oldLocationDelete = new FileChange(QueuedChanges)
                                                 {
@@ -5054,6 +5068,8 @@ namespace Cloud.FileMonitor
                                                 previousOldPathChange.Metadata = toChange.Metadata;
                                                 previousOldPathChange.Type = FileChangeType.Deleted;
                                                 previousOldPathChange.SetDelayBackToInitialValue();
+
+                                                FileChange.SwapInMemoryIds(previousOldPathChange, toChange);
                                             }
                                             else
                                             {
@@ -5138,6 +5154,8 @@ namespace Cloud.FileMonitor
                     {
                         matchedFileChangeForRename.SetDelayBackToInitialValue();
 
+                        FileChange.SwapInMemoryIds(matchedFileChangeForRename, toChange);
+
                         // matchedFileChangeForRename was converted into a rename and needs to be placed at the new path and possibly have its old path index removed
                         QueuedChanges.Add(matchedFileChangeForRename.NewPath,
                             matchedFileChangeForRename);
@@ -5173,6 +5191,9 @@ namespace Cloud.FileMonitor
                     ChangeAllPathsBase.IndexSet(this, matchedFileChangeForRename.NewPath, matchedFileChangeForRename.Metadata); // no reason to try rename since the delete should have wiped the metadata from AllPaths
 
                     matchedFileChangeForRename.SetDelayBackToInitialValue();
+
+                    FileChange.SwapInMemoryIds(matchedFileChangeForRename, toChange);
+
                     // add old/new path pairs for recursive rename processing
                     OldToNewPathRenames[matchedFileChangeForRename.OldPath] = matchedFileChangeForRename.NewPath;
 

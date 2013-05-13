@@ -101,6 +101,17 @@ namespace Cloud.Model
         // the current FileChange's incremented id
         internal long InMemoryId { get; private set; }
 
+        internal static void SwapInMemoryIds(FileChange firstChange, FileChange secondChange)
+        {
+            if (firstChange != null
+                && secondChange != null)
+            {
+                long storeFirstId = firstChange.InMemoryId;
+                firstChange.InMemoryId = secondChange.InMemoryId;
+                secondChange.InMemoryId = storeFirstId;
+            }
+        }
+
         /// <summary>
         /// Boolean set when already indexed events are requeued in the FileMonitor,
         /// defaults to false
