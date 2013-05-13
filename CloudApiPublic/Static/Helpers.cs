@@ -855,41 +855,52 @@ namespace Cloud.Static
             try
             {
                 System.Reflection.Assembly entryAssembly = System.Reflection.Assembly.GetEntryAssembly();
-                foreach (System.Reflection.AssemblyProductAttribute currentProductAttribute in
-                    entryAssembly.GetCustomAttributes(typeof(System.Reflection.AssemblyProductAttribute), false).OfType<System.Reflection.AssemblyProductAttribute>())
+
+                if (entryAssembly != null)
                 {
-                    if (!string.IsNullOrWhiteSpace(currentProductAttribute.Product))
+                    foreach (System.Reflection.AssemblyProductAttribute currentProductAttribute in
+                        entryAssembly.GetCustomAttributes(typeof(System.Reflection.AssemblyProductAttribute), false).OfType<System.Reflection.AssemblyProductAttribute>())
                     {
-                        return currentProductAttribute.Product;
+                        if (!string.IsNullOrWhiteSpace(currentProductAttribute.Product))
+                        {
+                            return currentProductAttribute.Product;
+                        }
                     }
-                }
-                foreach (System.Reflection.AssemblyTitleAttribute currentTitleAttribute in
-                    entryAssembly.GetCustomAttributes(typeof(System.Reflection.AssemblyTitleAttribute), false).OfType<System.Reflection.AssemblyTitleAttribute>())
-                {
-                    if (!string.IsNullOrWhiteSpace(currentTitleAttribute.Title))
+                    foreach (System.Reflection.AssemblyTitleAttribute currentTitleAttribute in
+                        entryAssembly.GetCustomAttributes(typeof(System.Reflection.AssemblyTitleAttribute), false).OfType<System.Reflection.AssemblyTitleAttribute>())
                     {
-                        return currentTitleAttribute.Title;
+                        if (!string.IsNullOrWhiteSpace(currentTitleAttribute.Title))
+                        {
+                            return currentTitleAttribute.Title;
+                        }
                     }
+                    return entryAssembly.GetName().Name;
                 }
-                return entryAssembly.GetName().Name;
             }
             catch
             {
-                try
+            }
+
+            try
+            {
+                // The calling thread may be from a native COM application.  If that is the case, the GetEntryAssembly() method throws an exception.
+                // Get the application name via another method.
+                // PInvoke:
+                //    StringBuilder exePath = new StringBuilder(1024);
+                //    int exePathLen = NativeMethods.GetModuleFileName(IntPtr.Zero, exePath, exePath.Capacity);
+                System.Diagnostics.Process currentProcess = System.Diagnostics.Process.GetCurrentProcess();
+
+                if (currentProcess != null)
                 {
-                    // The calling thread may be from a native COM application.  If that is the case, the GetEntryAssembly() method throws an exception.
-                    // Get the application name via another method.
-                    // PInvoke:
-                    //    StringBuilder exePath = new StringBuilder(1024);
-                    //    int exePathLen = NativeMethods.GetModuleFileName(IntPtr.Zero, exePath, exePath.Capacity);
-                    return System.Diagnostics.Process.GetCurrentProcess().ProcessName;
-                }
-                catch
-                {
-                    // The PInvoke method failed too.  Return a placeholder string.
-                    return "PossiblyUnmanagedCode";
+                    return currentProcess.ProcessName;
                 }
             }
+            catch
+            {
+            }
+
+            // The PInvoke method failed too.  Return a placeholder string.
+            return "PossiblyUnmanagedCode";
         }
 
         /// <summary>
@@ -900,19 +911,36 @@ namespace Cloud.Static
         {
             try
             {
-                return System.Reflection.Assembly.GetEntryAssembly().GetName().Version.ToString();
+                System.Reflection.Assembly entryAssembly = System.Reflection.Assembly.GetEntryAssembly();
+                    
+                if (entryAssembly != null)
+                {
+                    entryAssembly.GetName().Version.ToString();
+                }
             }
             catch
             {
-                try
+            }
+            
+            try
+            {
+                System.Diagnostics.Process thisProcess = System.Diagnostics.Process.GetCurrentProcess();
+
+                string startInfoName;
+                if (string.IsNullOrEmpty(startInfoName = thisProcess.StartInfo.FileName))
                 {
-                    return System.Diagnostics.FileVersionInfo.GetVersionInfo(System.Diagnostics.Process.GetCurrentProcess().StartInfo.FileName).FileVersion;
+                    return System.Diagnostics.FileVersionInfo.GetVersionInfo(thisProcess.MainModule.FileName).FileVersion;
                 }
-                catch
+                else
                 {
-                    return "0.0.0.0";
+                    return System.Diagnostics.FileVersionInfo.GetVersionInfo(startInfoName).FileVersion;
                 }
             }
+            catch
+            {
+            }
+            
+            return "0.0.0.0";
         }
 
         /// <summary>
