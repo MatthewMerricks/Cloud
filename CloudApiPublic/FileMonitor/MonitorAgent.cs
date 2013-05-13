@@ -2938,25 +2938,26 @@ namespace Cloud.FileMonitor
                                             {
                                                 try
                                                 {
-                                                    if (MaxUploadFileSize != -1) // there is a max upload file size threshold
-                                                    {
-                                                        // Note: file size can change during hashing since the file is open with share write
-                                                        long initialFileSize = new FileInfo(CurrentDependencyTree.DependencyFileChange.NewPath.ToString()).Length;
-
-                                                        CurrentDependencyTree.DependencyFileChange.FileIsTooBig = (MaxUploadFileSize < initialFileSize);
-
-                                                        if (CurrentDependencyTree.DependencyFileChange.FileIsTooBig)
-                                                        {
-                                                            String maxUploadFileSizeText = MaxUploadFileSize > (1024 * 1024) ? String.Format("{0}M", MaxUploadFileSize / (1024 * 1024)) :
-                                                                                            MaxUploadFileSize > 1024 ? String.Format("{0}K", MaxUploadFileSize / 1024) :
-                                                                                            String.Format("{0} bytes", MaxUploadFileSize);
-                                                            throw new AggregateException(String.Format("Files bigger than {0} are not yet supported; File: {1}, Size: {2}",
-                                                                                                        MaxUploadFileSize, CurrentDependencyTree.DependencyFileChange.NewPath.ToString(), initialFileSize));
-                                                        }
-                                                    }
-
+                                                    // had to extend try to outside of the max size calculation because it uses a FileInfo on the possibly non-existing file
                                                     try
                                                     {
+                                                        if (MaxUploadFileSize != -1) // there is a max upload file size threshold
+                                                        {
+                                                            // Note: file size can change during hashing since the file is open with share write
+                                                            long initialFileSize = new FileInfo(CurrentDependencyTree.DependencyFileChange.NewPath.ToString()).Length;
+
+                                                            CurrentDependencyTree.DependencyFileChange.FileIsTooBig = (MaxUploadFileSize < initialFileSize);
+
+                                                            if (CurrentDependencyTree.DependencyFileChange.FileIsTooBig)
+                                                            {
+                                                                String maxUploadFileSizeText = MaxUploadFileSize > (1024 * 1024) ? String.Format("{0}M", MaxUploadFileSize / (1024 * 1024)) :
+                                                                                                MaxUploadFileSize > 1024 ? String.Format("{0}K", MaxUploadFileSize / 1024) :
+                                                                                                String.Format("{0} bytes", MaxUploadFileSize);
+                                                                throw new AggregateException(String.Format("Files bigger than {0} are not yet supported; File: {1}, Size: {2}",
+                                                                                                            MaxUploadFileSize, CurrentDependencyTree.DependencyFileChange.NewPath.ToString(), initialFileSize));
+                                                            }
+                                                        }
+
                                                         OutputStream = new FileStream(CurrentDependencyTree.DependencyFileChange.NewPath.ToString(), FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Write | FileShare.Delete);
                                                     }
                                                     catch (FileNotFoundException)
@@ -5322,6 +5323,13 @@ namespace Cloud.FileMonitor
 
                                 senderToAdd = null;
                             }
+
+                            mergeAll.Sort(new Comparison<FileChange>((earlierChange, laterChange) =>
+                                {
+                                    return ((earlierChange.InMemoryId > laterChange.InMemoryId)
+                                        ? 1
+                                        : -1);
+                                }));
 
                             foreach (FileChange nextMerge in mergeAll)
                             {
