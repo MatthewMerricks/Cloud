@@ -34,7 +34,10 @@ namespace Cloud.Static
                 {
                     TextReader textStream = new StreamReader(body, Encoding.UTF8);
                     bodyString = textStream.ReadToEnd();
-                    body.Seek(0, SeekOrigin.Begin);
+                    if (body is MemoryStream) // case for when we copied the http stream for logging, it needs to be reset so it can be used again for deserialization
+                    {
+                        body.Seek(0, SeekOrigin.Begin);
+                    }
                 }
                 catch
                 {
@@ -958,11 +961,10 @@ namespace Cloud.Static
 
                             currentArray[currentIndex] = new TraceFileChange()
                             {
-                                ServerUid = currentChange.Metadata.ServerUid,
                                 EventId = currentChange.EventId,
                                 EventIdSpecified = currentChange.EventId != 0,
-                                RevisionChangerHashCode = currentChange.Metadata.RevisionChanger.GetHashCode(),
-                                NewPath = (currentChange.NewPath == null ? "{Possibly cancelled upload or download}" : currentChange.NewPath.ToString()),
+                                ServerUidId = currentChange.Metadata.ServerUidId,
+                                NewPath = currentChange.NewPath.ToString(),
                                 OldPath = (currentChange.OldPath == null ? null : currentChange.OldPath.ToString()),
                                 IsFolder = currentChange.Metadata.HashableProperties.IsFolder,
                                 IsShare = currentChange.Metadata.IsShare ?? false,
@@ -982,7 +984,6 @@ namespace Cloud.Static
                                 SizeSpecified = currentChange.Metadata.HashableProperties.Size != null,
                                 IsSyncFrom = IsSyncFromBySyncDirection(currentChange.Direction),
                                 MD5 = PullMD5(currentChange),
-                                Revision = currentChange.Metadata.Revision,
                                 StorageKey = currentChange.Metadata.StorageKey,
                                 Dependencies = innerTraceArray
                             };
@@ -1011,6 +1012,30 @@ namespace Cloud.Static
                         fillIndexInTraceFileChangeArray(fillIndexInTraceFileChangeArray, traceChangesArray, outerChangeIndex, changesArray[outerChangeIndex]);
                     }
                 }
+
+                WriteLogEntry(newEntry, traceLocation, UserDeviceId, SyncboxId);
+            }
+            catch
+            {
+            }
+        }
+
+        public static void LogServerUid(string traceLocation, string UserDeviceId, Nullable<long> SyncboxId, long serverUidId, string serverUid, string revision)
+        {
+            try
+            {
+                Entry newEntry = new ServerUidRevisionEntry()
+                {
+                    Type = (int)TraceType.ServerUid,
+                    Time = DateTime.UtcNow,
+                    ProcessId = System.Diagnostics.Process.GetCurrentProcess().Id,
+                    ThreadId = System.Threading.Thread.CurrentThread.ManagedThreadId,
+                    SyncboxId = SyncboxId ?? 0,
+                    SyncboxIdSpecified = SyncboxId != null,
+                    ServerUidId = serverUidId,
+                    ServerUid = serverUid,
+                    Revision = revision
+                };
 
                 WriteLogEntry(newEntry, traceLocation, UserDeviceId, SyncboxId);
             }

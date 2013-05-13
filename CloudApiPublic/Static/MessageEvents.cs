@@ -110,8 +110,25 @@ namespace Cloud.Static
             {
                 Helpers.HaltAllOnUnrecoverableError();
 
-                CLTrace.Instance.writeToLog(1, "Helpers: HaltAllOnUnrecoverableError: ERROR: Sync engine halted.  Msg: {0}. Error: {1}. Stack trace: {2}.", 
-                    Message, Error == null ? "null" : Error.ErrorType.ToString(), Environment.StackTrace);
+                string stack;
+                try
+                {
+                    stack = (new System.Diagnostics.StackTrace(fNeedFileInfo: true)).ToString();
+                }
+                catch (Exception ex)
+                {
+                    try
+                    {
+                        stack = ex.StackTrace;
+                    }
+                    catch
+                    {
+                        stack = "Unable to retrieve StackTrace";
+                    }
+                }
+
+                CLTrace.Instance.writeToLog(1, "Helpers: HaltAllOnUnrecoverableError: ERROR: Sync engine halted.  Msg: {0}. Error: {1}. Stack trace: {2}.",
+                    Message, Error == null ? "null" : Error.ErrorType.ToString(), stack);
             }
 
             EventHandledLevel toReturn;

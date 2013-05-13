@@ -121,7 +121,7 @@ namespace SampleLiveSync.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("Communication, FileChangeFlow")]
+        [global::System.Configuration.DefaultSettingValueAttribute("Communication, FileChangeFlow, ServerUid")]
         public global::Cloud.Static.TraceType TraceType {
             get {
                 return ((global::Cloud.Static.TraceType)(this["TraceType"]));

@@ -31,18 +31,31 @@ namespace Cloud.Model
         /// <summary>
         /// Current path associated with the file system event
         /// </summary>
-        public FilePath NewPath
+        public FilePath NewPath { get; set; }
+
+        internal DownloadCancelledState DownloadCancelled
         {
             get
             {
-                return _newPath;
-            }
-            set
-            {
-                _newPath = value;
+                return _downloadCancelled;
             }
         }
-        private volatile FilePath _newPath = null;
+        internal void CancelDownload(bool terminateImmediatelyBeforeDownloadFinishes)
+        {
+            if (_downloadCancelled == DownloadCancelledState.NotCancelled)
+            {
+                _downloadCancelled = (terminateImmediatelyBeforeDownloadFinishes
+                    ? DownloadCancelledState.CancelledAndStopDownloading
+                    : DownloadCancelledState.CancelledButContinueDownloading);
+            }
+        }
+        private DownloadCancelledState _downloadCancelled = DownloadCancelledState.NotCancelled;
+        internal enum DownloadCancelledState : byte
+        {
+            NotCancelled = 0,
+            CancelledAndStopDownloading = 1,
+            CancelledButContinueDownloading = 2
+        }
 
         ///// <summary>
         ///// Server-mapped path of file system object for use in communication to and from the server
@@ -61,6 +74,7 @@ namespace Cloud.Model
         /// </summary>
         public FileChangeType Type { get; set; }
         internal bool PreviouslyModified { get; set; }
+        internal string FileDownloadPendingRevision { get; set; }
         /// <summary>
         /// Event ID
         /// </summary>

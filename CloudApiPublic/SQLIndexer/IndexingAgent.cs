@@ -36,7 +36,12 @@ namespace Cloud.SQLIndexer
         // store the path that represents the root of indexing
         private string indexedPath = null;
         private readonly CLSyncbox syncbox;
+        private readonly bool copyDatabaseBetweenChanges;
         private long rootFileSystemObjectId = 0;
+        private long rootFileSystemObjectServerUidId = 0;
+        private bool disposed = false;
+
+        private readonly Dictionary<long, long> migratedServerUidIds = new Dictionary<long, long>();
 
         #region SQLite
         private readonly string indexDBLocation;
@@ -48,6 +53,8 @@ namespace Cloud.SQLIndexer
         // will be filled in during startup
         private static Dictionary<long, FileChangeType> changeEnums = null;
         private static Dictionary<FileChangeType, long> changeEnumsBackward = null;
+
+        private readonly GenericHolder<int> dbCopyNumber = new GenericHolder<int>(0);
 
         // category in SQL that represents the Enumeration type FileChangeType
         private static long changeCategoryId = 0;
@@ -70,13 +77,13 @@ namespace Cloud.SQLIndexer
         /// <param name="newIndexer">Output indexing agent</param>
         /// <param name="syncbox">Syncbox to index</param>
         /// <returns>Returns the error that occurred during creation, if any</returns>
-        public static CLError CreateNewAndInitialize(out IndexingAgent newIndexer, CLSyncbox syncbox)
+        public static CLError CreateNewAndInitialize(out IndexingAgent newIndexer, CLSyncbox syncbox, bool copyDatabaseBetweenChanges = false)
         {
             // Fill in output with constructor
             IndexingAgent newAgent;
             try
             {
-                newIndexer = newAgent = new IndexingAgent(syncbox); // this double instance setting is required for some reason to prevent a "does not exist in the current context" compiler error
+                newIndexer = newAgent = new IndexingAgent(syncbox, copyDatabaseBetweenChanges); // this double instance setting is required for some reason to prevent a "does not exist in the current context" compiler error
             }
             catch (Exception ex)
             {
@@ -96,6 +103,476 @@ namespace Cloud.SQLIndexer
         }
 
         #region public methods
+        public CLError CreateNewServerUid(string serverUid, string revision, out long serverUidId, SQLTransactionalBase existingTransaction = null)
+        {
+            SQLTransactionalImplementation castTransaction = existingTransaction as SQLTransactionalImplementation;
+            bool inputTransactionSet = castTransaction != null;
+            try
+            {
+                if (disposed)
+                {
+                    throw new ObjectDisposedException("This IndexingAgent");
+                }
+
+                _trace.writeToLog(9, "IndexingAgent: Entry: CreateNewServerUid: serverUid: {0}. revision: {1}. existingTransaction: {2}.", serverUid, revision, existingTransaction == null ? "null" : "notNull");
+
+                if (existingTransaction != null
+                    && castTransaction == null)
+                {
+                    throw new NullReferenceException("existingTransaction is not implemented as private derived type. It should be retrieved via method GetNewTransaction method. Creating a new transaction instead which will be committed immediately.");
+                }
+            }
+            catch (Exception ex)
+            {
+                serverUidId = Helpers.DefaultForType<long>();
+
+                return ex;
+            }
+
+            CLError toReturn = null;
+
+            try
+            {
+                if (castTransaction == null)
+                {
+                    ISQLiteConnection indexDB;
+                    castTransaction = new SQLTransactionalImplementation(
+                        indexDB = CreateAndOpenCipherConnection(),
+                        indexDB.BeginTransaction(System.Data.IsolationLevel.Serializable));
+                }
+
+                SqlServerUid newUid = new SqlServerUid()
+                {
+                    ServerUid = serverUid,
+                    Revision = revision
+                };
+
+                serverUidId = SqlAccessor<SqlServerUid>.InsertRow<long>(
+                    castTransaction.sqlConnection,
+                    newUid,
+                    transaction: castTransaction.sqlTransaction);
+
+                if (!inputTransactionSet
+                    && castTransaction != null)
+                {
+                    castTransaction.Commit();
+                }
+                _trace.writeToLog(9, "IndexingAgent: CreateNewServerUid: Return serverUidId: {0}.", serverUidId);
+                if ((syncbox.CopiedSettings.TraceType & TraceType.ServerUid) == TraceType.ServerUid)
+                {
+                    ComTrace.LogServerUid(syncbox.CopiedSettings.TraceLocation, syncbox.CopiedSettings.DeviceId, syncbox.SyncboxId, serverUidId, serverUid, revision);
+                }
+            }
+            catch (Exception ex)
+            {
+                serverUidId = Helpers.DefaultForType<long>();
+
+                toReturn += ex;
+            }
+            finally
+            {
+                if (!inputTransactionSet
+                    && castTransaction != null)
+                {
+                    castTransaction.Dispose();
+                }
+            }
+            return toReturn;
+        }
+
+        public CLError UpdateServerUid(long serverUidId, string serverUid, string revision, out Nullable<long> existingServerUidIdRequiringMerging, SQLTransactionalBase existingTransaction = null)
+        {
+            SQLTransactionalImplementation castTransaction = existingTransaction as SQLTransactionalImplementation;
+            bool inputTransactionSet = castTransaction != null;
+            try
+            {
+                if (disposed)
+                {
+                    throw new ObjectDisposedException("This IndexingAgent");
+                }
+
+                _trace.writeToLog(9, "IndexingAgent: Entry: UpdateServerUid: serverUidId: {0}. serverUid: {1}. revision: {2}. existingTransaction: {3}.", serverUidId, serverUid, revision, existingTransaction == null ? "null" : "notNull");
+
+                if (existingTransaction != null
+                    && castTransaction == null)
+                {
+                    throw new NullReferenceException("existingTransaction is not implemented as private derived type. It should be retrieved via method GetNewTransaction method. Creating a new transaction instead which will be committed immediately.");
+                }
+            }
+            catch (Exception ex)
+            {
+                existingServerUidIdRequiringMerging = null;
+
+                return ex;
+            }
+
+            CLError toReturn = null;
+            try
+            {
+                if (castTransaction == null)
+                {
+                    ISQLiteConnection indexDB;
+                    castTransaction = new SQLTransactionalImplementation(
+                        indexDB = CreateAndOpenCipherConnection(),
+                        indexDB.BeginTransaction(System.Data.IsolationLevel.Serializable));
+                }
+
+                SqlServerUid existingUid = SqlAccessor<SqlServerUid>.SelectResultSet(
+                        castTransaction.sqlConnection,
+                        "SELECT * " +
+                        "FROM ServerUids " +
+                        "WHERE ServerUids.ServerUid = ?", // <-- parameter 1
+                        transaction: castTransaction.sqlTransaction,
+                        selectParameters: Helpers.EnumerateSingleItem(serverUid))
+                    .FirstOrDefault();
+
+                lock (migratedServerUidIds)
+                {
+                    long nextServerUidId;
+                    while (migratedServerUidIds.TryGetValue(serverUidId, out nextServerUidId))
+                    {
+                        serverUidId = nextServerUidId;
+                        _trace.writeToLog(9, "IndexingAgent: UpdateServerUid: Migrated forwards: serverUidId: {0}.", serverUidId);
+                    }
+                }
+
+                if (existingUid != null
+                    && existingUid.ServerUidId == serverUidId
+                    && existingUid.Revision == revision)
+                {
+                    // no op, row already exists and matches current data
+
+                    existingServerUidIdRequiringMerging = null;
+                }
+                else
+                {
+                    Nullable<long> previousMigrationTarget = null;
+                    bool migratedExistingUid = false;
+
+                    try
+                    {
+                        if (existingUid == null
+                            || existingUid.ServerUidId == serverUidId)
+                        {
+                            // either serverUid does not already exist in the database and can be added,
+                            // or row matches current row and revision needs to be updated
+
+                            // in this condition, only the existing row will be updated (after else condition below)
+
+                            existingServerUidIdRequiringMerging = null;
+                        }
+                        else
+                        {
+                            // another row already is using the same ServerUid,
+                            // need to move all rows forward to use this ServerUidId and remove the other one and update the current ServerUidId to the latest values
+
+                            existingServerUidIdRequiringMerging = existingUid.ServerUidId;
+
+                            lock (migratedServerUidIds)
+                            {
+                                long grabExistingTarget;
+                                if (migratedServerUidIds.TryGetValue(existingUid.ServerUidId, out grabExistingTarget))
+                                {
+                                    previousMigrationTarget = grabExistingTarget;
+                                    migratedServerUidIds[existingUid.ServerUidId] = serverUidId;
+                                }
+                                else
+                                {
+                                    migratedServerUidIds.Add(existingUid.ServerUidId, serverUidId);
+                                }
+                            }
+                            migratedExistingUid = true;
+
+                            using (ISQLiteCommand moveServerUidIds = castTransaction.sqlConnection.CreateCommand())
+                            {
+                                moveServerUidIds.Transaction = castTransaction.sqlTransaction;
+
+                                moveServerUidIds.CommandText = "UPDATE FileSystemObjects " +
+                                    "SET ServerUidId = ? " + // <-- parameter 1
+                                    "WHERE ServerUidId = ?;" + // <-- parameter 2
+                                    "DELETE FROM ServerUids " +
+                                    "WHERE ServerUidId = ?;"; // <-- paramter 3 (equivalent to parameter 2)
+
+                                ISQLiteParameter uidIdToKeep = moveServerUidIds.CreateParameter();
+                                uidIdToKeep.Value = serverUidId;
+                                moveServerUidIds.Parameters.Add(uidIdToKeep);
+
+                                ISQLiteParameter uidIdToRemoveOne = moveServerUidIds.CreateParameter();
+                                uidIdToRemoveOne.Value = existingUid.ServerUidId;
+                                moveServerUidIds.Parameters.Add(uidIdToRemoveOne);
+
+                                ISQLiteParameter uidIdToRemoveTwo = moveServerUidIds.CreateParameter();
+                                uidIdToRemoveTwo.Value = existingUid.ServerUidId;
+                                moveServerUidIds.Parameters.Add(uidIdToRemoveTwo);
+
+                                moveServerUidIds.ExecuteNonQuery();
+                            }
+                        }
+
+                        SqlServerUid updateUid = new SqlServerUid()
+                        {
+                            ServerUidId = serverUidId,
+                            ServerUid = serverUid,
+                            Revision = revision
+                        };
+
+                        if (!SqlAccessor<SqlServerUid>.UpdateRow(
+                            castTransaction.sqlConnection,
+                            updateUid,
+                            castTransaction.sqlTransaction))
+                        {
+                            throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, string.Format("Unable to update server \"uid\" and revision for id {0}", serverUidId));
+                        }
+
+                        if (!inputTransactionSet
+                            && castTransaction != null)
+                        {
+                            castTransaction.Commit();
+                        }
+                    }
+                    catch
+                    {
+                        if (migratedExistingUid)
+                        {
+                            lock (migratedServerUidIds)
+                            {
+                                if (previousMigrationTarget == null)
+                                {
+                                    migratedServerUidIds.Remove(existingUid.ServerUidId);
+                                }
+                                else
+                                {
+                                    migratedServerUidIds[existingUid.ServerUidId] = ((long)previousMigrationTarget);
+                                }
+                            }
+                        }
+
+                        throw;
+                    }
+
+                    if ((syncbox.CopiedSettings.TraceType & TraceType.ServerUid) == TraceType.ServerUid)
+                    {
+                        ComTrace.LogServerUid(syncbox.CopiedSettings.TraceLocation, syncbox.CopiedSettings.DeviceId, syncbox.SyncboxId, serverUidId, serverUid, revision);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                existingServerUidIdRequiringMerging = null;
+
+                toReturn += ex;
+            }
+            finally
+            {
+                if (!inputTransactionSet
+                    && castTransaction != null)
+                {
+                    castTransaction.Dispose();
+                }
+            }
+            return toReturn;
+        }
+
+        public CLError QueryServerUid(long serverUidId, out string serverUid, out string revision, SQLTransactionalBase existingTransaction = null)
+        {
+            SQLTransactionalImplementation castTransaction = existingTransaction as SQLTransactionalImplementation;
+            bool inputTransactionSet = castTransaction != null;
+            try
+            {
+                if (disposed)
+                {
+                    throw new ObjectDisposedException("This IndexingAgent");
+                }
+
+                _trace.writeToLog(9, "IndexingAgent: Entry: QueryServerUid: serverUidId: {0}. existingTransaction: {1}.", serverUidId, existingTransaction == null ? "null" : "notNull");
+
+                if (existingTransaction != null
+                    && castTransaction == null)
+                {
+                    throw new NullReferenceException("existingTransaction is not implemented as private derived type. It should be retrieved via method GetNewTransaction method. Creating a new transaction instead which will be committed immediately.");
+                }
+            }
+            catch (Exception ex)
+            {
+                serverUid = Helpers.DefaultForType<string>();
+                revision = Helpers.DefaultForType<string>();
+
+                return ex;
+            }
+
+            CLError toReturn = null;
+            try
+            {
+                if (castTransaction == null)
+                {
+                    ISQLiteConnection indexDB;
+                    castTransaction = new SQLTransactionalImplementation(
+                        indexDB = CreateAndOpenCipherConnection(),
+                        indexDB.BeginTransaction(System.Data.IsolationLevel.Serializable));
+                }
+
+                SqlServerUid retrievedUid;
+                lock (migratedServerUidIds)
+                {
+                    long nextServerUidId;
+                    while (migratedServerUidIds.TryGetValue(serverUidId, out nextServerUidId))
+                    {
+                        serverUidId = nextServerUidId;
+                        _trace.writeToLog(9, "IndexingAgent: QueryServerUid: Migrated forwards: serverUidId: {0}.", serverUidId);
+                    }
+
+                    retrievedUid = SqlAccessor<SqlServerUid>.SelectResultSet(
+                            castTransaction.sqlConnection,
+                            "SELECT * " +
+                                "FROM ServerUids " +
+                                "WHERE ServerUids.ServerUidId = ?",
+                            transaction: castTransaction.sqlTransaction,
+                            selectParameters: Helpers.EnumerateSingleItem(serverUidId))
+                        .FirstOrDefault();
+                }
+
+                if (retrievedUid == null)
+                {
+                    throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, string.Format("Unable to retrieve ServerUid with id {0}", serverUidId));
+                }
+
+                serverUid = retrievedUid.ServerUid;
+                revision = retrievedUid.Revision;
+
+                if (!inputTransactionSet
+                    && castTransaction != null)
+                {
+                    castTransaction.Commit();
+                }
+                _trace.writeToLog(9, "IndexingAgent: QueryServerUid: Return: serverUid: {0}. revision: {1}.", serverUid, revision);
+                if ((syncbox.CopiedSettings.TraceType & TraceType.ServerUid) == TraceType.ServerUid)
+                {
+                    ComTrace.LogServerUid(syncbox.CopiedSettings.TraceLocation, syncbox.CopiedSettings.DeviceId, syncbox.SyncboxId, serverUidId, serverUid, revision);
+                }
+            }
+            catch (Exception ex)
+            {
+                serverUid = Helpers.DefaultForType<string>();
+                revision = Helpers.DefaultForType<string>();
+
+                toReturn += ex;
+            }
+            finally
+            {
+                if (!inputTransactionSet
+                    && castTransaction != null)
+                {
+                    castTransaction.Dispose();
+                }
+            }
+            return toReturn;
+        }
+
+        public CLError QueryOrCreateServerUid(string serverUid, out long serverUidId, string revision, bool syncFromFileModify, SQLTransactionalBase existingTransaction = null)
+        {
+            SQLTransactionalImplementation castTransaction = existingTransaction as SQLTransactionalImplementation;
+            bool inputTransactionSet = castTransaction != null;
+            try
+            {
+                if (disposed)
+                {
+                    throw new ObjectDisposedException("This IndexingAgent");
+                }
+
+                _trace.writeToLog(9, "IndexingAgent: Entry: QueryOrCreateServerUid: serverUid: {0}. revision: {1}. syncFromFileModify {2}. existingTransaction: {3}.", serverUid, revision, syncFromFileModify, existingTransaction == null ? "null" : "notNull");
+
+                if (existingTransaction != null
+                    && castTransaction == null)
+                {
+                    throw new NullReferenceException("existingTransaction is not implemented as private derived type. It should be retrieved via method GetNewTransaction method. Creating a new transaction instead which will be committed immediately.");
+                }
+            }
+            catch (Exception ex)
+            {
+                serverUidId = Helpers.DefaultForType<long>();
+
+                return ex;
+            }
+
+            CLError toReturn = null;
+            try
+            {
+                if (castTransaction == null)
+                {
+                    ISQLiteConnection indexDB;
+                    castTransaction = new SQLTransactionalImplementation(
+                        indexDB = CreateAndOpenCipherConnection(),
+                        indexDB.BeginTransaction(System.Data.IsolationLevel.Serializable));
+                }
+
+                SqlServerUid retrievedUid = SqlAccessor<SqlServerUid>.SelectResultSet(
+                        castTransaction.sqlConnection,
+                        "SELECT * " +
+                            "FROM ServerUids " +
+                            "WHERE ServerUids.ServerUid = ?",
+                        transaction: castTransaction.sqlTransaction,
+                        selectParameters: Helpers.EnumerateSingleItem(serverUid))
+                    .FirstOrDefault();
+
+                if (retrievedUid == null)
+                {
+                    retrievedUid = new SqlServerUid()
+                    {
+                        ServerUid = serverUid,
+                        Revision = revision
+                    };
+
+                    serverUidId = SqlAccessor<SqlServerUid>.InsertRow<long>(
+                        castTransaction.sqlConnection,
+                        retrievedUid,
+                        transaction: castTransaction.sqlTransaction);
+                }
+                else
+                {
+                    serverUidId = retrievedUid.ServerUidId;
+
+                    if (!syncFromFileModify
+                        && revision != retrievedUid.Revision)
+                    {
+                        retrievedUid.Revision = revision;
+
+                        if (!SqlAccessor<SqlServerUid>.UpdateRow(castTransaction.sqlConnection,
+                            retrievedUid,
+                            castTransaction.sqlTransaction))
+                        {
+                            throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Unable to update ServerUid with different revision");
+                        }
+                    }
+                }
+
+                if (!inputTransactionSet
+                    && castTransaction != null)
+                {
+                    castTransaction.Commit();
+                }
+                _trace.writeToLog(9, "IndexingAgent: QueryOrCreateServerUid: Return: serverUidid: {0}.", serverUidId);
+                if ((syncbox.CopiedSettings.TraceType & TraceType.ServerUid) == TraceType.ServerUid)
+                {
+                    ComTrace.LogServerUid(syncbox.CopiedSettings.TraceLocation, syncbox.CopiedSettings.DeviceId, syncbox.SyncboxId, serverUidId, serverUid, revision);
+                }
+            }
+            catch (Exception ex)
+            {
+                serverUidId = Helpers.DefaultForType<long>();
+
+                toReturn += ex;
+            }
+            finally
+            {
+                if (!inputTransactionSet
+                    && castTransaction != null)
+                {
+                    castTransaction.Dispose();
+                }
+            }
+            return toReturn;
+        }
+
         /// <summary>
         /// Queries database by eventId to return latest metadata and path as a FileChange and whether or not the event is still pending
         /// </summary>
@@ -106,6 +583,22 @@ namespace Cloud.SQLIndexer
         /// <returns>Returns any error which occurred querying the database, if any</returns>
         public CLError QueryFileChangeByEventId(long eventId, out FileChange queryResult, out bool isPending, out FileChangeQueryStatus status)
         {
+            if (disposed)
+            {
+                try
+                {
+                    throw new ObjectDisposedException("This IndexingAgent");
+                }
+                catch (Exception ex)
+                {
+                    queryResult = Helpers.DefaultForType<FileChange>();
+                    isPending = Helpers.DefaultForType<bool>();
+                    status = FileChangeQueryStatus.ErrorDisposed;
+
+                    return ex;
+                }
+            }
+
             try
             {
                 if (eventId <= 0)
@@ -153,7 +646,7 @@ namespace Cloud.SQLIndexer
                         {
                             Direction = (existingEvent.SyncFrom ? SyncDirection.From : SyncDirection.To),
                             EventId = existingEvent.EventId,
-                            Metadata = new FileMetadata()
+                            Metadata = new FileMetadata(existingEvent.FileSystemObject.ServerUidId)
                             {
                                 EventTime = new DateTime(existingEvent.FileSystemObject.EventTimeUTCTicks, DateTimeKind.Utc),
                                 HashableProperties = new FileMetadataHashableProperties(
@@ -170,8 +663,6 @@ namespace Cloud.SQLIndexer
                                 Permissions = (existingEvent.FileSystemObject.Permissions == null
                                     ? (Nullable<POSIXPermissions>)null
                                     : (POSIXPermissions)((int)existingEvent.FileSystemObject.Permissions)),
-                                Revision = existingEvent.FileSystemObject.Revision,
-                                ServerUid = existingEvent.FileSystemObject.ServerUid,
                                 StorageKey = existingEvent.FileSystemObject.StorageKey,
                                 Version = existingEvent.FileSystemObject.Version
                             },
@@ -200,6 +691,7 @@ namespace Cloud.SQLIndexer
                 queryResult = Helpers.DefaultForType<FileChange>();
                 isPending = Helpers.DefaultForType<bool>();
                 status = FileChangeQueryStatus.ErrorUnknown;
+
                 return ex;
             }
             return null;
@@ -216,10 +708,34 @@ namespace Cloud.SQLIndexer
         public CLError StartInitialIndexing(Action<IEnumerable<KeyValuePair<FilePath, FileMetadata>>, IEnumerable<FileChange>> indexCompletionCallback,
             Func<string> getPath)
         {
+            if (disposed)
+            {
+                try
+                {
+                    throw new ObjectDisposedException("This IndexingAgent");
+                }
+                catch (Exception ex)
+                {
+                    return ex;
+                }
+            }
+
             try
             {
                 this.indexedPath = getPath();
-                ThreadPool.QueueUserWorkItem(state => this.BuildIndex((Action<IEnumerable<KeyValuePair<FilePath, FileMetadata>>, IEnumerable<FileChange>>)state),
+                ThreadPool.QueueUserWorkItem(state => 
+                    {
+                        try 
+	                    {
+                            this.BuildIndex((Action<IEnumerable<KeyValuePair<FilePath, FileMetadata>>, IEnumerable<FileChange>>)state);
+	                    }
+	                    catch (Exception ex)
+	                    {
+                            CLError error = new AggregateException("Error building the index", ex);
+                            error.LogErrors(_trace.TraceLocation, _trace.LogErrors);
+                            _trace.writeToLog(1, "IndexingAgent: StartInitialIndexing: ERROR: Exception: Error building the initial index. Msg: <{0}>.", ex.Message);
+	                    }
+                    },
                     indexCompletionCallback);
             }
             catch (Exception ex)
@@ -231,6 +747,18 @@ namespace Cloud.SQLIndexer
 
         public void SwapOrderBetweenTwoEventIds(long eventIdA, long eventIdB, SQLTransactionalBase requiredTransaction)
         {
+            if (disposed)
+            {
+                try
+                {
+                    throw new ObjectDisposedException("This IndexingAgent");
+                }
+                catch
+                {
+                    return;
+                }
+            }
+
             if (requiredTransaction == null)
             {
                 throw new NullReferenceException("requiredTransaction cannot be null");
@@ -333,6 +861,20 @@ namespace Cloud.SQLIndexer
 
         public CLError GetCalculatedFullPathByServerUid(string serverUid, out string calculatedFullPath, Nullable<long> excludedEventId = null)
         {
+            if (disposed)
+            {
+                try
+                {
+                    throw new ObjectDisposedException("This IndexingAgent");
+                }
+                catch (Exception ex)
+                {
+                    calculatedFullPath = Helpers.DefaultForType<string>();
+
+                    return ex;
+                }
+            }
+
             try
             {
                 if (serverUid == null)
@@ -349,10 +891,19 @@ namespace Cloud.SQLIndexer
                         indexDB,
                         "SELECT FileSystemObjects.CalculatedFullPath " +
                             "FROM FileSystemObjects " +
-                            "INNER JOIN (SELECT ? AS ExcludedEventId) ConstantJoin " + // <-- parameter 1
+                            "LEFT OUTER JOIN " +
+                            "(" +
+                                "SELECT InnerObjects.EventOrder " +
+                                "FROM FileSystemObjects InnerObjects " +
+                                "WHERE InnerObjects.EventId IS NOT NULL " +
+                                "AND InnerObjects.EventOrder IS NOT NULL " +
+                                "AND InnerObjects.EventId = ? " + // <-- parameter 1
+                                "LIMIT 1" +
+                            ") ConstantJoin " +
                             "LEFT OUTER JOIN Events ON FileSystemObjects.EventId = Events.EventId " +
-                            "WHERE FileSystemObjects.ServerUid = ? " + // <-- parameter 2
-                            "AND (ConstantJoin.ExcludedEventId IS NULL OR FileSystemObjects.EventId IS NULL OR ConstantJoin.ExcludedEventId > FileSystemObjects.EventId) " +
+                            "INNER JOIN ServerUids ON FileSystemObjects.ServerUidId = ServerUids.ServerUidId " +
+                            "WHERE ServerUids.ServerUid = ? " + // <-- parameter 2
+                            "AND (ConstantJoin.EventOrder IS NULL OR FileSystemObjects.EventId IS NULL OR ConstantJoin.EventOrder > FileSystemObjects.EventOrder) " +
                             "ORDER BY " +
                             "CASE WHEN FileSystemObjects.EventId IS NOT NULL " +
                             "AND Events.FileChangeTypeEnumId = " + changeEnumsBackward[FileChangeType.Renamed].ToString() +
@@ -376,6 +927,7 @@ namespace Cloud.SQLIndexer
             catch (Exception ex)
             {
                 calculatedFullPath = Helpers.DefaultForType<string>();
+
                 return ex;
             }
             return null;
@@ -383,6 +935,20 @@ namespace Cloud.SQLIndexer
 
         public CLError GetServerUidByNewPath(string newPath, out string serverUid)
         {
+            if (disposed)
+            {
+                try
+                {
+                    throw new ObjectDisposedException("This IndexingAgent");
+                }
+                catch (Exception ex)
+                {
+                    serverUid = Helpers.DefaultForType<string>();
+
+                    return ex;
+                }
+            }
+
             try
             {
                 if (newPath == null)
@@ -395,8 +961,9 @@ namespace Cloud.SQLIndexer
                     // prefers latest event even if pending
                     if (!SqlAccessor<object>.TrySelectScalar<string>(
                         indexDB,
-                        "SELECT FileSystemObjects.ServerUid " +
+                        "SELECT ServerUids.ServerUid " +
                         "FROM FileSystemObjects " +
+                        "INNER JOIN ServerUids ON FileSystemObjects.ServerUidId = ServerUids.ServerUidID " +
                         "WHERE FileSystemObjects.CalculatedFullPath = ? " +
                         "ORDER BY " +
                         "CASE WHEN FileSystemObjects.EventOrder IS NULL " +
@@ -414,6 +981,7 @@ namespace Cloud.SQLIndexer
             catch (Exception ex)
             {
                 serverUid = Helpers.DefaultForType<string>();
+
                 return ex;
             }
             return null;
@@ -428,6 +996,17 @@ namespace Cloud.SQLIndexer
         ///// <returns>Returns an error that occurred retrieving the file system state, if any</returns>
         //public CLError GetLastSyncStates(out FilePathDictionary<SyncedObject> syncStates)
         //{
+            //if (disposed)
+            //{
+            //    try
+            //    {
+            //        throw new ObjectDisposedException("This IndexingAgent");
+            //    }
+            //    catch (Exception ex)
+            //    {
+            //        return ex;
+            //    }
+            //}
         //    throw new NotImplementedException("2");
         //    //ExternalSQLLocker.EnterReadLock();
         //    //try
@@ -529,6 +1108,20 @@ namespace Cloud.SQLIndexer
 
         public CLError GetMetadataByPathAndRevision(string path, string revision, out FileMetadata metadata)
         {
+            if (disposed)
+            {
+                try
+                {
+                    throw new ObjectDisposedException("This IndexingAgent");
+                }
+                catch (Exception ex)
+                {
+                    metadata = Helpers.DefaultForType<FileMetadata>();
+
+                    return ex;
+                }
+            }
+
             try
             {
                 if (string.IsNullOrEmpty(path))
@@ -542,10 +1135,11 @@ namespace Cloud.SQLIndexer
                             indexDB,
                             "SELECT * " +
                                 "FROM FileSystemObjects " +
+                                "INNER JOIN ServerUids ON FileSystemObjects.ServerUidId = ServerUids.ServerUidId " +
                                 "WHERE CalculatedFullPath = ? " + // <-- parameter 1
                                 (revision == null
                                     ? string.Empty
-                                    : "AND Revision = ?") + // <-- conditional parameter 2
+                                    : "AND ServerUids.Revision = ? ") + // <-- conditional parameter 2
                                 "ORDER BY " +
                                 "CASE WHEN FileSystemObjects.EventOrder IS NULL " +
                                 "THEN 0 " +
@@ -560,7 +1154,7 @@ namespace Cloud.SQLIndexer
                         throw new KeyNotFoundException("Unable to find existing FileSystemObject by path" + (revision == null ? string.Empty : " and revision"));
                     }
 
-                    metadata = new FileMetadata()
+                    metadata = new FileMetadata(existingNonPending.ServerUidId)
                     {
                         EventTime = new DateTime(existingNonPending.EventTimeUTCTicks, DateTimeKind.Utc),
                         HashableProperties = new FileMetadataHashableProperties(
@@ -577,8 +1171,6 @@ namespace Cloud.SQLIndexer
                         Permissions = (existingNonPending.Permissions == null
                             ? (Nullable<POSIXPermissions>)null
                             : (POSIXPermissions)((int)existingNonPending.Permissions)),
-                        Revision = existingNonPending.Revision,
-                        ServerUid = existingNonPending.ServerUid,
                         StorageKey = existingNonPending.StorageKey,
                         Version = existingNonPending.Version
                     };
@@ -587,6 +1179,7 @@ namespace Cloud.SQLIndexer
             catch (Exception ex)
             {
                 metadata = Helpers.DefaultForType<FileMetadata>();
+
                 return ex;
             }
             return null;
@@ -598,7 +1191,19 @@ namespace Cloud.SQLIndexer
         ///// <param name="changeEvents">Outputs the unprocessed events</param>
         ///// <returns>Returns an error that occurred filling the unprocessed events, if any</returns>
         //public CLError GetPendingEvents(out List<KeyValuePair<FilePath, FileChange>> changeEvents)
-        //{
+        //{            //if (disposed)
+            //{
+            //    try
+            //    {
+            //        throw new ObjectDisposedException("This IndexingAgent");
+            //    }
+            //    catch (Exception ex)
+            //    {
+            //        return ex;
+            //    }
+            //}
+        //
+        //
         //    ExternalSQLLocker.EnterReadLock();
         //    try
         //    {
@@ -666,26 +1271,43 @@ namespace Cloud.SQLIndexer
         /// <returns>Returns error that occurred when adding the event to database, if any</returns>
         public CLError AddEvents(IEnumerable<FileChange> newEvents, SQLTransactionalBase existingTransaction = null)
         {
+            if (disposed)
+            {
+                try
+                {
+                    throw new ObjectDisposedException("This IndexingAgent");
+                }
+                catch (Exception ex)
+                {
+                    return ex;
+                }
+            }
+
             return AddEvents(null, newEvents, existingTransaction);
         }
         private CLError AddEvents(Nullable<long> syncCounter, IEnumerable<FileChange> newEvents, SQLTransactionalBase existingTransaction)
         {
-            CLError toReturn = null;
             SQLTransactionalImplementation castTransaction = existingTransaction as SQLTransactionalImplementation;
-            if (existingTransaction != null
-                && castTransaction == null)
+            bool inputTransactionSet = castTransaction != null;
+            try
             {
-                try
+                if (disposed)
+                {
+                    throw new ObjectDisposedException("This IndexingAgent");
+                }
+
+                if (existingTransaction != null
+                    && castTransaction == null)
                 {
                     throw new NullReferenceException("existingTransaction is not implemented as private derived type. It should be retrieved via method GetNewTransaction method. Creating a new transaction instead which will be committed immediately.");
                 }
-                catch (Exception ex)
-                {
-                    toReturn += ex;
-                }
+            }
+            catch (Exception ex)
+            {
+                return ex;
             }
 
-            bool inputTransactionSet = castTransaction != null;
+            CLError toReturn = null;
             try
             {
                 // Ensure input parameter is set
@@ -738,6 +1360,8 @@ namespace Cloud.SQLIndexer
                 //    };
 
                 FilePath indexedPathObject = indexedPath;
+
+                Dictionary<long, Event> eventsByIdForPendingRevision = new Dictionary<long, Event>();
 
                 do
                 {
@@ -1048,9 +1672,8 @@ namespace Cloud.SQLIndexer
                                 ParentFolderId = newEvent.parentFolderId,
                                 Pending = true,
                                 Permissions = (newEvent.change.Metadata.Permissions == null ? (Nullable<int>)null : (int)((POSIXPermissions)newEvent.change.Metadata.Permissions)),
-                                Revision = newEvent.change.Metadata.Revision,
+                                ServerUidId = newEvent.change.Metadata.ServerUidId,
                                 //ServerName = newEvent.change.ServerPath // <-- need to add server paths to FileChange
-                                ServerUid = newEvent.change.Metadata.ServerUid,
                                 Size = newEvent.change.Metadata.HashableProperties.Size,
                                 StorageKey = newEvent.change.Metadata.StorageKey,
                                 SyncCounter = syncCounter,
@@ -1083,6 +1706,7 @@ namespace Cloud.SQLIndexer
                         Func<Event, FileSystemObject> setIdAndGrabObject = currentEvent =>
                         {
                             currentEvent.FileSystemObject.EventId = orderToChange[(int)currentEvent.GroupOrder].Value.Value = groupOrderToId[(int)currentEvent.GroupOrder];
+                            eventsByIdForPendingRevision.Add((long)currentEvent.FileSystemObject.EventId, currentEvent);
                             return currentEvent.FileSystemObject;
                         };
 
@@ -1100,6 +1724,22 @@ namespace Cloud.SQLIndexer
                     }
                 }
                 while (currentChangeIndex != lastHighestChangeIndex);
+
+                for (int newEventIdx = 0; newEventIdx < newEventsArray.Length; newEventIdx++)
+                {
+                    FileChange changeWithPendingRevision = newEventsArray[newEventIdx];
+
+                    if (changeWithPendingRevision.FileDownloadPendingRevision != null)
+                    {
+                        SetPendingRevision(castTransaction, changeWithPendingRevision, eventsByIdForPendingRevision[changeWithPendingRevision.EventId]);
+                    }
+                }
+
+                if (!inputTransactionSet
+                    && castTransaction != null)
+                {
+                    castTransaction.Commit();
+                }
             }
             catch (Exception ex)
             {
@@ -1110,8 +1750,6 @@ namespace Cloud.SQLIndexer
                 if (!inputTransactionSet
                     && castTransaction != null)
                 {
-                    castTransaction.Commit();
-
                     castTransaction.Dispose();
                 }
             }
@@ -1125,6 +1763,18 @@ namespace Cloud.SQLIndexer
         /// <returns>Returns an error in removing the event, if any</returns>
         public CLError RemoveEventById(long eventId, SQLTransactionalBase existingTransaction = null)
         {
+            if (disposed)
+            {
+                try
+                {
+                    throw new ObjectDisposedException("This IndexingAgent");
+                }
+                catch (Exception ex)
+                {
+                    return ex;
+                }
+            }
+
             return RemoveEventsByIds(Helpers.EnumerateSingleItem(eventId), existingTransaction);
         }
 
@@ -1135,34 +1785,32 @@ namespace Cloud.SQLIndexer
         /// <returns>Returns an error in removing events, if any</returns>
         public CLError RemoveEventsByIds(IEnumerable<long> eventIds, SQLTransactionalBase existingTransaction = null)
         {
-            if (eventIds == null)
+            SQLTransactionalImplementation castTransaction = existingTransaction as SQLTransactionalImplementation;
+            bool inputTransactionSet = castTransaction != null;
+            try
             {
-                try
+                if (disposed)
+                {
+                    throw new ObjectDisposedException("This IndexingAgent");
+                }
+
+                if (eventIds == null)
                 {
                     throw new NullReferenceException("eventIds cannot be null");
                 }
-                catch (Exception ex)
-                {
-                    return ex;
-                }
-            }
 
-            CLError toReturn = null;
-            SQLTransactionalImplementation castTransaction = existingTransaction as SQLTransactionalImplementation;
-            if (existingTransaction != null
-                && castTransaction == null)
-            {
-                try
+                if (existingTransaction != null
+                    && castTransaction == null)
                 {
                     throw new NullReferenceException("existingTransaction is not implemented as private derived type. It should be retrieved via method GetNewTransaction method. Creating a new transaction instead which will be committed immediately.");
                 }
-                catch (Exception ex)
-                {
-                    toReturn += ex;
-                }
+            }
+            catch (Exception ex)
+            {
+                return ex;
             }
 
-            bool inputTransactionSet = castTransaction != null;
+            CLError toReturn = null;
             try
             {
                 if (castTransaction == null)
@@ -1325,6 +1973,12 @@ namespace Cloud.SQLIndexer
                         }
                     }
                 }
+
+                if (!inputTransactionSet
+                    && castTransaction != null)
+                {
+                    castTransaction.Commit();
+                }
             }
             catch (Exception ex)
             {
@@ -1335,8 +1989,6 @@ namespace Cloud.SQLIndexer
                 if (!inputTransactionSet
                     && castTransaction != null)
                 {
-                    castTransaction.Commit();
-
                     castTransaction.Dispose();
                 }
             }
@@ -1354,6 +2006,62 @@ namespace Cloud.SQLIndexer
         /// <returns>Returns an error that occurred during recording the sync, if any</returns>
         public CLError RecordCompletedSync(IEnumerable<PossiblyChangedFileChange> communicatedChanges, string syncId, IEnumerable<long> syncedEventIds, out long syncCounter, string rootFolderUID = null)
         {
+            if (disposed)
+            {
+                try
+                {
+                    throw new ObjectDisposedException("This IndexingAgent");
+                }
+                catch (Exception ex)
+                {
+                    syncCounter = Helpers.DefaultForType<long>();
+
+                    return ex;
+                }
+            }
+
+            if (copyDatabaseBetweenChanges)
+            {
+                try
+                {
+                    lock (dbCopyNumber)
+                    {
+                        string stack;
+                        try
+                        {
+                            stack = (new System.Diagnostics.StackTrace()).ToString();
+                        }
+                        catch (Exception ex)
+                        {
+                            stack = ex.StackTrace;
+                        }
+
+                        string dbName = indexDBLocation.Substring(0, indexDBLocation.LastIndexOf('.'));
+
+                        File.Copy(indexDBLocation,
+                            string.Format(
+                                "{0}{1}.db",
+                                dbName,
+                                dbCopyNumber.Value++));
+
+                        File.AppendAllText(
+                            string.Format(
+                                "{0}.txt",
+                                dbName),
+                            string.Format(
+                                "DB #{0}:{1}{2}{3}{4}",
+                                dbCopyNumber.Value,
+                                Environment.NewLine,
+                                stack,
+                                Environment.NewLine,
+                                Environment.NewLine));
+                    }
+                }
+                catch
+                {
+                }
+            }
+
             try
             {
                 using (SQLTransactionalImplementation connAndTran = GetNewTransactionPrivate())
@@ -1372,13 +2080,11 @@ namespace Cloud.SQLIndexer
                             updateRootFolderUID.Transaction = connAndTran.sqlTransaction;
 
                             updateRootFolderUID.CommandText = "UPDATE FileSystemObjects " +
-                                "SET ServerUid = ?, " + // <-- parameter 1
-                                "SyncCounter = ?" + // <-- parameter 2
-                                "WHERE FileSystemObjectId = ?"; // <-- parameter 3
-
-                            ISQLiteParameter rootUID = updateRootFolderUID.CreateParameter();
-                            rootUID.Value = rootFolderUID;
-                            updateRootFolderUID.Parameters.Add(rootUID);
+                                "SET SyncCounter = ?" + // <-- parameter 1
+                                "WHERE FileSystemObjectId = ?;" + // <-- parameter 2
+                                "UPDATE ServerUids " +
+                                "SET ServerUid = ? " + // <-- parameter 3
+                                "WHERE ServerUidId = ?"; // <-- parameter 4
 
                             ISQLiteParameter firstSyncCounter = updateRootFolderUID.CreateParameter();
                             firstSyncCounter.Value = syncCounter;
@@ -1387,6 +2093,14 @@ namespace Cloud.SQLIndexer
                             ISQLiteParameter rootPK = updateRootFolderUID.CreateParameter();
                             rootPK.Value = rootFileSystemObjectId;
                             updateRootFolderUID.Parameters.Add(rootPK);
+
+                            ISQLiteParameter rootUID = updateRootFolderUID.CreateParameter();
+                            rootUID.Value = rootFolderUID;
+                            updateRootFolderUID.Parameters.Add(rootUID);
+
+                            ISQLiteParameter rootUIDID = updateRootFolderUID.CreateParameter();
+                            rootUIDID.Value = rootFileSystemObjectServerUidId;
+                            updateRootFolderUID.Parameters.Add(rootUIDID);
 
                             updateRootFolderUID.ExecuteNonQuery();
                         }
@@ -1405,7 +2119,16 @@ namespace Cloud.SQLIndexer
                                     {
                                         currentCommunicatedChange.FileChange.DoNotAddToSQLIndex = false;
 
-                                        if (currentCommunicatedChange.FileChange.Metadata.ServerUid == null)
+                                        string serverUid;
+                                        string revision;
+                                        CLError queryUidError = QueryServerUid(currentCommunicatedChange.FileChange.Metadata.ServerUidId, out serverUid, out revision, connAndTran);
+
+                                        if (queryUidError != null)
+                                        {
+                                            throw new AggregateException(string.Format("Unable to query ServerUid with id {0}", currentCommunicatedChange.FileChange.Metadata.ServerUidId), queryUidError.GrabExceptions());
+                                        }
+
+                                        if (serverUid == null)
                                         {
                                             throw new NullReferenceException("communicatedChange with Changed equals true requires FileChange Metadata ServerUid");
                                         }
@@ -1481,6 +2204,7 @@ namespace Cloud.SQLIndexer
             catch (Exception ex)
             {
                 syncCounter = Helpers.DefaultForType<long>();
+
                 return ex;
             }
             return null;
@@ -1492,6 +2216,18 @@ namespace Cloud.SQLIndexer
         /// <returns></returns>
         public CLError WipeIndex(string newRootPath)
         {
+            if (disposed)
+            {
+                try
+                {
+                    throw new ObjectDisposedException("This IndexingAgent");
+                }
+                catch (Exception ex)
+                {
+                    return ex;
+                }
+            }
+
             try
             {
                 InitializeDatabase(newRootPath, createEvenIfExisting: true);
@@ -1508,11 +2244,77 @@ namespace Cloud.SQLIndexer
         /// </summary>
         public SQLTransactionalBase GetNewTransaction()
         {
+            if (disposed)
+            {
+                try
+                {
+                    throw new ObjectDisposedException("This IndexingAgent");
+                }
+                catch (Exception ex)
+                {
+                    return null;
+                }
+            }
+
+            if (copyDatabaseBetweenChanges)
+            {
+                try
+                {
+                    lock (dbCopyNumber)
+                    {
+                        string stack;
+                        try
+                        {
+                            stack = (new System.Diagnostics.StackTrace()).ToString();
+                        }
+                        catch (Exception ex)
+                        {
+                            stack = ex.StackTrace;
+                        }
+
+                        string dbName = indexDBLocation.Substring(0, indexDBLocation.LastIndexOf('.'));
+
+                        File.Copy(indexDBLocation,
+                            string.Format(
+                                "{0}{1}.db",
+                                dbName,
+                                dbCopyNumber.Value++));
+
+                        File.AppendAllText(
+                            string.Format(
+                                "{0}.txt",
+                                dbName),
+                            string.Format(
+                                "DB #{0}:{1}{2}{3}{4}",
+                                dbCopyNumber.Value,
+                                Environment.NewLine,
+                                stack,
+                                Environment.NewLine,
+                                Environment.NewLine));
+                    }
+                }
+                catch
+                {
+                }
+            }
+
             return GetNewTransactionPrivate();
         }
 
         private SQLTransactionalImplementation GetNewTransactionPrivate()
         {
+            if (disposed)
+            {
+                try
+                {
+                    throw new ObjectDisposedException("This IndexingAgent");
+                }
+                catch
+                {
+                    return null;
+                }
+            }
+
             ISQLiteConnection indexDB;
             return new SQLTransactionalImplementation(
                 indexDB = CreateAndOpenCipherConnection(),
@@ -1526,29 +2328,100 @@ namespace Cloud.SQLIndexer
         /// <returns>Returns an error from merging the events, if any</returns>
         public CLError MergeEventsIntoDatabase(IEnumerable<FileChangeMerge> mergeToFroms, SQLTransactionalBase existingTransaction = null)
         {
+            if (disposed)
+            {
+                try
+                {
+                    throw new ObjectDisposedException("This IndexingAgent");
+                }
+                catch (Exception ex)
+                {
+                    return ex;
+                }
+            }
+
+            if (existingTransaction == null
+                && copyDatabaseBetweenChanges)
+            {
+                try
+                {
+                    lock (dbCopyNumber)
+                    {
+                        string stack;
+                        try
+                        {
+                            stack = (new System.Diagnostics.StackTrace()).ToString();
+                        }
+                        catch (Exception ex)
+                        {
+                            stack = ex.StackTrace;
+                        }
+
+                        string dbName = indexDBLocation.Substring(0, indexDBLocation.LastIndexOf('.'));
+
+                        File.Copy(indexDBLocation,
+                            string.Format(
+                                "{0}{1}.db",
+                                dbName,
+                                dbCopyNumber.Value++));
+
+                        File.AppendAllText(
+                            string.Format(
+                                "{0}.txt",
+                                dbName),
+                            string.Format(
+                                "DB #{0}:{1}{2}{3}{4}",
+                                dbCopyNumber.Value,
+                                Environment.NewLine,
+                                stack,
+                                Environment.NewLine,
+                                Environment.NewLine));
+                    }
+                }
+                catch
+                {
+                }
+            }
+
             return MergeEventsIntoDatabase(null, mergeToFroms, existingTransaction);
         }
         private CLError MergeEventsIntoDatabase(Nullable<long> syncCounter, IEnumerable<FileChangeMerge> mergeToFroms, SQLTransactionalBase existingTransaction)
         {
-            // no point trying to perform multiple simultaneous merges since they will block each other via the SQLite transaction
-            lock (MergeEventsLocker)
+            SQLTransactionalImplementation castTransaction = existingTransaction as SQLTransactionalImplementation;
+            bool inputTransactionSet = castTransaction != null;
+            try
             {
-                CLError toReturn = null;
-                SQLTransactionalImplementation castTransaction = existingTransaction as SQLTransactionalImplementation;
+                if (disposed)
+                {
+                    throw new ObjectDisposedException("This IndexingAgent");
+                }
+
                 if (existingTransaction != null
                     && castTransaction == null)
                 {
-                    try
-                    {
-                        throw new NullReferenceException("existingTransaction is not implemented as private derived type. It should be retrieved via method GetNewTransaction method. Creating a new transaction instead which will be committed immediately.");
-                    }
-                    catch (Exception ex)
-                    {
-                        toReturn += ex;
-                    }
+                    throw new NullReferenceException("existingTransaction is not implemented as private derived type. It should be retrieved via method GetNewTransaction method. Creating a new transaction instead which will be committed immediately.");
                 }
 
-                bool inputTransactionSet = castTransaction != null;
+                if (castTransaction == null)
+                {
+                    ISQLiteConnection indexDB;
+                    castTransaction = new SQLTransactionalImplementation(
+                        indexDB = CreateAndOpenCipherConnection(),
+                        indexDB.BeginTransaction(System.Data.IsolationLevel.Serializable));
+                }
+            }
+            catch (Exception ex)
+            {
+                return ex;
+            }
+
+            // no point trying to perform multiple simultaneous merges since they will block each other via the SQLite transaction
+            //
+            // actually, there is a point in blocking with a local lock: if we decide two identical FileChanges need to be added to sql before the first contention happens,
+            // then it will try adding twice instead of one add and one update
+            lock (MergeEventsLocker)
+            {
+                CLError toReturn = null;
                 try
                 {
                     if (mergeToFroms != null)
@@ -1611,14 +2484,6 @@ namespace Cloud.SQLIndexer
                                                 else if (currentMerge.MergeTo.NewPath == null)
                                                 {
                                                     throw new NullReferenceException("currentMerge.MergeTo cannot have null NewPath");
-                                                }
-
-                                                if (castTransaction == null)
-                                                {
-                                                    ISQLiteConnection indexDB;
-                                                    castTransaction = new SQLTransactionalImplementation(
-                                                        indexDB = CreateAndOpenCipherConnection(),
-                                                        indexDB.BeginTransaction(System.Data.IsolationLevel.Serializable));
                                                 }
 
                                                 ////possibilities for old event:
@@ -2032,9 +2897,8 @@ namespace Cloud.SQLIndexer
                                                         existingRow.Permissions = (toUpdate.Metadata.Permissions == null
                                                             ? (Nullable<int>)null
                                                             : (int)((POSIXPermissions)toUpdate.Metadata.Permissions));
-                                                        existingRow.Revision = toUpdate.Metadata.Revision;
+                                                        existingRow.ServerUidId = toUpdate.Metadata.ServerUidId;
                                                         //existingRow.ServerName // <-- add support for server name
-                                                        existingRow.ServerUid = toUpdate.Metadata.ServerUid;
                                                         existingRow.Size = toUpdate.Metadata.HashableProperties.Size;
                                                         existingRow.StorageKey = toUpdate.Metadata.StorageKey;
                                                         existingRow.Version = toUpdate.Metadata.Version;
@@ -2055,6 +2919,8 @@ namespace Cloud.SQLIndexer
                                                         {
                                                             toAdd = toUpdate;
                                                         }
+
+                                                        SetPendingRevision(castTransaction, toUpdate, existingRow.Event);
                                                     }
 
                                                     updatedIds.Add(toUpdate.EventId);
@@ -2088,6 +2954,12 @@ namespace Cloud.SQLIndexer
                             }
                         }
                     }
+
+                    if (!inputTransactionSet
+                        && castTransaction != null)
+                    {
+                        castTransaction.Commit();
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -2098,12 +2970,36 @@ namespace Cloud.SQLIndexer
                     if (!inputTransactionSet
                         && castTransaction != null)
                     {
-                        castTransaction.Commit();
-
                         castTransaction.Dispose();
                     }
                 }
                 return toReturn;
+            }
+        }
+
+        private static void SetPendingRevision(SQLTransactionalImplementation castTransaction, FileChange toUpdate, Event existingEvent)
+        {
+            if (toUpdate.FileDownloadPendingRevision != null
+                && existingEvent.FileDownloadPendingRevision != toUpdate.FileDownloadPendingRevision)
+            {
+                using (ISQLiteCommand updatePendingRevision = castTransaction.sqlConnection.CreateCommand())
+                {
+                    updatePendingRevision.Transaction = castTransaction.sqlTransaction;
+
+                    updatePendingRevision.CommandText = "UPDATE Events " +
+                        "SET FileDownloadPendingRevision = ? " +
+                        "WHERE EventId = ?";
+
+                    ISQLiteParameter updateRevisionParam = updatePendingRevision.CreateParameter();
+                    updateRevisionParam.Value = toUpdate.FileDownloadPendingRevision;
+                    updatePendingRevision.Parameters.Add(updateRevisionParam);
+
+                    ISQLiteParameter eventKeyParam = updatePendingRevision.CreateParameter();
+                    eventKeyParam.Value = existingEvent.EventId;
+                    updatePendingRevision.Parameters.Add(eventKeyParam);
+
+                    updatePendingRevision.ExecuteNonQuery();
+                }
             }
         }
         private readonly object MergeEventsLocker = new object();
@@ -2117,8 +3013,64 @@ namespace Cloud.SQLIndexer
         /// <returns>Returns an error that occurred marking the event complete, if any</returns>
         public CLError MarkEventAsCompletedOnPreviousSync(long eventId, SQLTransactionalBase existingTransaction = null)
         {
+            if (disposed)
+            {
+                try
+                {
+                    throw new ObjectDisposedException("This IndexingAgent");
+                }
+                catch (Exception ex)
+                {
+                    return ex;
+                }
+            }
+
+            if (existingTransaction == null
+                && copyDatabaseBetweenChanges)
+            {
+                try
+                {
+                    lock (dbCopyNumber)
+                    {
+                        string stack;
+                        try
+                        {
+                            stack = (new System.Diagnostics.StackTrace()).ToString();
+                        }
+                        catch (Exception ex)
+                        {
+                            stack = ex.StackTrace;
+                        }
+
+                        string dbName = indexDBLocation.Substring(0, indexDBLocation.LastIndexOf('.'));
+
+                        File.Copy(indexDBLocation,
+                            string.Format(
+                                "{0}{1}.db",
+                                dbName,
+                                dbCopyNumber.Value++));
+
+                        File.AppendAllText(
+                            string.Format(
+                                "{0}.txt",
+                                dbName),
+                            string.Format(
+                                "DB #{0}:{1}{2}{3}{4}",
+                                dbCopyNumber.Value,
+                                Environment.NewLine,
+                                stack,
+                                Environment.NewLine,
+                                Environment.NewLine));
+                    }
+                }
+                catch
+                {
+                }
+            }
+
             CLError toReturn = null;
             SQLTransactionalImplementation castTransaction = existingTransaction as SQLTransactionalImplementation;
+            bool inputTransactionSet = castTransaction != null;
             if (existingTransaction != null
                 && castTransaction == null)
             {
@@ -2132,12 +3084,12 @@ namespace Cloud.SQLIndexer
                 }
             }
 
-            bool inputTransactionSet = castTransaction != null;
             FileChangeType storeExistingChangeType;
             string storeNewPath;
             string storeOldPath;
             bool storeWhetherEventIsASyncFrom;
 
+            bool foundOtherPendingAtCompletedPath;
             try
             {
                 if (castTransaction == null)
@@ -2205,23 +3157,27 @@ namespace Cloud.SQLIndexer
                         "SELECT " +
                         SqlAccessor<FileSystemObject>.GetSelectColumns() + ", " +
                         SqlAccessor<Event>.GetSelectColumns("Event") + ", " +
-                        SqlAccessor<FileSystemObject>.GetSelectColumns("Event.Previous", "Previouses") +
+                        SqlAccessor<FileSystemObject>.GetSelectColumns("Event.Previous", "Previouses") + ", " +
+                        SqlAccessor<SqlServerUid>.GetSelectColumns("ServerUid") +
                         " FROM FileSystemObjects" +
                         " INNER JOIN Events ON FileSystemObjects.EventId = Events.EventId" +
                         " LEFT OUTER JOIN FileSystemObjects Previouses ON Events.PreviousId = Previouses.FileSystemObjectId" +
+                        " INNER JOIN ServerUids ON FileSystemObjects.ServerUidId = ServerUids.ServerUidId" +
                         " WHERE FileSystemObjects.EventId = ?" + // <-- parameter 1
                         " ORDER BY FileSystemObjects.FileSystemObjectId DESC" +
                         " LIMIT 1",
                         new[]
                         {
                             "Event",
-                            "Event.Previous"
+                            "Event.Previous",
+                            "ServerUid"
                         },
                         castTransaction.sqlTransaction,
                         Helpers.EnumerateSingleItem(eventId))
                     .SingleOrDefault();
 
-                if (existingEventObject == null)
+                if (existingEventObject == null
+                    || existingEventObject.Event == null)
                 {
                     throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Unable to find existing event to complete");
                 }
@@ -2233,9 +3189,36 @@ namespace Cloud.SQLIndexer
                 {
                     throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "The root folder object should never have been pending to complete");
                 }
-                if (existingEventObject.ServerUid == null)
+                if (existingEventObject.ServerUid.ServerUid == null)
                 {
-                    throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Existing event cannot be completed if it does not have a ServerUid");
+                    // server "uid" can be null for conflicts where we rename the local item and have a dependent creation at the new path (since the rename was technically never communicated)
+
+                    bool foundLaterCreate;
+                    if (existingEventObject.EventOrder == null
+                        || !SqlAccessor<object>.TrySelectScalar<bool>(
+                            castTransaction.sqlConnection,
+                            "SELECT EXISTS " +
+                            "(" +
+                                "SELECT NULL " +
+                                "FROM FileSystemObjects " +
+                                "INNER JOIN Events ON Events.EventId = FileSystemObjects.EventId " +
+                                "WHERE FileSystemObjects.ServerUidId = ? " + // <-- parameter 1
+                                "AND FileSystemObjects.Pending = 1 " +
+                                "AND Events.FileChangeTypeEnumId = " + changeEnumsBackward[FileChangeType.Created].ToString() +
+                                " AND EventOrder > ?" + // <-- parameter 2
+                            ") AS EXIST",
+                            out foundLaterCreate,
+                            castTransaction.sqlTransaction,
+                            new[] { existingEventObject.ServerUidId, (long)existingEventObject.EventOrder })
+                        || !foundLaterCreate)
+                    {
+                        throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Existing event cannot be completed if it does not have a ServerUid");
+                    }
+                }
+                if (existingEventObject.Event.PreviousId != null
+                    && existingEventObject.Event.Previous == null)
+                {
+                    throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Unable to find previous object for rename");
                 }
 
                 storeExistingChangeType = changeEnums[existingEventObject.Event.FileChangeTypeEnumId];
@@ -2328,6 +3311,29 @@ namespace Cloud.SQLIndexer
                             castTransaction.sqlTransaction))
                         {
                             throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Unable to update existing event to not be pending");
+                        }
+
+                        if (storeWhetherEventIsASyncFrom
+                            && existingEventObject.Event.FileDownloadPendingRevision != null)
+                        {
+                            using (ISQLiteCommand updateRevision = castTransaction.sqlConnection.CreateCommand())
+                            {
+                                updateRevision.Transaction = castTransaction.sqlTransaction;
+
+                                updateRevision.CommandText = "UPDATE ServerUids " +
+                                    "SET Revision = ? " +
+                                    "WHERE ServerUidId = ?";
+
+                                ISQLiteParameter revisionParameter = updateRevision.CreateParameter();
+                                revisionParameter.Value = existingEventObject.Event.FileDownloadPendingRevision;
+                                updateRevision.Parameters.Add(revisionParameter);
+
+                                ISQLiteParameter serverUidKey = updateRevision.CreateParameter();
+                                serverUidKey.Value = existingEventObject.ServerUidId;
+                                updateRevision.Parameters.Add(serverUidKey);
+
+                                updateRevision.ExecuteNonQuery();
+                            }
                         }
                         break;
 
@@ -2444,13 +3450,14 @@ namespace Cloud.SQLIndexer
                             throw new AggregateException("An error occurred moving objects to new parent", moveObjectsToNewParentError.Value.GrabExceptions());
                         }
 
-                        if (!SqlAccessor<FileSystemObject>.DeleteRow(
-                            castTransaction.sqlConnection,
-                            new FileSystemObject()
-                            {
-                                FileSystemObjectId = storePreviousId
-                            },
-                            castTransaction.sqlTransaction))
+                        if (!existingEventObject.Event.Previous.Pending
+                            && !SqlAccessor<FileSystemObject>.DeleteRow(
+                                castTransaction.sqlConnection,
+                                new FileSystemObject()
+                                {
+                                    FileSystemObjectId = storePreviousId
+                                },
+                                castTransaction.sqlTransaction))
                         {
                             throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Unable to delete previous object for rename event");
                         }
@@ -2467,6 +3474,29 @@ namespace Cloud.SQLIndexer
                     default:
                         throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Existing event object had a FileChangeTypeEnumId which did not match to a known FileChangeType");
                 }
+
+                if (!SqlAccessor<object>.TrySelectScalar<bool>(
+                    castTransaction.sqlConnection,
+                    "SELECT EXISTS" +
+                    "(" +
+                        "SELECT NULL " +
+                        "FROM FileSystemObjects " +
+                        "WHERE FileSystemObjects.Name = ? " +
+                        "AND FileSystemObjects.ParentFolderId = ? " +
+                        "AND FileSystemObjects.Pending = 1" +
+                    ") AS EXIST",
+                    out foundOtherPendingAtCompletedPath,
+                    castTransaction.sqlTransaction,
+                    new[] { (object)existingEventObject.Name, ((long)existingEventObject.ParentFolderId) }))
+                {
+                    throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Unable to determine whether other events are pending at the current completion path");
+                }
+
+                if (!inputTransactionSet
+                    && castTransaction != null)
+                {
+                    castTransaction.Commit();
+                }
             }
             catch (Exception ex)
             {
@@ -2474,6 +3504,7 @@ namespace Cloud.SQLIndexer
                 storeNewPath = Helpers.DefaultForType<string>();
                 storeOldPath = Helpers.DefaultForType<string>();
                 storeWhetherEventIsASyncFrom = Helpers.DefaultForType<bool>();
+                foundOtherPendingAtCompletedPath = Helpers.DefaultForType<bool>();
                 toReturn += ex;
             }
             finally
@@ -2481,13 +3512,12 @@ namespace Cloud.SQLIndexer
                 if (!inputTransactionSet
                     && castTransaction != null)
                 {
-                    castTransaction.Commit();
-
                     castTransaction.Dispose();
                 }
             }
 
-            if (toReturn == null)
+            if (toReturn == null
+                && !foundOtherPendingAtCompletedPath)
             {
                 try
                 {
@@ -2507,6 +3537,18 @@ namespace Cloud.SQLIndexer
         /// </summary>
         public CLError ChangeSyncRoot(string newSyncRoot)
         {
+            if (disposed)
+            {
+                try
+                {
+                    throw new ObjectDisposedException("This IndexingAgent");
+                }
+                catch (Exception ex)
+                {
+                    return ex;
+                }
+            }
+
             try
             {
                 if (string.IsNullOrEmpty(newSyncRoot))
@@ -2549,7 +3591,7 @@ namespace Cloud.SQLIndexer
         /// Private constructor to ensure IndexingAgent is created through public static initializer (to return a CLError)
         /// </summary>
         /// <param name="syncbox">Syncbox to index</param>
-        private IndexingAgent(CLSyncbox syncbox)
+        private IndexingAgent(CLSyncbox syncbox, bool copyDatabaseBetweenChanges)
         {
             if (syncbox == null)
             {
@@ -2563,15 +3605,29 @@ namespace Cloud.SQLIndexer
             this.indexDBLocation = Helpers.CalculateDatabasePath(syncbox);
 
             this.syncbox = syncbox;
+            this.copyDatabaseBetweenChanges = copyDatabaseBetweenChanges;
         }
 
         private bool InitializeDatabase(string syncRoot, bool createEvenIfExisting = false)
         {
+            if (disposed)
+            {
+                try
+                {
+                    throw new ObjectDisposedException("This IndexingAgent");
+                }
+                catch
+                {
+                    return true; // logically it makes sense to return false, but the only place the return value is used will actually perform more code if false so instead return true
+                }
+            }
+
             FileInfo dbInfo;
             bool dbNeedsDeletion;
             bool dbNeedsCreation;
+            string notUsedExistingFullPath;
 
-            CheckDatabaseFileState(createEvenIfExisting, out dbInfo, out dbNeedsDeletion, out dbNeedsCreation, indexDBLocation, syncbox);
+            CheckDatabaseFileState(createEvenIfExisting, out dbInfo, out dbNeedsDeletion, out dbNeedsCreation, indexDBLocation, out notUsedExistingFullPath, syncbox, out rootFileSystemObjectId, out rootFileSystemObjectServerUidId);
 
             if (dbNeedsDeletion)
             {
@@ -2648,6 +3704,13 @@ namespace Cloud.SQLIndexer
                                 {
                                     if (lastInsert)
                                     {
+                                        CLError createRootServerUid = CreateNewServerUid(serverUid: null, revision: null, serverUidId: out rootFileSystemObjectServerUidId);
+
+                                        if (createRootServerUid != null)
+                                        {
+                                            throw new AggregateException("Unable to create ServerUid", createRootServerUid.GrabExceptions());
+                                        }
+
                                         rootFileSystemObjectId = SqlAccessor<FileSystemObject>.InsertRow<long>
                                             (creationConnection,
                                                 new FileSystemObject()
@@ -2655,7 +3718,8 @@ namespace Cloud.SQLIndexer
                                                     EventTimeUTCTicks = 0, // never need to show the root folder in recents, so it should have the oldest event time
                                                     IsFolder = true,
                                                     Name = syncRoot,
-                                                    Pending = false
+                                                    Pending = false,
+                                                    ServerUidId = rootFileSystemObjectServerUidId
                                                 });
                                     }
 
@@ -2741,17 +3805,31 @@ namespace Cloud.SQLIndexer
                         throw;
                     }
                 }
+
+                if (copyDatabaseBetweenChanges)
+                {
+                    string indexLocationWithoutExtension = indexDBLocation.Substring(0, indexDBLocation.LastIndexOf('.'));
+                    int highestExistingCopyIndex = 2;
+                    while (File.Exists(string.Format("{0}{1}.db", indexLocationWithoutExtension, highestExistingCopyIndex)))
+                    {
+                        highestExistingCopyIndex++;
+                    }
+
+                    // no need to lock since initialization must be atomic with initial database operations
+                    dbCopyNumber.Value = highestExistingCopyIndex;
+                }
             }
 
             return dbNeedsCreation;
         }
 
-        public static void CheckDatabaseFileState(bool createEvenIfExisting, out FileInfo dbInfo, out bool dbNeedsDeletion, out bool dbNeedsCreation, string indexDBLocation)
+        public static void CheckDatabaseFileState(bool createEvenIfExisting, out FileInfo dbInfo, out bool dbNeedsDeletion, out bool dbNeedsCreation, string indexDBLocation, out string rootObjectCalculatedFullPath)
         {
-            CheckDatabaseFileState(createEvenIfExisting, out dbInfo, out dbNeedsDeletion, out dbNeedsCreation, indexDBLocation, syncbox: null);
+            long doNotUse;
+            CheckDatabaseFileState(createEvenIfExisting, out dbInfo, out dbNeedsDeletion, out dbNeedsCreation, indexDBLocation, out rootObjectCalculatedFullPath, syncbox: null, rootObjectId: out doNotUse, rootObjectServerUidId: out doNotUse);
         }
 
-        private static void CheckDatabaseFileState(bool createEvenIfExisting, out FileInfo dbInfo, out bool dbNeedsDeletion, out bool dbNeedsCreation, string indexDBLocation, CLSyncbox syncbox)
+        private static void CheckDatabaseFileState(bool createEvenIfExisting, out FileInfo dbInfo, out bool dbNeedsDeletion, out bool dbNeedsCreation, string indexDBLocation, out string rootObjectCalculatedFullPath, CLSyncbox syncbox, out long rootObjectId, out long rootObjectServerUidId)
         {
             dbInfo = new FileInfo(indexDBLocation);
 
@@ -2759,6 +3837,10 @@ namespace Cloud.SQLIndexer
             {
                 if (createEvenIfExisting)
                 {
+                    rootObjectCalculatedFullPath = Helpers.DefaultForType<string>();
+                    rootObjectId = Helpers.DefaultForType<long>();
+                    rootObjectServerUidId = Helpers.DefaultForType<long>();
+
                     dbNeedsDeletion = true;
                     dbNeedsCreation = true;
                 }
@@ -2782,6 +3864,10 @@ namespace Cloud.SQLIndexer
                             {
                                 // database was never finalized (version is changed from 1 to [current database version] via the last initialization script, which identifies successful creation)
                                 // the very first implementation of this database will be version 2 so we can compare on less than 2
+
+                                rootObjectCalculatedFullPath = Helpers.DefaultForType<string>();
+                                rootObjectId = Helpers.DefaultForType<long>();
+                                rootObjectServerUidId = Helpers.DefaultForType<long>();
 
                                 dbNeedsCreation = true;
                                 dbNeedsDeletion = true;
@@ -2808,6 +3894,23 @@ namespace Cloud.SQLIndexer
                                     }
                                 }
 
+                                FileSystemObject rootObject = SqlAccessor<FileSystemObject>.SelectResultSet(
+                                        verifyAndUpdateConnection,
+                                        "SELECT * " +
+                                        "FROM FileSystemObjects " +
+                                        "WHERE FileSystemObjects.ParentFolderId IS NULL " +
+                                        "LIMIT 1")
+                                    .FirstOrDefault();
+
+                                if (rootObject == null)
+                                {
+                                    throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Unable to find FileSystemObjects row for root object");
+                                }
+
+                                rootObjectCalculatedFullPath = rootObject.CalculatedFullPath;
+                                rootObjectId = rootObject.FileSystemObjectId;
+                                rootObjectServerUidId = rootObject.ServerUidId;
+
                                 dbNeedsCreation = false;
                                 dbNeedsDeletion = false;
                             }
@@ -2826,6 +3929,10 @@ namespace Cloud.SQLIndexer
                                 syncbox.CopiedSettings.DeviceId);
                         }
 
+                        rootObjectCalculatedFullPath = Helpers.DefaultForType<string>();
+                        rootObjectId = Helpers.DefaultForType<long>();
+                        rootObjectServerUidId = Helpers.DefaultForType<long>();
+
                         dbNeedsDeletion = true;
                         dbNeedsCreation = true;
                     }
@@ -2842,6 +3949,10 @@ namespace Cloud.SQLIndexer
                         DeviceId: syncbox.CopiedSettings.DeviceId);
                 }
 
+                rootObjectCalculatedFullPath = Helpers.DefaultForType<string>();
+                rootObjectId = Helpers.DefaultForType<long>();
+                rootObjectServerUidId = Helpers.DefaultForType<long>();
+
                 dbNeedsCreation = true;
                 dbNeedsDeletion = false;
             }
@@ -2849,6 +3960,18 @@ namespace Cloud.SQLIndexer
 
         private void MarkBadgeSyncedAfterEventCompletion(FileChangeType storeExistingChangeType, string storeNewPath, string storeOldPath, bool storeWhetherEventIsASyncFrom)
         {
+            if (disposed)
+            {
+                try
+                {
+                    throw new ObjectDisposedException("This IndexingAgent");
+                }
+                catch
+                {
+                    return;
+                }
+            }
+
             Action<FilePath> setBadgeSynced = syncedPath =>
             {
                 MessageEvents.QueueSetBadge(this, new SetBadge(PathState.Synced, syncedPath));   // Message to invoke BadgeNet.IconOverlay.QueueSetBadge(PathState.Synced, syncedPath);
@@ -2930,6 +4053,18 @@ namespace Cloud.SQLIndexer
 
         private ISQLiteConnection CreateAndOpenCipherConnection(bool enforceForeignKeyConstraints = true)
         {
+            if (disposed)
+            {
+                try
+                {
+                    throw new ObjectDisposedException("This IndexingAgent");
+                }
+                catch
+                {
+                    return null;
+                }
+            }
+
             return StaticCreateAndOpenCipherConnection(enforceForeignKeyConstraints, indexDBLocation);
         }
 
@@ -2966,6 +4101,18 @@ namespace Cloud.SQLIndexer
         /// <param name="indexCompletionCallback">Callback should be the BeginProcessing method of the FileMonitor to forward the initial index</param>
         private void BuildIndex(Action<IEnumerable<KeyValuePair<FilePath, FileMetadata>>, IEnumerable<FileChange>> indexCompletionCallback)
         {
+            if (disposed)
+            {
+                try
+                {
+                    throw new ObjectDisposedException("This IndexingAgent");
+                }
+                catch
+                {
+                    return;
+                }
+            }
+
             FilePath baseComparePath = indexedPath;
 
             // Create the initial index dictionary, throwing any exceptions that occurred in the process
@@ -3026,7 +4173,8 @@ namespace Cloud.SQLIndexer
                     "SELECT " +
                         SqlAccessor<FileSystemObject>.GetSelectColumns() + ", " +
                         SqlAccessor<FileSystemObject>.GetSelectColumns("Event") + ", " +
-                        SqlAccessor<FileSystemObject>.GetSelectColumns("Parent", "Parents") +
+                        SqlAccessor<FileSystemObject>.GetSelectColumns("Parent", "Parents") + ", " +
+                        SqlAccessor<FileSystemObject>.GetSelectColumns("Parent.ServerUid") +
                         " FROM FileSystemObjects" +
                         " LEFT OUTER JOIN Events ON " +
                         "(" +
@@ -3037,21 +4185,21 @@ namespace Cloud.SQLIndexer
                         "(" +
                         "  FileSystemObjects.ParentFolderId = Parents.FileSystemObjectId" +
                         "  AND FileSystemObjects.Pending = 1" +
-                        ")",
-                    new[] { "Event", "Parent" }))
+                        ")" +
+                        " LEFT OUTER JOIN ServerUids ON Parents.ServerUidId = ServerUids.ServerUidId",
+                    includes: new[] { "Event", "Parent", "Parent.ServerUid" }))
                 {
                     if (combinedPendingNonPending.ParentFolderId == null)
                     {
                         // set the root metadata
-                        combinedIndexPlusChanges[null] = indexPaths[null] = new FileMetadata()
+                        combinedIndexPlusChanges[null] = indexPaths[null] = new FileMetadata(combinedPendingNonPending.ServerUidId)
                         {
                             EventTime = new DateTime(0, DateTimeKind.Utc),
                             HashableProperties = new FileMetadataHashableProperties(
                                 isFolder: true,
                                 lastTime: null,
                                 creationTime: null,
-                                size: null),
-                            ServerUid = combinedPendingNonPending.ServerUid
+                                size: null)
                         };
                     }
                     else
@@ -3076,7 +4224,7 @@ namespace Cloud.SQLIndexer
                         {
                             Direction = (currentObject.Value.Event.SyncFrom ? SyncDirection.From : SyncDirection.To),
                             EventId = currentObject.Value.Event.EventId,
-                            Metadata = new FileMetadata()
+                            Metadata = new FileMetadata(currentObject.Value.ServerUidId)
                             {
                                 EventTime = new DateTime(currentObject.Value.EventTimeUTCTicks, DateTimeKind.Utc),
                                 HashableProperties = new FileMetadataHashableProperties(
@@ -3091,9 +4239,7 @@ namespace Cloud.SQLIndexer
                                 IsShare = currentObject.Value.IsShare,
                                 MimeType = currentObject.Value.MimeType,
                                 Permissions = (currentObject.Value.Permissions == null ? (Nullable<POSIXPermissions>)null : (POSIXPermissions)((int)currentObject.Value.Permissions)),
-                                Revision = currentObject.Value.Revision,
-                                ServerUid = currentObject.Value.ServerUid,
-                                ParentFolderServerUid = (currentObject.Value.Parent == null ? null : currentObject.Value.Parent.ServerUid),
+                                ParentFolderServerUid = (currentObject.Value.Parent == null ? null : (currentObject.Value.Parent.ServerUid == null ? null : currentObject.Value.Parent.ServerUid.ServerUid)),
                                 StorageKey = currentObject.Value.StorageKey,
                                 Version = currentObject.Value.Version
                             },
@@ -3117,7 +4263,7 @@ namespace Cloud.SQLIndexer
                     }
                     else
                     {
-                        FileMetadata currentToAdd = new FileMetadata()
+                        FileMetadata currentToAdd = new FileMetadata(currentObject.Value.ServerUidId)
                         {
                             EventTime = new DateTime(currentObject.Value.EventTimeUTCTicks, DateTimeKind.Utc),
                             HashableProperties = new FileMetadataHashableProperties(
@@ -3132,9 +4278,7 @@ namespace Cloud.SQLIndexer
                             IsShare = currentObject.Value.IsShare,
                             MimeType = currentObject.Value.MimeType,
                             Permissions = (currentObject.Value.Permissions == null ? (Nullable<POSIXPermissions>)null : (POSIXPermissions)((int)currentObject.Value.Permissions)),
-                            Revision = currentObject.Value.Revision,
-                            ServerUid = currentObject.Value.ServerUid,
-                            ParentFolderServerUid = (currentObject.Value.Parent == null ? null : currentObject.Value.Parent.ServerUid),
+                            ParentFolderServerUid = (currentObject.Value.Parent == null ? null : (currentObject.Value.Parent.ServerUid == null ? null : currentObject.Value.Parent.ServerUid.ServerUid)),
                             StorageKey = currentObject.Value.StorageKey,
                             Version = currentObject.Value.Version
                         };
@@ -3250,10 +4394,21 @@ namespace Cloud.SQLIndexer
                     string parentFolderServerUid;
                     if (combinedIndexPlusChanges.TryGetValue(deletedPathObject.Parent, out parentFolderMetadata))
                     {
-                        parentFolderServerUid = parentFolderMetadata.ServerUid;
+                        // Get the ServerUid for the deleted path's parent folder
+                        string serverUid;
+                        string revision;
+                        CLError queryUidError = QueryServerUid(parentFolderMetadata.ServerUidId, out serverUid, out revision);
+
+                        if (queryUidError != null)
+                        {
+                            throw new AggregateException(string.Format("Unable to query ServerUid with id {0}", parentFolderMetadata.ServerUidId), queryUidError.GrabExceptions());
+                        }
+
+                        parentFolderServerUid = serverUid;
                     }
                     else
                     {
+                        // Parent might not be communicated yet.
                         parentFolderServerUid = null;
                     }
 
@@ -3349,8 +4504,20 @@ namespace Cloud.SQLIndexer
         /// <param name="AddEventCallback">Callback to fire if a database event needs to be added</param>
         /// <param name="uncoveredChanges">Optional list of changes which no longer have a corresponding local path, only set when self-recursing</param>
         /// <returns>Returns the list of paths traversed</returns>
-        private static IEnumerable<string> RecurseIndexDirectory(List<FileChange> changeList, FilePathDictionary<FileMetadata> indexPaths, FilePathDictionary<FileMetadata> combinedIndexPlusChanges, Func<long, CLError> RemoveEventCallback, string currentDirectoryFullPath, FindFileResult currentDirectory = null, Dictionary<FilePath, LinkedList<FileChange>> uncoveredChanges = null)
+        private IEnumerable<string> RecurseIndexDirectory(List<FileChange> changeList, FilePathDictionary<FileMetadata> indexPaths, FilePathDictionary<FileMetadata> combinedIndexPlusChanges, Func<long, CLError> RemoveEventCallback, string currentDirectoryFullPath, FindFileResult currentDirectory = null, Dictionary<FilePath, LinkedList<FileChange>> uncoveredChanges = null)
         {
+            if (disposed)
+            {
+                try
+                {
+                    throw new ObjectDisposedException("This IndexingAgent");
+                }
+                catch
+                {
+                    return null;
+                }
+            }
+
             // Store whether the current method call is outermost or a recursion,
             // only the outermost method call has a null uncoveredChanges parameter
             bool outermostMethodCall = (uncoveredChanges == null);
@@ -3448,14 +4615,33 @@ namespace Cloud.SQLIndexer
                         string parentFolderServerUid;
                         if (combinedIndexPlusChanges.TryGetValue(subDirectoryPathObject.Parent, out parentFolderMetadata))
                         {
-                            parentFolderServerUid = parentFolderMetadata.ServerUid;
+                            // Get the ServerUid for the current directory's parent folder
+                            string serverUid;
+                            string revision;
+                            CLError queryUidError = QueryServerUid(parentFolderMetadata.ServerUidId, out serverUid, out revision);
+
+                            if (queryUidError != null)
+                            {
+                                throw new AggregateException(string.Format("Unable to query ServerUid with id {0}", parentFolderMetadata.ServerUidId), queryUidError.GrabExceptions());
+                            }
+
+                            parentFolderServerUid = serverUid;
                         }
                         else
                         {
+                            // This change may not have been communicated.
                             parentFolderServerUid = null;
                         }
 
-                        FileMetadata newDirectoryMetadata = new FileMetadata()
+                        long serverUidId;
+                        CLError createServerUidError = CreateNewServerUid(serverUid: null, revision: null, serverUidId: out serverUidId);
+
+                        if (createServerUidError != null)
+                        {
+                            throw new AggregateException("Error creating new ServerUid", createServerUidError.GrabExceptions());
+                        }
+
+                        FileMetadata newDirectoryMetadata = new FileMetadata(serverUidId)
                         {
                             HashableProperties = compareProperties,
                             ParentFolderServerUid = parentFolderServerUid
@@ -3512,18 +4698,27 @@ namespace Cloud.SQLIndexer
                             string parentFolderServerUid;
                             if (combinedIndexPlusChanges.TryGetValue(currentFilePathObject.Parent, out parentFolderMetadata))
                             {
-                                parentFolderServerUid = parentFolderMetadata.ServerUid;
+                                // Get the ServerUid for the current directory's parent folder
+                                string serverUid;
+                                string revision;
+                                CLError queryUidError = QueryServerUid(parentFolderMetadata.ServerUidId, out serverUid, out revision);
+
+                                if (queryUidError != null)
+                                {
+                                    throw new AggregateException(string.Format("Unable to query ServerUid with id {0}", parentFolderMetadata.ServerUidId), queryUidError.GrabExceptions());
+                                }
+
+                                parentFolderServerUid = serverUid;
                             }
                             else
                             {
+                                // May not have been communicated yet.
                                 parentFolderServerUid = null;
                             }
 
-                            FileMetadata modifiedMetadata = new FileMetadata()
+                            FileMetadata modifiedMetadata = new FileMetadata(existingFileMetadata.ServerUidId)
                             {
-                                ServerUid = existingFileMetadata.ServerUid,
                                 HashableProperties = compareProperties,
-                                Revision = existingFileMetadata.Revision,
                                 ParentFolderServerUid = parentFolderServerUid/*,
                                     StorageKey = existingFileMetadata.StorageKey*/
                                 // DO NOT copy StorageKey because this metadata is for a modified change which would therefore require a new StorageKey
@@ -3547,14 +4742,33 @@ namespace Cloud.SQLIndexer
                         string parentFolderServerUid;
                         if (combinedIndexPlusChanges.TryGetValue(currentFilePathObject.Parent, out parentFolderMetadata))
                         {
-                            parentFolderServerUid = parentFolderMetadata.ServerUid;
+                            // Get the ServerUid for the current directory's parent folder
+                            string serverUid;
+                            string revision;
+                            CLError queryUidError = QueryServerUid(parentFolderMetadata.ServerUidId, out serverUid, out revision);
+
+                            if (queryUidError != null)
+                            {
+                                throw new AggregateException(string.Format("Unable to query ServerUid with id {0}", parentFolderMetadata.ServerUidId), queryUidError.GrabExceptions());
+                            }
+
+                            parentFolderServerUid = serverUid;
                         }
                         else
                         {
+                            // May not have been communicated yet.
                             parentFolderServerUid = null;
                         }
 
-                        FileMetadata fileCreatedMetadata = new FileMetadata()
+                        long serverUidId;
+                        CLError createServerUidError = CreateNewServerUid(serverUid: null, revision: null, serverUidId: out serverUidId);
+
+                        if (createServerUidError != null)
+                        {
+                            throw new AggregateException("Error creating new ServerUid", createServerUidError.GrabExceptions());
+                        }
+
+                        FileMetadata fileCreatedMetadata = new FileMetadata(serverUidId)
                         {
                             HashableProperties = compareProperties,
                             ParentFolderServerUid = parentFolderServerUid//,
@@ -3653,23 +4867,28 @@ namespace Cloud.SQLIndexer
         {
             lock (this)
             {
-                // Run dispose on inner managed objects based on disposing condition
-                if (disposing)
+                if (!disposed)
                 {
-                    lock (changeEnumsLocker)
+                    // Run dispose on inner managed objects based on disposing condition
+                    if (disposing)
                     {
-                        if (changeEnums != null)
+                        lock (changeEnumsLocker)
                         {
-                            changeEnums.Clear();
-                            changeEnums = null;
-                        }
+                            if (changeEnums != null)
+                            {
+                                changeEnums.Clear();
+                                changeEnums = null;
+                            }
 
-                        if (changeEnumsBackward != null)
-                        {
-                            changeEnumsBackward.Clear();
-                            changeEnumsBackward = null;
+                            if (changeEnumsBackward != null)
+                            {
+                                changeEnumsBackward.Clear();
+                                changeEnumsBackward = null;
+                            }
                         }
                     }
+
+                    disposed = true;
                 }
             }
         }
