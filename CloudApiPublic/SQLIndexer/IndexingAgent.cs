@@ -457,7 +457,7 @@ namespace Cloud.SQLIndexer
             return toReturn;
         }
 
-        public CLError QueryOrCreateServerUid(string serverUid, out long serverUidId, string revision, SQLTransactionalBase existingTransaction = null)
+        public CLError QueryOrCreateServerUid(string serverUid, out long serverUidId, string revision, bool syncFromFileModify, SQLTransactionalBase existingTransaction = null)
         {
             SQLTransactionalImplementation castTransaction = existingTransaction as SQLTransactionalImplementation;
             bool inputTransactionSet = castTransaction != null;
@@ -468,7 +468,7 @@ namespace Cloud.SQLIndexer
                     throw new ObjectDisposedException("This IndexingAgent");
                 }
 
-                _trace.writeToLog(9, "IndexingAgent: Entry: QueryOrCreateServerUid: serverUid: {0}. revision: {1}. existingTransaction: {2}.", serverUid, revision, existingTransaction == null ? "null" : "notNull");
+                _trace.writeToLog(9, "IndexingAgent: Entry: QueryOrCreateServerUid: serverUid: {0}. revision: {1}. syncFromFileModify {2}. existingTransaction: {3}.", serverUid, revision, syncFromFileModify, existingTransaction == null ? "null" : "notNull");
 
                 if (existingTransaction != null
                     && castTransaction == null)
@@ -520,7 +520,8 @@ namespace Cloud.SQLIndexer
                 {
                     serverUidId = retrievedUid.ServerUidId;
 
-                    if (revision != retrievedUid.Revision)
+                    if (!syncFromFileModify
+                        && revision != retrievedUid.Revision)
                     {
                         retrievedUid.Revision = revision;
 
@@ -1341,6 +1342,8 @@ namespace Cloud.SQLIndexer
 
                 FilePath indexedPathObject = indexedPath;
 
+                Dictionary<long, Event> eventsByIdForPendingRevision = new Dictionary<long, Event>();
+
                 do
                 {
                     lastHighestChangeIndex = currentChangeIndex;
@@ -1684,6 +1687,7 @@ namespace Cloud.SQLIndexer
                         Func<Event, FileSystemObject> setIdAndGrabObject = currentEvent =>
                         {
                             currentEvent.FileSystemObject.EventId = orderToChange[(int)currentEvent.GroupOrder].Value.Value = groupOrderToId[(int)currentEvent.GroupOrder];
+                            eventsByIdForPendingRevision.Add((long)currentEvent.FileSystemObject.EventId, currentEvent);
                             return currentEvent.FileSystemObject;
                         };
 
@@ -1701,6 +1705,16 @@ namespace Cloud.SQLIndexer
                     }
                 }
                 while (currentChangeIndex != lastHighestChangeIndex);
+
+                for (int newEventIdx = 0; newEventIdx < newEventsArray.Length; newEventIdx++)
+                {
+                    FileChange changeWithPendingRevision = newEventsArray[newEventIdx];
+
+                    if (changeWithPendingRevision.FileDownloadPendingRevision != null)
+                    {
+                        SetPendingRevision(castTransaction, changeWithPendingRevision, eventsByIdForPendingRevision[changeWithPendingRevision.EventId]);
+                    }
+                }
 
                 if (!inputTransactionSet
                     && castTransaction != null)
@@ -2886,6 +2900,8 @@ namespace Cloud.SQLIndexer
                                                         {
                                                             toAdd = toUpdate;
                                                         }
+
+                                                        SetPendingRevision(castTransaction, toUpdate, existingRow.Event);
                                                     }
 
                                                     updatedIds.Add(toUpdate.EventId);
@@ -2939,6 +2955,32 @@ namespace Cloud.SQLIndexer
                     }
                 }
                 return toReturn;
+            }
+        }
+
+        private static void SetPendingRevision(SQLTransactionalImplementation castTransaction, FileChange toUpdate, Event existingEvent)
+        {
+            if (toUpdate.FileDownloadPendingRevision != null
+                && existingEvent.FileDownloadPendingRevision != toUpdate.FileDownloadPendingRevision)
+            {
+                using (ISQLiteCommand updatePendingRevision = castTransaction.sqlConnection.CreateCommand())
+                {
+                    updatePendingRevision.Transaction = castTransaction.sqlTransaction;
+
+                    updatePendingRevision.CommandText = "UPDATE Events " +
+                        "SET FileDownloadPendingRevision = ? " +
+                        "WHERE EventId = ?";
+
+                    ISQLiteParameter updateRevisionParam = updatePendingRevision.CreateParameter();
+                    updateRevisionParam.Value = toUpdate.FileDownloadPendingRevision;
+                    updatePendingRevision.Parameters.Add(updateRevisionParam);
+
+                    ISQLiteParameter eventKeyParam = updatePendingRevision.CreateParameter();
+                    eventKeyParam.Value = existingEvent.EventId;
+                    updatePendingRevision.Parameters.Add(eventKeyParam);
+
+                    updatePendingRevision.ExecuteNonQuery();
+                }
             }
         }
         private readonly object MergeEventsLocker = new object();
@@ -3250,6 +3292,29 @@ namespace Cloud.SQLIndexer
                             castTransaction.sqlTransaction))
                         {
                             throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Unable to update existing event to not be pending");
+                        }
+
+                        if (storeWhetherEventIsASyncFrom
+                            && existingEventObject.Event.FileDownloadPendingRevision != null)
+                        {
+                            using (ISQLiteCommand updateRevision = castTransaction.sqlConnection.CreateCommand())
+                            {
+                                updateRevision.Transaction = castTransaction.sqlTransaction;
+
+                                updateRevision.CommandText = "UPDATE ServerUids " +
+                                    "SET Revision = ? " +
+                                    "WHERE ServerUidId = ?";
+
+                                ISQLiteParameter revisionParameter = updateRevision.CreateParameter();
+                                revisionParameter.Value = existingEventObject.Event.FileDownloadPendingRevision;
+                                updateRevision.Parameters.Add(revisionParameter);
+
+                                ISQLiteParameter serverUidKey = updateRevision.CreateParameter();
+                                serverUidKey.Value = existingEventObject.ServerUidId;
+                                updateRevision.Parameters.Add(serverUidKey);
+
+                                updateRevision.ExecuteNonQuery();
+                            }
                         }
                         break;
 

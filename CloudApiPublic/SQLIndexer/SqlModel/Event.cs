@@ -36,6 +36,9 @@ namespace Cloud.SQLIndexer.SqlModel
         [SqlAccess.Property]
         public Nullable<int> GroupOrder { get; set; }
 
+        [SqlAccess.Property(SqlAccess.FieldType.ReadOnly)] // read-only since I don't want to pass this string around whenever creating FileChange objects, explicity updated in database
+        public string FileDownloadPendingRevision { get; set; }
+
         [SqlAccess.Property(Constants.SqlEnumName, SqlAccess.FieldType.JoinedTable)]
         public SqlEnum SqlEnum { get; set; }
 

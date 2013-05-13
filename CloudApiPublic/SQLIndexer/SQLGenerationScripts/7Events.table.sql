@@ -19,6 +19,8 @@ CREATE TABLE Events
     GroupOrder INTEGER CONSTRAINT CHK_Events_GroupOrder_INTEGER
       CHECK (GroupOrder IS NULL OR TYPEOF(GroupOrder) = 'integer'),
     PreviousId INTEGER,
+	FileDownloadPendingRevision TEXT CONSTRAINT CHK_Events_FileDownloadPendingRevision_TEXT
+      CHECK (FileDownloadPendingRevision IS NULL OR TYPEOF(FileDownloadPendingRevision) = 'text'),
     PRIMARY KEY (EventId ASC),
     CONSTRAINT IDX_Events_GroupOrder_GroupId
       UNIQUE (GroupOrder ASC, GroupId ASC),

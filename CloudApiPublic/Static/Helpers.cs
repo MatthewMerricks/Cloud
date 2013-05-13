@@ -3294,7 +3294,7 @@ namespace Cloud.Static
                                                 return innerStoreReturnBody.Value;
                                             };
 
-                                        if (uploadDownload.ChangeToTransfer.NewPath == null)
+                                        if (uploadDownload.ChangeToTransfer.DownloadCancelled == FileChange.DownloadCancelledState.CancelledAndStopDownloading)
                                         {
                                             status = CLHttpRestStatus.Cancelled;
 
@@ -4269,15 +4269,7 @@ namespace Cloud.Static
 
                 this._statusCallback = StatusCallback;
                 this._changeToTransfer = ChangeToTransfer;
-                FilePath retainNewPath = this.ChangeToTransfer.NewPath;
-                if (retainNewPath == null)
-                {
-                    this._relativePathForStatus = null;
-                }
-                else
-                {
-                    this._relativePathForStatus = retainNewPath.GetRelativePath((SyncRootFullPath ?? string.Empty), false); // relative path is calculated from full path to file minus full path to sync directory
-                }
+                this._relativePathForStatus = this.ChangeToTransfer.NewPath.GetRelativePath((SyncRootFullPath ?? string.Empty), false); // relative path is calculated from full path to file minus full path to sync directory
                 this._shutdownToken = ShutdownToken;
                 this._aCallback = ACallback;
                 this._aResult = AResult;

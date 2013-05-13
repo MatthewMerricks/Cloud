@@ -58,7 +58,7 @@ namespace Cloud.Interfaces
 
         CLError QueryServerUid(long serverUidId, out string serverUid, out string revision, SQLTransactionalBase existingTransaction = null);
 
-        CLError QueryOrCreateServerUid(string serverUid, out long serverUidId, string revision, SQLTransactionalBase existingTransaction = null);
+        CLError QueryOrCreateServerUid(string serverUid, out long serverUidId, string revision, bool syncFromFileModify, SQLTransactionalBase existingTransaction = null);
 
         /// <summary>
         /// Creates a new transactional object which can be passed back into database access calls and externalizes the ability to dispose or commit the transaction
@@ -137,7 +137,7 @@ namespace Cloud.Interfaces
         /// </summary>
         /// <param name="toApply">FileChange to perform</param>
         /// <returns>Should return any error that occurred while performing the FileChange</returns>
-        CLError applySyncFromChange<T>(FileChange toApply, Action<T> onAllPathsLock, Action<T> onBeforeAllPathsUnlock, T userState, object lockerInsideAllPaths);
+        CLError applySyncFromChange<T>(FileChange toApply, Func<T, bool> onAllPathsLockAndReturnWhetherToContinue, Action<T> onBeforeAllPathsUnlock, T userState, object lockerInsideAllPaths);
 
         /// <summary>
         /// Callback from SyncEngine to complete a single FileChange as of the last sync (used for asynchronously completed operations file upload and file download)

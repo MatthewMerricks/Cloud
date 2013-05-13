@@ -5722,16 +5722,20 @@ namespace Cloud.Sync
                         // calculate and store the path for the existing file
                         string newTempFileString = castState.TempDownloadFolderPath + "\\" + ((Guid)newTempFile).ToString("N");
 
+                        GenericHolder<bool> cancelledButCompletedDownload = new GenericHolder<bool>(false);
+
                         // move the file from the temp download path to the final location
                         _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: DownloadForTask: Call MoveCompletedDownload for file: {0}.", newTempFileString));
                         castState.MoveCompletedDownload(newTempFileString, // temp download path
                             castState.FileToDownload, // event for the file download
                             ref responseBody, // reference to the response body which will be set as "completed" if successful
                             castState.FailureTimer, // timer for the failure queue
-                            (Guid)newTempFile); // the id of the existing temp file
+                            (Guid)newTempFile, // the id of the existing temp file
+                            cancelledButCompletedDownload);
                         _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: DownloadForTask: Back from MoveCompletedDownload."));
 
-                        if (storeMatchedExistingDownload != null)
+                        if (!cancelledButCompletedDownload.Value
+                            && storeMatchedExistingDownload != null)
                         {
                             _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: DownloadForTask: storeMatchedExistingDownload not null."));
                             tempDownloadsInSize.Remove((DownloadIdAndMD5)storeMatchedExistingDownload);
@@ -5831,11 +5835,18 @@ namespace Cloud.Sync
                         //
                         // if it was cancelled due to a rename we want the event to stick around but don't throw an error because this is a normal condition;
                         // to get the rename to refire the transfer, we can return a 0 EventId in the completion processor
-                        if (castState.FileToDownload.NewPath != null) // cancelled via setting a null path such as when event was cancelled out on another thread; do not use stored new path since freshest is best here
+                        if (castState.FileToDownload.DownloadCancelled == FileChange.DownloadCancelledState.CancelledAndStopDownloading) // event was cancelled out on another thread
                         {
                             _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: DownloadForTask: CANCELLED:  Return a zero ID."));
                             return new EventIdAndCompletionProcessor(0, castState.SyncData, castState.Syncbox.CopiedSettings, castState.Syncbox.SyncboxId, castState.TempDownloadFolderPath);
                         }
+                        //// if it was cancelled but marked to allow download completion, then we want to act like the event was successful since a later file modify
+                        //// is going to produce a conflict and thus create a new sync from file creation to complete this event, commented below since it would be a no-op anyways
+                        //if (castState.FileToDownload.DownloadCancelled == FileChange.DownloadCancelledState.CancelledButContinueDownloading)
+                        //{
+                        //    // no op;
+                        //}
+
                         // else for cancellation based on deletion, the event will act like it was successful by continuing onto normal processing
                     }
                     else if (downloadStatus == CLHttpRestStatus.Success)
@@ -6129,16 +6140,20 @@ namespace Cloud.Sync
                 throw new NullReferenceException("UserState must have CurrentDownloads");
             }
 
+            GenericHolder<bool> cancelledButCompletedDownload = new GenericHolder<bool>(false);
+
             // fire callback to perform the actual move of the temp file to the final destination
             castState.MoveCompletedDownload(tempFileFullPath, // location of temp file
                 downloadChange, // download event
                 ref responseBody, // reference to response string (sets to "completed" on success)
                 castState.FailureTimer, // timer for failure queue
-                tempId); // id for the downloaded file
+                tempId, // id for the downloaded file
+                cancelledButCompletedDownload);
             _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: OnAfterDownloadToTempFile: Back from MoveCompletedDownload."));
 
             List<DownloadIdAndMD5> downloadsByCurrentSize;
-            if (castState.CurrentDownloads.TryGetValue((long)downloadChange.Metadata.HashableProperties.Size, out downloadsByCurrentSize))
+            if (!cancelledButCompletedDownload.Value
+                && castState.CurrentDownloads.TryGetValue((long)downloadChange.Metadata.HashableProperties.Size, out downloadsByCurrentSize))
             {
                 _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: OnAfterDownloadToTempFile: Found a list."));
                 bool foundAtLeastOneToRemove = false;
@@ -6259,7 +6274,7 @@ namespace Cloud.Sync
 
                 // build the first part of a message which will be sent to an event handler for error messages
                 string growlErrorMessage = "An error occurred downloading " +
-                    (exceptionState.FileChange.FileChange.NewPath == null ? "{Possibly cancelled upload or download}" : exceptionState.FileChange.FileChange.NewPath.ToString()) + ": " +
+                    exceptionState.FileChange.FileChange.NewPath.ToString() + ": " +
 
                     // Because of exception wrapping, the real cause of the error is probably in the message of the exception's inner inner exception,
                     // so attempt to grab it from there otherwise attempt to grab it from the exception's inner exception otherwise attempt to grab it from the exception itself
@@ -6610,7 +6625,8 @@ namespace Cloud.Sync
             FileChange completedDownload,
             ref string responseBody,
             ProcessingQueuesTimer failureTimer,
-            Guid newTempFile);
+            Guid newTempFile,
+            GenericHolder<bool> cancelledButCompletedDownload);
         /// <summary>
         /// Takes a completed download from the temp location and uses the event source to move it to the final location and, when successful,
         /// removes the temp download from their list and adds any events dependent on the completed event to the processing queue in the event source
@@ -6624,7 +6640,8 @@ namespace Cloud.Sync
             FileChange completedDownload,
             ref string responseBody,
             ProcessingQueuesTimer failureTimer,
-            Guid newTempFile)
+            Guid newTempFile,
+            GenericHolder<bool> cancelledButCompletedDownload)
         {
             // Create a new file move change (from the temp download file path to the final destination) and perform it via the event source, storing any error that occurs
             // And store any errors returned from performing the file move operation via the event source
@@ -6638,40 +6655,53 @@ namespace Cloud.Sync
                     OldPath = newTempFileString, // Move from the location of the file within the temp download directory
                     Type = FileChangeType.Renamed // Operation is a move
                 },
-            onLockState =>
-            {
-                _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: MoveCompletedDownloadDelegate: onLockState Entry."));
-                if (onLockState.fileDownloadMoveLocker != null)
+                onLockState =>
                 {
-                    Monitor.Enter(onLockState.fileDownloadMoveLocker);
-                }
-                try
-                {
-                    if (onLockState.NewPath == null
-                        && !string.IsNullOrEmpty(onLockState.newTempFileString))
+                    _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: MoveCompletedDownloadDelegate: onLockState Entry."));
+                    if (onLockState.fileDownloadMoveLocker != null)
                     {
-                        File.Delete(onLockState.newTempFileString);
+                        Monitor.Enter(onLockState.fileDownloadMoveLocker);
                     }
-                }
-                catch
+
+                    switch (onLockState.getCancelled(onLockState.getCancelledState))
+                    {
+                        case FileChange.DownloadCancelledState.CancelledAndStopDownloading:
+                            try
+                            {
+                                File.Delete(onLockState.newTempFileString);
+                            }
+                            catch
+                            {
+                            }
+                            return false;
+
+                        case FileChange.DownloadCancelledState.CancelledButContinueDownloading:
+                            onLockState.cancelledButCompletedDownload.Value = true;
+                            return false;
+
+                        //case FileChange.DownloadCancelledState.NotCancelled:
+                        default:
+                            return true;
+                    }
+                },
+                onBeforeUnlockState =>
                 {
-                }
-            },
-            onBeforeUnlockState =>
-            {
-                _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: MoveCompletedDownloadDelegate: onBeforeLockState Entry."));
-                if (onBeforeUnlockState.fileDownloadMoveLocker != null)
-                {
-                    Monitor.Exit(onBeforeUnlockState.fileDownloadMoveLocker);
-                }
-            },
-            new
+                    _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: MoveCompletedDownloadDelegate: onBeforeLockState Entry."));
+                    if (onBeforeUnlockState.fileDownloadMoveLocker != null)
+                    {
+                        Monitor.Exit(onBeforeUnlockState.fileDownloadMoveLocker);
+                    }
+                },
+                new
                 {
                     fileDownloadMoveLocker = completedDownload.fileDownloadMoveLocker,
                     NewPath = completedDownload.NewPath,
-                    newTempFileString = newTempFileString
+                    newTempFileString = newTempFileString,
+                    getCancelled = new Func<FileChange, FileChange.DownloadCancelledState>(state => state.DownloadCancelled),
+                    getCancelledState = completedDownload,
+                    cancelledButCompletedDownload = cancelledButCompletedDownload
                 },
-            lockerInsideAllPaths: UpDownEventLocker); // Lock for changes to the UpDownEvent (the FilePath of the download could actually change when the parent folder is renamed on a different thread)
+                lockerInsideAllPaths: UpDownEventLocker); // Lock for changes to the UpDownEvent (the FilePath of the download could actually change when the parent folder is renamed on a different thread)
 
             // If an error occurred moving the file from the temp download folder to the final destination, then rethrow the exception
             if (applyError != null)
@@ -6987,7 +7017,7 @@ namespace Cloud.Sync
                     return runningUpDownChangesDict;
                 };
 
-                #region delegate definitions for Sync To
+                #region delegate definitions for creating FileChange objects from existing objects or from events
                 convertSyncToEventToFileChangePart1ForNullEventMetadata implementationConvertSyncToEventToFileChangePart1ForNullEventMetadata =
                     delegate(
                         Event currentEvent,
@@ -7140,10 +7170,20 @@ namespace Cloud.Sync
                         {
                             removedServerUidIdToInvalidate = null;
 
+                            bool syncFromFileModify = (currentChange.Type == FileChangeType.Modified
+                                && !findHashableProperties.IsFolder
+                                && currentChange.Direction == SyncDirection.From);
+
                             CLError queryServerUidError = innerSyncData.QueryOrCreateServerUid(
                                 findServerUid,
                                 out serverUidId,
-                                findRevision);  // no transaction
+                                findRevision,
+                                syncFromFileModify);  // no transaction
+
+                            if (syncFromFileModify)
+                            {
+                                currentChange.FileDownloadPendingRevision = findRevision;
+                            }
 
                             if (queryServerUidError != null)
                             {
@@ -10245,11 +10285,29 @@ namespace Cloud.Sync
                                         Direction = SyncDirection.From, // current communcation direction is Sync From (only Sync From events, not mixed like Sync To events)
                                         NewPath = findPathsResult.newPath, // new location of change
                                         OldPath = findPathsResult.oldPath, // if the current event is a rename, grab the previous path
-                                        Type = ParseEventStringToType(currentEvent.Action ?? currentEvent.Header.Action) // grab the type of change from the action string
+                                        Type = ParseEventStringToType(currentEvent.Action ?? currentEvent.Header.Action), // grab the type of change from the action string
+                                        FileDownloadPendingRevision = currentEvent.Metadata.Revision
                                     };
 
+                                FileMetadataHashableProperties eventHashables = new FileMetadataHashableProperties((currentEvent.Metadata.IsFolder ?? ParseEventStringToIsFolder(currentEvent.Header.Action ?? currentEvent.Action)), // try to grab whether this event is a folder from the specified property, otherwise parse it from the action
+                                    currentEvent.Metadata.ModifiedDate, // grab the last modified time
+                                    currentEvent.Metadata.CreatedDate, // grab the time of creation
+                                    currentEvent.Metadata.Size); // grab the file size, or null for non-files
+
+                                bool syncFromFileModify = (baseConvertedChange.Type == FileChangeType.Modified
+                                    && !eventHashables.IsFolder);
+
                                 long currentEventUidId;
-                                CLError queryServerUidError = syncData.QueryOrCreateServerUid(currentEvent.Metadata.ServerUid, out currentEventUidId, currentEvent.Metadata.Revision);
+                                CLError queryServerUidError = syncData.QueryOrCreateServerUid(
+                                    currentEvent.Metadata.ServerUid,
+                                    out currentEventUidId,
+                                    currentEvent.Metadata.Revision,
+                                    syncFromFileModify);
+
+                                if (syncFromFileModify)
+                                {
+                                    baseConvertedChange.FileDownloadPendingRevision = currentEvent.Metadata.Revision;
+                                }
 
                                 if (queryServerUidError != null)
                                 {
@@ -10285,10 +10343,7 @@ namespace Cloud.Sync
                                             {
                                                 //Need to find what key this is //LinkTargetPath <-- what does this comment mean?
 
-                                                HashableProperties = new FileMetadataHashableProperties((currentEvent.Metadata.IsFolder ?? ParseEventStringToIsFolder(currentEvent.Header.Action ?? currentEvent.Action)), // try to grab whether this event is a folder from the specified property, otherwise parse it from the action
-                                                    currentEvent.Metadata.ModifiedDate, // grab the last modified time
-                                                    currentEvent.Metadata.CreatedDate, // grab the time of creation
-                                                    currentEvent.Metadata.Size), // grab the file size, or null for non-files
+                                                HashableProperties = eventHashables,
                                                 StorageKey = currentEvent.Metadata.StorageKey, // grab the storage key, or null for non-files
                                                 MimeType = currentEvent.Metadata.MimeType, // never set on Windows
                                                 ParentFolderServerUid = currentEvent.Metadata.ToParentUid ?? currentEvent.Metadata.ParentUid
@@ -10586,9 +10641,14 @@ namespace Cloud.Sync
                                                 syncData);
 
                                             //&&&& New code
-                                            // Create a new ServerUid record
+                                            // Create a new ServerUid record;
+                                            // also, no reason to specially handle sync from file modifies here because we are in a switch on renamed changes
                                             long serverUidId;
-                                            CLError queryServerUidError = syncData.QueryOrCreateServerUid(serverUid: newMetadata.ServerUid, serverUidId: out serverUidId, revision: newMetadata.Revision);  // no transaction
+                                            CLError queryServerUidError = syncData.QueryOrCreateServerUid(
+                                                serverUid: newMetadata.ServerUid,
+                                                serverUidId: out serverUidId, 
+                                                revision: newMetadata.Revision,
+                                                syncFromFileModify: false);  // no transaction
 
                                             if (queryServerUidError != null)
                                             {

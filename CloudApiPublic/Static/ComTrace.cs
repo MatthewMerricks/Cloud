@@ -964,7 +964,7 @@ namespace Cloud.Static
                                 EventId = currentChange.EventId,
                                 EventIdSpecified = currentChange.EventId != 0,
                                 ServerUidId = currentChange.Metadata.ServerUidId,
-                                NewPath = (currentChange.NewPath == null ? "{Possibly cancelled upload or download}" : currentChange.NewPath.ToString()),
+                                NewPath = currentChange.NewPath.ToString(),
                                 OldPath = (currentChange.OldPath == null ? null : currentChange.OldPath.ToString()),
                                 IsFolder = currentChange.Metadata.HashableProperties.IsFolder,
                                 IsShare = currentChange.Metadata.IsShare ?? false,

@@ -856,7 +856,7 @@ namespace Cloud.FileMonitor
         /// </summary>
         /// <param name="toApply">FileChange to apply to the local file system</param>
         /// <returns>Returns any error occurred applying the FileChange, if any</returns>
-        internal CLError ApplySyncFromFileChange<T>(FileChange toApply, Action<T> onAllPathsLock, Action<T> onBeforeAllPathsUnlock, T userState, object lockerInsideAllPaths)
+        internal CLError ApplySyncFromFileChange<T>(FileChange toApply, Func<T, bool> onAllPathsLockAndReturnWhetherToContinue, Action<T> onBeforeAllPathsUnlock, T userState, object lockerInsideAllPaths)
         {
             try
             {
@@ -1000,15 +1000,20 @@ namespace Cloud.FileMonitor
                 {
                     lock (lockerInsideAllPaths ?? new object())
                     {
-                        if (onAllPathsLock != null)
+                        bool continueApplyingSyncFrom;
+                        if (onAllPathsLockAndReturnWhetherToContinue != null)
                         {
-                            onAllPathsLock(userState);
+                            continueApplyingSyncFrom = onAllPathsLockAndReturnWhetherToContinue(userState);
+                        }
+                        else
+                        {
+                            continueApplyingSyncFrom = true;
                         }
 
                         Exception exOnMainSwitch = null;
                         try
                         {
-                            if (toApply.NewPath == null)
+                            if (!continueApplyingSyncFrom)
                             {
                                 return null;
                             }
@@ -1136,7 +1141,7 @@ namespace Cloud.FileMonitor
                                         {
                                             foreach (FileChange matchedDown in recurseHierarchyAndAddSyncFromsToHashSet.TypedData.matchedDowns)
                                             {
-                                                matchedDown.NewPath = null; // set volatile path on this alternate thread which is checked as a way to cancel a download
+                                                matchedDown.CancelDownload(terminateImmediatelyBeforeDownloadFinishes: true);
                                             }
                                         }
                                     }
@@ -5265,64 +5270,99 @@ namespace Cloud.FileMonitor
 
                             foreach (FileChange nextMerge in mergeAll)
                             {
-                                if (nextMerge.Direction == SyncDirection.To
-                                    && (nextMerge.Type == FileChangeType.Deleted
-                                        || nextMerge.Type == FileChangeType.Renamed))
+                                if (nextMerge.Direction == SyncDirection.To)
                                 {
-                                    FilePathHierarchicalNode<List<FileChange>> matchedHierarchy;
-                                    CLError matchedHierarchyError = upDowns.GrabHierarchyForPath(
-                                        (nextMerge.Type == FileChangeType.Deleted
-                                            ? nextMerge.NewPath
-                                            : /* currentMerge.Type == FileChangeType.Renamed */ nextMerge.OldPath),
-                                        out matchedHierarchy,
-                                        suppressException: true);
-                                    if (matchedHierarchyError == null)
+                                    switch (nextMerge.Type)
                                     {
-                                        recurseHierarchyAndAddSyncFromsToHashSet.TypedData.innerHierarchy.Value = matchedHierarchy;
-                                        recurseHierarchyAndAddSyncFromsToHashSet.Process();
-
-                                        foreach (FileChange currentMatchedDownload in recurseHierarchyAndAddSyncFromsToHashSet.TypedData.matchedChanges)
-                                        {
-                                            if (currentMatchedDownload.fileDownloadMoveLocker != null)
+                                        case FileChangeType.Deleted:
+                                        case FileChangeType.Renamed:
+                                            FilePathHierarchicalNode<List<FileChange>> matchedHierarchy;
+                                            CLError matchedHierarchyError = upDowns.GrabHierarchyForPath(
+                                                (nextMerge.Type == FileChangeType.Deleted
+                                                    ? nextMerge.NewPath
+                                                    : /* currentMerge.Type == FileChangeType.Renamed */ nextMerge.OldPath),
+                                                out matchedHierarchy,
+                                                suppressException: true);
+                                            if (matchedHierarchyError == null)
                                             {
-                                                Monitor.Enter(currentMatchedDownload.fileDownloadMoveLocker);
-                                            }
+                                                recurseHierarchyAndAddSyncFromsToHashSet.TypedData.matchedChanges.Clear();
+                                                recurseHierarchyAndAddSyncFromsToHashSet.TypedData.innerHierarchy.Value = matchedHierarchy;
+                                                recurseHierarchyAndAddSyncFromsToHashSet.Process();
 
-                                            try
-                                            {
-                                                if (nextMerge.Type == FileChangeType.Renamed)
+                                                foreach (FileChange currentMatchedDownload in recurseHierarchyAndAddSyncFromsToHashSet.TypedData.matchedChanges)
                                                 {
-                                                    FilePath previousNewPath = currentMatchedDownload.NewPath;
-                                                    if (previousNewPath != null)
+                                                    if (currentMatchedDownload.fileDownloadMoveLocker != null)
                                                     {
-                                                        FilePath rebuiltNewPath = previousNewPath.Copy();
-                                                        FilePath.ApplyRename(rebuiltNewPath, nextMerge.OldPath, nextMerge.NewPath);
-                                                        currentMatchedDownload.NewPath = rebuiltNewPath;
+                                                        Monitor.Enter(currentMatchedDownload.fileDownloadMoveLocker);
+                                                    }
+
+                                                    try
+                                                    {
+                                                        if (nextMerge.Type == FileChangeType.Renamed)
+                                                        {
+                                                            FilePath previousNewPath = currentMatchedDownload.NewPath;
+                                                            if (previousNewPath != null)
+                                                            {
+                                                                FilePath rebuiltNewPath = previousNewPath.Copy();
+                                                                FilePath.ApplyRename(rebuiltNewPath, nextMerge.OldPath, nextMerge.NewPath);
+                                                                currentMatchedDownload.NewPath = rebuiltNewPath;
+                                                            }
+                                                        }
+                                                        else /* currentMerge.Type == FileChangeType.Deleted */
+                                                        {
+                                                            currentMatchedDownload.CancelDownload(terminateImmediatelyBeforeDownloadFinishes: true);
+                                                        }
+                                                    }
+                                                    catch
+                                                    {
+                                                    }
+                                                    finally
+                                                    {
+                                                        if (currentMatchedDownload.fileDownloadMoveLocker != null)
+                                                        {
+                                                            Monitor.Exit(currentMatchedDownload.fileDownloadMoveLocker);
+                                                        }
                                                     }
                                                 }
-                                                else /* currentMerge.Type == FileChangeType.Deleted */
+                                            }
+                                            else
+                                            {
+                                                MessageEvents.FireNewEventMessage(
+                                                    "Error grabbing hierarchy from uploads and downloads in progress before merging new events to the database: " + matchedHierarchyError.errorDescription,
+                                                    EventMessageLevel.Important,
+                                                    new GeneralErrorInfo());
+                                            }
+                                            break;
+
+                                        case FileChangeType.Modified:
+                                            List<FileChange> matchedUpDowns;
+                                            if (!nextMerge.Metadata.HashableProperties.IsFolder
+                                                && upDowns.TryGetValue(nextMerge.NewPath, out matchedUpDowns))
+                                            {
+                                                foreach (FileChange currentMatchedDownload in matchedUpDowns.Where(currentUpDown => currentUpDown.Direction == SyncDirection.From))
                                                 {
-                                                    currentMatchedDownload.NewPath = null; // will trigger donwload to stop and not to copy to the final location
+                                                    if (currentMatchedDownload.fileDownloadMoveLocker != null)
+                                                    {
+                                                        Monitor.Enter(currentMatchedDownload.fileDownloadMoveLocker);
+                                                    }
+
+                                                    try
+                                                    {
+                                                        currentMatchedDownload.CancelDownload(terminateImmediatelyBeforeDownloadFinishes: false);
+                                                    }
+                                                    catch
+                                                    {
+                                                    }
+                                                    finally
+                                                    {
+                                                        if (currentMatchedDownload.fileDownloadMoveLocker != null)
+                                                        {
+                                                            Monitor.Exit(currentMatchedDownload.fileDownloadMoveLocker);
+                                                        }
+                                                    }
                                                 }
                                             }
-                                            catch
-                                            {
-                                            }
-                                            finally
-                                            {
-                                                if (currentMatchedDownload.fileDownloadMoveLocker != null)
-                                                {
-                                                    Monitor.Exit(currentMatchedDownload.fileDownloadMoveLocker);
-                                                }
-                                            }
-                                        }
-                                    }
-                                    else
-                                    {
-                                        MessageEvents.FireNewEventMessage(
-                                            "Error grabbing hierarchy from uploads and downloads in progress before merging new events to the database: " + matchedHierarchyError.errorDescription,
-                                            EventMessageLevel.Important,
-                                            new GeneralErrorInfo());
+                                            break;
                                     }
                                 }
 
