@@ -4064,15 +4064,13 @@ namespace Cloud.FileMonitor
                                             debugEntry.NewChangeType = new WatcherChangeDeleted();
                                         }
 
-                                        FileMetadata existingMetadata = newIndexedValue;
-
                                         // queue file change for delete
                                         FileChange toQueue = new FileChange(QueuedChanges)
                                         {
                                             NewPath = pathObject,
                                             Type = FileChangeType.Deleted,
                                             Direction = SyncDirection.To, // detected that a file or folder was deleted locally, so Sync To to update server
-                                            Metadata = existingMetadata
+                                            Metadata = newIndexedValue
                                         };
 
                                         QueueFileChange(toQueue, startProcessingAction);
@@ -4268,15 +4266,13 @@ namespace Cloud.FileMonitor
                                                 debugEntry.NewChangeType = new WatcherChangeDeleted();
                                             }
 
-                                            FileMetadata existingMetadata = newIndexedValue;
-
                                             // queue file change for delete at new path
                                             FileChange toQueue = new FileChange(QueuedChanges)
                                             {
                                                 NewPath = pathObject,
                                                 Type = FileChangeType.Deleted,
                                                 Direction = SyncDirection.To, // detected that a file or folder was deleted locally, so Sync To to update server
-                                                Metadata = existingMetadata
+                                                Metadata = newIndexedValue
                                             };
 
                                             QueueFileChange(toQueue, startProcessingAction);
@@ -4438,17 +4434,16 @@ namespace Cloud.FileMonitor
                                             throw new AggregateException("Error creating ServerUid", createServerUidError.GrabExceptions());
                                         }
 
-                                        // add new index at new path
-                                        ChangeAllPathsBase.Add(this, pathObject,
-                                            new FileMetadata(serverUidId)
+                                        FileMetadata newMetadata = new FileMetadata(serverUidId)
                                             {
                                                 HashableProperties = new FileMetadataHashableProperties(isFolder,
                                                     lastTime,
                                                     creationTime,
                                                     fileLength)
-                                            });
+                                            };
 
-                                        FileMetadata existingMetadata = newIndexedValue;
+                                        // add new index at new path
+                                        ChangeAllPathsBase.Add(this, pathObject, newMetadata);
 
                                         // queue file change for create for new path
                                         FileChange toQueue = new FileChange(QueuedChanges)
@@ -4456,7 +4451,7 @@ namespace Cloud.FileMonitor
                                             NewPath = pathObject,
                                             Type = FileChangeType.Created,
                                             Direction = SyncDirection.To, // detected that a file or folder was created locally, so Sync To to update server
-                                            Metadata = existingMetadata
+                                            Metadata = newMetadata
                                         };
 
                                         QueueFileChange(toQueue, startProcessingAction);
@@ -4531,15 +4526,13 @@ namespace Cloud.FileMonitor
                                             debugEntry.NewChangeType = new WatcherChangeDeleted();
                                         }
 
-                                        FileMetadata existingMetadata = newIndexedValue;
-
                                         // queue file change for delete
                                         FileChange toQueue = new FileChange(QueuedChanges)
                                         {
                                             NewPath = pathObject,
                                             Type = FileChangeType.Deleted,
                                             Direction = SyncDirection.To, // detected that a file or folder was deleted locally, so Sync To to update server
-                                            Metadata = existingMetadata
+                                            Metadata = newIndexedValue
                                         };
 
                                         QueueFileChange(toQueue, startProcessingAction);
