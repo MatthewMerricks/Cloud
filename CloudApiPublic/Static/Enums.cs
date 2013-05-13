@@ -155,7 +155,8 @@ namespace Cloud.Static
         ErrorMultipleResults,
         ErrorNotFound,
         ErrorNoIndexer,
-        ErrorUnknown
+        ErrorUnknown,
+        ErrorDisposed
     }
 
     /// <summary>

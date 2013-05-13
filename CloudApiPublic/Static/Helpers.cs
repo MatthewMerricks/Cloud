@@ -135,9 +135,18 @@ namespace Cloud.Static
         /// <returns>The full path of the sync database file.</returns>
         public static string CalculateDatabasePath(CLSyncbox syncbox)
         {
-            return (string.IsNullOrEmpty(syncbox.CopiedSettings.DatabaseFolder)
-                ? Helpers.GetDefaultDatabasePath(syncbox.CopiedSettings.DeviceId, syncbox.SyncboxId) + "\\" + CLDefinitions.kSyncDatabaseFileName
-                : syncbox.CopiedSettings.DatabaseFolder + "\\" + CLDefinitions.kSyncDatabaseFileName);
+            return CalculateDatabasePath(
+                syncbox.CopiedSettings.DatabaseFolder,
+                syncbox.CopiedSettings.DeviceId,
+                syncbox.SyncboxId);
+        }
+        internal static string CalculateDatabasePath(string settingsDatabaseFolder,
+            string settingsDeviceId,
+            long syncboxId)
+        {
+            return (string.IsNullOrEmpty(settingsDatabaseFolder)
+                ? Helpers.GetDefaultDatabasePath(settingsDeviceId, syncboxId) + "\\" + CLDefinitions.kSyncDatabaseFileName
+                : settingsDatabaseFolder + "\\" + CLDefinitions.kSyncDatabaseFileName);
         }
 
         /// <summary>
@@ -3285,7 +3294,7 @@ namespace Cloud.Static
                                                 return innerStoreReturnBody.Value;
                                             };
 
-                                        if (uploadDownload.ChangeToTransfer.NewPath == null)
+                                        if (uploadDownload.ChangeToTransfer.DownloadCancelled == FileChange.DownloadCancelledState.CancelledAndStopDownloading)
                                         {
                                             status = CLHttpRestStatus.Cancelled;
 
@@ -4260,15 +4269,7 @@ namespace Cloud.Static
 
                 this._statusCallback = StatusCallback;
                 this._changeToTransfer = ChangeToTransfer;
-                FilePath retainNewPath = this.ChangeToTransfer.NewPath;
-                if (retainNewPath == null)
-                {
-                    this._relativePathForStatus = null;
-                }
-                else
-                {
-                    this._relativePathForStatus = retainNewPath.GetRelativePath((SyncRootFullPath ?? string.Empty), false); // relative path is calculated from full path to file minus full path to sync directory
-                }
+                this._relativePathForStatus = this.ChangeToTransfer.NewPath.GetRelativePath((SyncRootFullPath ?? string.Empty), false); // relative path is calculated from full path to file minus full path to sync directory
                 this._shutdownToken = ShutdownToken;
                 this._aCallback = ACallback;
                 this._aResult = AResult;

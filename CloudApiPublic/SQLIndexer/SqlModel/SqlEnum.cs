@@ -13,7 +13,7 @@ using System.Text;
 namespace Cloud.SQLIndexer.SqlModel
 {
     [SqlAccess.Class("Enums")]
-    internal class SqlEnum
+    internal sealed class SqlEnum
     {
         [SqlAccess.Property]
         public long EnumId { get; set; }

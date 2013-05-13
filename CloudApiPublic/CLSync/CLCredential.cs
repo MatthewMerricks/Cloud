@@ -71,18 +71,18 @@ namespace Cloud
         /// <summary>
         /// Outputs a new credential object from key/secret
         /// </summary>
-        /// <param name="Key">The public key that identifies this application.</param>
-        /// <param name="Secret">The application secret private key.</param>
+        /// <param name="key">The public key that identifies this application.</param>
+        /// <param name="secret">The application secret private key.</param>
         /// <param name="credential">(output) Created credential object</param>
         /// <param name="status">(output) Status of creation, check this for Success</param>
-        /// <param name="Token">(optional) The temporary token to use.  Default: null.</param>
+        /// <param name="token">(optional) The temporary token to use.  Default: null.</param>
         /// <returns>Returns any error that occurred in construction, if any, or null.</returns>
         public static CLError CreateAndInitialize(
-            string Key,
-            string Secret,
+            string key,
+            string secret,
             out CLCredential credential,
             out CLCredentialCreationStatus status,
-            string Token = null)
+            string token = null)
         {
             status = CLCredentialCreationStatus.ErrorUnknown;
 
@@ -94,9 +94,9 @@ namespace Cloud
                 }
 
                 credential = new CLCredential(
-                    Key,
-                    Secret,
-                    Token,
+                    key,
+                    secret,
+                    token,
                     ref status);
             }
             catch (Exception ex)
@@ -113,34 +113,34 @@ namespace Cloud
         /// Private constructor
         /// </summary>
         private CLCredential(
-            string Key,
-            string Secret,
-            string Token, 
+            string key,
+            string secret,
+            string token, 
             ref CLCredentialCreationStatus status)
         {
             // check input parameters
 
-            if (string.IsNullOrEmpty(Key))
+            if (string.IsNullOrEmpty(key))
             {
                 status = CLCredentialCreationStatus.ErrorNullKey;
                 throw new NullReferenceException("Key cannot be null");
             }
-            if (string.IsNullOrEmpty(Secret))
+            if (string.IsNullOrEmpty(secret))
             {
                 status = CLCredentialCreationStatus.ErrorNullSecret;
                 throw new NullReferenceException("Secret cannot be null");
             }
 
             // Since we allow null then reverse-null coalesce from empty string
-            if (Token == string.Empty)
+            if (token == string.Empty)
             {
-                Token = null;
+                token = null;
             }
 
-            this._key = Key;
-            this._secret = Secret;
+            this._key = key;
+            this._secret = secret;
             
-            this._token = Token;
+            this._token = token;
         }
 
         /// <summary>
