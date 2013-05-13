@@ -8271,7 +8271,10 @@ namespace Cloud.Sync
                                             {
                                                 // if the current event does not have a revision then we cannot search, so throw an exception
                                                 //&&&& Old code: if (string.IsNullOrEmpty(currentChange.Metadata.Revision))
-                                                if (string.IsNullOrEmpty(ReturnAndPossiblyFillUidAndRevision(uidStorage, syncData, currentChange.Metadata.ServerUidId).Revision))
+                                                //
+                                                // only check on revision for files since folders won't have revision anyways
+                                                if (!currentChange.Metadata.HashableProperties.IsFolder
+                                                    && string.IsNullOrEmpty(ReturnAndPossiblyFillUidAndRevision(uidStorage, syncData, currentChange.Metadata.ServerUidId).Revision))
                                                 {
                                                     throw new NullReferenceException("Revision cannot be null if currentChange is of Type Renamed and matchedChange is also null");
                                                 }
