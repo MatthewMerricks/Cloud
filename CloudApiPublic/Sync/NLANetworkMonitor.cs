@@ -187,6 +187,8 @@ namespace Cloud.Sync
 
             _stopEvent = new ManualResetEvent(false);
 
+            _lastConnected = null;
+
             _monitorThread = new Thread(new ThreadStart(MonitorNetwork_));
             _monitorThread.Name = "Network Monitor";
             _monitorThread.IsBackground = true;
