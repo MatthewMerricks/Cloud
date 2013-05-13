@@ -226,6 +226,16 @@ namespace Cloud.SQLIndexer
                         selectParameters: Helpers.EnumerateSingleItem(serverUid))
                     .FirstOrDefault();
 
+                lock (migratedServerUidIds)
+                {
+                    long nextServerUidId;
+                    while (migratedServerUidIds.TryGetValue(serverUidId, out nextServerUidId))
+                    {
+                        serverUidId = nextServerUidId;
+                        _trace.writeToLog(9, "IndexingAgent: UpdateServerUid: Migrated forwards: serverUidId: {0}.", serverUidId);
+                    }
+                }
+
                 if (existingUid != null
                     && existingUid.ServerUidId == serverUidId
                     && existingUid.Revision == revision)
@@ -408,6 +418,7 @@ namespace Cloud.SQLIndexer
                     while (migratedServerUidIds.TryGetValue(serverUidId, out nextServerUidId))
                     {
                         serverUidId = nextServerUidId;
+                        _trace.writeToLog(9, "IndexingAgent: QueryServerUid: Migrated forwards: serverUidId: {0}.", serverUidId);
                     }
 
                     retrievedUid = SqlAccessor<SqlServerUid>.SelectResultSet(
