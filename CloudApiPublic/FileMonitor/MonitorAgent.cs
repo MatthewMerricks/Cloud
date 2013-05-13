@@ -5326,9 +5326,11 @@ namespace Cloud.FileMonitor
 
                             mergeAll.Sort(new Comparison<FileChange>((earlierChange, laterChange) =>
                                 {
-                                    return ((earlierChange.InMemoryId > laterChange.InMemoryId)
-                                        ? 1
-                                        : -1);
+                                    return ((earlierChange.InMemoryId == laterChange.InMemoryId)
+                                        ? 0
+                                        : (((earlierChange.InMemoryId > laterChange.InMemoryId)
+                                            ? 1
+                                            : -1)));
                                 }));
 
                             foreach (FileChange nextMerge in mergeAll)
