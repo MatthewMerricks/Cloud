@@ -95,6 +95,30 @@
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>
+  <xs:complexType name="SettingFileChangeTimer">
+    <xs:complexContent>
+      <xs:extension base="Entry">
+        <xs:sequence>
+          <xs:element name="InMemoryId" type="xs:long" />
+          <xs:element name="NewPath" type="xs:string" />
+          <xs:element name="OldPath" type="xs:string" minOccurs="0" />
+          <xs:element name="ChangeType">
+            <xs:simpleType>
+              <xs:restriction base="xs:string">
+                <xs:enumeration value="Created" />
+                <xs:enumeration value="Modified" />
+                <xs:enumeration value="Deleted" />
+                <xs:enumeration value="Renamed" />
+              </xs:restriction>
+            </xs:simpleType>
+          </xs:element>
+          <xs:element name="IsFolder" type="xs:boolean" />
+          <xs:element name="AddNew" type="xs:boolean" minOccurs="0" />
+          <xs:element name="Finished" type="xs:boolean" minOccurs="0" />
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
   <xs:element name="FileMonitorMemory">
     <xs:complexType>
       <xs:sequence>
