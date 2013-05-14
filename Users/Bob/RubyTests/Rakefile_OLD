@@ -1,0 +1,653 @@
+require 'fileutils'
+require 'colorize'
+
+@number_of_tests = 0
+@number_of_passes = 0
+@test_descriptions = []
+@test_failures = []
+@accepted_input = { "y" => 1, "yes" =>1, "1" => 1}
+
+
+namespace :file_operations do
+  
+  def random_alphanumeric(size=16)
+    s = ""
+    size.times { s << (i = Kernel.rand(62); i += ((i < 10) ? 48 : ((i < 36) ? 55 : 61 ))).chr }
+    s
+  end
+  
+  def create_file_named(file_name='File.txt',size=16)
+    file_name ||= "File_#{Kernel.rand(32)}.txt"
+    File.open(file_name, 'w') do |file|
+      file.write("This file was created at #{Time.now}\nNamed:#{file_name}\n")
+      file.write(random_alphanumeric(size))
+    end
+    file_name
+  end
+
+  def create_large_file(file_name,size=10)
+    fills = '1'*1024876
+    file_name ||= "Large_File.txt"
+    File.open(file_name, 'w') do |f|
+      f.write(Time.now)
+      f.write(file_name)
+      size.to_i.times { f.write(fills) }
+    end
+  end
+
+  def create_files_and_folders(folder_count = 10, file_count= 10, size=Kernel.rand(100000))
+    folder_count ||= 10
+    file_count ||= 10
+    size ||= 10
+    
+    folder_count.to_i.times { |folder_index|
+      puts folder_index
+      folder_name = "Folder_#{sprintf("%04d", folder_index)}"
+
+      Dir.mkdir(folder_name)
+      Dir.chdir(folder_name)
+
+      file_count.to_i.times { |file_index| 
+        create_file_named("File_#{sprintf("%05d", file_index)}.txt",size)
+      }
+
+      Dir.chdir('..')
+    }
+  end
+
+  def copy_with_path(src,dest)
+    FileUtils.mkdir(dest)
+    FileUtils.cp_r(src,dest)
+  end
+  
+  desc "create a random file"
+  task :create_random_file do
+    create_file_named
+  end
+  
+  desc "create a random file with name"
+  task :create_random_file_named, [:file_name] do |t, args|
+    create_file_named args.file_name
+  end
+  
+  desc "create a large file with a size in Megs"
+  task :create_large_file, [:file_name, :file_size] do |t, args|
+    create_large_file args.file_name, args.file_size
+  end
+  
+  desc "create folder and files"
+  task :create_files_and_folders, [:folder_count, :file_count, :size] do |t, args|
+    create_files_and_folders(args.folder_count, args.file_count, args.size.to_i)
+  end
+  
+  desc "copy a file/folder"
+  task :copy_with_path, [:source, :destination] do |t, args|
+    copy_with_path(args.source,args.destination)
+  end
+end
+
+namespace :tests do
+  
+  sync_box_path = nil
+    
+  def chdir_sync_box_path(sync_path)
+    sync_box_path = sync_path if !sync_path.nil?
+    puts sync_box_path
+    Dir.chdir(File.expand_path(sync_box_path))
+  end
+  
+  desc "Run all tests"
+  task :all_tests, [:sync_box_path] do |task, args|
+    chdir_sync_box_path(args.sync_box_path)
+    Rake::Task.tasks.each do |t|
+      if t != Rake::Task.tasks.first && t.name.split(':')[1] =='test_case'
+        puts "Running #{t.name.split(':').last}".yellow()
+        Rake::Task[t].invoke
+      end
+    end
+  end
+  
+  desc "Run tests started from a test ID"
+  task :run_tests_cases_from, [:sync_box_path, :index] do |task, args|
+    chdir_sync_box_path(args.sync_box_path)
+    Rake::Task.tasks.each do |t|
+      if t != Rake::Task.tasks.first && t.name.split(':')[1] =='test_case' && t.name.split(':').last.split('_')[1].to_i >= args.index.to_i
+        puts "Running #{t.name.split(':').last}".yellow()
+        Rake::Task[t].invoke
+      end
+    end
+  end
+  
+  desc "Run specific test with just ID"
+  task :run_test_case, [:sync_box_path, :index] do |task, args|
+    chdir_sync_box_path(args.sync_box_path)
+    test = Rake::Task.tasks.select { |t| t.name.split(':').last.split("_")[1].to_i == args.index.to_i}
+    Rake::Task[test[0]].invoke
+  end
+  
+  namespace :test_case do
+        
+    def describe(description, task)
+      test_id = task.split(":")[2].split("_")[1]
+      puts "#{test_id}-#{description}\n".yellow
+      @test_descriptions << "#{test_id}-#{description}"
+    end
+
+    def increment_test_count(response)
+      if response.to_i == 0
+        @test_failures << @number_of_tests
+      end
+
+      @number_of_passes += response.to_i
+      @number_of_tests += 1
+    end
+
+    def number_of_tests_passed
+      puts "Number of tests: " + "#{@number_of_tests}\n" + 
+        "Failed:#{@number_of_tests - @number_of_passes}\n".red + 
+        "Number of Success: #{@number_of_passes}".green
+
+      puts "\nRunning on platform: " + RUBY_PLATFORM
+      if @test_failures.count > 0
+        puts "\n\n=========== FAILED TEST ===========\n".red
+        @test_failures.each { |v| puts @test_descriptions[v].red + "\n"}
+      end
+    end
+
+    def get_input
+      increment_test_count(@accepted_input[STDIN.gets.chomp.downcase])
+      puts "\n"
+    end
+    
+    def large_file_prompt
+      puts "How large, in megs do you want this file to be?"
+      STDIN.gets.chomp  
+    end
+    
+      
+    desc "Create a file"
+    task :test_000_create_a_file do |t|
+      describe "A Syncbox should be able to sync files being added to the sync folder", t.name
+      file_name = 'File_1.txt'
+      Rake::Task["file_operations:create_random_file_named"].invoke(file_name)
+      puts "Was the file named #{file_name} created and synced properly?"
+    end
+    
+    desc "Rename a file"
+    task :test_001_rename_a_file do |t|
+      describe "A Syncbox should be able to sync a file that has just been renamed",t.name
+      file_name = "File_1.txt"
+      file_rename = 'File_Renamed.txt'
+      File.rename(file_name,file_rename)
+      puts "Was the file named #{file_name} renamed to #{file_rename}?"
+    end
+    
+    desc "Delete a file"
+    task :test_002_delete_a_file do |t|
+      describe "A Syncbox should be able to handle a file deletion", t.name
+      file_name = 'File_Renamed.txt'
+      File.delete(file_name)
+      puts "Was the file named #{file_name} deleted across all syncboxes"
+    end
+    
+    desc "Create a folder"
+    task :test_003_create_a_folder do |t|
+      describe "A syncbox should sync a newly created folder", t.name
+      folder_name = 'Folder'
+      Dir.mkdir(folder_name)
+      puts "was the folder named #{folder_name} synced across all syncboxes?"
+    end
+    
+    desc "Rename a folder"
+    task :test_004_rename_a_folder do |t|
+      describe "A syncbox should be able to handle a folder rename", t.name
+      folder_name = 'Folder'
+      folder_rename = 'Folder_Renamed'
+      File.rename(folder_name,folder_rename)
+      puts "was the folder named #{folder_name} renamed to #{folder_rename} across all syncboxes"
+    end
+    
+    desc "Delete a folder"
+    task :test_005_delete_a_folder do |t|
+      describe "A syncbox should be able to handle a folder deletion", t.name
+      folder_name = 'Folder_Renamed'
+      FileUtils.rm_r(folder_name)
+      puts "was the folder named #{folder_name} deleted across all syncboxes"
+    end
+    
+    desc "Quick rename of folder"
+    task :test_006_quick_rename_folder do |t|
+      describe "A syncbox should be able to handle the quick rename of folders", t.name
+      folder_name = "Folder to be renamed"
+      folder_rename = "Bacon Pancakes!"
+      Dir.mkdir(folder_name)
+      File.rename(folder_name,folder_rename)
+      puts "was the folder named #{folder_name} renamed to #{folder_rename} synced to all syncboxes"
+    end
+    
+    desc "Quick rename of folder then delete"
+    task :test_007_quick_rename_then_delete_folder do |t|
+      describe "A syncbox should be able to handle a quick rename of a folder then a deletion of that folder", t.name
+      folder_name = "Folder_01"
+      folder_rename = "Folder_02"
+      Dir.mkdir(folder_name)
+      File.rename(folder_name,folder_rename)
+      sleep(1)
+      FileUtils.rm_r(folder_rename)
+      puts "was the folder named #{folder_name} renamed to #{folder_rename} deleted across all syncboxes"
+    end
+    
+    desc "Multiple renames of the same folder test"
+    task :test_008_multi_rename_of_folder do |t|
+      describe "A syncbox should be able to handle multiple folder renames", t.name
+      folder_name = 'Folder_Quick_Rename_0'
+      Dir.mkdir(folder_name)
+      puts "Renameing folder #{folder_name} 25 times"
+      25.times { |i| 
+        folder_rename = "Folder_Quick_Rename_#{i}"
+        File.rename(folder_name,folder_rename)
+        folder_name = folder_rename
+        puts "Folder renamed to #{folder_rename}"
+        sleep(1)
+      }
+      puts "Was the folder renamed 25 times properly synced across all syncboxes"
+    end
+     
+    desc "Quickly move folder into another folder" 
+    task :test_009_quick_move_folder do |t|
+      describe "Syncbox should handle quickly moving a folder into another folder", t.name
+      puts "making a folder and placing a subfolder into it very quickly"
+      untitled_folder = 'untitled folder'
+      folder_1 = 'foo'
+      folder_2 = 'bar'
+      Dir.mkdir(untitled_folder)
+      FileUtils.mv untitled_folder, folder_1
+      Dir.mkdir(untitled_folder)
+      FileUtils.mv untitled_folder, folder_2
+      FileUtils.mv folder_2, folder_1
+      puts "Folder #{folder_1} should contain #{folder_2}"
+    end
+     
+    desc "Upload a folder with contents copied during upload"
+    task :test_010_folder_upload_with_contents_copied do |t|
+      describe "A Syncbox should be able to handle a folder being copied while uploading", t.name
+      puts "Making a folder to copy with files in it"
+      folder_name = 'Folder to be copied'
+      folder_copy = 'Folder copy'
+      Dir.mkdir(folder_name)
+      Dir.chdir(folder_name)
+      Rake::Task['file_operations:create_files_and_folders'].invoke(1,10,100)
+      Dir.chdir('..')
+      puts 'sleeping for 2 seconds to make sure upload has started'
+      sleep(2)
+      Rake::Task['file_operations:copy_with_path'].invoke(folder_name,folder_copy)
+      puts "was the folder #{folder_name} synced and was its copy #{folder_copy} properly synced"
+    end
+    
+    desc "Move a file into a folder that contains a file with that moved file's name"
+    task :test_011_copy_file_into_folder_that_contains_same_name_file do |t|
+      describe "Syncbox should handle a file copied into a folder that contains a file named the same as the copied file", t.name
+      puts "Making a File to be copied on top of another file in another folder"
+      folder_name = 'Contains_File_A'
+      file_name = 'File_A.txt'
+      Dir.mkdir(folder_name)
+      Dir.chdir(folder_name)
+      Rake::Task["file_operations:create_random_file_named"].invoke(file_name)
+      Dir.chdir('..')
+      puts 'sleeping for 2 second to make sure file is uploaded'
+      sleep(2)
+      create_file_named file_name, 32
+      FileUtils.cp file_name, folder_name
+      puts "Is the file #{file_name} in /#{folder_name} the same file as #{file_name} contained in #{Dir.pwd}"
+    end
+    
+    desc "Large File uploads"
+    task :test_012_large_file_upload do |t|
+      describe "Syncbox should handle large file uploads", t.name
+      file_size = large_file_prompt
+      puts "Making a large file, this could take a while"
+      file_name = "The_Large_File.file"
+      create_large_file file_name, file_size
+      sleep(3)
+      puts "Was the file /#{file_name} of size #{file_size}MB uploaded successfully?"
+    end
+    
+    desc "Delete large file"
+    task :test_013_delete_large_file do |t|
+      describe "Syncbox should handle deletion of large files", t.name
+      File.delete("The_Large_File.file")
+      puts 'Was the file /The_Large_File.file deleted across all syncboxes'
+    end
+    
+    desc "delete a large file during upload"
+    task :test_014_delete_large_file_during_upload do |t|
+      describe "Syncbox should be able to handle a large file being deleted during upload", t.name
+      file_size = large_file_prompt
+      puts "Making a large file, this could take a while"
+      file_name = "Large_file_to_be_DELETED"
+      create_large_file file_name, file_size
+      puts "Large File Made\nSleeping for 15 seconds to make sure the upload is in process"
+      sleep(15)
+      puts "deleting file"
+      File.delete(file_name)
+      puts "was the file /#{file_name} that was deleted during upload properly deleted across all syncboxes?"
+    end
+    
+    desc "move a large file during upload"
+    task :test_015_move_large_file_during_upload do |t|
+      describe "Syncbox should be able to handle a large file being moved during upload", t.name
+      file_size = large_file_prompt
+      puts "Makinga  large file, this could take a while"
+      file_name = "Large_file_to_be_MOVED"
+      Rake::Task['file_operations:create_large_file'].invoke(file_name,file_size)
+      puts "sleeping for 15 seconds to make sure the upload is in process"
+      sleep(15)
+      dest = "Large_File_Move_destination"
+      Dir.mkdir(dest)
+      puts "moving #{file_name} to #{dest}"
+      FileUtils.mv file_name, dest
+      puts "was the file #{file_name} moved into #{dest} across all syncboxes?"
+    end
+    
+    desc "move folder which is uploading content"
+    task :test_016_move_folder_during_upload do |t|
+      describe "Syncbox should handle moving a folder while it's contents are uploading", t.name
+      puts 'Making a folder filled with files to be moved during uploading'
+      move_folder = 'Folder_to_be_moved_during_upload'
+      move_folder_dest = 'Folder_to_be_moved_during_upload_destination'
+      Dir.mkdir(move_folder)
+      Dir.chdir(move_folder)
+      10.times { |i|
+        create_large_file("FileWillBeMovedDuringUplod-#{i}",5)
+      }
+      Dir.chdir('..')
+      puts 'Folder to be moved during upload'
+      puts "Sleeping for 13 seconds"
+      sleep(13)
+      FileUtils.mv move_folder, move_folder_dest
+      puts "Was the folder #{move_folder} moved properly to #{move_folder_dest} across all syncboxes?"
+    end
+    
+    desc "Change file permissions"
+    task :test_017_change_file_permissions do |t|
+      describe "Syncbox should be able to handle a file changing permissions", t.name
+      puts 'making a file'
+      permissions_file = 'file_with_permissions'
+      create_file_named permissions_file
+      puts "sleeping for 2 seconds, & changing #{permissions_file} file permsissions to 777"
+      sleep(2)
+      FileUtils.chmod(0777,permissions_file)
+      puts "Was the file #{permissions_file} permissions changed to 777?"
+    end
+     
+    desc "Sym link tests - group together for ease on different platforms that my not support symlinks"
+    task :test_018_symlink_tests do |t|
+      begin
+        describe "Syncbox should handle symlinks created inside the syncbox", t.name
+        puts "Creating symlink target folder and file"
+        symlink_target_path = "Symlink Target Folder"
+        symlink_target_file = "Target File.txt"
+        symlink_file = "symlink_file"
+        symlink_file_renamed = "symlink_file_renamed"
+        Dir.mkdir(symlink_target_path)
+        Dir.chdir(symlink_target_path)
+        create_file_named(symlink_target_file)
+        Dir.chdir("..")
+        puts "Creating symlink"
+        File.symlink("#{symlink_target_path}/#{symlink_target_file}", symlink_file)
+        puts "was the symlink file #{symlink_file} created, and its target is /#{symlink_target_path}/#{symlink_target_file}"
+        get_input
+
+        describe "Syncbox should handle the symlink being renamed", t.name
+        FileUtils.mv(symlink_file, symlink_file_renamed)
+        puts "Was the symlink #{symlink_file} renamed to #{symlink_file_renamed} still work?"
+
+# This is not working properly, creates a broken alias instead of moving the symlink
+        # describe "Syncbox should handle the symlink being moved" , t.name
+        #        move_into_folder = "Symlink_MOVED_folder"
+        #        Dir.mkdir(move_into_folder)
+        #        FileUtils.mv(symlink_file_renamed,move_into_folder)
+        #        puts "does the symlink #{symlink_file_renamed} still work after the move into #{move_into_folder}?"
+        
+      rescue
+        puts "cannot create symlink on this OS"
+        puts "skipping test"
+        increment_test_count(1)
+      end
+    end
+    
+    small_files_path = "Small_Files"
+        
+    desc "Create a lot of small files"
+    task :test_019_create_a_lot_of_small_files do |t|
+      describe "Syncbox should be able to handle the addition of a lot of small files", t.name
+      puts "Making a folder to contain these small files"
+      Dir.mkdir(small_files_path)
+      Dir.chdir(small_files_path)
+      puts "Enter an amount of files to create"
+      file_count = STDIN.gets.chomp
+      file_count.to_i.times { |i|
+         create_file_named("file_#{i}",1)
+      }
+      Dir.chdir('..')
+      puts "were #{file_count} files located in /#{small_files_path} created and synced across all syncboxes"
+    end
+    
+    desc "Deleting a lot of small files"
+    task :test_020_delete_a_lot_of_small_files do |t|
+      describe "Syncbox should be able to handle the deletion of a lot of small files one by one", t.name
+      Dir.chdir(small_files_path)
+      file_count = Dir[File.join('.', '**', '*')].count { |file| File.file?(file) }
+      file_count.times { |i|
+        File.delete("file_#{i}")
+      }
+      puts "were #{file_count} small files located in /#{small_files_path} deleted across all syncboxes"
+      Dir.chdir('..')
+    end
+    
+    desc "Multiple edits on a single file"
+    task :test_021_multi_edits_on_same_file do |t|
+      describe "Syncbox should be able to handle multiple edits on the same file", t.name
+      puts "Create a new file to edit"
+      file_name = "File_Edited_5_times.txt"
+      5.times { |i| 
+        unless i == 0 
+          puts "editing file for #{i}'th time"
+        else
+          puts "creating file"
+        end
+        create_file_named(file_name, i * 16 + 1) 
+        puts 'sleeping for a 5 seconds to allow this to be uploaded to server'
+        sleep(5)
+      }
+      puts "Was the file named #{file_name} edited 5 times and properly synced?"
+    end
+    
+    desc "Make a lot of folders - ISSUE: 000093"
+    task :test_022_lots_of_folder_created_and_renamed do |t|
+      describe "Syncbox should be able to handle a lot of new folders being created", t.name
+      container = 'Folder_containing_a_lot_of_folders'
+      puts "creating a lot of folder in directory /#{container}"
+      Dir.mkdir(container)
+      Dir.chdir(container)
+      puts "sleeping for 5 seconds to guarentee /#{container} is uploaded"
+      sleep(5)
+      20.times { |i| 
+        Dir.mkdir("untitled folder")
+        puts "mkdir #{container}/untitled folder/ & Sleeping for 5 seconds"
+        sleep(5)
+        puts "mv #{container}/untitled folder/ #{container}/Folder_#{i}"
+        FileUtils.mv "untitled folder", "Folder_#{i}"
+      }
+      Dir.chdir('..')
+      puts "This test may or may not fail, make sure #{container}/untitled folder does not exist on any other syncboxes".red
+      puts "where 20 folders synced properly to all syncboxes"
+    end
+    
+    desc "Delete first file in queue of files to upload - ISSUE: 000108"
+    task :test_023_delete_first_file_in_queue do |t|
+      describe "Syncbox should be able to handle a delete of a file uploading at anytime", t.name
+      folder_name = "Upload_queue"
+      file_name = "File_to_be_DELETED.txt"
+      file_size = 120
+      Dir.mkdir(folder_name)
+      Dir.chdir(folder_name)
+      puts "created a #{file_size} MB file in /#{folder_name}/#{file_name}"
+      create_large_file file_name, file_size
+      puts "sleeping for 15 seconds to start upload of large file"
+      sleep(15)
+      puts "creating 50 smaller files in /#{folder_name} to add to the upload queue"  
+      50.times { |i|
+        create_large_file "File_#{i}.txt", 2
+      }  
+      puts "sleeping for 10 seconds to let first upload start"
+      sleep(10)
+      File.delete(file_name)
+      Dir.chdir('..')
+      puts "Were the remaining 50 files in /#{folder_name} properly uploaded after #{file_name} was deleted?"
+    end
+    
+    desc "Sync folder with contents, move into new folder after sync - ISSUE: 000124"
+    task :test_024_move_contents_after_sync do |t|
+      describe "Syncbox should be able to handle a move of any folder", t.name
+      folder_name = "Move_After_upload"
+      Dir.mkdir(folder_name)
+      Dir.chdir(folder_name)
+      puts "creating 20 files in /#{folder_name}"
+      20.times { |i|
+        create_large_file "File_to_be_moved_#{i}.txt", 2
+      }
+      puts "Hit enter when all files are synced"
+      Dir.chdir('..')
+      STDIN.gets.chomp
+      containing_folder = "Containg_Move_after_upload"
+      Dir.mkdir(containing_folder)
+      FileUtils.mv folder_name, "#{containing_folder}"
+      puts "moved /#{folder_name} to /#{containing_folder}/#{folder_name}"
+      puts "does /#{containing_folder}/#{folder_name} contain all 20 files across syncboxes"
+    end
+    
+    desc "large file names : ISSUE 000101"
+    task :test_025_large_file_names do |t|
+      describe "Syncbox should be able to handle large file names of 190 characters (less than what the max is allowed on HFS)", t.name
+      file_name = random_alphanumeric 190
+      create_file_named(file_name,32)
+      puts "was the file named\n#{file_name}\nCreated and synced across all syncboxes"
+    end
+    
+    desc "0 B files : ISSUE 000089"
+    task :test_026_zero_byte_files do |t|
+      describe "Syncbox should be able to handle zero byte files", t.name
+      folder_name = "Zero_Byte_Files"
+      Dir.mkdir(folder_name)
+      Dir.chdir(folder_name)
+      20.times { |i|
+        FileUtils.touch "Zero_Byte_file_#{i}.txt"
+      }
+      Dir.chdir('..')
+      puts "Were 20 zero byte files created and synced across all syncboxes in /#{folder_name}"
+    end
+    
+    desc "folder moves with contents"
+    task :test_027_move_folders do |t|
+      describe "Syncbox should be able to handle various moves into different subfolders", t.name
+      container = "Contains_Moves_tests"
+      child = "sub_folder"
+      Dir.mkdir(container)
+      Dir.chdir(container)
+      puts "Making dir #{container}"
+      Dir.mkdir(child)
+      Dir.chdir(child)
+      puts "Making dir #{container}/#{child}"
+      sleep(5)
+      5.times { |i|
+        Dir.mkdir "#{child} child #{i}"
+        puts "Making dir #{container}/#{child}/#{i}"
+      }
+      sleep(5)
+      Dir.chdir('..')
+      puts "moving #{container}/#{child} to ../#{child}"
+      FileUtils.mv "#{child}", '..'
+      sleep(5)
+      puts "making new /#{container}/#{child}"
+      Dir.mkdir(child)
+      sleep(5)
+      puts "moving ../#{child} to #{container}/#{child}"
+      FileUtils.mv "../#{child}", "#{child}", :force => true
+      puts "Folder structure of /#{container} should match across all syncboxes"
+    end
+    
+    desc "Move file that already exists into root : CI 000096"
+    task :test_028_move_file_exists_in_root do |t|
+      describe "Syncbox should be able to handle a file moved into the root that already contains a file with the same name, when 'replace' is selected it should update across all syncboxes", t.name
+      folder_name = "Folder_that_contains_B"
+      file_name = "B.txt"
+      Dir.mkdir(folder_name)
+      puts "created folder /#{folder_name}\nsleeping for 5 seconds"
+      sleep(5)
+      Dir.chdir(folder_name)
+      create_file_named file_name
+      puts "created file /#{folder_name}/#{file_name}\nsleeping for 5 seconds"
+      sleep(5)
+      Dir.chdir('..')
+      create_file_named file_name
+      puts "created file /#{file_name} and sleeping for 5 seconds"
+      sleep(5)
+      FileUtils.mv "#{folder_name}/#{file_name}", '.', :force => true
+      puts "moving /#{folder_name}/#{file_name} to / "
+      sleep(5)
+      puts "is the file /#{file_name} synced across all syncboxes and #{folder_name}/#{file_name} does not exist"
+    end
+    
+    desc "Move folder into subfolder : CI 000124"
+    task :test_029_move_folder_into_subfolder do |t|
+      describe "Syncbox should be able to handle a folder with contents being moved into another folder", t.name
+      folder_name = "folder_with_contents"
+      dest = "folder_with_contents_DESTINATION"
+      puts "making a folder /#{folder_name} that will have 10, 1mb files"
+      Dir.mkdir folder_name
+      Dir.chdir folder_name
+      10.times { |i|
+        create_large_file "Some_File-#{i}", 1
+      }
+      Dir.chdir '..'
+      puts "Press ENTER when all contents /#{folder_name} are synced"
+      STDIN.gets.chomp
+      puts "making a destination folder /#{dest}"
+      Dir.mkdir dest
+      sleep(3)
+      puts "moving /#{folder_name} to /#{dest}/#{folder_name}"
+      FileUtils.mv folder_name, dest
+      puts "Was the move presested across all syncboxes and /#{dest}/#{folder_name} contains 10 files?"
+    end
+    
+    # desc "Move syncbox root"
+    # task :test_011111111_move_syncbox_root do |t|
+    #   describe "Syncbox should handle when the syncbox root is moved and remain in sync", t.name
+    #   Dir.chdir(sync_box_path)
+    #   sync_box_name = Dir.pwd.split("/").last
+    #   Dir.chdir('..')
+    #   dest = "New Syncbox Root"
+    #   puts "moving the syncbox root #{sync_box_name} to #{dest}"
+    #   FileUtils.mv sync_box_name, dest
+    #   Dir.chdir(dest)
+    #   puts "Moved syncbox root #{sync_box_name} to #{Dir.pwd}"
+    #   puts "Was the move successful?"
+    # end
+    
+    Rake::Task.tasks.each do |t| 
+       t.enhance do 
+         if t.name.split(':')[1] =='test_case'
+           get_input
+         end
+       end
+    end
+    
+    last_task = Rake::Task.tasks.last 
+    if last_task.name.split(':')[1] == 'test_case'
+      last_task.enhance do
+          number_of_tests_passed
+      end
+    end
+  end
+end
