@@ -656,6 +656,33 @@ namespace Cloud.FileMonitor
                     watcherEntries.Add(toAdd);
                 }
             }
+
+            public void AddSettingFileChangeTimer(FileChange toConvert, Nullable<bool> addNew = null, Nullable<bool> finished = null)
+            {
+                SettingFileChangeTimer toAdd = new SettingFileChangeTimer()
+                {
+                    AddNew = addNew ?? false,
+                    AddNewSpecified = (addNew != null),
+                    Finished = finished ?? false,
+                    FinishedSpecified = (finished != null),
+                    ChangeType = (toConvert.Type == FileChangeType.Created
+                        ? SettingFileChangeTimerChangeType.Created
+                        : (toConvert.Type == FileChangeType.Deleted
+                            ? SettingFileChangeTimerChangeType.Deleted
+                            : (toConvert.Type == FileChangeType.Modified
+                                ? SettingFileChangeTimerChangeType.Modified
+                                : SettingFileChangeTimerChangeType.Renamed))),
+                    InMemoryId = toConvert.InMemoryId,
+                    IsFolder = toConvert.Metadata.HashableProperties.IsFolder,
+                    NewPath = toConvert.NewPath.ToString(),
+                    OldPath = (toConvert.OldPath == null ? null : toConvert.OldPath.ToString())
+                };
+
+                lock (watcherEntries)
+                {
+                    watcherEntries.Add(toAdd);
+                }
+            }
         }
         #endregion
 
@@ -4841,6 +4868,11 @@ namespace Cloud.FileMonitor
 
                         // call method that starts the FileChange delayed-processing
                         StartDelay(toChange, startProcessingAction);
+
+                        if (debugMemory)
+                        {
+                            memoryDebugger.Instance.AddSettingFileChangeTimer(toChange, true);
+                        }
                     }
                     // file change has not already started processing
                     else
@@ -4881,6 +4913,11 @@ namespace Cloud.FileMonitor
                                             QueuedChanges[toChange.NewPath] = toChange; // the previous folder deletion change will now be removed from the queued changes queue, and nothing will stop it from continuing to process
 
                                             StartDelay(toChange, startProcessingAction);
+
+                                            if (debugMemory)
+                                            {
+                                                memoryDebugger.Instance.AddSettingFileChangeTimer(toChange, true);
+                                            }
                                         }
                                         // else if the path does not represent a folder,
                                         // discard the deletion change for files which have been deleted and created again with the same metadata
@@ -4915,6 +4952,11 @@ namespace Cloud.FileMonitor
                                             toChange.Metadata = toSetTwice;
                                             previousChange.Metadata = toSetTwice;
                                             previousChange.SetDelayBackToInitialValue();
+
+                                            if (debugMemory)
+                                            {
+                                                memoryDebugger.Instance.AddSettingFileChangeTimer(previousChange, false);
+                                            }
 
                                             FileChange.SwapInMemoryIds(previousChange, toChange);
 
@@ -4961,6 +5003,11 @@ namespace Cloud.FileMonitor
                                         previousChange.Metadata = toChange.Metadata;
                                         previousChange.SetDelayBackToInitialValue();
 
+                                        if (debugMemory)
+                                        {
+                                            memoryDebugger.Instance.AddSettingFileChangeTimer(previousChange, false);
+                                        }
+
                                         FileChange.SwapInMemoryIds(previousChange, toChange);
                                         break;
                                     case FileChangeType.Renamed:
@@ -4969,6 +5016,11 @@ namespace Cloud.FileMonitor
                                         previousChange.Type = FileChangeType.Deleted;
                                         previousChange.Metadata = toChange.Metadata;
                                         previousChange.SetDelayBackToInitialValue();
+
+                                        if (debugMemory)
+                                        {
+                                            memoryDebugger.Instance.AddSettingFileChangeTimer(previousChange, false);
+                                        }
                                         // remove the old/new path pair for a rename
                                         OldToNewPathRenames.Remove(previousChange.NewPath);
 
@@ -4983,6 +5035,11 @@ namespace Cloud.FileMonitor
                                         previousChange.Metadata = toChange.Metadata;
                                         previousChange.SetDelayBackToInitialValue();
 
+                                        if (debugMemory)
+                                        {
+                                            memoryDebugger.Instance.AddSettingFileChangeTimer(previousChange, false);
+                                        }
+
                                         FileChange.SwapInMemoryIds(previousChange, toChange);
                                         break;
                                     case FileChangeType.Deleted:
@@ -4991,6 +5048,11 @@ namespace Cloud.FileMonitor
                                     case FileChangeType.Modified:
                                         previousChange.Metadata = toChange.Metadata;
                                         previousChange.SetDelayBackToInitialValue();
+
+                                        if (debugMemory)
+                                        {
+                                            memoryDebugger.Instance.AddSettingFileChangeTimer(previousChange, false);
+                                        }
 
                                         FileChange.SwapInMemoryIds(previousChange, toChange);
                                         break;
@@ -5017,6 +5079,11 @@ namespace Cloud.FileMonitor
                                         QueuedChanges[toChange.NewPath] = toChange; // the previous file rename change will now be removed from the queued changes queue, and nothing will stop it from continuing to process
 
                                         StartDelay(toChange, startProcessingAction);
+
+                                        if (debugMemory)
+                                        {
+                                            memoryDebugger.Instance.AddSettingFileChangeTimer(toChange, true);
+                                        }
                                         break;
                                 }
                                 break;
@@ -5036,6 +5103,11 @@ namespace Cloud.FileMonitor
                                             previousChange.Metadata = toChange.Metadata;
                                             previousChange.SetDelayBackToInitialValue();
 
+                                            if (debugMemory)
+                                            {
+                                                memoryDebugger.Instance.AddSettingFileChangeTimer(previousChange, false);
+                                            }
+
                                             FileChange.SwapInMemoryIds(previousChange, toChange);
                                         }
                                         else
@@ -5043,6 +5115,11 @@ namespace Cloud.FileMonitor
                                             previousChange.Metadata = toChange.Metadata;
                                             previousChange.Type = FileChangeType.Modified;
                                             previousChange.SetDelayBackToInitialValue();
+
+                                            if (debugMemory)
+                                            {
+                                                memoryDebugger.Instance.AddSettingFileChangeTimer(previousChange, false);
+                                            }
 
                                             FileChange.SwapInMemoryIds(previousChange, toChange);
 
@@ -5069,6 +5146,11 @@ namespace Cloud.FileMonitor
                                                 previousOldPathChange.Type = FileChangeType.Deleted;
                                                 previousOldPathChange.SetDelayBackToInitialValue();
 
+                                                if (debugMemory)
+                                                {
+                                                    memoryDebugger.Instance.AddSettingFileChangeTimer(previousOldPathChange, false);
+                                                }
+
                                                 FileChange.SwapInMemoryIds(previousOldPathChange, toChange);
                                             }
                                             else
@@ -5077,6 +5159,11 @@ namespace Cloud.FileMonitor
                                                     oldLocationDelete);
                                             }
                                             StartDelay(oldLocationDelete, startProcessingAction);
+
+                                            if (debugMemory)
+                                            {
+                                                memoryDebugger.Instance.AddSettingFileChangeTimer(oldLocationDelete, true);
+                                            }
                                         }
                                         break;
                                     case FileChangeType.Modified:
@@ -5146,6 +5233,11 @@ namespace Cloud.FileMonitor
                     {
                         StartDelay(toChange, startProcessingAction);
 
+                        if (debugMemory)
+                        {
+                            memoryDebugger.Instance.AddSettingFileChangeTimer(toChange, true);
+                        }
+
                         QueuedChanges.Add(toChange.NewPath, toChange); // toChange is now the rename of the modified file to a new path
 
                         // matchedFileChangeForRename was left alone in QueuedChanges to continue processing as a modify first
@@ -5153,6 +5245,11 @@ namespace Cloud.FileMonitor
                     else
                     {
                         matchedFileChangeForRename.SetDelayBackToInitialValue();
+
+                        if (debugMemory)
+                        {
+                            memoryDebugger.Instance.AddSettingFileChangeTimer(matchedFileChangeForRename, false);
+                        }
 
                         FileChange.SwapInMemoryIds(matchedFileChangeForRename, toChange);
 
@@ -5192,6 +5289,11 @@ namespace Cloud.FileMonitor
 
                     matchedFileChangeForRename.SetDelayBackToInitialValue();
 
+                    if (debugMemory)
+                    {
+                        memoryDebugger.Instance.AddSettingFileChangeTimer(matchedFileChangeForRename, false);
+                    }
+
                     FileChange.SwapInMemoryIds(matchedFileChangeForRename, toChange);
 
                     // add old/new path pairs for recursive rename processing
@@ -5208,6 +5310,11 @@ namespace Cloud.FileMonitor
                     QueuedChanges.Add(toChange.NewPath, toChange);
 
                     StartDelay(toChange, startProcessingAction);
+
+                    if (debugMemory)
+                    {
+                        memoryDebugger.Instance.AddSettingFileChangeTimer(toChange, true);
+                    }
 
                     if (toChange.Type == FileChangeType.Renamed)
                     {
@@ -5228,6 +5335,11 @@ namespace Cloud.FileMonitor
         /// <param name="remainingOperations">Number of operations remaining across all FileChange (via DelayProcessable)</param>
         private void ProcessFileChange(FileChange sender, object state, int remainingOperations)
         {
+            if (debugMemory)
+            {
+                memoryDebugger.Instance.AddSettingFileChangeTimer(sender, finished: true);
+            }
+
             if (remainingOperations == 0) // flush remaining operations before starting processing timer
             {
                 lock (NeedsMergeToSql)
