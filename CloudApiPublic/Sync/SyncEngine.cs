@@ -8211,11 +8211,17 @@ namespace Cloud.Sync
                             Monitor.Exit(FullShutdownToken);
                         }
 
+                        Event currentEvent;
+
                         // if the current event index is not found in the list of duplicates, then process the event
-                        if (duplicatedEvents.BinarySearch(currentEventIndex) < 0)
-                        {
+                        if (duplicatedEvents.BinarySearch(currentEventIndex) < 0
+
                             // grab the current event by index
-                            Event currentEvent = deserializedResponse.Events[currentEventIndex];
+                            && (currentEvent = deserializedResponse.Events[currentEventIndex]) != null
+                            
+                            // ignore link files for now until we have full support
+                            && !CLDefinitions.SyncHeaderIsLinks.Contains(currentEvent.Header.Action ?? currentEvent.Action))
+                        {
 
                             bool isRootFolder = (currentEvent.Metadata != null && currentEvent.Metadata.Name == string.Empty && string.IsNullOrEmpty(currentEvent.Metadata.ToName)); // special event on SID "0" for root folder
 
@@ -10368,7 +10374,11 @@ namespace Cloud.Sync
 
                         // store all events from sync from as events which still need to be performed (set as the output parameter for incomplete changes)
                         incompleteChanges = deserializedResponse.Events
-                            .Where(currentEvent => currentEvent.Metadata == null || !checkRootFolder(currentEvent.Metadata.Name, currentEvent.Metadata.ToName, currentEvent.Metadata.ServerUid, storeSyncRootUid, serverUidsToPath, pathsToServerUid)) // special condition on SID "0" for root folder path
+                            .Where(currentEvent =>
+                                currentEvent.Metadata == null || !checkRootFolder(currentEvent.Metadata.Name, currentEvent.Metadata.ToName, currentEvent.Metadata.ServerUid, storeSyncRootUid, serverUidsToPath, pathsToServerUid) // special condition on SID "0" for root folder path
+
+                                // ignore link files for now until we have full support
+                                && !CLDefinitions.SyncHeaderIsLinks.Contains(currentEvent.Header.Action ?? currentEvent.Action))
                             .Select(currentEvent =>
                             {
                                 findPathsByUids.TypedData.currentEvent.Value = currentEvent;

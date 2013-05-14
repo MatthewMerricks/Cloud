@@ -1578,9 +1578,8 @@ namespace Cloud.SQLIndexer
                             switch (currentObjectToBatch.Type)
                             {
                                 case FileChangeType.Created:
-                                    currentBatchTrackPathChanges.Add(
-                                        currentObjectToBatch.NewPath,
-                                        new object());
+                                    currentBatchTrackPathChanges[currentObjectToBatch.NewPath]
+                                        = new object();
                                     //new
                                     //{
                                     //    previousPath = (FilePath)null,
@@ -1606,9 +1605,8 @@ namespace Cloud.SQLIndexer
 
                                     if (!existingRenamePair.Success)
                                     {
-                                        currentBatchTrackPathChanges.Add(
-                                            currentObjectToBatch.NewPath,
-                                            new object());
+                                        currentBatchTrackPathChanges[currentObjectToBatch.NewPath] =
+                                            new object();
                                         //new
                                         //{
                                         //    previousPath = currentObjectToBatch.OldPath,
@@ -4070,7 +4068,7 @@ namespace Cloud.SQLIndexer
 
         private static ISQLiteConnection StaticCreateAndOpenCipherConnection(bool enforceForeignKeyConstraints, string indexDBLocation)
         {
-            const string CipherConnectionString = "Data Source=\"{0}\";Pooling=false;Synchronous=Full;UTF8Encoding=True;Foreign Keys={1}";
+            const string CipherConnectionString = "Data Source=\"{0}\";Pooling=false;Synchronous=Full;UTF8Encoding=True;Foreign Keys={1};Default Timeout=3000";
 
             ISQLiteConnection cipherConn = SQLConstructors.SQLiteConnection(
                 string.Format(

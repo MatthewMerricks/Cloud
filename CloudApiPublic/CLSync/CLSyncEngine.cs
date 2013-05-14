@@ -316,10 +316,11 @@ namespace Cloud
                     out deleteAgent,
                     syncbox);
 
-                if (createIndexerError != null)
-                {
-                    return new AggregateException("Error creating the local indexer to wipe its backing database", createIndexerError.GrabExceptions());
-                }
+                //// DO NOT CHECK ERROR, we may wish to delete the database BECAUSE it is corrupted
+                //if (createIndexerError != null)
+                //{
+                //    return new AggregateException("Error creating the local indexer to wipe its backing database", createIndexerError.GrabExceptions());
+                //}
 
                 CLError deleteDatabaseError = deleteAgent.WipeIndex(syncbox.CopiedSettings.SyncRoot);
 
@@ -327,6 +328,15 @@ namespace Cloud
                 {
                     return new AggregateException("Error wiping the backing database", deleteDatabaseError.GrabExceptions());
                 }
+
+                try
+                {
+                    deleteAgent.Dispose();
+                }
+                catch
+                {
+                }
+                deleteAgent = null;
 
                 // Delete the temp download directory recursively, but not the directory itself.
                 string sTempDownloadFolderToUse = Helpers.GetTempFileDownloadPath(syncbox.CopiedSettings, syncbox.SyncboxId);

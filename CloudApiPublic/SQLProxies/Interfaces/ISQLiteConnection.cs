@@ -47,6 +47,11 @@ namespace Cloud.SQLProxies
     internal interface ISQLiteConnection : IDisposable
     {
         /// <summary>
+        /// Returns the state of the connection.
+        /// </summary>
+        ConnectionState State { get; }
+
+        /// <summary>
         /// Sets the password for a password-protected database. A password-protected
         /// database is unusable for any operation until the password has been set.
         /// </summary>
