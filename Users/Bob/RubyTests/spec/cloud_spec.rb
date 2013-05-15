@@ -586,6 +586,7 @@ describe "File Sync" do
         Dir.chdir('..')
         assert "Were all 500 folders and 500 files synced across all syncboxes?"
     end
+    # @@@@@@@@@@@@@@@@@@@@@@@@@@@@  Don't say 'y' at the end.  It does a depth-first delete!
 
     it "Should be able to handle 500 folders being deleted while indexing", :CFT_0034 => true do |t|
         desc t, "CFT_0034"

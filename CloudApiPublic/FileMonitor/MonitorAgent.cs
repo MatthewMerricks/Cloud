@@ -3301,6 +3301,10 @@ namespace Cloud.FileMonitor
                             | NotifyFilters.LastWrite
                             | NotifyFilters.Security
                             | NotifyFilters.Size;
+                            
+                            //// the following is a possible fix for event handling not being atomic between the two watchers
+                            //| NotifyFilters.DirectoryName; // <-- duplicates the events received from the FolderWatcher, but may prevent cases where file create comes in before parent folder create
+
                         // attach handlers for all watcher events to file-specific handlers
                         FileWatcher.Changed += fileWatcher_Changed;
                         FileWatcher.Created += fileWatcher_Changed;
@@ -3640,7 +3644,10 @@ namespace Cloud.FileMonitor
         /// <param name="changeType">Type of file system event</param>
         /// <param name="folderOnly">Specificity from routing of file system event</param>
         /// <param name="alreadyHoldingIndexLock">Optional param only to be set (as true) from BeginProcessing method</param>
-        private void CheckMetadataAgainstFile(string newPath, string oldPath, WatcherChangeTypes changeType, bool folderOnly, bool alreadyHoldingIndexLock = false, GenericHolder<Nullable<KeyValuePair<Action<DisposeCheckingHolder>, DisposeCheckingHolder>>> startProcessingAction = null)
+        private void CheckMetadataAgainstFile(string newPath, string oldPath, WatcherChangeTypes changeType, bool folderOnly, bool alreadyHoldingIndexLock = false, GenericHolder<Nullable<KeyValuePair<Action<DisposeCheckingHolder>, DisposeCheckingHolder>>> startProcessingAction = null,
+
+            // pass through list of FileChanges who were missing parents in AllPaths, in order of last found to miss parent to first found to miss parent
+            List<FileChange> swapMemoryOrderListOnParentsNotFound = null)
         {
             // File system events come through here to resolve the combination of current change, existing metadata, and actual file information on disk;
             // When the file monitoring is first started, it waits for the completion of an initial indexing (which will process differences as new file events);
@@ -3676,6 +3683,13 @@ namespace Cloud.FileMonitor
                         FilePath pathObject;
                         DirectoryInfo folder;
                         pathObject = folder = new DirectoryInfo(newPath);
+
+                        // todo: remove debug only code
+                        if (pathObject.Name[0] == '0'
+                            || pathObject.Name[0] == 'F')
+                        {
+
+                        }
 
                         FileMetadata newIndexedValue;
                         bool newIndexed = AllPaths.TryGetValue(pathObject, out newIndexedValue);
@@ -4043,7 +4057,7 @@ namespace Cloud.FileMonitor
                                                         Metadata = newMetadata
                                                     };
 
-                                                    QueueFileChange(toQueue, startProcessingAction);
+                                                    QueueFileChange(toQueue, startProcessingAction, swapMemoryOrderListOnParentsNotFound);
                                                 }
                                             }
                                         }
@@ -4084,7 +4098,7 @@ namespace Cloud.FileMonitor
                                                 Metadata = addedMetadata
                                             };
 
-                                            QueueFileChange(toQueue, startProcessingAction);
+                                            QueueFileChange(toQueue, startProcessingAction, swapMemoryOrderListOnParentsNotFound);
                                         }
                                     }
                                     // if file file does not exist, but an index exists
@@ -4106,7 +4120,7 @@ namespace Cloud.FileMonitor
                                             Metadata = newIndexedValue
                                         };
 
-                                        QueueFileChange(toQueue, startProcessingAction);
+                                        QueueFileChange(toQueue, startProcessingAction, swapMemoryOrderListOnParentsNotFound);
                                         // remove index
                                         ChangeAllPathsBase.Remove(this, pathObject);
                                     }
@@ -4254,7 +4268,7 @@ namespace Cloud.FileMonitor
                                                         Metadata = newMetadata
                                                     };
 
-                                                    QueueFileChange(toQueue, startProcessingAction);
+                                                    QueueFileChange(toQueue, startProcessingAction, swapMemoryOrderListOnParentsNotFound);
                                                 }
                                                 else if (debugMemory)
                                                 {
@@ -4308,7 +4322,7 @@ namespace Cloud.FileMonitor
                                                 Metadata = newIndexedValue
                                             };
 
-                                            QueueFileChange(toQueue, startProcessingAction);
+                                            QueueFileChange(toQueue, startProcessingAction, swapMemoryOrderListOnParentsNotFound);
 
                                             // remove index for new path
                                             ChangeAllPathsBase.Remove(this, pathObject);
@@ -4422,7 +4436,7 @@ namespace Cloud.FileMonitor
                                             Metadata = metadataToUse
                                         };
 
-                                        QueueFileChange(toQueue, startProcessingAction);
+                                        QueueFileChange(toQueue, startProcessingAction, swapMemoryOrderListOnParentsNotFound);
                                     }
                                     // if index does not exist at either the old nor new paths and the file exists
                                     else
@@ -4487,7 +4501,7 @@ namespace Cloud.FileMonitor
                                             Metadata = newMetadata
                                         };
 
-                                        QueueFileChange(toQueue, startProcessingAction);
+                                        QueueFileChange(toQueue, startProcessingAction, swapMemoryOrderListOnParentsNotFound);
                                     }
                                 }
                                 // for file system events marked as delete
@@ -4535,7 +4549,7 @@ namespace Cloud.FileMonitor
                                                         Metadata = newMetadata
                                                     };
 
-                                                    QueueFileChange(toQueue, startProcessingAction);
+                                                    QueueFileChange(toQueue, startProcessingAction, swapMemoryOrderListOnParentsNotFound);
                                                 }
                                                 else if (debugMemory)
                                                 {
@@ -4568,7 +4582,7 @@ namespace Cloud.FileMonitor
                                             Metadata = newIndexedValue
                                         };
 
-                                        QueueFileChange(toQueue, startProcessingAction);
+                                        QueueFileChange(toQueue, startProcessingAction, swapMemoryOrderListOnParentsNotFound);
 
                                         // remove index
                                         ChangeAllPathsBase.Remove(this, pathObject);
@@ -4763,8 +4777,41 @@ namespace Cloud.FileMonitor
         /// Insert new file change into a synchronized queue and begin its delay timer for processing
         /// </summary>
         /// <param name="toChange">New file change</param>
-        private void QueueFileChange(FileChange toChange, GenericHolder<Nullable<KeyValuePair<Action<DisposeCheckingHolder>, DisposeCheckingHolder>>> startProcessingAction = null)
+        private void QueueFileChange(FileChange toChange, GenericHolder<Nullable<KeyValuePair<Action<DisposeCheckingHolder>, DisposeCheckingHolder>>> startProcessingAction = null,
+            
+            // pass through list of FileChanges who were missing parents in AllPaths, in order of last found to miss parent to first found to miss parent
+            List<FileChange> swapMemoryOrderListOnParentsNotFound = null)
         {
+            string parentPathString;
+            if (CurrentFolderPath != (parentPathString = toChange.NewPath.Parent.ToString())
+                && !AllPaths.ContainsKey(parentPathString))
+            {
+                if (swapMemoryOrderListOnParentsNotFound == null)
+                {
+                    swapMemoryOrderListOnParentsNotFound = new List<FileChange>(Helpers.EnumerateSingleItem(toChange));
+                }
+                else
+                {
+                    swapMemoryOrderListOnParentsNotFound.Add(toChange);
+                }
+
+                CheckMetadataAgainstFile(parentPathString, /* oldPath: */ null, WatcherChangeTypes.Created, folderOnly: true, alreadyHoldingIndexLock: true, startProcessingAction: startProcessingAction,
+                    swapMemoryOrderListOnParentsNotFound: swapMemoryOrderListOnParentsNotFound); // added so memory ids can be swapped if parent is found
+            }
+            else if (swapMemoryOrderListOnParentsNotFound != null)
+            {
+                swapMemoryOrderListOnParentsNotFound.Add(toChange);
+
+                int maxIdxToFlip = swapMemoryOrderListOnParentsNotFound.Count / 2;
+
+                for (int nextListIdxToFlip = 0; nextListIdxToFlip < maxIdxToFlip; nextListIdxToFlip++)
+                {
+                    FileChange.SwapInMemoryIds(
+                        swapMemoryOrderListOnParentsNotFound[nextListIdxToFlip],
+                        swapMemoryOrderListOnParentsNotFound[swapMemoryOrderListOnParentsNotFound.Count - nextListIdxToFlip - 1]);
+                }
+            }
+
             if ((_syncbox.CopiedSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
             {
                 ComTrace.LogFileChangeFlow(_syncbox.CopiedSettings.TraceLocation, _syncbox.CopiedSettings.DeviceId, _syncbox.SyncboxId, FileChangeFlowEntryPositionInFlow.FileMonitorAddingToQueuedChanges, Helpers.EnumerateSingleItem(toChange));
