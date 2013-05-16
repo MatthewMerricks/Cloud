@@ -695,7 +695,7 @@ namespace SampleLiveSync.EventMessageReceiver
             GrowlUserState castState = state as GrowlUserState;
             if (castState == null)
             {
-                MessageBox.Show("Unable to cast state as GrowlUserState in ProcessGrowlCheckingMouse");
+                MessageBox.Show(System.Windows.Application.Current.MainWindow, "Unable to cast state as GrowlUserState in ProcessGrowlCheckingMouse");
             }
             // else if the userstate could be cast as the growl user state, then start a watching loop for when the mouse cursor leaves it
             else
@@ -743,7 +743,7 @@ namespace SampleLiveSync.EventMessageReceiver
                                 // if the dispatcher state was not successfully cast, then show a message with the error
                                 if (castCombined == null)
                                 {
-                                    MessageBox.Show("Unable to cast combinedState as KeyValuePair<GenericHolder<bool>, UIElement> in ProcessGrowlCheckingMouse");
+                                    MessageBox.Show(System.Windows.Application.Current.MainWindow, "Unable to cast combinedState as KeyValuePair<GenericHolder<bool>, UIElement> in ProcessGrowlCheckingMouse");
                                 }
                                 // else if the dispatcher state was successfully cast, then check if the mouse left the growl FrameworkElement to stop processing
                                 else
@@ -898,7 +898,7 @@ namespace SampleLiveSync.EventMessageReceiver
             // requires UI thread so if this is the wrong thread then show the error
             if (Dispatcher.CurrentDispatcher != Application.Current.Dispatcher)
             {
-                MessageBox.Show("Cannot add growl message from any Dispatcher other than the Application's Dispatcher");
+                MessageBox.Show(System.Windows.Application.Current.MainWindow, "Cannot add growl message from any Dispatcher other than the Application's Dispatcher");
             }
             // else if this is the UI thread, then add the growl message
             else
@@ -1195,7 +1195,7 @@ namespace SampleLiveSync.EventMessageReceiver
             // requires UI thread so if this is the wrong thread then show the error
             if (Dispatcher.CurrentDispatcher != Application.Current.Dispatcher)
             {
-                MessageBox.Show("Cannot remove growl messages from any Dispatcher other than the Application's Dispatcher");
+                MessageBox.Show(System.Windows.Application.Current.MainWindow, "Cannot remove growl messages from any Dispatcher other than the Application's Dispatcher");
             }
             // else if this is the UI thread, then remove the growl messages
             else
@@ -1270,7 +1270,7 @@ namespace SampleLiveSync.EventMessageReceiver
             // if the message receiver failed to retrieve, then show the error
             if (currentReceiver == null)
             {
-                MessageBox.Show("Unable to display growls: currentReceiver cannot be null");
+                MessageBox.Show(System.Windows.Application.Current.MainWindow, "Unable to display growls: currentReceiver cannot be null");
             }
             // else if the message receiver succeeded in retrieval, then process fade in/fade out times on growl messages
             else

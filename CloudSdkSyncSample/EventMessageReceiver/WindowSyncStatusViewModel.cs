@@ -172,7 +172,7 @@ namespace SampleLiveSync.EventMessageReceiver
             EventMessageReceiver thisReceiver = state as EventMessageReceiver;
             if (thisReceiver == null)
             {
-                MessageBox.Show("Could not cast state as EventMessageReceiver");
+                MessageBox.Show(System.Windows.Application.Current.MainWindow, "Could not cast state as EventMessageReceiver");
             }
             else
             {
@@ -251,7 +251,7 @@ namespace SampleLiveSync.EventMessageReceiver
             EventMessageReceiver thisReceiver = state as EventMessageReceiver;
             if (thisReceiver == null)
             {
-                MessageBox.Show("Could not cast state as EventMessageReceiver");
+                MessageBox.Show(System.Windows.Application.Current.MainWindow, "Could not cast state as EventMessageReceiver");
             }
             else
             {
