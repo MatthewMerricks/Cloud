@@ -40,6 +40,26 @@ namespace Cloud.FileMonitor.SyncImplementation
         {
             return this.Indexer.RecordCompletedSync(communicatedChanges, syncId, syncedEventIds, out syncCounter, rootFolderUID);
         }
+
+        public CLError CreateNewServerUid(string serverUid, string revision, out long serverUidId, SQLTransactionalBase existingTransaction = null)
+        {
+            return this.Indexer.CreateNewServerUid(serverUid, revision, out serverUidId, existingTransaction);
+        }
+
+        public CLError UpdateServerUid(long serverUidId, string serverUid, string revision, out Nullable<long> existingServerUidIdRequiringMerging, SQLTransactionalBase existingTransaction = null)
+        {
+            return this.Indexer.UpdateServerUid(serverUidId, serverUid, revision, out existingServerUidIdRequiringMerging, existingTransaction);
+        }
+
+        public CLError QueryServerUid(long serverUidId, out string serverUid, out string revision, SQLTransactionalBase existingTransaction = null)
+        {
+            return this.Indexer.QueryServerUid(serverUidId, out serverUid, out revision, existingTransaction);
+        }
+
+        public CLError QueryOrCreateServerUid(string serverUid, out long serverUidId, string revision, bool syncFromFileModify, SQLTransactionalBase existingTransaction = null)
+        {
+            return this.Indexer.QueryOrCreateServerUid(serverUid, out serverUidId, revision, syncFromFileModify, existingTransaction);
+        }
         
         /// <summary>
         /// ¡¡ Call this carefully, completely wipes index database (use when user deletes local repository or relinks) !!
@@ -49,6 +69,11 @@ namespace Cloud.FileMonitor.SyncImplementation
         public CLError WipeIndex(string newRootPath)
         {
             return this.Indexer.WipeIndex(newRootPath);
+        }
+
+        public CLError ChangeSyncRoot(string newSyncRoot)
+        {
+            return this.Indexer.ChangeSyncRoot(newSyncRoot);
         }
 
         /// <summary>
@@ -193,9 +218,9 @@ namespace Cloud.FileMonitor.SyncImplementation
         /// </summary>
         /// <param name="toApply">FileChange to perform</param>
         /// <returns>Should return any error that occurred while performing the FileChange</returns>
-        public CLError applySyncFromChange<T>(FileChange toApply, Action<T> onAllPathsLock, Action<T> onBeforeAllPathsUnlock, T userState, object lockerInsideAllPaths)
+        public CLError applySyncFromChange<T>(FileChange toApply, Func<T, bool> onAllPathsLockAndReturnWhetherToContinue, Action<T> onBeforeAllPathsUnlock, T userState, object lockerInsideAllPaths)
         {
-            return Monitor.ApplySyncFromFileChange(toApply, onAllPathsLock, onBeforeAllPathsUnlock, userState, lockerInsideAllPaths);
+            return Monitor.ApplySyncFromFileChange(toApply, onAllPathsLockAndReturnWhetherToContinue, onBeforeAllPathsUnlock, userState, lockerInsideAllPaths);
         }
 
         /// <summary>

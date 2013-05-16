@@ -1243,11 +1243,11 @@ namespace SampleLiveSync.ViewModels
                                 // create a Syncbox from an existing SyncboxId
                                 CLSyncboxCreationStatus syncboxStatus;
                                 CLError errorCreateSyncbox = CLSyncbox.CreateAndInitialize(
-                                    Credential: syncCredential,
-                                    SyncboxId: (long)SettingsAdvancedImpl.Instance.SyncboxId,
+                                    credential: syncCredential,
+                                    syncboxId: (long)SettingsAdvancedImpl.Instance.SyncboxId,
                                     syncbox: out syncbox,
                                     status: out syncboxStatus,
-                                    Settings: SettingsAdvancedImpl.Instance,
+                                    settings: SettingsAdvancedImpl.Instance,
                                     getNewCredentialCallback: ReplaceExpiredCredentialCallback,
                                     getNewCredentialCallbackUserState: this);
 
@@ -1308,10 +1308,10 @@ namespace SampleLiveSync.ViewModels
                     // start syncing
                     CLSyncStartStatus startStatus;
                     CLError errorFromSyncboxStart = _syncEngine.Start(
-                        Syncbox: syncbox, // syncbox to sync (contains required settings)
-                        Status: out startStatus, // The completion status of the Start() function
-                        StatusUpdated: OnSyncStatusUpdated, // called when sync status is updated
-                        StatusUpdatedUserState: _syncEngine); // the user state passed to the callback above
+                        syncbox: syncbox, // syncbox to sync (contains required settings)
+                        status: out startStatus, // The completion status of the Start() function
+                        statusUpdated: OnSyncStatusUpdated, // called when sync status is updated
+                        statusUpdatedUserState: _syncEngine); // the user state passed to the callback above
 
                     if (errorFromSyncboxStart != null)
                     {
@@ -1500,7 +1500,6 @@ namespace SampleLiveSync.ViewModels
                     Properties.Settings.Default.ShouldResetSync = true;
                     Properties.Settings.Default.Save();
                 }
-
             }
             catch (Exception ex)
             {

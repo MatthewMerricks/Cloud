@@ -108,6 +108,47 @@ namespace Cloud.Static
         //    return Environment.MachineName;
         //}
 
+        internal static Func<object> CreateFileChangeRevisionChangedHandler(FileChange change, ISyncDataObject syncData)
+        {
+            return new Func<object>(DelegateAndDataHolder.Create(
+                new
+                {
+                    change = change,
+                    syncData = syncData
+                },
+                (Data, errorToAccumulate) =>
+                {
+                    // only update sql with the new revision and server "uid" if the change already exists in the database otherwise you could be triggering a change to be added before its
+                    // previous required changes are added; plus before processing the event it will end up added to the database anyways
+                    if (Data.change.EventId != 0)
+                    {
+                        Data.syncData.mergeToSql(Helpers.EnumerateSingleItem(new FileChangeMerge(Data.change)));
+                    }
+                },
+                null).Process);
+        }
+
+        /// <summary>
+        /// Calculates the full path of the sync database file.
+        /// </summary>
+        /// <param name="syncbox">The syncbox.</param>
+        /// <returns>The full path of the sync database file.</returns>
+        public static string CalculateDatabasePath(CLSyncbox syncbox)
+        {
+            return CalculateDatabasePath(
+                syncbox.CopiedSettings.DatabaseFolder,
+                syncbox.CopiedSettings.DeviceId,
+                syncbox.SyncboxId);
+        }
+        internal static string CalculateDatabasePath(string settingsDatabaseFolder,
+            string settingsDeviceId,
+            long syncboxId)
+        {
+            return (string.IsNullOrEmpty(settingsDatabaseFolder)
+                ? Helpers.GetDefaultDatabasePath(settingsDeviceId, syncboxId) + "\\" + CLDefinitions.kSyncDatabaseFileName
+                : settingsDatabaseFolder + "\\" + CLDefinitions.kSyncDatabaseFileName);
+        }
+
         /// <summary>
         /// Creates a default instance of a provided type for use with populating out parameters when exceptions are thrown
         /// </summary>
@@ -892,19 +933,36 @@ namespace Cloud.Static
         {
             try
             {
-                return System.Reflection.Assembly.GetEntryAssembly().GetName().Version.ToString();
+                System.Reflection.Assembly entryAssembly = System.Reflection.Assembly.GetEntryAssembly();
+                    
+                if (entryAssembly != null)
+                {
+                    entryAssembly.GetName().Version.ToString();
+                }
             }
             catch
             {
-                try
+            }
+            
+            try
+            {
+                System.Diagnostics.Process thisProcess = System.Diagnostics.Process.GetCurrentProcess();
+
+                string startInfoName;
+                if (string.IsNullOrEmpty(startInfoName = thisProcess.StartInfo.FileName))
                 {
-                    return System.Diagnostics.FileVersionInfo.GetVersionInfo(System.Diagnostics.Process.GetCurrentProcess().StartInfo.FileName).FileVersion;
+                    return System.Diagnostics.FileVersionInfo.GetVersionInfo(thisProcess.MainModule.FileName).FileVersion;
                 }
-                catch
+                else
                 {
-                    return "0.0.0.0";
+                    return System.Diagnostics.FileVersionInfo.GetVersionInfo(startInfoName).FileVersion;
                 }
             }
+            catch
+            {
+            }
+            
+            return "0.0.0.0";
         }
 
         /// <summary>
@@ -3470,7 +3528,7 @@ namespace Cloud.Static
                                                 return innerStoreReturnBody.Value;
                                             };
 
-                                        if (uploadDownload.ChangeToTransfer.NewPath == null)
+                                        if (uploadDownload.ChangeToTransfer.DownloadCancelled == FileChange.DownloadCancelledState.CancelledAndStopDownloading)
                                         {
                                             status = CLHttpRestStatus.Cancelled;
 
@@ -4445,15 +4503,7 @@ namespace Cloud.Static
 
                 this._statusCallback = StatusCallback;
                 this._changeToTransfer = ChangeToTransfer;
-                FilePath retainNewPath = this.ChangeToTransfer.NewPath;
-                if (retainNewPath == null)
-                {
-                    this._relativePathForStatus = null;
-                }
-                else
-                {
-                    this._relativePathForStatus = retainNewPath.GetRelativePath((SyncRootFullPath ?? string.Empty), false); // relative path is calculated from full path to file minus full path to sync directory
-                }
+                this._relativePathForStatus = this.ChangeToTransfer.NewPath.GetRelativePath((SyncRootFullPath ?? string.Empty), false); // relative path is calculated from full path to file minus full path to sync directory
                 this._shutdownToken = ShutdownToken;
                 this._aCallback = ACallback;
                 this._aResult = AResult;

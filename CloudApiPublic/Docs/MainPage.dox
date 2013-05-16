@@ -264,7 +264,7 @@
 /// Here are the steps used to start sync.  Refer to MainViewModel:StartSyncing().
 /// - Verify settings:  Sample code can be found in MainViewModel:SaveSettings().  If the settings are incorrect, the sync functions will return errors.
 /// - Create an instance of CLCredential with your credential information.
-/// - Create an instance of CLSyncbox with the path on disk to be synced, and with the instance of CLCredential.
+/// - Create an instance of CLSyncbox with the path on disk to be synced, and with the instance of CLCredential.  Verify that the syncbox folder actually exists on the disk.
 /// - Create an instance of CLSyncEngine.
 /// - Verify that the Syncbox folder or authorization information has not changed.  If it has, you should reset the sync database by calling \link Cloud.CLSyncEngine _syncEngine\endlink.\link Cloud.CLSyncEngine.SyncReset SyncReset() \endlink or \link Cloud.CLSyncEngine _syncEngine\endlink.\link Cloud.CLSyncEngine.WipeIndex WipeIndex() \endlink.
 /// - Call \link Cloud.CLSyncEngine _syncEngine\endlink.\link Cloud.CLSyncEngine.Start Start() \endlink to start syncing.  This function takes the sync settings and some additional optional parameters.

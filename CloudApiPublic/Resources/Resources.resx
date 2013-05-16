@@ -217,7 +217,7 @@
   </data>
   <data name="CLHttpRestsyncboxCredentialCannotBeNull" xml:space="preserve">
     <value>syncbox Credential cannot be null</value>
-    <comment>syncbox feild must be filled</comment>
+    <comment>syncbox field must be filled</comment>
   </data>
   <data name="CLHttpRestSyncboxMustNotBeNull" xml:space="preserve">
     <value>syncbox must not be null</value>
@@ -603,14 +603,14 @@
   <data name="CLSyncEngineAlreadyStarted" xml:space="preserve">
     <value>Already started</value>
   </data>
-  <data name="CLSyncEngineCloudRootRepresentsAPathThatCannotBeQueried" xml:space="preserve">
-    <value>CloudRoot in settings represents a path which cannot be queried, check it first via Helpers.DirectoryMatchesCaseWithDisk</value>
+  <data name="CLSyncEngineSyncboxPathRepresentsAPathThatCannotBeQueried" xml:space="preserve">
+    <value>Syncbox path in settings represents a path which cannot be queried, check it first via Helpers.DirectoryMatchesCaseWithDisk</value>
   </data>
-  <data name="CLSyncEngineCloudRootRepsBadPath" xml:space="preserve">
-    <value>CloudRoot in settings represents a bad path, check it first via Helpers.CheckForBadPath</value>
+  <data name="CLSyncEngineSyncboxPathRepsBadPath" xml:space="preserve">
+    <value>Syncbox path in settings represents a bad path, check it first via Helpers.CheckForBadPath</value>
   </data>
-  <data name="CLSyncEngineCloudRootSettingsTooLong" xml:space="preserve">
-    <value>CloudRoot in settings is too long, check it first via Helpers.CheckSyncRootLength</value>
+  <data name="CLSyncEngineSyncboxPathSettingsTooLong" xml:space="preserve">
+    <value>Syncbox path in settings is too long, check it first via Helpers.CheckSyncRootLength</value>
   </data>
   <data name="CLSyncEngineError0" xml:space="preserve">
     <value>CLSyncEngine: ERROR: {0}.</value>
@@ -1108,7 +1108,7 @@
     <value>MonitorAgent: RenameDependencyCheck: Earlier change is Deleted.</value>
   </data>
   <data name="MonitorAgentRenameDependencyCheckEarlierChangeIsRenamed" xml:space="preserve">
-    <value>MonitorAgent: RenameDependencyCheck: Earlier change is renamed</value>
+    <value>MonitorAgent: RenameDependencyCheck: Earlier change is Renamed</value>
   </data>
   <data name="MonitorAgentRenameDependencyCheckError0" xml:space="preserve">
     <value>MonitorAgent: RenameDependencyCheck: ERROR: {0}.</value>
@@ -1295,5 +1295,8 @@
   </data>
   <data name="CLNotificationsSseEngineDefaultConstructorNotSupported" xml:space="preserve">
     <value>Default constructor not supported</value>
+  </data>
+  <data name="CLNotificationSseEngineDelegateSendNotificationsDelegateSendManualPollMustNotBeNull" xml:space="preserve">
+    <value>delegateSendManualPoll must not be null</value>
   </data>
 </root>

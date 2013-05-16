@@ -80,6 +80,25 @@ namespace Cloud.SQLProxies
 
         #region ISQLiteConnection members
         /// <summary>
+        /// Returns the state of the connection.
+        /// </summary>
+        public ConnectionState State
+        {
+            get
+            {
+                base.CheckDisposed();
+                try
+                {
+                    return baseObject.State;
+                }
+                catch (SQL32.System.Data.SQLite.SQLiteException ex)
+                {
+                    throw new SQLiteException32(ex);
+                }
+            }
+        }
+
+        /// <summary>
         /// Sets the password for a password-protected database. A password-protected
         /// database is unusable for any operation until the password has been set.
         /// </summary>

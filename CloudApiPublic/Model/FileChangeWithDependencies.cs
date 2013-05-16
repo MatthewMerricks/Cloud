@@ -108,6 +108,7 @@ namespace Cloud.Model
                 throw new CLException(CLExceptionCode.Syncing_Model, Resources.FileChangeWithDependenciesErrorSettingMD5FromBaseChangeToNewFileChangeWithDependencies, setMD5Error.Exceptions);
             }
             base.Type = baseChange.Type;
+            base.FileDownloadPendingRevision = baseChange.FileDownloadPendingRevision;
 
             this._dependencies = (initialDependencies == null ? new List<FileChange>() : new List<FileChange>(initialDependencies));
         }

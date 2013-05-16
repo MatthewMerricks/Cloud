@@ -14,7 +14,7 @@ using Cloud.Static;
 namespace Cloud.SQLIndexer.SqlModel
 {
     [SqlAccess.Class(CLDefinitions.SqlEnum_Events)]
-    internal class SqlEnum
+    internal sealed class SqlEnum
     {
         [SqlAccess.Property]
         public long EnumId { get; set; }

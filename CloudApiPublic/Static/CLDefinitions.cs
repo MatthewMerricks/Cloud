@@ -460,6 +460,16 @@ namespace Cloud.Static
             CLEventTypeModifyLink
         };
 
+        public static readonly string[] SyncHeaderIsLinks =
+        {
+            CLEventTypeDeleteLink,
+            CLEventTypeAddLink,
+            CLEventTypeCopyLink,
+            CLEventTypeRenameLink,
+            CLEventTypeMoveLink,
+            CLEventTypeModifyLink
+        };
+
         // Syncbox
         public const string CLSyncboxClientAppId = "client_application_id";
         public const string CLSyncboxCreatedAt = "created_at";

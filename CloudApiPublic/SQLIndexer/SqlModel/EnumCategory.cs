@@ -15,7 +15,7 @@ using System.Threading.Tasks;
 namespace Cloud.SQLIndexer.SqlModel
 {
     [SqlAccess.Class(CLDefinitions.EnumCategory_EnumCategories)]
-    internal class EnumCategory
+    internal sealed class EnumCategory
     {
         [SqlAccess.Property]
         public long EnumCategoryId { get; set; }

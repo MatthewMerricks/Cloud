@@ -452,11 +452,10 @@ namespace SampleLiveSync.ViewModels
             ulong valueTraceType;
             if (String.IsNullOrEmpty(TraceType) ||
                 !Utilities.ConvertStringToUlong(TraceType, out valueTraceType) ||
-                valueTraceType > 7 ||
-                valueTraceType == 2 ||
-                valueTraceType == 6)
+                valueTraceType > 15 ||
+                ((valueTraceType & (ulong)Cloud.Static.TraceType.AddAuthorization) == (ulong)Cloud.Static.TraceType.AddAuthorization) && (valueTraceType & (ulong)Cloud.Static.TraceType.Communication) == 0UL)
             {
-                MessageBox.Show("The TraceType is a bit mask.  It must be a non-negative decimal number with value 0, 1, 3, 4, 5 or 7.  If in doubt, use 0 (none) or 5 (full minus authorization information).");
+                MessageBox.Show("The TraceType is a bit mask.  It must be a non-negative decimal number <= 15.  with value 0, 1, 3, 4, 5, 7, 8, 9, 11, 12, 13 or 15.  If in doubt, use 0 (none) or 13 (full minus authorization information).");
                 this.IsTraceTypeFocused = true;
                 return;
             }

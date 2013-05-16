@@ -14,7 +14,7 @@ using Cloud.Static;
 namespace Cloud.SQLIndexer.SqlModel
 {
     [SqlAccess.Class(CLDefinitions.Sync_Syncs)]
-    internal class Sync
+    internal sealed class Sync
     {
         [SqlAccess.Property]
         public long SyncCounter { get; set; }

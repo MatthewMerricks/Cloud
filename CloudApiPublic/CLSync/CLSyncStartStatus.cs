@@ -35,5 +35,6 @@ namespace Cloud
         ErrorExceptionStartingFileMonitor = 15,
         ErrorGeneralSyncStartException = 16,
         ErrorInProcessOfModification = 17,
+        ErrorSyncboxFolderDoesNotExist = 18,
     }
 }

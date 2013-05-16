@@ -30,6 +30,7 @@ namespace Cloud.PushNotification
         private CancelEngineTimeout _delegateCancelEngineTimeout = null;
         private DisposeEngineTimer _delegateDisposeEngineTimer = null;
         private SendNotificationEvent _delegateSendNotificationEvent = null;
+        private SendManualPoll _delegateSendManualPoll = null;
         private bool _isEngineThreadStarted = false;
         private bool _fToReturnIsSuccess = false;
         private readonly object _locker = new object();
@@ -100,7 +101,8 @@ namespace Cloud.PushNotification
                         StartEngineTimeout delegateStartEngineTimeout, 
                         CancelEngineTimeout delegateCancelEngineTimeout,
                         DisposeEngineTimer delegateDisposeEngineTimer,
-                        SendNotificationEvent delegateSendNotificationEvent)
+                        SendNotificationEvent delegateSendNotificationEvent,
+                        SendManualPoll delegateSendManualPoll)
         {
             if (syncbox == null)
             {
@@ -126,6 +128,10 @@ namespace Cloud.PushNotification
             {
                 throw new ArgumentNullException(Resources.CLNotificationSseEngineDelegateSendNotificationEventMustNotBeNull);
             }
+            if (delegateSendManualPoll == null)
+            {
+                throw new ArgumentNullException(Resources.CLNotificationSseEngineDelegateSendNotificationsDelegateSendManualPollMustNotBeNull);
+            }
 
             _syncbox = syncbox;
             _copiedSettings = syncbox.CopiedSettings;
@@ -134,6 +140,7 @@ namespace Cloud.PushNotification
             _delegateCancelEngineTimeout = delegateCancelEngineTimeout;
             _delegateDisposeEngineTimer= delegateDisposeEngineTimer;
             _delegateSendNotificationEvent = delegateSendNotificationEvent;
+            _delegateSendManualPoll = delegateSendManualPoll;
         }
 
         public CLNotificationSseEngine()
@@ -383,6 +390,11 @@ namespace Cloud.PushNotification
                 {
                     case HttpStatusCode.OK: // continue reconnecting case, may or may not have data
 
+                        // We subscribed.
+                        // The push server can lose events because they are not queued.  Events can occur from other devices while we are momentarily disconnected from the push server.
+                        // The server regularly disconnects us, and we will resubscribe.  Send a manual poll every time we are reconnected.
+                        _delegateSendManualPoll();
+
                         // Get the stream associated with the response.
                         _delegateStartEngineTimeout(timeoutMilliseconds: CLDefinitions.HttpTimeoutDefaultMilliseconds);
                         Stream receiveStream = null;
@@ -530,7 +542,7 @@ namespace Cloud.PushNotification
                             }
                         }
 
-                        throw storeWebEx; // rethrow the stored exception from above, also may be wrapped with an outer exception message and passed via InnerException
+                        throw new Exception(string.Format("Invalid status code on starting SSE engine: {0}", ((int)response.StatusCode)), storeWebEx); // rethrow the stored exception from above, also may be wrapped with an outer exception message and passed via InnerException
                 }
             }
             catch (ThreadAbortException)
@@ -782,10 +794,10 @@ namespace Cloud.PushNotification
                         throw new NullReferenceException(Resources.CLNotificationSseEngineSyncboxHttpRestCannotBeNull);
                     }
 
-                    // Send an unsubscribe to the server.  Allow just 200 ms for this to complete.
+                    // Send an unsubscribe to the server.  Allow just 10 seconds for this to complete.
                     CLHttpRestStatus status;
                     JsonContracts.NotificationUnsubscribeResponse response;
-                    CLError errorFromUnsubscribe = _syncbox.HttpRestClient.SendUnsubscribeToServer(200, out status, out response, castState._syncbox);
+                    CLError errorFromUnsubscribe = _syncbox.HttpRestClient.SendUnsubscribeToServer(10000, out status, out response, castState._syncbox);
                     if (errorFromUnsubscribe != null)
                     {
                         _trace.writeToLog(1, Resources.CLNotificationSseEngineTimerExpiredErrorMsg0, errorFromUnsubscribe.PrimaryException.Message);
@@ -800,7 +812,15 @@ namespace Cloud.PushNotification
                     if (_engineThread.Value != null)
                     {
                         _trace.writeToLog(9, Resources.CLNotificationSseEngineTimerExpiredAbortTheEngineThread);
-                        _engineThread.Value.Abort();
+
+                        // a ThreadAbortException is expected here, silence it
+                        try 
+                        {
+                            _engineThread.Value.Abort();
+                        }
+                        catch
+                        {
+                        }
                     }
 
                     // Clean up any resources left over.

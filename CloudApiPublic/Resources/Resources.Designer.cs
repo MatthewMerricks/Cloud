@@ -1106,6 +1106,16 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to delegateSendManualPoll must not be null.
+        /// </summary>
+        internal static string CLNotificationSseEngineDelegateSendNotificationsDelegateSendManualPollMustNotBeNull {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEngineDelegateSendNotificationsDelegateSendManualPollMustNotBeNu" +
+                        "ll", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to delegateStartEngineTimeout must not be null.
         /// </summary>
         internal static string CLNotificationSseEnginedelegateStartEngineTimeoutMustNotBeNull {
@@ -1484,33 +1494,6 @@ namespace Cloud.Static {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to CloudRoot in settings represents a path which cannot be queried, check it first via Helpers.DirectoryMatchesCaseWithDisk.
-        /// </summary>
-        internal static string CLSyncEngineCloudRootRepresentsAPathThatCannotBeQueried {
-            get {
-                return ResourceManager.GetString("CLSyncEngineCloudRootRepresentsAPathThatCannotBeQueried", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to CloudRoot in settings represents a bad path, check it first via Helpers.CheckForBadPath.
-        /// </summary>
-        internal static string CLSyncEngineCloudRootRepsBadPath {
-            get {
-                return ResourceManager.GetString("CLSyncEngineCloudRootRepsBadPath", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to CloudRoot in settings is too long, check it first via Helpers.CheckSyncRootLength.
-        /// </summary>
-        internal static string CLSyncEngineCloudRootSettingsTooLong {
-            get {
-                return ResourceManager.GetString("CLSyncEngineCloudRootSettingsTooLong", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to CLSyncEngine: ERROR: {0}..
         /// </summary>
         internal static string CLSyncEngineError0 {
@@ -1822,6 +1805,33 @@ namespace Cloud.Static {
         internal static string CLSyncEngineStopTheSyncEngine {
             get {
                 return ResourceManager.GetString("CLSyncEngineStopTheSyncEngine", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Syncbox path in settings represents a path which cannot be queried, check it first via Helpers.DirectoryMatchesCaseWithDisk.
+        /// </summary>
+        internal static string CLSyncEngineSyncboxPathRepresentsAPathThatCannotBeQueried {
+            get {
+                return ResourceManager.GetString("CLSyncEngineSyncboxPathRepresentsAPathThatCannotBeQueried", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Syncbox path in settings represents a bad path, check it first via Helpers.CheckForBadPath.
+        /// </summary>
+        internal static string CLSyncEngineSyncboxPathRepsBadPath {
+            get {
+                return ResourceManager.GetString("CLSyncEngineSyncboxPathRepsBadPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Syncbox path in settings is too long, check it first via Helpers.CheckSyncRootLength.
+        /// </summary>
+        internal static string CLSyncEngineSyncboxPathSettingsTooLong {
+            get {
+                return ResourceManager.GetString("CLSyncEngineSyncboxPathSettingsTooLong", resourceCulture);
             }
         }
         
@@ -2748,7 +2758,7 @@ namespace Cloud.Static {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to MonitorAgent: RenameDependencyCheck: Earlier change is renamed.
+        ///   Looks up a localized string similar to MonitorAgent: RenameDependencyCheck: Earlier change is Renamed.
         /// </summary>
         internal static string MonitorAgentRenameDependencyCheckEarlierChangeIsRenamed {
             get {

@@ -1480,11 +1480,15 @@ namespace Cloud.REST
         /// <param name="aState">Userstate to pass when firing async callback</param>
         /// <param name="toCommunicate">Single FileChange to send</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <param name="serverUid">(possibly null) unique id of the file or folder on the server</param>
+        /// <param name="revision">(possibly null) revision for files which have already been communicated</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
         public IAsyncResult BeginPostFileChange(AsyncCallback aCallback,
             object aState,
             FileChange toCommunicate,
-            int timeoutMilliseconds)
+            int timeoutMilliseconds,
+            string serverUid,
+            string revision)
         {
             // create the asynchronous result to return
             GenericAsyncResult<PostFileChangeResult> toReturn = new GenericAsyncResult<PostFileChangeResult>(
@@ -1492,17 +1496,19 @@ namespace Cloud.REST
                 aState);
 
             // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
-            Tuple<GenericAsyncResult<PostFileChangeResult>, FileChange, int> asyncParams =
-                new Tuple<GenericAsyncResult<PostFileChangeResult>, FileChange, int>(
+            Tuple<GenericAsyncResult<PostFileChangeResult>, FileChange, int, string, string> asyncParams =
+                new Tuple<GenericAsyncResult<PostFileChangeResult>, FileChange, int, string, string>(
                     toReturn,
                     toCommunicate,
-                    timeoutMilliseconds);
+                    timeoutMilliseconds,
+                    serverUid,
+                    revision);
 
             // create the thread from a void (object) parameterized start which wraps the synchronous method call
             (new Thread(new ParameterizedThreadStart(state =>
             {
                 // try cast the state as the object with all the input parameters
-                Tuple<GenericAsyncResult<PostFileChangeResult>, FileChange, int> castState = state as Tuple<GenericAsyncResult<PostFileChangeResult>, FileChange, int>;
+                Tuple<GenericAsyncResult<PostFileChangeResult>, FileChange, int, string, string> castState = state as Tuple<GenericAsyncResult<PostFileChangeResult>, FileChange, int, string, string>;
                 // if the try cast failed, then show a message box for this unrecoverable error
                 if (castState == null)
                 {
@@ -1526,7 +1532,9 @@ namespace Cloud.REST
                             castState.Item2,
                             castState.Item3,
                             out status,
-                            out result);
+                            out result,
+                            castState.Item4,
+                            castState.Item5);
 
                         // if there was an asynchronous result in the parameters, then complete it with a new result object
                         if (castState.Item1 != null)
@@ -1626,8 +1634,10 @@ namespace Cloud.REST
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) response object from communication</param>
+        /// <param name="serverUid">(possibly null) unique id of the file or folder on the server</param>
+        /// <param name="revision">(possibly null) revision for files which have already been communicated</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError PostFileChange(FileChange toCommunicate, int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.Event response)
+        public CLError PostFileChange(FileChange toCommunicate, int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.Event response, string serverUid, string revision)
         {
             // start with bad request as default if an exception occurs but is not explicitly handled to change the status
             status = CLHttpRestStatus.BadRequest;
@@ -1733,7 +1743,7 @@ namespace Cloud.REST
                         // check additional parameters for file or folder deletion
 
                         if (toCommunicate.NewPath == null
-                            && string.IsNullOrEmpty(toCommunicate.Metadata.ServerUid))
+                            && string.IsNullOrEmpty(serverUid))
                         {
                             throw new NullReferenceException(Resources.CLHttpRestXORNewPathServerIDCannotBeNull);
                         }
@@ -1746,7 +1756,7 @@ namespace Cloud.REST
                                 ? null
                                 : toCommunicate.NewPath.GetRelativePath(_copiedSettings.SyncRoot, true) +
                                     (toCommunicate.Metadata.HashableProperties.IsFolder ? "/" : string.Empty)),
-                            ServerUid = toCommunicate.Metadata.ServerUid,
+                            ServerUid = serverUid,
                             SyncboxId = _syncbox.SyncboxId
                         };
 
@@ -1773,11 +1783,11 @@ namespace Cloud.REST
                             throw new NullReferenceException(Resources.CLHttpRestMetadataHashablePropertiesSizeCannotBeNull);
                         }
                         if (toCommunicate.NewPath == null
-                            && string.IsNullOrEmpty(toCommunicate.Metadata.ServerUid))
+                            && string.IsNullOrEmpty(serverUid))
                         {
                             throw new NullReferenceException(Resources.CLHttpRestXORNewPathServerIDCannotBeNull);
                         }
-                        if (string.IsNullOrEmpty(toCommunicate.Metadata.Revision))
+                        if (string.IsNullOrEmpty(revision))
                         {
                             throw new NullReferenceException(Resources.CLHttpRestMetaDataRevisionCannotBeNull);
                         }
@@ -1794,8 +1804,8 @@ namespace Cloud.REST
                             RelativePath = (toCommunicate.NewPath == null
                                 ? null
                                 : toCommunicate.NewPath.GetRelativePath(_copiedSettings.SyncRoot, true)),
-                            Revision = toCommunicate.Metadata.Revision,
-                            ServerUid = toCommunicate.Metadata.ServerUid,
+                            Revision = revision,
+                            ServerUid = serverUid,
                             Size = toCommunicate.Metadata.HashableProperties.Size,
                             SyncboxId = _syncbox.SyncboxId
                         };
@@ -1808,7 +1818,7 @@ namespace Cloud.REST
                         // check additional parameters for file or folder move (rename)
 
                         if (toCommunicate.NewPath == null
-                            && string.IsNullOrEmpty(toCommunicate.Metadata.ServerUid))
+                            && string.IsNullOrEmpty(serverUid))
                         {
                             throw new NullReferenceException(Resources.CLHttpRestXORNewPathServerIDCannotBeNull);
                         }
@@ -1827,7 +1837,7 @@ namespace Cloud.REST
                                 ? null
                                 : toCommunicate.NewPath.GetRelativePath(_copiedSettings.SyncRoot, true)
                                     + (toCommunicate.Metadata.HashableProperties.IsFolder ? "/" : string.Empty)),
-                            ServerUid = toCommunicate.Metadata.ServerUid,
+                            ServerUid = serverUid,
                             SyncboxId = _syncbox.SyncboxId
                         };
 
@@ -1881,11 +1891,13 @@ namespace Cloud.REST
         /// <param name="aState">Userstate to pass when firing async callback</param>
         /// <param name="deletionChange">Deletion change which needs to be undone</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <param name="serverUid">Unique server "uid" for the file or folder</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
         public IAsyncResult BeginUndoDeletionFileChange(AsyncCallback aCallback,
             object aState,
             FileChange deletionChange,
-            int timeoutMilliseconds)
+            int timeoutMilliseconds,
+            string serverUid)
         {
             // create the asynchronous result to return
             GenericAsyncResult<UndoDeletionFileChangeResult> toReturn = new GenericAsyncResult<UndoDeletionFileChangeResult>(
@@ -1893,17 +1905,18 @@ namespace Cloud.REST
                 aState);
 
             // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
-            Tuple<GenericAsyncResult<UndoDeletionFileChangeResult>, FileChange, int> asyncParams =
-                new Tuple<GenericAsyncResult<UndoDeletionFileChangeResult>, FileChange, int>(
+            Tuple<GenericAsyncResult<UndoDeletionFileChangeResult>, FileChange, int, string> asyncParams =
+                new Tuple<GenericAsyncResult<UndoDeletionFileChangeResult>, FileChange, int, string>(
                     toReturn,
                     deletionChange,
-                    timeoutMilliseconds);
+                    timeoutMilliseconds,
+                    serverUid);
 
             // create the thread from a void (object) parameterized start which wraps the synchronous method call
             (new Thread(new ParameterizedThreadStart(state =>
             {
                 // try cast the state as the object with all the input parameters
-                Tuple<GenericAsyncResult<UndoDeletionFileChangeResult>, FileChange, int> castState = state as Tuple<GenericAsyncResult<UndoDeletionFileChangeResult>, FileChange, int>;
+                Tuple<GenericAsyncResult<UndoDeletionFileChangeResult>, FileChange, int, string> castState = state as Tuple<GenericAsyncResult<UndoDeletionFileChangeResult>, FileChange, int, string>;
                 // if the try cast failed, then show a message box for this unrecoverable error
                 if (castState == null)
                 {
@@ -1927,7 +1940,8 @@ namespace Cloud.REST
                             castState.Item2,
                             castState.Item3,
                             out status,
-                            out result);
+                            out result,
+                            castState.Item4);
 
                         // if there was an asynchronous result in the parameters, then complete it with a new result object
                         if (castState.Item1 != null)
@@ -2025,8 +2039,9 @@ namespace Cloud.REST
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) response object from communication</param>
+        /// <param name="serverUid">Unique server "uid" for the file or folder</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError UndoDeletionFileChange(FileChange deletionChange, int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.Event response)
+        public CLError UndoDeletionFileChange(FileChange deletionChange, int timeoutMilliseconds, out CLHttpRestStatus status, out JsonContracts.Event response, string serverUid)
         {
             // start with bad request as default if an exception occurs but is not explicitly handled to change the status
             status = CLHttpRestStatus.BadRequest;
@@ -2059,7 +2074,7 @@ namespace Cloud.REST
                 {
                     throw new NullReferenceException(Resources.CLHttpRestSyncRootCannotBeNull);
                 }
-                if (string.IsNullOrEmpty(deletionChange.Metadata.ServerUid))
+                if (serverUid == null)
                 {
                     throw new NullReferenceException(Resources.CLHttpRestDeletionChangeMetadataServerIDMustnotBeNull);
                 }
@@ -2082,7 +2097,7 @@ namespace Cloud.REST
                 response = Helpers.ProcessHttp<JsonContracts.Event>(new JsonContracts.FileOrFolderUndelete() // files and folders share a request content object for undelete
                     {
                         DeviceId = _copiedSettings.DeviceId, // device id
-                        ServerUid = deletionChange.Metadata.ServerUid, // unique id on server
+                        ServerUid = serverUid, // unique id on server
                         SyncboxId = _syncbox.SyncboxId // id of sync box
                     },
                     CLDefinitions.CLMetaDataServerURL, // base domain is the MDS server

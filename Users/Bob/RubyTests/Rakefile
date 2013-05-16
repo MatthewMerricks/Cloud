@@ -1,0 +1,39 @@
+require 'rake'
+require 'rspec/core/rake_task'
+require 'rspec/expectations'
+require 'colorize'
+require './operations/test_operations'
+require './operations/file_operations'
+
+path = Dir.pwd
+
+desc "Run specs"
+RSpec::Core::RakeTask.new(:spec) do |t|
+	t.pattern = "#{path}/spec/**/*_spec.rb"
+end
+
+RSpec::Core::RakeTask.new(:spec_with_tag, :tag) do |t, args|
+	t.pattern = "#{path}/spec/**/*_spec.rb"
+	t.rspec_opts = "--tag #{args[:tag]}"
+end
+
+namespace :tests do
+
+    def chdir_sync_box_path(sync_path)
+	    sync_box_path = sync_path if !sync_path.nil?
+	    puts "Starting tests on path #{sync_box_path}".green
+	    Dir.chdir(File.expand_path(sync_box_path))
+	end
+
+	desc "run tests on a directory"
+	task :all_tests, [:dir] do |t, args|
+		chdir_sync_box_path args.dir
+		Rake::Task[:spec].invoke
+	end
+
+	desc "run specific test case on a directory" 
+	task :run_test, [:dir,:test_id] do |t, args|
+		chdir_sync_box_path args.dir
+		Rake::Task[:spec_with_tag].invoke(args.test_id)
+	end
+end
