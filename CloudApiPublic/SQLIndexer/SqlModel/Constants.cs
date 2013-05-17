@@ -17,5 +17,6 @@ namespace Cloud.SQLIndexer.SqlModel
         public const string SqlEnumName = "Enum";
         public const string FileSystemObjectName = "FileSystemObject";
         public const string SpecialNameRoot = "\\";
+        public const string SqlServerUidName = "ServerUid";
     }
 }

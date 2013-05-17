@@ -148,11 +148,11 @@ namespace Cloud.Static
     public partial class TraceFileChange
     {
 
-        private string serverUidField;
-
         private long eventIdField;
 
         private bool eventIdFieldSpecified;
+
+        private long serverUidIdField;
 
         private string newPathField;
 
@@ -194,24 +194,9 @@ namespace Cloud.Static
 
         private string mD5Field;
 
-        private string revisionField;
-
         private string storageKeyField;
 
         private TraceFileChange[] dependenciesField;
-
-        /// <remarks />
-        public string ServerUid
-        {
-            get
-            {
-                return this.serverUidField;
-            }
-            set
-            {
-                this.serverUidField = value;
-            }
-        }
 
         /// <remarks />
         public long EventId
@@ -223,6 +208,19 @@ namespace Cloud.Static
             set
             {
                 this.eventIdField = value;
+            }
+        }
+
+        /// <remarks />
+        public long ServerUidId
+        {
+            get
+            {
+                return this.serverUidIdField;
+            }
+            set
+            {
+                this.serverUidIdField = value;
             }
         }
 
@@ -507,19 +505,6 @@ namespace Cloud.Static
         }
 
         /// <remarks/>
-        public string Revision
-        {
-            get
-            {
-                return this.revisionField;
-            }
-            set
-            {
-                this.revisionField = value;
-            }
-        }
-
-        /// <remarks/>
         public string StorageKey
         {
             get
@@ -570,6 +555,7 @@ namespace Cloud.Static
 
     /// <remarks/>
     [System.Xml.Serialization.XmlIncludeAttribute(typeof(FileChangeFlowEntry))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(ServerUidRevisionEntry))]
     [System.Xml.Serialization.XmlIncludeAttribute(typeof(CommunicationEntry))]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "4.0.30319.17929")]
     [System.SerializableAttribute()]
@@ -679,6 +665,62 @@ namespace Cloud.Static
     [System.ComponentModel.DesignerCategoryAttribute("code")]
     [System.Xml.Serialization.XmlTypeAttribute(Namespace = "http://www.cloud.com/TraceLog.xsd")]
     [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+    public partial class ServerUidRevisionEntry : Entry
+    {
+
+        private long serverUidIdField;
+
+        private string serverUidField;
+
+        private string revisionField;
+
+        /// <remarks/>
+        public long ServerUidId
+        {
+            get
+            {
+                return this.serverUidIdField;
+            }
+            set
+            {
+                this.serverUidIdField = value;
+            }
+        }
+
+        /// <remarks/>
+        public string ServerUid
+        {
+            get
+            {
+                return this.serverUidField;
+            }
+            set
+            {
+                this.serverUidField = value;
+            }
+        }
+
+        /// <remarks/>
+        public string Revision
+        {
+            get
+            {
+                return this.revisionField;
+            }
+            set
+            {
+                this.revisionField = value;
+            }
+        }
+    }
+
+    /// <remarks/>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("xsd", "4.0.30319.17929")]
+    [System.SerializableAttribute()]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace = "http://www.cloud.com/TraceLog.xsd")]
+    [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
     public partial class FileChangeFlowEntry : Entry
     {
 
@@ -729,7 +771,22 @@ namespace Cloud.Static
         FileMonitorAddingBatchToSQL,
 
         /// <remarks/>
+        FileMonitorAlreadyRemovedFileChanges,
+
+        /// <remarks/>
         SyncRunInitialErrors,
+
+        /// <remarks/>
+        FileMonitorGrabPreprocessedQueuedChanges,
+
+        /// <remarks/>
+        FileMonitorGrabPreprocessedFailureQueue,
+
+        /// <remarks/>
+        FileMonitorGrabPreprocessedProcessingChanges,
+
+        /// <remarks/>
+        FileMonitorGrabPreprocessedFailedOutList,
 
         /// <remarks/>
         GrabChangesQueuedChangesAddedToSQL,
@@ -769,6 +826,15 @@ namespace Cloud.Static
 
         /// <remarks/>
         SyncRunPostCommunicationDequeuedFailures,
+
+        /// <remarks/>
+        FileMonitorAssignDependenciesFailureQueue,
+
+        /// <remarks/>
+        FileMonitorAssignDependenciesProcessingChanges,
+
+        /// <remarks/>
+        FileMonitorAssignDependenciesFailedOutList,
 
         /// <remarks/>
         DependencyAssignmentOutputChanges,

@@ -39,6 +39,10 @@ namespace Cloud.Static
         /// <summary>
         /// Logging the flow of FileChanges is extremely costly, use for development purposes only
         /// </summary>
-        FileChangeFlow = 0x04
+        FileChangeFlow = 0x04,
+        /// <summary>
+        /// Logging creation or changes of server "uid" in local storage
+        /// </summary>
+        ServerUid = 0x08
     }
 }

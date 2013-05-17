@@ -131,19 +131,19 @@ namespace Cloud.Static
         Syncbox_TraceEnabledWithoutDirectory = (((ulong)CLExceptionDomain.Syncbox) << 32) | 1, // 2_1
 
         /// <summary>
-        /// SyncRoot cannot contain path to database
+        /// Syncbox path cannot contain path to database
         /// </summary>
-        Syncbox_DatabaseInsideSyncRoot = (((ulong)CLExceptionDomain.Syncbox) << 32) | 2, // 2_2
+        Syncbox_DatabaseInsideSyncboxPath = (((ulong)CLExceptionDomain.Syncbox) << 32) | 2, // 2_2
 
         /// <summary>
-        /// SyncRoot cannot contain path for trace
+        /// Syncbox path cannot contain path for trace
         /// </summary>
-        Syncbox_TraceInsideSyncRoot = (((ulong)CLExceptionDomain.Syncbox) << 32) | 3, // 2_3
+        Syncbox_TraceInsideSyncboxPath = (((ulong)CLExceptionDomain.Syncbox) << 32) | 3, // 2_3
 
         /// <summary>
-        /// SyncRoot cannot contain temporary downloads
+        /// Syncbox path cannot contain temporary downloads
         /// </summary>
-        Syncbox_TempDownloadsInsideSyncRoot = (((ulong)CLExceptionDomain.Syncbox) << 32) | 4, // 2_4
+        Syncbox_TempDownloadsInsideSyncboxPath = (((ulong)CLExceptionDomain.Syncbox) << 32) | 4, // 2_4
         
         /// <summary>
         /// DeviceId cannot be null
@@ -151,19 +151,74 @@ namespace Cloud.Static
         Syncbox_DeviceId = (((ulong)CLExceptionDomain.Syncbox) << 32) | 5, // 2_5
 
         /// <summary>
-        /// SyncRoot too long; check path first with Cloud.Static.Helpers.CheckSyncRootLength
+        /// Syncbox path too long; check path first with Cloud.Static.Helpers.CheckSyncboxPathLength
         /// </summary>
-        Syncbox_LongSyncRoot = (((ulong)CLExceptionDomain.Syncbox) << 32) | 6, // 2_6
+        Syncbox_LongPath = (((ulong)CLExceptionDomain.Syncbox) << 32) | 6, // 2_6
 
         /// <summary>
-        /// SyncRoot not valid for syncing; check path first with Cloud.Static.Helpers.CheckForBadPath
+        /// Syncbox path not valid for syncing; check path first with Cloud.Static.Helpers.CheckForBadPath
         /// </summary>
-        Syncbox_BadSyncRoot = (((ulong)CLExceptionDomain.Syncbox) << 32) | 7, // 2_7
+        Syncbox_BadPath = (((ulong)CLExceptionDomain.Syncbox) << 32) | 7, // 2_7
 
         /// <summary>
         /// Error retrieving initial Syncbox status from server
         /// </summary>
         Syncbox_InitialStatus = (((ulong)CLExceptionDomain.Syncing) << 32) | 8, // 2_8
+
+        /// <summary>
+        /// Syncbox cannot be null
+        /// </summary>
+        Syncbox_Null = (((ulong)CLExceptionDomain.Syncing) << 32) | 9, // 2_9
+
+        /// <summary>
+        /// Syncbox already started syncing
+        /// </summary>
+        Syncbox_AlreadyStarted = (((ulong)CLExceptionDomain.Syncing) << 32) | 10, // 2_10
+
+        /// <summary>
+        /// Syncbox not started syncing
+        /// </summary>
+        Syncbox_NotStarted = (((ulong)CLExceptionDomain.Syncing) << 32) | 11, // 2_11
+
+        /// <summary>
+        /// Error creating backing index for syncing
+        /// </summary>
+        Syncbox_IndexCreation = (((ulong)CLExceptionDomain.Syncing) << 32) | 12, // 2_12
+
+        /// <summary>
+        /// Error starting notification service
+        /// </summary>
+        Syncbox_StartingNotifications = (((ulong)CLExceptionDomain.Syncing) << 32) | 13, // 2_13
+
+        /// <summary>
+        /// Error creating file monitor
+        /// </summary>
+        Syncbox_FileMonitorCreation = (((ulong)CLExceptionDomain.Syncing) << 32) | 14, // 2_14
+
+        /// <summary>
+        /// Error starting file monitor
+        /// </summary>
+        Syncbox_StartingFileMonitor = (((ulong)CLExceptionDomain.Syncing) << 32) | 15, // 2_15
+
+        /// <summary>
+        /// Starting initial indexing
+        /// </summary>
+        Syncbox_StartingInitialIndexing = (((ulong)CLExceptionDomain.Syncing) << 32) | 16,  // 2_16
+
+        /// <summary>
+        /// Syncbox is current being modified
+        /// </summary>
+        Syncbox_InProcessOfModification = (((ulong)CLExceptionDomain.Syncing) << 32) | 17,  // 2_17
+
+        /// <summary>
+        /// Folder not found at syncbox path
+        /// </summary>
+        Syncbox_PathNotFound = (((ulong)CLExceptionDomain.Syncing) << 32) | 18,  // 2_18
+
+        /// <summary>
+        /// A general exception occurred starting syncing on a syncbox
+        /// </summary>
+        Syncbox_GeneralStart = (((ulong)CLExceptionDomain.Syncing) << 32) | 19,  // 2_19
 
         #endregion
 
@@ -443,7 +498,8 @@ namespace Cloud.Static
         UploadingFiles = 2,
         DownloadingFiles = 4,
         HaltedOnConnectionFailure = 8,
-        HaltedOnExpiredCredentials = 16
+        HaltedOnExpiredCredentials = 16,
+        InternetDisconnected = 32
     }
 
     /// <summary>
@@ -455,7 +511,8 @@ namespace Cloud.Static
         ErrorMultipleResults,
         ErrorNotFound,
         ErrorNoIndexer,
-        ErrorUnknown
+        ErrorUnknown,
+        ErrorDisposed
     }
 
     /// <summary>
@@ -487,7 +544,7 @@ namespace Cloud.Static
         public const long InvalidUtcTimeTicks = 504911232000000000; //number determined by practice
         public static readonly byte[] EmptyBuffer = new byte[0]; // empty buffer is used to complete an MD5 hash
         public const int BufferSize = 4096; //posts online seem to suggest between 1kb and 12kb is optimal for a FileStream buffer, 4kb seems commonly used
-        public const long MaxUploadFileSize = 500 * 1024 * 1024; // -1 if no restrictions
+        public const long MaxUploadFileSize = 40L * 1024L * 1024L * 1024L; // -1 if no restrictions
         public const int MaxUploadIntermediateHashBytesSize = 10 * 1024 * 1024; // 10MB; size of intermediate file blocks to hash for verifying the file contents in an optimistic share lock startegy on uploads
     }
 

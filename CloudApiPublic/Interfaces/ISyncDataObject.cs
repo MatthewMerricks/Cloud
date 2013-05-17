@@ -26,6 +26,11 @@ namespace Cloud.Interfaces
         /// <param name="newRootPath">Full path string to directory to sync without any trailing slash (except for drive letter root)</param>
         /// <returns>Returns any error that occurred while wiping the database index</returns>
         CLError WipeIndex(string newRootPath);
+        
+        /// <summary>
+        /// Call this when the location of the sync folder has changed (while syncing is stopped) to update the entire index to all new paths based in the new root folder
+        /// </summary>
+        CLError ChangeSyncboxPath(string newSyncboxPath);
 
         /// <summary>
         /// Callback from SyncEngine to retrieve events to process, with dependencies assigned;
@@ -46,6 +51,14 @@ namespace Cloud.Interfaces
             out int outputChangesInErrorCount,
             out bool nullChangeFound,
             List<FileChange> failedOutChanges = null);
+
+        CLError CreateNewServerUid(string serverUid, string revision, out long serverUidId, SQLTransactionalBase existingTransaction = null);
+
+        CLError UpdateServerUid(long serverUidId, string serverUid, string revision, out Nullable<long> existingServerUidIdRequiringMerging, SQLTransactionalBase existingTransaction = null);
+
+        CLError QueryServerUid(long serverUidId, out string serverUid, out string revision, SQLTransactionalBase existingTransaction = null);
+
+        CLError QueryOrCreateServerUid(string serverUid, out long serverUidId, string revision, bool syncFromFileModify, SQLTransactionalBase existingTransaction = null);
 
         /// <summary>
         /// Creates a new transactional object which can be passed back into database access calls and externalizes the ability to dispose or commit the transaction
@@ -124,7 +137,7 @@ namespace Cloud.Interfaces
         /// </summary>
         /// <param name="toApply">FileChange to perform</param>
         /// <returns>Should return any error that occurred while performing the FileChange</returns>
-        CLError applySyncFromChange<T>(FileChange toApply, Action<T> onAllPathsLock, Action<T> onBeforeAllPathsUnlock, T userState, object lockerInsideAllPaths);
+        CLError applySyncFromChange<T>(FileChange toApply, Func<T, bool> onAllPathsLockAndReturnWhetherToContinue, Action<T> onBeforeAllPathsUnlock, T userState, object lockerInsideAllPaths);
 
         /// <summary>
         /// Callback from SyncEngine to complete a single FileChange as of the last sync (used for asynchronously completed operations file upload and file download)

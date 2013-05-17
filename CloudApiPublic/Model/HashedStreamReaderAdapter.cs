@@ -55,7 +55,7 @@ namespace Cloud.Model
             }
             if (intermediateHashesMismatch)
             {
-                throw new HashMismatchException("intermediate hash does not match; file has been edited;");
+                throw new HashMismatchException(Resources.HashedStreamReaderAdapterIntermediateHashDoesNotMatchFileWasEdited);
             }
         }
 
@@ -99,7 +99,7 @@ namespace Cloud.Model
                 _hasher.FinalizeHashes();
                 if (!Helpers.IsEqualHashes(_hasher.Hash, _verifierHash))
                 {
-                    throw new HashMismatchException("final hash does not match; file has been edited;");
+                    throw new HashMismatchException(Resources.HashedStreamReaderAdapterFinalHashDoesNotMatchFileWasEdited);
                 }
             }
             else

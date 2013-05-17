@@ -297,7 +297,7 @@ namespace Cloud.Model
                 }
                 else
                 {
-                    throw new NullReferenceException("Server responded without an array of Plans");
+                    throw new NullReferenceException(Resources.ExceptionCLHttpRestWithoutPlans);
                 }
             }
             catch (Exception ex)

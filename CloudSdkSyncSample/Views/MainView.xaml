@@ -80,7 +80,7 @@
                          ToolTip="Paste the Syncbox ID from your Cloud DashBoard."/>
                     <!-- Unique Device ID -->
                     <Label Content="Unique _Device ID:" Target="{Binding ElementName=tbSyncboxId}"/>
-                    <TextBox x:Name="tbDeviceId" Margin="10,0,0,0" Width="160" Height="23"
+                    <TextBox x:Name="tbDeviceId" Margin="10,0,0,0" Width="150" Height="23"
                          HorizontalAlignment="Left"
                          Text="{Binding DeviceId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                          IsEnabled="{Binding TbUniqueDeviceIdEnabled}"

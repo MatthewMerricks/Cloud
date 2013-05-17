@@ -45,8 +45,145 @@ namespace Cloud
     /// </summary>
     public sealed class CLSyncbox : IDisposable
     {
+        #region hidden debug properties
+
+        // following flag should always be false except for when debugging dependencies
+        private readonly GenericHolder<bool> debugDependencies = new GenericHolder<bool>(false);
+
+        #region hidden Dependencies debug
+        //// --------- adding \cond and \endcond makes the section in between hidden from doxygen
+
+        // \cond
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+        public bool DependenciesDebug
+        {
+            get
+            {
+                lock (debugDependencies)
+                {
+                    return debugDependencies.Value;
+                }
+            }
+            set
+            {
+                lock (debugDependencies)
+                {
+                    debugDependencies.Value = value;
+                }
+            }
+        }
+        // \endcond
+        #endregion
+
+        // following flag should always be false except for when debugging database by copying on every change
+        private readonly GenericHolder<bool> copyDatabaseBetweenChanges = new GenericHolder<bool>(false);
+
+        #region hidden copy database debug
+        //// --------- adding \cond and \endcond makes the section in between hidden from doxygen
+
+        // \cond
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+        public bool DebugCopyDatabase
+        {
+            get
+            {
+                lock (copyDatabaseBetweenChanges)
+                {
+                    return copyDatabaseBetweenChanges.Value;
+                }
+            }
+            set
+            {
+                lock (copyDatabaseBetweenChanges)
+                {
+                    copyDatabaseBetweenChanges.Value = value;
+                }
+            }
+        }
+        // \endcond
+        #endregion
+
+        // following flag should always be false except for when debugging FileMonitor memory
+        private readonly GenericHolder<bool> debugFileMonitorMemory = new GenericHolder<bool>(false);
+
+        #region hidden FileMonitor debug
+        //// --------- adding \cond and \endcond makes the section in between hidden from doxygen
+
+        // \cond
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+        public bool FileMonitorMemoryDebug
+        {
+            get
+            {
+                lock (debugFileMonitorMemory)
+                {
+                    return debugFileMonitorMemory.Value;
+                }
+            }
+            set
+            {
+                lock (debugFileMonitorMemory)
+                {
+                    if (debugFileMonitorMemory.Value
+                        && !value)
+                    {
+                        FileMonitor.MonitorAgent.memoryDebugger.Instance.wipeMemory();
+                    }
+
+                    debugFileMonitorMemory.Value = value;
+                }
+            }
+        }
+        // \endcond
+
+        // \cond
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+        public string FileMonitorMemory
+        {
+            get
+            {
+                lock (debugFileMonitorMemory)
+                {
+                    if (!debugFileMonitorMemory.Value)
+                    {
+                        return null;
+                    }
+                }
+
+                return FileMonitor.MonitorAgent.memoryDebugger.Instance.serializeMemory();
+            }
+        }
+        // \endcond
+
+        // \cond
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+        public bool WipeFileMonitorDebugMemory
+        {
+            set
+            {
+                if (value)
+                {
+                    bool needsWipe;
+
+                    lock (debugFileMonitorMemory)
+                    {
+                        needsWipe = debugFileMonitorMemory.Value;
+                    }
+
+                    if (needsWipe)
+                    {
+                        FileMonitor.MonitorAgent.memoryDebugger.Instance.wipeMemory();
+                    }
+                }
+            }
+        }
+        // \endcond
+        #endregion
+
+        #endregion
+
         #region Private Fields
-        
+
         private static readonly CLTrace _trace = CLTrace.Instance;
         private static readonly List<CLSyncEngine> _startedSyncEngines = new List<CLSyncEngine>();
         private static readonly object _startLocker = new object();
@@ -223,7 +360,7 @@ namespace Cloud
         {
             // check input parameters
 
-            if (syncboxId == 0)
+            if (syncboxId <= 0)
             {
                 throw new ArgumentException("syncboxId must be specified");
             }
@@ -253,10 +390,10 @@ namespace Cloud
 
                 // Initialize trace in case it is not already initialized.
                 CLTrace.Initialize(this._copiedSettings.TraceLocation, "Cloud", "log", this._copiedSettings.TraceLevel, this._copiedSettings.LogErrors);
-                _trace.writeToLog(1, "CLSyncbox: Constructing...");
+                _trace.writeToLog(1, Resources.CLSyncboxConstructing);
 
                 // Create the http rest client
-                _trace.writeToLog(9, "CLSyncbox: Start: Create rest client.");
+                _trace.writeToLog(9, Resources.CLSyncboxStartCreateRestClient);
                 CLError createRestClientError = CLHttpRest.CreateAndInitialize(
                                 credentials: this.Credentials,
                                 syncbox: this,
@@ -266,13 +403,20 @@ namespace Cloud
                                 getNewCredentialsCallbackUserState: getNewCredentialsCallbackUserState);
                 if (createRestClientError != null)
                 {
-                    _trace.writeToLog(1, "CLSyncbox: Construction: ERROR: Msg: {0}. Code: {1}.", createRestClientError.PrimaryException.Message, createRestClientError.PrimaryException.Code.ToString());
-                    throw new CLException(CLExceptionCode.Syncbox_CreateRestClient, "Error creating REST HTTP client", createRestClientError.Exceptions);
+                    _trace.writeToLog(1,
+                        Resources.CLSyncboxConstructionErrorMsg0Code1,
+                        createRestClientError.PrimaryException.Message,
+                        createRestClientError.PrimaryException.Code);
+
+                    throw new CLException(CLExceptionCode.Syncbox_CreateRestClient,
+                        Resources.CLSyncboxErrorCreatingRestHTTPClient,
+                        createRestClientError.Exceptions);
                 }
                 if (_httpRestClient == null)
                 {
                     const string nullRestClient = "Unknown error creating HTTP REST client";
-                    _trace.writeToLog(1, "CLSyncbox: Construction: ERROR: Msg: {0}.", nullRestClient);
+                    _trace.writeToLog(1, Resources.CLSyncboxConstructionErrorMsg0, nullRestClient);
+
                     throw new CLNullReferenceException(CLExceptionCode.Syncbox_CreateRestClient, nullRestClient);
                 }
 
@@ -281,11 +425,27 @@ namespace Cloud
                 CLError errorFromStatus = GetCurrentSyncboxStatus();
                 if (errorFromStatus != null)
                 {
-                    throw new CLException(CLExceptionCode.Syncbox_InitialStatus, "Error getting syncbox status from Cloud", errorFromStatus.Exceptions);
+                    throw new CLException(CLExceptionCode.Syncbox_InitialStatus, Resources.ExceptionSyncboxStartStatus, errorFromStatus.Exceptions);
+                }
+
+                bool debugDependenciesValue;
+                lock (debugDependencies)
+                {
+                    debugDependenciesValue = debugDependencies.Value;
+                }
+                bool copyDatabaseBetweenChangesValue;
+                lock (copyDatabaseBetweenChanges)
+                {
+                    copyDatabaseBetweenChangesValue = copyDatabaseBetweenChanges.Value;
+                }
+                bool debugFileMonitorMemoryValue;
+                lock (debugFileMonitorMemory)
+                {
+                    debugFileMonitorMemoryValue = debugFileMonitorMemory.Value;
                 }
 
                 // Create the sync engine
-                _syncEngine = new CLSyncEngine();
+                _syncEngine = new CLSyncEngine(this, debugDependenciesValue, copyDatabaseBetweenChangesValue, debugFileMonitorMemoryValue); // syncbox to sync (contains required settings)
             }
         }
 
@@ -371,7 +531,7 @@ namespace Cloud
                 }
 
                 // Create the sync engine
-                _syncEngine = new CLSyncEngine();
+                _syncEngine = new CLSyncEngine(this); // syncbox to sync (contains required settings)
             }
         }
 
@@ -542,6 +702,10 @@ namespace Cloud
             {
                 lock (_startLocker)
                 {
+                    if (_isStarted)
+                    {
+                        throw new CLInvalidOperationException(CLExceptionCode.Syncbox_AlreadyStarted, Resources.CLSyncEngineAlreadyStarted);
+                    }
                     if (_syncEngine == null)
                     {
                         throw new NullReferenceException("syncEngine must not be null");
@@ -551,11 +715,17 @@ namespace Cloud
                         throw new ArgumentException("CLSyncMode.CLSyncModeOnDemand is not supported");
                     }
 
-
                     if (path != null)
                     {
+                        //TODO: Remove this when the sync engine support case insensitive paths.
+                        // This was required because OSD code was providing paths that started with a lower case drive letter.
+                        if (path.Length >= 2 && path[1] == ':')
+                        {
+                            path = char.ToUpper(path[0]) + path.Substring(1);
+                        }
+
                         int nOutTooLongChars;
-                        CLError errorPathTooLong = Helpers.CheckSyncRootLength(path, out nOutTooLongChars);
+                        CLError errorPathTooLong = Helpers.CheckSyncboxPathLength(path, out nOutTooLongChars);
                         if (errorPathTooLong != null)
                         {
                             throw new CLArgumentException(errorPathTooLong.PrimaryException.Code, string.Format("syncbox path is too long by {0} characters.", nOutTooLongChars), errorPathTooLong.Exceptions);
@@ -572,12 +742,9 @@ namespace Cloud
                     _syncMode = mode;
 
                     // Start the sync engine
-                    CLSyncStartStatus startStatus;
                     CLError syncEngineStartError = _syncEngine.Start(
-                        Syncbox: this, // syncbox to sync (contains required settings)
-                        Status: out startStatus, // The completion status of the Start() function
-                        StatusUpdated: syncStatusChangedCallback, // called when sync status is updated
-                        StatusUpdatedUserState: syncStatusChangedCallbackUserState); // the user state passed to the callback above
+                        statusUpdated: syncStatusChangedCallback, // called when sync status is updated
+                        statusUpdatedUserState: syncStatusChangedCallbackUserState); // the user state passed to the callback above
 
                     if (syncEngineStartError != null)
                     {
@@ -661,7 +828,7 @@ namespace Cloud
                 {
                     if (_isStarted)
                     {
-                        throw new CLInvalidOperationException(CLExceptionCode.General_Invalid, "Stop the syncbox first.");
+                        throw new CLInvalidOperationException(CLExceptionCode.Syncbox_AlreadyStarted, "Stop the syncbox before resetting local cache.");
                     }
 
                     // Reset the sync engine
@@ -708,7 +875,7 @@ namespace Cloud
                 {
                     if (!_isStarted)
                     {
-                        throw new InvalidOperationException("Start the syncbox first.");
+                        throw new CLInvalidOperationException(CLExceptionCode.Syncbox_NotStarted, "Start the syncbox first.");
                     }
 
                     if (_syncEngine == null)
@@ -1264,7 +1431,7 @@ namespace Cloud
                 }
                 else
                 {
-                    throw new NullReferenceException("Server responded without an array of Sessions");
+                    throw new NullReferenceException(Resources.ExceptionCLHttpRestWithoutSessions);
                 }
 
             }

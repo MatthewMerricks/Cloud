@@ -9,6 +9,7 @@ using Cloud.Interfaces;
 using Cloud.Model;
 using Cloud.Model.EventMessages;
 using Cloud.Model.EventMessages.ErrorInfo;
+using Cloud.Support;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -108,6 +109,26 @@ namespace Cloud.Static
                 && Error.ErrorType == ErrorMessageType.HaltAllOfCloudSDK)
             {
                 Helpers.HaltAllOnUnrecoverableError();
+
+                string stack;
+                try
+                {
+                    stack = (new System.Diagnostics.StackTrace(fNeedFileInfo: true)).ToString();
+                }
+                catch (Exception ex)
+                {
+                    try
+                    {
+                        stack = ex.StackTrace;
+                    }
+                    catch
+                    {
+                        stack = "Unable to retrieve StackTrace";
+                    }
+                }
+
+                CLTrace.Instance.writeToLog(1, "Helpers: HaltAllOnUnrecoverableError: ERROR: Sync engine halted.  Msg: {0}. Error: {1}. Stack trace: {2}.",
+                    Message, Error == null ? "null" : Error.ErrorType.ToString(), stack);
             }
 
             EventHandledLevel toReturn;

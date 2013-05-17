@@ -124,6 +124,1745 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to aResult does not match expected internal type.
+        /// </summary>
+        internal static string CLCredentialaResultInternalTypeMismatch {
+            get {
+                return ResourceManager.GetString("CLCredentialaResultInternalTypeMismatch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot cast state as.
+        /// </summary>
+        internal static string CLCredentialCannotCastStateAs {
+            get {
+                return ResourceManager.GetString("CLCredentialCannotCastStateAs", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot do anything with the Cloud SDK if Helpers.AllHaltedOnUnrecoverableError is set.
+        /// </summary>
+        internal static string CLCredentialHelpersAllHaltedOnUnrecoverableErrorIsSet {
+            get {
+                return ResourceManager.GetString("CLCredentialHelpersAllHaltedOnUnrecoverableErrorIsSet", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Key cannot be null.
+        /// </summary>
+        internal static string CLCredentialKeyCannotBeNull {
+            get {
+                return ResourceManager.GetString("CLCredentialKeyCannotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to timeoutMilliseconds must be greater than zero.
+        /// </summary>
+        internal static string CLCredentialMSTimeoutMustBeGreaterThanZero {
+            get {
+                return ResourceManager.GetString("CLCredentialMSTimeoutMustBeGreaterThanZero", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to pushRequest must not be null.
+        /// </summary>
+        internal static string CLCredentialPushRequestCannotBeNull {
+            get {
+                return ResourceManager.GetString("CLCredentialPushRequestCannotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Secret cannot be null.
+        /// </summary>
+        internal static string CLCredentialSecretCannotBeNull {
+            get {
+                return ResourceManager.GetString("CLCredentialSecretCannotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to toCopy must not be null.
+        /// </summary>
+        internal static string CLCredentialSettingsToCopyNotBeNull {
+            get {
+                return ResourceManager.GetString("CLCredentialSettingsToCopyNotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to syncbox cannot be null.
+        /// </summary>
+        internal static string CLEngineSyncboxCannotBeNull {
+            get {
+                return ResourceManager.GetString("CLEngineSyncboxCannotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to aResult does not match expected internal type.
+        /// </summary>
+        internal static string CLHttpRestaResultInternalTypeMismatch {
+            get {
+                return ResourceManager.GetString("CLHttpRestaResultInternalTypeMismatch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot cast state as.
+        /// </summary>
+        internal static string CLHttpRestCannotCastStateAs {
+            get {
+                return ResourceManager.GetString("CLHttpRestCannotCastStateAs", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to deletionChange Direction is not To the server.
+        /// </summary>
+        internal static string CLHttpRestChangeDirectionIsNotToServer {
+            get {
+                return ResourceManager.GetString("CLHttpRestChangeDirectionIsNotToServer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to deletionChange is not of Type Deletion.
+        /// </summary>
+        internal static string CLHttpRestChangeIsNotOfTypeDeletion {
+            get {
+                return ResourceManager.GetString("CLHttpRestChangeIsNotOfTypeDeletion", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to toCommunicate cannot be null.
+        /// </summary>
+        internal static string CLHttpRestCommunicateCannotBeNull {
+            get {
+                return ResourceManager.GetString("CLHttpRestCommunicateCannotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to copyTargetPath cannot be null.
+        /// </summary>
+        internal static string CLHttpRestCopyPathCannotBeNull {
+            get {
+                return ResourceManager.GetString("CLHttpRestCopyPathCannotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Current Syncbox cannot be modified while in use in active syncing.
+        /// </summary>
+        internal static string CLHttpRestCurrentSyncboxCannotBeModifiedWhileSyncing {
+            get {
+                return ResourceManager.GetString("CLHttpRestCurrentSyncboxCannotBeModifiedWhileSyncing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to deletionChange cannot be null.
+        /// </summary>
+        internal static string CLHttpRestDeletionChangeCannotBeNull {
+            get {
+                return ResourceManager.GetString("CLHttpRestDeletionChangeCannotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to deletionChange Metadata ServerId must not be null.
+        /// </summary>
+        internal static string CLHttpRestDeletionChangeMetadataServerIDMustnotBeNull {
+            get {
+                return ResourceManager.GetString("CLHttpRestDeletionChangeMetadataServerIDMustnotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to settings DeviceId cannot be null.
+        /// </summary>
+        internal static string CLHttpRestDeviceIDCannotBeNull {
+            get {
+                return ResourceManager.GetString("CLHttpRestDeviceIDCannotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Folder path for temp download files is too long by.
+        /// </summary>
+        internal static string CLHttpRestFolderPathTooLong {
+            get {
+                return ResourceManager.GetString("CLHttpRestFolderPathTooLong", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to friendlyName must be specified.
+        /// </summary>
+        internal static string CLHttpRestFriendlyNameNotSpecified {
+            get {
+                return ResourceManager.GetString("CLHttpRestFriendlyNameNotSpecified", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to fullPath is not in the proper format.
+        /// </summary>
+        internal static string CLHttpRestFullPathBadFormat {
+            get {
+                return ResourceManager.GetString("CLHttpRestFullPathBadFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to fullPath does not contain syncbox path.
+        /// </summary>
+        internal static string CLHttpRestFullPathDoesNotContainSettingsSyncboxPath {
+            get {
+                return ResourceManager.GetString("CLHttpRestFullPathDoesNotContainSettingsSyncboxPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Both fullPath and serverId cannot be null, at least one is required.
+        /// </summary>
+        internal static string CLHttpRestFullPathorServerIDRequired {
+            get {
+                return ResourceManager.GetString("CLHttpRestFullPathorServerIDRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to There was an internal error attempting to retrieve the progress, Error 1.
+        /// </summary>
+        internal static string CLHttpRestInternalPRogressRetrievalFailure1 {
+            get {
+                return ResourceManager.GetString("CLHttpRestInternalPRogressRetrievalFailure1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to There was an internal error attempting to retrieve the progress, Error 2.
+        /// </summary>
+        internal static string CLHttpRestInternalPRogressRetrievalFailure2 {
+            get {
+                return ResourceManager.GetString("CLHttpRestInternalPRogressRetrievalFailure2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MD5 lowercase string retrieved from Resources.CLHttpRestCommunicateCannotBeNull, set via toCommunicate.SetMD5.
+        /// </summary>
+        internal static string CLHttpRestMD5LowerCaseStringSet {
+            get {
+                return ResourceManager.GetString("CLHttpRestMD5LowerCaseStringSet", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to deletionChange Metadata cannot be null.
+        /// </summary>
+        internal static string CLHttpRestMetadataCannotBeNull {
+            get {
+                return ResourceManager.GetString("CLHttpRestMetadataCannotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to toCommunicate Metadata HashableProperties Size cannot be null.
+        /// </summary>
+        internal static string CLHttpRestMetadataHashablePropertiesSizeCannotBeNull {
+            get {
+                return ResourceManager.GetString("CLHttpRestMetadataHashablePropertiesSizeCannotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to toCommunicate NewPath cannot be null.
+        /// </summary>
+        internal static string CLHttpRestNewPathCannotBeNull {
+            get {
+                return ResourceManager.GetString("CLHttpRestNewPathCannotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to toCommunicate OldPath cannot be null.
+        /// </summary>
+        internal static string CLHttpRestOldPathCannotBeNull {
+            get {
+                return ResourceManager.GetString("CLHttpRestOldPathCannotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to planId must not be zero.
+        /// </summary>
+        internal static string CLHttpRestPlanIDCannotBeZero {
+            get {
+                return ResourceManager.GetString("CLHttpRestPlanIDCannotBeZero", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to pushRequest must not be null.
+        /// </summary>
+        internal static string CLHttpRestPushRequestMustNotBeNull {
+            get {
+                return ResourceManager.GetString("CLHttpRestPushRequestMustNotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to revision cannot be null.
+        /// </summary>
+        internal static string CLHttpRestRevisionCannotBeNull {
+            get {
+                return ResourceManager.GetString("CLHttpRestRevisionCannotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Syncbox path is bad.
+        /// </summary>
+        internal static string CLHttpRestSyncboxBadPath {
+            get {
+                return ResourceManager.GetString("CLHttpRestSyncboxBadPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to syncbox Credential cannot be null.
+        /// </summary>
+        internal static string CLHttpRestsyncboxCredentialCannotBeNull {
+            get {
+                return ResourceManager.GetString("CLHttpRestsyncboxCredentialCannotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Syncbox path cannot be null.
+        /// </summary>
+        internal static string CLHttpRestSyncboxPathCannotBeNull {
+            get {
+                return ResourceManager.GetString("CLHttpRestSyncboxPathCannotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to syncToRequest must not be null.
+        /// </summary>
+        internal static string CLHttpRestSyncToRequestMustNotBeNull {
+            get {
+                return ResourceManager.GetString("CLHttpRestSyncToRequestMustNotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The customDownloadFolderFullPath is bad.
+        /// </summary>
+        internal static string CLHttpRestThecustomDownloadFolderFullPathIsBad {
+            get {
+                return ResourceManager.GetString("CLHttpRestThecustomDownloadFolderFullPathIsBad", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to timeoutMilliseconds must be greater than zero.
+        /// </summary>
+        internal static string CLHttpRestTimeoutMustBeGreaterThanZero {
+            get {
+                return ResourceManager.GetString("CLHttpRestTimeoutMustBeGreaterThanZero", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to toCommunicate cannot be both a folder and of type Modified.
+        /// </summary>
+        internal static string CLHttpRestToCommunicateCannotBeFolderandModified {
+            get {
+                return ResourceManager.GetString("CLHttpRestToCommunicateCannotBeFolderandModified", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to toCommunicate Direction is not To the server.
+        /// </summary>
+        internal static string CLHttpRestToCommunicateDirectionisNotToServer {
+            get {
+                return ResourceManager.GetString("CLHttpRestToCommunicateDirectionisNotToServer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to toCommunicate Metadata cannot be null.
+        /// </summary>
+        internal static string CLHttpRestToCommunicateMetedataCannotBeNull {
+            get {
+                return ResourceManager.GetString("CLHttpRestToCommunicateMetedataCannotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to toCommunicate Type is an unknown FileChangeType: .
+        /// </summary>
+        internal static string CLHttpRestToCommunicateTypeIsUnknownFileChangeType {
+            get {
+                return ResourceManager.GetString("CLHttpRestToCommunicateTypeIsUnknownFileChangeType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Either toCommunicate NewPath must not be null or serverUid must not be null or both must not be null.
+        /// </summary>
+        internal static string CLHttpRestXORNewPathServerIDCannotBeNull {
+            get {
+                return ResourceManager.GetString("CLHttpRestXORNewPathServerIDCannotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Either pathToFile must not be null or fileServerId must not be null or both must not be null.
+        /// </summary>
+        internal static string CLHttpRestXORPathtoFileFileServerIDMustNotBeNull {
+            get {
+                return ResourceManager.GetString("CLHttpRestXORPathtoFileFileServerIDMustNotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Already initialized.
+        /// </summary>
+        internal static string CLNotificationManualPollingEngineAlreadyInitialized {
+            get {
+                return ResourceManager.GetString("CLNotificationManualPollingEngineAlreadyInitialized", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Already started.
+        /// </summary>
+        internal static string CLNotificationManualPollingEngineAlreadyStarted {
+            get {
+                return ResourceManager.GetString("CLNotificationManualPollingEngineAlreadyStarted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Default constructor not supported.
+        /// </summary>
+        internal static string CLNotificationManualPollingEngineDefaultConstructorNotSupported {
+            get {
+                return ResourceManager.GetString("CLNotificationManualPollingEngineDefaultConstructorNotSupported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to delegateSendManualPoll must not be null.
+        /// </summary>
+        internal static string CLNotificationManualPollingEngineDelegateSendManualPollMustNotBeNull {
+            get {
+                return ResourceManager.GetString("CLNotificationManualPollingEngineDelegateSendManualPollMustNotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Initialize first.
+        /// </summary>
+        internal static string CLNotificationManualPollingEngineInitializeFirst {
+            get {
+                return ResourceManager.GetString("CLNotificationManualPollingEngineInitializeFirst", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationManualPollingEngine: Start: ERROR: Exception: Msg: {0}..
+        /// </summary>
+        internal static string CLNotificationManualPollingEngineStartErrorExceptionMsg0 {
+            get {
+                return ResourceManager.GetString("CLNotificationManualPollingEngineStartErrorExceptionMsg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to syncbox must not be null.
+        /// </summary>
+        internal static string CLNotificationManualPollingEngineSyncBoxMustNotBeNull {
+            get {
+                return ResourceManager.GetString("CLNotificationManualPollingEngineSyncBoxMustNotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Already started.
+        /// </summary>
+        internal static string CLNotificationServiceAlreadyStarted {
+            get {
+                return ResourceManager.GetString("CLNotificationServiceAlreadyStarted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationService: CancelEngineTimeoutCallback: ERROR: Exception: Msg: {0}..
+        /// </summary>
+        internal static string CLNotificationServiceCancelEngineTimeoutCallbackErrorExceptionMsg0 {
+            get {
+                return ResourceManager.GetString("CLNotificationServiceCancelEngineTimeoutCallbackErrorExceptionMsg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationService: CreateEngineTimer: ERROR: Exception: Msg: {0}..
+        /// </summary>
+        internal static string CLNotificationServiceCreateEngineTimer {
+            get {
+                return ResourceManager.GetString("CLNotificationServiceCreateEngineTimer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationService: DisconnectPushNotificationServer: Remove client: {0}..
+        /// </summary>
+        internal static string CLNotificationServiceDisconnectNotificationServerRemoteClient0 {
+            get {
+                return ResourceManager.GetString("CLNotificationServiceDisconnectNotificationServerRemoteClient0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationService: DisconnectPushNotificationServer: Dispose the engine watcher..
+        /// </summary>
+        internal static string CLNotificationServiceDisconnectPushNotificationServerDisposeEngineWatcher {
+            get {
+                return ResourceManager.GetString("CLNotificationServiceDisconnectPushNotificationServerDisposeEngineWatcher", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationService: DisconnectPushNotificationServer: Entry..
+        /// </summary>
+        internal static string CLNotificationServiceDisconnectPushNotificationServerEntry {
+            get {
+                return ResourceManager.GetString("CLNotificationServiceDisconnectPushNotificationServerEntry", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationService: DisconnectPushNotificationServer: ERROR: Exception: Msg: {0}..
+        /// </summary>
+        internal static string CLNotificationServiceDisconnectPushNotificationServerErrorExceptionMsg0 {
+            get {
+                return ResourceManager.GetString("CLNotificationServiceDisconnectPushNotificationServerErrorExceptionMsg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationService: DisconnectPushNotificationServer: Exit..
+        /// </summary>
+        internal static string CLNotificationServiceDisconnectPushNotificationServerExit {
+            get {
+                return ResourceManager.GetString("CLNotificationServiceDisconnectPushNotificationServerExit", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationService: DisconnectPushNotificationServer: Stop the engine..
+        /// </summary>
+        internal static string CLNotificationServiceDisconnectPushNotificationServerStopEngine {
+            get {
+                return ResourceManager.GetString("CLNotificationServiceDisconnectPushNotificationServerStopEngine", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationService: DisconnectPushNotificationServer: StopServiceMangagerThread..
+        /// </summary>
+        internal static string CLNotificationServiceDisconnectPushNotificationServerStopServiceManagerThread {
+            get {
+                return ResourceManager.GetString("CLNotificationServiceDisconnectPushNotificationServerStopServiceManagerThread", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationService: DisposeEngineTimer: Back from dispose..
+        /// </summary>
+        internal static string CLNotificationServiceDisposeEngineTimerBackFromDispose {
+            get {
+                return ResourceManager.GetString("CLNotificationServiceDisposeEngineTimerBackFromDispose", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationService: DisposeEngineTimer: Dispose the timer..
+        /// </summary>
+        internal static string CLNotificationServiceDisposeEngineTimerDisposeTimer {
+            get {
+                return ResourceManager.GetString("CLNotificationServiceDisposeEngineTimerDisposeTimer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationService: DisposeEngineTimer: ERROR: Exception: Msg: {0}..
+        /// </summary>
+        internal static string CLNotificationServiceDisposeEngineTimerErrorExceptionMsg0 {
+            get {
+                return ResourceManager.GetString("CLNotificationServiceDisposeEngineTimerErrorExceptionMsg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationService: CLNotificationService: Entry.
+        /// </summary>
+        internal static string CLNotificationServiceEntry {
+            get {
+                return ResourceManager.GetString("CLNotificationServiceEntry", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationService: CLNotificationService: ERROR: Exception: Msg: {0}..
+        /// </summary>
+        internal static string CLNotificationServiceErrorExceptionMsg0 {
+            get {
+                return ResourceManager.GetString("CLNotificationServiceErrorExceptionMsg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Notification service has failed.
+        /// </summary>
+        internal static string CLNotificationServiceHasFailed {
+            get {
+                return ResourceManager.GetString("CLNotificationServiceHasFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to obj must be a CLNotificationService.
+        /// </summary>
+        internal static string CLNotificationServiceObjectMustBeACLNotificationService {
+            get {
+                return ResourceManager.GetString("CLNotificationServiceObjectMustBeACLNotificationService", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationService: PerformManualSyncFrom: Fire event to request the application to send a Sync_From request..
+        /// </summary>
+        internal static string CLNotificationServicePerformMannualSyncFromFireEvent {
+            get {
+                return ResourceManager.GetString("CLNotificationServicePerformMannualSyncFromFireEvent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationService: PerformManualSyncFrom: Fire event to notify the application  Msg: {0}..
+        /// </summary>
+        internal static string CLNotificationServicePerformManualSyncFromFireEventToNotifyApp {
+            get {
+                return ResourceManager.GetString("CLNotificationServicePerformManualSyncFromFireEventToNotifyApp", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationService: SendNotificationEventCallback: ERROR: Exception (2): Msg: {0}..
+        /// </summary>
+        internal static string CLNotificationServiceSendNotificationEventCallbackErrorException2Msg0 {
+            get {
+                return ResourceManager.GetString("CLNotificationServiceSendNotificationEventCallbackErrorException2Msg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationService: SendNotificationEventCallback: ERROR: Exception.  Msg: &lt;{0}&gt;..
+        /// </summary>
+        internal static string CLNotificationServiceSendNotificationEventCallbackErrorExceptionMsg0 {
+            get {
+                return ResourceManager.GetString("CLNotificationServiceSendNotificationEventCallbackErrorExceptionMsg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationService: SendNotificationEventCallback: Send DidReceivePushNotificationFromServer..
+        /// </summary>
+        internal static string CLNotificationServiceSendNotificationEventCallbackSendDidReceicePushNotificationFromServer {
+            get {
+                return ResourceManager.GetString("CLNotificationServiceSendNotificationEventCallbackSendDidReceicePushNotificationF" +
+                        "romServer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationService: SendNotificationEventCallback: Send notification msg: &lt;{0}&gt;..
+        /// </summary>
+        internal static string CLNotificationServiceSendNotificationEventCallbackSendNotificationMessage {
+            get {
+                return ResourceManager.GetString("CLNotificationServiceSendNotificationEventCallbackSendNotificationMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationService: ServiceManagerThreadProc: Back from engine Start..
+        /// </summary>
+        internal static string CLNotificationServiceServiceManagerThreadProcbackFromEngineStart {
+            get {
+                return ResourceManager.GetString("CLNotificationServiceServiceManagerThreadProcbackFromEngineStart", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationService: ServiceManagerThreadProc: Break to go to top of list..
+        /// </summary>
+        internal static string CLNotificationServiceServiceManagerThreadProcBreakToGoToTopOfList {
+            get {
+                return ResourceManager.GetString("CLNotificationServiceServiceManagerThreadProcBreakToGoToTopOfList", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationService: ServiceManagerThreadProc: Engine {0} returned success..
+        /// </summary>
+        internal static string CLNotificationServiceServiceManagerThreadProcEngine0ReturnedSuccess {
+            get {
+                return ResourceManager.GetString("CLNotificationServiceServiceManagerThreadProcEngine0ReturnedSuccess", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationService: ServiceManagerThreadProc: Engine {0} returned failure..
+        /// </summary>
+        internal static string CLNotificationServiceServiceManagerThreadProcEngineReturnedFailure {
+            get {
+                return ResourceManager.GetString("CLNotificationServiceServiceManagerThreadProcEngineReturnedFailure", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationService: ServiceManagerThreadProc: Entry..
+        /// </summary>
+        internal static string CLNotificationServiceServiceManagerThreadProcEntry {
+            get {
+                return ResourceManager.GetString("CLNotificationServiceServiceManagerThreadProcEntry", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationService: ServiceManagerThreadProc: ERROR: All engines failed..
+        /// </summary>
+        internal static string CLNotificationServiceServiceManagerThreadProcErrorAllEnginesFailed {
+            get {
+                return ResourceManager.GetString("CLNotificationServiceServiceManagerThreadProcErrorAllEnginesFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationService: ServiceManagerThreadProc: ERROR: Exception: Msg: {0}..
+        /// </summary>
+        internal static string CLNotificationServiceServiceManagerThreadProcErrorExceptionMsg0 {
+            get {
+                return ResourceManager.GetString("CLNotificationServiceServiceManagerThreadProcErrorExceptionMsg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationService: ServiceManagerThreadProc: Instantiate manual polling engine..
+        /// </summary>
+        internal static string CLNotificationServiceServiceManagerThreadProcInstantiateManualPolling {
+            get {
+                return ResourceManager.GetString("CLNotificationServiceServiceManagerThreadProcInstantiateManualPolling", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationService: ServiceManagerThreadProc: Instantiate SSE engine..
+        /// </summary>
+        internal static string CLNotificationServiceServiceManagerThreadProcInstantiateSSEEngine {
+            get {
+                return ResourceManager.GetString("CLNotificationServiceServiceManagerThreadProcInstantiateSSEEngine", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationService: ServiceManagerThreadProc: Restart at top of list..
+        /// </summary>
+        internal static string CLNotificationServiceServiceManagerThreadProcRestartAtTopOfList {
+            get {
+                return ResourceManager.GetString("CLNotificationServiceServiceManagerThreadProcRestartAtTopOfList", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationService: ServiceManagerThreadProc: Select back to top of list..
+        /// </summary>
+        internal static string CLNotificationServiceServiceManagerThreadProcSelectBackToTopOfList {
+            get {
+                return ResourceManager.GetString("CLNotificationServiceServiceManagerThreadProcSelectBackToTopOfList", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationService: ServiceManagerThreadProc: Select next in list..
+        /// </summary>
+        internal static string CLNotificationServiceServiceManagerThreadProcSelectNextInList {
+            get {
+                return ResourceManager.GetString("CLNotificationServiceServiceManagerThreadProcSelectNextInList", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationService: ServiceManagerThreadProc: Select next in list (2)..
+        /// </summary>
+        internal static string CLNotificationServiceServiceManagerThreadProcSelectNextInList2 {
+            get {
+                return ResourceManager.GetString("CLNotificationServiceServiceManagerThreadProcSelectNextInList2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationService: ServiceManagerThreadProc: Service requested to stop.  Exit thread..
+        /// </summary>
+        internal static string CLNotificationServiceServiceManagerThreadProcServiceRequestedToStopExitThread {
+            get {
+                return ResourceManager.GetString("CLNotificationServiceServiceManagerThreadProcServiceRequestedToStopExitThread", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationService: ServiceManagerThreadProc: Start the engine..
+        /// </summary>
+        internal static string CLNotificationServiceServiceManagerThreadProcStartEngine {
+            get {
+                return ResourceManager.GetString("CLNotificationServiceServiceManagerThreadProcStartEngine", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationService: ServiceManagerThreadProc: Top of loop running engine {0}..
+        /// </summary>
+        internal static string CLNotificationServiceServiceManagerThreadProcTopOfLoopRunningEngine0 {
+            get {
+                return ResourceManager.GetString("CLNotificationServiceServiceManagerThreadProcTopOfLoopRunningEngine0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationService: StartEngineTimeoutCallback: ERROR: Exception: Msg: {0}..
+        /// </summary>
+        internal static string CLNotificationServiceStartEngineTimeoutCallbackError0ExMsg0 {
+            get {
+                return ResourceManager.GetString("CLNotificationServiceStartEngineTimeoutCallbackError0ExMsg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationService: StartServiceManagerThread: Entry..
+        /// </summary>
+        internal static string CLNotificationServiceStartServiceManagerThreadEntry {
+            get {
+                return ResourceManager.GetString("CLNotificationServiceStartServiceManagerThreadEntry", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationService: StartServiceManagerThread: ERROR: Exception: Msg: {0}..
+        /// </summary>
+        internal static string CLNotificationServiceStartServiceManagerThreadErrorExceptionMsg0 {
+            get {
+                return ResourceManager.GetString("CLNotificationServiceStartServiceManagerThreadErrorExceptionMsg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationService: StartServiceManagerThread: Start the service manager thread..
+        /// </summary>
+        internal static string CLNotificationServiceStartServiceManagerThreadStartTheManagerThread {
+            get {
+                return ResourceManager.GetString("CLNotificationServiceStartServiceManagerThreadStartTheManagerThread", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationService: StopEngineThread: ERROR: Exception: Msg: {0}..
+        /// </summary>
+        internal static string CLNotificationServiceStopEngineThreadErrorExceptionMsg0 {
+            get {
+                return ResourceManager.GetString("CLNotificationServiceStopEngineThreadErrorExceptionMsg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationService: StopServiceManagerThread: Abort the service manager thread..
+        /// </summary>
+        internal static string CLNotificationServiceStopManagerThreadAbortTheServiceManagerThread {
+            get {
+                return ResourceManager.GetString("CLNotificationServiceStopManagerThreadAbortTheServiceManagerThread", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationService: StopServiceManagerThread: Entry..
+        /// </summary>
+        internal static string CLNotificationServiceStopManagerThreadEntry {
+            get {
+                return ResourceManager.GetString("CLNotificationServiceStopManagerThreadEntry", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to syncbox cannot be null.
+        /// </summary>
+        internal static string CLNotificationServiceSyncBoxCannotBeNull {
+            get {
+                return ResourceManager.GetString("CLNotificationServiceSyncBoxCannotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to syncbox CopiedSettings DeviceId cannot be null.
+        /// </summary>
+        internal static string CLNotificationServiceSyncBoxCopiedSettingsCannotBeNull {
+            get {
+                return ResourceManager.GetString("CLNotificationServiceSyncBoxCopiedSettingsCannotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationService: TimerCallback: ERROR: Exception: Msg: {0}..
+        /// </summary>
+        internal static string CLNotificationServiceTimerCallbackErrorExceptionMsg0 {
+            get {
+                return ResourceManager.GetString("CLNotificationServiceTimerCallbackErrorExceptionMsg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Already initialized.
+        /// </summary>
+        internal static string CLNotificationSseEngineAlreadyInitialized {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEngineAlreadyInitialized", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to delegateCancelEngineTimeout must not be null.
+        /// </summary>
+        internal static string CLNotificationSseEngineDelegateCancelEngineTimeoutMustNotBeNull {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEngineDelegateCancelEngineTimeoutMustNotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to delegateCreateEngineTimer must not be null.
+        /// </summary>
+        internal static string CLNotificationSseEngineDelegateCreateEngineTimerMustNotBeNull {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEngineDelegateCreateEngineTimerMustNotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to delegateDisposeEngineTimer must not be null.
+        /// </summary>
+        internal static string CLNotificationSseEngineDelegateDisposeEngineTimerMustNotBeNull {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEngineDelegateDisposeEngineTimerMustNotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to delegateSendNotificationEvent must not be null.
+        /// </summary>
+        internal static string CLNotificationSseEngineDelegateSendNotificationEventMustNotBeNull {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEngineDelegateSendNotificationEventMustNotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to delegateSendManualPoll must not be null.
+        /// </summary>
+        internal static string CLNotificationSseEngineDelegateSendNotificationsDelegateSendManualPollMustNotBeNull {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEngineDelegateSendNotificationsDelegateSendManualPollMustNotBeNu" +
+                        "ll", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to delegateStartEngineTimeout must not be null.
+        /// </summary>
+        internal static string CLNotificationSseEnginedelegateStartEngineTimeoutMustNotBeNull {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEnginedelegateStartEngineTimeoutMustNotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationSseEngine: StartThreadProc: ERROR: Exception: Msg: {0}..
+        /// </summary>
+        internal static string CLNotificationSseEngineErrorExceptionMsg0 {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEngineErrorExceptionMsg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to obj must be a CLNotificationSseEngine.
+        /// </summary>
+        internal static string CLNotificationSseEngineObjectMustBeCLNNotificationService {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEngineObjectMustBeCLNNotificationService", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationSseEngine: ProcessReceivedCharacter: ERROR. Not expecting char: {0}..
+        /// </summary>
+        internal static string CLNotificationSseEngineProcessReceivedCharacterErrorNotExpectingChar0 {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEngineProcessReceivedCharacterErrorNotExpectingChar0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationSseEngine: ProcessReceivedCharacter: Value is not an int: {0}..
+        /// </summary>
+        internal static string CLNotificationSseEngineProcessReceivedCharacterValueIsNotAnInt0 {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEngineProcessReceivedCharacterValueIsNotAnInt0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationSseEngine: StartThreadProc: Received invalid status code..
+        /// </summary>
+        internal static string CLNotificationSseEngineReceivedInvalidStatusCode {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEngineReceivedInvalidStatusCode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationSseEngine: StartThreadProc: Received no content from server..
+        /// </summary>
+        internal static string CLNotificationSseEngineReceivedNoContentFromServer {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEngineReceivedNoContentFromServer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SSE Engine.
+        /// </summary>
+        internal static string CLNotificationSseEngineSSEEngine {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEngineSSEEngine", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationSseEngine: StartEngineThread: ERROR: Exception: Msg: {0}..
+        /// </summary>
+        internal static string CLNotificationSseEngineStartEngineThreadErrorExceptionMsg0 {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEngineStartEngineThreadErrorExceptionMsg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationSseEngine: StartEngineThread: Exit..
+        /// </summary>
+        internal static string CLNotificationSseEngineStartEngineThreadExit {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEngineStartEngineThreadExit", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationSseEngine: Start: Entry..
+        /// </summary>
+        internal static string CLNotificationSseEngineStartEntry {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEngineStartEntry", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationSseEngine: Start: ERROR: Exception: Msg: {0}..
+        /// </summary>
+        internal static string CLNotificationSseEngineStartErrorExceptionMsg0 {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEngineStartErrorExceptionMsg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationSseEngine: Start: Exit.  Return: {0}..
+        /// </summary>
+        internal static string CLNotificationSseEngineStartExitReturn0 {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEngineStartExitReturn0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationSseEngine: StartThreadProc: Entry..
+        /// </summary>
+        internal static string CLNotificationSseEngineStartThreadProcEntry {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEngineStartThreadProcEntry", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationSseEngine: StartThreadProc: ERROR: Exception (3): Msg: {0}..
+        /// </summary>
+        internal static string CLNotificationSseEngineStartThreadProcErrorException3Msg0 {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEngineStartThreadProcErrorException3Msg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationSseEngine: StartThreadProc: ERROR: Exception (4): Msg: {0}..
+        /// </summary>
+        internal static string CLNotificationSseEngineStartThreadProcErrorException4Msg0 {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEngineStartThreadProcErrorException4Msg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationSseEngine: StartThreadProc: Received 204 no content..
+        /// </summary>
+        internal static string CLNotificationSseEngineStartThreadProcReceived204NoContent {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEngineStartThreadProcReceived204NoContent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationSseEngine: StartThreadProc: Start reading data from the response stream..
+        /// </summary>
+        internal static string CLNotificationSseEngineStartThreadProcStartReadingDataFromResponseStream {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEngineStartThreadProcStartReadingDataFromResponseStream", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationSseEngine: Stop: Entry..
+        /// </summary>
+        internal static string CLNotificationSseEngineStopEntry {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEngineStopEntry", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to syncbox must not be null.
+        /// </summary>
+        internal static string CLNotificationSseEngineSyncboxCannotBeNull {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEngineSyncboxCannotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to _syncbox.HttpRestClient must not be null.
+        /// </summary>
+        internal static string CLNotificationSseEngineSyncboxHttpRestCannotBeNull {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEngineSyncboxHttpRestCannotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to _syncbox must not be null.
+        /// </summary>
+        internal static string CLNotificationSseEngineSyncboxMustNotBeNull {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEngineSyncboxMustNotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationSseEngine: TimerExpired: Abort the engine thread..
+        /// </summary>
+        internal static string CLNotificationSseEngineTimerExpiredAbortTheEngineThread {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEngineTimerExpiredAbortTheEngineThread", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationSseEngine: TimerExpired: Clean up resource: {0}..
+        /// </summary>
+        internal static string CLNotificationSseEngineTimerExpiredCleanUpResource0 {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEngineTimerExpiredCleanUpResource0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationSseEngine: TimerExpired: Entry..
+        /// </summary>
+        internal static string CLNotificationSseEngineTimerExpiredEntry {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEngineTimerExpiredEntry", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationSseEngine: TimerExpired: ERROR: Exception: Msg: {0}..
+        /// </summary>
+        internal static string CLNotificationSseEngineTimerExpiredErrorExceptionMsg0 {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEngineTimerExpiredErrorExceptionMsg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationSseEngine: TimerExpired: ERROR: Improper user state..
+        /// </summary>
+        internal static string CLNotificationSseEngineTimerExpiredErrorImproperUserState {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEngineTimerExpiredErrorImproperUserState", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationSseEngine: TimerExpired: ERROR: Msg: {0}..
+        /// </summary>
+        internal static string CLNotificationSseEngineTimerExpiredErrorMsg0 {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEngineTimerExpiredErrorMsg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationSseEngine: TimerExpired: Exit..
+        /// </summary>
+        internal static string CLNotificationSseEngineTimerExpiredExit {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEngineTimerExpiredExit", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to WebException thrown without a Response.
+        /// </summary>
+        internal static string CLNotificationSseEngineWebExceptionThrownWithoutAResponse {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEngineWebExceptionThrownWithoutAResponse", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Default constructor not supported.
+        /// </summary>
+        internal static string CLNotificationsSseEngineDefaultConstructorNotSupported {
+            get {
+                return ResourceManager.GetString("CLNotificationsSseEngineDefaultConstructorNotSupported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unknown engine index.
+        /// </summary>
+        internal static string CLNotificationUnknownEngineIndex {
+            get {
+                return ResourceManager.GetString("CLNotificationUnknownEngineIndex", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot do anything with the Cloud SDK if Helpers.AllHaltedOnUnrecoverableError is set.
+        /// </summary>
+        internal static string CLSyncboxAllHaltedOnUnrecoverableErrorIsSet {
+            get {
+                return ResourceManager.GetString("CLSyncboxAllHaltedOnUnrecoverableErrorIsSet", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLSyncbox: Constructing....
+        /// </summary>
+        internal static string CLSyncboxConstructing {
+            get {
+                return ResourceManager.GetString("CLSyncboxConstructing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLSyncbox: Construction: ERROR: Msg: {0}..
+        /// </summary>
+        internal static string CLSyncboxConstructionErrorMsg0 {
+            get {
+                return ResourceManager.GetString("CLSyncboxConstructionErrorMsg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLSyncbox: Construction: ERROR: Msg: {0}. Code: {1}..
+        /// </summary>
+        internal static string CLSyncboxConstructionErrorMsg0Code1 {
+            get {
+                return ResourceManager.GetString("CLSyncboxConstructionErrorMsg0Code1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error creating REST HTTP client.
+        /// </summary>
+        internal static string CLSyncboxErrorCreatingRestHTTPClient {
+            get {
+                return ResourceManager.GetString("CLSyncboxErrorCreatingRestHTTPClient", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unknown error creating HTTP REST client.
+        /// </summary>
+        internal static string CLSyncboxErrorUnknownErrorCreatingRestClient {
+            get {
+                return ResourceManager.GetString("CLSyncboxErrorUnknownErrorCreatingRestClient", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLSyncbox: Start: Create rest client..
+        /// </summary>
+        internal static string CLSyncboxStartCreateRestClient {
+            get {
+                return ResourceManager.GetString("CLSyncboxStartCreateRestClient", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Already started.
+        /// </summary>
+        internal static string CLSyncEngineAlreadyStarted {
+            get {
+                return ResourceManager.GetString("CLSyncEngineAlreadyStarted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLSyncEngine: ERROR: {0}..
+        /// </summary>
+        internal static string CLSyncEngineError0 {
+            get {
+                return ResourceManager.GetString("CLSyncEngineError0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLSyncEngine: ERROR: BadCase (1). {0}..
+        /// </summary>
+        internal static string CLSyncEngineErrorBadCase {
+            get {
+                return ResourceManager.GetString("CLSyncEngineErrorBadCase", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLSyncEngine: Start: ERROR: Exception(2). Msg: {0}. Code: {1}..
+        /// </summary>
+        internal static string CLSyncEngineErrorException2Msg0Code1 {
+            get {
+                return ResourceManager.GetString("CLSyncEngineErrorException2Msg0Code1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to An error occurred starting push notification.
+        /// </summary>
+        internal static string CLSyncEngineErrorOccurredStartingNotification {
+            get {
+                return ResourceManager.GetString("CLSyncEngineErrorOccurredStartingNotification", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLSyncEngine: Start: ERROR: Starting the initial indexing.  Msg: &lt;{0}&gt;. Code: {1}..
+        /// </summary>
+        internal static string CLSyncEngineErrorStartingInitialIndexingMsg0Code1 {
+            get {
+                return ResourceManager.GetString("CLSyncEngineErrorStartingInitialIndexingMsg0Code1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLSyncEngine: Start: ERROR: Starting the MonitorAgent.  Msg: &lt;{0}&gt;. Code: {1}..
+        /// </summary>
+        internal static string CLSyncEngineErrorStartingMonitorAgentMsg0Code1 {
+            get {
+                return ResourceManager.GetString("CLSyncEngineErrorStartingMonitorAgentMsg0Code1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error starting push notification.
+        /// </summary>
+        internal static string CLSyncEngineErrorStartingNotification {
+            get {
+                return ResourceManager.GetString("CLSyncEngineErrorStartingNotification", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLSyncEngine: Start: ERROR: Exception(5).  Msg: &lt;{0}&gt;..
+        /// </summary>
+        internal static string CLSyncEngineException5Msg0 {
+            get {
+                return ResourceManager.GetString("CLSyncEngineException5Msg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLSyncEngine: Start: ERROR: Exception(6).  Msg: &lt;{0}&gt;..
+        /// </summary>
+        internal static string CLSyncEngineException6Msg0 {
+            get {
+                return ResourceManager.GetString("CLSyncEngineException6Msg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLSyncEngine: ReleaseResources: File monitor stopped..
+        /// </summary>
+        internal static string CLSyncEngineFileMonitorStopped {
+            get {
+                return ResourceManager.GetString("CLSyncEngineFileMonitorStopped", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot do anything with the Cloud SDK if Helpers.AllHaltedOnUnrecoverableError is set.
+        /// </summary>
+        internal static string CLSyncEngineHelpersAllHaltedOnUnrecoverableErrorIsSet {
+            get {
+                return ResourceManager.GetString("CLSyncEngineHelpersAllHaltedOnUnrecoverableErrorIsSet", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Indexer cannot be null.
+        /// </summary>
+        internal static string CLSyncEngineIndexerCannotBeNull {
+            get {
+                return ResourceManager.GetString("CLSyncEngineIndexerCannotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Monitor cannot be null.
+        /// </summary>
+        internal static string CLSyncEngineMonitorCannotBeNull {
+            get {
+                return ResourceManager.GetString("CLSyncEngineMonitorCannotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLSyncEngine: OnNotificationPerformManualSyncFrom: Send a Perform Manual SyncFrom to monitor..
+        /// </summary>
+        internal static string CLSyncEngineOnNotificationPerformManualSyncFrom {
+            get {
+                return ResourceManager.GetString("CLSyncEngineOnNotificationPerformManualSyncFrom", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLSyncEngine: ReleaseResources: Disconnect PushNotificationServer..
+        /// </summary>
+        internal static string CLSyncEngineReleaseResourcesDisconnectPushNotificationServer {
+            get {
+                return ResourceManager.GetString("CLSyncEngineReleaseResourcesDisconnectPushNotificationServer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLSyncEngine: ReleaseResources: IconOverlay stopped..
+        /// </summary>
+        internal static string CLSyncEngineReleaseResourcesIconOverlayStopped {
+            get {
+                return ResourceManager.GetString("CLSyncEngineReleaseResourcesIconOverlayStopped", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLSyncEngine: ReleaseResources: Indexer stopped..
+        /// </summary>
+        internal static string CLSyncEngineReleaseResourcesIndexerStopped {
+            get {
+                return ResourceManager.GetString("CLSyncEngineReleaseResourcesIndexerStopped", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLSyncEngine: ReleaseResources: PushNotificationServer disconnected..
+        /// </summary>
+        internal static string CLSyncEngineReleaseResourcesPushNotificationServerDisconnected {
+            get {
+                return ResourceManager.GetString("CLSyncEngineReleaseResourcesPushNotificationServerDisconnected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLSyncEngine: ReleaseResources: Stop the file monitor..
+        /// </summary>
+        internal static string CLSyncEngineReleaseResourcesStopFileMonitor {
+            get {
+                return ResourceManager.GetString("CLSyncEngineReleaseResourcesStopFileMonitor", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLSyncEngine: ReleaseResources: Stop IconOverlay..
+        /// </summary>
+        internal static string CLSyncEngineReleaseResourcesStoppingIconOverlay {
+            get {
+                return ResourceManager.GetString("CLSyncEngineReleaseResourcesStoppingIconOverlay", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLSyncEngine: ReleaseResources: Stop the Indexer..
+        /// </summary>
+        internal static string CLsyncEngineReleaseResourcesStopTheIndexer {
+            get {
+                return ResourceManager.GetString("CLsyncEngineReleaseResourcesStopTheIndexer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLSyncEngine: SyncReset: ERROR: {0}..
+        /// </summary>
+        internal static string CLSyncEngineResetError0 {
+            get {
+                return ResourceManager.GetString("CLSyncEngineResetError0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLSyncEngine: OnNotificationReceived: Send a Perform PushNotification to monitor..
+        /// </summary>
+        internal static string CLSyncEngineSendAPerformPushNotificationToMonitor {
+            get {
+                return ResourceManager.GetString("CLSyncEngineSendAPerformPushNotificationToMonitor", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLSyncEngine: Start: Entry..
+        /// </summary>
+        internal static string CLSyncEngineStartEntry {
+            get {
+                return ResourceManager.GetString("CLSyncEngineStartEntry", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLSyncEngine: Start: ERROR: {0}..
+        /// </summary>
+        internal static string CLSyncEngineStartError {
+            get {
+                return ResourceManager.GetString("CLSyncEngineStartError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLSyncEngine: Start: ERROR(2): {0}..
+        /// </summary>
+        internal static string CLSyncEngineStartError2 {
+            get {
+                return ResourceManager.GetString("CLSyncEngineStartError2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLSyncEngine: Start: ERROR(4): Msg: {0}. Code: {1}..
+        /// </summary>
+        internal static string CLSyncEngineStartError4Msg0Code1 {
+            get {
+                return ResourceManager.GetString("CLSyncEngineStartError4Msg0Code1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLSyncEngine: Start: ERROR: Exception. Msg: {0}. Code: {1}..
+        /// </summary>
+        internal static string CLSyncEngineStartErrorExceptionMsg1Code1 {
+            get {
+                return ResourceManager.GetString("CLSyncEngineStartErrorExceptionMsg1Code1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLSyncEngine: Start: Hook up events..
+        /// </summary>
+        internal static string CLSyncEngineStartHookupEvents {
+            get {
+                return ResourceManager.GetString("CLSyncEngineStartHookupEvents", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLSyncEngine: Start: Start the indexer..
+        /// </summary>
+        internal static string CLSyncEngineStartIndexer {
+            get {
+                return ResourceManager.GetString("CLSyncEngineStartIndexer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLSyncEngine: Starting....
+        /// </summary>
+        internal static string CLSyncEngineStarting {
+            get {
+                return ResourceManager.GetString("CLSyncEngineStarting", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLSyncEngine: Start: Start the notifier..
+        /// </summary>
+        internal static string CLSyncEngineStartNotifier {
+            get {
+                return ResourceManager.GetString("CLSyncEngineStartNotifier", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLSyncEngine: Stop: Entry..
+        /// </summary>
+        internal static string CLSyncEngineStopEntry {
+            get {
+                return ResourceManager.GetString("CLSyncEngineStopEntry", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLSyncEngine: ReleaseResources: Stop the sync engine..
+        /// </summary>
+        internal static string CLSyncEngineStopTheSyncEngine {
+            get {
+                return ResourceManager.GetString("CLSyncEngineStopTheSyncEngine", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Syncbox path in settings represents a path which cannot be queried, check it first via Helpers.DirectoryMatchesCaseWithDisk.
+        /// </summary>
+        internal static string CLSyncEngineSyncboxPathRepresentsAPathThatCannotBeQueried {
+            get {
+                return ResourceManager.GetString("CLSyncEngineSyncboxPathRepresentsAPathThatCannotBeQueried", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Syncbox path in settings represents a bad path, check it first via Helpers.CheckForBadPath.
+        /// </summary>
+        internal static string CLSyncEngineSyncboxPathRepsBadPath {
+            get {
+                return ResourceManager.GetString("CLSyncEngineSyncboxPathRepsBadPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Syncbox path in settings is too long, check it first via Helpers.CheckSyncboxPathLength.
+        /// </summary>
+        internal static string CLSyncEngineSyncboxPathSettingsTooLong {
+            get {
+                return ResourceManager.GetString("CLSyncEngineSyncboxPathSettingsTooLong", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLSyncEngine: ReleaseResources: Sync engine stopped..
+        /// </summary>
+        internal static string CLSyncEngineSyncEngineStopped {
+            get {
+                return ResourceManager.GetString("CLSyncEngineSyncEngineStopped", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLSyncEngine: SyncReset: ERROR: From DeleteEverythingInDirectory.  Message: {0}..
+        /// </summary>
+        internal static string CLSyncEngineSyncResetDeleteEverythingInDirMessage0 {
+            get {
+                return ResourceManager.GetString("CLSyncEngineSyncResetDeleteEverythingInDirMessage0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLSyncEngine: SyncReset: Entry..
+        /// </summary>
+        internal static string CLSyncEngineSyncResetEntry {
+            get {
+                return ResourceManager.GetString("CLSyncEngineSyncResetEntry", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLSyncEngine: SyncReset: ERROR: Exception.  Msg: &lt;{0}&gt;..
+        /// </summary>
+        internal static string CLSyncEngineSyncResetERRORExceptionMsg0 {
+            get {
+                return ResourceManager.GetString("CLSyncEngineSyncResetERRORExceptionMsg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ClientDescription must not contain commas.
+        /// </summary>
+        internal static string CLSyncSettingsClientDescriptionCannotContainCommas {
+            get {
+                return ResourceManager.GetString("CLSyncSettingsClientDescriptionCannotContainCommas", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ClientDescription must have 32 or fewer characters.
+        /// </summary>
+        internal static string CLSyncSettingsClientDescriptionTooLong {
+            get {
+                return ResourceManager.GetString("CLSyncSettingsClientDescriptionTooLong", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to syncSettings must not be null.
+        /// </summary>
+        internal static string CLSyncSettingsMustNotBeNull {
+            get {
+                return ResourceManager.GetString("CLSyncSettingsMustNotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to toCopy must not be null.
+        /// </summary>
+        internal static string CLSyncSettingstoCopyMustNotBeNull {
+            get {
+                return ResourceManager.GetString("CLSyncSettingstoCopyMustNotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to ProgramData\Microsoft\Windows.
         /// </summary>
         internal static string CommonStartMenuParentFolderNameVista {
@@ -232,6 +1971,78 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Path cannot be null.
+        /// </summary>
+        internal static string ExceptionCLHttpRestNullPath {
+            get {
+                return ResourceManager.GetString("ExceptionCLHttpRestNullPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to serverUid cannot be null.
+        /// </summary>
+        internal static string ExceptionCLHttpRestNullServerUid {
+            get {
+                return ResourceManager.GetString("ExceptionCLHttpRestNullServerUid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to syncbox cannot be null.
+        /// </summary>
+        internal static string ExceptionCLHttpRestNullSyncbox {
+            get {
+                return ResourceManager.GetString("ExceptionCLHttpRestNullSyncbox", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Server responded without an array of Metadata.
+        /// </summary>
+        internal static string ExceptionCLHttpRestWithoutMetadata {
+            get {
+                return ResourceManager.GetString("ExceptionCLHttpRestWithoutMetadata", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Server responded without an array of move responses.
+        /// </summary>
+        internal static string ExceptionCLHttpRestWithoutMoveResponses {
+            get {
+                return ResourceManager.GetString("ExceptionCLHttpRestWithoutMoveResponses", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Server responded without an array of Plans.
+        /// </summary>
+        internal static string ExceptionCLHttpRestWithoutPlans {
+            get {
+                return ResourceManager.GetString("ExceptionCLHttpRestWithoutPlans", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Server responded without an array of Sessions.
+        /// </summary>
+        internal static string ExceptionCLHttpRestWithoutSessions {
+            get {
+                return ResourceManager.GetString("ExceptionCLHttpRestWithoutSessions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The syncbox folder does not exist at the specified path: {0}..
+        /// </summary>
+        internal static string ExceptionCLSyncEngineMissingSyncFolder {
+            get {
+                return ResourceManager.GetString("ExceptionCLSyncEngineMissingSyncFolder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Oops. We&apos;re sorry, it seems like something went wrong while creating your account.  The error code is {0}..
         /// </summary>
         internal static string ExceptionCreatingUserRegistrationWithCode {
@@ -324,18 +2135,18 @@ namespace Cloud.Static {
         /// <summary>
         ///   Looks up a localized string similar to syncbox path is too long by {0} characters.
         /// </summary>
-        internal static string ExceptionHelpersCheckSyncRootLengthTooLongPlural {
+        internal static string ExceptionHelpersCheckSyncboxPathLengthTooLongPlural {
             get {
-                return ResourceManager.GetString("ExceptionHelpersCheckSyncRootLengthTooLongPlural", resourceCulture);
+                return ResourceManager.GetString("ExceptionHelpersCheckSyncboxPathLengthTooLongPlural", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to syncbox path is too long by {0} character.
         /// </summary>
-        internal static string ExceptionHelpersCheckSyncRootLengthTooLongSingular {
+        internal static string ExceptionHelpersCheckSyncboxPathLengthTooLongSingular {
             get {
-                return ResourceManager.GetString("ExceptionHelpersCheckSyncRootLengthTooLongSingular", resourceCulture);
+                return ResourceManager.GetString("ExceptionHelpersCheckSyncboxPathLengthTooLongSingular", resourceCulture);
             }
         }
         
@@ -637,6 +2448,78 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Error creating FileMonitor.
+        /// </summary>
+        internal static string ExceptionSyncboxCreateFileMonitor {
+            get {
+                return ResourceManager.GetString("ExceptionSyncboxCreateFileMonitor", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error creating local index for syncbox.
+        /// </summary>
+        internal static string ExceptionSyncboxCreateIndex {
+            get {
+                return ResourceManager.GetString("ExceptionSyncboxCreateIndex", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to lock syncbox folder.
+        /// </summary>
+        internal static string ExceptionSyncboxLockPath {
+            get {
+                return ResourceManager.GetString("ExceptionSyncboxLockPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLSyncEngine: ERROR: CreateFile after checking Syncbox path. Msg: {0}.
+        /// </summary>
+        internal static string ExceptionSyncboxLockPathTrace {
+            get {
+                return ResourceManager.GetString("ExceptionSyncboxLockPathTrace", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error starting FileMonitor.
+        /// </summary>
+        internal static string ExceptionSyncboxStartFileMonitor {
+            get {
+                return ResourceManager.GetString("ExceptionSyncboxStartFileMonitor", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A general exception occurred starting a syncbox, see InnerException.
+        /// </summary>
+        internal static string ExceptionSyncboxStartGeneral {
+            get {
+                return ResourceManager.GetString("ExceptionSyncboxStartGeneral", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error starting initial indexing.
+        /// </summary>
+        internal static string ExceptionSyncboxStartInitialIndexing {
+            get {
+                return ResourceManager.GetString("ExceptionSyncboxStartInitialIndexing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error getting syncbox status from Cloud.
+        /// </summary>
+        internal static string ExceptionSyncboxStartStatus {
+            get {
+                return ResourceManager.GetString("ExceptionSyncboxStartStatus", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Oops. We&apos;re sorry, it seems like something went wrong while removing this device from your account..
         /// </summary>
         internal static string ExceptionUnlinking {
@@ -651,6 +2534,43 @@ namespace Cloud.Static {
         internal static string ExceptionUnlinkingWithCode {
             get {
                 return ResourceManager.GetString("ExceptionUnlinkingWithCode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to baseChange cannot be null.
+        /// </summary>
+        internal static string FileChangeWithDependenciesBaseChangeCannotBeNull {
+            get {
+                return ResourceManager.GetString("FileChangeWithDependenciesBaseChangeCannotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error setting MD5 from baseChange to new FileChangeWithDependencies.
+        /// </summary>
+        internal static string FileChangeWithDependenciesErrorSettingMD5FromBaseChangeToNewFileChangeWithDependencies {
+            get {
+                return ResourceManager.GetString("FileChangeWithDependenciesErrorSettingMD5FromBaseChangeToNewFileChangeWithDepende" +
+                        "ncies", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to final hash does not match; file has been edited;.
+        /// </summary>
+        internal static string HashedStreamReaderAdapterFinalHashDoesNotMatchFileWasEdited {
+            get {
+                return ResourceManager.GetString("HashedStreamReaderAdapterFinalHashDoesNotMatchFileWasEdited", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to intermediate hash does not match; file has been edited;.
+        /// </summary>
+        internal static string HashedStreamReaderAdapterIntermediateHashDoesNotMatchFileWasEdited {
+            get {
+                return ResourceManager.GetString("HashedStreamReaderAdapterIntermediateHashDoesNotMatchFileWasEdited", resourceCulture);
             }
         }
         
@@ -714,6 +2634,770 @@ namespace Cloud.Static {
         internal static string LogStacktrace {
             get {
                 return ResourceManager.GetString("LogStacktrace", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to originalQueuedChangesIndexesByInMemoryIds cannot be null, perhaps AssignDependencies private helper was called through from the internal AssignDependencies.
+        /// </summary>
+        internal static string MoniterAgentOriginalQueuedChangesIndexesByInMemoryIds {
+            get {
+                return ResourceManager.GetString("MoniterAgentOriginalQueuedChangesIndexesByInMemoryIds", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to An error occurred adding a file system event to the database:.
+        /// </summary>
+        internal static string MonitorAgentAnErrorOccurredAddingAFileSystemEventToTheDatabase {
+            get {
+                return ResourceManager.GetString("MonitorAgentAnErrorOccurredAddingAFileSystemEventToTheDatabase", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MonitorAgent: AssignDependencies: CurrentDisposal: Direction: {0}. Type: {1}. OldPath: {2}. NewPath: {3}..
+        /// </summary>
+        internal static string MonitorAgentAssignDependenciesCurrentDisposalDirection0Type1OldPath2NewPath3 {
+            get {
+                return ResourceManager.GetString("MonitorAgentAssignDependenciesCurrentDisposalDirection0Type1OldPath2NewPath3", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MonitorAgent: AssignDependencies: CurrentOriginalMapping: Add CurrentDisposal to removeFromSql..
+        /// </summary>
+        internal static string MonitorAgentAssignDependenciesCurrentOriginalMappingAddCurrentDisposaltoRemoveFromSQL {
+            get {
+                return ResourceManager.GetString("MonitorAgentAssignDependenciesCurrentOriginalMappingAddCurrentDisposaltoRemoveFro" +
+                        "mSQL", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MonitorAgent: AssignDependencies: CurrentOriginalMapping: Direction: {0}. Type: {1}. OldPath: {2}. NewPath: {3}..
+        /// </summary>
+        internal static string MonitorAgentAssignDependenciesCurrentOriginalMappingDirection0Type1OldPath2NewPath3 {
+            get {
+                return ResourceManager.GetString("MonitorAgentAssignDependenciesCurrentOriginalMappingDirection0Type1OldPath2NewPat" +
+                        "h3", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MonitorAgent: AssignDependencies: CurrentOriginalMapping: Remove this CurrentOriginalMapping from originalQueuedChangesIndexesByInMemoryIds..
+        /// </summary>
+        internal static string MonitorAgentAssignDependenciesCurrentOriginalMappingRemovethisCurrentOriginalMappingFromOriginalQueuedChangesIndexesByInMemoryIds {
+            get {
+                return ResourceManager.GetString("MonitorAgentAssignDependenciesCurrentOriginalMappingRemovethisCurrentOriginalMapp" +
+                        "ingFromOriginalQueuedChangesIndexesByInMemoryIds", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MonitorAgent: AssignDependencies: ERROR: CurrentOriginalMapping not found..
+        /// </summary>
+        internal static string MonitorAgentAssignDependenciesErrorCurrentOriginalMappingNotFound {
+            get {
+                return ResourceManager.GetString("MonitorAgentAssignDependenciesErrorCurrentOriginalMappingNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot apply a modification to a folder.
+        /// </summary>
+        internal static string MonitorAgentCannotApplyAModificationToAFolder {
+            get {
+                return ResourceManager.GetString("MonitorAgentCannotApplyAModificationToAFolder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot apply a Sync To FileChange locally.
+        /// </summary>
+        internal static string MonitorAgentCannotApplySyncToFileChangeLocally {
+            get {
+                return ResourceManager.GetString("MonitorAgentCannotApplySyncToFileChangeLocally", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot communicate FileChange without EventId; FileChangeSource:.
+        /// </summary>
+        internal static string MonitorAgentCannotCommunicateFileChangeWithoutEventIDFileChangeSource {
+            get {
+                return ResourceManager.GetString("MonitorAgentCannotCommunicateFileChangeWithoutEventIDFileChangeSource", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot communicate FileChange without EventId; FileChangeSource: QueuedChanges.
+        /// </summary>
+        internal static string MonitorAgentCannotCommunicateFileChangeWithoutEventIDFileChangeSourceQueuedChanges {
+            get {
+                return ResourceManager.GetString("MonitorAgentCannotCommunicateFileChangeWithoutEventIDFileChangeSourceQueuedChange" +
+                        "s", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot download a file in MonitorAgent, it needs to be downloaded through Sync.
+        /// </summary>
+        internal static string MonitorAgentCannotDownloadAFileInMonitorAgentMustBeDownloadedThroughSync {
+            get {
+                return ResourceManager.GetString("MonitorAgentCannotDownloadAFileInMonitorAgentMustBeDownloadedThroughSync", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot start monitor after it has been disposed.
+        /// </summary>
+        internal static string MonitorAgentCannotStartMonitorAfterItHasBeenDisposed {
+            get {
+                return ResourceManager.GetString("MonitorAgentCannotStartMonitorAfterItHasBeenDisposed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to checkDisposed cannot be null.
+        /// </summary>
+        internal static string MonitorAgentcheckDisposedCannotBeNull {
+            get {
+                return ResourceManager.GetString("MonitorAgentcheckDisposedCannotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MonitorAgent: CheckMetadataAgainstFile: AllPaths contains this item: {0}..
+        /// </summary>
+        internal static string MonitorAgentCheckMetadataAgainstFileAllPathsContainsItem0 {
+            get {
+                return ResourceManager.GetString("MonitorAgentCheckMetadataAgainstFileAllPathsContainsItem0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MonitorAgent: CheckMetadataAgainstFile: Metadata different..
+        /// </summary>
+        internal static string MonitorAgentCheckMetaDataAgainstFileMetadataDifferent {
+            get {
+                return ResourceManager.GetString("MonitorAgentCheckMetaDataAgainstFileMetadataDifferent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MonitorAgent: CheckMetadataAgainstFile: Not folder, and not ignoring folder modifies. Call ReplacementMetadataIfDifferent..
+        /// </summary>
+        internal static string MonitorAgentCheckMetadataAgainstFileNotFolderAndNotIgnoringFolderModifiesCallReplacementMetadataIfDifferent {
+            get {
+                return ResourceManager.GetString("MonitorAgentCheckMetadataAgainstFileNotFolderAndNotIgnoringFolderModifiesCallRepl" +
+                        "acementMetadataIfDifferent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MonitorAgent: CheckMetadataAgainstFile: Changed or Created event..
+        /// </summary>
+        internal static string MonitorAgentCheckMetedataAgainstFileChangedOrCreatedEvent {
+            get {
+                return ResourceManager.GetString("MonitorAgentCheckMetedataAgainstFileChangedOrCreatedEvent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MonitorAgent: CheckMetadataAgainstFile: File exists..
+        /// </summary>
+        internal static string MonitorAgentCheckMetedataAgainstFileFileExists {
+            get {
+                return ResourceManager.GetString("MonitorAgentCheckMetedataAgainstFileFileExists", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MonitorAgent: CheckMetadataAgainstFile: File or folder does not exist..
+        /// </summary>
+        internal static string MonitorAgentCheckMetedataAgainstFileFileorFolderDoesNotExist {
+            get {
+                return ResourceManager.GetString("MonitorAgentCheckMetedataAgainstFileFileorFolderDoesNotExist", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MonitorAgent: CheckMetadataAgainstFile: File or folder exists: {0}..
+        /// </summary>
+        internal static string MonitorAgentCheckMetedataAgainstFileFileorFolderExists {
+            get {
+                return ResourceManager.GetString("MonitorAgentCheckMetedataAgainstFileFileorFolderExists", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Creating selectedWithDependencies returned an error.
+        /// </summary>
+        internal static string MonitorAgentCreatingSelectedWithDependenciesReturnedAnError {
+            get {
+                return ResourceManager.GetString("MonitorAgentCreatingSelectedWithDependenciesReturnedAnError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error setting DependencyFileChange MD5.
+        /// </summary>
+        internal static string MonitorAgentDependencyFileChangeMD5 {
+            get {
+                return ResourceManager.GetString("MonitorAgentDependencyFileChangeMD5", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error adding QueuedChanges within processing/failed changes dependency tree to SQL.
+        /// </summary>
+        internal static string MonitorAgentErrorAddingQueuedChangesWithinProcessingFailedChangesDependencyTreeToSQL {
+            get {
+                return ResourceManager.GetString("MonitorAgentErrorAddingQueuedChangesWithinProcessingFailedChangesDependencyTreeTo" +
+                        "SQL", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error on applying sync from directory move and an error checking if directory exists at new path.
+        /// </summary>
+        internal static string MonitorAgentErrorApplyingSyncfromDirectoryMoveandAnErrorCheckingIfDirectoryExistsAtNewPath {
+            get {
+                return ResourceManager.GetString("MonitorAgentErrorApplyingSyncfromDirectoryMoveandAnErrorCheckingIfDirectoryExists" +
+                        "AtNewPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error converting FileChange to FileChangeWithDependencies.
+        /// </summary>
+        internal static string MonitorAgentErrorCreatingFileChangeToFileChangeWithDependencies {
+            get {
+                return ResourceManager.GetString("MonitorAgentErrorCreatingFileChangeToFileChangeWithDependencies", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error in GetUploadDownloadTransfersInProgress.
+        /// </summary>
+        internal static string MonitorAgentErrorGettingUploadTransferProgress {
+            get {
+                return ResourceManager.GetString("MonitorAgentErrorGettingUploadTransferProgress", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error grabbing hierarchy for oldPath from AllPaths.
+        /// </summary>
+        internal static string MonitorAgentErrorGrabbingHeirarchyForoldPathFromAllPaths {
+            get {
+                return ResourceManager.GetString("MonitorAgentErrorGrabbingHeirarchyForoldPathFromAllPaths", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error grabbing hierarchy from upDownsForDeleted.
+        /// </summary>
+        internal static string MonitorAgentErrorGrabbingHierarchyFromupDowsForDeleted {
+            get {
+                return ResourceManager.GetString("MonitorAgentErrorGrabbingHierarchyFromupDowsForDeleted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error grabbing hierarchy from upDownsForRenamed.
+        /// </summary>
+        internal static string MonitorAgentErrorGrabbingHierarchyFromupDowsForRenamed {
+            get {
+                return ResourceManager.GetString("MonitorAgentErrorGrabbingHierarchyFromupDowsForRenamed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error grabbing hierarchy from uploads and downloads in progress before merging new events to the database:.
+        /// </summary>
+        internal static string MonitorAgentErrorGrabbingHierarchyFromUploadsAndDownloadsInProgressBeforeMergingNewEventsToTheDataBase {
+            get {
+                return ResourceManager.GetString("MonitorAgentErrorGrabbingHierarchyFromUploadsAndDownloadsInProgressBeforeMergingN" +
+                        "ewEventsToTheDataBase", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error in CreationModificationDependencyCheck.
+        /// </summary>
+        internal static string MonitorAgentErrorInCreationModifactionDependencyCheck {
+            get {
+                return ResourceManager.GetString("MonitorAgentErrorInCreationModifactionDependencyCheck", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error in DeleteDependencyCheck.
+        /// </summary>
+        internal static string MonitorAgentErrorInDeleteDependencyCheck {
+            get {
+                return ResourceManager.GetString("MonitorAgentErrorInDeleteDependencyCheck", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error in RenameDependencyCheck.
+        /// </summary>
+        internal static string MonitorAgentErrorInRenameDependencyCheck {
+            get {
+                return ResourceManager.GetString("MonitorAgentErrorInRenameDependencyCheck", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to An error occurred checking against uploads or downloads in progress before merging new events into the database: .
+        /// </summary>
+        internal static string MonitorAgentErrorOccurredChackingUploadsAgainstsDownloadsInProgressBeforeMergingNewEvents {
+            get {
+                return ResourceManager.GetString("MonitorAgentErrorOccurredChackingUploadsAgainstsDownloadsInProgressBeforeMergingN" +
+                        "ewEvents", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error replacing a portion of the path of CurrentEarlierChange.
+        /// </summary>
+        internal static string MonitorAgentErrorReplacingAPortionOfThePathOfCurrentEarlierChange {
+            get {
+                return ResourceManager.GetString("MonitorAgentErrorReplacingAPortionOfThePathOfCurrentEarlierChange", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error starting Cloud, ProcessWatcher_ChangedQueue sender is not of type KeyValuePair&lt;MonitorAgent, KeyValuePair&lt;FileSystemEventArgs, bool&gt;&gt;.
+        /// </summary>
+        internal static string MonitorAgentErrorStartingCloudProcessWatcher_ChangedQueueIsNotOfTypeKeyValuePair {
+            get {
+                return ResourceManager.GetString("MonitorAgentErrorStartingCloudProcessWatcher_ChangedQueueIsNotOfTypeKeyValuePair", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error updating creation time for folder to event in database.
+        /// </summary>
+        internal static string MonitorAgentErrorUpdatingCreationTimeForFolderToEventDatabase {
+            get {
+                return ResourceManager.GetString("MonitorAgentErrorUpdatingCreationTimeForFolderToEventDatabase", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error updating SQL after replacing NewPath.
+        /// </summary>
+        internal static string MonitorAgentErrorUpdatingSQLAfterReplacingNewPath {
+            get {
+                return ResourceManager.GetString("MonitorAgentErrorUpdatingSQLAfterReplacingNewPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to EventId was zero on a FileChange to queue to ProcessingChanges:.
+        /// </summary>
+        internal static string MonitorAgentEventIDWasZeroOnAFileChangeToQueueToProcessingChanges {
+            get {
+                return ResourceManager.GetString("MonitorAgentEventIDWasZeroOnAFileChangeToQueueToProcessingChanges", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Exception on main ApplySyncFromFileChange switch and exception on onBeforeAllPathsUnlock.
+        /// </summary>
+        internal static string MonitorAgentExceptionOnMainApplySyncFromFileChangeSwitchandExceptionononBeforeAllPathsUnlock {
+            get {
+                return ResourceManager.GetString("MonitorAgentExceptionOnMainApplySyncFromFileChangeSwitchandExceptionononBeforeAll" +
+                        "PathsUnlock", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to FileChange&apos;s NewPath does not fall within the root directory.
+        /// </summary>
+        internal static string MonitorAgentFileChangesNewPathDoesNotFallWithinTheRootDirectory {
+            get {
+                return ResourceManager.GetString("MonitorAgentFileChangesNewPathDoesNotFallWithinTheRootDirectory", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Files bigger than {0} are not yet supported; File: {1}, Size: {2}.
+        /// </summary>
+        internal static string MonitorAgentFilesBiggerThan0AreNotYetSupportedFile1Size2 {
+            get {
+                return ResourceManager.GetString("MonitorAgentFilesBiggerThan0AreNotYetSupportedFile1Size2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Folder not found at provided folder path.
+        /// </summary>
+        internal static string MonitorAgentFolderNotFoundAtProvidedPath {
+            get {
+                return ResourceManager.GetString("MonitorAgentFolderNotFoundAtProvidedPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Folder path cannot be null or empty.
+        /// </summary>
+        internal static string MonitorAgentFolderPathCannotBeNullOrEmpty {
+            get {
+                return ResourceManager.GetString("MonitorAgentFolderPathCannotBeNullOrEmpty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to GetUploadDownloadTransfersInProgress return cannot have a null Key.
+        /// </summary>
+        internal static string MonitorAgentGetUploadTranfersInProgressReturnCannotHaveNullKey {
+            get {
+                return ResourceManager.GetString("MonitorAgentGetUploadTranfersInProgressReturnCannotHaveNullKey", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Instance not available until after Initialize is called.
+        /// </summary>
+        internal static string MonitorAgentInstanceNotAvailableAfterInitializeIsCalled {
+            get {
+                return ResourceManager.GetString("MonitorAgentInstanceNotAvailableAfterInitializeIsCalled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error updating LaterChange in CreationModificationDependencyCheck to Created Type.
+        /// </summary>
+        internal static string MonitorAgentLaterChangeInCreationModificationDependencyChecktoCreatedType {
+            get {
+                return ResourceManager.GetString("MonitorAgentLaterChangeInCreationModificationDependencyChecktoCreatedType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MonitorAgent: RenameDependencyCheck: Add later change to changes to dispose..
+        /// </summary>
+        internal static string MonitorAgentRenameDependencyCheckAddLaterChangeToChangesToDispose {
+            get {
+                return ResourceManager.GetString("MonitorAgentRenameDependencyCheckAddLaterChangeToChangesToDispose", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MonitorAgent: RenameDependencyCheck: Break out of enumeration..
+        /// </summary>
+        internal static string MonitorAgentRenameDependencyCheckBreakOutOfEnumeration {
+            get {
+                return ResourceManager.GetString("MonitorAgentRenameDependencyCheckBreakOutOfEnumeration", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MonitorAgent: RenameDependencyCheck: Call CheckFileChangeDependenciesForDuplicates on inner rename..
+        /// </summary>
+        internal static string MonitorAgentRenameDependencyCheckCallCheckFileChangeDependenciesForDuplicatesOnInnerRename {
+            get {
+                return ResourceManager.GetString("MonitorAgentRenameDependencyCheckCallCheckFileChangeDependenciesForDuplicatesOnIn" +
+                        "nerRename", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MonitorAgent: RenameDependencyCheck: Continue processing: {0}..
+        /// </summary>
+        internal static string MonitorAgentRenameDependencyCheckContinueProcessing {
+            get {
+                return ResourceManager.GetString("MonitorAgentRenameDependencyCheckContinueProcessing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MonitorAgent: RenameDependencyCheck: CurrentEarlierChange: Direction: {0}. Type: {1}. OldPath: {2}. NewPath: {3}..
+        /// </summary>
+        internal static string MonitorAgentRenameDependencyCheckCurrentEarlierChangeDirection0Type1OldPath2NewPath3 {
+            get {
+                return ResourceManager.GetString("MonitorAgentRenameDependencyCheckCurrentEarlierChangeDirection0Type1OldPath2NewPa" +
+                        "th3", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MonitorAgent: RenameDependencyCheck: CurrentInnerRename: Direction: {0}. OldPath: {1}. NewPath: {2}..
+        /// </summary>
+        internal static string MonitorAgentRenameDependencyCheckCurrentInnerRenameDirection0OldPathNewPath2 {
+            get {
+                return ResourceManager.GetString("MonitorAgentRenameDependencyCheckCurrentInnerRenameDirection0OldPathNewPath2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MonitorAgent: RenameDependencyCheck: Earlier change contains OldPath..
+        /// </summary>
+        internal static string MonitorAgentRenameDependencyCheckEarlierChangeContainsOldPath {
+            get {
+                return ResourceManager.GetString("MonitorAgentRenameDependencyCheckEarlierChangeContainsOldPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MonitorAgent: RenameDependencyCheck: Earlier change is Created..
+        /// </summary>
+        internal static string MonitorAgentRenameDependencyCheckEarlierChangeIsCreated {
+            get {
+                return ResourceManager.GetString("MonitorAgentRenameDependencyCheckEarlierChangeIsCreated", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MonitorAgent: RenameDependencyCheck: Earlier change is Created or Modified..
+        /// </summary>
+        internal static string MonitorAgentRenameDependencyCheckEarlierChangeIsCreatedOrModified {
+            get {
+                return ResourceManager.GetString("MonitorAgentRenameDependencyCheckEarlierChangeIsCreatedOrModified", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MonitorAgent: RenameDependencyCheck: Earlier change is Deleted..
+        /// </summary>
+        internal static string MonitorAgentRenameDependencyCheckEarlierChangeIsDeleted {
+            get {
+                return ResourceManager.GetString("MonitorAgentRenameDependencyCheckEarlierChangeIsDeleted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MonitorAgent: RenameDependencyCheck: Earlier change is Renamed.
+        /// </summary>
+        internal static string MonitorAgentRenameDependencyCheckEarlierChangeIsRenamed {
+            get {
+                return ResourceManager.GetString("MonitorAgentRenameDependencyCheckEarlierChangeIsRenamed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MonitorAgent: RenameDependencyCheck: ERROR: {0}..
+        /// </summary>
+        internal static string MonitorAgentRenameDependencyCheckError0 {
+            get {
+                return ResourceManager.GetString("MonitorAgentRenameDependencyCheckError0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MonitorAgent: RenameDependencyCheck: Inner new path contains laterChange old path, or laterChange old path contains inner new path..
+        /// </summary>
+        internal static string MonitorAgentRenameDependencyCheckInnerNewPathContainsLaterChangeOldPathorLAterChangeOldPathContainsInnerNewPath {
+            get {
+                return ResourceManager.GetString("MonitorAgentRenameDependencyCheckInnerNewPathContainsLaterChangeOldPathorLAterCha" +
+                        "ngeOldPathContainsInnerNewPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MonitorAgent: RenameDependencyCheck: LaterChange: Direction: {0}. Type: {1}. OldPath: {2}. NewPath: {3}..
+        /// </summary>
+        internal static string MonitorAgentRenameDependencyCheckLaterChangeDirection0Type1OldPath2NewPath3 {
+            get {
+                return ResourceManager.GetString("MonitorAgentRenameDependencyCheckLaterChangeDirection0Type1OldPath2NewPath3", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MonitorAgent: RenameDependencyCheck: Later old path contains earlier new path..
+        /// </summary>
+        internal static string MonitorAgentRenameDependencyCheckLaterOldPathContainsEarlierNewPath {
+            get {
+                return ResourceManager.GetString("MonitorAgentRenameDependencyCheckLaterOldPathContainsEarlierNewPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MonitorAgent: RenameDependencyCheck: Loop thru onlyRenamePathsFromTop..
+        /// </summary>
+        internal static string MonitorAgentRenameDependencyCheckLoopThruOnlyRenamePathsFromTop {
+            get {
+                return ResourceManager.GetString("MonitorAgentRenameDependencyCheckLoopThruOnlyRenamePathsFromTop", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MonitorAgent: RenameDependencyCheck: NewPath does not equal OldPath. Loop until recursing parent is null. renamedOverlapChild: {0}..
+        /// </summary>
+        internal static string MonitorAgentRenameDependencyCheckNewPathDoesNotEqualOldPathLoopUntilRecursingParentIsRenamed {
+            get {
+                return ResourceManager.GetString("MonitorAgentRenameDependencyCheckNewPathDoesNotEqualOldPathLoopUntilRecursingPare" +
+                        "ntIsRenamed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MonitorAgent: RenameDependencyCheck: NewPath equals OldPath..
+        /// </summary>
+        internal static string MonitorAgentRenameDependencyCheckNewPathEqualsOldPath {
+            get {
+                return ResourceManager.GetString("MonitorAgentRenameDependencyCheckNewPathEqualsOldPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MonitorAgent: RenameDependencyCheck: No DependenciesAddeedToLaterChange..
+        /// </summary>
+        internal static string MonitorAgentRenameDependencyCheckNoDependenciesAddedToLaterChange {
+            get {
+                return ResourceManager.GetString("MonitorAgentRenameDependencyCheckNoDependenciesAddedToLaterChange", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MonitorAgent: RenameDependencyCheck: No DependenciesAddeedToLaterChange (2)..
+        /// </summary>
+        internal static string MonitorAgentRenameDependencyCheckNoDependenciesAddedToLaterChange2 {
+            get {
+                return ResourceManager.GetString("MonitorAgentRenameDependencyCheckNoDependenciesAddedToLaterChange2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MonitorAgent: RenameDependencyCheck: Process renamedOverlap: {0}..
+        /// </summary>
+        internal static string MonitorAgentRenameDependencyCheckProcessRenamedOverlap {
+            get {
+                return ResourceManager.GetString("MonitorAgentRenameDependencyCheckProcessRenamedOverlap", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MonitorAgent: RenameDependencyCheck: Remove dependency from laterParent: LaterChange: Direction: {0}. OldPath: {1}. NewPath: {2}..
+        /// </summary>
+        internal static string MonitorAgentRenameDependencyCheckRemoveDependencyFromLaterParentLaterChangeDirection0OldPath1NewPath2 {
+            get {
+                return ResourceManager.GetString("MonitorAgentRenameDependencyCheckRemoveDependencyFromLaterParentLaterChangeDirect" +
+                        "ion0OldPath1NewPath2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MonitorAgent: RenameDependencyCheck: Remove dependency dependencyToMove: Direction: {0}. OldPath: {1}. NewPath: {2}..
+        /// </summary>
+        internal static string MonitorAgentRenameDependencyCheckRemoveDependencyToMoveDirection0OldPathNewPath2 {
+            get {
+                return ResourceManager.GetString("MonitorAgentRenameDependencyCheckRemoveDependencyToMoveDirection0OldPathNewPath2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MonitorAgent: RenameDependencyCheck: renamedOverlap equals later change OldPath: {0}. Merge earlier change to SQL..
+        /// </summary>
+        internal static string MonitorAgentRenameDependencyCheckRenamedOverlapEqualsLaterChangeOldPath0MergeEarlierChangeToSQL {
+            get {
+                return ResourceManager.GetString("MonitorAgentRenameDependencyCheckRenamedOverlapEqualsLaterChangeOldPath0MergeEarl" +
+                        "ierChangeToSQL", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MonitorAgent: RenameDependencyCheck: RenamePathSearches not null. Add this inner rename to RenamePathSearches..
+        /// </summary>
+        internal static string MonitorAgentRenameDependencyCheckRenamePathSearchesNotNullAddThisInnerRenameToRenamePathSearches {
+            get {
+                return ResourceManager.GetString("MonitorAgentRenameDependencyCheckRenamePathSearchesNotNullAddThisInnerRenameToRen" +
+                        "amePathSearches", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MonitorAgent: RenameDependencyCheck: RenamePathSearches is null..
+        /// </summary>
+        internal static string MonitorAgentRenameDependencyCheckRenamePathSearchsIsFull {
+            get {
+                return ResourceManager.GetString("MonitorAgentRenameDependencyCheckRenamePathSearchsIsFull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error updating SQL.
+        /// </summary>
+        internal static string MonitorAgentSQLUpdateError {
+            get {
+                return ResourceManager.GetString("MonitorAgentSQLUpdateError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to System does not support Shell32, file will be assumed to be a valid shortcut.
+        /// </summary>
+        internal static string MonitorAgentSystemDoesNotSupportShell32FileWillBeAssumedToBeValidShortcut {
+            get {
+                return ResourceManager.GetString("MonitorAgentSystemDoesNotSupportShell32FileWillBeAssumedToBeValidShortcut", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to toAdd cannot be null.
+        /// </summary>
+        internal static string MonitorAgentToAddCannotBeNull {
+            get {
+                return ResourceManager.GetString("MonitorAgentToAddCannotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to cast thisAction as Action&lt;SQLIndexer.Model.FindFileResult, DateTime, FilePathDictionary&lt;FileMetadata&gt;, GenericHolder&lt;SQLIndexer.Model.FindFileResult&gt;, object&gt;.
+        /// </summary>
+        internal static string MonitorAgentUnableToCastThisActionAsAction {
+            get {
+                return ResourceManager.GetString("MonitorAgentUnableToCastThisActionAsAction", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to fire OnProcessEventGroupCallback due to parameter mismatch.
+        /// </summary>
+        internal static string MonitorAgentUnableToFireOnProcessEventGroupParameterMismatch {
+            get {
+                return ResourceManager.GetString("MonitorAgentUnableToFireOnProcessEventGroupParameterMismatch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to remove FileChange from QueuedChanges after merging to SQL.
+        /// </summary>
+        internal static string MonitorAgentUnableToRemoveFileChangeFromQueuedChangesAfterMergingToSQL {
+            get {
+                return ResourceManager.GetString("MonitorAgentUnableToRemoveFileChangeFromQueuedChangesAfterMergingToSQL", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unknown FileChangeType for CurrentEarlierChange:.
+        /// </summary>
+        internal static string MonitorAgentUnknownFileChangeTypeForCurrentEarlierChange {
+            get {
+                return ResourceManager.GetString("MonitorAgentUnknownFileChangeTypeForCurrentEarlierChange", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unknown FileChangeType for InnerFileChange:.
+        /// </summary>
+        internal static string MonitorAgentUnknownFileChangeTypeforInnerFileChange {
+            get {
+                return ResourceManager.GetString("MonitorAgentUnknownFileChangeTypeforInnerFileChange", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error writing updated file upload metadata to SQL.
+        /// </summary>
+        internal static string MonitorAgentWritingUpdatedFileUploadMetadataToSQL {
+            get {
+                return ResourceManager.GetString("MonitorAgentWritingUpdatedFileUploadMetadataToSQL", resourceCulture);
             }
         }
         
@@ -786,6 +3470,15 @@ namespace Cloud.Static {
         internal static string NotTranslatedCheckLogFileExistanceYearMonthDay {
             get {
                 return ResourceManager.GetString("NotTranslatedCheckLogFileExistanceYearMonthDay", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to N.
+        /// </summary>
+        internal static string NotTranslatedCLCredentialStringSettingsN {
+            get {
+                return ResourceManager.GetString("NotTranslatedCLCredentialStringSettingsN", resourceCulture);
             }
         }
         
@@ -1123,6 +3816,33 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to BadgeType is not within the acceptable range.
+        /// </summary>
+        internal static string SetBadgeBadgeTypeIsNotWithinTheAcceptableRange {
+            get {
+                return ResourceManager.GetString("SetBadgeBadgeTypeIsNotWithinTheAcceptableRange", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot retrieve property values on an invalid SetBadge.
+        /// </summary>
+        internal static string SetBadgeCannotRetrievePropertyValuesOnAnInvalidSetBadge {
+            get {
+                return ResourceManager.GetString("SetBadgeCannotRetrievePropertyValuesOnAnInvalidSetBadge", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to PathToBadge cannot be null.
+        /// </summary>
+        internal static string SetBadgePathToBadgeCannotBeNull {
+            get {
+                return ResourceManager.GetString("SetBadgePathToBadgeCannotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to ---File upload started---.
         /// </summary>
         internal static string StartedFileUpload {
@@ -1146,6 +3866,15 @@ namespace Cloud.Static {
         internal static string StartMenuFolderNameXP {
             get {
                 return ResourceManager.GetString("StartMenuFolderNameXP", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to PathToBadge cannot be null.
+        /// </summary>
+        internal static string UpdatePathArgsPathToBadgeCannotBeNull {
+            get {
+                return ResourceManager.GetString("UpdatePathArgsPathToBadgeCannotBeNull", resourceCulture);
             }
         }
     }

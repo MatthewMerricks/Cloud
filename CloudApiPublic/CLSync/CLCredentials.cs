@@ -127,40 +127,40 @@ namespace Cloud
         /// Private constructor
         /// </summary>
         private CLCredentials(
-            string Key,
-            string Secret,
-            string Token, 
+            string key,
+            string secret,
+            string token, 
             ref CLCredentialsCreationStatus status,
             ICLCredentialsSettings settings = null)
         {
             Helpers.CheckHalted();
 
             // check input parameters
-            if (string.IsNullOrEmpty(Key))
+            if (string.IsNullOrEmpty(key))
             {
                 status = CLCredentialsCreationStatus.ErrorNullKey;
-                throw new NullReferenceException("Key cannot be null");
+                throw new NullReferenceException(Resources.CLCredentialKeyCannotBeNull);
             }
-            if (string.IsNullOrEmpty(Secret))
+            if (string.IsNullOrEmpty(secret))
             {
                 status = CLCredentialsCreationStatus.ErrorNullSecret;
-                throw new NullReferenceException("Secret cannot be null");
+                throw new NullReferenceException(Resources.CLCredentialSecretCannotBeNull);
             }
 
             // Since we allow null then reverse-null coalesce from empty string
-            if (Token == string.Empty)
+            if (token == string.Empty)
             {
-                Token = null;
+                token = null;
             }
 
-            this._key = Key;
-            this._secret = Secret;
+            this._key = key;
+            this._secret = secret;
             
-            this._token = Token;
+            this._token = token;
 
             // copy settings so they don't change while processing; this also defaults some values
             _copiedSettings = (settings == null
-                ? NullSyncRoot.Instance.CopySettings()
+                ? NullDeviceId.Instance.CopySettings()
                 : settings.CopySettings());
         }
 
@@ -197,7 +197,7 @@ namespace Cloud
 
             // copy settings so they don't change while processing; this also defaults some values
             _copiedSettings = (settings == null
-                ? NullSyncRoot.Instance.CopySettings()
+                ? NullDeviceId.Instance.CopySettings()
                 : settings.CopySettings());
         }
 
@@ -218,16 +218,8 @@ namespace Cloud
 
         #region public authorization HTTP API calls
         #region default settings for CLCredentials HTTP calls
-        private sealed class NullSyncRoot : ICLSyncSettings
+        private sealed class NullDeviceId : ICLSyncSettings
         {
-            public string SyncRoot
-            {
-                get
-                {
-                    return null;
-                }
-            }
-
             public string DeviceId
             {
                 get
@@ -236,9 +228,9 @@ namespace Cloud
                 }
             }
 
-            public static readonly NullSyncRoot Instance = new NullSyncRoot();
+            public static readonly NullDeviceId Instance = new NullDeviceId();
 
-            private NullSyncRoot() { }
+            private NullDeviceId() { }
         }
         #endregion
 
@@ -332,13 +324,13 @@ namespace Cloud
             {
                 // copy settings so they don't change while processing; this also defaults some values
                 ICLSyncSettingsAdvanced copiedSettings = (settings == null
-                    ? NullSyncRoot.Instance.CopySettings()
+                    ? NullDeviceId.Instance.CopySettings()
                     : settings.CopySettings());
 
                 // check input parameters
                 if (!(copiedSettings.HttpTimeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException("timeoutMilliseconds must be greater than zero");
+                    throw new ArgumentException(Resources.CLCredentialMSTimeoutMustBeGreaterThanZero);
                 }
 
                 // Communicate with the server.
@@ -374,7 +366,7 @@ namespace Cloud
                 }
                 else
                 {
-                    throw new NullReferenceException("Server responded without an array of Sessions");
+                    throw new NullReferenceException(Resources.ExceptionCLHttpRestWithoutSessions);
                 }
             }
             catch (Exception ex)
@@ -488,14 +480,14 @@ namespace Cloud
             {
                 // copy settings so they don't change while processing; this also defaults some values
                 ICLSyncSettingsAdvanced copiedSettings = (settings == null
-                    ? NullSyncRoot.Instance.CopySettings()
+                    ? NullDeviceId.Instance.CopySettings()
                     : settings.CopySettings());
 
                 // check input parameters
 
                 if (!(copiedSettings.HttpTimeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException("timeoutMilliseconds must be greater than zero");
+                    throw new ArgumentException(Resources.CLCredentialMSTimeoutMustBeGreaterThanZero);
                 }
 
                 // Determine the request JSON contract to use.  If the syncboxIds parameter is null, use the "all"
@@ -653,14 +645,14 @@ namespace Cloud
             {
                 // copy settings so they don't change while processing; this also defaults some values
                 ICLSyncSettingsAdvanced copiedSettings = (settings == null
-                    ? NullSyncRoot.Instance.CopySettings()
+                    ? NullDeviceId.Instance.CopySettings()
                     : settings.CopySettings());
 
                 // check input parameters
 
                 if (!(copiedSettings.HttpTimeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException("timeoutMilliseconds must be greater than zero");
+                    throw new ArgumentException(Resources.CLCredentialMSTimeoutMustBeGreaterThanZero);
                 }
 
                 // Build the query string.
@@ -798,13 +790,13 @@ namespace Cloud
             {
                 // copy settings so they don't change while processing; this also defaults some values
                 ICLSyncSettingsAdvanced copiedSettings = (settings == null
-                    ? NullSyncRoot.Instance.CopySettings()
+                    ? NullDeviceId.Instance.CopySettings()
                     : settings.CopySettings());
 
                 // check input parameters
                 if (!(copiedSettings.HttpTimeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException("timeoutMilliseconds must be greater than zero");
+                    throw new ArgumentException(Resources.CLCredentialMSTimeoutMustBeGreaterThanZero);
                 }
 
                 // Build the query string.
@@ -966,16 +958,16 @@ namespace Cloud
                 // check input parameters
                 if (request == null)
                 {
-                    throw new ArgumentException("pushRequest must not be null");
+                    throw new ArgumentException(Resources.CLCredentialPushRequestCannotBeNull);
                 }
                 if (!(timeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException("timeoutMilliseconds must be greater than zero");
+                    throw new ArgumentException(Resources.CLCredentialMSTimeoutMustBeGreaterThanZero);
                 }
 
                 // copy settings so they don't change while processing; this also defaults some values
                 ICLSyncSettingsAdvanced copiedSettings = (settings == null
-                    ? NullSyncRoot.Instance.CopySettings()
+                    ? NullDeviceId.Instance.CopySettings()
                     : settings.CopySettings());
 
                 // Set the Key and Secret from these credentials.
@@ -1149,16 +1141,16 @@ namespace Cloud
                 // check input parameters
                 if (request == null)
                 {
-                    throw new ArgumentException("pushRequest must not be null");
+                    throw new ArgumentException(Resources.CLCredentialPushRequestCannotBeNull);
                 }
                 if (!(timeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException("timeoutMilliseconds must be greater than zero");
+                    throw new ArgumentException(Resources.CLCredentialMSTimeoutMustBeGreaterThanZero);
                 }
 
                 // copy settings so they don't change while processing; this also defaults some values
                 ICLSyncSettingsAdvanced copiedSettings = (settings == null
-                    ? NullSyncRoot.Instance.CopySettings()
+                    ? NullDeviceId.Instance.CopySettings()
                     : settings.CopySettings());
 
                 // Set the Key and Secret from these credentials.
@@ -1315,16 +1307,16 @@ namespace Cloud
                 // check input parameters
                 if (request == null)
                 {
-                    throw new ArgumentException("pushRequest must not be null");
+                    throw new ArgumentException(Resources.CLCredentialPushRequestCannotBeNull);
                 }
                 if (!(timeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException("timeoutMilliseconds must be greater than zero");
+                    throw new ArgumentException(Resources.CLCredentialMSTimeoutMustBeGreaterThanZero);
                 }
 
                 // copy settings so they don't change while processing; this also defaults some values
                 ICLSyncSettingsAdvanced copiedSettings = (settings == null
-                    ? NullSyncRoot.Instance.CopySettings()
+                    ? NullDeviceId.Instance.CopySettings()
                     : settings.CopySettings());
 
                 // run the HTTP communication and store the response object to the output parameter

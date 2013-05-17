@@ -78,6 +78,12 @@ namespace Cloud.SQLIndexer.SqlModel
         #endregion
         #endregion
 
+        #region has trigger checks
+
+        private static bool HasBeforeDeleteTrigger = (typeof(T)).IsCastableTo(typeof(IBeforeDeleteTrigger));
+
+        #endregion
+
         #region public static methods
         public static bool TrySelectScalar<TKey>(ISQLiteConnection connection, string select, out TKey result, ISQLiteTransaction transaction = null, IEnumerable selectParameters = null)
         {
@@ -629,6 +635,16 @@ namespace Cloud.SQLIndexer.SqlModel
             // start a new list to store indexes which were not found to delete
             List<int> unableToFindList = new List<int>();
 
+            // right before actually firing all the delete commands, check for and possibly run any before deletion triggers on all objects
+            // TODO: figure out how to write all these triggers properly in the database instead to remove this functionality from C#
+            if (HasBeforeDeleteTrigger)
+            {
+                foreach (T currentDelete in toDelete)
+                {
+                    ((IBeforeDeleteTrigger)currentDelete).BeforeDelete(connection, transaction);
+                }
+            }
+
             // create a new database command that will delete rows
             using (ISQLiteCommand deleteCommand = connection.CreateCommand())
             {
@@ -1143,6 +1159,11 @@ namespace Cloud.SQLIndexer.SqlModel
             }
         }
         #endregion
+    }
+
+    internal interface IBeforeDeleteTrigger
+    {
+        void BeforeDelete(ISQLiteConnection sqlConn, ISQLiteTransaction sqlTran = null);
     }
 
     internal interface ISqlAccess

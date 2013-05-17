@@ -109,6 +109,47 @@ namespace Cloud.Static
         //    return Environment.MachineName;
         //}
 
+        internal static Func<object> CreateFileChangeRevisionChangedHandler(FileChange change, ISyncDataObject syncData)
+        {
+            return new Func<object>(DelegateAndDataHolderBase.Create(
+                new
+                {
+                    change = change,
+                    syncData = syncData
+                },
+                (Data, errorToAccumulate) =>
+                {
+                    // only update sql with the new revision and server "uid" if the change already exists in the database otherwise you could be triggering a change to be added before its
+                    // previous required changes are added; plus before processing the event it will end up added to the database anyways
+                    if (Data.change.EventId != 0)
+                    {
+                        Data.syncData.mergeToSql(Helpers.EnumerateSingleItem(new FileChangeMerge(Data.change)));
+                    }
+                },
+                null).Process);
+        }
+
+        /// <summary>
+        /// Calculates the full path of the sync database file.
+        /// </summary>
+        /// <param name="syncbox">The syncbox.</param>
+        /// <returns>The full path of the sync database file.</returns>
+        public static string CalculateDatabasePath(CLSyncbox syncbox)
+        {
+            return CalculateDatabasePath(
+                syncbox.CopiedSettings.DatabaseFolder,
+                syncbox.CopiedSettings.DeviceId,
+                syncbox.SyncboxId);
+        }
+        internal static string CalculateDatabasePath(string settingsDatabaseFolder,
+            string settingsDeviceId,
+            long syncboxId)
+        {
+            return (string.IsNullOrEmpty(settingsDatabaseFolder)
+                ? Helpers.GetDefaultDatabasePath(settingsDeviceId, syncboxId) + "\\" + CLDefinitions.kSyncDatabaseFileName
+                : settingsDatabaseFolder + "\\" + CLDefinitions.kSyncDatabaseFileName);
+        }
+
         /// <summary>
         /// Creates a default instance of a provided type for use with populating out parameters when exceptions are thrown
         /// </summary>
@@ -893,19 +934,36 @@ namespace Cloud.Static
         {
             try
             {
-                return System.Reflection.Assembly.GetEntryAssembly().GetName().Version.ToString();
+                System.Reflection.Assembly entryAssembly = System.Reflection.Assembly.GetEntryAssembly();
+                    
+                if (entryAssembly != null)
+                {
+                    entryAssembly.GetName().Version.ToString();
+                }
             }
             catch
             {
-                try
+            }
+            
+            try
+            {
+                System.Diagnostics.Process thisProcess = System.Diagnostics.Process.GetCurrentProcess();
+
+                string startInfoName;
+                if (string.IsNullOrEmpty(startInfoName = thisProcess.StartInfo.FileName))
                 {
-                    return System.Diagnostics.FileVersionInfo.GetVersionInfo(System.Diagnostics.Process.GetCurrentProcess().StartInfo.FileName).FileVersion;
+                    return System.Diagnostics.FileVersionInfo.GetVersionInfo(thisProcess.MainModule.FileName).FileVersion;
                 }
-                catch
+                else
                 {
-                    return "0.0.0.0";
+                    return System.Diagnostics.FileVersionInfo.GetVersionInfo(startInfoName).FileVersion;
                 }
             }
+            catch
+            {
+            }
+            
+            return "0.0.0.0";
         }
 
         /// <summary>
@@ -1102,7 +1160,7 @@ namespace Cloud.Static
         /// <param name="syncRootFullPath">Full path of directory to sync</param>
         /// <param name="tooLongChars">(output) Number of characters over the max limit given the current directory and full path length</param>
         /// <returns>Returns an error if the provided path was too long, otherwise null</returns>
-        public static CLError CheckSyncRootLength(string syncRootFullPath, out int tooLongChars)
+        public static CLError CheckSyncboxPathLength(string syncRootFullPath, out int tooLongChars)
         {
             const int baseLengthRestriction = 65;
 
@@ -1111,8 +1169,8 @@ namespace Cloud.Static
                 CLExceptionCode.General_Arguments,
                 string.Format(
                     (innerTooLongChars == 1
-                        ? Resources.ExceptionHelpersCheckSyncRootLengthTooLongSingular
-                        : Resources.ExceptionHelpersCheckSyncRootLengthTooLongPlural),
+                        ? Resources.ExceptionHelpersCheckSyncboxPathLengthTooLongSingular
+                        : Resources.ExceptionHelpersCheckSyncboxPathLengthTooLongPlural),
                     innerTooLongChars));
 
             // default if no exceptions are thrown
@@ -1441,10 +1499,13 @@ namespace Cloud.Static
                         }
 
                         char rootDriveLetter = checkForEmptyName.Name[0];
-                        if (!char.IsUpper(rootDriveLetter))
-                        {
-                            throw new CLArgumentException(CLExceptionCode.General_Arguments, Resources.ExceptionHelpersCheckForBadPathDriveLetter);
-                        }
+
+                        //TODO: This was removed because the SDK now upper cases the first letter of the syncbox path.  All of that should be removed when the sync engine becomes case insensitive.
+                        //if (!char.IsUpper(rootDriveLetter))
+                        //{
+                        //    throw new CLArgumentException(CLExceptionCode.General_Arguments, Resources.ExceptionHelpersCheckForBadPathDriveLetter);
+                        //}
+
                         DriveInfo rootDrive = new DriveInfo(char.ToString(rootDriveLetter));
                         switch (rootDrive.DriveType)
                         {
@@ -3762,7 +3823,7 @@ namespace Cloud.Static
                                                 return innerStoreReturnBody.Value;
                                             };
 
-                                        if (uploadDownload.ChangeToTransfer.NewPath == null)
+                                        if (uploadDownload.ChangeToTransfer.DownloadCancelled == FileChange.DownloadCancelledState.CancelledAndStopDownloading)
                                         {
                                             responseBody = fillAndReturnBody(storeReturnBody, responseBody);
 
@@ -4607,11 +4668,11 @@ namespace Cloud.Static
             /// <param name="StatusCallback">A handler delegate to be fired whenever there is new status information for an upload or download (the progress of the upload/download or completion)</param>
             /// <param name="ChangeToTransfer">UserState object which is required for calling the StatusCallback for sending status information events</param>
             /// <param name="ShutdownToken">A non-required (possibly null) user-provided token source which is checked through an upload or download in order to cancel it</param>
-            /// <param name="SyncRootFullPath">Full path to the root directory being synced</param>
+            /// <param name="SyncboxPath">Full path to the root directory being synced</param>
             /// <param name="ACallback">User-provided callback to fire upon asynchronous operation</param>
             /// <param name="AResult">Asynchronous result for firing async callbacks</param>
             /// <param name="ProgressHolder">Holder for a progress state which can be queried by the user</param>
-            public uploadDownloadParams(SendUploadDownloadStatus StatusCallback, FileChange ChangeToTransfer, CancellationTokenSource ShutdownToken, string SyncRootFullPath, AsyncCallback ACallback, IAsyncResult AResult, GenericHolder<TransferProgress> ProgressHolder, FileTransferStatusUpdateDelegate StatusUpdate, Nullable<Guid> StatusUpdateId)
+            public uploadDownloadParams(SendUploadDownloadStatus StatusCallback, FileChange ChangeToTransfer, CancellationTokenSource ShutdownToken, string SyncboxPath, AsyncCallback ACallback, IAsyncResult AResult, GenericHolder<TransferProgress> ProgressHolder, FileTransferStatusUpdateDelegate StatusUpdate, Nullable<Guid> StatusUpdateId)
             {
                 // check for required parameters and error out if not set
 
@@ -4652,15 +4713,7 @@ namespace Cloud.Static
 
                 this._statusCallback = StatusCallback;
                 this._changeToTransfer = ChangeToTransfer;
-                FilePath retainNewPath = this.ChangeToTransfer.NewPath;
-                if (retainNewPath == null)
-                {
-                    this._relativePathForStatus = null;
-                }
-                else
-                {
-                    this._relativePathForStatus = retainNewPath.GetRelativePath((SyncRootFullPath ?? string.Empty), false); // relative path is calculated from full path to file minus full path to sync directory
-                }
+                this._relativePathForStatus = this.ChangeToTransfer.NewPath.GetRelativePath((SyncboxPath ?? string.Empty), false); // relative path is calculated from full path to file minus full path to sync directory
                 this._shutdownToken = ShutdownToken;
                 this._aCallback = ACallback;
                 this._aResult = AResult;
@@ -4741,7 +4794,7 @@ namespace Cloud.Static
             /// <param name="StatusCallback">A handler delegate to be fired whenever there is new status information for an upload or download (the progress of the upload/download or completion)</param>
             /// <param name="ChangeToTransfer">UserState object which is required for calling the StatusCallback for sending status information events</param>
             /// <param name="ShutdownToken">A non-required (possibly null) user-provided token source which is checked through an upload or download in order to cancel it</param>
-            /// <param name="SyncRootFullPath">Full path to the root directory being synced</param>
+            /// <param name="SyncboxPath">Full path to the root directory being synced</param>
             /// <param name="AfterDownloadCallback">Event handler for after a download completes which needs to move the file from the temp location to its final location and set the response body to "---Completed file download---"</param>
             /// <param name="AfterDownloadUserState">UserState object passed through as-is when the AfterDownloadCallback handler is fired</param>
             /// <param name="TempDownloadFolderPath">Full path location to the directory where temporary download files will be stored</param>
@@ -4750,8 +4803,8 @@ namespace Cloud.Static
             /// <param name="ProgressHolder">Holder for a progress state which can be queried by the user</param>
             /// <param name="BeforeDownloadCallback">A non-required (possibly null) event handler for before a download starts</param>
             /// <param name="BeforeDownloadUserState">UserState object passed through as-is when the BeforeDownloadCallback handler is fired</param>
-            public downloadParams(AfterDownloadToTempFile AfterDownloadCallback, object AfterDownloadUserState, string TempDownloadFolderPath, SendUploadDownloadStatus StatusCallback, FileChange ChangeToTransfer, CancellationTokenSource ShutdownToken, string SyncRootFullPath, AsyncCallback ACallback, IAsyncResult AResult, GenericHolder<TransferProgress> ProgressHolder, FileTransferStatusUpdateDelegate StatusUpdate, Nullable<Guid> StatusUpdateId, BeforeDownloadToTempFile BeforeDownloadCallback = null, object BeforeDownloadUserState = null)
-                : base(StatusCallback, ChangeToTransfer, ShutdownToken, SyncRootFullPath, ACallback, AResult, ProgressHolder, StatusUpdate, StatusUpdateId)
+            public downloadParams(AfterDownloadToTempFile AfterDownloadCallback, object AfterDownloadUserState, string TempDownloadFolderPath, SendUploadDownloadStatus StatusCallback, FileChange ChangeToTransfer, CancellationTokenSource ShutdownToken, string SyncboxPath, AsyncCallback ACallback, IAsyncResult AResult, GenericHolder<TransferProgress> ProgressHolder, FileTransferStatusUpdateDelegate StatusUpdate, Nullable<Guid> StatusUpdateId, BeforeDownloadToTempFile BeforeDownloadCallback = null, object BeforeDownloadUserState = null)
+                : base(StatusCallback, ChangeToTransfer, ShutdownToken, SyncboxPath, ACallback, AResult, ProgressHolder, StatusUpdate, StatusUpdateId)
             {
                 // additional checks for parameters which were not already checked via the abstract base constructor
 
@@ -4852,13 +4905,13 @@ namespace Cloud.Static
             /// <param name="StatusCallback">A handler delegate to be fired whenever there is new status information for an upload or download (the progress of the upload/download or completion)</param>
             /// <param name="ChangeToTransfer">UserState object which is required for calling the StatusCallback for sending status information events; also used to retrieve the StorageKey and MD5 hash for upload</param>
             /// <param name="ShutdownToken">A non-required (possibly null) user-provided token source which is checked through an upload or download in order to cancel it</param>
-            /// <param name="SyncRootFullPath">Full path to the root directory being synced</param>
+            /// <param name="SyncboxPath">Full path to the root directory being synced</param>
             /// <param name="Stream">Stream which will be read from to buffer to write into the upload stream, or null if already disposed</param>
             /// <param name="ACallback">User-provided callback to fire upon asynchronous operation</param>
             /// <param name="AResult">Asynchronous result for firing async callbacks</param>
             /// <param name="ProgressHolder">Holder for a progress state which can be queried by the user</param>
-            public uploadParams(StreamContext StreamContext, SendUploadDownloadStatus StatusCallback, FileChange ChangeToTransfer, CancellationTokenSource ShutdownToken, string SyncRootFullPath, AsyncCallback ACallback, IAsyncResult AResult, GenericHolder<TransferProgress> ProgressHolder, FileTransferStatusUpdateDelegate StatusUpdate, Nullable<Guid> StatusUpdateId)
-                : base(StatusCallback, ChangeToTransfer, ShutdownToken, SyncRootFullPath, ACallback, AResult, ProgressHolder, StatusUpdate, StatusUpdateId)
+            public uploadParams(StreamContext StreamContext, SendUploadDownloadStatus StatusCallback, FileChange ChangeToTransfer, CancellationTokenSource ShutdownToken, string SyncboxPath, AsyncCallback ACallback, IAsyncResult AResult, GenericHolder<TransferProgress> ProgressHolder, FileTransferStatusUpdateDelegate StatusUpdate, Nullable<Guid> StatusUpdateId)
+                : base(StatusCallback, ChangeToTransfer, ShutdownToken, SyncboxPath, ACallback, AResult, ProgressHolder, StatusUpdate, StatusUpdateId)
             {
                 // additional checks for parameters which were not already checked via the abstract base constructor
 
@@ -5029,7 +5082,7 @@ namespace Cloud.Static
                 // if trying to cast the asynchronous result failed, then throw an error
                 if (castAResult == null)
                 {
-                    throw new CLInvalidOperationException(CLExceptionCode.General_Invalid, "aResult does not match expected internal type");
+                    throw new CLInvalidOperationException(CLExceptionCode.General_Invalid, Resources.CLHttpRestaResultInternalTypeMismatch);
                 }
 
                 // pull the result for output (may not yet be complete)

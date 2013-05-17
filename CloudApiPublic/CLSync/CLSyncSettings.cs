@@ -146,15 +146,6 @@ namespace Cloud
         }
         private readonly int _httpTimeoutMilliseconds = CLDefinitions.HttpTimeoutDefaultMilliseconds;
 
-        public string SyncRoot
-        {
-            get
-            {
-                return _syncRoot;
-            }
-        }
-        private readonly string _syncRoot = null;
-
         public string DatabaseFolder
         {
             get
@@ -183,7 +174,7 @@ namespace Cloud
         {
             if (syncSettings == null)
             {
-                throw new ArgumentNullException("syncSettings must not be null");
+                throw new ArgumentNullException(Resources.CLSyncSettingsMustNotBeNull);
             }
 
             return new AdvancedSyncSettings(
@@ -213,11 +204,20 @@ namespace Cloud
         {
             if (clientDescription.Length > CLDefinitions.MaxClientDescriptionLength)
             {
-                throw new ArgumentException("ClientDescription must have 32 or fewer characters");
+                throw new ArgumentException(Resources.CLSyncSettingsClientDescriptionTooLong);
             }
             if (clientDescription.Contains(","))
             {
-                throw new ArgumentException("ClientDescription must not contain commas");
+                throw new ArgumentException(Resources.CLSyncSettingsClientDescriptionCannotContainCommas);
+            }
+
+            if (tempDownloadFolderFullPath != null && tempDownloadFolderFullPath.Length >= 2 && tempDownloadFolderFullPath[1] == ':')
+            {
+                tempDownloadFolderFullPath = char.ToUpper(tempDownloadFolderFullPath[0]) + tempDownloadFolderFullPath.Substring(1);
+            }
+            if (databaseFolder != null && databaseFolder.Length >= 2 && databaseFolder[1] == ':')
+            {
+                databaseFolder = char.ToUpper(databaseFolder[0]) + databaseFolder.Substring(1);
             }
             if (httpTimeoutMilliseconds < 10000)
             {
@@ -243,7 +243,7 @@ namespace Cloud
         {
             if (toCopy == null)
             {
-                throw new ArgumentNullException("toCopy must not be null");
+                throw new ArgumentNullException(Resources.CLSyncSettingstoCopyMustNotBeNull);
             }
             return new AdvancedSyncSettings(
                 toCopy.LogErrors,
@@ -262,7 +262,7 @@ namespace Cloud
         {
             if (toCopy == null)
             {
-                throw new ArgumentNullException("toCopy must not be null");
+                throw new ArgumentNullException(Resources.CLSyncSettingstoCopyMustNotBeNull);
             }
             ICLSyncSettingsAdvanced advancedCopy = toCopy as ICLSyncSettingsAdvanced;
             if (advancedCopy == null)

@@ -180,14 +180,9 @@ namespace Cloud.CLSync
 
             FileChange fcToDownload = new FileChange()
             {
-                 Direction = SyncDirection.From,
-                 Metadata = new FileMetadata()
-                 {
-                     ServerUid = this.Uid,
-                     Revision = this.Revision
-                 }
+                 Direction = SyncDirection.From
             };
-            return _httpRestClient.BeginDownloadFile(callback, callbackUserState,fcToDownload, OnAfterDownloadToTempFile, this, _copiedSettings.HttpTimeoutMilliseconds);
+            return _httpRestClient.BeginDownloadFile(callback, callbackUserState, fcToDownload, this.Uid, this.Revision, OnAfterDownloadToTempFile, this, _copiedSettings.HttpTimeoutMilliseconds);
         }
 
         /// <summary>
@@ -213,13 +208,9 @@ namespace Cloud.CLSync
             {
                 Direction = SyncDirection.From,
                 Metadata = new FileMetadata()
-                {
-                    ServerUid = this.Uid,
-                    Revision = this.Revision
-                }
             };
 
-            return _httpRestClient.DownloadFile(fcToDownload, OnAfterDownloadToTempFile, this, _copiedSettings.HttpTimeoutMilliseconds);
+            return _httpRestClient.DownloadFile(fcToDownload, this.Uid, this.Revision, OnAfterDownloadToTempFile, this, _copiedSettings.HttpTimeoutMilliseconds);
         }
 
         /// <summary>
