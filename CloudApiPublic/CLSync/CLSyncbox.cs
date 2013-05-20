@@ -3193,7 +3193,7 @@ namespace Cloud
         /// </summary>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError GetGetAllVideoItems(CLFileItem[] response)
+        public CLError GetGetAllVideoItems(out CLFileItem[] response)
         {
             CheckDisposed();
             return _httpRestClient.GetAllVideoItems(out response);
