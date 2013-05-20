@@ -645,7 +645,7 @@ namespace Cloud.Static
         public const string RESTResponsePlan_ApplicationPlanTierId = "application_plan_tier_id";
         public const string RESTResponsePlan_PlanName = "plan_name";
         public const string RESTResponsePlan_MaxTransferBytes = "max_transfer_bytes";
-        public const string RESTResponsePlan_StorageSize = "storage_size";
+        public const string RESTResponsePlan_StorageSize = "storage_size_bytes";
         public const string RESTResponsePlan_IsDefault = "is_default";
         public const string RESTResponsePlan_CreatedAt = "created_at";
         public const string RESTResponsePlan_UpdatedAt = "updated_at";
