@@ -22,7 +22,8 @@ namespace Cloud.Static
         Syncbox = 2,
         ShellExt = 3,
         Syncing = 4,
-        REST = 5
+        OnDemand = 5,
+        FileItem = 6
     }
 
     /// <summary>
@@ -31,6 +32,8 @@ namespace Cloud.Static
     public enum CLExceptionCode : ulong // 64-bit unsigned integer, 32 bits for the domain and 32 bits for the code itself
     {
         #region General
+
+        // 0_0 removed, it was success, but we shouldn't be returning a CLError if there is nothing but successes
 
         /// <summary>
         /// General error
@@ -260,107 +263,181 @@ namespace Cloud.Static
 
         #endregion
 
-        #region REST
+        #region OnDemand
 
         /// <summary>
         /// Cloud syncbox file rename error
         /// </summary>
-        Rest_Syncbox_File_Rename = (((ulong)CLExceptionDomain.REST) << 32) | 0, // 5_0
+        OnDemand_FileRename = (((ulong)CLExceptionDomain.OnDemand) << 32) | 0, // 5_0
 
         /// <summary>
         /// Cloud syncbox file rename invalid metadata error
         /// </summary>
-        Rest_Syncbox_File_Rename_Invalid_Metadata = (((ulong)CLExceptionDomain.REST) << 32) | 1, // 5_1
+        OnDemand_RenameInvalidMetadata = (((ulong)CLExceptionDomain.OnDemand) << 32) | 1, // 5_1
 
         /// <summary>
         /// Cloud syncbox file rename.  Server returned no status and no responses.
         /// </summary>
-        Rest_Syncbox_File_Rename_No_Server_Responses_Or_Errors = (((ulong)CLExceptionDomain.REST) << 32) | 2, // 5_2
+        OnDemand_FileRenameNoServerResponsesOrErrors = (((ulong)CLExceptionDomain.OnDemand) << 32) | 2, // 5_2
 
         /// <summary>
         /// Cloud syncbox file add error
         /// </summary>
-        Rest_Syncbox_File_Add = (((ulong)CLExceptionDomain.REST) << 32) | 3, // 5_3
+        OnDemand_FileAdd = (((ulong)CLExceptionDomain.OnDemand) << 32) | 3, // 5_3
 
         /// <summary>
         /// Cloud syncbox file add invalid metadata error
         /// </summary>
-        Rest_Syncbox_File_Add_Invalid_Metadata = (((ulong)CLExceptionDomain.REST) << 32) | 4, // 5_4
+        OnDemand_FileAddInvalidMetadata = (((ulong)CLExceptionDomain.OnDemand) << 32) | 4, // 5_4
 
         /// <summary>
         /// Cloud syncbox file add.  Server returned no status and no responses.
         /// </summary>
-        Rest_Syncbox_File_Add_No_Server_Responses_Or_Errors = (((ulong)CLExceptionDomain.REST) << 32) | 5, // 5_5
+        OnDemand_FileAddNoServerResponsesOrErrors = (((ulong)CLExceptionDomain.OnDemand) << 32) | 5, // 5_5
 
         /// <summary>
         /// Cloud syncbox file delete error
         /// </summary>
-        Rest_Syncbox_File_Delete = (((ulong)CLExceptionDomain.REST) << 32) | 6, // 5_6
+        OnDemand_FileDelete = (((ulong)CLExceptionDomain.OnDemand) << 32) | 6, // 5_6
 
         /// <summary>
         /// Cloud syncbox file delete invalid metadata error
         /// </summary>
-        Rest_Syncbox_File_Delete_Invalid_Metadata = (((ulong)CLExceptionDomain.REST) << 32) | 7, // 5_7
+        OnDemand_FileDeleteInvalidMetadata = (((ulong)CLExceptionDomain.OnDemand) << 32) | 7, // 5_7
 
         /// <summary>
         /// Cloud syncbox file delete.  Server returned no status and no responses.
         /// </summary>
-        Rest_Syncbox_File_Delete_No_Server_Responses_Or_Errors = (((ulong)CLExceptionDomain.REST) << 32) | 8, // 5_8
+        OnDemand_FileDeleteNoServerResponsesOrErrors = (((ulong)CLExceptionDomain.OnDemand) << 32) | 8, // 5_8
 
         /// <summary>
         /// Cloud syncbox file move.  Server returned no status and no responses.
         /// </summary>
-        Rest_Syncbox_File_Move_No_Server_Responses_Or_Errors = (((ulong)CLExceptionDomain.REST) << 32) | 9, // 5_9
+        OnDemand_FileMoveNoServerResponsesOrErrors = (((ulong)CLExceptionDomain.OnDemand) << 32) | 9, // 5_9
 
         /// <summary>
         /// Cloud syncbox folder rename error
         /// </summary>
-        Rest_Syncbox_Folder_Rename = (((ulong)CLExceptionDomain.REST) << 32) | 10, // 5_10
+        OnDemand_FolderRename = (((ulong)CLExceptionDomain.OnDemand) << 32) | 10, // 5_10
 
         /// <summary>
         /// Cloud syncbox folder rename invalid metadata error
         /// </summary>
-        Rest_Syncbox_Folder_Rename_Invalid_Metadata = (((ulong)CLExceptionDomain.REST) << 32) | 11, // 5_11
+        OnDemand_FolderRenameInvalidMetadata = (((ulong)CLExceptionDomain.OnDemand) << 32) | 11, // 5_11
 
         /// <summary>
         /// Cloud syncbox folder rename.  Server returned no status and no responses.
         /// </summary>
-        Rest_Syncbox_Folder_Rename_No_Server_Responses_Or_Errors = (((ulong)CLExceptionDomain.REST) << 32) | 12, // 5_12
+        OnDemand_FolderRenameNoServerResponsesOrErrors = (((ulong)CLExceptionDomain.OnDemand) << 32) | 12, // 5_12
 
         /// <summary>
         /// Cloud syncbox folder add error
         /// </summary>
-        Rest_Syncbox_Folder_Add = (((ulong)CLExceptionDomain.REST) << 32) | 13, // 5_13
+        OnDemand_FolderAdd = (((ulong)CLExceptionDomain.OnDemand) << 32) | 13, // 5_13
 
         /// <summary>
         /// Cloud syncbox folder add invalid metadata error
         /// </summary>
-        Rest_Syncbox_Folder_Add_Invalid_Metadata = (((ulong)CLExceptionDomain.REST) << 32) | 14, // 5_14
+        OnDemand_FolderAddInvalidMetadata = (((ulong)CLExceptionDomain.OnDemand) << 32) | 14, // 5_14
 
         /// <summary>
         /// Cloud syncbox folder add.  Server returned no status and no responses.
         /// </summary>
-        Rest_Syncbox_Folder_Add_No_Server_Responses_Or_Errors = (((ulong)CLExceptionDomain.REST) << 32) | 15, // 5_15
+        OnDemand_FolderAddNoServerResponsesOrErrors = (((ulong)CLExceptionDomain.OnDemand) << 32) | 15, // 5_15
 
         /// <summary>
         /// Cloud syncbox folder delete error
         /// </summary>
-        Rest_Syncbox_Folder_Delete = (((ulong)CLExceptionDomain.REST) << 32) | 16, // 5_16
+        OnDemand_FolderDelete = (((ulong)CLExceptionDomain.OnDemand) << 32) | 16, // 5_16
 
         /// <summary>
         /// Cloud syncbox folder delete invalid metadata error
         /// </summary>
-        Rest_Syncbox_Folder_Delete_Invalid_Metadata = (((ulong)CLExceptionDomain.REST) << 32) | 17, // 5_17
+        OnDemand_FolderDeleteInvalidMetadata = (((ulong)CLExceptionDomain.OnDemand) << 32) | 17, // 5_17
 
         /// <summary>
         /// Cloud syncbox folder delete.  Server returned no status and no responses.
         /// </summary>
-        Rest_Syncbox_Folder_Delete_No_Server_Responses_Or_Errors = (((ulong)CLExceptionDomain.REST) << 32) | 18, // 5_18
+        OnDemand_FolderDeleteNoServerResponsesOrErrors = (((ulong)CLExceptionDomain.OnDemand) << 32) | 18, // 5_18
 
         /// <summary>
         /// Cloud syncbox folder move.  Server returned no status and no responses.
         /// </summary>
-        Rest_Syncbox_Folder_Move_No_Server_Responses_Or_Errors = (((ulong)CLExceptionDomain.REST) << 32) | 19, // 5_19
+        OnDemand_MoveNoServerResponsesOrErrors = (((ulong)CLExceptionDomain.OnDemand) << 32) | 19, // 5_19
+
+        /// <summary>
+        /// Cloud syncbox renames. Parameters are missing.
+        /// </summary>
+        OnDemand_RenameMissingParameters = (((ulong)CLExceptionDomain.OnDemand) << 32) | 20, // 5_20
+
+        /// <summary>
+        /// Cloud syncbox general. Settings Http milliseconds timeout cannot be too small nor negative.
+        /// </summary>
+        OnDemand_TimeoutMilliseconds = (((ulong)CLExceptionDomain.OnDemand) << 32) | 21, // 5_21
+
+        /// <summary>
+        /// Cloud syncbox renames. Old path required and it must be valid within the syncbox Path.
+        /// </summary>
+        OnDemand_RenameOldPath = (((ulong)CLExceptionDomain.OnDemand) << 32) | 22, // 5_22
+
+        /// <summary>
+        /// Cloud syncbox renames. New path required and it must be valid within the syncbox path.
+        /// </summary>
+        OnDemand_RenameNewPath = (((ulong)CLExceptionDomain.OnDemand) << 32) | 23, // 5_23
+
+        /// <summary>
+        /// Cloud syncbox response item missing a field.
+        /// </summary>
+        OnDemand_MissingResponseField = (((ulong)CLExceptionDomain.OnDemand) << 32) | 24, // 5_24
+
+        /// <summary>
+        /// Item has already been deleted.
+        /// </summary>
+        OnDemand_AlreadyDeleted = (((ulong)CLExceptionDomain.OnDemand) << 32) | 25, // 5_25
+
+        /// <summary>
+        /// Item was not found.
+        /// </summary>
+        OnDemand_NotFound = (((ulong)CLExceptionDomain.OnDemand) << 32) | 26,  // 5_26
+
+        /// <summary>
+        /// Change conflicts with previous state.
+        /// </summary>
+        OnDemand_Conflict = (((ulong)CLExceptionDomain.OnDemand) << 32) | 27,  // 5_27
+
+        /// <summary>
+        /// An error occurred for the current item, check the InnerException Message.
+        /// </summary>
+        OnDemand_ItemError = (((ulong)CLExceptionDomain.OnDemand) << 32) | 28, // 5_28
+
+        /// <summary>
+        /// An unknown status was returned for an item, check the InnerException Message.
+        /// </summary>
+        OnDemand_UnknownItemStatus = (((ulong)CLExceptionDomain.OnDemand) << 32) | 29, // 5_29
+
+        #endregion
+
+        #region FileItem
+
+        /// <summary>
+        /// CLFileItem requires a CLSyncbox
+        /// </summary>
+        FileItem_NullSyncbox = (((ulong)CLExceptionDomain.FileItem) << 32) | 0, // 6_0
+
+        /// <summary>
+        /// (internal constructor) CLFileItem requires a JsonContracts.SyncboxMetadataResponse
+        /// </summary>
+        FileItem_NullResponse = (((ulong)CLExceptionDomain.FileItem) << 32) | 1, // 6_1
+
+        /// <summary>
+        /// (internal constructor) CLFileItem requires one of the following to not be null: IsFolder, headerAction, or action
+        /// </summary>
+        FileItem_NullIsFolder = (((ulong)CLExceptionDomain.FileItem) << 32) | 2, // 6_2
+
+        /// <summary>
+        /// (internal constructor) Unable to determine whether item is a file or a folder from action
+        /// </summary>
+        FileItem_UnknownAction = (((ulong)CLExceptionDomain.FileItem) << 32) | 3 // 6_3
 
         #endregion
 

@@ -131,7 +131,9 @@
     <Compile Include="BadgeNET\IconOverlay.cs" />
     <Compile Include="CLSync\CLCredentials.cs" />
     <Compile Include="CLSync\CLCredentialsSettings.cs" />
+    <Compile Include="CLSync\CLFileItemCompletion.cs" />
     <Compile Include="CLSync\CLSyncbox.cs" />
+    <Compile Include="CLSync\CLSyncboxParameters\RenamePathParams.cs" />
     <Compile Include="CLSync\CLSyncCurrentStatus.cs" />
     <Compile Include="CLSync\CLSyncTransferringFile.cs" />
     <Compile Include="CompilerServices.cs" />

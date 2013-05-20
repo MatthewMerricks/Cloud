@@ -23,6 +23,7 @@ using Cloud.Support;
 using System.Linq.Expressions;
 using Cloud.Model.EventMessages.ErrorInfo;
 using Cloud.CLSync;
+using Cloud.CLSync.CLSyncboxParameters;
 
 namespace Cloud.REST
 {
@@ -53,31 +54,27 @@ namespace Cloud.REST
             _syncbox.Credentials = credentials;
         }
 
-        private void CheckPath(string pathToCheck)
+        private void CheckPath(FilePath pathToCheck, CLExceptionCode codeOnError)
         {
-            if (pathToCheck == null)                
+            if (pathToCheck == null)
             {
-                throw new NullReferenceException("path cannot be null");
+                throw new CLArgumentNullException(codeOnError, Resources.ExceptionOnDemandCheckPathNull);
             }
-            if (pathToCheck != null)
+
+            CLError pathError = Helpers.CheckForBadPath(pathToCheck);
+            if (pathError != null)
             {
-                FilePath filePathToCheck = new FilePath(pathToCheck);
+                throw new CLArgumentException(codeOnError, Resources.ExceptionOnDemandCheckPathBad, pathError.Exceptions);
+            }
 
-                CLError pathError = Helpers.CheckForBadPath(filePathToCheck);
-                if (pathError != null)
-                {
-                    throw new AggregateException("path is not in the proper format", pathError.Exceptions);
-                }
+            if (string.IsNullOrEmpty(_syncbox.Path))
+            {
+                throw new CLArgumentNullException(codeOnError, Resources.ExceptionOnDemandCheckPathSyncboxPathNull);
+            }
 
-                if (string.IsNullOrEmpty(_syncbox.Path))
-                {
-                    throw new NullReferenceException("syncbox path cannot be null");
-                }
-
-                if (!pathToCheck.Contains(_syncbox.Path))
-                {
-                    throw new ArgumentException("path does not contain syncbox path");
-                }
+            if (!pathToCheck.Contains(_syncbox.Path))
+            {
+                throw new CLArgumentException(codeOnError, Resources.ExceptionOnDemandCheckPathNotContained);
             }
         }
 
@@ -370,21 +367,21 @@ namespace Cloud.REST
         /// </summary>
         /// <param name="callback">Callback method to fire when operation completes</param>
         /// <param name="callbackUserState">Userstate to pass when firing async callback</param>
-        /// <param name="paths">An array of full paths to where the files would exist locally on disk</param>
-        /// <param name="newPaths">Array of new full paths corresponding to the paths array</param>
+        /// <param name="pathParams">An array of old paths to new paths for renaming each item</param>
+        /// <param name="completion">Delegate which will be fired upon successful communication for every response item</param>
+        /// <param name="completionState">Userstate to be passed whenever the completion delegate is fired</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginRenameFiles(AsyncCallback callback, object callbackUserState, string [] paths, string [] newPaths)
+        internal IAsyncResult BeginRenameFiles(AsyncCallback callback, object callbackUserState, RenamePathParams[] pathParams, CLFileItemCompletion completion, object completionState)
         {
             var asyncThread = DelegateAndDataHolderBase.Create(
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
                 new
                 {
                     // create the asynchronous result to return
-                    toReturn = new GenericAsyncResult<SyncboxRenameFilesResult>(
+                    toReturn = new GenericAsyncResult<CLError>(
                         callback,
                         callbackUserState),
-                    paths,
-                    newPaths
+                    pathParams
                 },
                 (Data, errorToAccumulate) =>
                 {
@@ -392,22 +389,13 @@ namespace Cloud.REST
                     // try/catch to process with the input parameters, on catch set the exception in the asyncronous result
                     try
                     {
-                        // declare the output status for communication
-                        // declare the specific type of result for this operation
-                        CLFileItem [] responses;
-                        CLError [] errors;
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
                         CLError overallError = RenameFiles(
-                            Data.paths,
-                            Data.newPaths,
-                            out responses,
-                            out errors);
+                            Data.pathParams,
+                            completion,
+                            completionState);
 
-                        Data.toReturn.Complete(
-                            new SyncboxRenameFilesResult(
-                                overallError, // any overall error that may have occurred during processing
-                                errors,     // any item erros that may have occurred during processing
-                                responses), // the specific type of result for this operation
+                        Data.toReturn.Complete(overallError, // any overall error that may have occurred during processing
                             sCompleted: false); // processing did not complete synchronously
                     }
                     catch (Exception ex)
@@ -431,40 +419,58 @@ namespace Cloud.REST
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
         /// </summary>
         /// <param name="aResult">The asynchronous result provided upon starting the request</param>
-        /// <param name="result">(output) The result from the request</param>
+        /// <param name="overallError">(output) An overall error which occurred during processing, if any</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndRenameFiles(IAsyncResult aResult, out SyncboxRenameFilesResult result)
+        internal CLError EndRenameFiles(IAsyncResult aResult, out CLError overallError)
         {
-            return Helpers.EndAsyncOperation<SyncboxRenameFilesResult>(aResult, out result);
+            return Helpers.EndAsyncOperation<CLError>(aResult, out overallError);
         }
 
         /// <summary>
         /// Rename files in the cloud.
         /// </summary>
-        /// <param name="paths">An array of full paths to where the files would exist locally on disk</param>
-        /// <param name="newPaths">Array of new full paths corresponding to the paths array</param>
-        /// <param name="responses">(output) An array of response objects from communication</param>
-        /// <param name="errors">(output) An array of errors from communication.</param>
+        /// <param name="pathParams">An array of old paths to new paths for renaming each item</param>
+        /// <param name="completion">Delegate which will be fired upon successful communication for every response item</param>
+        /// <param name="completionState">Userstate to be passed whenever the completion delegate is fired</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError RenameFiles(string [] paths, string [] newPaths, out CLFileItem [] responses, out CLError [] errors)
+        internal CLError RenameFiles(RenamePathParams[] pathParams, CLFileItemCompletion completion, object completionState)
         {
             // try/catch to process the request,  On catch return the error
             try
             {
                 // check input parameters.
-                if (paths.Length != newPaths.Length)
+
+                if (pathParams == null
+                    || pathParams.Length == 0)
                 {
-                    throw new ArgumentException("The paths and newPaths arrays must have the same number of elements");
+                    throw new CLArgumentNullException(
+                        CLExceptionCode.OnDemand_RenameMissingParameters,
+                        Resources.ExceptionOnDemandRenameMissingParameters);
                 }
-                for (int i = 0; i < paths.Length; ++i)
+
+                FileOrFolderMove[] jsonContractMoves = new FileOrFolderMove[pathParams.Length];
+                FilePath syncboxPathObject = _syncbox.Path;
+
+                for (int paramIdx = 0; paramIdx < pathParams.Length; paramIdx++)
                 {
-                    CheckPath(paths[i]);
-                    CheckPath(newPaths[i]);
+                    RenamePathParams currentParams = pathParams[paramIdx];
+
+                    FilePath currentOldPath = currentParams.OldPath;
+                    CheckPath(currentOldPath, CLExceptionCode.OnDemand_RenameOldPath);
+
+                    FilePath currentNewPath = currentParams.NewPath;
+                    CheckPath(currentNewPath, CLExceptionCode.OnDemand_RenameNewPath);
+
+                    jsonContractMoves[paramIdx] = new FileOrFolderMove()
+                    {
+                        RelativeFromPath = currentOldPath.GetRelativePath(syncboxPathObject, replaceWithForwardSlashes: true),
+                        RelativeToPath = currentNewPath.GetRelativePath(syncboxPathObject, replaceWithForwardSlashes: true)
+                    };
                 }
 
                 if (!(_copiedSettings.HttpTimeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException("timeoutMilliseconds must be greater than zero");
+                    throw new CLArgumentException(CLExceptionCode.OnDemand_TimeoutMilliseconds, Resources.CLCredentialMSTimeoutMustBeGreaterThanZero);
                 }
 
                 // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
@@ -480,30 +486,33 @@ namespace Cloud.REST
                 // Build the REST content dynamically.
                 // File move (rename) and folder move (rename) share a json contract object for move (rename).
                 // This will be an array of contracts.
-                int numberOfFiles = paths.Length;
-                List<FileOrFolderMove> listMoveContract = new List<FileOrFolderMove>();
-                for (int i = 0; i < numberOfFiles; ++i)
-                {
-                    FilePath filePath = new FilePath(paths[i]);
-                    FilePath newFilePath = new FilePath(newPaths[i]);
 
-                    FileOrFolderMove thisMove = new FileOrFolderMove()
-                    {
-                        //DeviceId = _copiedSettings.DeviceId,
-                        RelativeFromPath = filePath.GetRelativePath(_syncbox.Path, true),
-                        RelativeToPath = newFilePath.GetRelativePath(_syncbox.Path, true),
-                        //SyncboxId = _syncbox.SyncboxId
-                    };
+                //// Old code:
+                //
+                //List<FileOrFolderMove> listMoveContract = new List<FileOrFolderMove>();
+                //for (int i = 0; i < numberOfFiles; ++i)
+                //{
+                //    FilePath filePath = new FilePath(paths[i]);
+                //    FilePath newFilePath = new FilePath(newPaths[i]);
 
-                    listMoveContract.Add(thisMove);
-                }
+                //    FileOrFolderMove thisMove = new FileOrFolderMove()
+                //    {
+                //        //DeviceId = _copiedSettings.DeviceId,
+                //        RelativeFromPath = filePath.GetRelativePath(_syncbox.Path, true),
+                //        RelativeToPath = newFilePath.GetRelativePath(_syncbox.Path, true),
+                //        //SyncboxId = _syncbox.SyncboxId
+                //    };
+
+                //    listMoveContract.Add(thisMove);
+                //}
 
                 // Now make the REST request content.
                 object requestContent = new JsonContracts.FileOrFolderMoves()
                 {
                     SyncboxId = _syncbox.SyncboxId,
-                    Moves = listMoveContract.ToArray(), 
-                    DeviceId = _copiedSettings.DeviceId,
+                    Moves = jsonContractMoves,
+                    //listMoveContract.ToArray(),
+                    DeviceId = _copiedSettings.DeviceId
                 };
 
                 // server method path switched on whether change is a folder or not
@@ -525,48 +534,106 @@ namespace Cloud.REST
                 // Convert these items to the output array.
                 if (responseFromServer != null && responseFromServer.MoveResponses != null)
                 {
+                    if (responseFromServer.MoveResponses.Length != pathParams.Length)
+                    {
+                        throw new CLException(CLExceptionCode.OnDemand_FileRename, Resources.ExceptionOnDemandResponseArrayLength);
+                    }
+
                     List<CLFileItem> listFileItems = new List<CLFileItem>();
                     List<CLError> listErrors = new List<CLError>();
-                    foreach (FileChangeResponse fileChangeResponse in responseFromServer.MoveResponses)
+
+                    for (int responseIdx = 0; responseIdx < responseFromServer.MoveResponses.Length; responseIdx++)
                     {
-                        if (fileChangeResponse != null && fileChangeResponse.Metadata != null)
+                        try
                         {
-                            try
+                            FileChangeResponse currentMoveResponse = responseFromServer.MoveResponses[responseIdx];
+
+                            if (currentMoveResponse == null)
                             {
-                                listFileItems.Add(new CLFileItem(fileChangeResponse.Metadata, _syncbox));
+                                throw new CLNullReferenceException(CLExceptionCode.OnDemand_MissingResponseField, Resources.ExceptionOnDemandNullItem);
                             }
-                            catch (Exception ex)
+                            if (currentMoveResponse.Header == null || string.IsNullOrEmpty(currentMoveResponse.Header.Status))
                             {
-                                CLException exInner = new CLException(CLExceptionCode.Rest_Syncbox_File_Rename_Invalid_Metadata, ex.Message, ex);
-                                listErrors.Add(new CLError(exInner));
+                                throw new CLNullReferenceException(CLExceptionCode.OnDemand_MissingResponseField, Resources.ExceptionOnDemandNullStatus);
+                            }
+                            if (currentMoveResponse.Metadata == null)
+                            {
+                                throw new CLNullReferenceException(CLExceptionCode.OnDemand_MissingResponseField, Resources.ExceptionOnDemandNullMetadata);
+                            }
+
+                            switch (currentMoveResponse.Header.Status)
+                            {
+                                case CLDefinitions.CLEventTypeNoOperation:
+                                case CLDefinitions.CLEventTypeAccepted:
+                                    CLFileItem resultItem = new CLFileItem(currentMoveResponse.Metadata, currentMoveResponse.Header.Action, currentMoveResponse.Action, _syncbox);
+                                    if (completion != null)
+                                    {
+                                        try
+                                        {
+                                            completion(responseIdx, resultItem, error: null, userState: completionState);
+                                        }
+                                        catch
+                                        {
+                                        }
+                                    }
+                                    break;
+
+                                case CLDefinitions.CLEventTypeAlreadyDeleted:
+                                    throw new CLException(CLExceptionCode.OnDemand_AlreadyDeleted, Resources.ExceptionOnDemandAlreadyDeleted);
+
+                                //// to_parent_uid not an input parameter, we do not expect to see it in the status so it is commented out:
+                                //case CLDefinitions.CLEventTypeToParentNotFound:
+                                case CLDefinitions.CLEventTypeNotFound:
+                                    throw new CLException(CLExceptionCode.OnDemand_NotFound, Resources.ExceptionOnDemandNotFound);
+
+                                case CLDefinitions.CLEventTypeConflict:
+                                    throw new CLException(CLExceptionCode.OnDemand_Conflict, Resources.ExceptionOnDemandConflict);
+
+                                case CLDefinitions.RESTResponseStatusFailed:
+                                    Exception innerEx;
+                                    string errorMessageString;
+                                    try
+                                    {
+                                        errorMessageString = string.Join(Environment.NewLine, currentMoveResponse.Metadata.ErrorMessage);
+                                        innerEx = null;
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        errorMessageString = Resources.ExceptionOnDemandDeserializeErrorMessage;
+                                        innerEx = ex;
+                                    }
+
+                                    throw new CLException(CLExceptionCode.OnDemand_ItemError, Resources.ExceptionOnDemandItemError, new Exception(errorMessageString, innerEx));
+
+                                default:
+                                    throw new CLException(CLExceptionCode.OnDemand_UnknownItemStatus, string.Format(Resources.ExceptionOnDemandUnknownItemStatus, currentMoveResponse.Header.Status));
                             }
                         }
-                        else
+                        catch (Exception ex)
                         {
-                            string msg = "<Unknown>";
-                            if (fileChangeResponse.Header.Status != null)
+                            if (completion != null)
                             {
-                                msg = fileChangeResponse.Header.Status;
+                                try
+                                {
+                                    completion(responseIdx, completedItem: null, error: ex, userState: completionState);
+                                }
+                                catch
+                                {
+                                }
                             }
-                            
-                            CLException ex = new CLException(CLExceptionCode.Rest_Syncbox_File_Rename, msg);
-                            listErrors.Add(new CLError(ex));
                         }
                     }
-                    responses = listFileItems.ToArray();
-                    errors = listErrors.ToArray();
                 }
                 else
                 {
-                    throw new NullReferenceException(Resources.ExceptionCLHttpRestWithoutMoveResponses);
+                    throw new CLNullReferenceException(CLExceptionCode.OnDemand_FileRename, Resources.ExceptionCLHttpRestWithoutMoveResponses);
                 }
             }
             catch (Exception ex)
             {
-                responses = Helpers.DefaultForType<CLFileItem []>();
-                errors = Helpers.DefaultForType<CLError[]>();
                 return ex;
             }
+
             return null;
         }
         #endregion  // end RenameFiles (Renames files in the cloud.)
@@ -744,7 +811,7 @@ namespace Cloud.REST
                             }
                             catch (Exception ex)
                             {
-                                CLException exInner = new CLException(CLExceptionCode.Rest_Syncbox_Folder_Rename_Invalid_Metadata, ex.Message, ex);
+                                CLException exInner = new CLException(CLExceptionCode.OnDemand_FolderRenameInvalidMetadata, ex.Message, ex);
                                 listErrors.Add(new CLError(exInner));
                             }
                         }
@@ -756,7 +823,7 @@ namespace Cloud.REST
                                 msg = fileChangeResponse.Header.Status;
                             }
 
-                            CLException ex = new CLException(CLExceptionCode.Rest_Syncbox_Folder_Rename, msg);
+                            CLException ex = new CLException(CLExceptionCode.OnDemand_FolderRename, msg);
                             listErrors.Add(new CLError(ex));
                         }
                     }
@@ -940,7 +1007,7 @@ namespace Cloud.REST
                             }
                             catch (Exception ex)
                             {
-                                CLException exInner = new CLException(CLExceptionCode.Rest_Syncbox_File_Delete_Invalid_Metadata, ex.Message, ex);
+                                CLException exInner = new CLException(CLExceptionCode.OnDemand_FileDeleteInvalidMetadata, ex.Message, ex);
                                 listErrors.Add(new CLError(exInner));
                             }
                         }
@@ -952,7 +1019,7 @@ namespace Cloud.REST
                                 msg = fileChangeResponse.Header.Status;
                             }
 
-                            CLException ex = new CLException(CLExceptionCode.Rest_Syncbox_File_Delete, msg);
+                            CLException ex = new CLException(CLExceptionCode.OnDemand_FileDelete, msg);
                             listErrors.Add(new CLError(ex));
                         }
                     }
@@ -1134,7 +1201,7 @@ namespace Cloud.REST
                             }
                             catch (Exception ex)
                             {
-                                CLException exInner = new CLException(CLExceptionCode.Rest_Syncbox_Folder_Delete_Invalid_Metadata, ex.Message, ex);
+                                CLException exInner = new CLException(CLExceptionCode.OnDemand_FolderDeleteInvalidMetadata, ex.Message, ex);
                                 listErrors.Add(new CLError(exInner));
                             }
                         }
@@ -1146,7 +1213,7 @@ namespace Cloud.REST
                                 msg = fileChangeResponse.Header.Status;
                             }
 
-                            CLException ex = new CLException(CLExceptionCode.Rest_Syncbox_Folder_Delete, msg);
+                            CLException ex = new CLException(CLExceptionCode.OnDemand_FolderDelete, msg);
                             listErrors.Add(new CLError(ex));
                         }
                     }
@@ -1328,7 +1395,7 @@ namespace Cloud.REST
                             }
                             catch (Exception ex)
                             {
-                                CLException exInner = new CLException(CLExceptionCode.Rest_Syncbox_Folder_Add_Invalid_Metadata, ex.Message, ex);
+                                CLException exInner = new CLException(CLExceptionCode.OnDemand_FolderAddInvalidMetadata, ex.Message, ex);
                                 listErrors.Add(new CLError(exInner));
                             }
                         }
@@ -1340,7 +1407,7 @@ namespace Cloud.REST
                                 msg = fileChangeResponse.Header.Status;
                             }
 
-                            CLException ex = new CLException(CLExceptionCode.Rest_Syncbox_Folder_Add, msg);
+                            CLException ex = new CLException(CLExceptionCode.OnDemand_FolderAdd, msg);
                             listErrors.Add(new CLError(ex));
                         }
                     }
@@ -1522,7 +1589,7 @@ namespace Cloud.REST
                             }
                             catch (Exception ex)
                             {
-                                CLException exInner = new CLException(CLExceptionCode.Rest_Syncbox_File_Add_Invalid_Metadata, ex.Message, ex);
+                                CLException exInner = new CLException(CLExceptionCode.OnDemand_FileAddInvalidMetadata, ex.Message, ex);
                                 listErrors.Add(new CLError(exInner));
                             }
                         }
@@ -1534,7 +1601,7 @@ namespace Cloud.REST
                                 msg = fileChangeResponse.Header.Status;
                             }
 
-                            CLException ex = new CLException(CLExceptionCode.Rest_Syncbox_File_Add, msg);
+                            CLException ex = new CLException(CLExceptionCode.OnDemand_FileAdd, msg);
                             listErrors.Add(new CLError(ex));
                         }
                     }
@@ -2299,7 +2366,7 @@ namespace Cloud.REST
         /// </summary>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError GetAllVideoItems(out CLFileItem [] response)
+        public CLError GetAllVideoItems(out CLFileItem[] response)
         {
             // try/catch to process the videos query, on catch return the error
             try
@@ -2367,7 +2434,7 @@ namespace Cloud.REST
             }
             catch (Exception ex)
             {
-                response = Helpers.DefaultForType<CLFileItem []>();
+                response = Helpers.DefaultForType<CLFileItem[]>();
                 return ex;
             }
             return null;
@@ -2443,7 +2510,7 @@ namespace Cloud.REST
         /// </summary>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError GetAllAudioItems(out CLFileItem [] response)
+        public CLError GetAllAudioItems(out CLFileItem[] response)
         {
             // try/catch to process the audios query, on catch return the error
             try
@@ -2511,7 +2578,7 @@ namespace Cloud.REST
             }
             catch (Exception ex)
             {
-                response = Helpers.DefaultForType<CLFileItem []>();
+                response = Helpers.DefaultForType<CLFileItem[]>();
                 return ex;
             }
             return null;
@@ -3736,7 +3803,7 @@ namespace Cloud.REST
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError GetFolderContentsAtPath(
             string path,
-            out CLFileItem [] response)
+            out CLFileItem[] response)
         {
             // try/catch to process the folder contents query, on catch return the error
             try
@@ -3838,7 +3905,7 @@ namespace Cloud.REST
             }
             catch (Exception ex)
             {
-                response = Helpers.DefaultForType<CLFileItem []>();
+                response = Helpers.DefaultForType<CLFileItem[]>();
                 return ex;
             }
             return null;
