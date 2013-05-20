@@ -3345,7 +3345,7 @@ namespace Cloud
         /// </summary>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError GetAllTextItems(CLFileItem[] response)
+        public CLError GetAllTextItems(out CLFileItem[] response)
         {
             CheckDisposed();
             return _httpRestClient.GetAllTextItems(out response);
@@ -3383,7 +3383,7 @@ namespace Cloud
         /// </summary>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError GetAllArchiveItems(CLFileItem[] response)
+        public CLError GetAllArchiveItems(out CLFileItem[] response)
         {
             CheckDisposed();
             return _httpRestClient.GetAllArchiveItems(out response);
