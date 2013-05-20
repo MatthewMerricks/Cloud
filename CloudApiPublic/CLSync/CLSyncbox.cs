@@ -3307,7 +3307,7 @@ namespace Cloud
         /// </summary>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError GetAllPresentationItems(CLFileItem[] response)
+        public CLError GetAllPresentationItems(out CLFileItem[] response)
         {
             CheckDisposed();
             return _httpRestClient.GetAllPresentationItems(out response);
