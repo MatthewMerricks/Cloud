@@ -345,7 +345,7 @@ namespace Cloud.REST
                 // Convert the response to the expected output object.
                 if (responseFromServer != null)
                 {
-                    response = new CLFileItem(responseFromServer, _syncbox);
+                    response = new CLFileItem(responseFromServer,  _syncbox);
                 }
                 else
                 {
@@ -419,11 +419,11 @@ namespace Cloud.REST
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
         /// </summary>
         /// <param name="aResult">The asynchronous result provided upon starting the request</param>
-        /// <param name="overallError">(output) An overall error which occurred during processing, if any</param>
+        /// <param name="result">(output) An overall error which occurred during processing, if any</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        internal CLError EndRenameFiles(IAsyncResult aResult, out CLError overallError)
+        internal CLError EndRenameFiles(IAsyncResult aResult, out SyncboxRenameFilesResult result)
         {
-            return Helpers.EndAsyncOperation<CLError>(aResult, out overallError);
+            return Helpers.EndAsyncOperation<SyncboxRenameFilesResult>(aResult, out result);
         }
 
         /// <summary>
@@ -732,8 +732,8 @@ namespace Cloud.REST
                 }
                 for (int i = 0; i < paths.Length; ++i)
                 {
-                    CheckPath(paths[i]);
-                    CheckPath(newPaths[i]);
+                    CheckPath(paths[i], CLExceptionCode.OnDemand_RenameOldPath);
+                    CheckPath(newPaths[i], CLExceptionCode.OnDemand_RenameNewPath);
                 }
 
                 if (!(_copiedSettings.HttpTimeoutMilliseconds > 0))
@@ -807,7 +807,7 @@ namespace Cloud.REST
                         {
                             try
                             {
-                                listFileItems.Add(new CLFileItem(fileChangeResponse.Metadata, _syncbox));
+                                listFileItems.Add(new CLFileItem(fileChangeResponse.Metadata, fileChangeResponse.Header.Action, fileChangeResponse.Action, _syncbox));
                             }
                             catch (Exception ex)
                             {
@@ -931,7 +931,7 @@ namespace Cloud.REST
                 // Check the input parameters
                 for (int i = 0; i < paths.Length; ++i)
                 {
-                    CheckPath(paths[i]);
+                    CheckPath(paths[i], CLExceptionCode.OnDemand_FileDeleteBadPath);
                 }
 
                 if (!(_copiedSettings.HttpTimeoutMilliseconds > 0))
@@ -1003,7 +1003,7 @@ namespace Cloud.REST
                         {
                             try
                             {
-                                listFileItems.Add(new CLFileItem(fileChangeResponse.Metadata, _syncbox));
+                                listFileItems.Add(new CLFileItem(fileChangeResponse.Metadata, fileChangeResponse.Header.Action, fileChangeResponse.Action, _syncbox));
                             }
                             catch (Exception ex)
                             {
@@ -1127,7 +1127,7 @@ namespace Cloud.REST
                 // check input parameters.
                 for (int i = 0; i < paths.Length; ++i)
                 {
-                    CheckPath(paths[i]);
+                    CheckPath(paths[i], CLExceptionCode.OnDemand_FolderDeleteBadPath);
                 }
 
                 if (!(_copiedSettings.HttpTimeoutMilliseconds > 0))
@@ -1197,7 +1197,7 @@ namespace Cloud.REST
                         {
                             try
                             {
-                                listFileItems.Add(new CLFileItem(fileChangeResponse.Metadata, _syncbox));
+                                listFileItems.Add(new CLFileItem(fileChangeResponse.Metadata, fileChangeResponse.Header.Action, fileChangeResponse.Action, _syncbox));
                             }
                             catch (Exception ex)
                             {
@@ -1321,7 +1321,8 @@ namespace Cloud.REST
                 // check input parameters.
                 for (int i = 0; i < paths.Length; ++i)
                 {
-                    CheckPath(paths[i]);
+                    
+                    CheckPath(paths[i], CLExceptionCode.OnDemand_FolderAddBadPath);
                 }
 
                 if (!(_copiedSettings.HttpTimeoutMilliseconds > 0))
@@ -1391,7 +1392,7 @@ namespace Cloud.REST
                         {
                             try
                             {
-                                listFileItems.Add(new CLFileItem(fileChangeResponse.Metadata, _syncbox));
+                                listFileItems.Add(new CLFileItem(fileChangeResponse.Metadata, fileChangeResponse.Header.Action, fileChangeResponse.Action, _syncbox));
                             }
                             catch (Exception ex)
                             {
@@ -1515,7 +1516,7 @@ namespace Cloud.REST
                 // check input parameters.
                 for (int i = 0; i < paths.Length; ++i)
                 {
-                    CheckPath(paths[i]);
+                    CheckPath(paths[i], CLExceptionCode.OnDemand_FileAddBadPath);
                 }
 
                 if (!(_copiedSettings.HttpTimeoutMilliseconds > 0))
@@ -1585,7 +1586,7 @@ namespace Cloud.REST
                         {
                             try
                             {
-                                listFileItems.Add(new CLFileItem(fileChangeResponse.Metadata, _syncbox));
+                                listFileItems.Add(new CLFileItem(fileChangeResponse.Metadata, fileChangeResponse.Header.Action, fileChangeResponse.Action, _syncbox));
                             }
                             catch (Exception ex)
                             {

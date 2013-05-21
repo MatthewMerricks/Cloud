@@ -6357,6 +6357,7 @@ namespace Cloud.Sync
                     throw new NullReferenceException("exceptionState's FileChange cannot be null");
                 }
 
+                CLHttpException castFourthException;
                 // build the first part of a message which will be sent to an event handler for error messages
                 string growlErrorMessage = "An error occurred downloading " +
                     exceptionState.FileChange.FileChange.NewPath.ToString() + ": " +
@@ -6365,13 +6366,21 @@ namespace Cloud.Sync
                     // so attempt to grab it from there otherwise attempt to grab it from the exception's inner exception otherwise attempt to grab it from the exception itself
 
                     ((exceptions.InnerException == null || exceptions.InnerException.InnerException == null || string.IsNullOrEmpty(exceptions.InnerException.InnerException.Message)
-                        || exceptions.InnerException.InnerException.InnerException == null || string.IsNullOrEmpty(exceptions.InnerException.InnerException.InnerException.Message))
-                        ? ((exceptions.InnerException == null || exceptions.InnerException.InnerException == null || string.IsNullOrEmpty(exceptions.InnerException.InnerException.Message))
-                            ? ((exceptions.InnerException == null || string.IsNullOrEmpty(exceptions.InnerException.Message))
-                                ? exceptions.Message // failed to find the second inner exception in the exception, so output the deepest found
-                                : exceptions.InnerException.Message) // failed to find the second inner exception in the exception, so output the deepest found
-                            : exceptions.InnerException.InnerException.Message) // failed to find the third inner exception in the exception, so output the deepest found
-                        : exceptions.InnerException.InnerException.InnerException.Message); // success for finding all inner exceptions up to the real source of the error
+                        || exceptions.InnerException.InnerException.InnerException == null || string.IsNullOrEmpty(exceptions.InnerException.InnerException.InnerException.Message)
+                        || (castFourthException = exceptions.InnerException.InnerException.InnerException as CLHttpException) == null || castFourthException.HttpStatus == null)
+
+                        ? ((exceptions.InnerException == null || exceptions.InnerException.InnerException == null || string.IsNullOrEmpty(exceptions.InnerException.InnerException.Message)
+                            || exceptions.InnerException.InnerException.InnerException == null || string.IsNullOrEmpty(exceptions.InnerException.InnerException.InnerException.Message))
+
+                            ? ((exceptions.InnerException == null || exceptions.InnerException.InnerException == null || string.IsNullOrEmpty(exceptions.InnerException.InnerException.Message))
+
+                                ? ((exceptions.InnerException == null || string.IsNullOrEmpty(exceptions.InnerException.Message))
+                                    ? exceptions.Message // failed to find the second inner exception in the exception, so output the deepest found
+                                    : exceptions.InnerException.Message) // failed to find the second inner exception in the exception, so output the deepest found
+                                : exceptions.InnerException.InnerException.Message) // failed to find the third inner exception in the exception, so output the deepest found
+                            : exceptions.InnerException.InnerException.InnerException.Message) // success for finding all inner exceptions up to the real source of the error
+                        : string.Format(Resources.ExceptionSyncEngineHttpStatus, exceptions.InnerException.InnerException.InnerException.Message, (int)((HttpStatusCode)castFourthException.HttpStatus))); // success for finding all inner exceptions up to the real source of the error
+                                                                                                                                                                                                           // and the error is the http type with a status code to include
 
                 // declare a bool for whether error is serious (failed and no longer retrying)
                 bool isErrorSerious;

@@ -223,6 +223,16 @@ namespace Cloud.Static
         /// </summary>
         Syncbox_GeneralStart = (((ulong)CLExceptionDomain.Syncing) << 32) | 19,  // 2_19
 
+        /// <summary>
+        /// The syncbox path has already been set.
+        /// </summary>
+        Syncbox_PathAlreadySet = (((ulong)CLExceptionDomain.Syncing) << 32) | 20,  // 2_20
+
+        /// <summary>
+        /// Error initializing the syncbox.
+        /// </summary>
+        Syncbox_Initializing = (((ulong)CLExceptionDomain.Syncing) << 32) | 21,  // 2_21
+
         #endregion
 
         #region ShellExt
@@ -414,6 +424,26 @@ namespace Cloud.Static
         /// An unknown status was returned for an item, check the InnerException Message.
         /// </summary>
         OnDemand_UnknownItemStatus = (((ulong)CLExceptionDomain.OnDemand) << 32) | 29, // 5_29
+
+        /// <summary>
+        /// Cloud syncbox file delete bad path
+        /// </summary>
+        OnDemand_FileDeleteBadPath = (((ulong)CLExceptionDomain.OnDemand) << 32) | 30, // 5_30
+
+        /// <summary>
+        /// Cloud syncbox folder delete bad path
+        /// </summary>
+        OnDemand_FolderDeleteBadPath = (((ulong)CLExceptionDomain.OnDemand) << 32) | 31, // 5_31
+
+        /// <summary>
+        /// Cloud syncbox file add bad path
+        /// </summary>
+        OnDemand_FileAddBadPath = (((ulong)CLExceptionDomain.OnDemand) << 32) | 32, // 5_32
+
+        /// <summary>
+        /// Cloud syncbox folder add bad path
+        /// </summary>
+        OnDemand_FolderAddBadPath = (((ulong)CLExceptionDomain.OnDemand) << 32) | 33, // 5_33
 
         #endregion
 

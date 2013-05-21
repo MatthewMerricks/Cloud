@@ -2610,6 +2610,15 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The syncbox path has already been set.
+        /// </summary>
+        internal static string ExceptionOnDemandSyncboxPathAlreadySet {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandSyncboxPathAlreadySet", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to An unknown status was returned for an item. Status: {0}.
         /// </summary>
         internal static string ExceptionOnDemandUnknownItemStatus {
@@ -2687,6 +2696,15 @@ namespace Cloud.Static {
         internal static string ExceptionSyncboxStartStatus {
             get {
                 return ResourceManager.GetString("ExceptionSyncboxStartStatus", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0}. Http status code: {1}.
+        /// </summary>
+        internal static string ExceptionSyncEngineHttpStatus {
+            get {
+                return ResourceManager.GetString("ExceptionSyncEngineHttpStatus", resourceCulture);
             }
         }
         

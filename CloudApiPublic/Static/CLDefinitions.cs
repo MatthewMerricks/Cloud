@@ -549,6 +549,7 @@ namespace Cloud.Static
         public const string CLMetadataFiles = "files";
         public const string CLMetadataFile = "file";
         public const string CLMetadataServerId = "uid";
+        public const string CLMetadataFileDownloadServerUid = "file_uid";
         public const string CLMetadataTotalCount = "total_count";
         public const string CLMetadataIsStored = "is_stored";
         public const string CLMetadataLocal = "local";

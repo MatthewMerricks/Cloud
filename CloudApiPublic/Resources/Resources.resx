@@ -1561,4 +1561,10 @@
     <value>An unknown status was returned for an item. Status: {0}</value>
     <comment>status, InnerException, and Message should not be translated</comment>
   </data>
+  <data name="ExceptionOnDemandSyncboxPathAlreadySet" xml:space="preserve">
+    <value>The syncbox path has already been set</value>
+  </data>
+  <data name="ExceptionSyncEngineHttpStatus" xml:space="preserve">
+    <value>{0}. Http status code: {1}</value>
+  </data>
 </root>
