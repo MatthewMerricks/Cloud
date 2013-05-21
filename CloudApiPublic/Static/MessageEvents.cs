@@ -595,6 +595,69 @@ namespace Cloud.Static
 
             return toReturn;
         }
+        public static EventHandledLevel DetectedInternetConnectivityChange(
+            bool internetConnected)
+        {
+            EventHandledLevel toReturn;
+
+            EventMessageArgs newArgs = new EventMessageArgs(
+                new InternetChangeMessage(internetConnected));
+
+            lock (NewEventMessageLocker)
+            {
+                if (_newEventMessage == null)
+                {
+                    toReturn = EventHandledLevel.NothingFired;
+                }
+                else
+                {
+                    try
+                    {
+                        _newEventMessage(newArgs);
+                    }
+                    catch
+                    {
+                    }
+
+                    toReturn = (newArgs.Handled
+                        ? EventHandledLevel.IsHandled
+                        : EventHandledLevel.FiredButNotHandled);
+                }
+            }
+
+            bool receiverFired = false;
+            bool receiverHandled = false;
+
+            lock (InternalReceivers)
+            {
+                foreach (IEventMessageReceiver currentReceiver in InternalReceivers.Values)
+                {
+                    try
+                    {
+                        currentReceiver.InternetConnectivityChanged(new InternetConnectivityMessage(newArgs));
+
+                        receiverFired = true;
+                    }
+                    catch
+                    {
+                    }
+
+                    if (newArgs.Handled)
+                    {
+                        receiverHandled = true;
+                    }
+                }
+            }
+
+            if (receiverFired)
+            {
+                toReturn = (receiverHandled
+                    ? EventHandledLevel.IsHandled
+                    : EventHandledLevel.FiredButNotHandled);
+            }
+
+            return toReturn;
+        }
         #endregion
 
         #region internal events

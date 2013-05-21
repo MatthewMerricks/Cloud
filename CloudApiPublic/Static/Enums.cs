@@ -473,7 +473,8 @@ namespace Cloud.Static
         SuccessfulUploadsIncremented,
         SuccessfulDownloadsIncremented,
         UploadingCountChanged,
-        DownloadingCountChanged
+        DownloadingCountChanged,
+        InternetConnectivityChanged
     }
 
     /// <summary>

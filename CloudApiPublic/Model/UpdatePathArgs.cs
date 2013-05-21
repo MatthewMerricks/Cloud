@@ -22,7 +22,7 @@ namespace Cloud.Model
                 return _state;
             }
         }
-        private PathState _state;
+        private readonly PathState _state;
 
         public FilePath Path
         {
@@ -31,7 +31,7 @@ namespace Cloud.Model
                 return _path;
             }
         }
-        private FilePath _path;
+        private readonly FilePath _path;
 
         public UpdatePathArgs(SetBadge badgeChange)
         {

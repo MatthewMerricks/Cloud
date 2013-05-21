@@ -14,7 +14,7 @@ namespace Cloud.Model
                 return _mergedFileChanges;
             }
         }
-        private FileChangeMerge _mergedFileChanges;
+        private readonly FileChangeMerge _mergedFileChanges;
 
         public FileChangeMergeToStateArgs(FileChangeMerge mergedFileChanges)
         {

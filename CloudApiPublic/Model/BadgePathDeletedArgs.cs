@@ -22,7 +22,7 @@ namespace Cloud.Model
                 return _deleteBadgePath;
             }
         }
-        private DeleteBadgePath _deleteBadgePath;
+        private readonly DeleteBadgePath _deleteBadgePath;
 
         public bool IsDeleted
         {

@@ -195,6 +195,8 @@ namespace SampleLiveSync.EventMessageReceiver
         private UploadingMessage uploading = null;
         // define the message for incrementing the uploaded file cound which can dynamically change to update the growl, defaulting to none
         private UploadedMessage uploaded = null;
+        // define the message for internet connectiviy change to update the growl, defaulting to none
+        private InternetConnectivityMessage connectivity = null;
 
         // define the time at which the growl will finish fading into being completely opaque, defaulting to none
         private Nullable<DateTime> firstFadeInCompletion = null;
@@ -484,6 +486,43 @@ namespace SampleLiveSync.EventMessageReceiver
                     {
                         Application.Current.Dispatcher.BeginInvoke((Action<EventMessage>)AddEventMessageToGrowl, // the method which adds a growl message locks for modification
                             (EventMessage)uploaded);
+                    }
+                }
+            }
+
+            // event was handled
+            e.MarkHandled();
+        }
+
+        void IEventMessageReceiver.InternetConnectivityChanged(IInternetConnectivityMessage e)
+        {
+            // lock on the growl messages for modification
+            lock (_growlMessages)
+            {
+                // declare a bool for whether a new growl message needed to be created
+                bool newMessage;
+
+                // if there is no current message for the internet connectivity, then create the new message 
+                if (connectivity == null)
+                {
+                    connectivity = new InternetConnectivityMessage(e.InternetConnected);
+                    newMessage = true;
+                }
+                // else if there was not already an existing message for internet connectivity, then update it
+                else
+                {
+                    connectivity.SetInternetConnected(e.InternetConnected);
+
+                    newMessage = false;
+                }
+
+                // if a new message was created, then add the new message to the growl
+                if (newMessage)
+                {
+                    if (Application.Current != null)
+                    {
+                        Application.Current.Dispatcher.BeginInvoke((Action<EventMessage>)AddEventMessageToGrowl, // the method which adds a growl message locks for modification
+                            (EventMessage)connectivity);
                     }
                 }
             }
