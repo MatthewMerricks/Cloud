@@ -188,7 +188,6 @@ namespace Cloud
         private static readonly List<CLSyncEngine> _startedSyncEngines = new List<CLSyncEngine>();
         private static readonly object _startLocker = new object();
 
-        private readonly CLSyncEngine _syncEngine;
         private bool _isStarted = false;
         private bool Disposed = false;   // This stores if this current instance has been disposed (defaults to not disposed)
         private readonly ReaderWriterLockSlim _propertyChangeLocker = new ReaderWriterLockSlim();  // for locking any reads and writes to the changeable properties.
@@ -227,22 +226,28 @@ namespace Cloud
         {
             get
             {
-                return _httpRestClient.IsModifyingSyncboxViaPublicAPICalls;
+                if (setPathLocker != null)
+                {
+                    Monitor.Enter(setPathLocker);
+                }
+                try
+                {
+                    if (setPathHolder == null)
+                    {
+                        return false;
+                    }
+                    return setPathHolder.HttpRestClient.IsModifyingSyncboxViaPublicAPICalls;
+                }
+                finally
+                {
+                    if (setPathLocker != null)
+                    {
+                        Monitor.Exit(setPathLocker);
+                    }
+                }
+                
             }
         }
-
-        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        /// <summary>
-        /// Internal client for passing HTTP REST calls to the server
-        /// </summary>
-        public CLHttpRest HttpRestClient
-        {
-            get
-            {
-                return _httpRestClient;
-            }
-        }
-        private readonly CLHttpRest _httpRestClient;
 
         #endregion  // end Internal Properties
 
@@ -280,6 +285,10 @@ namespace Cloud
         }
         private string _friendlyName;
 
+        #region properties set on SetPath
+
+        private readonly object setPathLocker;
+
         /// <summary>
         /// The full path on the disk associated with this syncbox.
         /// </summary>
@@ -287,10 +296,98 @@ namespace Cloud
         {
             get
             {
-                return _path;
+                if (setPathLocker != null)
+                {
+                    Monitor.Enter(setPathLocker);
+                }
+                try
+                {
+                    if (setPathHolder == null)
+                    {
+                        return null;
+                    }
+                    return setPathHolder.Path;
+                }
+                finally
+                {
+                    if (setPathLocker != null)
+                    {
+                        Monitor.Exit(setPathLocker);
+                    }
+                }
             }
         }
-        private string _path;
+
+        /// <summary>
+        /// Internal client for passing HTTP REST calls to the server
+        /// </summary>
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+        public CLHttpRest HttpRestClient
+        {
+            get
+            {
+                if (setPathLocker != null)
+                {
+                    Monitor.Enter(setPathLocker);
+                }
+                try
+                {
+                    if (setPathHolder == null)
+                    {
+                        return null;
+                    }
+                    return setPathHolder.HttpRestClient;
+                }
+                finally
+                {
+                    if (setPathLocker != null)
+                    {
+                        Monitor.Exit(setPathLocker);
+                    }
+                }
+            }
+        }
+
+        private SetPathProperties setPathHolder;
+
+        private sealed class SetPathProperties
+        {
+            public string Path
+            {
+                get
+                {
+                    return _path;
+                }
+            }
+            private readonly string _path;
+
+            public CLHttpRest HttpRestClient
+            {
+                get
+                {
+                    return _httpRestClient;
+                }
+            }
+            private readonly CLHttpRest _httpRestClient;
+
+            public CLSyncEngine SyncEngine
+            {
+                get
+                {
+                    return _syncEngine;
+                }
+            }
+            private readonly CLSyncEngine _syncEngine;
+
+            public SetPathProperties(string path, CLHttpRest httpRestClient, CLSyncEngine syncEngine)
+            {
+                this._path = path;
+                this._httpRestClient = httpRestClient;
+                this._syncEngine = syncEngine;
+            }
+        }
+
+        #endregion
 
         /// <summary>
         /// The ID of the storage plan to use for this syncbox.
@@ -346,10 +443,19 @@ namespace Cloud
         /// </summary>
         public event EventHandler<NotificationErrorEventArgs> PushNotificationError;
 
-        #endregion  // end Public Events
+       #endregion  // end Public Events
 
         #region Private Constructors
 
+        /// <summary>
+        /// Private constructor to create a syncbox object.  Called from public member AllocAndInit.
+        /// </summary>
+        /// <param name="syncboxId">The syncbox ID.</param>
+        /// <param name="credentials">The credentials to use to create this syncbox.</param>
+        /// <param name="path">(optional) The full path on disk of the folder to associate with this syncbox.</param>
+        /// <param name="settings">(optional) The settings to use.</param>
+        /// <param name="getNewCredentialsCallback">(optional) The delegate to call for getting new temporary credentials.</param>
+        /// <param name="getNewCredentialsCallbackUserState">(optional) The user state to pass to the delegate above.</param>
         private CLSyncbox(
             long syncboxId,
             CLCredentials credentials,
@@ -362,12 +468,12 @@ namespace Cloud
 
             if (syncboxId <= 0)
             {
-                throw new ArgumentException("syncboxId must be specified");
+                throw new ArgumentException("syncboxId must be specified");  //&&&& fix
             }
 
             if (credentials == null)
             {
-                throw new NullReferenceException("Credentials cannot be null");
+                throw new NullReferenceException("Credentials cannot be null");  //&&&& fix
             }
 
             // Copy the settings so the user can't change them.
@@ -380,72 +486,27 @@ namespace Cloud
                 this._copiedSettings = settings.CopySettings();
             }
 
+            // Initialize trace in case it is not already initialized.
+            CLTrace.Initialize(this._copiedSettings.TraceLocation, "Cloud", "log", this._copiedSettings.TraceLevel, this._copiedSettings.LogErrors);
+            _trace.writeToLog(1, Resources.CLSyncboxConstructing);
+
             // Set up the syncbox
             lock (_startLocker)
             {
+
                 // Save the parameters in properties.
                 this.Credentials = credentials;
                 this._syncboxId = syncboxId;
-                this._path = path;
 
-                // Initialize trace in case it is not already initialized.
-                CLTrace.Initialize(this._copiedSettings.TraceLocation, "Cloud", "log", this._copiedSettings.TraceLevel, this._copiedSettings.LogErrors);
-                _trace.writeToLog(1, Resources.CLSyncboxConstructing);
-
-                // Create the http rest client
-                _trace.writeToLog(9, Resources.CLSyncboxStartCreateRestClient);
-                CLError createRestClientError = CLHttpRest.CreateAndInitialize(
-                                credentials: this.Credentials,
-                                syncbox: this,
-                                client: out _httpRestClient,
-                                settings: this._copiedSettings,
-                                getNewCredentialsCallback: getNewCredentialsCallback,
-                                getNewCredentialsCallbackUserState: getNewCredentialsCallbackUserState);
-                if (createRestClientError != null)
+                if (path == null)
                 {
-                    _trace.writeToLog(1,
-                        Resources.CLSyncboxConstructionErrorMsg0Code1,
-                        createRestClientError.PrimaryException.Message,
-                        createRestClientError.PrimaryException.Code);
-
-                    throw new CLException(CLExceptionCode.Syncbox_CreateRestClient,
-                        Resources.CLSyncboxErrorCreatingRestHTTPClient,
-                        createRestClientError.Exceptions);
+                    setPathLocker = new object();
                 }
-                if (_httpRestClient == null)
+                else
                 {
-                    const string nullRestClient = "Unknown error creating HTTP REST client";
-                    _trace.writeToLog(1, Resources.CLSyncboxConstructionErrorMsg0, nullRestClient);
-
-                    throw new CLNullReferenceException(CLExceptionCode.Syncbox_CreateRestClient, nullRestClient);
+                    setPathLocker = null;
+                    CLError setPathError = UpdatePathInternal(path, shouldUupdateSyncboxStatusFromServer: true);
                 }
-
-                // We need to validate the syncbox ID with the server with these credentials.  We will also retrieve the other syncbox
-                // properties from the server and set them into this local object's properties.
-                CLError errorFromStatus = GetCurrentSyncboxStatus();
-                if (errorFromStatus != null)
-                {
-                    throw new CLException(CLExceptionCode.Syncbox_InitialStatus, Resources.ExceptionSyncboxStartStatus, errorFromStatus.Exceptions);
-                }
-
-                bool debugDependenciesValue;
-                lock (debugDependencies)
-                {
-                    debugDependenciesValue = debugDependencies.Value;
-                }
-                bool copyDatabaseBetweenChangesValue;
-                lock (copyDatabaseBetweenChanges)
-                {
-                    copyDatabaseBetweenChangesValue = copyDatabaseBetweenChanges.Value;
-                }
-                bool debugFileMonitorMemoryValue;
-                lock (debugFileMonitorMemory)
-                {
-                    debugFileMonitorMemoryValue = debugFileMonitorMemory.Value;
-                }
-
-                // Create the sync engine
-                _syncEngine = new CLSyncEngine(this, debugDependenciesValue, copyDatabaseBetweenChangesValue, debugFileMonitorMemoryValue); // syncbox to sync (contains required settings)
             }
         }
 
@@ -454,12 +515,14 @@ namespace Cloud
         /// </summary>
         /// <param name="syncboxContract">The syncbox contract to use.</param>
         /// <param name="credentials">The credentials to use.</param>
+        /// <param name="path">The full path on the local disk of the folder to associate with this syncbox.</param>
         /// <param name="settings">The settings to use.</param>
-        /// <param name="getNewCredentialsCallback">The delegate to call for getting new temporary credentials.</param>
-        /// <param name="getNewCredentialsCallbackUserState">The user state to pass to the delegate above.</param>
+        /// <param name="getNewCredentialsCallback">(optional) The delegate to call for getting new temporary credentials.</param>
+        /// <param name="getNewCredentialsCallbackUserState">(optional) The user state to pass to the delegate above.</param>
         private CLSyncbox(
             JsonContracts.Syncbox syncboxContract,
             CLCredentials credentials,
+            string path,
             ICLSyncSettings settings,
             Helpers.ReplaceExpiredCredentials getNewCredentialsCallback = null,
             object getNewCredentialsCallbackUserState = null)
@@ -470,19 +533,19 @@ namespace Cloud
 
             if (syncboxContract == null)
             {
-                throw new NullReferenceException("syncboxContract must not be null");
+                throw new NullReferenceException("syncboxContract must not be null");  //&&&& fix
             }
             if (syncboxContract.Id == null)
             {
-                throw new NullReferenceException("syncboxContract Id must not be null");
+                throw new NullReferenceException("syncboxContract Id must not be null");  //&&&& fix
             }
             if (syncboxContract.PlanId == null)
             {
-                throw new NullReferenceException("syncboxContract Id must not be null");
+                throw new NullReferenceException("syncboxContract Id must not be null");  //&&&& fix
             }
             if (credentials == null)
             {
-                throw new NullReferenceException("credentials must not be null");
+                throw new NullReferenceException("credentials must not be null");  //&&&& fix
             }
 
             // Copy the settings so the user can't change them.
@@ -495,43 +558,29 @@ namespace Cloud
                 this._copiedSettings = settings.CopySettings();
             }
 
+            // Initialize trace in case it is not already initialized.
+            CLTrace.Initialize(this._copiedSettings.TraceLocation, "Cloud", "log", this._copiedSettings.TraceLevel, this._copiedSettings.LogErrors);
+            _trace.writeToLog(1, "CLSyncbox: Constructing from contract...");
+
             // Set up the syncbox
             lock (_startLocker)
             {
                 // Save the parameters in properties.
                 this.Credentials = credentials;
                 this._syncboxId = (long)syncboxContract.Id;
-                this._path = null;      // the server doesn't know the local path.  The user must provide that later.
+                this._pathHolder = new GenericHolder<string>(path);
                 this._storagePlanId = (long)syncboxContract.PlanId;
                 this._friendlyName = syncboxContract.FriendlyName;
 
-                // Initialize trace in case it is not already initialized.
-                CLTrace.Initialize(this._copiedSettings.TraceLocation, "Cloud", "log", this._copiedSettings.TraceLevel, this._copiedSettings.LogErrors);
-                _trace.writeToLog(1, "CLSyncbox: Constructing from contract...");
-
-                // Create the http rest client
-                _trace.writeToLog(9, "CLSyncbox: CLSyncbox(contract): Create rest client.");
-                CLError createRestClientError = CLHttpRest.CreateAndInitialize(
-                                credentials: this.Credentials,
-                                syncbox: this,
-                                client: out _httpRestClient,
-                                settings: this._copiedSettings,
-                                getNewCredentialsCallback: getNewCredentialsCallback,
-                                getNewCredentialsCallbackUserState: getNewCredentialsCallbackUserState);
-                if (createRestClientError != null)
+                if (path == null)
                 {
-                    _trace.writeToLog(1, "CLSyncbox: CLSyncbox(contract): ERROR: Msg: {0}. Code: {1}.", createRestClientError.PrimaryException.Message, createRestClientError.PrimaryException.Code);
-                    throw new CLException(CLExceptionCode.Syncbox_CreateRestClient, "Error creating REST HTTP client", createRestClientError.Exceptions);
+                    setPathLocker = new object();
                 }
-                if (_httpRestClient == null)
+                else
                 {
-                    const string nullRestClient = "Unknown error creating HTTP REST client";
-                    _trace.writeToLog(1, "CLSyncbox: CLSyncbox(contract): ERROR: Msg: {0}.", nullRestClient);
-                    throw new CLNullReferenceException(CLExceptionCode.Syncbox_CreateRestClient, nullRestClient);
+                    setPathLocker = null;
+                    CLError setPathError = UpdatePathInternal(path, shouldUupdateSyncboxStatusFromServer: false);  // the information in the server response filled in the current syncbox status.
                 }
-
-                // Create the sync engine
-                _syncEngine = new CLSyncEngine(this); // syncbox to sync (contains required settings)
             }
         }
 
@@ -546,7 +595,7 @@ namespace Cloud
         /// <param name="callbackUserState">Userstate to pass to the callback when it is fired.  Can be null.</param>
         /// <param name="syncboxId">The cloud syncbox ID to use.</param>
         /// <param name="credentials">The credentials to use with this request.</param>
-        /// <param name="path">(optional) The full path of the folder on disk to associate with this syncbox. If this parameter is null, the syncbox local disk directory will be %USEERPROFILE%\Cloud. </param>
+        /// <param name="path">The full path of the folder on disk to associate with this syncbox. If this parameter is null, the syncbox local disk directory will be %USEERPROFILE%\Cloud. </param>
         /// <param name="settings">(optional) settings to use with this method.</param>
         /// <param name="getNewCredentialsCallback">(optional) A delegate which will be called to retrieve a new set of credentials when credentials have expired.</param>
         /// <param name="getNewCredentialsCallbackUserState">(optional) The user state to pass as a parameter to the delegate above.</param>
@@ -556,7 +605,7 @@ namespace Cloud
             object callbackUserState,
             long syncboxId,
             CLCredentials credentials,
-            string path = null,
+            string path,
             ICLSyncSettings settings = null,
             Helpers.ReplaceExpiredCredentials getNewCredentialsCallback = null,
             object getNewCredentialsCallbackUserState = null)
@@ -637,7 +686,7 @@ namespace Cloud
         /// <param name="syncboxId">Unique ID of the syncbox generated by Cloud</param>
         /// <param name="credentials">Credentials to use with this request.</param>
         /// <param name="syncbox">(output) Created local object representation of the Syncbox</param>
-        /// <param name="path">(optional) The full path of the folder on disk to associate with this syncbox. If this parameter is null, the syncbox local disk directory will be %USEERPROFILE%\Cloud. </param>
+        /// <param name="path">The full path of the folder on disk to associate with this syncbox. If this parameter is null, the syncbox local disk directory will be %USEERPROFILE%\Cloud. </param>
         /// <param name="settings">(optional) Settings to use with this request</param>
         /// <param name="getNewCredentialsCallback">(optional) A delegate that will be called to provide new credentials when the current credentials token expires.</param>
         /// <param name="getNewCredentialsCallbackUserState">(optional) The user state that will be passed back to the getNewCredentialsCallback delegate.</param>
@@ -646,7 +695,7 @@ namespace Cloud
             long syncboxId,
             CLCredentials credentials,
             out CLSyncbox syncbox,
-            string path = null,
+            string path,
             ICLSyncSettings settings = null,
             Helpers.ReplaceExpiredCredentials getNewCredentialsCallback = null,
             object getNewCredentialsCallbackUserState = null)
@@ -657,7 +706,11 @@ namespace Cloud
             {
                 if (Helpers.AllHaltedOnUnrecoverableError)
                 {
-                    throw new InvalidOperationException("Cannot do anything with the Cloud SDK if Helpers.AllHaltedOnUnrecoverableError is set");
+                    throw new InvalidOperationException("Cannot do anything with the Cloud SDK if Helpers.AllHaltedOnUnrecoverableError is set");  //&&&& fix
+                }
+                if (path == null)
+                {
+                    throw new CLArgumentNullException(CLExceptionCode.Syncbox_BadPath, "path must not be null");
                 }
 
                 syncbox = new CLSyncbox(
@@ -666,8 +719,7 @@ namespace Cloud
                     path: path,
                     settings: settings,
                     getNewCredentialsCallback: getNewCredentialsCallback,
-                    getNewCredentialsCallbackUserState: getNewCredentialsCallbackUserState
-                    );
+                    getNewCredentialsCallbackUserState: getNewCredentialsCallbackUserState);
             }
             catch (Exception ex)
             {
@@ -690,7 +742,6 @@ namespace Cloud
         /// <returns></returns>
         public CLError BeginSync(
                 CLSyncMode mode,
-                string path = null,
                 System.Threading.WaitCallback syncStatusChangedCallback = null,
                 object syncStatusChangedCallbackUserState = null)
         {
@@ -706,37 +757,54 @@ namespace Cloud
                     {
                         throw new CLInvalidOperationException(CLExceptionCode.Syncbox_AlreadyStarted, Resources.CLSyncEngineAlreadyStarted);
                     }
-                    if (_syncEngine == null)
+
+                    if (setPathHolder == null)
                     {
-                        throw new NullReferenceException("syncEngine must not be null");
+                        throw new CLArgumentNullException(CLExceptionCode.Syncbox_BadPath, "path must be set");
+                    }
+                    if (setPathHolder.SyncEngine == null)
+                    {
+                        throw new NullReferenceException("syncEngine must not be null");  //&&&& fix
                     }
                     if (mode == CLSyncMode.CLSyncModeOnDemand)
                     {
-                        throw new ArgumentException("CLSyncMode.CLSyncModeOnDemand is not supported");
+                        throw new ArgumentException("CLSyncMode.CLSyncModeOnDemand is not supported");    //&&&& fix
+                    }
+                    if (path == null)
+                    {
+                        throw new CLArgumentNullException(CLExceptionCode.Syncbox_BadPath, "path must not be null");
                     }
 
-                    if (path != null)
+
+                    //TODO: Remove this when the sync engine support case insensitive paths.
+                    // This was required because OSD code was providing paths that started with a lower case drive letter.
+                    if (path.Length >= 2 && path[1] == ':')
                     {
-                        //TODO: Remove this when the sync engine support case insensitive paths.
-                        // This was required because OSD code was providing paths that started with a lower case drive letter.
-                        if (path.Length >= 2 && path[1] == ':')
-                        {
-                            path = char.ToUpper(path[0]) + path.Substring(1);
-                        }
+                        path = char.ToUpper(path[0]) + path.Substring(1);
+                    }
 
-                        int nOutTooLongChars;
-                        CLError errorPathTooLong = Helpers.CheckSyncboxPathLength(path, out nOutTooLongChars);
-                        if (errorPathTooLong != null)
-                        {
-                            throw new CLArgumentException(errorPathTooLong.PrimaryException.Code, string.Format("syncbox path is too long by {0} characters.", nOutTooLongChars), errorPathTooLong.Exceptions);
-                        }
+                    int nOutTooLongChars;
+                    CLError errorPathTooLong = Helpers.CheckSyncboxPathLength(path, out nOutTooLongChars);
+                    if (errorPathTooLong != null)
+                    {
+                        throw new CLArgumentException(errorPathTooLong.PrimaryException.Code, string.Format("syncbox path is too long by {0} characters.", nOutTooLongChars), errorPathTooLong.Exceptions);
+                    }
 
-                        CLError errorBadPath = Helpers.CheckForBadPath(path);
-                        if (errorBadPath != null)
+                    CLError errorBadPath = Helpers.CheckForBadPath(path);
+                    if (errorBadPath != null)
+                    {
+                        throw new CLArgumentException(errorBadPath.PrimaryException.Code, "syncbox path contains invalid characters.", errorBadPath.Exceptions);
+                    }
+
+                    lock (this._pathHolder)
+                    {
+                        if (_pathHolder.Value != null)
                         {
-                            throw new CLArgumentException(errorBadPath.PrimaryException.Code, "syncbox path contains invalid characters.", errorBadPath.Exceptions);
+
+                            throw new CLArgumentException(CLExceptionCode.Syncbox_CreateRestClient, "syncbox path has already been set");
                         }
-                        this._path = path;
+                        this._pathHolder.Value = path;
+
                     }
 
                     _syncMode = mode;
@@ -868,7 +936,7 @@ namespace Cloud
             {
                 if (Helpers.AllHaltedOnUnrecoverableError)
                 {
-                    throw new InvalidOperationException("Cannot do anything with the Cloud SDK if Helpers.AllHaltedOnUnrecoverableError is set");
+                    throw new InvalidOperationException("Cannot do anything with the Cloud SDK if Helpers.AllHaltedOnUnrecoverableError is set");  //&&&& fix
                 }
 
                 lock (_startLocker)
@@ -983,14 +1051,18 @@ namespace Cloud
         /// <param name="callbackUserState">Userstate to pass to the callback when it is fired.  Can be null.</param>
         /// <param name="plan">The storage plan to use with this Syncbox.</param>
         /// <param name="credentials">The credentials to use with this request.</param>
+        /// <param name="path">The path on the local disk to associate with this syncbox.</param>
         /// <param name="friendlyName">(optional) The friendly name of the Syncbox.</param>
         /// <param name="settings">(optional) Settings to use with this method.</param>
+        /// <param name="getNewCredentialsCallback">(optional) The callback function that will provide new credentials with temporary credentials expire.</param>
+        /// <param name="getNewCredentialsCallbackUserState">(optional) The user state that will be passed as a parameter to the callback function above.</param>
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public static IAsyncResult BeginCreateSyncbox(
                     AsyncCallback callback,
                     object callbackUserState,
                     CLStoragePlan plan,
                     CLCredentials credentials,
+                    string path,
                     string friendlyName = null,
                     ICLSyncSettings settings = null,
                     Helpers.ReplaceExpiredCredentials getNewCredentialsCallback = null,
@@ -1001,11 +1073,11 @@ namespace Cloud
             // Check the parameters
             if (plan == null)
             {
-                throw new ArgumentNullException("plan must not be null");
+                throw new ArgumentNullException("plan must not be null");  //&&&& fix
             }
             if (credentials == null)
             {
-                throw new ArgumentNullException("credentials must not be null");
+                throw new ArgumentNullException("credentials must not be null");  //&&&& fix
             }
 
             var asyncThread = DelegateAndDataHolderBase.Create(
@@ -1035,6 +1107,7 @@ namespace Cloud
                         CLError processError = CreateSyncbox(
                             Data.plan,
                             Data.credentials,
+                            path,
                             out response,
                             Data.friendlyName,
                             Data.settings,
@@ -1080,13 +1153,17 @@ namespace Cloud
         /// </summary>
         /// <param name="plan">The storage plan to use with this Syncbox.</param>
         /// <param name="credentials">The credentials to use for this request.</param>
+        /// <param name="path">The path on the local disk to associate with this syncbox.</param>
         /// <param name="syncbox">(output) Response object from communication</param>
-        /// <param name="name">(optional) The friendly name of the Syncbox.</param>
+        /// <param name="friendlyName">(optional) The friendly name of the Syncbox.</param>
         /// <param name="settings">(optional) The settings to use with this method</param>
+        /// <param name="getNewCredentialsCallback">(optional) The callback function that will provide new credentials with temporary credentials expire.</param>
+        /// <param name="getNewCredentialsCallbackUserState">(optional) The user state that will be passed as a parameter to the callback function above.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public static CLError CreateSyncbox(
                     CLStoragePlan plan,
                     CLCredentials credentials,
+                    string path,
                     out CLSyncbox syncbox,
                     string friendlyName = null,
                     ICLSyncSettings settings = null,
@@ -1101,11 +1178,15 @@ namespace Cloud
                 // Check the input parameters.
                 if (plan == null)
                 {
-                    throw new ArgumentNullException("plan must not be null");
+                    throw new ArgumentNullException("plan must not be null");  //&&&& fix
                 }
                 if (credentials == null)
                 {
-                    throw new ArgumentNullException("credentials must not be null");
+                    throw new ArgumentNullException("credentials must not be null");  //&&&& fix
+                }
+                if (path == null)
+                {
+                    throw new CLArgumentNullException(CLExceptionCode.Syncbox_BadPath, "path must not be null");
                 }
 
                 // copy settings so they don't change while processing; this also defaults some values
@@ -1141,15 +1222,21 @@ namespace Cloud
                 // Check the server response.
                 if (responseFromServer == null)
                 {
-                    throw new NullReferenceException("Response from server must not be null");
+                    throw new NullReferenceException("Response from server must not be null");  //&&&& fix
                 }
                 if (responseFromServer.Syncbox == null)
                 {
-                    throw new NullReferenceException("Server response syncbox must not be null");
+                    throw new NullReferenceException("Server response syncbox must not be null");  //&&&& fix
                 }
 
                 // Convert the response object to a CLSyncbox and return that.
-                syncbox = new CLSyncbox(responseFromServer.Syncbox, credentials, copiedSettings, getNewCredentialsCallback, getNewCredentialsCallbackUserState);
+                syncbox =  new CLSyncbox(
+                    syncboxContract: responseFromServer.Syncbox,
+                    credentials: credentials,
+                    path: path,
+                    settings: copiedSettings,
+                    getNewCredentialsCallback: getNewCredentialsCallback,
+                    getNewCredentialsCallbackUserState: getNewCredentialsCallbackUserState);
             }
             catch (Exception ex)
             {
@@ -1383,7 +1470,7 @@ namespace Cloud
         /// <remarks>The response array may be null, empty, or may contain null items.</remarks>
         public static CLError ListAllSyncboxesWithCredentials(
                     CLCredentials credentials,
-                    out CLSyncbox [] response,
+                    out CLSyncbox[] response,
                     ICLCredentialsSettings settings = null,
                     Helpers.ReplaceExpiredCredentials getNewCredentialsCallback = null,
                     object getNewCredentialsCallbackUserState = null)
@@ -1420,7 +1507,7 @@ namespace Cloud
                     {
                         if (syncbox != null)
                         {
-                            listSyncboxes.Add(new CLSyncbox(syncbox, credentials, copiedSettings, getNewCredentialsCallback, getNewCredentialsCallbackUserState));
+                            listSyncboxes.Add(new CLSyncbox(syncbox, credentials, null, copiedSettings, getNewCredentialsCallback, getNewCredentialsCallbackUserState));
                         }
                         else
                         {
@@ -1431,7 +1518,7 @@ namespace Cloud
                 }
                 else
                 {
-                    throw new NullReferenceException(Resources.ExceptionCLHttpRestWithoutSessions);
+                    throw new NullReferenceException(Resources.ExceptionCLHttpRestWithoutSessions);  //&&&& fix
                 }
 
             }
@@ -3731,15 +3818,15 @@ namespace Cloud
         {
             if (response == null)
             {
-                throw new NullReferenceException("response cannot be null");
+                throw new NullReferenceException("response cannot be null");  //&&&& fix
             }
             if (response.Syncbox == null)
             {
-                throw new NullReferenceException("response Syncbox cannot be null");
+                throw new NullReferenceException("response Syncbox cannot be null");  //&&&& fix
             }
             if (response.Syncbox.PlanId == null)
             {
-                throw new NullReferenceException("response Syncbox PlanId cannot be null");
+                throw new NullReferenceException("response Syncbox PlanId cannot be null");  //&&&& fix
             }
 
             // Update this object's properties atomically.
@@ -3794,6 +3881,7 @@ namespace Cloud
             return _httpRestClient.GetSyncboxStatus(_copiedSettings.HttpTimeoutMilliseconds, out response, new Action<JsonContracts.SyncboxStatusResponse, object>(OnStatusCompletion), null);
         }
 
+
         /// <summary>
         /// Called back when the HTTP request completes.
         /// </summary>
@@ -3803,15 +3891,15 @@ namespace Cloud
         {
             if (response == null)
             {
-                throw new NullReferenceException("response cannot be null");
+                throw new NullReferenceException("response cannot be null");  //&&&& fix
             }
             if (response.Syncbox == null)
             {
-                throw new NullReferenceException("response Syncbox cannot be null");
+                throw new NullReferenceException("response Syncbox cannot be null");  //&&&& fix
             }
             if (response.Syncbox.PlanId == null)
             {
-                throw new NullReferenceException("response Syncbox PlanId cannot be null");
+                throw new NullReferenceException("response Syncbox PlanId cannot be null");  //&&&& fix
             }
 
             this._propertyChangeLocker.EnterWriteLock();
@@ -3827,9 +3915,125 @@ namespace Cloud
         }
         #endregion  // end GetCurrentStatus (update the status of this syncbox from the cloud)
 
+        /// <summary>
+        /// Sets the full path on the local disk that is associated with this Syncbox.  This method does not communicate with the server.
+        /// </summary>
+        /// <returns>Returns any error that occurred, or null</returns>
+        /// <remarks>The path may be set only once.</remarks>
+        public CLError UpdatePath(string path)
+        {
+            CLError errorFromSet = UpdatePathInternal(path, shouldUupdateSyncboxStatusFromServer: true);
+            return errorFromSet;
+        }
+
         #endregion  // end Public Instance HTTP REST Methods
 
         #region Private Instance Support Functions
+
+        /// <summary>
+        /// It is possible to create non-functional syncbox instances.  For example, listing all of the syncboxes for a set of credentials via the server constructs
+        /// an array of CLSyncbox instances, but the information from the server does not include the local syncbox paths.  The instances are unusable in this state
+        /// and any operation that requires the local syncbox path will throw an error.  It is up to the app to provide the local syncbox path before using the instance.
+        /// This is done via SetSyncboxPath().  SetSyncboxPath() defers to this internal version.  This function acts like an extension of the constructor, and it
+        /// if called by constructors to create the CLHttpRest client, fill in missing information from the server, and to create an instance of CLSyncEngine that will
+        /// be used by this syncbox instance.
+        /// </summary>
+        /// <param name="path"></param>
+        /// <param name="shouldUupdateSyncboxStatusFromServer"></param>
+        /// <returns></returns>
+        private CLError UpdatePathInternal(string path, bool shouldUupdateSyncboxStatusFromServer)
+        {
+            if (path == null)
+            {
+                return new CLArgumentNullException(CLExceptionCode.Syncbox_BadPath, "path must not be null");
+            }
+
+            if (setPathLocker != null)
+            {
+                Monitor.Enter(setPathLocker);
+            }
+            try
+            {
+                if (setPathHolder != null)
+                {
+                    throw new CLException(CLExceptionCode.Syncbox_PathAlreadySet, Resources.ExceptionSyncboxPathAlreadySet);
+                }
+
+                CLHttpRest localRestClient;
+                // Create the http rest client
+                _trace.writeToLog(9, Resources.CLSyncboxStartCreateRestClient);
+                CLError createRestClientError = CLHttpRest.CreateAndInitialize(
+                                credentials: this.Credentials,
+                                syncbox: this,
+                                client: out localRestClient,
+                                settings: this._copiedSettings,
+                                getNewCredentialsCallback: getNewCredentialsCallback,
+                                getNewCredentialsCallbackUserState: getNewCredentialsCallbackUserState);
+                if (createRestClientError != null)
+                {
+                    _trace.writeToLog(1,
+                        Resources.CLSyncboxConstructionErrorMsg0Code1,
+                        createRestClientError.PrimaryException.Message,
+                        createRestClientError.PrimaryException.Code);
+
+                    throw new CLException(CLExceptionCode.Syncbox_CreateRestClient,
+                        Resources.CLSyncboxErrorCreatingRestHTTPClient,
+                        createRestClientError.Exceptions);
+                }
+                if (localRestClient == null)
+                {
+                    const string nullRestClient = "Unknown error creating HTTP REST client";
+                    _trace.writeToLog(1, Resources.CLSyncboxConstructionErrorMsg0, nullRestClient);
+
+                    throw new CLNullReferenceException(CLExceptionCode.Syncbox_CreateRestClient, nullRestClient);
+                }
+
+                if (shouldUupdateSyncboxStatusFromServer)
+                {
+                    // We need to validate the syncbox ID with the server with these credentials.  We will also retrieve the other syncbox
+                    // properties from the server and set them into this local object's properties.
+                    CLError errorFromStatus = GetCurrentSyncboxStatus();
+                    if (errorFromStatus != null)
+                    {
+                        throw new CLException(CLExceptionCode.Syncbox_InitialStatus, Resources.ExceptionSyncboxStartStatus, errorFromStatus.Exceptions);
+                    }
+                }
+
+                bool debugDependenciesValue;
+                lock (debugDependencies)
+                {
+                    debugDependenciesValue = debugDependencies.Value;
+                }
+                bool copyDatabaseBetweenChangesValue;
+                lock (copyDatabaseBetweenChanges)
+                {
+                    copyDatabaseBetweenChangesValue = copyDatabaseBetweenChanges.Value;
+                }
+                bool debugFileMonitorMemoryValue;
+                lock (debugFileMonitorMemory)
+                {
+                    debugFileMonitorMemoryValue = debugFileMonitorMemory.Value;
+                }
+
+                // Create the sync engine for this syncbox instance
+                CLSyncEngine localSyncEngine = new CLSyncEngine(this, debugDependenciesValue, copyDatabaseBetweenChangesValue, debugFileMonitorMemoryValue); // syncbox to sync (contains required settings)
+
+                setPathHolder = new SetPathProperties(path, localRestClient, localSyncEngine);
+            }
+            catch (Exception ex)
+            {
+                return ex;
+            }
+            finally
+            {
+                if (setPathLocker != null)
+                {
+                    Monitor.Exit(setPathLocker);
+                }
+            }
+
+            return null;
+        }
 
         internal bool ReservedForActiveSync
         {
@@ -3937,7 +4141,7 @@ namespace Cloud
         {
             if (Disposed)
             {
-                throw new Exception("Object disposed");
+                throw new Exception("Object disposed");  //&&&& fix
             }
 
             Helpers.CheckHalted();
