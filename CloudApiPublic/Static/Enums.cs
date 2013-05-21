@@ -386,14 +386,14 @@ namespace Cloud.Static
         OnDemand_TimeoutMilliseconds = (((ulong)CLExceptionDomain.OnDemand) << 32) | 21, // 5_21
 
         /// <summary>
-        /// Cloud syncbox renames. Old path required and it must be valid within the syncbox Path.
+        /// Cloud syncbox renames. The existing path is invalid in the CLFileItem to be renamed.
         /// </summary>
-        OnDemand_RenameOldPath = (((ulong)CLExceptionDomain.OnDemand) << 32) | 22, // 5_22
+        OnDemand_InvalidExistingPath = (((ulong)CLExceptionDomain.OnDemand) << 32) | 22, // 5_22
 
         /// <summary>
-        /// Cloud syncbox renames. New path required and it must be valid within the syncbox path.
+        /// Cloud syncbox renames. New name is required and it must be valid within the syncbox path.
         /// </summary>
-        OnDemand_RenameNewPath = (((ulong)CLExceptionDomain.OnDemand) << 32) | 23, // 5_23
+        OnDemand_RenameNewName = (((ulong)CLExceptionDomain.OnDemand) << 32) | 23, // 5_23
 
         /// <summary>
         /// Cloud syncbox response item missing a field.

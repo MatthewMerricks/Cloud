@@ -429,38 +429,43 @@ namespace Cloud.REST
         /// <summary>
         /// Rename files in the cloud.
         /// </summary>
-        /// <param name="pathParams">An array of old paths to new paths for renaming each item</param>
-        /// <param name="completion">Delegate which will be fired upon successful communication for every response item</param>
-        /// <param name="completionState">Userstate to be passed whenever the completion delegate is fired</param>
+        /// <param name="itemParams">An array of parameter pairs (item to rename and new name) to be used to rename each item in place.</param>
+        /// <param name="completion">Delegate which will be fired upon successful communication for every response item.</param>
+        /// <param name="completionState">Userstate to be passed whenever the completion delegate is fired.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        internal CLError RenameFiles(RenamePathParams[] pathParams, CLFileItemCompletion completion, object completionState)
+        internal CLError RenameFiles(RenameItemParams[] itemParams, CLFileItemCompletion completion, object completionState)
         {
             // try/catch to process the request,  On catch return the error
             try
             {
                 // check input parameters.
 
-                if (pathParams == null
-                    || pathParams.Length == 0)
+                if (itemParams == null
+                    || itemParams.Length == 0)
                 {
                     throw new CLArgumentNullException(
                         CLExceptionCode.OnDemand_RenameMissingParameters,
                         Resources.ExceptionOnDemandRenameMissingParameters);
                 }
 
-                FileOrFolderMove[] jsonContractMoves = new FileOrFolderMove[pathParams.Length];
+                FileOrFolderMove[] jsonContractMoves = new FileOrFolderMove[itemParams.Length];
                 FilePath syncboxPathObject = _syncbox.Path;
 
-                for (int paramIdx = 0; paramIdx < pathParams.Length; paramIdx++)
+                for (int paramIdx = 0; paramIdx < itemParams.Length; paramIdx++)
                 {
-                    RenamePathParams currentParams = pathParams[paramIdx];
+                    RenameItemParams currentParams = itemParams[paramIdx];
 
-                    FilePath currentOldPath = currentParams.OldPath;
-                    CheckPath(currentOldPath, CLExceptionCode.OnDemand_RenameOldPath);
+                    // The CLFileItem represents an existing file or folder, and should be valid because we created it.  The new full path must
+                    // fit the specs for the Windows client.  Form the new full path and check its validity.
+                    if (String.IsNullOrWhiteSpace(currentParams.ItemToRename.Path))
+                    {
+                        throw new CLArgumentException(CLExceptionCode.OnDemand_InvalidExistingPath, String.Format(Resources.ExceptionOnDemandRenameFilesInvalidExistingPathInItemMsg0, paramIdx.ToString()));
+                    }
+                    FilePath fullPathExisting = new FilePath(currentParams.ItemToRename.Path, _syncbox.Path);
+                    FilePath fullPathNew = new FilePath(currentParams.NewName, fullPathExisting.Parent);
+                    CheckPath(fullPathNew, CLExceptionCode.OnDemand_RenameNewName);
 
-                    FilePath currentNewPath = currentParams.NewPath;
-                    CheckPath(currentNewPath, CLExceptionCode.OnDemand_RenameNewPath);
-
+                    // The new path is OK.  Add it to the request array
                     jsonContractMoves[paramIdx] = new FileOrFolderMove()
                     {
                         RelativeFromPath = currentOldPath.GetRelativePath(syncboxPathObject, replaceWithForwardSlashes: true),
@@ -534,7 +539,7 @@ namespace Cloud.REST
                 // Convert these items to the output array.
                 if (responseFromServer != null && responseFromServer.MoveResponses != null)
                 {
-                    if (responseFromServer.MoveResponses.Length != pathParams.Length)
+                    if (responseFromServer.MoveResponses.Length != itemParams.Length)
                     {
                         throw new CLException(CLExceptionCode.OnDemand_FileRename, Resources.ExceptionOnDemandResponseArrayLength);
                     }
@@ -636,6 +641,218 @@ namespace Cloud.REST
 
             return null;
         }
+
+        ///// <summary>
+        ///// Rename files in the cloud.
+        ///// </summary>
+        ///// <param name="pathParams">An array of old paths to new paths for renaming each item</param>
+        ///// <param name="completion">Delegate which will be fired upon successful communication for every response item</param>
+        ///// <param name="completionState">Userstate to be passed whenever the completion delegate is fired</param>
+        ///// <returns>Returns any error that occurred during communication, if any</returns>
+        //internal CLError RenameFiles(RenamePathParams[] pathParams, CLFileItemCompletion completion, object completionState)
+        //{
+        //    // try/catch to process the request,  On catch return the error
+        //    try
+        //    {
+        //        // check input parameters.
+
+        //        if (pathParams == null
+        //            || pathParams.Length == 0)
+        //        {
+        //            throw new CLArgumentNullException(
+        //                CLExceptionCode.OnDemand_RenameMissingParameters,
+        //                Resources.ExceptionOnDemandRenameMissingParameters);
+        //        }
+
+        //        FileOrFolderMove[] jsonContractMoves = new FileOrFolderMove[pathParams.Length];
+        //        FilePath syncboxPathObject = _syncbox.Path;
+
+        //        for (int paramIdx = 0; paramIdx < pathParams.Length; paramIdx++)
+        //        {
+        //            RenamePathParams currentParams = pathParams[paramIdx];
+
+        //            FilePath currentOldPath = currentParams.OldPath;
+        //            CheckPath(currentOldPath, CLExceptionCode.OnDemand_RenameOldPath);
+
+        //            FilePath currentNewPath = currentParams.NewPath;
+        //            CheckPath(currentNewPath, CLExceptionCode.OnDemand_RenameNewPath);
+
+        //            jsonContractMoves[paramIdx] = new FileOrFolderMove()
+        //            {
+        //                RelativeFromPath = currentOldPath.GetRelativePath(syncboxPathObject, replaceWithForwardSlashes: true),
+        //                RelativeToPath = currentNewPath.GetRelativePath(syncboxPathObject, replaceWithForwardSlashes: true)
+        //            };
+        //        }
+
+        //        if (!(_copiedSettings.HttpTimeoutMilliseconds > 0))
+        //        {
+        //            throw new CLArgumentException(CLExceptionCode.OnDemand_TimeoutMilliseconds, Resources.CLCredentialMSTimeoutMustBeGreaterThanZero);
+        //        }
+
+        //        // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
+        //        Helpers.RequestNewCredentialsInfo requestNewCredentialsInfo = new Helpers.RequestNewCredentialsInfo()
+        //        {
+        //            ProcessingStateByThreadId = _processingStateByThreadId,
+        //            GetNewCredentialsCallback = _getNewCredentialsCallback,
+        //            GetNewCredentialsCallbackUserState = _getNewCredentialsCallbackUserState,
+        //            GetCurrentCredentialsCallback = GetCurrentCredentialsCallback,
+        //            SetCurrentCredentialsCallback = SetCurrentCredentialCallback,
+        //        };
+
+        //        // Build the REST content dynamically.
+        //        // File move (rename) and folder move (rename) share a json contract object for move (rename).
+        //        // This will be an array of contracts.
+
+        //        //// Old code:
+        //        //
+        //        //List<FileOrFolderMove> listMoveContract = new List<FileOrFolderMove>();
+        //        //for (int i = 0; i < numberOfFiles; ++i)
+        //        //{
+        //        //    FilePath filePath = new FilePath(paths[i]);
+        //        //    FilePath newFilePath = new FilePath(newPaths[i]);
+
+        //        //    FileOrFolderMove thisMove = new FileOrFolderMove()
+        //        //    {
+        //        //        //DeviceId = _copiedSettings.DeviceId,
+        //        //        RelativeFromPath = filePath.GetRelativePath(_syncbox.Path, true),
+        //        //        RelativeToPath = newFilePath.GetRelativePath(_syncbox.Path, true),
+        //        //        //SyncboxId = _syncbox.SyncboxId
+        //        //    };
+
+        //        //    listMoveContract.Add(thisMove);
+        //        //}
+
+        //        // Now make the REST request content.
+        //        object requestContent = new JsonContracts.FileOrFolderMoves()
+        //        {
+        //            SyncboxId = _syncbox.SyncboxId,
+        //            Moves = jsonContractMoves,
+        //            //listMoveContract.ToArray(),
+        //            DeviceId = _copiedSettings.DeviceId
+        //        };
+
+        //        // server method path switched on whether change is a folder or not
+        //        string serverMethodPath = CLDefinitions.MethodPathOneOffFileMoves;
+
+        //        // Communicate with the server to get the response.
+        //        JsonContracts.SyncboxMoveFilesOrFoldersResponse responseFromServer;
+        //        responseFromServer = Helpers.ProcessHttp<JsonContracts.SyncboxMoveFilesOrFoldersResponse>(requestContent, // dynamic type of request content based on method path
+        //            CLDefinitions.CLMetaDataServerURL, // base domain is the MDS server
+        //            serverMethodPath, // dynamic path to appropriate one-off method
+        //            Helpers.requestMethod.post, // one-off methods are all posts
+        //            _copiedSettings.HttpTimeoutMilliseconds, // time before communication timeout
+        //            null, // not an upload or download
+        //            Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
+        //            _copiedSettings, // pass the copied settings
+        //            _syncbox.SyncboxId, // pass the unique id of the sync box on the server
+        //            requestNewCredentialsInfo);   // pass the optional parameters to support temporary token reallocation.
+
+        //        // Convert these items to the output array.
+        //        if (responseFromServer != null && responseFromServer.MoveResponses != null)
+        //        {
+        //            if (responseFromServer.MoveResponses.Length != pathParams.Length)
+        //            {
+        //                throw new CLException(CLExceptionCode.OnDemand_FileRename, Resources.ExceptionOnDemandResponseArrayLength);
+        //            }
+
+        //            List<CLFileItem> listFileItems = new List<CLFileItem>();
+        //            List<CLError> listErrors = new List<CLError>();
+
+        //            for (int responseIdx = 0; responseIdx < responseFromServer.MoveResponses.Length; responseIdx++)
+        //            {
+        //                try
+        //                {
+        //                    FileChangeResponse currentMoveResponse = responseFromServer.MoveResponses[responseIdx];
+
+        //                    if (currentMoveResponse == null)
+        //                    {
+        //                        throw new CLNullReferenceException(CLExceptionCode.OnDemand_MissingResponseField, Resources.ExceptionOnDemandNullItem);
+        //                    }
+        //                    if (currentMoveResponse.Header == null || string.IsNullOrEmpty(currentMoveResponse.Header.Status))
+        //                    {
+        //                        throw new CLNullReferenceException(CLExceptionCode.OnDemand_MissingResponseField, Resources.ExceptionOnDemandNullStatus);
+        //                    }
+        //                    if (currentMoveResponse.Metadata == null)
+        //                    {
+        //                        throw new CLNullReferenceException(CLExceptionCode.OnDemand_MissingResponseField, Resources.ExceptionOnDemandNullMetadata);
+        //                    }
+
+        //                    switch (currentMoveResponse.Header.Status)
+        //                    {
+        //                        case CLDefinitions.CLEventTypeNoOperation:
+        //                        case CLDefinitions.CLEventTypeAccepted:
+        //                            CLFileItem resultItem = new CLFileItem(currentMoveResponse.Metadata, currentMoveResponse.Header.Action, currentMoveResponse.Action, _syncbox);
+        //                            if (completion != null)
+        //                            {
+        //                                try
+        //                                {
+        //                                    completion(responseIdx, resultItem, error: null, userState: completionState);
+        //                                }
+        //                                catch
+        //                                {
+        //                                }
+        //                            }
+        //                            break;
+
+        //                        case CLDefinitions.CLEventTypeAlreadyDeleted:
+        //                            throw new CLException(CLExceptionCode.OnDemand_AlreadyDeleted, Resources.ExceptionOnDemandAlreadyDeleted);
+
+        //                        //// to_parent_uid not an input parameter, we do not expect to see it in the status so it is commented out:
+        //                        //case CLDefinitions.CLEventTypeToParentNotFound:
+        //                        case CLDefinitions.CLEventTypeNotFound:
+        //                            throw new CLException(CLExceptionCode.OnDemand_NotFound, Resources.ExceptionOnDemandNotFound);
+
+        //                        case CLDefinitions.CLEventTypeConflict:
+        //                            throw new CLException(CLExceptionCode.OnDemand_Conflict, Resources.ExceptionOnDemandConflict);
+
+        //                        case CLDefinitions.RESTResponseStatusFailed:
+        //                            Exception innerEx;
+        //                            string errorMessageString;
+        //                            try
+        //                            {
+        //                                errorMessageString = string.Join(Environment.NewLine, currentMoveResponse.Metadata.ErrorMessage);
+        //                                innerEx = null;
+        //                            }
+        //                            catch (Exception ex)
+        //                            {
+        //                                errorMessageString = Resources.ExceptionOnDemandDeserializeErrorMessage;
+        //                                innerEx = ex;
+        //                            }
+
+        //                            throw new CLException(CLExceptionCode.OnDemand_ItemError, Resources.ExceptionOnDemandItemError, new Exception(errorMessageString, innerEx));
+
+        //                        default:
+        //                            throw new CLException(CLExceptionCode.OnDemand_UnknownItemStatus, string.Format(Resources.ExceptionOnDemandUnknownItemStatus, currentMoveResponse.Header.Status));
+        //                    }
+        //                }
+        //                catch (Exception ex)
+        //                {
+        //                    if (completion != null)
+        //                    {
+        //                        try
+        //                        {
+        //                            completion(responseIdx, completedItem: null, error: ex, userState: completionState);
+        //                        }
+        //                        catch
+        //                        {
+        //                        }
+        //                    }
+        //                }
+        //            }
+        //        }
+        //        else
+        //        {
+        //            throw new CLNullReferenceException(CLExceptionCode.OnDemand_FileRename, Resources.ExceptionCLHttpRestWithoutMoveResponses);
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return ex;
+        //    }
+
+        //    return null;
+        //}
+
         #endregion  // end RenameFiles (Renames files in the cloud.)
 
         #region RenameFolders (Rename folders in the cloud.)
@@ -733,7 +950,7 @@ namespace Cloud.REST
                 for (int i = 0; i < paths.Length; ++i)
                 {
                     CheckPath(paths[i], CLExceptionCode.OnDemand_RenameOldPath);
-                    CheckPath(newPaths[i], CLExceptionCode.OnDemand_RenameNewPath);
+                    CheckPath(newPaths[i], CLExceptionCode.OnDemand_RenameNewName);
                 }
 
                 if (!(_copiedSettings.HttpTimeoutMilliseconds > 0))

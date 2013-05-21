@@ -1551,8 +1551,8 @@
     <comment>status should not be translated</comment>
   </data>
   <data name="ExceptionOnDemandRenameMissingParameters" xml:space="preserve">
-    <value>pathParams cannot be null nor empty</value>
-    <comment>pathParams should not be translated</comment>
+    <value>itemParams cannot be null nor empty</value>
+    <comment>"itemParams" should not be translated</comment>
   </data>
   <data name="ExceptionOnDemandResponseArrayLength" xml:space="preserve">
     <value>Server responded with a different number of items than the input array</value>
@@ -1566,5 +1566,9 @@
   </data>
   <data name="ExceptionSyncEngineHttpStatus" xml:space="preserve">
     <value>{0}. Http status code: {1}</value>
+  </data>
+  <data name="ExceptionOnDemandRenameFilesInvalidExistingPathInItemMsg0" xml:space="preserve">
+    <value>Invalid existing Path in input item {0}</value>
+    <comment>Do not translate "Path".</comment>
   </data>
 </root>

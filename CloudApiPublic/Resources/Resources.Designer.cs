@@ -2592,7 +2592,16 @@ namespace Cloud.Static {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to pathParams cannot be null nor empty.
+        ///   Looks up a localized string similar to Invalid existing Path in input item {0}.
+        /// </summary>
+        internal static string ExceptionOnDemandRenameFilesInvalidExistingPathInItemMsg0 {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandRenameFilesInvalidExistingPathInItemMsg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to itemParams cannot be null nor empty.
         /// </summary>
         internal static string ExceptionOnDemandRenameMissingParameters {
             get {
