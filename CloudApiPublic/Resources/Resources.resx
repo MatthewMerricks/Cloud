@@ -1491,4 +1491,74 @@
     <value>Error getting syncbox status from Cloud</value>
     <comment>Cloud should not be translated</comment>
   </data>
+  <data name="ExceptionFileItemNullIsFolderActionAndHeaderAction" xml:space="preserve">
+    <value>response IsFolder must not be null or headerAction must not be null or action must not be null</value>
+    <comment>response, IsFolder, headerAction, and action should not be translated</comment>
+  </data>
+  <data name="ExceptionFileItemNullResponse" xml:space="preserve">
+    <value>response must not be null</value>
+    <comment>response should not be translated</comment>
+  </data>
+  <data name="ExceptionFileItemNullSyncbox" xml:space="preserve">
+    <value>syncbox must not be null</value>
+    <comment>syncbox should not be translated</comment>
+  </data>
+  <data name="ExceptionFileItemUnknownAction" xml:space="preserve">
+    <value>Unable to determine if action represents a file or a folder. action: {0}</value>
+    <comment>action and action should not be translated</comment>
+  </data>
+  <data name="ExceptionOnDemandAlreadyDeleted" xml:space="preserve">
+    <value>Item has already been deleted</value>
+  </data>
+  <data name="ExceptionOnDemandCheckPathBad" xml:space="preserve">
+    <value>pathToCheck is bad, see InnerException</value>
+    <comment>pathToCheck should not be translated</comment>
+  </data>
+  <data name="ExceptionOnDemandCheckPathNotContained" xml:space="preserve">
+    <value>pathToCheck does not contain syncbox Path</value>
+    <comment>pathToCheck, syncbox, and Path should not be translated</comment>
+  </data>
+  <data name="ExceptionOnDemandCheckPathNull" xml:space="preserve">
+    <value>pathToCheck cannot be null</value>
+    <comment>pathToCheck should not be translated</comment>
+  </data>
+  <data name="ExceptionOnDemandCheckPathSyncboxPathNull" xml:space="preserve">
+    <value>Syncbox Path cannot be null</value>
+    <comment>Syncbox and Path should not be translated</comment>
+  </data>
+  <data name="ExceptionOnDemandConflict" xml:space="preserve">
+    <value>Change conflicts with previous state</value>
+  </data>
+  <data name="ExceptionOnDemandDeserializeErrorMessage" xml:space="preserve">
+    <value>An error occurred deserializing the error message for current item in error</value>
+  </data>
+  <data name="ExceptionOnDemandItemError" xml:space="preserve">
+    <value>An error occurred for the current item, check the InnerException Message</value>
+    <comment>InnerException and Message should not be translated</comment>
+  </data>
+  <data name="ExceptionOnDemandNotFound" xml:space="preserve">
+    <value>Item was not found</value>
+  </data>
+  <data name="ExceptionOnDemandNullItem" xml:space="preserve">
+    <value>Server responded with a null item in the response array</value>
+  </data>
+  <data name="ExceptionOnDemandNullMetadata" xml:space="preserve">
+    <value>Server responded with an item without metadata</value>
+    <comment>metadata should not be translated</comment>
+  </data>
+  <data name="ExceptionOnDemandNullStatus" xml:space="preserve">
+    <value>Server responded with an item without a status</value>
+    <comment>status should not be translated</comment>
+  </data>
+  <data name="ExceptionOnDemandRenameMissingParameters" xml:space="preserve">
+    <value>pathParams cannot be null nor empty</value>
+    <comment>pathParams should not be translated</comment>
+  </data>
+  <data name="ExceptionOnDemandResponseArrayLength" xml:space="preserve">
+    <value>Server responded with a different number of items than the input array</value>
+  </data>
+  <data name="ExceptionOnDemandUnknownItemStatus" xml:space="preserve">
+    <value>An unknown status was returned for an item. Status: {0}</value>
+    <comment>status, InnerException, and Message should not be translated</comment>
+  </data>
 </root>

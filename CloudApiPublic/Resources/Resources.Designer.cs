@@ -2079,6 +2079,42 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to response IsFolder must not be null or headerAction must not be null or action must not be null.
+        /// </summary>
+        internal static string ExceptionFileItemNullIsFolderActionAndHeaderAction {
+            get {
+                return ResourceManager.GetString("ExceptionFileItemNullIsFolderActionAndHeaderAction", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to response must not be null.
+        /// </summary>
+        internal static string ExceptionFileItemNullResponse {
+            get {
+                return ResourceManager.GetString("ExceptionFileItemNullResponse", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to syncbox must not be null.
+        /// </summary>
+        internal static string ExceptionFileItemNullSyncbox {
+            get {
+                return ResourceManager.GetString("ExceptionFileItemNullSyncbox", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to determine if action represents a file or a folder. action: {0}.
+        /// </summary>
+        internal static string ExceptionFileItemUnknownAction {
+            get {
+                return ResourceManager.GetString("ExceptionFileItemUnknownAction", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to MakeAsyncRequestSynchronous was processed without param1.
         /// </summary>
         internal static string ExceptionHelpersAsyncGetUploadRequestStreamOrDownloadResponseMakeSyncParam1 {
@@ -2444,6 +2480,141 @@ namespace Cloud.Static {
         internal static string ExceptionLoggingInWithCode {
             get {
                 return ResourceManager.GetString("ExceptionLoggingInWithCode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Item has already been deleted.
+        /// </summary>
+        internal static string ExceptionOnDemandAlreadyDeleted {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandAlreadyDeleted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to pathToCheck is bad, see InnerException.
+        /// </summary>
+        internal static string ExceptionOnDemandCheckPathBad {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandCheckPathBad", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to pathToCheck does not contain syncbox Path.
+        /// </summary>
+        internal static string ExceptionOnDemandCheckPathNotContained {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandCheckPathNotContained", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to pathToCheck cannot be null.
+        /// </summary>
+        internal static string ExceptionOnDemandCheckPathNull {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandCheckPathNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Syncbox Path cannot be null.
+        /// </summary>
+        internal static string ExceptionOnDemandCheckPathSyncboxPathNull {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandCheckPathSyncboxPathNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Change conflicts with previous state.
+        /// </summary>
+        internal static string ExceptionOnDemandConflict {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandConflict", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to An error occurred deserializing the error message for current item in error.
+        /// </summary>
+        internal static string ExceptionOnDemandDeserializeErrorMessage {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandDeserializeErrorMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to An error occurred for the current item, check the InnerException Message.
+        /// </summary>
+        internal static string ExceptionOnDemandItemError {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandItemError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Item was not found.
+        /// </summary>
+        internal static string ExceptionOnDemandNotFound {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Server responded with a null item in the response array.
+        /// </summary>
+        internal static string ExceptionOnDemandNullItem {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandNullItem", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Server responded with an item without metadata.
+        /// </summary>
+        internal static string ExceptionOnDemandNullMetadata {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandNullMetadata", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Server responded with an item without a status.
+        /// </summary>
+        internal static string ExceptionOnDemandNullStatus {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandNullStatus", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to pathParams cannot be null nor empty.
+        /// </summary>
+        internal static string ExceptionOnDemandRenameMissingParameters {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandRenameMissingParameters", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Server responded with a different number of items than the input array.
+        /// </summary>
+        internal static string ExceptionOnDemandResponseArrayLength {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandResponseArrayLength", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to An unknown status was returned for an item. Status: {0}.
+        /// </summary>
+        internal static string ExceptionOnDemandUnknownItemStatus {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandUnknownItemStatus", resourceCulture);
             }
         }
         
