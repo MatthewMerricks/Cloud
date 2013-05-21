@@ -60,6 +60,11 @@ namespace Cloud.Interfaces
         /// </summary>
         /// <param name="e">Message parameters</param>
         void UpdateFileDownload(ITransferUpdateMessage e);
+        /// <summary>
+        /// Fired when internet connectivity changes as detected when any Syncboxes are actively syncing
+        /// </summary>
+        /// <param name="e">Message parameters</param>
+        void InternetConnectivityChanged(IInternetConnectivityMessage e);
     }
     public interface IMinimalMessage : IHandleableArgs
     {
@@ -85,5 +90,9 @@ namespace Cloud.Interfaces
     {
         long EventId { get; }
         CLStatusFileTransferUpdateParameters Parameters { get; }
+    }
+    public interface IInternetConnectivityMessage : IMinimalMessage
+    {
+        bool InternetConnected { get; }
     }
 }

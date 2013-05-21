@@ -22,7 +22,7 @@ namespace Cloud.Model
                 return _renameBadgePath;
             }
         }
-        private RenameBadgePath _renameBadgePath;
+        private readonly RenameBadgePath _renameBadgePath;
 
         public BadgePathRenamedArgs(RenameBadgePath renameBadgePath)
         {

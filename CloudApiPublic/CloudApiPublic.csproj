@@ -224,6 +224,7 @@
     <Compile Include="Model\DelegateAndDataHolder.cs" />
     <Compile Include="Model\EventMessageReceiverArgs\BasicMessage.cs" />
     <Compile Include="Model\EventMessageReceiverArgs\IncrementCountMessage.cs" />
+    <Compile Include="Model\EventMessageReceiverArgs\InternetConnectivityMessage.cs" />
     <Compile Include="Model\EventMessageReceiverArgs\SetCountMessage.cs" />
     <Compile Include="Model\EventMessageReceiverArgs\TransferUpdateMessage.cs" />
     <Compile Include="Model\EventMessages\BaseMessage.cs" />
@@ -236,6 +237,7 @@
     <Compile Include="Model\EventMessages\ErrorInfo\GeneralErrorInfo.cs" />
     <Compile Include="Model\EventMessages\ErrorInfo\HaltAllOfCloudSDKErrorInfo.cs" />
     <Compile Include="Model\EventMessages\InformationalMessage.cs" />
+    <Compile Include="Model\EventMessages\InternetChangeMessage.cs" />
     <Compile Include="Model\EventMessages\SuccessfulDownloadsIncrementedMessage.cs" />
     <Compile Include="Model\EventMessages\SuccessfulUploadsIncrementedMessage.cs" />
     <Compile Include="Model\EventMessages\UploadingCountMessage.cs" />
