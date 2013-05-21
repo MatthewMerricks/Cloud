@@ -513,6 +513,7 @@ namespace Cloud.Static
         public const string CLEventTypeConflict = "conflict";
         public const string CLEventTypeNotFound = "not_found";
         public const string CLEventTypeDownload = "download";
+        public const string CLEventTypeToParentNotFound = "to_parent_not_found";
 
         // Cloud Metadata Protocol
         public const string CLMetadataFileObject = "file_object";

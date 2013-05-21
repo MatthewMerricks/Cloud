@@ -326,21 +326,21 @@ namespace Cloud.Model
 
                                                 if (dequeuedAsHttpException != null)
                                                 {
-                                                    if (dequeuedAsHttpException.Status != null)
+                                                    if (dequeuedAsHttpException.HttpStatus != null)
                                                     {
                                                         logWriter.WriteLine(
                                                             Helpers.MakeTabs(tabCounter) +
                                                                 string.Format(Resources.LogHttpStatus,
-                                                                    (int)((HttpStatusCode)dequeuedAsHttpException.Status)));
+                                                                    (int)((HttpStatusCode)dequeuedAsHttpException.HttpStatus)));
                                                     }
 
-                                                    if (!string.IsNullOrEmpty(dequeuedAsHttpException.Response))
+                                                    if (!string.IsNullOrEmpty(dequeuedAsHttpException.HttpResponse))
                                                     {
                                                         logWriter.WriteLine(
                                                             Helpers.MakeTabs(tabCounter) +
                                                                 string.Format(Resources.LogHttpResponse,
                                                                     Environment.NewLine,
-                                                                    dequeuedAsHttpException.Response));
+                                                                    dequeuedAsHttpException.HttpResponse));
                                                     }
                                                 }
                                             }

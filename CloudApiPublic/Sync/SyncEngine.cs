@@ -9977,6 +9977,9 @@ namespace Cloud.Sync
                                                         }
                                                         break;
 
+                                                    case CLDefinitions.CLEventTypeToParentNotFound:
+                                                        throw new Exception("Parent folder not found for provided parent folder server uid");
+
                                                     // "error"
                                                     case CLDefinitions.RESTResponseStatusFailed:
                                                         throw new Exception("Error response: " +

@@ -6,6 +6,7 @@
 // Copyright (c) Cloud.com. All rights reserved.
 
 using Cloud.CLSync;
+using Cloud.CLSync.CLSyncboxParameters;
 using Cloud.Interfaces;
 using Cloud.Model;
 using Cloud.Model.EventMessages.ErrorInfo;
@@ -1602,13 +1603,13 @@ namespace Cloud
         /// <param name="callbackUserState">Userstate to pass when firing async callback</param>
         /// <param name="path">Full path to where the file would exist locally on disk.</param>
         /// <param name="newPath">Full path to the new location of the file.</param>
+        /// <param name="completion">Delegate which will be fired upon successful communication for every response item</param>
+        /// <param name="completionState">Userstate to be passed whenever the completion delegate is fired</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginRenameFile(AsyncCallback callback, object callbackUserState, string path, string newPath)
+        public IAsyncResult BeginRenameFile(AsyncCallback callback, object callbackUserState, string path, string newPath, CLFileItemCompletion completion, object completionState)
         {
             CheckDisposed();
-            string[] paths = new string[1] { path };
-            string[] newPaths = new string[1] { newPath };
-            return _httpRestClient.BeginRenameFiles(callback, callbackUserState, paths, newPaths);
+            return _httpRestClient.BeginRenameFiles(callback, callbackUserState, new[] { new RenamePathParams(newPath, path) }, completion, completionState);
         }
 
         /// <summary>
@@ -1616,51 +1617,12 @@ namespace Cloud
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
         /// </summary>
         /// <param name="aResult">The asynchronous result provided upon starting the metadata query</param>
-        /// <param name="result">(output) The result from the metadata query</param>
+        /// <param name="result">(output) An overall error which occurred during processing, if any</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndRenameFile(IAsyncResult aResult, out SyncboxRenameFileResult result)
+        public CLError EndRenameFile(IAsyncResult aResult, out CLError overallError)
         {
             CheckDisposed();
-
-            // Complete the async operation.
-            SyncboxRenameFilesResult results;
-            CLError error = _httpRestClient.EndRenameFiles(aResult, out results);
-
-            // Return resulting error or item
-            if (error != null)
-            {
-                // We got an overall error.  Return it.
-                result = null;
-                return error;
-            }
-            // error == null  (no overall error)
-            else if (results == null)
-            {
-                // No overall error, but also no results.  Return an error.
-                result = null;
-                return new CLError(new CLException(CLExceptionCode.Rest_Syncbox_File_Rename_No_Server_Responses_Or_Errors, "No error or responses from server results null"));
-            }
-            // error == null && results != null  (no overall error, and we got a results object)
-            else if (results.Errors != null && results.Errors.Length >= 1)
-            {
-                // No overall error, got a results object, and it has an error.  Return that error.
-                result = null;
-                return results.Errors[0];
-            }
-            // (error == null && results != null) && (results.Errors == null || results.Errors.Length == 0)  (no overall error, we got a results object, and there are no errors in results)
-            else if (results.FileItems != null && results.FileItems.Length >= 1)
-            {
-                // No overall error, got a results object, is has no errors, and it has a rename response.  This is the normal case.  Return that rename response as the result.
-                result = new SyncboxRenameFileResult(error: null, _fileItem: results.FileItems[0]);
-                return null;        // normal condition
-            }
-            // ((error == null && results != null) && (results.Errors == null || results.Errors.Length == 0)) && (results.Responses == null || results.Responses.Length == 0)
-            else
-            {
-                // No error, got a results object, but there were no errors and no rename responses inside.  Return an error.
-                result = null;
-                return new CLError(new CLException(CLExceptionCode.Rest_Syncbox_File_Rename_No_Server_Responses_Or_Errors, "No error or responses from server"));
-            }
+            return _httpRestClient.EndRenameFiles(aResult, out overallError);
         }
 
         /// <summary>
@@ -1668,47 +1630,13 @@ namespace Cloud
         /// </summary>
         /// <param name="path">Full path to where the file would exist locally on disk</param>
         /// <param name="newPath">Full path to the new location of the file.</param>
-        /// <param name="fileItem">(output) response object from communication</param>
+        /// <param name="completion">Delegate which will be fired upon successful communication for every response item</param>
+        /// <param name="completionState">Userstate to be passed whenever the completion delegate is fired</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError RenameFile(string path, string newPath, out CLFileItem fileItem)
+        public CLError RenameFile(string path, string newPath, CLFileItemCompletion completion, object completionState)
         {
             CheckDisposed();
-            string[] paths = new string[1] { path };
-            string[] newPaths = new string[1] { newPath };
-
-            // Communicate and get the results.
-            CLError[] outErrors;
-            CLFileItem[] outItems;
-            CLError error = _httpRestClient.RenameFiles(paths, newPaths, out outItems, out outErrors);
-
-            // Return resulting error or item
-            if (error != null)
-            {
-                // There was an overall error.  Return it
-                fileItem = null;
-                return error;
-            }
-            // error == null
-            else if (outErrors != null && outErrors.Length >= 1)
-            {
-                // No overall error, but there was an item error.  Return it.
-                fileItem = null;
-                return outErrors[0];
-            }
-            // error == null && (outErrors == null || outErrors.Length == 0)
-            else if (outItems != null && outItems.Length >= 1)
-            {
-                // No overall error, no item errors, and we have an item.  Return it.  This is the normal condition
-                fileItem = outItems[0];
-                return null;
-            }
-            // (error == null && (outErrors == null || outErrors.Length == 0)) && (outItems == null || outItems.Length == 0)
-            else
-            {
-                // No overall error, no item errors, and no items.  No responses from server.  Return error.
-                fileItem = null;
-                return new CLError(new CLException(CLExceptionCode.Rest_Syncbox_File_Rename_No_Server_Responses_Or_Errors, "No responses or status from serer"));
-            }
+            return _httpRestClient.RenameFiles(new[] { new RenamePathParams(newPath, path) }, completion, completionState);
         }
 
         #endregion  // end GetItemAtPath (Queries the cloud for the item at a particular path)
@@ -1719,13 +1647,14 @@ namespace Cloud
         /// </summary>
         /// <param name="callback">Callback method to fire when operation completes</param>
         /// <param name="callbackUserState">Userstate to pass when firing async callback</param>
-        /// <param name="paths">An array of full paths to where the files would exist locally on disk.</param>
-        /// <param name="newPaths">An array of full paths to the new location of the files, corresponding to the paths array.</param>
+        /// <param name="pathParams">An array of old paths to new paths for renaming each item</param>
+        /// <param name="completion">Delegate which will be fired upon successful communication for every response item</param>
+        /// <param name="completionState">Userstate to be passed whenever the completion delegate is fired</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginRenameFiles(AsyncCallback callback, object callbackUserState, string [] paths, string [] newPaths)
+        internal IAsyncResult BeginRenameFiles(AsyncCallback callback, object callbackUserState, RenamePathParams[] pathParams, CLFileItemCompletion completion, object completionState)
         {
             CheckDisposed();
-            return _httpRestClient.BeginRenameFiles(callback, callbackUserState, paths, newPaths);
+            return _httpRestClient.BeginRenameFiles(callback, callbackUserState, pathParams, completion, completionState);
         }
 
         /// <summary>
@@ -1733,26 +1662,25 @@ namespace Cloud
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
         /// </summary>
         /// <param name="aResult">The asynchronous result provided upon starting the metadata query</param>
-        /// <param name="result">(output) The result from the metadata query</param>
+        /// <param name="result">(output) An overall error which occurred during processing, if any</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndRenameFiles(IAsyncResult aResult, out SyncboxRenameFilesResult result)
+        internal CLError EndRenameFiles(IAsyncResult aResult, out CLError overallError)
         {
             CheckDisposed();
-            return _httpRestClient.EndRenameFiles(aResult, out result);
+            return _httpRestClient.EndRenameFiles(aResult, out overallError);
         }
 
         /// <summary>
         /// Renames files in the cloud.
         /// </summary>
-        /// <param name="paths">An array of full paths to where the files would exist locally on disk.</param>
-        /// <param name="newPaths">An array of full paths to the new location of the files, corresponding to the paths array.</param>
-        /// <param name="fileItems">(output) response object from communication</param>
-        /// <param name="errors">(output) Any errors that occur, or null</param>
+        /// <param name="pathParams">An array of old paths to new paths for renaming each item</param>
+        /// <param name="completion">Delegate which will be fired upon successful communication for every response item</param>
+        /// <param name="completionState">Userstate to be passed whenever the completion delegate is fired</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError RenameFiles(string [] paths, string [] newPaths, out CLFileItem [] fileItems, out CLError [] errors)
+        internal CLError RenameFiles(RenamePathParams[] pathParams, CLFileItemCompletion completion, object completionState)
         {
             CheckDisposed();
-            return _httpRestClient.RenameFiles(paths, newPaths, out fileItems, out errors);
+            return _httpRestClient.RenameFiles(pathParams, completion, completionState);
         }
 
         #endregion  // end GetItemAtPath (Queries the cloud for the item at a particular path)
@@ -1801,7 +1729,7 @@ namespace Cloud
             {
                 // No overall error, but also no results.  Return an error.
                 result = null;
-                return new CLError(new CLException(CLExceptionCode.Rest_Syncbox_Folder_Rename_No_Server_Responses_Or_Errors, "No error or responses from server results null"));
+                return new CLError(new CLException(CLExceptionCode.OnDemand_FolderRenameNoServerResponsesOrErrors, "No error or responses from server results null"));
             }
             // error == null && results != null  (no overall error, and we got a results object)
             else if (results.Errors != null && results.Errors.Length >= 1)
@@ -1822,7 +1750,7 @@ namespace Cloud
             {
                 // No error, got a results object, but there were no errors and no rename responses inside.  Return an error.
                 result = null;
-                return new CLError(new CLException(CLExceptionCode.Rest_Syncbox_Folder_Rename_No_Server_Responses_Or_Errors, "No error or responses from server"));
+                return new CLError(new CLException(CLExceptionCode.OnDemand_FolderRenameNoServerResponsesOrErrors, "No error or responses from server"));
             }
         }
 
@@ -1870,7 +1798,7 @@ namespace Cloud
             {
                 // No overall error, no item errors, and no items.  No responses from server.  Return error.
                 folderItem = null;
-                return new CLError(new CLException(CLExceptionCode.Rest_Syncbox_Folder_Rename_No_Server_Responses_Or_Errors, "No responses or status from serer"));
+                return new CLError(new CLException(CLExceptionCode.OnDemand_FolderRenameNoServerResponsesOrErrors, "No responses or status from serer"));
             }
         }
 
@@ -1964,7 +1892,7 @@ namespace Cloud
             {
                 // No overall error, but also no results.  Return an error.
                 result = null;
-                return new CLError(new CLException(CLExceptionCode.Rest_Syncbox_File_Move_No_Server_Responses_Or_Errors, "No error or responses from server results null"));
+                return new CLError(new CLException(CLExceptionCode.OnDemand_FileMoveNoServerResponsesOrErrors, "No error or responses from server results null"));
             }
             // error == null && results != null  (no overall error, and we got a results object)
             else if (results.Errors != null && results.Errors.Length >= 1)
@@ -1985,7 +1913,7 @@ namespace Cloud
             {
                 // No error, got a results object, but there were no errors and no rename responses inside.  Return an error.
                 result = null;
-                return new CLError(new CLException(CLExceptionCode.Rest_Syncbox_File_Move_No_Server_Responses_Or_Errors, "No error or responses from server"));
+                return new CLError(new CLException(CLExceptionCode.OnDemand_FileMoveNoServerResponsesOrErrors, "No error or responses from server"));
             }
         }
 
@@ -2033,7 +1961,7 @@ namespace Cloud
             {
                 // No overall error, no item errors, and no items.  No responses from server.  Return error.
                 fileItem = null;
-                return new CLError(new CLException(CLExceptionCode.Rest_Syncbox_File_Move_No_Server_Responses_Or_Errors, "No responses or status from serer"));
+                return new CLError(new CLException(CLExceptionCode.OnDemand_FileMoveNoServerResponsesOrErrors, "No responses or status from serer"));
             }
         }
 
@@ -2137,7 +2065,7 @@ namespace Cloud
             {
                 // No overall error, but also no results.  Return an error.
                 result = null;
-                return new CLError(new CLException(CLExceptionCode.Rest_Syncbox_Folder_Move_No_Server_Responses_Or_Errors, "No error or responses from server results null"));
+                return new CLError(new CLException(CLExceptionCode.OnDemand_MoveNoServerResponsesOrErrors, "No error or responses from server results null"));
             }
             // error == null && results != null  (no overall error, and we got a results object)
             else if (results.Errors != null && results.Errors.Length >= 1)
@@ -2158,7 +2086,7 @@ namespace Cloud
             {
                 // No error, got a results object, but there were no errors and no rename responses inside.  Return an error.
                 result = null;
-                return new CLError(new CLException(CLExceptionCode.Rest_Syncbox_Folder_Move_No_Server_Responses_Or_Errors, "No error or responses from server"));
+                return new CLError(new CLException(CLExceptionCode.OnDemand_MoveNoServerResponsesOrErrors, "No error or responses from server"));
             }
         }
 
@@ -2206,7 +2134,7 @@ namespace Cloud
             {
                 // No overall error, no item errors, and no items.  No responses from server.  Return error.
                 folderItem = null;
-                return new CLError(new CLException(CLExceptionCode.Rest_Syncbox_Folder_Move_No_Server_Responses_Or_Errors, "No responses or status from serer"));
+                return new CLError(new CLException(CLExceptionCode.OnDemand_MoveNoServerResponsesOrErrors, "No responses or status from serer"));
             }
         }
 
@@ -2308,7 +2236,7 @@ namespace Cloud
             {
                 // No overall error, but also no results.  Return an error.
                 result = null;
-                return new CLError(new CLException(CLExceptionCode.Rest_Syncbox_File_Delete_No_Server_Responses_Or_Errors, "No error or responses from server results null"));
+                return new CLError(new CLException(CLExceptionCode.OnDemand_FileDeleteNoServerResponsesOrErrors, "No error or responses from server results null"));
             }
             // error == null && results != null  (no overall error, and we got a results object)
             else if (results.Errors != null && results.Errors.Length >= 1)
@@ -2329,7 +2257,7 @@ namespace Cloud
             {
                 // No error, got a results object, but there were no errors and no delete responses inside.  Return an error.
                 result = null;
-                return new CLError(new CLException(CLExceptionCode.Rest_Syncbox_File_Delete_No_Server_Responses_Or_Errors, "No error or responses from server"));
+                return new CLError(new CLException(CLExceptionCode.OnDemand_FileDeleteNoServerResponsesOrErrors, "No error or responses from server"));
             }
         }
 
@@ -2375,7 +2303,7 @@ namespace Cloud
             {
                 // No overall error, no item errors, and no items.  No responses from server.  Return error.
                 fileItem = null;
-                return new CLError(new CLException(CLExceptionCode.Rest_Syncbox_File_Delete_No_Server_Responses_Or_Errors, "No responses or status from serer"));
+                return new CLError(new CLException(CLExceptionCode.OnDemand_FileDeleteNoServerResponsesOrErrors, "No responses or status from serer"));
             }
         }
 
@@ -2475,7 +2403,7 @@ namespace Cloud
             {
                 // No overall error, but also no results.  Return an error.
                 result = null;
-                return new CLError(new CLException(CLExceptionCode.Rest_Syncbox_Folder_Delete_No_Server_Responses_Or_Errors, "No error or responses from server results null"));
+                return new CLError(new CLException(CLExceptionCode.OnDemand_FolderDeleteNoServerResponsesOrErrors, "No error or responses from server results null"));
             }
             // error == null && results != null  (no overall error, and we got a results object)
             else if (results.Errors != null && results.Errors.Length >= 1)
@@ -2496,7 +2424,7 @@ namespace Cloud
             {
                 // No error, got a results object, but there were no errors and no delete responses inside.  Return an error.
                 result = null;
-                return new CLError(new CLException(CLExceptionCode.Rest_Syncbox_Folder_Delete_No_Server_Responses_Or_Errors, "No error or responses from server"));
+                return new CLError(new CLException(CLExceptionCode.OnDemand_FolderDeleteNoServerResponsesOrErrors, "No error or responses from server"));
             }
         }
 
@@ -2542,7 +2470,7 @@ namespace Cloud
             {
                 // No overall error, no item errors, and no items.  No responses from server.  Return error.
                 folderItem = null;
-                return new CLError(new CLException(CLExceptionCode.Rest_Syncbox_Folder_Delete_No_Server_Responses_Or_Errors, "No responses or status from serer"));
+                return new CLError(new CLException(CLExceptionCode.OnDemand_FolderDeleteNoServerResponsesOrErrors, "No responses or status from serer"));
             }
         }
 
@@ -2642,7 +2570,7 @@ namespace Cloud
             {
                 // No overall error, but also no results.  Return an error.
                 result = null;
-                return new CLError(new CLException(CLExceptionCode.Rest_Syncbox_Folder_Add_No_Server_Responses_Or_Errors, "No error or responses from server results null"));
+                return new CLError(new CLException(CLExceptionCode.OnDemand_FolderAddNoServerResponsesOrErrors, "No error or responses from server results null"));
             }
             // error == null && results != null  (no overall error, and we got a results object)
             else if (results.Errors != null && results.Errors.Length >= 1)
@@ -2663,7 +2591,7 @@ namespace Cloud
             {
                 // No error, got a results object, but there were no errors and no delete responses inside.  Return an error.
                 result = null;
-                return new CLError(new CLException(CLExceptionCode.Rest_Syncbox_Folder_Add_No_Server_Responses_Or_Errors, "No error or responses from server"));
+                return new CLError(new CLException(CLExceptionCode.OnDemand_FolderAddNoServerResponsesOrErrors, "No error or responses from server"));
             }
         }
 
@@ -2709,7 +2637,7 @@ namespace Cloud
             {
                 // No overall error, no item errors, and no items.  No responses from server.  Return error.
                 folderItem = null;
-                return new CLError(new CLException(CLExceptionCode.Rest_Syncbox_Folder_Add_No_Server_Responses_Or_Errors, "No responses or status from serer"));
+                return new CLError(new CLException(CLExceptionCode.OnDemand_FolderAddNoServerResponsesOrErrors, "No responses or status from serer"));
             }
         }
 
@@ -2809,7 +2737,7 @@ namespace Cloud
             {
                 // No overall error, but also no results.  Return an error.
                 result = null;
-                return new CLError(new CLException(CLExceptionCode.Rest_Syncbox_File_Add_No_Server_Responses_Or_Errors, "No error or responses from server results null"));
+                return new CLError(new CLException(CLExceptionCode.OnDemand_FileAddNoServerResponsesOrErrors, "No error or responses from server results null"));
             }
             // error == null && results != null  (no overall error, and we got a results object)
             else if (results.Errors != null && results.Errors.Length >= 1)
@@ -2830,7 +2758,7 @@ namespace Cloud
             {
                 // No error, got a results object, but there were no errors and no delete responses inside.  Return an error.
                 result = null;
-                return new CLError(new CLException(CLExceptionCode.Rest_Syncbox_File_Add_No_Server_Responses_Or_Errors, "No error or responses from server"));
+                return new CLError(new CLException(CLExceptionCode.OnDemand_FileAddNoServerResponsesOrErrors, "No error or responses from server"));
             }
         }
 
@@ -2876,7 +2804,7 @@ namespace Cloud
             {
                 // No overall error, no item errors, and no items.  No responses from server.  Return error.
                 fileItem = null;
-                return new CLError(new CLException(CLExceptionCode.Rest_Syncbox_File_Add_No_Server_Responses_Or_Errors, "No responses or status from serer"));
+                return new CLError(new CLException(CLExceptionCode.OnDemand_FileAddNoServerResponsesOrErrors, "No responses or status from serer"));
             }
         }
 
@@ -3280,7 +3208,7 @@ namespace Cloud
         /// </summary>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError GetGetAllVideoItems(CLFileItem[] response)
+        public CLError GetGetAllVideoItems(out CLFileItem[] response)
         {
             CheckDisposed();
             return _httpRestClient.GetAllVideoItems(out response);
@@ -3318,7 +3246,7 @@ namespace Cloud
         /// </summary>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError GetAllAudioItems(CLFileItem [] response)
+        public CLError GetAllAudioItems(CLFileItem[] response)
         {
             CheckDisposed();
             return _httpRestClient.GetAllAudioItems(out response);
@@ -3356,7 +3284,7 @@ namespace Cloud
         /// </summary>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError GetAllDocumentItems(CLFileItem[] response)
+        public CLError GetAllDocumentItems(out CLFileItem[] response)
         {
             CheckDisposed();
             return _httpRestClient.GetAllDocumentItems(out response);
@@ -3394,7 +3322,7 @@ namespace Cloud
         /// </summary>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError GetAllPresentationItems(CLFileItem[] response)
+        public CLError GetAllPresentationItems(out CLFileItem[] response)
         {
             CheckDisposed();
             return _httpRestClient.GetAllPresentationItems(out response);
@@ -3432,7 +3360,7 @@ namespace Cloud
         /// </summary>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError GetAllTextItems(CLFileItem[] response)
+        public CLError GetAllTextItems(out CLFileItem[] response)
         {
             CheckDisposed();
             return _httpRestClient.GetAllTextItems(out response);
@@ -3470,7 +3398,7 @@ namespace Cloud
         /// </summary>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError GetAllArchiveItems(CLFileItem[] response)
+        public CLError GetAllArchiveItems(out CLFileItem[] response)
         {
             CheckDisposed();
             return _httpRestClient.GetAllArchiveItems(out response);
@@ -3520,7 +3448,7 @@ namespace Cloud
         public CLError GetRecentFilesSinceDateWithLimit(
             Nullable<DateTime> sinceDate,
             Nullable<int> returnLimit,
-            out CLFileItem [] response)
+            out CLFileItem[] response)
         {
             CheckDisposed();
             return _httpRestClient.GetRecents(sinceDate, returnLimit, out response);
@@ -3562,7 +3490,7 @@ namespace Cloud
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError GetFolderContents(
             string path,
-            out CLFileItem [] response)
+            out CLFileItem[] response)
         {
             CheckDisposed();
             return _httpRestClient.GetFolderContentsAtPath(path, out response);

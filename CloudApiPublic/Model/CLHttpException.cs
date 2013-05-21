@@ -1,4 +1,11 @@
-﻿using Cloud.Static;
+﻿//
+//  CLHttpException.cs
+//  Cloud SDK Windows
+//
+//  Created by DavidBruck.
+//  Copyright (c) Cloud.com. All rights reserved.
+
+using Cloud.Static;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,7 +22,7 @@ namespace Cloud.Model
         /// <summary>
         /// Http status code returned from the server, if received
         /// </summary>
-        public Nullable<HttpStatusCode> Status
+        public Nullable<HttpStatusCode> HttpStatus
         {
             get
             {
@@ -27,7 +34,7 @@ namespace Cloud.Model
         /// <summary>
         /// Response from the server in text format, if received
         /// </summary>
-        public string Response
+        public string HttpResponse
         {
             get
             {
