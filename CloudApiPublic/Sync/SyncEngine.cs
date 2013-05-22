@@ -2410,7 +2410,7 @@ namespace Cloud.Sync
                             && latestMetadataResult != null)
                         {
                             CLExceptionCode fileVersionStatus = (CLExceptionCode)0;
-                            JsonContracts.FileVersion[] fileVersionResult;
+                            JsonContracts.FileVersions fileVersionResult;
                             CLError fileVersionError = Data.commonThisEngine.httpRestClient.GetFileVersions(
                                 latestMetadataResult.ServerUid,
                                 Data.commonThisEngine.HttpTimeoutMilliseconds,
@@ -2447,7 +2447,8 @@ namespace Cloud.Sync
                             JsonContracts.FileVersion latestNonPendingVersion;
                             byte[] latestNonPendingHash;
                             if (fileVersionResult == null
-                                || (latestNonPendingVersion = (fileVersionResult
+                                || fileVersionResult.Versions == null
+                                || (latestNonPendingVersion = (fileVersionResult.Versions
                                     .OrderByDescending(fileVersion => (fileVersion.Version ?? -1))
                                     .FirstOrDefault(fileVersion =>
                                         fileVersion.IsNotPending != false
@@ -8543,7 +8544,7 @@ namespace Cloud.Sync
                                                             if (newMetadata.IsNotPending == false)
                                                             {
                                                                 CLExceptionCode fileVersionsStatus = (CLExceptionCode)0;
-                                                                JsonContracts.FileVersion[] fileVersions;
+                                                                JsonContracts.FileVersions fileVersions;
                                                                 CLError fileVersionsError = httpRestClient.GetFileVersions(
                                                                     newMetadata.ServerUid,
                                                                     HttpTimeoutMilliseconds,
@@ -8560,7 +8561,7 @@ namespace Cloud.Sync
                                                                     throw new AggregateException("An error occurred retrieving previous versions of a file", fileVersionsError.Exceptions);
                                                                 }
 
-                                                                JsonContracts.FileVersion lastNonPendingVersion = (fileVersions ?? Enumerable.Empty<JsonContracts.FileVersion>())
+                                                                JsonContracts.FileVersion lastNonPendingVersion = ((fileVersions == null ? null : fileVersions.Versions) ?? Enumerable.Empty<JsonContracts.FileVersion>())
                                                                     .OrderByDescending(fileVersion => (fileVersion.Version ?? -1))
                                                                     .FirstOrDefault(fileVersion => fileVersion.IsDeleted != true
                                                                         && fileVersion.IsNotPending != false);
@@ -9568,16 +9569,17 @@ namespace Cloud.Sync
 
                                                                                 if (oldPathMetadataRevision.IsNotPending == false)
                                                                                 {
-                                                                                    JsonContracts.FileVersion[] oldPathFileVersions;
+                                                                                    JsonContracts.FileVersions oldPathFileVersions;
                                                                                     CLError oldPathFileVersionsError = httpRestClient.GetFileVersions(
                                                                                         oldPathMetadataRevision.ServerUid,
                                                                                         HttpTimeoutMilliseconds,
                                                                                         out oldPathFileVersions);
 
                                                                                     if (oldPathFileVersionsError == null // success
-                                                                                            && oldPathFileVersions != null)
+                                                                                            && oldPathFileVersions != null
+                                                                                            && oldPathFileVersions.Versions != null)
                                                                                     {
-                                                                                        JsonContracts.FileVersion latestStoredVersion = oldPathFileVersions
+                                                                                        JsonContracts.FileVersion latestStoredVersion = oldPathFileVersions.Versions
                                                                                             .OrderByDescending(currentOldPathVerion => currentOldPathVerion.Version ?? int.MinValue)
                                                                                             .FirstOrDefault(currentOldPathVersion => currentOldPathVersion.IsDeleted != true && currentOldPathVersion.IsNotPending != false);
 
@@ -10687,7 +10689,7 @@ namespace Cloud.Sync
                                             if (newMetadata.IsNotPending == false)
                                             {
                                                 CLExceptionCode fileVersionsStatus = (CLExceptionCode)0;
-                                                JsonContracts.FileVersion[] fileVersions;
+                                                JsonContracts.FileVersions fileVersions;
                                                 CLError fileVersionsError = httpRestClient.GetFileVersions(
                                                     newMetadata.ServerUid,
                                                     HttpTimeoutMilliseconds,
@@ -10704,7 +10706,7 @@ namespace Cloud.Sync
                                                     throw new AggregateException("An error occurred retrieving previous versions of a file", fileVersionsError.Exceptions);
                                                 }
 
-                                                JsonContracts.FileVersion lastNonPendingVersion = (fileVersions ?? Enumerable.Empty<JsonContracts.FileVersion>())
+                                                JsonContracts.FileVersion lastNonPendingVersion = ((fileVersions == null ? null : fileVersions.Versions) ?? Enumerable.Empty<JsonContracts.FileVersion>())
                                                     .OrderByDescending(fileVersion => (fileVersion.Version ?? -1))
                                                     .FirstOrDefault(fileVersion => fileVersion.IsDeleted != true
                                                         && fileVersion.IsNotPending != false);

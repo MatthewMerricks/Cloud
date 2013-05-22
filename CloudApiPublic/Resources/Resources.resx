@@ -1571,4 +1571,8 @@
     <value>Invalid existing Path in input item {0}</value>
     <comment>Do not translate "Path".</comment>
   </data>
+  <data name="ExceptionFileMonitorBeginProcessingSetMD5" xml:space="preserve">
+    <value>Error on SetMD5 from MD5 of an existing change</value>
+    <comment>SetMD5 and MD5 should not be translated</comment>
+  </data>
 </root>

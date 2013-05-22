@@ -7589,7 +7589,7 @@ namespace Cloud.REST
                     try
                     {
                         // declare the specific type of result for this operation
-                        JsonContracts.FileVersion[] result;
+                        JsonContracts.FileVersions result;
                         // run the download of the file with the passed parameters, storing any error that occurs
                         CLError processError = GetFileVersions(
                             castState.Item2,
@@ -7693,7 +7693,7 @@ namespace Cloud.REST
         /// <param name="response">(output) response object from communication</param>
         /// <param name="includeDeletedVersions">(optional) whether to include file versions which are deleted</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        internal CLError GetFileVersions(string fileServerId, int timeoutMilliseconds, out JsonContracts.FileVersion[] response, bool includeDeletedVersions = false)
+        internal CLError GetFileVersions(string fileServerId, int timeoutMilliseconds, out JsonContracts.FileVersions response, bool includeDeletedVersions = false)
         {
             return GetFileVersions(fileServerId, timeoutMilliseconds, null, out response, includeDeletedVersions);
         }
@@ -7706,7 +7706,7 @@ namespace Cloud.REST
         /// <param name="response">(output) response object from communication</param>
         /// <param name="includeDeletedVersions">(optional) whether to include file versions which are deleted</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        /* when they determine how they want to expose undelete, make this file versions public again */ internal CLError GetFileVersions(int timeoutMilliseconds, FilePath pathToFile, out JsonContracts.FileVersion[] response, bool includeDeletedVersions = false)
+        /* when they determine how they want to expose undelete, make this file versions public again */ internal CLError GetFileVersions(int timeoutMilliseconds, FilePath pathToFile, out JsonContracts.FileVersions response, bool includeDeletedVersions = false)
         {
             return GetFileVersions(null, timeoutMilliseconds, pathToFile, out response, includeDeletedVersions);
         }
@@ -7720,7 +7720,7 @@ namespace Cloud.REST
         /// <param name="response">(output) response object from communication</param>
         /// <param name="includeDeletedVersions">(optional) whether to include file versions which are deleted</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        internal CLError GetFileVersions(string fileServerId, int timeoutMilliseconds, FilePath pathToFile, out JsonContracts.FileVersion[] response, bool includeDeletedVersions = false)
+        internal CLError GetFileVersions(string fileServerId, int timeoutMilliseconds, FilePath pathToFile, out JsonContracts.FileVersions response, bool includeDeletedVersions = false)
         {
             // try/catch to process the undeletion, on catch return the error
             try
@@ -7775,7 +7775,7 @@ namespace Cloud.REST
                 };
 
                 // run the HTTP communication and store the response object to the output parameter
-                response = Helpers.ProcessHttp<JsonContracts.FileVersion[]>(null, // get file versions has no request content
+                response = Helpers.ProcessHttp<JsonContracts.FileVersions>(null, // get file versions has no request content
                     CLDefinitions.CLMetaDataServerURL, // base domain is the MDS server
                     serverMethodPath, // use a dynamic method path because it needs query string parameters
                     Helpers.requestMethod.get, // get file versions is a get
@@ -7788,7 +7788,7 @@ namespace Cloud.REST
             }
             catch (Exception ex)
             {
-                response = Helpers.DefaultForType<JsonContracts.FileVersion[]>();
+                response = Helpers.DefaultForType<JsonContracts.FileVersions>();
                 return ex;
             }
             return null;

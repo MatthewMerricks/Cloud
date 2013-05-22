@@ -271,6 +271,11 @@ namespace Cloud.Static
         /// </summary>
         Syncing_Model = (((ulong)CLExceptionDomain.Syncing) << 32) | 3, // 4_3
 
+        /// <summary>
+        /// Error in file monitor
+        /// </summary>
+        Syncing_FileMonitor = (((ulong)CLExceptionDomain.Syncing) << 32) | 4, // 4_4
+
         #endregion
 
         #region OnDemand

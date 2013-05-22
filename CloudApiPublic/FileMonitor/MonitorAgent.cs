@@ -1623,6 +1623,12 @@ namespace Cloud.FileMonitor
                                         Metadata = currentChange.Metadata
                                     };
 
+                                CLError setMD5Error = toQueue.SetMD5(currentChange.MD5);
+                                if (setMD5Error != null)
+                                {
+                                    throw new CLException(CLExceptionCode.Syncing_FileMonitor, Resources.ExceptionFileMonitorBeginProcessingSetMD5, setMD5Error.Exceptions);
+                                }
+
                                 QueueFileChange(toQueue, newProcessingAction);
                             }
                         }
@@ -2478,29 +2484,35 @@ namespace Cloud.FileMonitor
                     {
                         Func<KeyValuePair<FileChangeSource, KeyValuePair<bool, FileChange>>, FileChangeWithDependencies> convertChange = toConvert =>
                             {
-                                FileChangeWithDependencies converted;
-                                CLError conversionError = FileChangeWithDependencies.CreateAndInitialize(
-                                    toConvert.Value.Value,
-                                    ((toConvert.Value.Value is FileChangeWithDependencies) ? ((FileChangeWithDependencies)toConvert.Value.Value).Dependencies : null),
-                                    out converted,
-                                    fileDownloadMoveLocker: toConvert.Value.Value.fileDownloadMoveLocker);
-                                if (conversionError != null)
-                                {
-                                    throw new AggregateException(Resources.MonitorAgentErrorCreatingFileChangeToFileChangeWithDependencies, conversionError.Exceptions);
-                                }
+                                FileChangeWithDependencies converted = toConvert.Value.Value as FileChangeWithDependencies;
 
-                                if (DependencyDebugging
-                                    && (toConvert.Value.Value is FileChangeWithDependencies)
-                                    && ((FileChangeWithDependencies)toConvert.Value.Value).DependenciesCount > 0)
+                                try
                                 {
-                                    Helpers.CheckFileChangeDependenciesForDuplicates(converted);
+                                    if (converted != null)
+                                    {
+                                        return converted;
+                                    }
+
+                                    CLError conversionError = FileChangeWithDependencies.CreateAndInitialize(
+                                        toConvert.Value.Value,
+                                        /* initialDependencies: */ null,
+                                        out converted,
+                                        fileDownloadMoveLocker: toConvert.Value.Value.fileDownloadMoveLocker);
+                                    if (conversionError != null)
+                                    {
+                                        throw new AggregateException(Resources.MonitorAgentErrorCreatingFileChangeToFileChangeWithDependencies, conversionError.Exceptions);
+                                    }
+
+                                    return converted;
                                 }
-                                if (converted.EventId == 0
-                                    && toConvert.Key != FileChangeSource.QueuedChanges)
+                                finally
                                 {
-                                    throw new ArgumentException(Resources.MonitorAgentCannotCommunicateFileChangeWithoutEventIDFileChangeSource + toConvert.Key.ToString());
+                                    if (converted.EventId == 0
+                                        && toConvert.Key != FileChangeSource.QueuedChanges)
+                                    {
+                                        throw new ArgumentException(Resources.MonitorAgentCannotCommunicateFileChangeWithoutEventIDFileChangeSource + toConvert.Key.ToString());
+                                    }
                                 }
-                                return converted;
                             };
 
                         GenericHolder<bool> nullFound = new GenericHolder<bool>(false);

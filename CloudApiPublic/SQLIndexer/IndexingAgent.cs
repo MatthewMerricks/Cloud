@@ -4160,9 +4160,9 @@ namespace Cloud.SQLIndexer
                     indexDB,
                     "SELECT " +
                         SqlAccessor<FileSystemObject>.GetSelectColumns() + ", " +
-                        SqlAccessor<FileSystemObject>.GetSelectColumns("Event") + ", " +
+                        SqlAccessor<Event>.GetSelectColumns("Event") + ", " +
                         SqlAccessor<FileSystemObject>.GetSelectColumns("Parent", "Parents") + ", " +
-                        SqlAccessor<FileSystemObject>.GetSelectColumns("Parent.ServerUid") +
+                        SqlAccessor<SqlServerUid>.GetSelectColumns("Parent.ServerUid") +
                         " FROM FileSystemObjects" +
                         " LEFT OUTER JOIN Events ON " +
                         "(" +

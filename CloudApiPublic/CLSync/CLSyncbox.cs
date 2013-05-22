@@ -3325,7 +3325,7 @@ namespace Cloud
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError GetFileVersions(string fileServerId, int timeoutMilliseconds, out JsonContracts.FileVersion[] response)
+        public CLError GetFileVersions(string fileServerId, int timeoutMilliseconds, out JsonContracts.FileVersions response)
         {
             CheckDisposed();
 
@@ -3343,7 +3343,7 @@ namespace Cloud
         /// <param name="response">(output) response object from communication</param>
         /// <param name="includeDeletedVersions">(optional) whether to include file versions which are deleted</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError GetFileVersions(string fileServerId, int timeoutMilliseconds, out JsonContracts.FileVersion[] response, bool includeDeletedVersions)
+        public CLError GetFileVersions(string fileServerId, int timeoutMilliseconds, out JsonContracts.FileVersions response, bool includeDeletedVersions)
         {
             CheckDisposed();
 
@@ -3360,7 +3360,7 @@ namespace Cloud
         /// <param name="pathToFile">Full path to the file where it would be placed locally within the sync root</param>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError GetFileVersions(int timeoutMilliseconds, FilePath pathToFile, out JsonContracts.FileVersion[] response)
+        public CLError GetFileVersions(int timeoutMilliseconds, FilePath pathToFile, out JsonContracts.FileVersions response)
         {
             CheckDisposed();
 
@@ -3378,7 +3378,7 @@ namespace Cloud
         /// <param name="response">(output) response object from communication</param>
         /// <param name="includeDeletedVersions">(optional) whether to include file versions which are deleted</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError GetFileVersions(int timeoutMilliseconds, FilePath pathToFile, out JsonContracts.FileVersion[] response, bool includeDeletedVersions)
+        public CLError GetFileVersions(int timeoutMilliseconds, FilePath pathToFile, out JsonContracts.FileVersions response, bool includeDeletedVersions)
         {
             CheckDisposed();
 
@@ -3396,7 +3396,7 @@ namespace Cloud
         /// <param name="pathToFile">Full path to the file where it would be placed locally within the sync root</param>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError GetFileVersions(string fileServerId, int timeoutMilliseconds, FilePath pathToFile, out JsonContracts.FileVersion[] response)
+        public CLError GetFileVersions(string fileServerId, int timeoutMilliseconds, FilePath pathToFile, out JsonContracts.FileVersions response)
         {
             CheckDisposed();
 
@@ -3415,7 +3415,7 @@ namespace Cloud
         /// <param name="response">(output) response object from communication</param>
         /// <param name="includeDeletedVersions">(optional) whether to include file versions which are deleted</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError GetFileVersions(string fileServerId, int timeoutMilliseconds, FilePath pathToFile, out JsonContracts.FileVersion[] response, bool includeDeletedVersions)
+        public CLError GetFileVersions(string fileServerId, int timeoutMilliseconds, FilePath pathToFile, out JsonContracts.FileVersions response, bool includeDeletedVersions)
         {
             CheckDisposed();
 

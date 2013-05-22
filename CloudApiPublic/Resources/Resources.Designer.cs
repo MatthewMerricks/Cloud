@@ -2115,6 +2115,15 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Error on SetMD5 from MD5 of an existing change.
+        /// </summary>
+        internal static string ExceptionFileMonitorBeginProcessingSetMD5 {
+            get {
+                return ResourceManager.GetString("ExceptionFileMonitorBeginProcessingSetMD5", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to MakeAsyncRequestSynchronous was processed without param1.
         /// </summary>
         internal static string ExceptionHelpersAsyncGetUploadRequestStreamOrDownloadResponseMakeSyncParam1 {

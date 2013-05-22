@@ -396,7 +396,7 @@ namespace Cloud.JsonContracts
                 lock (FileVersionsSerializerLocker)
                 {
                     return _fileVersionsSerializer
-                        ?? (_fileVersionsSerializer = new DataContractJsonSerializer(typeof(JsonContracts.FileVersion[])));
+                        ?? (_fileVersionsSerializer = new DataContractJsonSerializer(typeof(JsonContracts.FileVersions)));
                 }
             }
         }
