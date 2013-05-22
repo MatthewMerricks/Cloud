@@ -15,7 +15,7 @@ namespace Cloud.CLSync.CLSyncboxParameters
     /// <summary>
     /// Contains the old path and new path for renaming a single item
     /// </summary>
-    internal sealed class RenameItemParams
+    public sealed class RenameItemParams
     {
         /// <summary>
         /// Returns the item (file or folder) to rename in place.

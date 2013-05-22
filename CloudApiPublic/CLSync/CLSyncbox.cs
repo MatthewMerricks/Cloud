@@ -1648,7 +1648,7 @@ namespace Cloud
         /// <param name="completionCallback">Delegate which will be fired upon successful communication for every response item.</param>
         /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion delegate is fired.</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        internal IAsyncResult BeginRenameFiles(AsyncCallback callback, object callbackUserState, RenameItemParams[] itemsToRename, CLFileItemCompletion completionCallback, object completionCallbackUserState)
+        public IAsyncResult BeginRenameFiles(AsyncCallback callback, object callbackUserState, RenameItemParams[] itemsToRename, CLFileItemCompletion completionCallback, object completionCallbackUserState)
         {
             CheckDisposed();
 
@@ -1664,7 +1664,7 @@ namespace Cloud
         /// <param name="aResult">The asynchronous result provided upon starting the metadata query</param>
         /// <param name="result">(output) An overall error which occurred during processing, if any</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        internal CLError EndRenameFiles(IAsyncResult aResult, out SyncboxRenameFilesResult result)
+        public CLError EndRenameFiles(IAsyncResult aResult, out SyncboxRenameFilesResult result)
         {
             CheckDisposed();
 
@@ -1680,7 +1680,7 @@ namespace Cloud
         /// <param name="completionCallback">Delegate which will be fired upon successful communication for every response item.</param>
         /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion delegate is fired.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        internal CLError RenameFiles(RenameItemParams[] itemsToRename, CLFileItemCompletion completionCallback, object completionCallbackUserState)
+        public CLError RenameFiles(RenameItemParams[] itemsToRename, CLFileItemCompletion completionCallback, object completionCallbackUserState)
         {
             CheckDisposed();
 
@@ -1880,7 +1880,7 @@ namespace Cloud
         /// <param name="completionCallback">Delegate which will be fired upon successful communication for every response item.</param>
         /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion delegate is fired.</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        internal IAsyncResult BeginRenameFolders(AsyncCallback callback, object callbackUserState, RenameItemParams[] itemsToRename, CLFileItemCompletion completionCallback, object completionCallbackUserState)
+        public IAsyncResult BeginRenameFolders(AsyncCallback callback, object callbackUserState, RenameItemParams[] itemsToRename, CLFileItemCompletion completionCallback, object completionCallbackUserState)
         {
             CheckDisposed();
 
@@ -1896,7 +1896,7 @@ namespace Cloud
         /// <param name="aResult">The asynchronous result provided upon starting the metadata query</param>
         /// <param name="result">(output) An overall error which occurred during processing, if any</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        internal CLError EndRenameFolders(IAsyncResult aResult, out SyncboxRenameFoldersResult result)
+        public CLError EndRenameFolders(IAsyncResult aResult, out SyncboxRenameFoldersResult result)
         {
             CheckDisposed();
 
@@ -1912,7 +1912,7 @@ namespace Cloud
         /// <param name="completionCallback">Delegate which will be fired upon successful communication for every response item.</param>
         /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion delegate is fired.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        internal CLError RenameFolders(RenameItemParams[] itemsToRename, CLFileItemCompletion completionCallback, object completionCallbackUserState)
+        public CLError RenameFolders(RenameItemParams[] itemsToRename, CLFileItemCompletion completionCallback, object completionCallbackUserState)
         {
             CheckDisposed();
 
