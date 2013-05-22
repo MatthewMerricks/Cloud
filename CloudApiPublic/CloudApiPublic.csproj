@@ -149,6 +149,7 @@
     <Compile Include="JsonContracts\Archives.cs" />
     <Compile Include="JsonContracts\FileAdds.cs" />
     <Compile Include="JsonContracts\FileDeleteRequest.cs" />
+    <Compile Include="JsonContracts\FileVersions.cs" />
     <Compile Include="JsonContracts\SyncboxAddFilesResponse.cs" />
     <Compile Include="JsonContracts\SyncboxAddFoldersResponse.cs" />
     <Compile Include="JsonContracts\FolderAdds.cs" />

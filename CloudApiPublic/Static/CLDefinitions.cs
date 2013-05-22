@@ -546,6 +546,7 @@ namespace Cloud.Static
         public const string CLMetadataMimeType = "mime_type";
         public const string CLMetadataIcon = "icon";
         public const string CLMetadataVersion = "version";
+        public const string CLMetadataVersions = "versions";
         public const string CLMetadataFiles = "files";
         public const string CLMetadataFile = "file";
         public const string CLMetadataServerId = "uid";
