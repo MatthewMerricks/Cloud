@@ -260,6 +260,7 @@ namespace Cloud.Sync
             #endregion
         }
 
+
         // Timer to handle wait callbacks to requeue failures to reprocess
         private ProcessingQueuesTimer FailureTimer
         {
@@ -297,6 +298,9 @@ namespace Cloud.Sync
         // private queue for failures;
         // lock on FailureTimer.TimerRunningLocker for all access
         private readonly Queue<FileChange> FailedChangesQueue = new Queue<FileChange>();
+
+        // Private flag to indicate that sync is stopping.  Used to interrupt "object is disposed" exceptions.
+        private bool _isStopping = false;
 
         // Timer to handle wait callbacks to requeue failures to reprocess
         private ProcessingQueuesTimer FailedOutTimer
@@ -355,11 +359,12 @@ namespace Cloud.Sync
         {
             // settings is required to log errors, so declare its instance outside the try/catch and default to null
             ICLSyncSettingsAdvanced storeSettings = null;
+
+            // try cast state
+            SyncEngine thisEngine = state as SyncEngine;
+
             try
             {
-                // try cast state
-                SyncEngine thisEngine = state as SyncEngine;
-
                 // if try cast was not successful, then throw exception
                 if (thisEngine == null)
                 {
@@ -461,11 +466,12 @@ namespace Cloud.Sync
         {
             // settings is required to log errors, so declare its instance outside the try/catch and default to null
             ICLSyncSettingsAdvanced storeSettings = null;
+
+            // try cast state
+            SyncEngine thisEngine = state as SyncEngine;
+
             try
             {
-                // try cast state
-                SyncEngine thisEngine = state as SyncEngine;
-
                 // if try cast was not successful, then throw exception
                 if (thisEngine == null)
                 {
@@ -899,6 +905,10 @@ namespace Cloud.Sync
                         castState.StatusHolder));
                 }
             }
+            catch (ObjectDisposedException)
+            {
+                // do not fire halt message since disposal is normal
+            }
             catch (Exception ex)
             {
                 MessageEvents.FireNewEventMessage(
@@ -952,6 +962,10 @@ namespace Cloud.Sync
                         }
                     }
                 }
+            }
+            catch (ObjectDisposedException)
+            {
+                // do not fire halt message since disposal is normal
             }
             catch (Exception ex)
             {
@@ -2018,10 +2032,13 @@ namespace Cloud.Sync
                             }
                         }
 
-                        MessageEvents.FireNewEventMessage(
-                            "syncData.completeSingleEvent returned an error after completing an event: " + completeEventError.PrimaryException.Message,
-                            EventMessageLevel.Important,
-                            new HaltAllOfCloudSDKErrorInfo());
+                        if (!this._isStopping)
+                        {
+                            MessageEvents.FireNewEventMessage(
+                                "syncData.completeSingleEvent returned an error after completing an event: " + completeEventError.PrimaryException.Message,
+                                EventMessageLevel.Important,
+                                new HaltAllOfCloudSDKErrorInfo());
+                        }
 
                         return true;
                     }
@@ -3444,10 +3461,13 @@ namespace Cloud.Sync
                     {
                         errorToAccumulate.Value += new AggregateException("Error on completeSyncSql", completeSyncError.Exceptions);
 
-                        MessageEvents.FireNewEventMessage(
+                        if (!this._isStopping)
+                        {
+                            MessageEvents.FireNewEventMessage(
                             "syncData.completeSyncSql returned an error after communicating changes: " + completeSyncError.PrimaryException.Message,
                             EventMessageLevel.Important,
                             new HaltAllOfCloudSDKErrorInfo());
+                        }
 
                         return true;
                     }
@@ -4544,6 +4564,14 @@ namespace Cloud.Sync
         private readonly GenericHolder<CLSyncCurrentStatus> StatusHolder = new GenericHolder<CLSyncCurrentStatus>(null);
 
         /// <summary>
+        /// Call this when the user is stopping sync to give early warning to prevent spurious notification of errors.
+        /// </summary>
+        public void Stopping()
+        {
+            _isStopping = true;
+        }
+
+        /// <summary>
         /// Call this to terminate all sync threads including active uploads and downloads;
         /// after calling this, a restart is required to sync again
         /// </summary>
@@ -5300,6 +5328,11 @@ namespace Cloud.Sync
                     throw;
                 }
             }
+            catch (ObjectDisposedException)
+            {
+                // Don't bubble these exceptions because they are normal during shutdown.
+                return new EventIdAndCompletionProcessor(0, null, null, 0);
+            }
             catch (Exception ex)
             {
                 // Call the StatusUpdate callback to update the summary information for this upload ("center section" of the status window), unless the status messages were already sent by CLHttpRest.UploadFile.
@@ -5992,6 +6025,11 @@ namespace Cloud.Sync
                     castState.Syncbox.SyncboxId,
                     castState.TempDownloadFolderPath); // location of folder for temp downloads
                 return toReturn2;
+            }
+            catch (ObjectDisposedException)
+            {
+                // Don't bubble these exceptions because they are normal during shutdown.
+                return new EventIdAndCompletionProcessor(0, null, null, 0);
             }
             catch (Exception ex)
             {

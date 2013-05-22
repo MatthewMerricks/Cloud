@@ -109,6 +109,9 @@ namespace Cloud.FileMonitor
 
         private static readonly CLTrace _trace = CLTrace.Instance;
 
+        // Private flag to indicate that sync is stopping.  Used to interrupt "object is disposed" exceptions.
+        private bool _isStopping = false;
+
         // file extension for shortcuts
         private const string ShortcutExtension = "lnk";
 
@@ -3120,6 +3123,14 @@ namespace Cloud.FileMonitor
         }
 
         /// <summary>
+        /// Call this when the user is stopping sync to give early warning to prevent spurious notification of errors.
+        /// </summary>
+        public void Stopping()
+        {
+            _isStopping = true;
+        }
+
+        /// <summary>
         /// Call this first to start monitoring file system while initial indexing/synchronization occur,
         /// BeginProcessing(initialList) must be called before monitored events begin processing
         /// (call BeginProcessing again after calling Stop() and Start() as well)
@@ -5509,14 +5520,17 @@ namespace Cloud.FileMonitor
 
                                 // errors may be more common now that our database is hierarchichal and simple event ordering problems could throw an error adding to database (file before parent folder),
                                 // TODO: better error recovery instead of halting whole SDK
-                                MessageEvents.FireNewEventMessage(
-                            		Resources.MonitorAgentAnErrorOccurredAddingAFileSystemEventToTheDatabase + Environment.NewLine +
-                                        string.Join(Environment.NewLine,
-                                            mergeError.Exceptions.Select(currentError => (currentError is AggregateException
-                                                ? string.Join(Environment.NewLine, ((AggregateException)currentError).Flatten().InnerExceptions.Select(innerError => innerError.Message).ToArray())
-                                                : currentError.Message)).ToArray()),
-                                    EventMessageLevel.Important,
-                                    new HaltAllOfCloudSDKErrorInfo());
+                                if (!this._isStopping)
+                                {
+                                    MessageEvents.FireNewEventMessage(
+                                        Resources.MonitorAgentAnErrorOccurredAddingAFileSystemEventToTheDatabase + Environment.NewLine +
+                                            string.Join(Environment.NewLine,
+                                                mergeError.Exceptions.Select(currentError => (currentError is AggregateException
+                                                    ? string.Join(Environment.NewLine, ((AggregateException)currentError).Flatten().InnerExceptions.Select(innerError => innerError.Message).ToArray())
+                                                    : currentError.Message)).ToArray()),
+                                        EventMessageLevel.Important,
+                                        new HaltAllOfCloudSDKErrorInfo());
+                                }
                             }
 
                             if ((_syncbox.CopiedSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)

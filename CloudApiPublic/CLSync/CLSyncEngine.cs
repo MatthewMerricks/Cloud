@@ -891,6 +891,17 @@ namespace Cloud
         {
             lock (_locker)
             {
+                // Notify the components that we are stopping.
+                if (_syncEngine != null)
+                {
+                    _syncEngine.Stopping();
+                }
+                if (_monitor != null)
+                {
+                    _monitor.Stopping();
+                }
+
+                // Reset the syncbox reserve for live sync.
                 if (this._syncbox != null)
                 {
                     this._syncbox.ResetReserveForActiveSync();
