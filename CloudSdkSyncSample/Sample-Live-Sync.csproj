@@ -193,35 +193,8 @@
     </PostBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
-    <PreBuildEvent>echo ************  PRE BUILD STEP COMPLETED WITH ERROR **********************
-
-REM ----------------------------------------------------------------
-set ErrorTracker=1
-echo copy $(SolutionDir)3rdParty\bin\$(Configuration)\BadgeComLib.dll $(SolutionDir)CloudSdkSyncSample\bin\release\BadgeComLib.dll
-copy $(SolutionDir)3rdParty\bin\$(Configuration)\BadgeComLib.dll $(SolutionDir)CloudSdkSyncSample\bin\release\BadgeComLib.dll
-if errorlevel 1 goto BuildEventFailed
-
-REM ----------------------------------------------------------------
-set ErrorTracker=2
-echo copy $(SolutionDir)3rdParty\bin\$(Configuration)\BadgeComLib.dll $(SolutionDir)CloudSdkSyncSample\bin\debug\BadgeComLib.dll
-copy $(SolutionDir)3rdParty\bin\$(Configuration)\BadgeComLib.dll $(SolutionDir)CloudSdkSyncSample\bin\debug\BadgeComLib.dll
-if errorlevel 1 goto BuildEventFailed
-
-REM ---- PLACE THIS CODE AT THE END
-REM Exit properly because the build will not fail
-REM unless the final step exits with an error code
-goto BuildEventOK
-:BuildEventFailed
-echo errorlevel is %25errorlevel%25
-echo POSTBUILDSTEP for $(ProjectName) FAILED at step %25ErrorTracker%25
-set ErrorTracker=
-echo ************  PRE BUILD STEP COMPLETED WITH ERROR **********************
-exit 1
-:BuildEventOK
-echo POSTBUILDSTEP for $(ProjectName) COMPLETED OK
-echo ************  PRE BUILD STEP COMPLETED OK **********************
-
-</PreBuildEvent>
+    <PreBuildEvent>
+    </PreBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

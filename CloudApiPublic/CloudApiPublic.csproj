@@ -439,68 +439,91 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>echo ************  START POST BUILD STEPS **********************
-REM ----------------------
+
+REM ----------------------------------------------------------------
 set ErrorTracker=1
+echo if not exist $(SolutionDir)CloudSdkSyncSample\bin\release\x86 mkdir $(SolutionDir)CloudSdkSyncSample\bin\release\x86
+if not exist $(SolutionDir)CloudSdkSyncSample\bin\release\x86 mkdir $(SolutionDir)CloudSdkSyncSample\bin\release\x86
+if errorlevel 1 goto BuildEventFailed
+
+set ErrorTracker=2
+echo if not exist $(SolutionDir)CloudSdkSyncSample\bin\release\amd64 mkdir $(SolutionDir)CloudSdkSyncSample\bin\release\amd64
+if not exist $(SolutionDir)CloudSdkSyncSample\bin\release\amd64 mkdir $(SolutionDir)CloudSdkSyncSample\bin\release\amd64
+if errorlevel 1 goto BuildEventFailed
+
+REM ----------------------------------------------------------------
+set ErrorTracker=3
+echo if not exist $(SolutionDir)CloudSdkSyncSample\bin\debug\x86 mkdir $(SolutionDir)CloudSdkSyncSample\bin\debug\x86
+if not exist $(SolutionDir)CloudSdkSyncSample\bin\debug\x86 mkdir $(SolutionDir)CloudSdkSyncSample\bin\debug\x86
+if errorlevel 1 goto BuildEventFailed
+
+set ErrorTracker=4
+echo if not exist $(SolutionDir)CloudSdkSyncSample\bin\debug\amd64 mkdir $(SolutionDir)CloudSdkSyncSample\bin\debug\amd64
+if not exist $(SolutionDir)CloudSdkSyncSample\bin\debug\amd64 mkdir $(SolutionDir)CloudSdkSyncSample\bin\debug\amd64
+if errorlevel 1 goto BuildEventFailed
+
+REM ----------------------
+set ErrorTracker=5
 echo copy $(SolutionDir)3rdParty\bin\Release\System.Data.SQLite32.dll $(SolutionDir)CloudSdkSyncSample\bin\Release\
 copy $(SolutionDir)3rdParty\bin\Release\System.Data.SQLite32.dll $(SolutionDir)CloudSdkSyncSample\bin\Release\
 if errorlevel 1 goto BuildEventFailed
 
-set ErrorTracker=2
+set ErrorTracker=6
 echo copy $(SolutionDir)3rdParty\bin\Release\System.Data.SQLite32.dll $(SolutionDir)CloudSdkSyncSample\bin\Debug\
 copy $(SolutionDir)3rdParty\bin\Release\System.Data.SQLite32.dll $(SolutionDir)CloudSdkSyncSample\bin\Debug\
 if errorlevel 1 goto BuildEventFailed
 
 REM ----------------------
-set ErrorTracker=3
+set ErrorTracker=7
 echo copy $(SolutionDir)3rdParty\bin\Release64\System.Data.SQLite64.dll $(SolutionDir)CloudSdkSyncSample\bin\Release\
 copy $(SolutionDir)3rdParty\bin\Release64\System.Data.SQLite64.dll $(SolutionDir)CloudSdkSyncSample\bin\Release\
 if errorlevel 1 goto BuildEventFailed
 
-set ErrorTracker=4
+set ErrorTracker=8
 echo copy $(SolutionDir)3rdParty\bin\Release64\System.Data.SQLite64.dll $(SolutionDir)CloudSdkSyncSample\bin\Debug\
 copy $(SolutionDir)3rdParty\bin\Release64\System.Data.SQLite64.dll $(SolutionDir)CloudSdkSyncSample\bin\Debug\
 if errorlevel 1 goto BuildEventFailed
 
 REM ----------------------
-set ErrorTracker=5
+set ErrorTracker=9
 echo copy $(SolutionDir)3rdParty\bin\Release\Microsoft.Net.Http.CSDK.dll $(SolutionDir)CloudSdkSyncSample\bin\Release\
 copy $(SolutionDir)3rdParty\bin\Release\Microsoft.Net.Http.CSDK.dll $(SolutionDir)CloudSdkSyncSample\bin\Release\
 if errorlevel 1 goto BuildEventFailed
 
-set ErrorTracker=6
+set ErrorTracker=10
 echo copy $(SolutionDir)3rdParty\bin\Release\Microsoft.Net.Http.CSDK.dll $(SolutionDir)CloudSdkSyncSample\bin\Debug\
 copy $(SolutionDir)3rdParty\bin\Release\Microsoft.Net.Http.CSDK.dll $(SolutionDir)CloudSdkSyncSample\bin\Debug\
 if errorlevel 1 goto BuildEventFailed
 
 REM ----------------------
-set ErrorTracker=7
+set ErrorTracker=11
 echo copy $(SolutionDir)3rdParty\bin\Release\Newtonsoft.Json.CSDK.dll $(SolutionDir)CloudSdkSyncSample\bin\Release\
 copy $(SolutionDir)3rdParty\bin\Release\Newtonsoft.Json.CSDK.dll $(SolutionDir)CloudSdkSyncSample\bin\Release\
 if errorlevel 1 goto BuildEventFailed
 
-set ErrorTracker=8
+set ErrorTracker=12
 echo copy $(SolutionDir)3rdParty\bin\Release\Newtonsoft.Json.CSDK.dll $(SolutionDir)CloudSdkSyncSample\bin\Debug\
 copy $(SolutionDir)3rdParty\bin\Release\Newtonsoft.Json.CSDK.dll $(SolutionDir)CloudSdkSyncSample\bin\Debug\
 if errorlevel 1 goto BuildEventFailed
 
 REM ----------------------
-set ErrorTracker=9
+set ErrorTracker=13
 echo copy $(SolutionDir)3rdParty\bin\Release\RateBar.CSDK.dll $(SolutionDir)CloudSdkSyncSample\bin\Release\
 copy $(SolutionDir)3rdParty\bin\Release\RateBar.CSDK.dll $(SolutionDir)CloudSdkSyncSample\bin\Release\
 if errorlevel 1 goto BuildEventFailed
 
-set ErrorTracker=10
+set ErrorTracker=14
 echo copy $(SolutionDir)3rdParty\bin\Release\RateBar.CSDK.dll $(SolutionDir)CloudSdkSyncSample\bin\Debug\
 copy $(SolutionDir)3rdParty\bin\Release\RateBar.CSDK.dll $(SolutionDir)CloudSdkSyncSample\bin\Debug\
 if errorlevel 1 goto BuildEventFailed
 
 REM ----------------------
-set ErrorTracker=11
+set ErrorTracker=15
 echo copy $(SolutionDir)3rdParty\bin\Release\SimpleJson.CSDK.dll $(SolutionDir)CloudSdkSyncSample\bin\Release\
 copy $(SolutionDir)3rdParty\bin\Release\SimpleJson.CSDK.dll $(SolutionDir)CloudSdkSyncSample\bin\Release\
 if errorlevel 1 goto BuildEventFailed
 
-set ErrorTracker=12
+set ErrorTracker=16
 echo copy $(SolutionDir)3rdParty\bin\Release\SimpleJson.CSDK.dll $(SolutionDir)CloudSdkSyncSample\bin\Debug\
 copy $(SolutionDir)3rdParty\bin\Release\SimpleJson.CSDK.dll $(SolutionDir)CloudSdkSyncSample\bin\Debug\
 if errorlevel 1 goto BuildEventFailed
@@ -509,47 +532,80 @@ REM ----- Copy the CloudApiPublic binaries only for the Release build  ---------
 if /I $(ConfigurationName) == Debug goto DoneWithCloudApiPublic
 
 REM ----------------------
-set ErrorTracker=13
+set ErrorTracker=17
 echo copy $(TargetPath) $(SolutionDir)CloudSdkSyncSample\bin\Release\$(TargetFileName)
 copy $(TargetPath) $(SolutionDir)CloudSdkSyncSample\bin\Release\$(TargetFileName)
 if errorlevel 1 goto BuildEventFailed
 
-set ErrorTracker=14
+set ErrorTracker=18
 echo copy $(TargetPath) $(SolutionDir)CloudSdkSyncSample\bin\Debug\$(TargetFileName)
 copy $(TargetPath) $(SolutionDir)CloudSdkSyncSample\bin\Debug\$(TargetFileName)
 if errorlevel 1 goto BuildEventFailed
 
 REM ----------------------
-set ErrorTracker=15
+set ErrorTracker=19
 echo copy $(SolutionDir)3rdParty\bin\Release\Salient.Data.CSDK.dll $(SolutionDir)CloudSdkSyncSample\bin\Release\
 copy $(SolutionDir)3rdParty\bin\Release\Salient.Data.CSDK.dll $(SolutionDir)CloudSdkSyncSample\bin\Release\
 if errorlevel 1 goto BuildEventFailed
 
-set ErrorTracker=16
+set ErrorTracker=20
 echo copy $(SolutionDir)3rdParty\bin\Release\Salient.Data.CSDK.dll $(SolutionDir)CloudSdkSyncSample\bin\Debug\
 copy $(SolutionDir)3rdParty\bin\Release\Salient.Data.CSDK.dll $(SolutionDir)CloudSdkSyncSample\bin\Debug\
 if errorlevel 1 goto BuildEventFailed
 
 REM ----------------------
-set ErrorTracker=17
+set ErrorTracker=21
 echo copy $(TargetDir)$(TargetName).xml $(SolutionDir)CloudSdkSyncSample\bin\Release\
 copy $(TargetDir)$(TargetName).xml $(SolutionDir)CloudSdkSyncSample\bin\Release\
 if errorlevel 1 goto BuildEventFailed
 
-set ErrorTracker=18
+set ErrorTracker=22
 echo copy $(TargetDir)$(TargetName).xml $(SolutionDir)CloudSdkSyncSample\bin\Debug\
 copy $(TargetDir)$(TargetName).xml $(SolutionDir)CloudSdkSyncSample\bin\Debug\
 if errorlevel 1 goto BuildEventFailed
 
 REM ----------------------
-set ErrorTracker=19
+set ErrorTracker=23
 echo copy $(SolutionDir)3rdParty\bin\Release\Microsoft.Practices.ServiceLocation.CSDK.dll $(SolutionDir)CloudSdkSyncSample\bin\Release\
 copy $(SolutionDir)3rdParty\bin\Release\Microsoft.Practices.ServiceLocation.CSDK.dll $(SolutionDir)CloudSdkSyncSample\bin\Release\
 if errorlevel 1 goto BuildEventFailed
 
-set ErrorTracker=20
+set ErrorTracker=24
 echo copy $(SolutionDir)3rdParty\bin\Release\Microsoft.Practices.ServiceLocation.CSDK.dll $(SolutionDir)CloudSdkSyncSample\bin\Debug\
 copy $(SolutionDir)3rdParty\bin\Release\Microsoft.Practices.ServiceLocation.CSDK.dll $(SolutionDir)CloudSdkSyncSample\bin\Debug\
+if errorlevel 1 goto BuildEventFailed
+
+REM ----------------------------------------------------------------
+set ErrorTracker=25
+echo copy $(SolutionDir)3rdParty\bin\$(Configuration)\BadgeComLib.dll $(SolutionDir)CloudSdkSyncSample\bin\release\BadgeComLib.dll
+copy $(SolutionDir)3rdParty\bin\$(Configuration)\BadgeComLib.dll $(SolutionDir)CloudSdkSyncSample\bin\release\BadgeComLib.dll
+if errorlevel 1 goto BuildEventFailed
+
+set ErrorTracker=26
+echo copy $(SolutionDir)3rdParty\bin\$(Configuration)\BadgeComLib.dll $(SolutionDir)CloudSdkSyncSample\bin\debug\BadgeComLib.dll
+copy $(SolutionDir)3rdParty\bin\$(Configuration)\BadgeComLib.dll $(SolutionDir)CloudSdkSyncSample\bin\debug\BadgeComLib.dll
+if errorlevel 1 goto BuildEventFailed
+
+REM ----------------------------------------------------------------
+set ErrorTracker=27
+echo copy $(SolutionDir)3rdParty\bin\Release\BadgeCOM.dll $(SolutionDir)CloudSdkSyncSample\bin\release\x86
+copy $(SolutionDir)3rdParty\bin\Release\BadgeCOM.dll $(SolutionDir)CloudSdkSyncSample\bin\release\x86
+if errorlevel 1 goto BuildEventFailed
+
+set ErrorTracker=28
+echo copy $(SolutionDir)3rdParty\bin\Release64\BadgeCOM.dll $(SolutionDir)CloudSdkSyncSample\bin\release\amd64
+copy $(SolutionDir)3rdParty\bin\Release64\BadgeCOM.dll $(SolutionDir)CloudSdkSyncSample\bin\release\amd64
+if errorlevel 1 goto BuildEventFailed
+
+REM ----------------------------------------------------------------
+set ErrorTracker=29
+echo copy $(SolutionDir)3rdParty\bin\Release\BadgeCOM.dll $(SolutionDir)CloudSdkSyncSample\bin\debug\x86
+copy $(SolutionDir)3rdParty\bin\Release\BadgeCOM.dll $(SolutionDir)CloudSdkSyncSample\bin\debug\x86
+if errorlevel 1 goto BuildEventFailed
+
+set ErrorTracker=30
+echo copy $(SolutionDir)3rdParty\bin\Release64\BadgeCOM.dll $(SolutionDir)CloudSdkSyncSample\bin\debug\amd64
+copy $(SolutionDir)3rdParty\bin\Release64\BadgeCOM.dll $(SolutionDir)CloudSdkSyncSample\bin\debug\amd64
 if errorlevel 1 goto BuildEventFailed
 
 :DoneWithCloudApiPublic
@@ -566,9 +622,11 @@ echo ************  POST BUILD STEP COMPLETED WITH ERROR **********************
 exit 1
 :BuildEventOK
 echo POSTBUILDSTEP for $(ProjectName) COMPLETED OK
-echo ************  POST BUILD STEP COMPLETED OK **********************
-
-</PostBuildEvent>
+echo ************  POST BUILD STEP COMPLETED OK **********************</PostBuildEvent>
+  </PropertyGroup>
+  <PropertyGroup>
+    <PreBuildEvent>
+    </PreBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
