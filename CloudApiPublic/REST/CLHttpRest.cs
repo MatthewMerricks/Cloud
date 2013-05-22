@@ -232,7 +232,8 @@ namespace Cloud.REST
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
                         CLError processError = GetItemAtPath(
                             Data.path,
-                            out response);
+                            out response, 
+                            true);
 
                         Data.toReturn.Complete(
                             new SyncboxGetItemAtPathResult(
@@ -274,7 +275,7 @@ namespace Cloud.REST
         /// <param name="path">Full path to where file or folder would exist locally on disk</param>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError GetItemAtPath(string path, out CLFileItem response)
+        public CLError GetItemAtPath(string path, out CLFileItem response, bool isOneOff)
         {
             // try/catch to process the request. On catch return the error
             try
@@ -340,7 +341,8 @@ namespace Cloud.REST
                     Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
                     _copiedSettings, // pass the copied settings
                     _syncbox.SyncboxId, // pass the unique id of the sync box on the server
-                    requestNewCredentialsInfo);   // pass the optional parameters to support temporary token reallocation.
+                    requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
+                    isOneOff);
 
                 // Convert the response to the expected output object.
                 if (responseFromServer != null)
@@ -513,7 +515,8 @@ namespace Cloud.REST
                     Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
                     _copiedSettings, // pass the copied settings
                     _syncbox.SyncboxId, // pass the unique id of the sync box on the server
-                    requestNewCredentialsInfo);   // pass the optional parameters to support temporary token reallocation.
+                    requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
+                    true);
 
                 // Convert these items to the output array.
                 if (responseFromServer != null && responseFromServer.MoveResponses != null)
@@ -986,7 +989,8 @@ namespace Cloud.REST
                     Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
                     _copiedSettings, // pass the copied settings
                     _syncbox.SyncboxId, // pass the unique id of the sync box on the server
-                    requestNewCredentialsInfo);   // pass the optional parameters to support temporary token reallocation.
+                    requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
+                    true);
 
                 // Convert these items to the output array.
                 if (responseFromServer != null && responseFromServer.MoveResponses != null)
@@ -1445,7 +1449,8 @@ namespace Cloud.REST
                     Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
                     _copiedSettings, // pass the copied settings
                     _syncbox.SyncboxId, // pass the unique id of the sync box on the server
-                    requestNewCredentialsInfo);   // pass the optional parameters to support temporary token reallocation.
+                    requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
+                    true);
 
                 // Convert these items to the output array.
                 if (responseFromServer != null && responseFromServer.DeleteResponses != null)
@@ -1639,7 +1644,8 @@ namespace Cloud.REST
                     Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
                     _copiedSettings, // pass the copied settings
                     _syncbox.SyncboxId, // pass the unique id of the sync box on the server
-                    requestNewCredentialsInfo);   // pass the optional parameters to support temporary token reallocation.
+                    requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
+                    true);
 
                 // Convert these items to the output array.
                 if (responseFromServer != null && responseFromServer.DeleteResponses != null)
@@ -1834,7 +1840,8 @@ namespace Cloud.REST
                     Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
                     _copiedSettings, // pass the copied settings
                     _syncbox.SyncboxId, // pass the unique id of the sync box on the server
-                    requestNewCredentialsInfo);   // pass the optional parameters to support temporary token reallocation.
+                    requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
+                    true);
 
                 // Convert these items to the output array.
                 if (responseFromServer != null && responseFromServer.AddResponses != null)
@@ -2028,7 +2035,8 @@ namespace Cloud.REST
                     Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
                     _copiedSettings, // pass the copied settings
                     _syncbox.SyncboxId, // pass the unique id of the sync box on the server
-                    requestNewCredentialsInfo);   // pass the optional parameters to support temporary token reallocation.
+                    requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
+                    true);
 
                 // Convert these items to the output array.
                 if (responseFromServer != null && responseFromServer.AddResponses != null)
@@ -2299,7 +2307,8 @@ namespace Cloud.REST
                     Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
                     _copiedSettings, // pass the copied settings
                     _syncbox.SyncboxId, // pass the unique id of the sync box on the server
-                    requestNewCredentialsInfo);   // pass the optional parameters to support temporary token reallocation.
+                    requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
+                    false);
             }
             catch (Exception ex)
             {
@@ -2597,7 +2606,8 @@ namespace Cloud.REST
                     Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
                     _copiedSettings, // pass the copied settings
                     _syncbox.SyncboxId, // pass the unique id of the sync box on the server
-                    requestNewCredentialsInfo);   // pass the optional parameters to support temporary token reallocation.
+                    requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
+                    true);
             }
             catch (Exception ex)
             {
@@ -2720,7 +2730,8 @@ namespace Cloud.REST
                     Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
                     _copiedSettings, // pass the copied settings
                     _syncbox.SyncboxId, // pass the unique id of the sync box on the server
-                    requestNewCredentialsInfo);   // pass the optional parameters to support temporary token reallocation.
+                    requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
+                    true);
 
                 // Convert these items to the output array.
                 if (responseFromServer != null && responseFromServer.Metadata != null)
@@ -2864,7 +2875,8 @@ namespace Cloud.REST
                     Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
                     _copiedSettings, // pass the copied settings
                     _syncbox.SyncboxId, // pass the unique id of the sync box on the server
-                    requestNewCredentialsInfo);   // pass the optional parameters to support temporary token reallocation.
+                    requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
+                    true);
 
                 // Convert these items to the output array.
                 if (responseFromServer != null && responseFromServer.Metadata != null)
@@ -3008,7 +3020,8 @@ namespace Cloud.REST
                     Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
                     _copiedSettings, // pass the copied settings
                     _syncbox.SyncboxId, // pass the unique id of the sync box on the server
-                    requestNewCredentialsInfo);   // pass the optional parameters to support temporary token reallocation.
+                    requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
+                    true);
 
                 // Convert these items to the output array.
                 if (responseFromServer != null && responseFromServer.Metadata != null)
@@ -3152,7 +3165,8 @@ namespace Cloud.REST
                     Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
                     _copiedSettings, // pass the copied settings
                     _syncbox.SyncboxId, // pass the unique id of the sync box on the server
-                    requestNewCredentialsInfo);   // pass the optional parameters to support temporary token reallocation.
+                    requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
+                    true);
 
                 // Convert these items to the output array.
                 if (responseFromServer != null && responseFromServer.Metadata != null)
@@ -3296,7 +3310,8 @@ namespace Cloud.REST
                     Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
                     _copiedSettings, // pass the copied settings
                     _syncbox.SyncboxId, // pass the unique id of the sync box on the server
-                    requestNewCredentialsInfo);   // pass the optional parameters to support temporary token reallocation.
+                    requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
+                    true);
 
                 // Convert these items to the output array.
                 if (responseFromServer != null && responseFromServer.Metadata != null)
@@ -3440,7 +3455,8 @@ namespace Cloud.REST
                     Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
                     _copiedSettings, // pass the copied settings
                     _syncbox.SyncboxId, // pass the unique id of the sync box on the server
-                    requestNewCredentialsInfo);   // pass the optional parameters to support temporary token reallocation.
+                    requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
+                    true);
 
                 // Convert these items to the output array.
                 if (responseFromServer != null && responseFromServer.Metadata != null)
@@ -3584,7 +3600,8 @@ namespace Cloud.REST
                     Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
                     _copiedSettings, // pass the copied settings
                     _syncbox.SyncboxId, // pass the unique id of the sync box on the server
-                    requestNewCredentialsInfo);   // pass the optional parameters to support temporary token reallocation.
+                    requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
+                    true);
 
                 // Convert these items to the output array.
                 if (responseFromServer != null && responseFromServer.Metadata != null)
@@ -3742,7 +3759,8 @@ namespace Cloud.REST
                     Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
                     _copiedSettings, // pass the copied settings
                     _syncbox.SyncboxId, // pass the unique id of the sync box on the server
-                    requestNewCredentialsInfo);   // pass the optional parameters to support temporary token reallocation.
+                    requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
+                    true);
 
                 // Convert the server response to the requested output format.
                 if (responseFromServer != null && responseFromServer.Metadata != null)
@@ -3959,7 +3977,8 @@ namespace Cloud.REST
                     Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
                     _copiedSettings, // pass the copied settings
                     _syncbox.SyncboxId, // pass the unique id of the sync box on the server
-                    requestNewCredentialsInfo);   // pass the optional parameters to support temporary token reallocation.
+                    requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
+                    true);
             }
             catch (Exception ex)
             {
@@ -4168,7 +4187,8 @@ namespace Cloud.REST
                     Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
                     _copiedSettings, // pass the copied settings
                     _syncbox.SyncboxId, // pass the unique id of the sync box on the server
-                    requestNewCredentialsInfo);   // pass the optional parameters to support temporary token reallocation.
+                    requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
+                    true);
             }
             catch (Exception ex)
             {
@@ -4335,7 +4355,8 @@ namespace Cloud.REST
                     Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
                     _copiedSettings, // pass the copied settings
                     _syncbox.SyncboxId, // pass the unique id of the sync box on the server
-                    requestNewCredentialsInfo);   // pass the optional parameters to support temporary token reallocation.
+                    requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
+                    true);
 
                 // Convert these items to the output array.
                 if (responseFromServer != null && responseFromServer.Objects != null)
@@ -4656,7 +4677,8 @@ namespace Cloud.REST
                     Helpers.HttpStatusesOkAccepted, // sync box extended metadata should give OK or Accepted
                     _copiedSettings, // pass the copied settings
                     _syncbox.SyncboxId, // pass the unique id of the sync box on the server
-                    requestNewCredentialsInfo);   // pass the optional parameters to support temporary token reallocation.
+                    requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
+                    true);
             }
             catch (Exception ex)
             {
@@ -4903,7 +4925,8 @@ namespace Cloud.REST
                     Helpers.HttpStatusesOkAccepted, // sync box update plan should give OK or Accepted
                     _copiedSettings, // pass the copied settings
                     _syncbox.SyncboxId, // pass the unique id of the sync box on the server
-                    requestNewCredentialsInfo);   // pass the optional parameters to support temporary token reallocation.
+                    requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
+                    true);
 
                 if (completionCallback != null)
                 {
@@ -5174,7 +5197,8 @@ namespace Cloud.REST
                 Helpers.HttpStatusesOkAccepted, // sync box update should give OK or Accepted
                 _copiedSettings, // pass the copied settings
                 _syncbox.SyncboxId, // pass the unique id of the sync box on the server
-                requestNewCredentialsInfo);   // pass the optional parameters to support temporary token reallocation.
+                requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
+                true);
             }
             catch (Exception ex)
             {
@@ -5408,7 +5432,8 @@ namespace Cloud.REST
                     Helpers.HttpStatusesOkAccepted, // delete sync box should give OK or Accepted
                     _copiedSettings, // pass the copied settings
                     _syncbox.SyncboxId, // pass the unique id of the sync box on the server
-                    requestNewCredentialsInfo);   // pass the optional parameters to support temporary token reallocation.
+                    requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
+                    false);
             }
             catch (Exception ex)
             {
@@ -5616,7 +5641,8 @@ namespace Cloud.REST
                     Helpers.HttpStatusesOkAccepted, // sync box status should give OK or Accepted
                     _copiedSettings, // pass the copied settings
                     _syncbox.SyncboxId, // pass the unique id of the sync box on the server
-                    requestNewCredentialsInfo);   // pass the optional parameters to support temporary token reallocation.
+                    requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
+                    true);
 
                 if (completionRoutine != null)
                 {
@@ -5685,7 +5711,8 @@ namespace Cloud.REST
                     Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
                     _copiedSettings, // pass the copied settings
                     _syncbox.SyncboxId, // pass the unique id of the sync box on the server
-                    requestNewCredentialsInfo);   // pass the optional parameters to support temporary token reallocation.
+                    requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
+                    false);
             }
             catch (Exception ex)
             {
@@ -5739,7 +5766,8 @@ namespace Cloud.REST
                     Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
                     _copiedSettings, // pass the copied settings
                     _syncbox.SyncboxId, // pass the unique id of the sync box on the server
-                    requestNewCredentialsInfo);   // pass the optional parameters to support temporary token reallocation.
+                    requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
+                    false);
             }
             catch (Exception ex)
             {
@@ -5801,7 +5829,8 @@ namespace Cloud.REST
                     Helpers.HttpStatusesOkAccepted,
                     _copiedSettings,
                     _syncbox.SyncboxId,
-                    requestNewCredentialsInfo);
+                    requestNewCredentialsInfo,
+                    false);
             }
             catch (Exception ex)
             {
@@ -6107,7 +6136,8 @@ namespace Cloud.REST
                     Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
                     _copiedSettings, // pass the copied settings
                     _syncbox.SyncboxId, // pass the unique id of the sync box on the server
-                    requestNewCredentialsInfo);   // pass the optional parameters to support temporary token reallocation.
+                    requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
+                    false);
             }
             catch (Exception ex)
             {
@@ -6549,7 +6579,8 @@ namespace Cloud.REST
                     Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
                     _copiedSettings, // pass the copied settings
                     _syncbox.SyncboxId, // pass the unique id of the sync box on the server
-                    requestNewCredentialsInfo);   // pass the optional parameters to support temporary token reallocation.
+                    requestNewCredentialsInfo, // pass the optional parameters to support temporary token reallocation.
+                    false);
             }
             catch (Exception ex)
             {
@@ -6893,7 +6924,8 @@ namespace Cloud.REST
                     Helpers.HttpStatusesOkCreatedNotModified, // use the hashset for ok/created/not modified as successful HttpStatusCodes
                     _copiedSettings, // pass the copied settings
                     _syncbox.SyncboxId, // pass the unique id of the sync box on the server
-                    requestNewCredentialsInfo);   // pass the optional parameters to support temporary token reallocation.
+                    requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
+                    false);
 
                 hashMismatchFound = false;
             }
@@ -7089,7 +7121,8 @@ namespace Cloud.REST
                     Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
                     _copiedSettings, // pass the copied settings
                     _syncbox.SyncboxId, // pass the unique id of the sync box on the server
-                    requestNewCredentialsInfo);   // pass the optional parameters to support temporary token reallocation.
+                    requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
+                    false);
             }
             catch (Exception ex)
             {
@@ -7479,7 +7512,8 @@ namespace Cloud.REST
                     Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
                     _copiedSettings, // pass the copied settings
                     _syncbox.SyncboxId, // pass the unique id of the sync box on the server
-                    requestNewCredentialsInfo);   // pass the optional parameters to support temporary token reallocation.
+                    requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
+                    false);
             }
             catch (Exception ex)
             {
@@ -7784,7 +7818,8 @@ namespace Cloud.REST
                     Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
                     _copiedSettings, // pass the copied settings
                     _syncbox.SyncboxId, // pass the unique id of the sync box on the server
-                    requestNewCredentialsInfo);   // pass the optional parameters to support temporary token reallocation.
+                    requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
+                    true);
             }
             catch (Exception ex)
             {
@@ -7973,7 +8008,8 @@ namespace Cloud.REST
                     Helpers.HttpStatusesOkAccepted, // purge pending should give OK or Accepted
                     _copiedSettings, // pass the copied settings
                     _syncbox.SyncboxId, // pass the unique id of the sync box on the server
-                    requestNewCredentialsInfo);   // pass the optional parameters to support temporary token reallocation.
+                    requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
+                    false);
             }
             catch (Exception ex)
             {
