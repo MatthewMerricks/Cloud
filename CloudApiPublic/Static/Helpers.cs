@@ -2649,7 +2649,7 @@ namespace Cloud.Static
             { typeof(JsonContracts.PushResponse), JsonContractHelpers.PushResponseSerializer },
             { typeof(JsonContracts.To), JsonContractHelpers.ToSerializer },
             { typeof(JsonContracts.FileChangeResponse), JsonContractHelpers.EventSerializer },
-            { typeof(JsonContracts.FileVersion[]), JsonContractHelpers.FileVersionsSerializer },
+            { typeof(JsonContracts.FileVersions), JsonContractHelpers.FileVersionsSerializer },
             //{ typeof(JsonContracts.UsedBytes), JsonContractHelpers.UsedBytesSerializer }, // deprecated
             { typeof(JsonContracts.SyncboxGetAllImageItemsResponse), JsonContractHelpers.PicturesSerializer },
             { typeof(JsonContracts.SyncboxGetAllVideoItemsResponse), JsonContractHelpers.VideosSerializer },

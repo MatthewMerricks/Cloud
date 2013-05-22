@@ -138,10 +138,10 @@ namespace Cloud.REST
     /// <summary>
     /// Holds result properties
     /// </summary>
-    public sealed class GetFileVersionsResult : BaseCLHttpRestResult<JsonContracts.FileVersion[]>
+    public sealed class GetFileVersionsResult : BaseCLHttpRestResult<JsonContracts.FileVersions>
     {
         // construct with all readonly properties
-        internal GetFileVersionsResult(CLError Error, JsonContracts.FileVersion[] Response)
+        internal GetFileVersionsResult(CLError Error, JsonContracts.FileVersions Response)
             : base(Error, Response) { }
     }
 
