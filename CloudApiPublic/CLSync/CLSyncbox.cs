@@ -1587,7 +1587,7 @@ namespace Cloud
         /// <summary>
         /// Asynchronously starts renaming a file in the cloud; outputs a CLFileItem object.
         /// </summary>
-        /// <param name="callback">Callback method to fire when the operation completes.</param>
+        /// <param name="callback">Callback method to fire when the async operation completes.</param>
         /// <param name="callbackUserState">Userstate to pass when firing async callback above.</param>
         /// <param name="itemToRename">The file item to rename.</param>
         /// <param name="newName">The new name of the file (just the filename.ext).</param>
@@ -1642,7 +1642,7 @@ namespace Cloud
         /// <summary>
         /// Asynchronously starts renaming files in the cloud.  Each item completion will fire an asynchronous callback with the completion status or error for that item.
         /// </summary>
-        /// <param name="callback">Callback method to fire when the operation completes.</param>
+        /// <param name="callback">Callback method to fire when the async operation completes.</param>
         /// <param name="callbackUserState">Userstate to pass when firing the async callback above.</param>
         /// <param name="itemsToRename">An array of pairs of items to rename and the new name of each item (just the filename.ext).</param>
         /// <param name="completionCallback">Delegate which will be fired upon successful communication for every response item.</param>
@@ -1693,22 +1693,22 @@ namespace Cloud
 
         #region RenameFolder (Renames a folder in the cloud)
         /// <summary>
-        /// Asynchronously starts renaming a folder in the cloud; outputs a CLFileItem object.
+        /// Asynchronously starts renaming a folder in the cloud.
         /// </summary>
-        /// <param name="callback">Callback method to fire when operation completes</param>
-        /// <param name="callbackUserState">Userstate to pass when firing async callback</param>
-        /// <param name="path">Full path to where the folder would exist locally on disk.</param>
-        /// <param name="newPath">Full path to the new location of the folder.</param>
+        /// <param name="callback">Callback method to fire when the async operation completes.</param>
+        /// <param name="callbackUserState">Userstate to pass when firing async callback above.</param>
+        /// <param name="itemToRename">The folder item to rename in place.</param>
+        /// <param name="newName">The new name of the folder (just the last token in the path).</param>
+        /// <param name="completionCallback">Delegate which will be fired upon successful communication for the response item</param>
+        /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion delegate is fired</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginRenameFolder(AsyncCallback callback, object callbackUserState, string path, string newPath)
+        public IAsyncResult BeginRenameFolder(AsyncCallback callback, object callbackUserState, CLFileItem itemToRename, string newName, CLFileItemCompletion completionCallback, object completionCallbackUserState)
         {
             CheckDisposed();
-            string[] paths = new string[1] { path };
-            string[] newPaths = new string[1] { newPath };
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.BeginRenameFolders(callback, callbackUserState, paths, newPaths);
+            return httpRestClient.BeginRenameFolders(callback, callbackUserState, new[] { new RenameItemParams(itemToRename, newName) }, completionCallback, completionCallbackUserState);
         }
 
         /// <summary>
@@ -1716,134 +1716,9 @@ namespace Cloud
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
         /// </summary>
         /// <param name="aResult">The asynchronous result provided upon starting the metadata query</param>
-        /// <param name="result">(output) The result from the metadata query</param>
+        /// <param name="result">(output) An overall error which occurred during processing, if any</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndRenameFolder(IAsyncResult aResult, out SyncboxRenameFolderResult result)
-        {
-            CheckDisposed();
-
-            // Complete the async operation.
-            SyncboxRenameFoldersResult results;
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            CLError error = httpRestClient.EndRenameFolders(aResult, out results);
-
-            // Return resulting error or item
-            if (error != null)
-            {
-                // We got an overall error.  Return it.
-                result = null;
-                return error;
-            }
-            // error == null  (no overall error)
-            else if (results == null)
-            {
-                // No overall error, but also no results.  Return an error.
-                result = null;
-                return new CLError(new CLException(CLExceptionCode.OnDemand_FolderRenameNoServerResponsesOrErrors, "No error or responses from server results null"));
-            }
-            // error == null && results != null  (no overall error, and we got a results object)
-            else if (results.Errors != null && results.Errors.Length >= 1)
-            {
-                // No overall error, got a results object, and it has an error.  Return that error.
-                result = null;
-                return results.Errors[0];
-            }
-            // (error == null && results != null) && (results.Errors == null || results.Errors.Length == 0)  (no overall error, we got a results object, and there are no errors in results)
-            else if (results.FolderItems != null && results.FolderItems.Length >= 1)
-            {
-                // No overall error, got a results object, is has no errors, and it has a rename response.  This is the normal case.  Return that rename response as the result.
-                result = new SyncboxRenameFolderResult(error: null, folderItem: results.FolderItems[0]);
-                return null;        // normal condition
-            }
-            // ((error == null && results != null) && (results.Errors == null || results.Errors.Length == 0)) && (results.Responses == null || results.Responses.Length == 0)
-            else
-            {
-                // No error, got a results object, but there were no errors and no rename responses inside.  Return an error.
-                result = null;
-                return new CLError(new CLException(CLExceptionCode.OnDemand_FolderRenameNoServerResponsesOrErrors, "No error or responses from server"));
-            }
-        }
-
-        /// <summary>
-        /// Renames a folder in the cloud.
-        /// </summary>
-        /// <param name="path">Full path to where the folder would exist locally on disk</param>
-        /// <param name="newPath">Full path to the new location of the folder.</param>
-        /// <param name="folderItem">(output) response object from communication</param>
-        /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError RenameFolder(string path, string newPath, out CLFileItem folderItem)
-        {
-            CheckDisposed();
-            string[] paths = new string[1] { path };
-            string[] newPaths = new string[1] { newPath };
-
-            // Communicate and get the results.
-            CLError[] outErrors;
-            CLFileItem[] outItems;
-
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            CLError error = httpRestClient.RenameFolders(paths, newPaths, out outItems, out outErrors);
-
-            // Return resulting error or item
-            if (error != null)
-            {
-                // There was an overall error.  Return it
-                folderItem = null;
-                return error;
-            }
-            // error == null
-            else if (outErrors != null && outErrors.Length >= 1)
-            {
-                // No overall error, but there was an item error.  Return it.
-                folderItem = null;
-                return outErrors[0];
-            }
-            // error == null && (outErrors == null || outErrors.Length == 0)
-            else if (outItems != null && outItems.Length >= 1)
-            {
-                // No overall error, no item errors, and we have an item.  Return it.  This is the normal condition
-                folderItem = outItems[0];
-                return null;
-            }
-            // (error == null && (outErrors == null || outErrors.Length == 0)) && (outItems == null || outItems.Length == 0)
-            else
-            {
-                // No overall error, no item errors, and no items.  No responses from server.  Return error.
-                folderItem = null;
-                return new CLError(new CLException(CLExceptionCode.OnDemand_FolderRenameNoServerResponsesOrErrors, "No responses or status from serer"));
-            }
-        }
-
-        #endregion  // end RenameFolder (Renames a folder in the cloud)
-
-        #region RenameFolders (Rename folders in the cloud)
-        /// <summary>
-        /// Asynchronously starts renaming folders in the cloud; outputs an array of  CLFileItem objects, and possibly an array of CLError objects.
-        /// </summary>
-        /// <param name="callback">Callback method to fire when operation completes</param>
-        /// <param name="callbackUserState">Userstate to pass when firing async callback</param>
-        /// <param name="paths">An array of full paths to where the folders would exist locally on disk.</param>
-        /// <param name="newPaths">An array of full paths to the new location of the folders, corresponding to the paths array.</param>
-        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginRenameFolders(AsyncCallback callback, object callbackUserState, string[] paths, string[] newPaths)
-        {
-            CheckDisposed();
-
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.BeginRenameFolders(callback, callbackUserState, paths, newPaths);
-        }
-
-        /// <summary>
-        /// Finishes renaming folders in the cloud, if it has not already finished via its asynchronous result, and outputs the result,
-        /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
-        /// </summary>
-        /// <param name="aResult">The asynchronous result provided upon starting the metadata query</param>
-        /// <param name="result">(output) The result from the metadata query</param>
-        /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndRenameFolders(IAsyncResult aResult, out SyncboxRenameFoldersResult result)
+        public CLError EndRenameFolder(IAsyncResult aResult, out SyncboxRenameFoldersResult result)
         {
             CheckDisposed();
 
@@ -1853,21 +1728,248 @@ namespace Cloud
         }
 
         /// <summary>
-        /// Renames folders in the cloud.
+        /// Renames a folder in the cloud.
         /// </summary>
-        /// <param name="paths">An array of full paths to where the folders would exist locally on disk.</param>
-        /// <param name="newPaths">An array of full paths to the new location of the folders, corresponding to the paths array.</param>
-        /// <param name="folderItems">(output) response object from communication</param>
-        /// <param name="errors">(output) Any errors that occur, or null.</param>
+        /// <param name="itemToRename">The folder item to rename in place.</param>
+        /// <param name="newName">The new name of the folder (just the last token in the path).</param>
+        /// <param name="completionCallback">Delegate which will be fired upon successful communication for the response item</param>
+        /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion delegate is fired</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError RenameFolders(string[] paths, string[] newPaths, out CLFileItem[] folderItems, out CLError[] errors)
+        public CLError RenameFolder(CLFileItem itemToRename, string newName, CLFileItemCompletion completionCallback, object completionCallbackUserState)
         {
             CheckDisposed();
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.RenameFolders(paths, newPaths, out folderItems, out errors);
+            return httpRestClient.RenameFolders(new[] { new RenameItemParams(itemToRename, newName) }, completionCallback, completionCallbackUserState);
         }
+
+        ///// <summary>
+        ///// Asynchronously starts renaming a folder in the cloud; outputs a CLFileItem object.
+        ///// </summary>
+        ///// <param name="callback">Callback method to fire when operation completes</param>
+        ///// <param name="callbackUserState">Userstate to pass when firing async callback</param>
+        ///// <param name="path">Full path to where the folder would exist locally on disk.</param>
+        ///// <param name="newPath">Full path to the new location of the folder.</param>
+        ///// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        //public IAsyncResult BeginRenameFolder(AsyncCallback callback, object callbackUserState, string path, string newPath)
+        //{
+        //    CheckDisposed();
+        //    string[] paths = new string[1] { path };
+        //    string[] newPaths = new string[1] { newPath };
+
+        //    CLHttpRest httpRestClient;
+        //    GetInstanceRestClient(out httpRestClient);
+        //    return httpRestClient.BeginRenameFolders(callback, callbackUserState, paths, newPaths);
+        //}
+
+        ///// <summary>
+        ///// Finishes renaming a folder in the cloud, if it has not already finished via its asynchronous result, and outputs the result,
+        ///// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
+        ///// </summary>
+        ///// <param name="aResult">The asynchronous result provided upon starting the metadata query</param>
+        ///// <param name="result">(output) The result from the metadata query</param>
+        ///// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
+        //public CLError EndRenameFolder(IAsyncResult aResult, out SyncboxRenameFolderResult result)
+        //{
+        //    CheckDisposed();
+
+        //    // Complete the async operation.
+        //    SyncboxRenameFoldersResult results;
+        //    CLHttpRest httpRestClient;
+        //    GetInstanceRestClient(out httpRestClient);
+        //    CLError error = httpRestClient.EndRenameFolders(aResult, out results);
+
+        //    // Return resulting error or item
+        //    if (error != null)
+        //    {
+        //        // We got an overall error.  Return it.
+        //        result = null;
+        //        return error;
+        //    }
+        //    // error == null  (no overall error)
+        //    else if (results == null)
+        //    {
+        //        // No overall error, but also no results.  Return an error.
+        //        result = null;
+        //        return new CLError(new CLException(CLExceptionCode.OnDemand_FolderRenameNoServerResponsesOrErrors, "No error or responses from server results null"));
+        //    }
+        //    // error == null && results != null  (no overall error, and we got a results object)
+        //    else if (results.Errors != null && results.Errors.Length >= 1)
+        //    {
+        //        // No overall error, got a results object, and it has an error.  Return that error.
+        //        result = null;
+        //        return results.Errors[0];
+        //    }
+        //    // (error == null && results != null) && (results.Errors == null || results.Errors.Length == 0)  (no overall error, we got a results object, and there are no errors in results)
+        //    else if (results.FolderItems != null && results.FolderItems.Length >= 1)
+        //    {
+        //        // No overall error, got a results object, is has no errors, and it has a rename response.  This is the normal case.  Return that rename response as the result.
+        //        result = new SyncboxRenameFolderResult(error: null, folderItem: results.FolderItems[0]);
+        //        return null;        // normal condition
+        //    }
+        //    // ((error == null && results != null) && (results.Errors == null || results.Errors.Length == 0)) && (results.Responses == null || results.Responses.Length == 0)
+        //    else
+        //    {
+        //        // No error, got a results object, but there were no errors and no rename responses inside.  Return an error.
+        //        result = null;
+        //        return new CLError(new CLException(CLExceptionCode.OnDemand_FolderRenameNoServerResponsesOrErrors, "No error or responses from server"));
+        //    }
+        //}
+
+        ///// <summary>
+        ///// Renames a folder in the cloud.
+        ///// </summary>
+        ///// <param name="path">Full path to where the folder would exist locally on disk</param>
+        ///// <param name="newPath">Full path to the new location of the folder.</param>
+        ///// <param name="folderItem">(output) response object from communication</param>
+        ///// <returns>Returns any error that occurred during communication, if any</returns>
+        //public CLError RenameFolder(string path, string newPath, out CLFileItem folderItem)
+        //{
+        //    CheckDisposed();
+        //    string[] paths = new string[1] { path };
+        //    string[] newPaths = new string[1] { newPath };
+
+        //    // Communicate and get the results.
+        //    CLError[] outErrors;
+        //    CLFileItem[] outItems;
+
+        //    CLHttpRest httpRestClient;
+        //    GetInstanceRestClient(out httpRestClient);
+        //    CLError error = httpRestClient.RenameFolders(paths, newPaths, out outItems, out outErrors);
+
+        //    // Return resulting error or item
+        //    if (error != null)
+        //    {
+        //        // There was an overall error.  Return it
+        //        folderItem = null;
+        //        return error;
+        //    }
+        //    // error == null
+        //    else if (outErrors != null && outErrors.Length >= 1)
+        //    {
+        //        // No overall error, but there was an item error.  Return it.
+        //        folderItem = null;
+        //        return outErrors[0];
+        //    }
+        //    // error == null && (outErrors == null || outErrors.Length == 0)
+        //    else if (outItems != null && outItems.Length >= 1)
+        //    {
+        //        // No overall error, no item errors, and we have an item.  Return it.  This is the normal condition
+        //        folderItem = outItems[0];
+        //        return null;
+        //    }
+        //    // (error == null && (outErrors == null || outErrors.Length == 0)) && (outItems == null || outItems.Length == 0)
+        //    else
+        //    {
+        //        // No overall error, no item errors, and no items.  No responses from server.  Return error.
+        //        folderItem = null;
+        //        return new CLError(new CLException(CLExceptionCode.OnDemand_FolderRenameNoServerResponsesOrErrors, "No responses or status from serer"));
+        //    }
+        //}
+
+        #endregion  // end RenameFolder (Renames a folder in the cloud)
+
+        #region RenameFolders (Rename folders in the cloud)
+        /// <summary>
+        /// Asynchronously starts renaming folders in place in the cloud.  Each item completion will fire an asynchronous callback with the completion status or error for that item.
+        /// </summary>
+        /// <param name="callback">Callback method to fire when the async operation completes.</param>
+        /// <param name="callbackUserState">Userstate to pass when firing the async callback above.</param>
+        /// <param name="itemsToRename">An array of pairs of items to rename and the new name of each item (just the last token in the path).</param>
+        /// <param name="completionCallback">Delegate which will be fired upon successful communication for every response item.</param>
+        /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion delegate is fired.</param>
+        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        internal IAsyncResult BeginRenameFolders(AsyncCallback callback, object callbackUserState, RenameItemParams[] itemsToRename, CLFileItemCompletion completionCallback, object completionCallbackUserState)
+        {
+            CheckDisposed();
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.BeginRenameFolders(callback, callbackUserState, itemsToRename, completionCallback, completionCallbackUserState);
+        }
+
+        /// <summary>
+        /// Finishes renaming folders in place in the cloud, if it has not already finished via its asynchronous result, and outputs the result,
+        /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
+        /// </summary>
+        /// <param name="aResult">The asynchronous result provided upon starting the metadata query</param>
+        /// <param name="result">(output) An overall error which occurred during processing, if any</param>
+        /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
+        internal CLError EndRenameFolders(IAsyncResult aResult, out SyncboxRenameFoldersResult result)
+        {
+            CheckDisposed();
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.EndRenameFolders(aResult, out result);
+        }
+
+        /// <summary>
+        /// Renames folders in place in the cloud.
+        /// </summary>
+        /// <param name="itemsToRename">An array of pairs of items to rename and the new name of each item (just the last token in the path).</param>
+        /// <param name="completionCallback">Delegate which will be fired upon successful communication for every response item.</param>
+        /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion delegate is fired.</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        internal CLError RenameFolders(RenameItemParams[] itemsToRename, CLFileItemCompletion completionCallback, object completionCallbackUserState)
+        {
+            CheckDisposed();
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.RenameFolders(itemsToRename, completionCallback, completionCallbackUserState);
+        }
+
+        ///// <summary>
+        ///// Asynchronously starts renaming folders in the cloud; outputs an array of  CLFileItem objects, and possibly an array of CLError objects.
+        ///// </summary>
+        ///// <param name="callback">Callback method to fire when operation completes</param>
+        ///// <param name="callbackUserState">Userstate to pass when firing async callback</param>
+        ///// <param name="paths">An array of full paths to where the folders would exist locally on disk.</param>
+        ///// <param name="newPaths">An array of full paths to the new location of the folders, corresponding to the paths array.</param>
+        ///// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        //public IAsyncResult BeginRenameFolders(AsyncCallback callback, object callbackUserState, string[] paths, string[] newPaths)
+        //{
+        //    CheckDisposed();
+
+        //    CLHttpRest httpRestClient;
+        //    GetInstanceRestClient(out httpRestClient);
+        //    return httpRestClient.BeginRenameFolders(callback, callbackUserState, paths, newPaths);
+        //}
+
+        ///// <summary>
+        ///// Finishes renaming folders in the cloud, if it has not already finished via its asynchronous result, and outputs the result,
+        ///// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
+        ///// </summary>
+        ///// <param name="aResult">The asynchronous result provided upon starting the metadata query</param>
+        ///// <param name="result">(output) The result from the metadata query</param>
+        ///// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
+        //public CLError EndRenameFolders(IAsyncResult aResult, out SyncboxRenameFoldersResult result)
+        //{
+        //    CheckDisposed();
+
+        //    CLHttpRest httpRestClient;
+        //    GetInstanceRestClient(out httpRestClient);
+        //    return httpRestClient.EndRenameFolders(aResult, out result);
+        //}
+
+        ///// <summary>
+        ///// Renames folders in the cloud.
+        ///// </summary>
+        ///// <param name="paths">An array of full paths to where the folders would exist locally on disk.</param>
+        ///// <param name="newPaths">An array of full paths to the new location of the folders, corresponding to the paths array.</param>
+        ///// <param name="folderItems">(output) response object from communication</param>
+        ///// <param name="errors">(output) Any errors that occur, or null.</param>
+        ///// <returns>Returns any error that occurred during communication, if any</returns>
+        //public CLError RenameFolders(string[] paths, string[] newPaths, out CLFileItem[] folderItems, out CLError[] errors)
+        //{
+        //    CheckDisposed();
+
+        //    CLHttpRest httpRestClient;
+        //    GetInstanceRestClient(out httpRestClient);
+        //    return httpRestClient.RenameFolders(paths, newPaths, out folderItems, out errors);
+        //}
 
         #endregion  // end RenameFolders (Rename folders in the cloud)
 
@@ -2066,6 +2168,7 @@ namespace Cloud
         #endregion  // end MoveFiles (Move files in the cloud)
 #endif  // end NEEDS_REWORK
 
+#if NEEDS_REWORK
         #region MoveFolder (Moves a folder in the cloud)
         /// <summary>
         /// Asynchronously starts renaming a folder in the cloud; outputs a CLFileItem object.
@@ -2256,6 +2359,7 @@ namespace Cloud
         }
 
         #endregion  // end MoveFolders (Move folders in the cloud)
+#endif // end NEEDS_REWORK
 
         #region DeleteFile (Deletes a file in the cloud)
         /// <summary>

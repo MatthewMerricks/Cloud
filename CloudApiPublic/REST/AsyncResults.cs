@@ -1109,30 +1109,6 @@ namespace Cloud.REST
     public sealed class SyncboxRenameFoldersResult
     {
         /// <summary>
-        /// The result returned from the server
-        /// </summary>
-        public CLFileItem[] FolderItems
-        {
-            get
-            {
-                return _folderItems;
-            }
-        }
-        private readonly CLFileItem[] _folderItems;
-
-        /// <summary>
-        /// Any item errors which may have occurred during communication
-        /// </summary>
-        public CLError[] Errors
-        {
-            get
-            {
-                return _errors;
-            }
-        }
-        private readonly CLError[] _errors;
-
-        /// <summary>
         /// Any overall error which may have occurred during communication
         /// </summary>
         public CLError OverallError
@@ -1145,11 +1121,9 @@ namespace Cloud.REST
         private readonly CLError _overallError;
 
         // construct with all readonly properties
-        internal SyncboxRenameFoldersResult(CLError overallError, CLError[] errors, CLFileItem[] folderItems)
+        internal SyncboxRenameFoldersResult(CLError overallError)
         {
             this._overallError = overallError;
-            this._errors = errors;
-            this._folderItems = folderItems;
         }
     }
 

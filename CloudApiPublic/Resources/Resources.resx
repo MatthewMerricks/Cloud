@@ -1527,7 +1527,7 @@
     <comment>Syncbox and Path should not be translated</comment>
   </data>
   <data name="ExceptionOnDemandConflict" xml:space="preserve">
-    <value>Change conflicts with previous state</value>
+    <value>Destination item already exists</value>
   </data>
   <data name="ExceptionOnDemandDeserializeErrorMessage" xml:space="preserve">
     <value>An error occurred deserializing the error message for current item in error</value>
