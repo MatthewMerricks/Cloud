@@ -84,13 +84,13 @@ namespace SampleLiveSync.Views
 
         private void OnNotifySettingsChanged(object sender, Support.NotificationEventArgs<string, bool> e)
         {
-            MessageBoxResult result = MessageBox.Show("Some settings have changed.  Do you want to cancel the changes and exit anyway?", "Cancel and Exit Anyway?", MessageBoxButton.YesNo, MessageBoxImage.Question);
+            MessageBoxResult result = MessageBox.Show(System.Windows.Application.Current.MainWindow, "Some settings have changed.  Do you want to cancel the changes and exit anyway?", "Cancel and Exit Anyway?", MessageBoxButton.YesNo, MessageBoxImage.Question);
             e.Completed(result == MessageBoxResult.Yes);
         }
 
         private void OnNotifyException(object sender, Support.NotificationEventArgs<Cloud.Model.CLError> e)
         {
-            MessageBox.Show(String.Format("{0}.", e.Message), "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            MessageBox.Show(System.Windows.Application.Current.MainWindow, String.Format("{0}.", e.Message), "Error", MessageBoxButton.OK, MessageBoxImage.Error);
         }
 
         #endregion

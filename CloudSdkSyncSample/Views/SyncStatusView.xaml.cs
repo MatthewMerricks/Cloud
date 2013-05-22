@@ -45,7 +45,7 @@ namespace SampleLiveSync.Views
                 CLError error = ex;
                 error.Log(_trace.TraceLocation, _trace.LogErrors);
                 _trace.writeToLog(9, "WindowSyncStatus: WindowSyncStatus: ERROR. Exception: Msg: <{0}>. Code: {1}.", error.PrimaryException.Message, error.PrimaryException.Code);
-                System.Windows.Forms.MessageBox.Show(String.Format("Unable to start the Cloud application (WindowSyncStatus).  Msg: <{0}>. Code: {1}.", error.PrimaryException.Message, error.PrimaryException.Code));
+                MessageBox.Show(System.Windows.Application.Current.MainWindow, String.Format("Unable to start the Cloud application (WindowSyncStatus).  Msg: <{0}>. Code: {1}.", error.PrimaryException.Message, error.PrimaryException.Code));
                 global::System.Windows.Application.Current.Shutdown(0);
             }
 
@@ -83,7 +83,7 @@ namespace SampleLiveSync.Views
 
             if (_vmOurs == null)
             {
-                MessageBox.Show("SyncStatusViewModel is the wrong type", "Error", MessageBoxButton.OK);
+                MessageBox.Show(System.Windows.Application.Current.MainWindow, "SyncStatusViewModel is the wrong type", "Error", MessageBoxButton.OK);
             }
             else
             {

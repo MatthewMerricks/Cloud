@@ -1,0 +1,2 @@
+C:\Cloud\CloudSDK-Windows\3rdParty\Src\BadgeCOM\sn.exe -R C:\Cloud\CloudSDK-Windows\3rdParty\Src\BadgeCOM\..\..\..\3rdParty\bin\Release\BadgeCOMLib.dll C:\CertBackup\CloudSigning\CloudPlatformCodeSigning.pfx
+pause

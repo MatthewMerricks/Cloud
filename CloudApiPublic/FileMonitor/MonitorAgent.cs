@@ -1783,7 +1783,7 @@ namespace Cloud.FileMonitor
                                                             }
                                                         }
 
-                                                    _trace.writeToMemory(() => _trace.trcFmtStr(2, Resources.MonitorAgentAssignDependenciesCurrentOriginalMappingDirection0Type1OldPath2NewPath3,
+                                                        _trace.writeToMemory(() => _trace.trcFmtStr(2, Resources.MonitorAgentAssignDependenciesCurrentOriginalMappingDirection0Type1OldPath2NewPath3,
                                                             currentDequeuedChangeToDispose.Direction.ToString(),
                                                             currentDequeuedChangeToDispose.Type.ToString(),
                                                             currentDequeuedChangeToDispose.OldPath != null ? currentDequeuedChangeToDispose.OldPath : "NoOldPath",
@@ -1793,13 +1793,13 @@ namespace Cloud.FileMonitor
                                                         if (currentDequeuedChangeToDispose == CurrentOriginalMapping.Key
                                                             && CurrentOriginalMapping.Value == FileChangeSource.QueuedChanges)
                                                         {
-                                                        _trace.writeToMemory(() => _trace.trcFmtStr(2, Resources.MonitorAgentAssignDependenciesCurrentOriginalMappingRemovethisCurrentOriginalMappingFromOriginalQueuedChangesIndexesByInMemoryIds));
+                                                            _trace.writeToMemory(() => _trace.trcFmtStr(2, Resources.MonitorAgentAssignDependenciesCurrentOriginalMappingRemovethisCurrentOriginalMappingFromOriginalQueuedChangesIndexesByInMemoryIds));
                                                             RemoveFileChangeFromQueuedChanges(currentDequeuedChangeToDispose, originalQueuedChangesIndexesByInMemoryIds);
                                                         }
 
                                                         if (currentDequeuedChangeToDispose.EventId != 0)
                                                         {
-                                                    _trace.writeToMemory(() => _trace.trcFmtStr(2, Resources.MonitorAgentAssignDependenciesCurrentOriginalMappingAddCurrentDisposaltoRemoveFromSQL));
+                                                            _trace.writeToMemory(() => _trace.trcFmtStr(2, Resources.MonitorAgentAssignDependenciesCurrentOriginalMappingAddCurrentDisposaltoRemoveFromSQL));
                                                             removeFromSql.Add(currentDequeuedChangeToDispose);
                                                         }
                                                     }
@@ -2722,6 +2722,45 @@ namespace Cloud.FileMonitor
                         {
                             var CurrentDependencyTree = AllFileChanges[currentChangeIndex];
 
+                            // changes might have been made to the FileChangeWithDependencies which matches a FileChange in QueuedChanges:
+                            // these changes need to be found and propagated;
+                            // need to double check exactly which fields may have changed for comparison since now we're only checking Type, NewPath, OldPath, and EventId
+                            if (CurrentDependencyTree.OriginalFileChange != CurrentDependencyTree.DependencyFileChange
+                                // fields we're checking for change:
+                                && (CurrentDependencyTree.DependencyFileChange.Type != CurrentDependencyTree.OriginalFileChange.Type
+                                    || CurrentDependencyTree.DependencyFileChange.EventId != CurrentDependencyTree.OriginalFileChange.EventId
+                                    || !FilePathComparer.Instance.Equals(CurrentDependencyTree.DependencyFileChange.NewPath, CurrentDependencyTree.OriginalFileChange.NewPath)
+                                    || !FilePathComparer.Instance.Equals(CurrentDependencyTree.DependencyFileChange.OldPath, CurrentDependencyTree.OriginalFileChange.OldPath)))
+                            {
+                                FilePath pathInQueuedChanges;
+                                if (CurrentDependencyTree.SourceType == FileChangeSource.QueuedChanges)
+                                {
+                                    pathInQueuedChanges = originalQueuedChangesIndexesByInMemoryIds[CurrentDependencyTree.OriginalFileChange.InMemoryId];
+
+                                    // pathInQueuedChanges is null if changed was marked for force-processing (QueuedChangesForceProcessing)
+                                }
+                                else
+                                {
+                                    pathInQueuedChanges = null;
+                                }
+
+                                if (pathInQueuedChanges != null
+                                        && !FilePathComparer.Instance.Equals(CurrentDependencyTree.DependencyFileChange.NewPath, pathInQueuedChanges))
+                                {
+                                    QueuedChanges.Remove(pathInQueuedChanges);
+                                }
+
+                                CurrentDependencyTree.OriginalFileChange.Type = CurrentDependencyTree.DependencyFileChange.Type;
+                                CurrentDependencyTree.OriginalFileChange.NewPath = CurrentDependencyTree.DependencyFileChange.NewPath;
+                                CurrentDependencyTree.OriginalFileChange.OldPath = CurrentDependencyTree.DependencyFileChange.OldPath;
+                                CurrentDependencyTree.OriginalFileChange.EventId = CurrentDependencyTree.DependencyFileChange.EventId;
+
+                                if (pathInQueuedChanges != null)
+                                {
+                                    QueuedChanges[CurrentDependencyTree.OriginalFileChange.NewPath] = CurrentDependencyTree.OriginalFileChange;
+                                }
+                            }
+
                             if (!PulledChanges.Contains(CurrentDependencyTree.DependencyFileChange))
                             {
                                 Action<List<KeyValuePair<FileChangeMerge, FileChange>>> removeQueuedChangesFromDependencyTree = changesToAdd =>
@@ -2924,32 +2963,6 @@ namespace Cloud.FileMonitor
                                         else/* if (failedOutChanges != null)*/ // not necessary to check for null failed out changes list since if it was null this else condition could never be reached
                                         {
                                             failedOutChanges.Add(CurrentDependencyTree.DependencyFileChange);
-                                        }
-                                    }
-                                    // changes might have been made to the FileChangeWithDependencies which matches a FileChange in QueuedChanges:
-                                    // these changes need to be found and propagated;
-                                    // need to double check exactly which fields may have changed for comparison since now we're only checking Type, NewPath and OldPath
-                                    else if (CurrentDependencyTree.DependencyFileChange.Type != CurrentDependencyTree.OriginalFileChange.Type
-                                        || !FilePathComparer.Instance.Equals(CurrentDependencyTree.DependencyFileChange.NewPath, CurrentDependencyTree.OriginalFileChange.NewPath)
-                                        || !FilePathComparer.Instance.Equals(CurrentDependencyTree.DependencyFileChange.OldPath, CurrentDependencyTree.OriginalFileChange.OldPath))
-                                    {
-                                        FilePath pathInQueuedChanges = originalQueuedChangesIndexesByInMemoryIds[CurrentDependencyTree.OriginalFileChange.InMemoryId];
-
-                                        // pathInQueuedChanges is null if changed was marked for force-processing (QueuedChangesForceProcessing)
-
-                                        if (pathInQueuedChanges != null
-                                            && !FilePathComparer.Instance.Equals(CurrentDependencyTree.DependencyFileChange.NewPath, pathInQueuedChanges))
-                                        {
-                                            QueuedChanges.Remove(pathInQueuedChanges);
-                                        }
-
-                                        CurrentDependencyTree.OriginalFileChange.Type = CurrentDependencyTree.DependencyFileChange.Type;
-                                        CurrentDependencyTree.OriginalFileChange.NewPath = CurrentDependencyTree.DependencyFileChange.NewPath;
-                                        CurrentDependencyTree.OriginalFileChange.OldPath = CurrentDependencyTree.DependencyFileChange.OldPath;
-
-                                        if (pathInQueuedChanges != null)
-                                        {
-                                            QueuedChanges[CurrentDependencyTree.OriginalFileChange.NewPath] = CurrentDependencyTree.OriginalFileChange;
                                         }
                                     }
                                 }
