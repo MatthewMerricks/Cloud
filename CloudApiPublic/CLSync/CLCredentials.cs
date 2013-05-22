@@ -345,7 +345,8 @@ namespace Cloud
                     Helpers.HttpStatusesOkAccepted,
                     copiedSettings,
                     Credentials: this,
-                    SyncboxId: null);
+                    SyncboxId: null, 
+                    isOneOff: false);
 
                 // Convert the server response to the requested output format.
                 if (responseFromServer != null && responseFromServer.Sessions != null)
@@ -524,7 +525,8 @@ namespace Cloud
                     Helpers.HttpStatusesOkCreatedNotModifiedNoContent,
                     copiedSettings,
                     this,
-                    null);
+                    null, 
+                    false);
 
                 // Convert the server response to a CLCredentials object and pass that back as the response.
                 if (responseFromServer != null && responseFromServer.Session != null)
@@ -671,7 +673,8 @@ namespace Cloud
                     Helpers.HttpStatusesOkAccepted,
                     copiedSettings,
                     this,
-                    null);
+                    null, 
+                    true);
 
                 // Convert the server response to a CLCredentials object and pass that back as the response.
                 if (responseFromServer != null && responseFromServer.Session != null)
@@ -816,7 +819,8 @@ namespace Cloud
                     Helpers.HttpStatusesOkAccepted,
                     copiedSettings,
                     this,
-                    null);
+                    null, 
+                    false);
             }
             catch (Exception ex)
             {
@@ -994,7 +998,8 @@ namespace Cloud
                     httpStatusCodesAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes.
                     copiedSettings, // pass the copied settings
                     this, // pass the key/secret
-                    null); // no unique id of the sync box on the server
+                    null,
+                    false); // no unique id of the sync box on the server
             }
             catch (Exception ex)
             {
@@ -1168,7 +1173,8 @@ namespace Cloud
                     Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
                     copiedSettings, // pass the copied settings
                     this, // pass the key/secret
-                    null); // no unique id of the sync box on the server
+                    null, // no unique id of the sync box on the server
+                    false);
             }
             catch (Exception ex)
             {
@@ -1330,7 +1336,8 @@ namespace Cloud
                     Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
                     copiedSettings, // pass the copied settings
                     this, // pass the key/secret
-                    null); // no unique id of the sync box on the server
+                    null, // no unique id of the sync box on the server
+                    false);
             }
             catch (Exception ex)
             {

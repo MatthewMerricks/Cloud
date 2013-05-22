@@ -217,6 +217,15 @@ namespace Cloud.CLSync
             this._copiedSettings = syncbox.CopiedSettings;
         }
 
+        /// <summary>
+        /// Use this if the response does not have a headerAction or action.
+        /// </summary>
+        /// <param name="response"></param>
+        /// <param name="syncbox"></param>
+        internal CLFileItem(JsonContracts.SyncboxMetadataResponse response, CLSyncbox syncbox) : this(response, null, null, syncbox)
+        {
+        }
+
         /// <param name="headerAction">[FileChangeResponse].Header.Action, used as primary fallback for setting IsFolder</param>
         /// <param name="action">[FileChangeResponse].Action, used as secondary fallback for setting IsFolder</param>
         internal CLFileItem(JsonContracts.SyncboxMetadataResponse response, string headerAction, string action, CLSyncbox syncbox)

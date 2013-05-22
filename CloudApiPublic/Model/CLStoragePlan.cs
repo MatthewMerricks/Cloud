@@ -276,7 +276,8 @@ namespace Cloud.Model
                     Helpers.HttpStatusesOkAccepted,
                     copiedSettings,
                     credentials,
-                    null);
+                    null, 
+                    true);
 
                 // Convert the server response to the output response.
                 if (responseFromServer != null && responseFromServer.Plans != null)

@@ -223,6 +223,16 @@ namespace Cloud.Static
         /// </summary>
         Syncbox_GeneralStart = (((ulong)CLExceptionDomain.Syncing) << 32) | 19,  // 2_19
 
+        /// <summary>
+        /// The syncbox path has already been set.
+        /// </summary>
+        Syncbox_PathAlreadySet = (((ulong)CLExceptionDomain.Syncing) << 32) | 20,  // 2_20
+
+        /// <summary>
+        /// Error initializing the syncbox.
+        /// </summary>
+        Syncbox_Initializing = (((ulong)CLExceptionDomain.Syncing) << 32) | 21,  // 2_21
+
         #endregion
 
         #region ShellExt
@@ -260,6 +270,11 @@ namespace Cloud.Static
         /// Error in a syncing model class
         /// </summary>
         Syncing_Model = (((ulong)CLExceptionDomain.Syncing) << 32) | 3, // 4_3
+
+        /// <summary>
+        /// Error in file monitor
+        /// </summary>
+        Syncing_FileMonitor = (((ulong)CLExceptionDomain.Syncing) << 32) | 4, // 4_4
 
         #endregion
 
@@ -376,14 +391,14 @@ namespace Cloud.Static
         OnDemand_TimeoutMilliseconds = (((ulong)CLExceptionDomain.OnDemand) << 32) | 21, // 5_21
 
         /// <summary>
-        /// Cloud syncbox renames. Old path required and it must be valid within the syncbox Path.
+        /// Cloud syncbox renames. The existing path is invalid in the CLFileItem to be renamed.
         /// </summary>
-        OnDemand_RenameOldPath = (((ulong)CLExceptionDomain.OnDemand) << 32) | 22, // 5_22
+        OnDemand_InvalidExistingPath = (((ulong)CLExceptionDomain.OnDemand) << 32) | 22, // 5_22
 
         /// <summary>
-        /// Cloud syncbox renames. New path required and it must be valid within the syncbox path.
+        /// Cloud syncbox renames. New name is required and it must be valid within the syncbox path.
         /// </summary>
-        OnDemand_RenameNewPath = (((ulong)CLExceptionDomain.OnDemand) << 32) | 23, // 5_23
+        OnDemand_RenameNewName = (((ulong)CLExceptionDomain.OnDemand) << 32) | 23, // 5_23
 
         /// <summary>
         /// Cloud syncbox response item missing a field.
@@ -414,6 +429,26 @@ namespace Cloud.Static
         /// An unknown status was returned for an item, check the InnerException Message.
         /// </summary>
         OnDemand_UnknownItemStatus = (((ulong)CLExceptionDomain.OnDemand) << 32) | 29, // 5_29
+
+        /// <summary>
+        /// Cloud syncbox file delete bad path
+        /// </summary>
+        OnDemand_FileDeleteBadPath = (((ulong)CLExceptionDomain.OnDemand) << 32) | 30, // 5_30
+
+        /// <summary>
+        /// Cloud syncbox folder delete bad path
+        /// </summary>
+        OnDemand_FolderDeleteBadPath = (((ulong)CLExceptionDomain.OnDemand) << 32) | 31, // 5_31
+
+        /// <summary>
+        /// Cloud syncbox file add bad path
+        /// </summary>
+        OnDemand_FileAddBadPath = (((ulong)CLExceptionDomain.OnDemand) << 32) | 32, // 5_32
+
+        /// <summary>
+        /// Cloud syncbox folder add bad path
+        /// </summary>
+        OnDemand_FolderAddBadPath = (((ulong)CLExceptionDomain.OnDemand) << 32) | 33, // 5_33
 
         #endregion
 
@@ -550,7 +585,8 @@ namespace Cloud.Static
         SuccessfulUploadsIncremented,
         SuccessfulDownloadsIncremented,
         UploadingCountChanged,
-        DownloadingCountChanged
+        DownloadingCountChanged,
+        InternetConnectivityChanged
     }
 
     /// <summary>

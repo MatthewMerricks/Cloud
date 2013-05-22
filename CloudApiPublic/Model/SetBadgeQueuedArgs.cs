@@ -22,7 +22,7 @@ namespace Cloud.Model
                 return _setBadge;
             }
         }
-        private SetBadge _setBadge;
+        private readonly SetBadge _setBadge;
 
         public SetBadgeQueuedArgs(SetBadge SetBadge)
         {

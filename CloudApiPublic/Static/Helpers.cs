@@ -2649,7 +2649,7 @@ namespace Cloud.Static
             { typeof(JsonContracts.PushResponse), JsonContractHelpers.PushResponseSerializer },
             { typeof(JsonContracts.To), JsonContractHelpers.ToSerializer },
             { typeof(JsonContracts.FileChangeResponse), JsonContractHelpers.EventSerializer },
-            { typeof(JsonContracts.FileVersion[]), JsonContractHelpers.FileVersionsSerializer },
+            { typeof(JsonContracts.FileVersions), JsonContractHelpers.FileVersionsSerializer },
             //{ typeof(JsonContracts.UsedBytes), JsonContractHelpers.UsedBytesSerializer }, // deprecated
             { typeof(JsonContracts.SyncboxGetAllImageItemsResponse), JsonContractHelpers.PicturesSerializer },
             { typeof(JsonContracts.SyncboxGetAllVideoItemsResponse), JsonContractHelpers.VideosSerializer },
@@ -2727,7 +2727,8 @@ namespace Cloud.Static
             HashSet<HttpStatusCode> validStatusCodes, // a HashSet with HttpStatusCodes which should be considered all possible successful return codes from the server
             ICLSyncSettingsAdvanced CopiedSettings, // used for device id, trace settings, and client version
             CLCredentials Credentials, // contains key/secret for authorization
-            Nullable<long> SyncboxId) // unique id for the sync box on the server
+            Nullable<long> SyncboxId, // unique id for the sync box on the server
+            bool isOneOff)
             where T : class // restrict T to an object type to allow default null return
         {
             return ProcessHttpInner<T>(requestContent,
@@ -2739,7 +2740,8 @@ namespace Cloud.Static
                 validStatusCodes,
                 CopiedSettings,
                 Credentials,
-                SyncboxId);
+                SyncboxId,
+                isOneOff);
         }
 
         /// <summary>
@@ -2755,7 +2757,8 @@ namespace Cloud.Static
             HashSet<HttpStatusCode> validStatusCodes, // a HashSet with HttpStatusCodes which should be considered all possible successful return codes from the server
             ICLSyncSettingsAdvanced CopiedSettings, // used for device id, trace settings, and client version
             Nullable<long> SyncboxId,  // unique id for the sync box on the server
-            RequestNewCredentialsInfo RequestNewCredentialsInfo) // gets the credentials and renews the credentials if needed
+            RequestNewCredentialsInfo RequestNewCredentialsInfo, // gets the credentials and renews the credentials if needed
+            bool isOneOff)
             where T : class // restrict T to an object type to allow default null return
         {
             // Part 1 of the "request new credentials" processing.  This processing is invoked when temporary token credentials time out.
@@ -2819,7 +2822,8 @@ namespace Cloud.Static
                     validStatusCodes,
                     CopiedSettings,
                     Credentials,
-                    SyncboxId);
+                    SyncboxId, 
+                    isOneOff);
 
                 if (RequestNewCredentialsInfo.GetNewCredentialsCallback != null)
                 {
@@ -2928,7 +2932,8 @@ namespace Cloud.Static
                             validStatusCodes,
                             CopiedSettings,
                             Credentials,
-                            SyncboxId);
+                            SyncboxId,
+                            isOneOff);
                     }
                     else
                     {
@@ -2951,10 +2956,11 @@ namespace Cloud.Static
             HashSet<HttpStatusCode> validStatusCodes, // a HashSet with HttpStatusCodes which should be considered all possible successful return codes from the server
             ICLSyncSettingsAdvanced CopiedSettings, // used for device id, trace settings, and client version
             CLCredentials Credentials, // contains key/secret for authorization
-            Nullable<long> SyncboxId) // unique id for the sync box on the server
+            Nullable<long> SyncboxId, // unique id for the sync box on the server
+            bool isOneOff)
             where T : class // restrict T to an object type to allow default null return
         {
-            if (AllHaltedOnUnrecoverableError)
+            if (AllHaltedOnUnrecoverableError && !isOneOff)
             {
                 throw new CLInvalidOperationException(CLExceptionCode.Http_BadRequest, Resources.ExceptionHelpersProcessHttpInnerAllHaltedOnUnrecoverableError);
             }

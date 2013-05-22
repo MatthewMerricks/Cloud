@@ -1,11 +1,11 @@
-﻿using System;
+﻿using Cloud.Static;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
 namespace Cloud.Sync
 {
-
     internal sealed class NetworkChangedEventArgs : EventArgs
     {
         private readonly bool _isConnected;
@@ -184,12 +184,25 @@ namespace Cloud.Sync
                 {
                     //noop;
                 }
+            }
 
+            NotifyPublicEventInternetConnected(connected);
+        }
+
+        protected void NotifyPublicEventInternetConnected(bool connected)
+        {
+            // publicly exposed event for whether internet is connected
+            try
+            {
+                MessageEvents.DetectedInternetConnectivityChange(connected);
+            }
+            catch
+            {
+                //noop;
             }
         }
         
         #endregion
-
     }
 
     internal abstract class NetworkMonitorBase : NetworkMonitor
@@ -218,6 +231,9 @@ namespace Cloud.Sync
                     _isStarted = true;
                 }
             }
+
+            // besides only notifying when internet connection changes, also notify once on startup for initial state
+            base.NotifyPublicEventInternetConnected(CheckInternetIsConnected());
         }
 
         public override void StopNetworkMonitor()
@@ -232,7 +248,5 @@ namespace Cloud.Sync
                 }
             }
         }
-
     }
-
 }

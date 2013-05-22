@@ -81,6 +81,7 @@
     <Compile Include="EventMessageReceiver\EventMessageImplementations\DownloadingMessage.cs" />
     <Compile Include="EventMessageReceiver\EventMessageImplementations\ErrorMessage.cs" />
     <Compile Include="EventMessageReceiver\EventMessageImplementations\InformationalMessage.cs" />
+    <Compile Include="EventMessageReceiver\EventMessageImplementations\InternetConnectivityMessage.cs" />
     <Compile Include="EventMessageReceiver\EventMessageImplementations\UploadedMessage.cs" />
     <Compile Include="EventMessageReceiver\EventMessageImplementations\UploadingMessage.cs" />
     <Compile Include="EventMessageReceiver\EventMessageReceiver.cs" />

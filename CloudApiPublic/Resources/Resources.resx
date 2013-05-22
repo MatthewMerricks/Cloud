@@ -1527,7 +1527,7 @@
     <comment>Syncbox and Path should not be translated</comment>
   </data>
   <data name="ExceptionOnDemandConflict" xml:space="preserve">
-    <value>Change conflicts with previous state</value>
+    <value>Destination item already exists</value>
   </data>
   <data name="ExceptionOnDemandDeserializeErrorMessage" xml:space="preserve">
     <value>An error occurred deserializing the error message for current item in error</value>
@@ -1551,8 +1551,8 @@
     <comment>status should not be translated</comment>
   </data>
   <data name="ExceptionOnDemandRenameMissingParameters" xml:space="preserve">
-    <value>pathParams cannot be null nor empty</value>
-    <comment>pathParams should not be translated</comment>
+    <value>itemParams cannot be null nor empty</value>
+    <comment>"itemParams" should not be translated</comment>
   </data>
   <data name="ExceptionOnDemandResponseArrayLength" xml:space="preserve">
     <value>Server responded with a different number of items than the input array</value>
@@ -1560,5 +1560,19 @@
   <data name="ExceptionOnDemandUnknownItemStatus" xml:space="preserve">
     <value>An unknown status was returned for an item. Status: {0}</value>
     <comment>status, InnerException, and Message should not be translated</comment>
+  </data>
+  <data name="ExceptionOnDemandSyncboxPathAlreadySet" xml:space="preserve">
+    <value>The syncbox path has already been set</value>
+  </data>
+  <data name="ExceptionSyncEngineHttpStatus" xml:space="preserve">
+    <value>{0}. Http status code: {1}</value>
+  </data>
+  <data name="ExceptionOnDemandRenameFilesInvalidExistingPathInItemMsg0" xml:space="preserve">
+    <value>Invalid existing Path in input item {0}</value>
+    <comment>Do not translate "Path".</comment>
+  </data>
+  <data name="ExceptionFileMonitorBeginProcessingSetMD5" xml:space="preserve">
+    <value>Error on SetMD5 from MD5 of an existing change</value>
+    <comment>SetMD5 and MD5 should not be translated</comment>
   </data>
 </root>
