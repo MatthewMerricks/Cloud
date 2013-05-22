@@ -367,11 +367,11 @@ namespace Cloud.REST
         /// </summary>
         /// <param name="callback">Callback method to fire when operation completes</param>
         /// <param name="callbackUserState">Userstate to pass when firing async callback</param>
-        /// <param name="pathParams">An array of old paths to new paths for renaming each item</param>
-        /// <param name="completion">Delegate which will be fired upon successful communication for every response item</param>
-        /// <param name="completionState">Userstate to be passed whenever the completion delegate is fired</param>
+        /// <param name="itemParams">An array of old paths to new paths for renaming each item</param>
+        /// <param name="completionCallback">Delegate which will be fired upon successful communication for every response item</param>
+        /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion delegate is fired</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        internal IAsyncResult BeginRenameFiles(AsyncCallback callback, object callbackUserState, RenamePathParams[] pathParams, CLFileItemCompletion completion, object completionState)
+        internal IAsyncResult BeginRenameFiles(AsyncCallback callback, object callbackUserState, RenameItemParams[] itemParams, CLFileItemCompletion completionCallback, object completionCallbackUserState)
         {
             var asyncThread = DelegateAndDataHolderBase.Create(
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
@@ -381,7 +381,7 @@ namespace Cloud.REST
                     toReturn = new GenericAsyncResult<CLError>(
                         callback,
                         callbackUserState),
-                    pathParams
+                    itemParams = itemParams
                 },
                 (Data, errorToAccumulate) =>
                 {
@@ -391,9 +391,9 @@ namespace Cloud.REST
                     {
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
                         CLError overallError = RenameFiles(
-                            Data.pathParams,
-                            completion,
-                            completionState);
+                            Data.itemParams,
+                            completionCallback,
+                            completionCallbackUserState);
 
                         Data.toReturn.Complete(overallError, // any overall error that may have occurred during processing
                             sCompleted: false); // processing did not complete synchronously
@@ -430,10 +430,10 @@ namespace Cloud.REST
         /// Rename files in the cloud.
         /// </summary>
         /// <param name="itemParams">An array of parameter pairs (item to rename and new name) to be used to rename each item in place.</param>
-        /// <param name="completion">Delegate which will be fired upon successful communication for every response item.</param>
-        /// <param name="completionState">Userstate to be passed whenever the completion delegate is fired.</param>
+        /// <param name="completionCallback">Delegate which will be fired upon successful communication for every response item.</param>
+        /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion delegate is fired.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        internal CLError RenameFiles(RenameItemParams[] itemParams, CLFileItemCompletion completion, object completionState)
+        internal CLError RenameFiles(RenameItemParams[] itemParams, CLFileItemCompletion completionCallback, object completionCallbackUserState)
         {
             // try/catch to process the request,  On catch return the error
             try
@@ -465,11 +465,14 @@ namespace Cloud.REST
                     FilePath fullPathNew = new FilePath(currentParams.NewName, fullPathExisting.Parent);
                     CheckPath(fullPathNew, CLExceptionCode.OnDemand_RenameNewName);
 
-                    // The new path is OK.  Add it to the request array
+
+                    // file move (rename) and folder move (rename) share a json contract object for move (rename)
                     jsonContractMoves[paramIdx] = new FileOrFolderMove()
                     {
-                        RelativeFromPath = currentOldPath.GetRelativePath(syncboxPathObject, replaceWithForwardSlashes: true),
-                        RelativeToPath = currentNewPath.GetRelativePath(syncboxPathObject, replaceWithForwardSlashes: true)
+                        DeviceId = _copiedSettings.DeviceId,
+                        RelativeToPath = fullPathNew.GetRelativePath(_syncbox.Path, true),
+                        ServerUid = currentParams.ItemToRename.Uid,
+                        SyncboxId = _syncbox.SyncboxId
                     };
                 }
 
@@ -488,39 +491,15 @@ namespace Cloud.REST
                     SetCurrentCredentialsCallback = SetCurrentCredentialCallback,
                 };
 
-                // Build the REST content dynamically.
-                // File move (rename) and folder move (rename) share a json contract object for move (rename).
-                // This will be an array of contracts.
-
-                //// Old code:
-                //
-                //List<FileOrFolderMove> listMoveContract = new List<FileOrFolderMove>();
-                //for (int i = 0; i < numberOfFiles; ++i)
-                //{
-                //    FilePath filePath = new FilePath(paths[i]);
-                //    FilePath newFilePath = new FilePath(newPaths[i]);
-
-                //    FileOrFolderMove thisMove = new FileOrFolderMove()
-                //    {
-                //        //DeviceId = _copiedSettings.DeviceId,
-                //        RelativeFromPath = filePath.GetRelativePath(_syncbox.Path, true),
-                //        RelativeToPath = newFilePath.GetRelativePath(_syncbox.Path, true),
-                //        //SyncboxId = _syncbox.SyncboxId
-                //    };
-
-                //    listMoveContract.Add(thisMove);
-                //}
-
                 // Now make the REST request content.
                 object requestContent = new JsonContracts.FileOrFolderMoves()
                 {
                     SyncboxId = _syncbox.SyncboxId,
                     Moves = jsonContractMoves,
-                    //listMoveContract.ToArray(),
                     DeviceId = _copiedSettings.DeviceId
                 };
 
-                // server method path switched on whether change is a folder or not
+                // server method path
                 string serverMethodPath = CLDefinitions.MethodPathOneOffFileMoves;
 
                 // Communicate with the server to get the response.
@@ -571,11 +550,11 @@ namespace Cloud.REST
                                 case CLDefinitions.CLEventTypeNoOperation:
                                 case CLDefinitions.CLEventTypeAccepted:
                                     CLFileItem resultItem = new CLFileItem(currentMoveResponse.Metadata, currentMoveResponse.Header.Action, currentMoveResponse.Action, _syncbox);
-                                    if (completion != null)
+                                    if (completionCallback != null)
                                     {
                                         try
                                         {
-                                            completion(responseIdx, resultItem, error: null, userState: completionState);
+                                            completionCallback(responseIdx, resultItem, error: null, userState: completionCallbackUserState);
                                         }
                                         catch
                                         {
@@ -616,11 +595,11 @@ namespace Cloud.REST
                         }
                         catch (Exception ex)
                         {
-                            if (completion != null)
+                            if (completionCallback != null)
                             {
                                 try
                                 {
-                                    completion(responseIdx, completedItem: null, error: ex, userState: completionState);
+                                    completionCallback(responseIdx, completedItem: null, error: ex, userState: completionCallbackUserState);
                                 }
                                 catch
                                 {
@@ -949,7 +928,7 @@ namespace Cloud.REST
                 }
                 for (int i = 0; i < paths.Length; ++i)
                 {
-                    CheckPath(paths[i], CLExceptionCode.OnDemand_RenameOldPath);
+                    CheckPath(paths[i], CLExceptionCode.OnDemand_InvalidExistingPath);
                     CheckPath(newPaths[i], CLExceptionCode.OnDemand_RenameNewName);
                 }
 

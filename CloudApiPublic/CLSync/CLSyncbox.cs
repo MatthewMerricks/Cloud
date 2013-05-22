@@ -1587,20 +1587,20 @@ namespace Cloud
         /// <summary>
         /// Asynchronously starts renaming a file in the cloud; outputs a CLFileItem object.
         /// </summary>
-        /// <param name="callback">Callback method to fire when operation completes</param>
-        /// <param name="callbackUserState">Userstate to pass when firing async callback</param>
-        /// <param name="path">Full path to where the file would exist locally on disk.</param>
-        /// <param name="newPath">Full path to the new location of the file.</param>
-        /// <param name="completion">Delegate which will be fired upon successful communication for every response item</param>
-        /// <param name="completionState">Userstate to be passed whenever the completion delegate is fired</param>
+        /// <param name="callback">Callback method to fire when the operation completes.</param>
+        /// <param name="callbackUserState">Userstate to pass when firing async callback above.</param>
+        /// <param name="itemToRename">The file item to rename.</param>
+        /// <param name="newName">The new name of the file (just the filename.ext).</param>
+        /// <param name="completionCallback">Delegate which will be fired upon successful communication for the response item</param>
+        /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion delegate is fired</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginRenameFile(AsyncCallback callback, object callbackUserState, string path, string newPath, CLFileItemCompletion completion, object completionState)
+        public IAsyncResult BeginRenameFile(AsyncCallback callback, object callbackUserState, CLFileItem itemToRename, string newName, CLFileItemCompletion completionCallback, object completionCallbackUserState)
         {
             CheckDisposed();
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.BeginRenameFiles(callback, callbackUserState, new[] { new RenamePathParams(newPath, path) }, completion, completionState);
+            return httpRestClient.BeginRenameFiles(callback, callbackUserState, new[] { new RenameItemParams(itemToRename, newName) }, completionCallback, completionCallbackUserState);
         }
 
         /// <summary>
@@ -1622,39 +1622,39 @@ namespace Cloud
         /// <summary>
         /// Renames a file in the cloud.
         /// </summary>
-        /// <param name="path">Full path to where the file would exist locally on disk</param>
-        /// <param name="newPath">Full path to the new location of the file.</param>
-        /// <param name="completion">Delegate which will be fired upon successful communication for every response item</param>
-        /// <param name="completionState">Userstate to be passed whenever the completion delegate is fired</param>
+        /// <param name="itemToRename">The file item to rename.</param>
+        /// <param name="newName">The new name of the file (just the filename.ext).</param>
+        /// <param name="completionCallback">Delegate which will be fired upon successful communication for the response item</param>
+        /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion delegate is fired</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError RenameFile(string path, string newPath, CLFileItemCompletion completion, object completionState)
+        public CLError RenameFile(CLFileItem itemToRename, string newName, CLFileItemCompletion completionCallback, object completionCallbackUserState)
         {
             CheckDisposed();
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.RenameFiles(new[] { new RenamePathParams(newPath, path) }, completion, completionState);
+            return httpRestClient.RenameFiles(new[] { new RenameItemParams(itemToRename, newName) }, completionCallback, completionCallbackUserState);
         }
 
         #endregion  // end GetItemAtPath (Queries the cloud for the item at a particular path)
 
         #region RenameFiles (Rename files in the cloud)
         /// <summary>
-        /// Asynchronously starts renaming files in the cloud; outputs an array of  CLFileItem objects, and possibly an array of CLError objects.
+        /// Asynchronously starts renaming files in the cloud.  Each item completion will fire an asynchronous callback with the completion status or error for that item.
         /// </summary>
-        /// <param name="callback">Callback method to fire when operation completes</param>
-        /// <param name="callbackUserState">Userstate to pass when firing async callback</param>
-        /// <param name="pathParams">An array of old paths to new paths for renaming each item</param>
-        /// <param name="completion">Delegate which will be fired upon successful communication for every response item</param>
-        /// <param name="completionState">Userstate to be passed whenever the completion delegate is fired</param>
+        /// <param name="callback">Callback method to fire when the operation completes.</param>
+        /// <param name="callbackUserState">Userstate to pass when firing the async callback above.</param>
+        /// <param name="itemsToRename">An array of pairs of items to rename and the new name of each item (just the filename.ext).</param>
+        /// <param name="completionCallback">Delegate which will be fired upon successful communication for every response item.</param>
+        /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion delegate is fired.</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        internal IAsyncResult BeginRenameFiles(AsyncCallback callback, object callbackUserState, RenamePathParams[] pathParams, CLFileItemCompletion completion, object completionState)
+        internal IAsyncResult BeginRenameFiles(AsyncCallback callback, object callbackUserState, RenameItemParams[] itemsToRename, CLFileItemCompletion completionCallback, object completionCallbackUserState)
         {
             CheckDisposed();
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.BeginRenameFiles(callback, callbackUserState, pathParams, completion, completionState);
+            return httpRestClient.BeginRenameFiles(callback, callbackUserState, itemsToRename, completionCallback, completionCallbackUserState);
         }
 
         /// <summary>
@@ -1676,17 +1676,17 @@ namespace Cloud
         /// <summary>
         /// Renames files in the cloud.
         /// </summary>
-        /// <param name="pathParams">An array of old paths to new paths for renaming each item</param>
-        /// <param name="completion">Delegate which will be fired upon successful communication for every response item</param>
-        /// <param name="completionState">Userstate to be passed whenever the completion delegate is fired</param>
+        /// <param name="itemsToRename">An array of pairs of items to rename and the new name of each item (just the filename.ext).</param>
+        /// <param name="completionCallback">Delegate which will be fired upon successful communication for every response item.</param>
+        /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion delegate is fired.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        internal CLError RenameFiles(RenamePathParams[] pathParams, CLFileItemCompletion completion, object completionState)
+        internal CLError RenameFiles(RenameItemParams[] itemsToRename, CLFileItemCompletion completionCallback, object completionCallbackUserState)
         {
             CheckDisposed();
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.RenameFiles(pathParams, completion, completionState);
+            return httpRestClient.RenameFiles(itemsToRename, completionCallback, completionCallbackUserState);
         }
 
         #endregion  // end GetItemAtPath (Queries the cloud for the item at a particular path)
