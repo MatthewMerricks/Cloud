@@ -124,6 +124,1808 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to aResult does not match expected internal type.
+        /// </summary>
+        internal static string CLCredentialaResultInternalTypeMismatch {
+            get {
+                return ResourceManager.GetString("CLCredentialaResultInternalTypeMismatch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot cast state as.
+        /// </summary>
+        internal static string CLCredentialCannotCastStateAs {
+            get {
+                return ResourceManager.GetString("CLCredentialCannotCastStateAs", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot do anything with the Cloud SDK if Helpers.AllHaltedOnUnrecoverableError is set.
+        /// </summary>
+        internal static string CLCredentialHelpersAllHaltedOnUnrecoverableErrorIsSet {
+            get {
+                return ResourceManager.GetString("CLCredentialHelpersAllHaltedOnUnrecoverableErrorIsSet", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Key cannot be null.
+        /// </summary>
+        internal static string CLCredentialKeyCannotBeNull {
+            get {
+                return ResourceManager.GetString("CLCredentialKeyCannotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to timeoutMilliseconds must be greater than zero.
+        /// </summary>
+        internal static string CLCredentialMSTimeoutMustBeGreaterThanZero {
+            get {
+                return ResourceManager.GetString("CLCredentialMSTimeoutMustBeGreaterThanZero", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to pushRequest must not be null.
+        /// </summary>
+        internal static string CLCredentialPushRequestCannotBeNull {
+            get {
+                return ResourceManager.GetString("CLCredentialPushRequestCannotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Secret cannot be null.
+        /// </summary>
+        internal static string CLCredentialSecretCannotBeNull {
+            get {
+                return ResourceManager.GetString("CLCredentialSecretCannotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to toCopy must not be null.
+        /// </summary>
+        internal static string CLCredentialSettingsToCopyNotBeNull {
+            get {
+                return ResourceManager.GetString("CLCredentialSettingsToCopyNotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to N.
+        /// </summary>
+        internal static string CLCredentialStringSettingsN {
+            get {
+                return ResourceManager.GetString("CLCredentialStringSettingsN", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to syncbox cannot be null.
+        /// </summary>
+        internal static string CLEngineSyncboxCannotBeNull {
+            get {
+                return ResourceManager.GetString("CLEngineSyncboxCannotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to aResult does not match expected internal type.
+        /// </summary>
+        internal static string CLHttpRestaResultInternalTypeMismatch {
+            get {
+                return ResourceManager.GetString("CLHttpRestaResultInternalTypeMismatch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot cast state as.
+        /// </summary>
+        internal static string CLHttpRestCannotCastStateAs {
+            get {
+                return ResourceManager.GetString("CLHttpRestCannotCastStateAs", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to deletionChange Direction is not To the server.
+        /// </summary>
+        internal static string CLHttpRestChangeDirectionIsNotToServer {
+            get {
+                return ResourceManager.GetString("CLHttpRestChangeDirectionIsNotToServer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to deletionChange is not of Type Deletion.
+        /// </summary>
+        internal static string CLHttpRestChangeIsNotOfTypeDeletion {
+            get {
+                return ResourceManager.GetString("CLHttpRestChangeIsNotOfTypeDeletion", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to toCommunicate cannot be null.
+        /// </summary>
+        internal static string CLHttpRestCommunicateCannotBeNull {
+            get {
+                return ResourceManager.GetString("CLHttpRestCommunicateCannotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to syncbox.CopiedSettings must not be null.
+        /// </summary>
+        internal static string CLHttpRestCopiedSettingsMustNotBeNull {
+            get {
+                return ResourceManager.GetString("CLHttpRestCopiedSettingsMustNotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to copyTargetPath cannot be null.
+        /// </summary>
+        internal static string CLHttpRestCopyPathCannotBeNull {
+            get {
+                return ResourceManager.GetString("CLHttpRestCopyPathCannotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Current Syncbox cannot be modified while in use in active syncing.
+        /// </summary>
+        internal static string CLHttpRestCurrentSyncboxCannotBeModifiedWhileSyncing {
+            get {
+                return ResourceManager.GetString("CLHttpRestCurrentSyncboxCannotBeModifiedWhileSyncing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to deletionChange cannot be null.
+        /// </summary>
+        internal static string CLHttpRestDeletionChangeCannotBeNull {
+            get {
+                return ResourceManager.GetString("CLHttpRestDeletionChangeCannotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to deletionChange Metadata ServerId must not be null.
+        /// </summary>
+        internal static string CLHttpRestDeletionChangeMetadataServerIDMustnotBeNull {
+            get {
+                return ResourceManager.GetString("CLHttpRestDeletionChangeMetadataServerIDMustnotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to settings DeviceId cannot be null.
+        /// </summary>
+        internal static string CLHttpRestDeviceIDCannotBeNull {
+            get {
+                return ResourceManager.GetString("CLHttpRestDeviceIDCannotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Folder path for temp download files is too long by.
+        /// </summary>
+        internal static string CLHttpRestFolderPathTooLong {
+            get {
+                return ResourceManager.GetString("CLHttpRestFolderPathTooLong", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to friendlyName must be specified.
+        /// </summary>
+        internal static string CLHttpRestFriendlyNameNotSpecified {
+            get {
+                return ResourceManager.GetString("CLHttpRestFriendlyNameNotSpecified", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to fullPath is not in the proper format.
+        /// </summary>
+        internal static string CLHttpRestFullPathBadFormat {
+            get {
+                return ResourceManager.GetString("CLHttpRestFullPathBadFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to fullPath does not contain settings SyncRoot.
+        /// </summary>
+        internal static string CLHttpRestFullPathDoesNotContainSettingsSyncRoot {
+            get {
+                return ResourceManager.GetString("CLHttpRestFullPathDoesNotContainSettingsSyncRoot", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Both fullPath and serverId cannot be null, at least one is required.
+        /// </summary>
+        internal static string CLHttpRestFullPathorServerIDRequired {
+            get {
+                return ResourceManager.GetString("CLHttpRestFullPathorServerIDRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to There was an internal error attempting to retrieve the progress, Error 1.
+        /// </summary>
+        internal static string CLHttpRestInternalPRogressRetreivalFailure1 {
+            get {
+                return ResourceManager.GetString("CLHttpRestInternalPRogressRetreivalFailure1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to There was an internal error attempting to retrieve the progress, Error 2.
+        /// </summary>
+        internal static string CLHttpRestInternalPRogressRetreivalFailure2 {
+            get {
+                return ResourceManager.GetString("CLHttpRestInternalPRogressRetreivalFailure2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MD5 lowercase string retrieved from Resources.CLHttpRestCommunicateCannotBeNull, set via toCommunicate.SetMD5.
+        /// </summary>
+        internal static string CLHttpRestMD5LowerCaseStringSet {
+            get {
+                return ResourceManager.GetString("CLHttpRestMD5LowerCaseStringSet", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to deletionChange Metadata cannot be null.
+        /// </summary>
+        internal static string CLHttpRestMetadataCannotBeNull {
+            get {
+                return ResourceManager.GetString("CLHttpRestMetadataCannotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to toCommunicate Metadata HashableProperties Size cannot be null.
+        /// </summary>
+        internal static string CLHttpRestMetadataHashablePropertiesSizeCannotBeNull {
+            get {
+                return ResourceManager.GetString("CLHttpRestMetadataHashablePropertiesSizeCannotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to toCommunicate Metadata Revision cannot be null.
+        /// </summary>
+        internal static string CLHttpRestMetaDataRevisionCannotBeNull {
+            get {
+                return ResourceManager.GetString("CLHttpRestMetaDataRevisionCannotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to toCommunicate NewPath cannot be null.
+        /// </summary>
+        internal static string CLHttpRestNewPathCannotBeNull {
+            get {
+                return ResourceManager.GetString("CLHttpRestNewPathCannotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to toCommunicate OldPath cannot be null.
+        /// </summary>
+        internal static string CLHttpRestOldPathCannotBeNull {
+            get {
+                return ResourceManager.GetString("CLHttpRestOldPathCannotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to planId must not be zero.
+        /// </summary>
+        internal static string CLHttpRestPlanIDCannotBeZero {
+            get {
+                return ResourceManager.GetString("CLHttpRestPlanIDCannotBeZero", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to pushRequest must not be null.
+        /// </summary>
+        internal static string CLHttpRestPushRequestMustNotBeNull {
+            get {
+                return ResourceManager.GetString("CLHttpRestPushRequestMustNotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to syncbox Credential cannot be null.
+        /// </summary>
+        internal static string CLHttpRestsyncboxCredentialCannotBeNull {
+            get {
+                return ResourceManager.GetString("CLHttpRestsyncboxCredentialCannotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to syncbox must not be null.
+        /// </summary>
+        internal static string CLHttpRestSyncboxMustNotBeNull {
+            get {
+                return ResourceManager.GetString("CLHttpRestSyncboxMustNotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to settings SyncRoot represents a bad path.
+        /// </summary>
+        internal static string CLHttpRestSyncRootBadPath {
+            get {
+                return ResourceManager.GetString("CLHttpRestSyncRootBadPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to settings SyncRoot cannot be null.
+        /// </summary>
+        internal static string CLHttpRestSyncRootCannotBeNull {
+            get {
+                return ResourceManager.GetString("CLHttpRestSyncRootCannotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to syncToRequest must not be null.
+        /// </summary>
+        internal static string CLHttpRestSyncToRequestMustNotBeNull {
+            get {
+                return ResourceManager.GetString("CLHttpRestSyncToRequestMustNotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The customDownloadFolderFullPath is bad.
+        /// </summary>
+        internal static string CLHttpRestThecustomDownloadFolderFullPathIsBad {
+            get {
+                return ResourceManager.GetString("CLHttpRestThecustomDownloadFolderFullPathIsBad", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to timeoutMilliseconds must be greater than zero.
+        /// </summary>
+        internal static string CLHttpRestTimeoutMustBeGreaterThanZero {
+            get {
+                return ResourceManager.GetString("CLHttpRestTimeoutMustBeGreaterThanZero", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to toCommunicate cannot be both a folder and of type Modified.
+        /// </summary>
+        internal static string CLHttpRestToCommunicateCannotBeFolderandModified {
+            get {
+                return ResourceManager.GetString("CLHttpRestToCommunicateCannotBeFolderandModified", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to toCommunicate Direction is not To the server.
+        /// </summary>
+        internal static string CLHttpRestToCommunicateDirectionisNotToServer {
+            get {
+                return ResourceManager.GetString("CLHttpRestToCommunicateDirectionisNotToServer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to toCommunicate Metadata cannot be null.
+        /// </summary>
+        internal static string CLHttpRestToCommunicateMetedataCannotBeNull {
+            get {
+                return ResourceManager.GetString("CLHttpRestToCommunicateMetedataCannotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to toCommunicate Type is an unknown FileChangeType: .
+        /// </summary>
+        internal static string CLHttpRestToCommunicateTypeIsUnknownFileChangeType {
+            get {
+                return ResourceManager.GetString("CLHttpRestToCommunicateTypeIsUnknownFileChangeType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Either toCommunicate NewPath must not be null or toCommunicate Metadata ServerId must not be null or both must not be null.
+        /// </summary>
+        internal static string CLHttpRestXORNewPathServerIDCannotBeNull {
+            get {
+                return ResourceManager.GetString("CLHttpRestXORNewPathServerIDCannotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Either pathToFile must not be null or fileServerId must not be null or both must not be null.
+        /// </summary>
+        internal static string CLHttpRestXORPathtoFileFileServerIDMustNotBeNull {
+            get {
+                return ResourceManager.GetString("CLHttpRestXORPathtoFileFileServerIDMustNotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Already initialized.
+        /// </summary>
+        internal static string CLNotificationManualPollingEngineAlreadyInitialized {
+            get {
+                return ResourceManager.GetString("CLNotificationManualPollingEngineAlreadyInitialized", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Already started.
+        /// </summary>
+        internal static string CLNotificationManualPollingEngineAlreadyStarted {
+            get {
+                return ResourceManager.GetString("CLNotificationManualPollingEngineAlreadyStarted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Default constructor not supported.
+        /// </summary>
+        internal static string CLNotificationManualPollingEngineDefaultConstructorNotSupported {
+            get {
+                return ResourceManager.GetString("CLNotificationManualPollingEngineDefaultConstructorNotSupported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to delegateSendManualPoll must not be null.
+        /// </summary>
+        internal static string CLNotificationManualPollingEngineDelegateSendManualPollMustNotBeNull {
+            get {
+                return ResourceManager.GetString("CLNotificationManualPollingEngineDelegateSendManualPollMustNotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Initialize first.
+        /// </summary>
+        internal static string CLNotificationManualPollingEngineInitializeFirst {
+            get {
+                return ResourceManager.GetString("CLNotificationManualPollingEngineInitializeFirst", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationManualPollingEngine: Start: ERROR: Exception: Msg: {0}..
+        /// </summary>
+        internal static string CLNotificationManualPollingEngineStartErrorExceptionMsg0 {
+            get {
+                return ResourceManager.GetString("CLNotificationManualPollingEngineStartErrorExceptionMsg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to syncbox must not be null.
+        /// </summary>
+        internal static string CLNotificationManualPollingEngineSyncBoxMustNotBeNull {
+            get {
+                return ResourceManager.GetString("CLNotificationManualPollingEngineSyncBoxMustNotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Already started.
+        /// </summary>
+        internal static string CLNotificationServiceAlreadyStarted {
+            get {
+                return ResourceManager.GetString("CLNotificationServiceAlreadyStarted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationService: CancelEngineTimeoutCallback: ERROR: Exception: Msg: {0}..
+        /// </summary>
+        internal static string CLNotificationServiceCancelEngineTimeoutCallbackErrorExceptionMsg0 {
+            get {
+                return ResourceManager.GetString("CLNotificationServiceCancelEngineTimeoutCallbackErrorExceptionMsg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationService: CreateEngineTimer: ERROR: Exception: Msg: {0}..
+        /// </summary>
+        internal static string CLNotificationServiceCreateEngineTimer {
+            get {
+                return ResourceManager.GetString("CLNotificationServiceCreateEngineTimer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationService: DisconnectPushNotificationServer: Remove client: {0}..
+        /// </summary>
+        internal static string CLNotificationServiceDisconnectNotificationServerRemoteClient0 {
+            get {
+                return ResourceManager.GetString("CLNotificationServiceDisconnectNotificationServerRemoteClient0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationService: DisconnectPushNotificationServer: Dispose the engine watcher..
+        /// </summary>
+        internal static string CLNotificationServiceDisconnectPushNotificationServerDisposeEngineWatcher {
+            get {
+                return ResourceManager.GetString("CLNotificationServiceDisconnectPushNotificationServerDisposeEngineWatcher", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationService: DisconnectPushNotificationServer: Entry..
+        /// </summary>
+        internal static string CLNotificationServiceDisconnectPushNotificationServerEntry {
+            get {
+                return ResourceManager.GetString("CLNotificationServiceDisconnectPushNotificationServerEntry", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationService: DisconnectPushNotificationServer: ERROR: Exception: Msg: {0}..
+        /// </summary>
+        internal static string CLNotificationServiceDisconnectPushNotificationServerErrorExceptionMsg0 {
+            get {
+                return ResourceManager.GetString("CLNotificationServiceDisconnectPushNotificationServerErrorExceptionMsg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationService: DisconnectPushNotificationServer: Exit..
+        /// </summary>
+        internal static string CLNotificationServiceDisconnectPushNotificationServerExit {
+            get {
+                return ResourceManager.GetString("CLNotificationServiceDisconnectPushNotificationServerExit", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationService: DisconnectPushNotificationServer: Stop the engine..
+        /// </summary>
+        internal static string CLNotificationServiceDisconnectPushNotificationServerStopEngine {
+            get {
+                return ResourceManager.GetString("CLNotificationServiceDisconnectPushNotificationServerStopEngine", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationService: DisconnectPushNotificationServer: StopServiceMangagerThread..
+        /// </summary>
+        internal static string CLNotificationServiceDisconnectPushNotificationServerStopServiceManagerThread {
+            get {
+                return ResourceManager.GetString("CLNotificationServiceDisconnectPushNotificationServerStopServiceManagerThread", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationService: DisposeEngineTimer: Back from dispose..
+        /// </summary>
+        internal static string CLNotificationServiceDisposeEngineTimerBackFromDispose {
+            get {
+                return ResourceManager.GetString("CLNotificationServiceDisposeEngineTimerBackFromDispose", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationService: DisposeEngineTimer: Dispose the timer..
+        /// </summary>
+        internal static string CLNotificationServiceDisposeEngineTimerDisposeTimer {
+            get {
+                return ResourceManager.GetString("CLNotificationServiceDisposeEngineTimerDisposeTimer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationService: DisposeEngineTimer: ERROR: Exception: Msg: {0}..
+        /// </summary>
+        internal static string CLNotificationServiceDisposeEngineTimerErrorExceptionMsg0 {
+            get {
+                return ResourceManager.GetString("CLNotificationServiceDisposeEngineTimerErrorExceptionMsg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationService: CLNotificationService: Entry.
+        /// </summary>
+        internal static string CLNotificationServiceEntry {
+            get {
+                return ResourceManager.GetString("CLNotificationServiceEntry", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationService: CLNotificationService: ERROR: Exception: Msg: {0}..
+        /// </summary>
+        internal static string CLNotificationServiceErrorExceptionMsg0 {
+            get {
+                return ResourceManager.GetString("CLNotificationServiceErrorExceptionMsg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Notification service has failed.
+        /// </summary>
+        internal static string CLNotificationServiceHasFailed {
+            get {
+                return ResourceManager.GetString("CLNotificationServiceHasFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to obj must be a CLNotificationService.
+        /// </summary>
+        internal static string CLNotificationServiceObjectMustBeACLNotificationService {
+            get {
+                return ResourceManager.GetString("CLNotificationServiceObjectMustBeACLNotificationService", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationService: PerformManualSyncFrom: Fire event to request the application to send a Sync_From request..
+        /// </summary>
+        internal static string CLNotificationServicePerformMannualSyncFromFireEvent {
+            get {
+                return ResourceManager.GetString("CLNotificationServicePerformMannualSyncFromFireEvent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationService: PerformManualSyncFrom: Fire event to notify the application  Msg: {0}..
+        /// </summary>
+        internal static string CLNotificationServicePerformManualSyncFromFireEventToNotifyApp {
+            get {
+                return ResourceManager.GetString("CLNotificationServicePerformManualSyncFromFireEventToNotifyApp", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationService: SendNotificationEventCallback: ERROR: Exception (2): Msg: {0}..
+        /// </summary>
+        internal static string CLNotificationServiceSendNotificationEventCallbackErrorException2Msg0 {
+            get {
+                return ResourceManager.GetString("CLNotificationServiceSendNotificationEventCallbackErrorException2Msg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationService: SendNotificationEventCallback: ERROR: Exception.  Msg: &lt;{0}&gt;..
+        /// </summary>
+        internal static string CLNotificationServiceSendNotificationEventCallbackErrorExceptionMsg0 {
+            get {
+                return ResourceManager.GetString("CLNotificationServiceSendNotificationEventCallbackErrorExceptionMsg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationService: SendNotificationEventCallback: Send DidReceivePushNotificationFromServer..
+        /// </summary>
+        internal static string CLNotificationServiceSendNotificationEventCallbackSendDidReceicePushNotificationFromServer {
+            get {
+                return ResourceManager.GetString("CLNotificationServiceSendNotificationEventCallbackSendDidReceicePushNotificationF" +
+                        "romServer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationService: SendNotificationEventCallback: Send notification msg: &lt;{0}&gt;..
+        /// </summary>
+        internal static string CLNotificationServiceSendNotificationEventCallbackSendNotificationMessage {
+            get {
+                return ResourceManager.GetString("CLNotificationServiceSendNotificationEventCallbackSendNotificationMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationService: ServiceManagerThreadProc: Back from engine Start..
+        /// </summary>
+        internal static string CLNotificationServiceServiceManagerThreadProcbackFromEngineStart {
+            get {
+                return ResourceManager.GetString("CLNotificationServiceServiceManagerThreadProcbackFromEngineStart", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationService: ServiceManagerThreadProc: Break to go to top of list..
+        /// </summary>
+        internal static string CLNotificationServiceServiceManagerThreadProcBreakToGoToTopOfList {
+            get {
+                return ResourceManager.GetString("CLNotificationServiceServiceManagerThreadProcBreakToGoToTopOfList", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationService: ServiceManagerThreadProc: Engine {0} returned success..
+        /// </summary>
+        internal static string CLNotificationServiceServiceManagerThreadProcEngine0ReturnedSuccess {
+            get {
+                return ResourceManager.GetString("CLNotificationServiceServiceManagerThreadProcEngine0ReturnedSuccess", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationService: ServiceManagerThreadProc: Engine {0} returned failure..
+        /// </summary>
+        internal static string CLNotificationServiceServiceManagerThreadProcEngineReturnedFailure {
+            get {
+                return ResourceManager.GetString("CLNotificationServiceServiceManagerThreadProcEngineReturnedFailure", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationService: ServiceManagerThreadProc: Entry..
+        /// </summary>
+        internal static string CLNotificationServiceServiceManagerThreadProcEntry {
+            get {
+                return ResourceManager.GetString("CLNotificationServiceServiceManagerThreadProcEntry", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationService: ServiceManagerThreadProc: ERROR: All engines failed..
+        /// </summary>
+        internal static string CLNotificationServiceServiceManagerThreadProcErrorAllEnginesFailed {
+            get {
+                return ResourceManager.GetString("CLNotificationServiceServiceManagerThreadProcErrorAllEnginesFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationService: ServiceManagerThreadProc: ERROR: Exception: Msg: {0}..
+        /// </summary>
+        internal static string CLNotificationServiceServiceManagerThreadProcErrorExceptionMsg0 {
+            get {
+                return ResourceManager.GetString("CLNotificationServiceServiceManagerThreadProcErrorExceptionMsg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationService: ServiceManagerThreadProc: Instantiate manual polling engine..
+        /// </summary>
+        internal static string CLNotificationServiceServiceManagerThreadProcInstantiateManualPolling {
+            get {
+                return ResourceManager.GetString("CLNotificationServiceServiceManagerThreadProcInstantiateManualPolling", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationService: ServiceManagerThreadProc: Instantiate SSE engine..
+        /// </summary>
+        internal static string CLNotificationServiceServiceManagerThreadProcInstantiateSSEEngine {
+            get {
+                return ResourceManager.GetString("CLNotificationServiceServiceManagerThreadProcInstantiateSSEEngine", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationService: ServiceManagerThreadProc: Restart at top of list..
+        /// </summary>
+        internal static string CLNotificationServiceServiceManagerThreadProcRestartAtTopOfList {
+            get {
+                return ResourceManager.GetString("CLNotificationServiceServiceManagerThreadProcRestartAtTopOfList", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationService: ServiceManagerThreadProc: Select back to top of list..
+        /// </summary>
+        internal static string CLNotificationServiceServiceManagerThreadProcSelectBackToTopOfList {
+            get {
+                return ResourceManager.GetString("CLNotificationServiceServiceManagerThreadProcSelectBackToTopOfList", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationService: ServiceManagerThreadProc: Select next in list..
+        /// </summary>
+        internal static string CLNotificationServiceServiceManagerThreadProcSelectNextInList {
+            get {
+                return ResourceManager.GetString("CLNotificationServiceServiceManagerThreadProcSelectNextInList", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationService: ServiceManagerThreadProc: Select next in list (2)..
+        /// </summary>
+        internal static string CLNotificationServiceServiceManagerThreadProcSelectNextInList2 {
+            get {
+                return ResourceManager.GetString("CLNotificationServiceServiceManagerThreadProcSelectNextInList2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationService: ServiceManagerThreadProc: Service requested to stop.  Exit thread..
+        /// </summary>
+        internal static string CLNotificationServiceServiceManagerThreadProcServiceRequestedToStopExitThread {
+            get {
+                return ResourceManager.GetString("CLNotificationServiceServiceManagerThreadProcServiceRequestedToStopExitThread", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationService: ServiceManagerThreadProc: Start the engine..
+        /// </summary>
+        internal static string CLNotificationServiceServiceManagerThreadProcStartEngine {
+            get {
+                return ResourceManager.GetString("CLNotificationServiceServiceManagerThreadProcStartEngine", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationService: ServiceManagerThreadProc: Top of loop running engine {0}..
+        /// </summary>
+        internal static string CLNotificationServiceServiceManagerThreadProcTopOfLoopRunningEngine0 {
+            get {
+                return ResourceManager.GetString("CLNotificationServiceServiceManagerThreadProcTopOfLoopRunningEngine0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationService: StartEngineTimeoutCallback: ERROR: Exception: Msg: {0}..
+        /// </summary>
+        internal static string CLNotificationServiceStartEngineTimeoutCallbackError0ExMsg0 {
+            get {
+                return ResourceManager.GetString("CLNotificationServiceStartEngineTimeoutCallbackError0ExMsg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationService: StartServiceManagerThread: Entry..
+        /// </summary>
+        internal static string CLNotificationServiceStartServiceManagerThreadEntry {
+            get {
+                return ResourceManager.GetString("CLNotificationServiceStartServiceManagerThreadEntry", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationService: StartServiceManagerThread: ERROR: Exception: Msg: {0}..
+        /// </summary>
+        internal static string CLNotificationServiceStartServiceManagerThreadErrorExceptionMsg0 {
+            get {
+                return ResourceManager.GetString("CLNotificationServiceStartServiceManagerThreadErrorExceptionMsg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationService: StartServiceManagerThread: Start the service manager thread..
+        /// </summary>
+        internal static string CLNotificationServiceStartServiceManagerThreadStartTheManagerThread {
+            get {
+                return ResourceManager.GetString("CLNotificationServiceStartServiceManagerThreadStartTheManagerThread", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationService: StopEngineThread: ERROR: Exception: Msg: {0}..
+        /// </summary>
+        internal static string CLNotificationServiceStopEngineThreadErrorExceptionMsg0 {
+            get {
+                return ResourceManager.GetString("CLNotificationServiceStopEngineThreadErrorExceptionMsg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationService: StopServiceManagerThread: Abort the service manager thread..
+        /// </summary>
+        internal static string CLNotificationServiceStopManagerThreadAbortTheServiceManagerThread {
+            get {
+                return ResourceManager.GetString("CLNotificationServiceStopManagerThreadAbortTheServiceManagerThread", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationService: StopServiceManagerThread: Entry..
+        /// </summary>
+        internal static string CLNotificationServiceStopManagerThreadEntry {
+            get {
+                return ResourceManager.GetString("CLNotificationServiceStopManagerThreadEntry", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Syncbox cannot be null.
+        /// </summary>
+        internal static string CLNotificationServiceSyncBoxCannotBeNull {
+            get {
+                return ResourceManager.GetString("CLNotificationServiceSyncBoxCannotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Syncbox CopiedSettings DeviceId cannot be null.
+        /// </summary>
+        internal static string CLNotificationServiceSyncBoxCopiedSettingsCannotBeNull {
+            get {
+                return ResourceManager.GetString("CLNotificationServiceSyncBoxCopiedSettingsCannotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationService: TimerCallback: ERROR: Exception: Msg: {0}..
+        /// </summary>
+        internal static string CLNotificationServiceTimerCallbackErrorExceptionMsg0 {
+            get {
+                return ResourceManager.GetString("CLNotificationServiceTimerCallbackErrorExceptionMsg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Already initialized.
+        /// </summary>
+        internal static string CLNotificationSseEngineAlreadyInitialized {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEngineAlreadyInitialized", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to delegateCancelEngineTimeout must not be null.
+        /// </summary>
+        internal static string CLNotificationSseEngineDelegateCancelEngineTimeoutMustNotBeNull {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEngineDelegateCancelEngineTimeoutMustNotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to delegateCreateEngineTimer must not be null.
+        /// </summary>
+        internal static string CLNotificationSseEngineDelegateCreateEngineTimerMustNotBeNull {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEngineDelegateCreateEngineTimerMustNotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to delegateDisposeEngineTimer must not be null.
+        /// </summary>
+        internal static string CLNotificationSseEngineDelegateDisposeEngineTimerMustNotBeNull {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEngineDelegateDisposeEngineTimerMustNotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to delegateSendNotificationEvent must not be null.
+        /// </summary>
+        internal static string CLNotificationSseEngineDelegateSendNotificationEventMustNotBeNull {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEngineDelegateSendNotificationEventMustNotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to delegateSendManualPoll must not be null.
+        /// </summary>
+        internal static string CLNotificationSseEngineDelegateSendNotificationsDelegateSendManualPollMustNotBeNull {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEngineDelegateSendNotificationsDelegateSendManualPollMustNotBeNu" +
+                        "ll", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to delegateStartEngineTimeout must not be null.
+        /// </summary>
+        internal static string CLNotificationSseEnginedelegateStartEngineTimeoutMustNotBeNull {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEnginedelegateStartEngineTimeoutMustNotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationSseEngine: StartThreadProc: ERROR: Exception: Msg: {0}..
+        /// </summary>
+        internal static string CLNotificationSseEngineErrorExceptionMsg0 {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEngineErrorExceptionMsg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to obj must be a CLNotificationSseEngine.
+        /// </summary>
+        internal static string CLNotificationSseEngineObjectMustBeCLNNotificationService {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEngineObjectMustBeCLNNotificationService", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationSseEngine: ProcessReceivedCharacter: ERROR. Not expecting char: {0}..
+        /// </summary>
+        internal static string CLNotificationSseEngineProcessReceivedCharacterErrorNotExpectingChar0 {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEngineProcessReceivedCharacterErrorNotExpectingChar0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationSseEngine: ProcessReceivedCharacter: Value is not an int: {0}..
+        /// </summary>
+        internal static string CLNotificationSseEngineProcessReceivedCharacterValueIsNotAnInt0 {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEngineProcessReceivedCharacterValueIsNotAnInt0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationSseEngine: StartThreadProc: Received invalid status code..
+        /// </summary>
+        internal static string CLNotificationSseEngineReceivedInvalidStatusCode {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEngineReceivedInvalidStatusCode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationSseEngine: StartThreadProc: Received no content from server..
+        /// </summary>
+        internal static string CLNotificationSseEngineReceivedNoContentFromServer {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEngineReceivedNoContentFromServer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SSE Engine.
+        /// </summary>
+        internal static string CLNotificationSseEngineSSEEngine {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEngineSSEEngine", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationSseEngine: StartEngineThread: ERROR: Exception: Msg: {0}..
+        /// </summary>
+        internal static string CLNotificationSseEngineStartEngineThreadErrorExceptionMsg0 {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEngineStartEngineThreadErrorExceptionMsg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationSseEngine: StartEngineThread: Exit..
+        /// </summary>
+        internal static string CLNotificationSseEngineStartEngineThreadExit {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEngineStartEngineThreadExit", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationSseEngine: Start: Entry..
+        /// </summary>
+        internal static string CLNotificationSseEngineStartEntry {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEngineStartEntry", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationSseEngine: Start: ERROR: Exception: Msg: {0}..
+        /// </summary>
+        internal static string CLNotificationSseEngineStartErrorExceptionMsg0 {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEngineStartErrorExceptionMsg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationSseEngine: Start: Exit.  Return: {0}..
+        /// </summary>
+        internal static string CLNotificationSseEngineStartExitReturn0 {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEngineStartExitReturn0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationSseEngine: StartThreadProc: Entry..
+        /// </summary>
+        internal static string CLNotificationSseEngineStartThreadProcEntry {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEngineStartThreadProcEntry", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationSseEngine: StartThreadProc: ERROR: Exception (3): Msg: {0}..
+        /// </summary>
+        internal static string CLNotificationSseEngineStartThreadProcErrorException3Msg0 {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEngineStartThreadProcErrorException3Msg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationSseEngine: StartThreadProc: ERROR: Exception (4): Msg: {0}..
+        /// </summary>
+        internal static string CLNotificationSseEngineStartThreadProcErrorException4Msg0 {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEngineStartThreadProcErrorException4Msg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationSseEngine: StartThreadProc: Received 204 no content..
+        /// </summary>
+        internal static string CLNotificationSseEngineStartThreadProcReceived204NoContent {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEngineStartThreadProcReceived204NoContent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationSseEngine: StartThreadProc: Start reading data from the response stream..
+        /// </summary>
+        internal static string CLNotificationSseEngineStartThreadProcStartReadingDataFromResponseStream {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEngineStartThreadProcStartReadingDataFromResponseStream", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationSseEngine: Stop: Entry..
+        /// </summary>
+        internal static string CLNotificationSseEngineStopEntry {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEngineStopEntry", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to syncbox must not be null.
+        /// </summary>
+        internal static string CLNotificationSseEngineSyncboxCannotBeNull {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEngineSyncboxCannotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to _syncbox.HttpRestClient must not be null.
+        /// </summary>
+        internal static string CLNotificationSseEngineSyncboxHttpRestCannotBeNull {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEngineSyncboxHttpRestCannotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to _syncbox must not be null.
+        /// </summary>
+        internal static string CLNotificationSseEngineSyncboxMustNotBeNull {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEngineSyncboxMustNotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationSseEngine: TimerExpired: Abort the engine thread..
+        /// </summary>
+        internal static string CLNotificationSseEngineTimerExpiredAbortTheEngineThread {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEngineTimerExpiredAbortTheEngineThread", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationSseEngine: TimerExpired: Clean up resource: {0}..
+        /// </summary>
+        internal static string CLNotificationSseEngineTimerExpiredCleanUpResource0 {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEngineTimerExpiredCleanUpResource0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationSseEngine: TimerExpired: Entry..
+        /// </summary>
+        internal static string CLNotificationSseEngineTimerExpiredEntry {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEngineTimerExpiredEntry", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationSseEngine: TimerExpired: ERROR: Exception: Msg: {0}..
+        /// </summary>
+        internal static string CLNotificationSseEngineTimerExpiredErrorExceptionMsg0 {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEngineTimerExpiredErrorExceptionMsg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationSseEngine: TimerExpired: ERROR: Improper user state..
+        /// </summary>
+        internal static string CLNotificationSseEngineTimerExpiredErrorImproperUserState {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEngineTimerExpiredErrorImproperUserState", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationSseEngine: TimerExpired: ERROR: Msg: {0}..
+        /// </summary>
+        internal static string CLNotificationSseEngineTimerExpiredErrorMsg0 {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEngineTimerExpiredErrorMsg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLNotificationSseEngine: TimerExpired: Exit..
+        /// </summary>
+        internal static string CLNotificationSseEngineTimerExpiredExit {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEngineTimerExpiredExit", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to WebException thrown without a Response.
+        /// </summary>
+        internal static string CLNotificationSseEngineWebExceptionThrownWithoutAResponse {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEngineWebExceptionThrownWithoutAResponse", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Default constructor not supported.
+        /// </summary>
+        internal static string CLNotificationsSseEngineDefaultConstructorNotSupported {
+            get {
+                return ResourceManager.GetString("CLNotificationsSseEngineDefaultConstructorNotSupported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unknown engine index.
+        /// </summary>
+        internal static string CLNotificationUnknownEngineIndex {
+            get {
+                return ResourceManager.GetString("CLNotificationUnknownEngineIndex", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot do anything with the Cloud SDK if Helpers.AllHaltedOnUnrecoverableError is set.
+        /// </summary>
+        internal static string CLSyncBoxAllHaltedOnUnrecoverableErrorIsSet {
+            get {
+                return ResourceManager.GetString("CLSyncBoxAllHaltedOnUnrecoverableErrorIsSet", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLSyncbox: Constructing....
+        /// </summary>
+        internal static string CLSyncBoxConstructing {
+            get {
+                return ResourceManager.GetString("CLSyncBoxConstructing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLSyncbox: Construction: ERROR: {0}..
+        /// </summary>
+        internal static string CLSyncboxConstructionError0 {
+            get {
+                return ResourceManager.GetString("CLSyncboxConstructionError0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLSyncbox: Construction: ERROR: Msg: {0}..
+        /// </summary>
+        internal static string CLSyncBoxConstructionErrorMsg0 {
+            get {
+                return ResourceManager.GetString("CLSyncBoxConstructionErrorMsg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLSyncbox: Construction: ERROR: Msg: {0}. Code: {1}..
+        /// </summary>
+        internal static string CLSyncBoxConstructionErrorMsg0Code1 {
+            get {
+                return ResourceManager.GetString("CLSyncBoxConstructionErrorMsg0Code1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error creating REST HTTP client.
+        /// </summary>
+        internal static string CLSyncBoxErrorCreatingRestHTTPClient {
+            get {
+                return ResourceManager.GetString("CLSyncBoxErrorCreatingRestHTTPClient", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unknown error creating HTTP REST client.
+        /// </summary>
+        internal static string CLSyncBoxErrorUnknownErrorCreatingRestClient {
+            get {
+                return ResourceManager.GetString("CLSyncBoxErrorUnknownErrorCreatingRestClient", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLSyncbox: Start: Create rest client..
+        /// </summary>
+        internal static string CLSyncBoxStartCreateRestClient {
+            get {
+                return ResourceManager.GetString("CLSyncBoxStartCreateRestClient", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLSyncEngine: OnNotificationPerformManualSyncFrom: Send a Perform Manual SyncFrom to monitor..
+        /// </summary>
+        internal static string CLSynceEngineOnNotificationPerformManualSyncFrom {
+            get {
+                return ResourceManager.GetString("CLSynceEngineOnNotificationPerformManualSyncFrom", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Already started.
+        /// </summary>
+        internal static string CLSyncEngineAlreadyStarted {
+            get {
+                return ResourceManager.GetString("CLSyncEngineAlreadyStarted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLSyncEngine: ERROR: {0}..
+        /// </summary>
+        internal static string CLSyncEngineError0 {
+            get {
+                return ResourceManager.GetString("CLSyncEngineError0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLSyncEngine: ERROR: BadCase (1). {0}..
+        /// </summary>
+        internal static string CLSyncEngineErrorBadCase {
+            get {
+                return ResourceManager.GetString("CLSyncEngineErrorBadCase", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLSyncEngine: Start: ERROR: Exception(2). Msg: {0}. Code: {1}..
+        /// </summary>
+        internal static string CLSyncEngineErrorException2Msg0Code1 {
+            get {
+                return ResourceManager.GetString("CLSyncEngineErrorException2Msg0Code1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to An error occurred starting push notification.
+        /// </summary>
+        internal static string CLSyncEngineErrorOccurredStarrtingNotification {
+            get {
+                return ResourceManager.GetString("CLSyncEngineErrorOccurredStarrtingNotification", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLSyncEngine: Start: ERROR: Starting the initial indexing.  Msg: &lt;{0}&gt;. Code: {1}..
+        /// </summary>
+        internal static string CLSyncEngineErrorStartingInitialIndexingMsg0Code1 {
+            get {
+                return ResourceManager.GetString("CLSyncEngineErrorStartingInitialIndexingMsg0Code1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLSyncEngine: Start: ERROR: Starting the MonitorAgent.  Msg: &lt;{0}&gt;. Code: {1}..
+        /// </summary>
+        internal static string CLSyncEngineErrorStartingMonitorAgentMsg0Code1 {
+            get {
+                return ResourceManager.GetString("CLSyncEngineErrorStartingMonitorAgentMsg0Code1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error starting push notification.
+        /// </summary>
+        internal static string CLSyncEngineErrorStartingNotification {
+            get {
+                return ResourceManager.GetString("CLSyncEngineErrorStartingNotification", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLSyncEngine: Start: ERROR: Exception(5).  Msg: &lt;{0}&gt;..
+        /// </summary>
+        internal static string CLSyncEngineException5Msg0 {
+            get {
+                return ResourceManager.GetString("CLSyncEngineException5Msg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLSyncEngine: Start: ERROR: Exception(6).  Msg: &lt;{0}&gt;..
+        /// </summary>
+        internal static string CLSyncEngineException6Msg0 {
+            get {
+                return ResourceManager.GetString("CLSyncEngineException6Msg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLSyncEngine: ReleaseResources: File monitor stopped..
+        /// </summary>
+        internal static string CLSyncEngineFileMonitorStopped {
+            get {
+                return ResourceManager.GetString("CLSyncEngineFileMonitorStopped", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot do anything with the Cloud SDK if Helpers.AllHaltedOnUnrecoverableError is set.
+        /// </summary>
+        internal static string CLSyncEngineHelpersAllHaltedOnUnrecoverableErrorIsSet {
+            get {
+                return ResourceManager.GetString("CLSyncEngineHelpersAllHaltedOnUnrecoverableErrorIsSet", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Indexer cannot be null.
+        /// </summary>
+        internal static string CLSyncEngineIndexerCannotBeNull {
+            get {
+                return ResourceManager.GetString("CLSyncEngineIndexerCannotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Monitor cannot be null.
+        /// </summary>
+        internal static string CLSyncEngineMonitorCannotBeNull {
+            get {
+                return ResourceManager.GetString("CLSyncEngineMonitorCannotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLSyncEngine: OnConnectionError: Entry. ERROR: Manual poll error: &lt;{0}&gt;. Web socket error: &lt;{1}&gt;..
+        /// </summary>
+        internal static string CLSyncEngineOnConnectionErrorEntryErrorManualPollErrorWebSocketError {
+            get {
+                return ResourceManager.GetString("CLSyncEngineOnConnectionErrorEntryErrorManualPollErrorWebSocketError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLSyncEngine: OnConnectionError: Notify the application..
+        /// </summary>
+        internal static string CLSyncEngineOnConnectionErrorNotifyApplication {
+            get {
+                return ResourceManager.GetString("CLSyncEngineOnConnectionErrorNotifyApplication", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLSyncEngine: ReleaseResources: Disconnect PushNotificationServer..
+        /// </summary>
+        internal static string CLSyncEngineReleaseResourcesDisconnectPushNotificationServer {
+            get {
+                return ResourceManager.GetString("CLSyncEngineReleaseResourcesDisconnectPushNotificationServer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLSyncEngine: ReleaseResources: IconOverlay stopped..
+        /// </summary>
+        internal static string CLSyncEngineReleaseResourcesIconOverlayStopped {
+            get {
+                return ResourceManager.GetString("CLSyncEngineReleaseResourcesIconOverlayStopped", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLSyncEngine: ReleaseResources: Indexer stopped..
+        /// </summary>
+        internal static string CLsyncEngineReleaseResourcesIndexerStopped {
+            get {
+                return ResourceManager.GetString("CLsyncEngineReleaseResourcesIndexerStopped", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLSyncEngine: ReleaseResources: PushNotificationServer disconnected..
+        /// </summary>
+        internal static string CLSyncEngineReleaseResourcesPushNotificationServerDisconnected {
+            get {
+                return ResourceManager.GetString("CLSyncEngineReleaseResourcesPushNotificationServerDisconnected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLSyncEngine: ReleaseResources: Stop the file monitor..
+        /// </summary>
+        internal static string CLSyncEngineReleaseResourcesStopFileMonitor {
+            get {
+                return ResourceManager.GetString("CLSyncEngineReleaseResourcesStopFileMonitor", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLSyncEngine: ReleaseResources: Stop IconOverlay..
+        /// </summary>
+        internal static string CLSyncEngineReleaseResourcesStoppingIconOverlay {
+            get {
+                return ResourceManager.GetString("CLSyncEngineReleaseResourcesStoppingIconOverlay", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLSyncEngine: ReleaseResources: Stop the Indexer..
+        /// </summary>
+        internal static string CLsyncEngineReleaseResourcesStopTheIndexer {
+            get {
+                return ResourceManager.GetString("CLsyncEngineReleaseResourcesStopTheIndexer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLSyncEngine: SyncReset: ERROR: {0}..
+        /// </summary>
+        internal static string CLSyncEngineResetError0 {
+            get {
+                return ResourceManager.GetString("CLSyncEngineResetError0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLSyncEngine: OnNotificationReceived: Send a Perform PushNotification to monitor..
+        /// </summary>
+        internal static string CLSyncEngineSendAPerformPushNotificationToMonitor {
+            get {
+                return ResourceManager.GetString("CLSyncEngineSendAPerformPushNotificationToMonitor", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLSyncEngine: Start: Entry..
+        /// </summary>
+        internal static string CLSyncEngineStartEntry {
+            get {
+                return ResourceManager.GetString("CLSyncEngineStartEntry", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLSyncEngine: Start: ERROR: {0}..
+        /// </summary>
+        internal static string CLSyncEngineStartError {
+            get {
+                return ResourceManager.GetString("CLSyncEngineStartError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLSyncEngine: Start: ERROR(2): {0}..
+        /// </summary>
+        internal static string CLSyncEngineStartError2 {
+            get {
+                return ResourceManager.GetString("CLSyncEngineStartError2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLSyncEngine: Start: ERROR(4): Msg: {0}. Code: {1}..
+        /// </summary>
+        internal static string CLSyncEngineStartError4Msg0Code1 {
+            get {
+                return ResourceManager.GetString("CLSyncEngineStartError4Msg0Code1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLSyncEngine: Start: ERROR: Exception. Msg: {0}. Code: {1}..
+        /// </summary>
+        internal static string CLSyncEngineStartErrorExceptionMsg1Code1 {
+            get {
+                return ResourceManager.GetString("CLSyncEngineStartErrorExceptionMsg1Code1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLSyncEngine: Start: Hook up events..
+        /// </summary>
+        internal static string CLSyncEngineStartHookupEvents {
+            get {
+                return ResourceManager.GetString("CLSyncEngineStartHookupEvents", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLSyncEngine: Start: Start the indexer..
+        /// </summary>
+        internal static string CLSyncEngineStartIndexer {
+            get {
+                return ResourceManager.GetString("CLSyncEngineStartIndexer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLSyncEngine: Starting....
+        /// </summary>
+        internal static string CLSyncEngineStarting {
+            get {
+                return ResourceManager.GetString("CLSyncEngineStarting", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLSyncEngine: Start: Start the notifier..
+        /// </summary>
+        internal static string CLSyncEngineStartNotifier {
+            get {
+                return ResourceManager.GetString("CLSyncEngineStartNotifier", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLSyncEngine: Stop: Entry..
+        /// </summary>
+        internal static string CLSyncEngineStopEntry {
+            get {
+                return ResourceManager.GetString("CLSyncEngineStopEntry", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLSyncEngine: ReleaseResources: Stop the sync engine..
+        /// </summary>
+        internal static string CLSyncEngineStopTheSyncEngine {
+            get {
+                return ResourceManager.GetString("CLSyncEngineStopTheSyncEngine", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Syncbox path in settings represents a path which cannot be queried, check it first via Helpers.DirectoryMatchesCaseWithDisk.
+        /// </summary>
+        internal static string CLSyncEngineSyncboxPathRepresentsAPathThatCannotBeQueried {
+            get {
+                return ResourceManager.GetString("CLSyncEngineSyncboxPathRepresentsAPathThatCannotBeQueried", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Syncbox path in settings represents a bad path, check it first via Helpers.CheckForBadPath.
+        /// </summary>
+        internal static string CLSyncEngineSyncboxPathRepsBadPath {
+            get {
+                return ResourceManager.GetString("CLSyncEngineSyncboxPathRepsBadPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Syncbox path in settings is too long, check it first via Helpers.CheckSyncRootLength.
+        /// </summary>
+        internal static string CLSyncEngineSyncboxPathSettingsTooLong {
+            get {
+                return ResourceManager.GetString("CLSyncEngineSyncboxPathSettingsTooLong", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLSyncEngine: ReleaseResources: Sync engine stopped..
+        /// </summary>
+        internal static string CLSyncEngineSyncEngineStopped {
+            get {
+                return ResourceManager.GetString("CLSyncEngineSyncEngineStopped", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLSyncEngine: SyncReset: ERROR: From DeleteEverythingInDirectory.  Message: {0}..
+        /// </summary>
+        internal static string CLSyncEngineSyncResetDeleteEverythingInDirMessage0 {
+            get {
+                return ResourceManager.GetString("CLSyncEngineSyncResetDeleteEverythingInDirMessage0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLSyncEngine: SyncReset: Entry..
+        /// </summary>
+        internal static string CLSyncEngineSyncResetEntry {
+            get {
+                return ResourceManager.GetString("CLSyncEngineSyncResetEntry", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLSyncEngine: SyncReset: ERROR: Exception.  Msg: &lt;{0}&gt;..
+        /// </summary>
+        internal static string CLSyncEngineSyncResetERRORExceptionMsg0 {
+            get {
+                return ResourceManager.GetString("CLSyncEngineSyncResetERRORExceptionMsg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ClientDescription must not contain commas.
+        /// </summary>
+        internal static string CLSyncSettingsClientDescriptionCannotContainCommas {
+            get {
+                return ResourceManager.GetString("CLSyncSettingsClientDescriptionCannotContainCommas", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ClientDescription must have 32 or fewer characters.
+        /// </summary>
+        internal static string CLSyncSettingsClientDescriptionTooLong {
+            get {
+                return ResourceManager.GetString("CLSyncSettingsClientDescriptionTooLong", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to syncSettings must not be null.
+        /// </summary>
+        internal static string CLSyncSettingsMustNotBeNull {
+            get {
+                return ResourceManager.GetString("CLSyncSettingsMustNotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to syncRoot must not be null.
+        /// </summary>
+        internal static string CLSyncSettingsSyncRootCannotBeNull {
+            get {
+                return ResourceManager.GetString("CLSyncSettingsSyncRootCannotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to toCopy must not be null.
+        /// </summary>
+        internal static string CLSyncSettingstoCopyMustNotBeNull {
+            get {
+                return ResourceManager.GetString("CLSyncSettingstoCopyMustNotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to ProgramData\Microsoft\Windows.
         /// </summary>
         internal static string CommonStartMenuParentFolderNameVista {
@@ -156,6 +1958,15 @@ namespace Cloud.Static {
         internal static string CompleteFileUpload {
             get {
                 return ResourceManager.GetString("CompleteFileUpload", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Could not find path to rename at oldPath.
+        /// </summary>
+        internal static string CouldNotFindPathToRenameOldPath {
+            get {
+                return ResourceManager.GetString("CouldNotFindPathToRenameOldPath", resourceCulture);
             }
         }
         
@@ -322,7 +2133,7 @@ namespace Cloud.Static {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to syncbox path is too long by {0} characters.
+        ///   Looks up a localized string similar to syncRootFullPath is too long by {0} characters.
         /// </summary>
         internal static string ExceptionHelpersCheckSyncRootLengthTooLongPlural {
             get {
@@ -331,7 +2142,7 @@ namespace Cloud.Static {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to syncbox path is too long by {0} character.
+        ///   Looks up a localized string similar to syncRootFullPath is too long by {0} character.
         /// </summary>
         internal static string ExceptionHelpersCheckSyncRootLengthTooLongSingular {
             get {
@@ -655,11 +2466,2077 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to baseChange cannot be null.
+        /// </summary>
+        internal static string FileChangeWithDependenciesBaseChangeCannotBeNull {
+            get {
+                return ResourceManager.GetString("FileChangeWithDependenciesBaseChangeCannotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error setting MD5 from baseChange to new FileChangeWithDependencies.
+        /// </summary>
+        internal static string FileChangeWithDependenciesErrorSettingMD5FromBaseChangeToNewFileChangeWithDependencies {
+            get {
+                return ResourceManager.GetString("FileChangeWithDependenciesErrorSettingMD5FromBaseChangeToNewFileChangeWithDepende" +
+                        "ncies", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to final hash does not match; file has been edited;.
+        /// </summary>
+        internal static string HashedStreamReaderAdapterFinalHashDoesNotMatchFileWasEdited {
+            get {
+                return ResourceManager.GetString("HashedStreamReaderAdapterFinalHashDoesNotMatchFileWasEdited", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to intermediate hash does not match; file has been edited;.
+        /// </summary>
+        internal static string HashedStreamReaderAdapterIntermediateHashDoesNotMatchFileWasEdited {
+            get {
+                return ResourceManager.GetString("HashedStreamReaderAdapterIntermediateHashDoesNotMatchFileWasEdited", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Have not handled badging when two events are merged together.
+        /// </summary>
+        internal static string HaveNotHandledBadgingWhenTwoEventsMergedTogether {
+            get {
+                return ResourceManager.GetString("HaveNotHandledBadgingWhenTwoEventsMergedTogether", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: Add badge for path {0}, value {1}..
+        /// </summary>
+        internal static string IconOverlayAddBadgeForPath0Value1 {
+            get {
+                return ResourceManager.GetString("IconOverlayAddBadgeForPath0Value1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: _badgeComPubSubEvents_OnBadgeComInitializationSubscriptionFailed: ERROR: threadRestart exception: Msg: &lt;{0}&gt;..
+        /// </summary>
+        internal static string IconOverlaybadgeComPubSubEventsOnBadgeComInitializationSubscriptionFailedERRORthreadRestartexceptionMessage0 {
+            get {
+                return ResourceManager.GetString("IconOverlaybadgeComPubSubEventsOnBadgeComInitializationSubscriptionFailedERRORthr" +
+                        "eadRestartexceptionMessage0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: _badgeComPubSubEvents_OnBadgeComInitializationSubscriptionFailed: ERROR.  Wrong threading model..
+        /// </summary>
+        internal static string IconOverlaybadgeComPubSubEventsOnBadgeComInitializationSubscriptionFailedERRORWrongThreadingModel {
+            get {
+                return ResourceManager.GetString("IconOverlaybadgeComPubSubEventsOnBadgeComInitializationSubscriptionFailedERRORWro" +
+                        "ngThreadingModel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: _badgeComPubSubEvents_OnBadgeComInitializationSubscriptionFailed: Entry.  Kill BadgeComPubSubEvents..
+        /// </summary>
+        internal static string IconOverlaybadgeComPubSubEventsOnBadgeComInitializationSubscriptionFailedKillBadgeComPubSubEvents {
+            get {
+                return ResourceManager.GetString("IconOverlaybadgeComPubSubEventsOnBadgeComInitializationSubscriptionFailedKillBadg" +
+                        "eComPubSubEvents", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: _badgeComPubSubEvents_OnBadgeComInitializationSubscriptionFailed: Entry.  Restart BadgeComPubSubEvents..
+        /// </summary>
+        internal static string IconOverlaybadgeComPubSubEventsOnBadgeComInitializationSubscriptionFailedRestartBadgeComPubSubEvents {
+            get {
+                return ResourceManager.GetString("IconOverlaybadgeComPubSubEventsOnBadgeComInitializationSubscriptionFailedRestartB" +
+                        "adgeComPubSubEvents", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: _badgeComPubSubEvents_OnBadgeComInitializationSubscriptionFailed: Send badging database..
+        /// </summary>
+        internal static string IconOverlaybadgeComPubSubEventsOnBadgeComInitializationSubscriptionFailedSendBadingDatabase {
+            get {
+                return ResourceManager.GetString("IconOverlaybadgeComPubSubEventsOnBadgeComInitializationSubscriptionFailedSendBadi" +
+                        "ngDatabase", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: _badgeComPubSubEvents_OnBadgeComInitializationSubscriptionFailed: Subscribe to BadgeCom init events..
+        /// </summary>
+        internal static string IconOverlaybadgeComPubSubEventsOnBadgeComInitializationSubscriptionFailedSubscribeToBadgeComPubSubEvents {
+            get {
+                return ResourceManager.GetString("IconOverlaybadgeComPubSubEventsOnBadgeComInitializationSubscriptionFailedSubscrib" +
+                        "eToBadgeComPubSubEvents", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: _badgeComPubSubEvents_OnBadgeComInitializationSubscriptionFailed: threadInit entry..
+        /// </summary>
+        internal static string IconOverlaybadgeComPubSubEventsOnBadgeComInitializationSubscriptionFailedThreadInitEntry {
+            get {
+                return ResourceManager.GetString("IconOverlaybadgeComPubSubEventsOnBadgeComInitializationSubscriptionFailedThreadIn" +
+                        "itEntry", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: BadgeComPubSubEvents_OnBadgeComInitialized: Entry. BadgeType: {0}..
+        /// </summary>
+        internal static string IconOverlayBadgeComPubSubEventsOnBadgeComInitializedEntryBadgeType0 {
+            get {
+                return ResourceManager.GetString("IconOverlayBadgeComPubSubEventsOnBadgeComInitializedEntryBadgeType0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: BadgeComPubSubEvents_OnBadgeComInitialized: ERROR: Exception: Msg: &lt;{0}&gt;..
+        /// </summary>
+        internal static string IconOverlayBadgeComPubSubEventsOnBadgeComInitializedERRORExceptionMsg0 {
+            get {
+                return ResourceManager.GetString("IconOverlayBadgeComPubSubEventsOnBadgeComInitializedERRORExceptionMsg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: _badgeComPubSubEvents_OnBadgeComWatcherFailed: ERROR: Exception: Msg: &lt;{0}&gt;..
+        /// </summary>
+        internal static string IconOverlaybadgeComPubSubEventsOnBadgeComWatcherFailedERRORExceptionMessage0 {
+            get {
+                return ResourceManager.GetString("IconOverlaybadgeComPubSubEventsOnBadgeComWatcherFailedERRORExceptionMessage0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to BadgeType: {0}. Path: &lt;{1}..
+        /// </summary>
+        internal static string IconOverlayBadgeType0Path1 {
+            get {
+                return ResourceManager.GetString("IconOverlayBadgeType0Path1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: Badging is not enabled. Exit..
+        /// </summary>
+        internal static string IconOverlayBadgingIsNotEnabledExit {
+            get {
+                return ResourceManager.GetString("IconOverlayBadgingIsNotEnabledExit", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: Call ShouldIconBeBadged (at this path). currentBadge: {0}..
+        /// </summary>
+        internal static string IconOverlayCallShouldIconBeBadgedAtThisPathCurrentBadge0 {
+            get {
+                return ResourceManager.GetString("IconOverlayCallShouldIconBeBadgedAtThisPathCurrentBadge0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &gt;..
+        /// </summary>
+        internal static string IconOverlayCloseBracket {
+            get {
+                return ResourceManager.GetString("IconOverlayCloseBracket", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cloud.
+        /// </summary>
+        internal static string IconOverlayCloud {
+            get {
+                return ResourceManager.GetString("IconOverlayCloud", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to cloudRoot must not be null or empty.
+        /// </summary>
+        internal static string IconOverlayCloudRootMustNotBeNullOrEmpty {
+            get {
+                return ResourceManager.GetString("IconOverlayCloudRootMustNotBeNullOrEmpty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to DeleteBadgePath (after):.
+        /// </summary>
+        internal static string IconOverlayDeleteBadgePathAfter {
+            get {
+                return ResourceManager.GetString("IconOverlayDeleteBadgePathAfter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to DeleteBadgePath (before):.
+        /// </summary>
+        internal static string IconOverlayDeleteBadgePathBefore {
+            get {
+                return ResourceManager.GetString("IconOverlayDeleteBadgePathBefore", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: DeleteBadgePath. ERROR: THROW: Must be initialized before renaming badge paths..
+        /// </summary>
+        internal static string IconOverlayDeleteBadgePathERRORTHROWMustBeInitializedBeforeRenamingBadgePaths {
+            get {
+                return ResourceManager.GetString("IconOverlayDeleteBadgePathERRORTHROWMustBeInitializedBeforeRenamingBadgePaths", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: DeleteBadgePath. Pass this delete to the dictionary..
+        /// </summary>
+        internal static string IconOverlayDeleteBadgePathPassThisDeleteToDictionary {
+            get {
+                return ResourceManager.GetString("IconOverlayDeleteBadgePathPassThisDeleteToDictionary", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: DetermineBadgeStatusFromHierarchyOfChildrenOfThisNode. Get the hierarchy for path: {0}..
+        /// </summary>
+        internal static string IconOverlayDetermineBadgeStatusFromHierarchyOfChildrenOfThisNodeGetTheHierarchyForPath0 {
+            get {
+                return ResourceManager.GetString("IconOverlayDetermineBadgeStatusFromHierarchyOfChildrenOfThisNodeGetTheHierarchyFo" +
+                        "rPath0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: Dispose. Clear current badges..
+        /// </summary>
+        internal static string IconOverlayDisposeClearCurrentBadges {
+            get {
+                return ResourceManager.GetString("IconOverlayDisposeClearCurrentBadges", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: Dispose. Clear current synced badges..
+        /// </summary>
+        internal static string IconOverlayDisposeClearCurrentSyncedBadges {
+            get {
+                return ResourceManager.GetString("IconOverlayDisposeClearCurrentSyncedBadges", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: Dispose. ERROR: Exception sending BadgeNet_RemoveSyncboxFolderPath event. Msg: &lt;{0}&gt;..
+        /// </summary>
+        internal static string IconOverlayDisposedERRORExceptionSendingBadgeNetRemoveSyncboxFolderPathEventMsg0 {
+            get {
+                return ResourceManager.GetString("IconOverlayDisposedERRORExceptionSendingBadgeNetRemoveSyncboxFolderPathEventMsg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: Dispose. Disposing..
+        /// </summary>
+        internal static string IconOverlayDisposeDisposing {
+            get {
+                return ResourceManager.GetString("IconOverlayDisposeDisposing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: Dispose. ERROR: Exception terminating the BadgeCom initialzation watcher. Msg: &lt;{0}&gt;..
+        /// </summary>
+        internal static string IconOverlayDisposeERRORExceptionTerminatingTheBadgeComInitializationWatcherMsg0 {
+            get {
+                return ResourceManager.GetString("IconOverlayDisposeERRORExceptionTerminatingTheBadgeComInitializationWatcherMsg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: Dispose. Initialized..
+        /// </summary>
+        internal static string IconOverlayDisposeInitialized {
+            get {
+                return ResourceManager.GetString("IconOverlayDisposeInitialized", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: Dispose.  Lock..
+        /// </summary>
+        internal static string IconOverlayDisposeLock {
+            get {
+                return ResourceManager.GetString("IconOverlayDisposeLock", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: Dispose. PipeLocker..
+        /// </summary>
+        internal static string IconOverlayDisposePipeLocker {
+            get {
+                return ResourceManager.GetString("IconOverlayDisposePipeLocker", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: Dispose. Send BadgeNet_RemoveSyncboxFolderPath event..
+        /// </summary>
+        internal static string IconOverlayDisposeSendBadgeNetRemoveSyncbicFolderPathEvent {
+            get {
+                return ResourceManager.GetString("IconOverlayDisposeSendBadgeNetRemoveSyncbicFolderPathEvent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: Dispose.  Set Disposed..
+        /// </summary>
+        internal static string IconOverlayDisposeSetDisposed {
+            get {
+                return ResourceManager.GetString("IconOverlayDisposeSetDisposed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: Dispose. Unsubscribe from BadgeCom events..
+        /// </summary>
+        internal static string IconOverlayDisposeUnsubscribeFromBadgeComEvents {
+            get {
+                return ResourceManager.GetString("IconOverlayDisposeUnsubscribeFromBadgeComEvents", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay error creating badging dictionary.
+        /// </summary>
+        internal static string IconOverlayErrorCreatingBadgingDictionary {
+            get {
+                return ResourceManager.GetString("IconOverlayErrorCreatingBadgingDictionary", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error from setting Syncbox root badge.
+        /// </summary>
+        internal static string IconOverlayErrorFromSettingSyncboxRootBadge {
+            get {
+                return ResourceManager.GetString("IconOverlayErrorFromSettingSyncboxRootBadge", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ERROR: Grabbing filePath hierarchy: tree is null.
+        /// </summary>
+        internal static string IconOverlayERRORGrabbingfilePathHeirarchyTreeIsNull {
+            get {
+                return ResourceManager.GetString("IconOverlayERRORGrabbingfilePathHeirarchyTreeIsNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ERROR: Grabbing oldPath hierarchy: tree is null.
+        /// </summary>
+        internal static string IconOverlayERRORGrabbingOldPathHeirarchyTreeIsNull {
+            get {
+                return ResourceManager.GetString("IconOverlayERRORGrabbingOldPathHeirarchyTreeIsNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Explorer icon badging has failed.
+        /// </summary>
+        internal static string IconOverlayExplorerIconBadgingHasFailed {
+            get {
+                return ResourceManager.GetString("IconOverlayExplorerIconBadgingHasFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to flatBadgeType null.
+        /// </summary>
+        internal static string IconOverlayFlatBadgeTypeNull {
+            get {
+                return ResourceManager.GetString("IconOverlayFlatBadgeTypeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: genericSetter: badgeType: {0}. Path: {1}..
+        /// </summary>
+        internal static string IconOverlayGenericSetterbadgeType0Path1 {
+            get {
+                return ResourceManager.GetString("IconOverlayGenericSetterbadgeType0Path1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: genericSetter: StackTrace: {0}..
+        /// </summary>
+        internal static string IconOverlayGenericSetterStackTrace0 {
+            get {
+                return ResourceManager.GetString("IconOverlayGenericSetterStackTrace0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to genericSetter.Process (after): badgeType:.
+        /// </summary>
+        internal static string IconOverlayGenricSetterProcessAfterBadgeType {
+            get {
+                return ResourceManager.GetString("IconOverlayGenricSetterProcessAfterBadgeType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: getBadgeTypeForFileAtPath: Entry. path: {0}..
+        /// </summary>
+        internal static string IconOverlayGetBadgeTypeForFileAtPathEntryPath0 {
+            get {
+                return ResourceManager.GetString("IconOverlayGetBadgeTypeForFileAtPathEntryPath0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: getBadgeTypeForFileAtPath: ERROR: Exception: Msg: &lt;{0}&gt;, Code: {1}..
+        /// </summary>
+        internal static string IconOverlaygetBadgeTypeForFileAtPathERRORExceptionMsg0Code1 {
+            get {
+                return ResourceManager.GetString("IconOverlaygetBadgeTypeForFileAtPathERRORExceptionMsg0Code1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: getBadgeTypeForFileAtPath: In _currentBadgesLocker..
+        /// </summary>
+        internal static string IconOverlayGetBadgeTypeForFileAtPathInCurrentBadgesLocker {
+            get {
+                return ResourceManager.GetString("IconOverlayGetBadgeTypeForFileAtPathInCurrentBadgesLocker", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: GetDesiredBadgeTypeViaRecursivePostorderTraversal. Entry. node.path: {0}. node.badgeType: {1}..
+        /// </summary>
+        internal static string IconOverlayGetDesiredBadgeTypeViaRecursivePostorderTraversalEntryNodePath0NodeBadgeType1 {
+            get {
+                return ResourceManager.GetString("IconOverlayGetDesiredBadgeTypeViaRecursivePostorderTraversalEntryNodePath0NodeBad" +
+                        "geType1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: GetDesiredBadgeTypeViaRecursivePostorderTraversal. Got returnBadgeType: {0}..
+        /// </summary>
+        internal static string IconOverlayGetDesiredBadgeTypeViaRecursivePostorderTraversalGotReturnBadgeType0 {
+            get {
+                return ResourceManager.GetString("IconOverlayGetDesiredBadgeTypeViaRecursivePostorderTraversalGotReturnBadgeType0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: GetDesiredBadgeTypeViaRecursivePostorderTraversal. Has value..
+        /// </summary>
+        internal static string IconOverlayGetDesiredBadgeTypeViaRecursivePostorderTraversalHasValue {
+            get {
+                return ResourceManager.GetString("IconOverlayGetDesiredBadgeTypeViaRecursivePostorderTraversalHasValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: GetDesiredBadgeTypeViaRecursivePostorderTraversal. Node is null.  Return synced...
+        /// </summary>
+        internal static string IconOverlayGetDesiredBadgeTypeViaRecursivePostorderTraversalNodeIsNullReturnSynced {
+            get {
+                return ResourceManager.GetString("IconOverlayGetDesiredBadgeTypeViaRecursivePostorderTraversalNodeIsNullReturnSynce" +
+                        "d", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: GetDesiredBadgeTypeViaRecursivePostorderTraversal. Return synced..
+        /// </summary>
+        internal static string IconOverlayGetDesiredBadgeTypeViaRecursivePostorderTraversalReturnSynced {
+            get {
+                return ResourceManager.GetString("IconOverlayGetDesiredBadgeTypeViaRecursivePostorderTraversalReturnSynced", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: GetDesiredBadgeTypeViaRecursivePostorderTraversal. Return synced (2)..
+        /// </summary>
+        internal static string IconOverlayGetDesiredBadgeTypeViaRecursivePostorderTraversalReturnSynced2 {
+            get {
+                return ResourceManager.GetString("IconOverlayGetDesiredBadgeTypeViaRecursivePostorderTraversalReturnSynced2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: GetDesiredBadgeTypeViaRecursivePostorderTraversal. Return synced (3)..
+        /// </summary>
+        internal static string IconOverlayGetDesiredBadgeTypeViaRecursivePostorderTraversalReturnSynced3 {
+            get {
+                return ResourceManager.GetString("IconOverlayGetDesiredBadgeTypeViaRecursivePostorderTraversalReturnSynced3", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: GetDesiredBadgeTypeViaRecursivePostorderTraversal. Return synced (4)..
+        /// </summary>
+        internal static string IconOverlayGetDesiredBadgeTypeViaRecursivePostorderTraversalReturnSynced4 {
+            get {
+                return ResourceManager.GetString("IconOverlayGetDesiredBadgeTypeViaRecursivePostorderTraversalReturnSynced4", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: GetDesiredBadgeTypeViaRecursivePostorderTraversal. Return syncing..
+        /// </summary>
+        internal static string IconOverlayGetDesiredBadgeTypeViaRecursivePostorderTraversalReturnSyncing {
+            get {
+                return ResourceManager.GetString("IconOverlayGetDesiredBadgeTypeViaRecursivePostorderTraversalReturnSyncing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: GetDesiredBadgeTypeViaRecursivePostorderTraversal. Return syncing (2)..
+        /// </summary>
+        internal static string IconOverlayGetDesiredBadgeTypeViaRecursivePostorderTraversalReturnSyncing2 {
+            get {
+                return ResourceManager.GetString("IconOverlayGetDesiredBadgeTypeViaRecursivePostorderTraversalReturnSyncing2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: GetDesiredBadgeTypeViaRecursivePostorderTraversal. Return that badge type..
+        /// </summary>
+        internal static string IconOverlayGetDesiredBadgeTypeViaRecursivePostorderTraversalreturnThatBadgeType {
+            get {
+                return ResourceManager.GetString("IconOverlayGetDesiredBadgeTypeViaRecursivePostorderTraversalreturnThatBadgeType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: IconOverlay: GUID for this publisher: {0}..
+        /// </summary>
+        internal static string IconOverlayGUIDForThisPublisher {
+            get {
+                return ResourceManager.GetString("IconOverlayGUIDForThisPublisher", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to hierarchicalBadgeType null.
+        /// </summary>
+        internal static string IconOverlayHeirarchicalBadgeTypeNull {
+            get {
+                return ResourceManager.GetString("IconOverlayHeirarchicalBadgeTypeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: Initialize: Entry..
+        /// </summary>
+        internal static string IconOverlayInitializeEntry {
+            get {
+                return ResourceManager.GetString("IconOverlayInitializeEntry", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: InitializeOrReplace. Add this item to the dictionary..
+        /// </summary>
+        internal static string IconOverlayInitializeOrReplaceAddThisItemToDictionary {
+            get {
+                return ResourceManager.GetString("IconOverlayInitializeOrReplaceAddThisItemToDictionary", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: InitializeOrReplace. Clear all badges..
+        /// </summary>
+        internal static string IconOverlayInitializeOrReplaceClearAllBadges {
+            get {
+                return ResourceManager.GetString("IconOverlayInitializeOrReplaceClearAllBadges", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: InitializeOrReplace. currentReplaceItem. Path {0}, Type: {1})..
+        /// </summary>
+        internal static string IconOverlayInitializeOrReplaceCurrentReplaceItemPath0Type1 {
+            get {
+                return ResourceManager.GetString("IconOverlayInitializeOrReplaceCurrentReplaceItemPath0Type1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: InitializeOrReplace. Entry..
+        /// </summary>
+        internal static string IconOverlayInitializeOrReplaceEntry {
+            get {
+                return ResourceManager.GetString("IconOverlayInitializeOrReplaceEntry", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: InitializeOrReplace: ERROR: Exception: Msg: &lt;{0}&gt;, Code: {1}..
+        /// </summary>
+        internal static string IconOverlayInitializeOrReplaceERRORExceptionMsg0Code1 {
+            get {
+                return ResourceManager.GetString("IconOverlayInitializeOrReplaceERRORExceptionMsg0Code1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: InitializeOrReplace. List not processed..
+        /// </summary>
+        internal static string IconOverlayInitializeOrReplaceListNotProcessed {
+            get {
+                return ResourceManager.GetString("IconOverlayInitializeOrReplaceListNotProcessed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: InitializeOrReplace. Not initialized yet.  Initialize..
+        /// </summary>
+        internal static string IconOverlayInitializeOrReplaceNotInitializedYetInitialize {
+            get {
+                return ResourceManager.GetString("IconOverlayInitializeOrReplaceNotInitializedYetInitialize", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay Instance already initialized.
+        /// </summary>
+        internal static string IconOverlayInstanceAlreadyInitialized {
+            get {
+                return ResourceManager.GetString("IconOverlayInstanceAlreadyInitialized", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: pInitialize: ERROR: THROW: Instance already initialized..
+        /// </summary>
+        internal static string IconOverlayInstanceERRORTHROWAlreadyInitialized {
+            get {
+                return ResourceManager.GetString("IconOverlayInstanceERRORTHROWAlreadyInitialized", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: Initialize: ERROR: Exception: Msg: &lt;{0}&gt;, Code: {1}..
+        /// </summary>
+        internal static string IconOverlayIntializeERRORExceptionMsg0Code1 {
+            get {
+                return ResourceManager.GetString("IconOverlayIntializeERRORExceptionMsg0Code1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: IsBadgingInitialized: ERROR: Exception: Msg: &lt;{0}&gt;, Code: {1}..
+        /// </summary>
+        internal static string IconOverlayIsBadgingInitializedERRORExceptionMsg0Code1 {
+            get {
+                return ResourceManager.GetString("IconOverlayIsBadgingInitializedERRORExceptionMsg0Code1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to log.
+        /// </summary>
+        internal static string IconOverlayLog {
+            get {
+                return ResourceManager.GetString("IconOverlayLog", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unknown mergedEvent.Type:.
+        /// </summary>
+        internal static string IconOverlayMergedEventType {
+            get {
+                return ResourceManager.GetString("IconOverlayMergedEventType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: MessageEvents_BadgePathDeleted: Path: {0}..
+        /// </summary>
+        internal static string IconOverlayMessageEventsBadgePathDeletedPath0 {
+            get {
+                return ResourceManager.GetString("IconOverlayMessageEventsBadgePathDeletedPath0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: MessageEvents_BadgePathDeleted: ERROR: Msg: &lt;{0}&gt;, Code: {1}..
+        /// </summary>
+        internal static string IconOverlayMessageEventsBadgePathERRORMsg0Code1 {
+            get {
+                return ResourceManager.GetString("IconOverlayMessageEventsBadgePathERRORMsg0Code1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: MessageEvents_BadgePathRenamed: ERROR: Throw. Msg: &lt;{0}&gt;, Code: {1}. FromPath: {2}. ToPath: {3}.
+        /// </summary>
+        internal static string IconOverlayMessageEventsBadgePathRenamedERRORThrowMas0Code1FromPath2ToPath3 {
+            get {
+                return ResourceManager.GetString("IconOverlayMessageEventsBadgePathRenamedERRORThrowMas0Code1FromPath2ToPath3", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: MessageEvents_BadgePathRenamed: FromPath: {0}. ToPath: {1}..
+        /// </summary>
+        internal static string IconOverlayMessageEventsBadgePathRenamedFromPath0ToPath1 {
+            get {
+                return ResourceManager.GetString("IconOverlayMessageEventsBadgePathRenamedFromPath0ToPath1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: MessageEvents_FileChangeMergeToStateChanged: Call QueueNewEventBadge()..
+        /// </summary>
+        internal static string IconOverlayMessageEventsFileChangeMergeToStateChangedCallQueueNewEventsBadge {
+            get {
+                return ResourceManager.GetString("IconOverlayMessageEventsFileChangeMergeToStateChangedCallQueueNewEventsBadge", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: MessageEvents_PathStateChanged: State: {0}, Path: {1}..
+        /// </summary>
+        internal static string IconOverlayMessageEventsPathStateChangedState0Path1 {
+            get {
+                return ResourceManager.GetString("IconOverlayMessageEventsPathStateChangedState0Path1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: MessageEvents_QueueSetBadgeChanged: State: {0}, Path: {1}..
+        /// </summary>
+        internal static string IconOverlayMessageEventsQueueSetBadgeChangedState0Path1 {
+            get {
+                return ResourceManager.GetString("IconOverlayMessageEventsQueueSetBadgeChangedState0Path1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay must be initialized before renaming badge paths.
+        /// </summary>
+        internal static string IconOverlayMustBeInitializedBeforeRenamingBadgePaths {
+            get {
+                return ResourceManager.GetString("IconOverlayMustBeInitializedBeforeRenamingBadgePaths", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay must be initialized before setting badges.
+        /// </summary>
+        internal static string IconOverlayMustBeInitializedBeforeSettingBadges {
+            get {
+                return ResourceManager.GetString("IconOverlayMustBeInitializedBeforeSettingBadges", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay must be initialized before setting badges.
+        /// </summary>
+        internal static string IconOverlayMustInitializedBeforeSettingsBadges {
+            get {
+                return ResourceManager.GetString("IconOverlayMustInitializedBeforeSettingsBadges", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: newEvent: eventToRemove: Type: {0}. Old: {1}. New: {2}..
+        /// </summary>
+        internal static string IconOverlayNewEventEventToRemoveType0Old1New2 {
+            get {
+                return ResourceManager.GetString("IconOverlayNewEventEventToRemoveType0Old1New2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: newEvent: mergedEvent: Type: {0}. Old: {1}. New: {2}..
+        /// </summary>
+        internal static string IconOverlayNewEventMergedEventType0Old1New2 {
+            get {
+                return ResourceManager.GetString("IconOverlayNewEventMergedEventType0Old1New2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to newEvent.Process (after): badgeType:.
+        /// </summary>
+        internal static string IconOverlayNewEventProcessAfterBadgeType {
+            get {
+                return ResourceManager.GetString("IconOverlayNewEventProcessAfterBadgeType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to newEvent.Process (before): badgeType:.
+        /// </summary>
+        internal static string IconOverlayNewEventProcessBeforeBadgeType {
+            get {
+                return ResourceManager.GetString("IconOverlayNewEventProcessBeforeBadgeType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: newEvent: StackTrace: {0}..
+        /// </summary>
+        internal static string IconOverlayNewEventStackTrace0 {
+            get {
+                return ResourceManager.GetString("IconOverlayNewEventStackTrace0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &gt;. newPath: &lt;.
+        /// </summary>
+        internal static string IconOverlayNewPath {
+            get {
+                return ResourceManager.GetString("IconOverlayNewPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to newPath must not be null.
+        /// </summary>
+        internal static string IconOverlayNewPathMustNotNotBeNull {
+            get {
+                return ResourceManager.GetString("IconOverlayNewPathMustNotNotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to node must not be null.
+        /// </summary>
+        internal static string IconOverlayNodeMustNotBeNull {
+            get {
+                return ResourceManager.GetString("IconOverlayNodeMustNotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to NodeNull.
+        /// </summary>
+        internal static string IconOverlayNodeNull {
+            get {
+                return ResourceManager.GetString("IconOverlayNodeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to NodeNull2.
+        /// </summary>
+        internal static string IconOverlayNodeNull2 {
+            get {
+                return ResourceManager.GetString("IconOverlayNodeNull2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to NoNodeValue.
+        /// </summary>
+        internal static string IconOverlayNoNodeValue {
+            get {
+                return ResourceManager.GetString("IconOverlayNoNodeValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to NoNodeValue2.
+        /// </summary>
+        internal static string IconOverlayNoNodeValue2 {
+            get {
+                return ResourceManager.GetString("IconOverlayNoNodeValue2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to oldPath must not be null.
+        /// </summary>
+        internal static string IconOverlayOldPathMustNotBeNull {
+            get {
+                return ResourceManager.GetString("IconOverlayOldPathMustNotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: OnAllBadgesRecursiveDelete: ERROR: Exception: Msg: &lt;{0}&gt;..
+        /// </summary>
+        internal static string IconOverlayOnAllBadgesRecursiveDeleteERRORExceptionMsg0 {
+            get {
+                return ResourceManager.GetString("IconOverlayOnAllBadgesRecursiveDeleteERRORExceptionMsg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: OnAllBadgesRecursiveRename: ERROR: Exception: Msg: &lt;{0}&gt;..
+        /// </summary>
+        internal static string IconOverlayOnAllBadgesRecursiveRenameERRORExceptionMsg0 {
+            get {
+                return ResourceManager.GetString("IconOverlayOnAllBadgesRecursiveRenameERRORExceptionMsg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: OnCurrentBadgesSyncedRecursiveDelete: ERROR: Exception Msg: &lt;{0}&gt;..
+        /// </summary>
+        internal static string IconOverlayOnCurrentBadgesSyncedRecursiveDeleteERRORExceptionMsg0 {
+            get {
+                return ResourceManager.GetString("IconOverlayOnCurrentBadgesSyncedRecursiveDeleteERRORExceptionMsg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: OnCurrentBadgesSyncedRecursiveRename: ERROR: Exception Msg: &lt;{0}&gt;..
+        /// </summary>
+        internal static string IconOverlayOnCurrentBadgesSyncedRecursiveRenameERRORExceptionMsg0 {
+            get {
+                return ResourceManager.GetString("IconOverlayOnCurrentBadgesSyncedRecursiveRenameERRORExceptionMsg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to . Path: &lt;.
+        /// </summary>
+        internal static string IconOverlayPath {
+            get {
+                return ResourceManager.GetString("IconOverlayPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Path: &lt;{0}&gt;..
+        /// </summary>
+        internal static string IconOverlayPath0 {
+            get {
+                return ResourceManager.GetString("IconOverlayPath0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: pInitialize: ERROR: Exception: Msg: &lt;{0}&gt;..
+        /// </summary>
+        internal static string IconOverlaypInitializeERRORExceptionMsg0 {
+            get {
+                return ResourceManager.GetString("IconOverlaypInitializeERRORExceptionMsg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: pInitialize: ERROR: threadInit exception: Msg: &lt;{0}&gt;..
+        /// </summary>
+        internal static string IconOverlaypInitializeERRORthreadInitExceptionMsg0 {
+            get {
+                return ResourceManager.GetString("IconOverlaypInitializeERRORthreadInitExceptionMsg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: pInitialize: ERROR: threadInit was not started..
+        /// </summary>
+        internal static string IconOverlaypInitializeERRORThreadInitWasNotStarted {
+            get {
+                return ResourceManager.GetString("IconOverlaypInitializeERRORThreadInitWasNotStarted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: pInitialize: ERROR: THROW: Error from CreateAndInitialize allBadges..
+        /// </summary>
+        internal static string IconOverlaypInitializeERRORTHROWErrorfromCreateAndInitializeAllBadges {
+            get {
+                return ResourceManager.GetString("IconOverlaypInitializeERRORTHROWErrorfromCreateAndInitializeAllBadges", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: pInitialize: ERROR: THROW: Error from CreateAndInitialize _currentBadgesSynced..
+        /// </summary>
+        internal static string IconOverlaypInitializeERRORTHROWErrorfromCreateAndInitializeCurrentBadgesSynced {
+            get {
+                return ResourceManager.GetString("IconOverlaypInitializeERRORTHROWErrorfromCreateAndInitializeCurrentBadgesSynced", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: pInitialize: ERROR: THROW: Error creating badging dictionary..
+        /// </summary>
+        internal static string IconOverlaypInitializeERRORTHROWErrorFromCreatingBadgingDictionary {
+            get {
+                return ResourceManager.GetString("IconOverlaypInitializeERRORTHROWErrorFromCreatingBadgingDictionary", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: pInitialize: Got initial list..
+        /// </summary>
+        internal static string IconOverlaypInitializeGotInitialList {
+            get {
+                return ResourceManager.GetString("IconOverlaypInitializeGotInitialList", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: pInitialize: Return success..
+        /// </summary>
+        internal static string IconOverlaypInitializeReturnSuccess {
+            get {
+                return ResourceManager.GetString("IconOverlaypInitializeReturnSuccess", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: pInitialize: Tell UI the badging has failed..
+        /// </summary>
+        internal static string IconOverlaypInitializeTellUITheBadgingHasFailed {
+            get {
+                return ResourceManager.GetString("IconOverlaypInitializeTellUITheBadgingHasFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: pInitialize: threadInit completed OK..
+        /// </summary>
+        internal static string IconOverlaypInitializethreadInitCompletedOK {
+            get {
+                return ResourceManager.GetString("IconOverlaypInitializethreadInitCompletedOK", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: Process: Created/Modified: setBadge syncing at NewPath..
+        /// </summary>
+        internal static string IconOverlayProcessCreatedModifiedSetBadgeSyncingAtNewPath {
+            get {
+                return ResourceManager.GetString("IconOverlayProcessCreatedModifiedSetBadgeSyncingAtNewPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: Process: Deleted: Dir: From. Set NewPath to syncing..
+        /// </summary>
+        internal static string IconOverlayProcessDeletedDirFromSetNewPathToSyncing {
+            get {
+                return ResourceManager.GetString("IconOverlayProcessDeletedDirFromSetNewPathToSyncing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: Process: Deleted: Dir: To. DeleteBadgePath at NewPath. isDeleted: {0}..
+        /// </summary>
+        internal static string IconOverlayProcessDeletedDirToDeleteBadgePathAtNewPathIsDeleted0 {
+            get {
+                return ResourceManager.GetString("IconOverlayProcessDeletedDirToDeleteBadgePathAtNewPathIsDeleted0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: Process: mergedEvent.Type: {0}. mergedEvent.Direction: {1}.  mergedEvent.OldPath: {2}, mergedEvent.NewPath: {3}..
+        /// </summary>
+        internal static string IconOverlayProcessMergedEventType0MergedEventDirection1mergedEventOldPath2MergedEventNewPath3 {
+            get {
+                return ResourceManager.GetString("IconOverlayProcessMergedEventType0MergedEventDirection1mergedEventOldPath2MergedE" +
+                        "ventNewPath3", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: Process: Renamed. Dir: From. SetBadge syncing at OldPath..
+        /// </summary>
+        internal static string IconOverlayProcessRenamedDirFromSetBadgeSyncingAtOldPath {
+            get {
+                return ResourceManager.GetString("IconOverlayProcessRenamedDirFromSetBadgeSyncingAtOldPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: Process: Renamed. Dir: To. Call RenameBadgePath..
+        /// </summary>
+        internal static string IconOverlayProcessRenamedDirToCallRenameBadgePath {
+            get {
+                return ResourceManager.GetString("IconOverlayProcessRenamedDirToCallRenameBadgePath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: Process: Renamed. Dir: To. setBadge syncing at oldPath..
+        /// </summary>
+        internal static string IconOverlayProcessRenamedDirTosetBadgeSyncingAtOldPath {
+            get {
+                return ResourceManager.GetString("IconOverlayProcessRenamedDirTosetBadgeSyncingAtOldPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: pShutdown: ERROR: Exception: Msg: &lt;{0}&gt;, Code: {1}..
+        /// </summary>
+        internal static string IconOverlayPShutdownERRORExceptionMsg0Code1 {
+            get {
+                return ResourceManager.GetString("IconOverlayPShutdownERRORExceptionMsg0Code1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: RenameBadgePath. In _currentBadgesSyncedLocker..
+        /// </summary>
+        internal static string IconOverlayRenameBadePathInCurrentBadgesSyncedLocker {
+            get {
+                return ResourceManager.GetString("IconOverlayRenameBadePathInCurrentBadgesSyncedLocker", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: RenameBadgePath. Add badge at newPath: {0}. Badge: {1}..
+        /// </summary>
+        internal static string IconOverlayRenameBadgePathAddBadgeAtNewPath0Badge1 {
+            get {
+                return ResourceManager.GetString("IconOverlayRenameBadgePathAddBadgeAtNewPath0Badge1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to RenameBadgePath (after): OldPath: &lt;.
+        /// </summary>
+        internal static string IconOverlayRenameBadgePathAfterOldPath {
+            get {
+                return ResourceManager.GetString("IconOverlayRenameBadgePathAfterOldPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: RenameBadgePath. Badge newPath with {0}..
+        /// </summary>
+        internal static string IconOverlayRenameBadgePathBadgeNewPathWith0 {
+            get {
+                return ResourceManager.GetString("IconOverlayRenameBadgePathBadgeNewPathWith0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to RenameBadgePath (before): OldPath: &lt;.
+        /// </summary>
+        internal static string IconOverlayRenameBadgePathBeforeOldPath {
+            get {
+                return ResourceManager.GetString("IconOverlayRenameBadgePathBeforeOldPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: RenameBadgePath. Call ManuallyApplyRenamesInHierarchyAndUpdateBadgeState..
+        /// </summary>
+        internal static string IconOverlayRenameBadgePathCallManuallyApplyRenamesInHeirarchyAndUpdateBadgeState {
+            get {
+                return ResourceManager.GetString("IconOverlayRenameBadgePathCallManuallyApplyRenamesInHeirarchyAndUpdateBadgeState", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: RenameBadgePath. Contains oldPath..
+        /// </summary>
+        internal static string IconOverlayRenameBadgePathContainsOldPath {
+            get {
+                return ResourceManager.GetString("IconOverlayRenameBadgePathContainsOldPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: RenameBadgePath. _currentBadgesSynced not null..
+        /// </summary>
+        internal static string IconOverlayRenameBadgePathCurrentBadgesSyncedNotNull {
+            get {
+                return ResourceManager.GetString("IconOverlayRenameBadgePathCurrentBadgesSyncedNotNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: RenameBadgePath. Delete the oldPath..
+        /// </summary>
+        internal static string IconOverlayRenameBadgePathDeleteOldPath {
+            get {
+                return ResourceManager.GetString("IconOverlayRenameBadgePathDeleteOldPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: RenameBadgePath: ERROR: Exception: Msg: &lt;{0}&gt;, Code: {1}..
+        /// </summary>
+        internal static string IconOverlayRenameBadgePathERRORExceptionMessage0Code1 {
+            get {
+                return ResourceManager.GetString("IconOverlayRenameBadgePathERRORExceptionMessage0Code1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: RenameBadgePath. ERROR: grabbing hierarchy or nothing grabbed..
+        /// </summary>
+        internal static string IconOverlayRenameBadgePathERRORGrabbingHeirarchyOrNothingGrabbed {
+            get {
+                return ResourceManager.GetString("IconOverlayRenameBadgePathERRORGrabbingHeirarchyOrNothingGrabbed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: RenameBadgePath. ERROR: Grabbing oldPath hierarchy. Msg: &lt;{0}&gt;.  Code: {1}..
+        /// </summary>
+        internal static string IconOverlayRenameBadgePathERRORGrabbingOldPathHeirarchyMsg0Code1 {
+            get {
+                return ResourceManager.GetString("IconOverlayRenameBadgePathERRORGrabbingOldPathHeirarchyMsg0Code1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: RenameBadgePath. ERROR: Renaming in allBadges. Msg: &lt;{0}&gt;.  Code: {1}..
+        /// </summary>
+        internal static string IconOverlayRenameBadgePathERRORRenamingInAllBadgesMsg0Code1 {
+            get {
+                return ResourceManager.GetString("IconOverlayRenameBadgePathERRORRenamingInAllBadgesMsg0Code1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: RenameBadgePath. ERROR: THROW: Must be initialized before renaming badge paths..
+        /// </summary>
+        internal static string IconOverlayRenameBadgePathERRORTHROWMustBeInitializedBeforeRenamingBadgePaths {
+            get {
+                return ResourceManager.GetString("IconOverlayRenameBadgePathERRORTHROWMustBeInitializedBeforeRenamingBadgePaths", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: RenameBadgePath. existingSyncedHolder is synced..
+        /// </summary>
+        internal static string IconOverlayRenameBadgePathExistingSynchedHolderIsSynced {
+            get {
+                return ResourceManager.GetString("IconOverlayRenameBadgePathExistingSynchedHolderIsSynced", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: RenameBadgePath. existingSyncedHolder is synced (2)..
+        /// </summary>
+        internal static string IconOverlayRenameBadgePathExistingSynchedHolderIsSynced2 {
+            get {
+                return ResourceManager.GetString("IconOverlayRenameBadgePathExistingSynchedHolderIsSynced2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: RenameBadgePath. Got _currentBadges oldPath item. Remove oldPath..
+        /// </summary>
+        internal static string IconOverlayRenameBadgePathGotCurrentBadgesOldPathItemRemoveOldPath {
+            get {
+                return ResourceManager.GetString("IconOverlayRenameBadgePathGotCurrentBadgesOldPathItemRemoveOldPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: RenameBadgePath. Got _currentBadgesSynced oldPath item..
+        /// </summary>
+        internal static string IconOverlayRenameBadgePathGotCurrentBadgeSyncedOldPathItem {
+            get {
+                return ResourceManager.GetString("IconOverlayRenameBadgePathGotCurrentBadgeSyncedOldPathItem", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: RenameBadgePath. In _currentBadgesSyncedLocker..
+        /// </summary>
+        internal static string IconOverlayRenameBadgePathInCurrentBadgesSyncedLocker {
+            get {
+                return ResourceManager.GetString("IconOverlayRenameBadgePathInCurrentBadgesSyncedLocker", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: RenameBadgePath. Old path: {0}, New path: {1}..
+        /// </summary>
+        internal static string IconOverlayRenameBadgePathOldPath0NewPath1 {
+            get {
+                return ResourceManager.GetString("IconOverlayRenameBadgePathOldPath0NewPath1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: RenameBadgePath. oldPath found in _currentBadgesSynced.  Rename..
+        /// </summary>
+        internal static string IconOverlayRenameBadgePathOldPathFoundInCurrentBadgesSynedRename {
+            get {
+                return ResourceManager.GetString("IconOverlayRenameBadgePathOldPathFoundInCurrentBadgesSynedRename", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: RenameBadgePath. Pass this rename to the dictionary..
+        /// </summary>
+        internal static string IconOverlayRenameBadgePathPassThisRenameToTheDictionary {
+            get {
+                return ResourceManager.GetString("IconOverlayRenameBadgePathPassThisRenameToTheDictionary", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: RenameBadgePath. Remove badge at newPath: {0}..
+        /// </summary>
+        internal static string IconOverlayRenameBadgePathRemoveBadgeNewPath0 {
+            get {
+                return ResourceManager.GetString("IconOverlayRenameBadgePathRemoveBadgeNewPath0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: RenameBadgePath. Remove badge at oldPath: {0}..
+        /// </summary>
+        internal static string IconOverlayRenameBadgePathRemoveBadgeOldPath0 {
+            get {
+                return ResourceManager.GetString("IconOverlayRenameBadgePathRemoveBadgeOldPath0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: RenameBadgePath. Remove newPath..
+        /// </summary>
+        internal static string IconOverlayRenameBadgePathRemoveNewPath {
+            get {
+                return ResourceManager.GetString("IconOverlayRenameBadgePathRemoveNewPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: RenameBadgePath. Rename oldPath to newPath in _currentBadgesSynced..
+        /// </summary>
+        internal static string IconOverlayRenameBadgePathRenameOldPathToNewPathInCurrentBadgesSynched {
+            get {
+                return ResourceManager.GetString("IconOverlayRenameBadgePathRenameOldPathToNewPathInCurrentBadgesSynched", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: RenameBadgePath. Set ERROR: Could not find path to rename at oldPath..
+        /// </summary>
+        internal static string IconOverlayRenameBadgePathSetERRORCouldNotFindPathToRenameAtOldPath {
+            get {
+                return ResourceManager.GetString("IconOverlayRenameBadgePathSetERRORCouldNotFindPathToRenameAtOldPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: RenameBadgePath. Set newPath to _currentBadgesSynced. Value: {0}..
+        /// </summary>
+        internal static string IconOverlayRenameBadgePathSetNewPathToCurrentBadgesSyncedValue0 {
+            get {
+                return ResourceManager.GetString("IconOverlayRenameBadgePathSetNewPathToCurrentBadgesSyncedValue0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: RenameBadgePath. Set return status OK..
+        /// </summary>
+        internal static string IconOverlayRenameBadgePathSetReturnStatusOK {
+            get {
+                return ResourceManager.GetString("IconOverlayRenameBadgePathSetReturnStatusOK", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: RenameBadgePath. Set return status OK (2)..
+        /// </summary>
+        internal static string IconOverlayRenameBadgePathSetReturnStatusOK2 {
+            get {
+                return ResourceManager.GetString("IconOverlayRenameBadgePathSetReturnStatusOK2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: RenameBadgePath. Success on allBadges rename..
+        /// </summary>
+        internal static string IconOverlayRenameBadgePathSuccessOnAllBadgesRename {
+            get {
+                return ResourceManager.GetString("IconOverlayRenameBadgePathSuccessOnAllBadgesRename", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: RenameBadgePath. Update badge state up the tree from newPath..
+        /// </summary>
+        internal static string IconOverlayRenameBadgePathUpdateBadgeStateUpTheTreeFromNewPath {
+            get {
+                return ResourceManager.GetString("IconOverlayRenameBadgePathUpdateBadgeStateUpTheTreeFromNewPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: RenameBadgePath. Update badge state up the tree from oldPath..
+        /// </summary>
+        internal static string IconOverlayRenameBadgePathUpdateBadgeStateUpTheTreeFromOldPath {
+            get {
+                return ResourceManager.GetString("IconOverlayRenameBadgePathUpdateBadgeStateUpTheTreeFromOldPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: Return null (no badge type)..
+        /// </summary>
+        internal static string IconOverlayReturnNullNoBadgeType {
+            get {
+                return ResourceManager.GetString("IconOverlayReturnNullNoBadgeType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: Return this badge type..
+        /// </summary>
+        internal static string IconOverlayReturnThisBadgeType {
+            get {
+                return ResourceManager.GetString("IconOverlayReturnThisBadgeType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to rootPath cannot be null.
+        /// </summary>
+        internal static string IconOVerlayRootPathCannotBeNull {
+            get {
+                return ResourceManager.GetString("IconOVerlayRootPathCannotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: SendAddBadgePathEvent. Entry.  Path: {0}..
+        /// </summary>
+        internal static string IconOverlaySendAddBadgePathEventEntryPath0 {
+            get {
+                return ResourceManager.GetString("IconOverlaySendAddBadgePathEventEntryPath0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: SendAddBadgePathEvent. Exception.  Msg: {0}..
+        /// </summary>
+        internal static string IconOverlaySendAddBadgePathEventExceptionMsg0 {
+            get {
+                return ResourceManager.GetString("IconOverlaySendAddBadgePathEventExceptionMsg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: SendRemoveBadgePathEvent. Entry.  Path: {0}..
+        /// </summary>
+        internal static string IconOverlaySendRemoveBadgePathEventEntryPath0 {
+            get {
+                return ResourceManager.GetString("IconOverlaySendRemoveBadgePathEventEntryPath0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: SendRemoveBadgePathEvent. Exception.  Msg: {0}..
+        /// </summary>
+        internal static string IconOverlaySendRemoveBadgePathEventExceptionMsg0 {
+            get {
+                return ResourceManager.GetString("IconOverlaySendRemoveBadgePathEventExceptionMsg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: setBadgeType. Back from UpdateBadgeStateUpTreeStartingWithParentOfNode..
+        /// </summary>
+        internal static string IconOverlaySetBadgeTypeBackFromUpdateBadgeStateUpTreeStartingWithParentOfNode {
+            get {
+                return ResourceManager.GetString("IconOverlaySetBadgeTypeBackFromUpdateBadgeStateUpTreeStartingWithParentOfNode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: setBadgeType. Call UpdateBadgeStateAtPath..
+        /// </summary>
+        internal static string IconOverlaySetBadgeTypeCallUpdateBadgeStateAtPath {
+            get {
+                return ResourceManager.GetString("IconOverlaySetBadgeTypeCallUpdateBadgeStateAtPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: setBadgeType. Call UpdateBadgeStateUpTreeStartingWithParentOfNode..
+        /// </summary>
+        internal static string IconOverlaySetBadgeTypeCallUpdateBadgeStateUpTreeStartingWithParentOfNode {
+            get {
+                return ResourceManager.GetString("IconOverlaySetBadgeTypeCallUpdateBadgeStateUpTreeStartingWithParentOfNode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: setBadgeType: Entry. newType: {0}. filePath: {1}..
+        /// </summary>
+        internal static string IconOverlaySetBadgeTypeEntryNewType0FilePath1 {
+            get {
+                return ResourceManager.GetString("IconOverlaySetBadgeTypeEntryNewType0FilePath1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: setBadgeType: ERROR: Exception: Msg: &lt;{0}&gt;, Code: {1}..
+        /// </summary>
+        internal static string IconOverlaySetBadgeTypeERRORExceptionMsg0Code1 {
+            get {
+                return ResourceManager.GetString("IconOverlaySetBadgeTypeERRORExceptionMsg0Code1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: setBadgeType. ERROR: Grabbing filePath hierarchy. Msg: &lt;{0}&gt;.  Code: {1}..
+        /// </summary>
+        internal static string IconOverlaySetBadgeTypeERRORGrabbingFilePathHeirarchyMsg0Code1 {
+            get {
+                return ResourceManager.GetString("IconOverlaySetBadgeTypeERRORGrabbingFilePathHeirarchyMsg0Code1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: setBadgeType. Got selective tree..
+        /// </summary>
+        internal static string IconOverlaySetBadgeTypeGotSelectiveTree {
+            get {
+                return ResourceManager.GetString("IconOverlaySetBadgeTypeGotSelectiveTree", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: setBadgeType: In _currentBadgesLocker..
+        /// </summary>
+        internal static string IconOverlaySetBadgeTypeInCurrentBadgesLocker {
+            get {
+                return ResourceManager.GetString("IconOverlaySetBadgeTypeInCurrentBadgesLocker", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: setBadgeType: New is selective..
+        /// </summary>
+        internal static string IconOverlaySetBadgeTypeNewIsSelective {
+            get {
+                return ResourceManager.GetString("IconOverlaySetBadgeTypeNewIsSelective", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: setBadgeType. newType is {0}..
+        /// </summary>
+        internal static string IconOverlaySetBadgeTypeNewTypeIs0 {
+            get {
+                return ResourceManager.GetString("IconOverlaySetBadgeTypeNewTypeIs0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: setBadgeType. newType is synced..
+        /// </summary>
+        internal static string IconOverlaySetBadgeTypeNewTypeIsSynced {
+            get {
+                return ResourceManager.GetString("IconOverlaySetBadgeTypeNewTypeIsSynced", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: ShouldIconBeBadged. Break to determine the badge status from the children of this node..
+        /// </summary>
+        internal static string IconOverlayShouldIconBeBadgedBreakToDeterminBadgeStatusFromChildrenOfNode {
+            get {
+                return ResourceManager.GetString("IconOverlayShouldIconBeBadgedBreakToDeterminBadgeStatusFromChildrenOfNode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: ShouldIconBeBadged. Chain up..
+        /// </summary>
+        internal static string IconOverlayShouldIconBeBadgedChainUp {
+            get {
+                return ResourceManager.GetString("IconOverlayShouldIconBeBadgedChainUp", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: ShouldIconBeBadged. Contains Cloud root..
+        /// </summary>
+        internal static string IconOverlayShouldIconBeBadgedContainsCloudRoot {
+            get {
+                return ResourceManager.GetString("IconOverlayShouldIconBeBadgedContainsCloudRoot", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: ShouldIconBeBadged. Entry. badgeType: {0}. filePath: {1}..
+        /// </summary>
+        internal static string IconOverlayShouldIconBeBadgedEntrybadgeType0FilePath1 {
+            get {
+                return ResourceManager.GetString("IconOverlayShouldIconBeBadgedEntrybadgeType0FilePath1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: ShouldIconBeBadged. ERROR: Exception. Return(4): {0}..
+        /// </summary>
+        internal static string IconOverlayShouldIconBeBadgedERRORExceptionReturn40 {
+            get {
+                return ResourceManager.GetString("IconOverlayShouldIconBeBadgedERRORExceptionReturn40", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: ShouldIconBeBadged. Exception.  Normal? Msg: {0}, Code: (1)..
+        /// </summary>
+        internal static string IconOverlayShouldIconBeBadgedExceptionNormalMsg0Code1 {
+            get {
+                return ResourceManager.GetString("IconOverlayShouldIconBeBadgedExceptionNormalMsg0Code1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: ShouldIconBeBadged. Get the type for path: {0}..
+        /// </summary>
+        internal static string IconOverlayShouldIconBeBadgedGetTheTypeForPath0 {
+            get {
+                return ResourceManager.GetString("IconOverlayShouldIconBeBadgedGetTheTypeForPath0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: ShouldIconBeBadged. Got type {0}..
+        /// </summary>
+        internal static string IconOverlayShouldIconBeBadgedGotType0 {
+            get {
+                return ResourceManager.GetString("IconOverlayShouldIconBeBadgedGotType0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: ShouldIconBeBadged. Got value from allBadges. Return: {0}..
+        /// </summary>
+        internal static string IconOverlayShouldIconBeBadgedGotValueFromAllBadgesReturn0 {
+            get {
+                return ResourceManager.GetString("IconOverlayShouldIconBeBadgedGotValueFromAllBadgesReturn0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: ShouldIconBeBadged. Have we reached the Cloud root?.
+        /// </summary>
+        internal static string IconOverlayShouldIconBeBadgedHaveWeReachedCloudRoot {
+            get {
+                return ResourceManager.GetString("IconOverlayShouldIconBeBadgedHaveWeReachedCloudRoot", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: ShouldIconBeBadged. Locked..
+        /// </summary>
+        internal static string IconOverlayShouldIconBeBadgedLocked {
+            get {
+                return ResourceManager.GetString("IconOverlayShouldIconBeBadgedLocked", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: ShouldIconBeBadged. Not in the cloud folder. Return: Don&apos;t badge..
+        /// </summary>
+        internal static string IconOverlayShouldIconBeBadgedNotInTheCloudFolderReturnDontBadge {
+            get {
+                return ResourceManager.GetString("IconOverlayShouldIconBeBadgedNotInTheCloudFolderReturnDontBadge", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: ShouldIconBeBadged. Recurse thru parents..
+        /// </summary>
+        internal static string IconOverlayShouldIconBeBadgedRecurseThruParents {
+            get {
+                return ResourceManager.GetString("IconOverlayShouldIconBeBadgedRecurseThruParents", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: ShouldIconBeBadged. Return (2): {0}..
+        /// </summary>
+        internal static string IconOverlayShouldIconBeBadgedReturn20 {
+            get {
+                return ResourceManager.GetString("IconOverlayShouldIconBeBadgedReturn20", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: ShouldIconBeBadged. Return(3): {0}..
+        /// </summary>
+        internal static string IconOverlayShouldIconBeBadgedReturn30 {
+            get {
+                return ResourceManager.GetString("IconOverlayShouldIconBeBadgedReturn30", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: ShouldIconBeBadged. Return false..
+        /// </summary>
+        internal static string IconOverlayShouldIconBeBadgedReturnFalse {
+            get {
+                return ResourceManager.GetString("IconOverlayShouldIconBeBadgedReturnFalse", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: ShouldIconBeBadged. Successful getting the hierarcy.  Call GetDesiredBadgeTypeViaRecursivePostorderTraversal..
+        /// </summary>
+        internal static string IconOverlayShouldIconBeBadgedSuccessfulGettingTheHeirarchyCallGetDesiredBadgeTypeViaRecursivePostorderTraversal {
+            get {
+                return ResourceManager.GetString("IconOverlayShouldIconBeBadgedSuccessfulGettingTheHeirarchyCallGetDesiredBadgeType" +
+                        "ViaRecursivePostorderTraversal", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: ShouldIconBeBadged. TryGetValue not successful..
+        /// </summary>
+        internal static string IconOverlayShouldIconBeBadgedTryGetValueNotSuccessful {
+            get {
+                return ResourceManager.GetString("IconOverlayShouldIconBeBadgedTryGetValueNotSuccessful", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Subscription failed.
+        /// </summary>
+        internal static string IconOverlaySubscriptionFailed {
+            get {
+                return ResourceManager.GetString("IconOverlaySubscriptionFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SyncSettings cannot be null.
+        /// </summary>
+        internal static string IconOverlaySyncSettingsCannotBeNull {
+            get {
+                return ResourceManager.GetString("IconOverlaySyncSettingsCannotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: threadInit: threadInit entry..
+        /// </summary>
+        internal static string IconOverlaythreadInitEntry {
+            get {
+                return ResourceManager.GetString("IconOverlaythreadInitEntry", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: threadInit: ERROR. Wrong threading model..
+        /// </summary>
+        internal static string IconOverlaythreadInitERRORWrongThreadingModel {
+            get {
+                return ResourceManager.GetString("IconOverlaythreadInitERRORWrongThreadingModel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: threadInit: Exit thread..
+        /// </summary>
+        internal static string IconOverlayThreadInitExitThread {
+            get {
+                return ResourceManager.GetString("IconOverlayThreadInitExitThread", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: threadInit: Exit thread (2)..
+        /// </summary>
+        internal static string IconOverlaythreadInitExitThread2 {
+            get {
+                return ResourceManager.GetString("IconOverlaythreadInitExitThread2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: threadInit: Finished sending badging dictionary..
+        /// </summary>
+        internal static string IconOverlaythreadInitFinishedSendingBadgingDictionary {
+            get {
+                return ResourceManager.GetString("IconOverlaythreadInitFinishedSendingBadgingDictionary", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: threadInit: Instantiate BadgeComPubSubEvents..
+        /// </summary>
+        internal static string IconOverlayThreadInitInstantiateBadgeComPubSubEvents {
+            get {
+                return ResourceManager.GetString("IconOverlayThreadInitInstantiateBadgeComPubSubEvents", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: threadInit: Send badging dictionary..
+        /// </summary>
+        internal static string IconOverlaythreadInitSendBadgingDictionary {
+            get {
+                return ResourceManager.GetString("IconOverlaythreadInitSendBadgingDictionary", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: threadInit: Subscribe to BadgeCom init events..
+        /// </summary>
+        internal static string IconOverlaythreadInitSubscribeBadgeComInitEvents {
+            get {
+                return ResourceManager.GetString("IconOverlaythreadInitSubscribeBadgeComInitEvents", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to threadInit was not started..
+        /// </summary>
+        internal static string IconOverlayThreadInitWasNotStarted {
+            get {
+                return ResourceManager.GetString("IconOverlayThreadInitWasNotStarted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: TraceBadgingDictionaries: CurrentBadges: Called from: {0}..
+        /// </summary>
+        internal static string IconOverlayTraceBadgingDictionariesCurrentBadgesCalledFrom0 {
+            get {
+                return ResourceManager.GetString("IconOverlayTraceBadgingDictionariesCurrentBadgesCalledFrom0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: TraceBadgingDictionaries: CurrentSyncedBadges:.
+        /// </summary>
+        internal static string IconOverlayTraceBadgingDictionariesCurrentSyncedBadges {
+            get {
+                return ResourceManager.GetString("IconOverlayTraceBadgingDictionariesCurrentSyncedBadges", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unknown mergedEvent.Direction:.
+        /// </summary>
+        internal static string IconOverlayUknownMergedEventDirection {
+            get {
+                return ResourceManager.GetString("IconOverlayUknownMergedEventDirection", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unknown mergedEvent.Direction:.
+        /// </summary>
+        internal static string IconOverlayUnknownMergedEventDirection {
+            get {
+                return ResourceManager.GetString("IconOverlayUnknownMergedEventDirection", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unknown PathState:.
+        /// </summary>
+        internal static string IconOverlayUnknownState {
+            get {
+                return ResourceManager.GetString("IconOverlayUnknownState", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: UpdateBadgeStateAtPath. Add synced badge at this path..
+        /// </summary>
+        internal static string IconOverlayUpdateBadgeStateAtPathAddSyncedBadgeAtThisPath {
+            get {
+                return ResourceManager.GetString("IconOverlayUpdateBadgeStateAtPathAddSyncedBadgeAtThisPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: UpdateBadgeStateAtPath. _currentBadges returned {0}..
+        /// </summary>
+        internal static string IconOverlayUpdateBadgeStateAtPathCurrentBadgesReturned0 {
+            get {
+                return ResourceManager.GetString("IconOverlayUpdateBadgeStateAtPathCurrentBadgesReturned0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: UpdateBadgeStateAtPath. Different..
+        /// </summary>
+        internal static string IconOverlayUpdateBadgeStateAtPathDifferent {
+            get {
+                return ResourceManager.GetString("IconOverlayUpdateBadgeStateAtPathDifferent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: UpdateBadgeStateAtPath. Different and no flat.  Add..
+        /// </summary>
+        internal static string IconOverlayUpdateBadgeStateAtPathDifferentAndNoFlatAdd {
+            get {
+                return ResourceManager.GetString("IconOverlayUpdateBadgeStateAtPathDifferentAndNoFlatAdd", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: UpdateBadgeStateAtPath. Different and no hierarchical badge.  Remove..
+        /// </summary>
+        internal static string IconOverlayUpdateBadgeStateAtPathDifferentAndNoHeirarchicalBadgeRemove {
+            get {
+                return ResourceManager.GetString("IconOverlayUpdateBadgeStateAtPathDifferentAndNoHeirarchicalBadgeRemove", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: UpdateBadgeStateAtPath. Entry. nodePath: {0}..
+        /// </summary>
+        internal static string IconOverlayUpdateBadgeStateAtPathEntryNodePath0 {
+            get {
+                return ResourceManager.GetString("IconOverlayUpdateBadgeStateAtPathEntryNodePath0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: UpdateBadgeStateAtPath. getBadgeTypeForFileAtPath returned: {0}..
+        /// </summary>
+        internal static string IconOverlayUpdateBadgeStateAtPathGetBadgeTypeForFileAtPathReturned0 {
+            get {
+                return ResourceManager.GetString("IconOverlayUpdateBadgeStateAtPathGetBadgeTypeForFileAtPathReturned0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: UpdateBadgeStateAtPath. Have flatBadgeType..
+        /// </summary>
+        internal static string IconOverlayUpdateBadgeStateAtPathHaveFlatBadgeType {
+            get {
+                return ResourceManager.GetString("IconOverlayUpdateBadgeStateAtPathHaveFlatBadgeType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: UpdateBadgeStateAtPath. Have hierarchicalBadgeType..
+        /// </summary>
+        internal static string IconOverlayUpdateBadgeStateAtPathHaveHeirarchicalBadgeType {
+            get {
+                return ResourceManager.GetString("IconOverlayUpdateBadgeStateAtPathHaveHeirarchicalBadgeType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: UpdateBadgeStateAtPath. In _currentBadgesSyncedLocker..
+        /// </summary>
+        internal static string IconOverlayUpdateBadgeStateAtPathInCurrentBadgeSyncedLocker {
+            get {
+                return ResourceManager.GetString("IconOverlayUpdateBadgeStateAtPathInCurrentBadgeSyncedLocker", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: UpdateBadgeStateAtPath. Remove synced badge at this path..
+        /// </summary>
+        internal static string IconOverlayUpdateBadgeStateAtPathRemoveSyncedBadgeAtPathThisPath {
+            get {
+                return ResourceManager.GetString("IconOverlayUpdateBadgeStateAtPathRemoveSyncedBadgeAtPathThisPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: UpdateBadgeStateAtPath. Reset _currentBadgesSynced for this path..
+        /// </summary>
+        internal static string IconOverlayUpdateBadgeStateAtPathResetCurrentBadgesSyncedForThisPath {
+            get {
+                return ResourceManager.GetString("IconOverlayUpdateBadgeStateAtPathResetCurrentBadgesSyncedForThisPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: UpdateBadgeStateAtPath. Return..
+        /// </summary>
+        internal static string IconOverlayUpdateBadgeStateAtPathReturn {
+            get {
+                return ResourceManager.GetString("IconOverlayUpdateBadgeStateAtPathReturn", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: UpdateBadgeStateAtPath. Set _currentBadgesSynced for this path..
+        /// </summary>
+        internal static string IconOverlayUpdateBadgeStateAtPathSetCurrentBadgesSyncedForThisPath {
+            get {
+                return ResourceManager.GetString("IconOverlayUpdateBadgeStateAtPathSetCurrentBadgesSyncedForThisPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: UpdateBadgeStateUpTreeStartingWithParentOfNode. Call UpdateBadgeStateAtPath..
+        /// </summary>
+        internal static string IconOverlayUpdateBadgeStateUpTreeStartingWithParentOfNodeCallUpdateBadgeStateAtPath {
+            get {
+                return ResourceManager.GetString("IconOverlayUpdateBadgeStateUpTreeStartingWithParentOfNodeCallUpdateBadgeStateAtPa" +
+                        "th", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: UpdateBadgeStateUpTreeStartingWithParentOfNode. Entry.  nodePath: {0}..
+        /// </summary>
+        internal static string IconOverlayUpdateBadgeStateUpTreeStartingWithParentOfNodeEntryNodePath0 {
+            get {
+                return ResourceManager.GetString("IconOverlayUpdateBadgeStateUpTreeStartingWithParentOfNodeEntryNodePath0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Wrong threading model.
+        /// </summary>
+        internal static string IconOverlayWrongThreadingModel {
+            get {
+                return ResourceManager.GetString("IconOverlayWrongThreadingModel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to genericSetter.Process (before): badgeType:.
+        /// </summary>
+        internal static string IconOverlyGenericSetterProcessBeforeBadgeType {
+            get {
+                return ResourceManager.GetString("IconOverlyGenericSetterProcessBeforeBadgeType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to ---Incomplete file download---.
         /// </summary>
         internal static string IncompleteFileDownload {
             get {
                 return ResourceManager.GetString("IncompleteFileDownload", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IndexingAgent: UpdateServerUid: Migrated forwards: serverUidId: {0}..
+        /// </summary>
+        internal static string IndexingAgentUpdateServerUIDMigratedForwardsServerUIDID0 {
+            get {
+                return ResourceManager.GetString("IndexingAgentUpdateServerUIDMigratedForwardsServerUIDID0", resourceCulture);
             }
         }
         
@@ -714,6 +4591,770 @@ namespace Cloud.Static {
         internal static string LogStacktrace {
             get {
                 return ResourceManager.GetString("LogStacktrace", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to originalQueuedChangesIndexesByInMemoryIds cannot be null, perhaps AssignDependencies private helper was called through from the internal AssignDependencies.
+        /// </summary>
+        internal static string MoniterAgentOriginalQueuedChangesIndexesByInMemoryIds {
+            get {
+                return ResourceManager.GetString("MoniterAgentOriginalQueuedChangesIndexesByInMemoryIds", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to An error occurred adding a file system event to the database:.
+        /// </summary>
+        internal static string MonitorAgentAnErrorOccurredAddingAFileSystemEventToTheDatabase {
+            get {
+                return ResourceManager.GetString("MonitorAgentAnErrorOccurredAddingAFileSystemEventToTheDatabase", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MonitorAgent: AssignDependencies: CurrentDisposal: Direction: {0}. Type: {1}. OldPath: {2}. NewPath: {3}..
+        /// </summary>
+        internal static string MonitorAgentAssignDependenciesCurrentDisposalDirection0Type1OldPath2NewPath3 {
+            get {
+                return ResourceManager.GetString("MonitorAgentAssignDependenciesCurrentDisposalDirection0Type1OldPath2NewPath3", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MonitorAgent: AssignDependencies: CurrentOriginalMapping: Add CurrentDisposal to removeFromSql..
+        /// </summary>
+        internal static string MonitorAgentAssignDependenciesCurrentOriginalMappingAddCurrentDisposaltoRemoveFromSQL {
+            get {
+                return ResourceManager.GetString("MonitorAgentAssignDependenciesCurrentOriginalMappingAddCurrentDisposaltoRemoveFro" +
+                        "mSQL", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MonitorAgent: AssignDependencies: CurrentOriginalMapping: Direction: {0}. Type: {1}. OldPath: {2}. NewPath: {3}..
+        /// </summary>
+        internal static string MonitorAgentAssignDependenciesCurrentOriginalMappingDirection0Type1OldPath2NewPath3 {
+            get {
+                return ResourceManager.GetString("MonitorAgentAssignDependenciesCurrentOriginalMappingDirection0Type1OldPath2NewPat" +
+                        "h3", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MonitorAgent: AssignDependencies: CurrentOriginalMapping: Remove this CurrentOriginalMapping from originalQueuedChangesIndexesByInMemoryIds..
+        /// </summary>
+        internal static string MonitorAgentAssignDependenciesCurrentOriginalMappingRemovethisCurrentOriginalMappingFromOriginalQueuedChangesIndexesByInMemoryIds {
+            get {
+                return ResourceManager.GetString("MonitorAgentAssignDependenciesCurrentOriginalMappingRemovethisCurrentOriginalMapp" +
+                        "ingFromOriginalQueuedChangesIndexesByInMemoryIds", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MonitorAgent: AssignDependencies: ERROR: CurrentOriginalMapping not found..
+        /// </summary>
+        internal static string MonitorAgentAssignDependenciesErrorCurrentOriginalMappingNotFound {
+            get {
+                return ResourceManager.GetString("MonitorAgentAssignDependenciesErrorCurrentOriginalMappingNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot apply a modification to a folder.
+        /// </summary>
+        internal static string MonitorAgentCannotApplyAModificationToAFolder {
+            get {
+                return ResourceManager.GetString("MonitorAgentCannotApplyAModificationToAFolder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot apply a Sync To FileChange locally.
+        /// </summary>
+        internal static string MonitorAgentCannotApplySyncToFileChangeLocally {
+            get {
+                return ResourceManager.GetString("MonitorAgentCannotApplySyncToFileChangeLocally", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot communicate FileChange without EventId; FileChangeSource:.
+        /// </summary>
+        internal static string MonitorAgentCannotCommunicateFileChangeWithoutEventIDFileChangeSource {
+            get {
+                return ResourceManager.GetString("MonitorAgentCannotCommunicateFileChangeWithoutEventIDFileChangeSource", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot communicate FileChange without EventId; FileChangeSource: QueuedChanges.
+        /// </summary>
+        internal static string MonitorAgentCannotCommunicateFileChangeWithoutEventIDFileChangeSourceQueuedChanges {
+            get {
+                return ResourceManager.GetString("MonitorAgentCannotCommunicateFileChangeWithoutEventIDFileChangeSourceQueuedChange" +
+                        "s", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot download a file in MonitorAgent, it needs to be downloaded through Sync.
+        /// </summary>
+        internal static string MonitorAgentCannotDownloadAFileInMonitorAgentMustBeDownloadedThroughSync {
+            get {
+                return ResourceManager.GetString("MonitorAgentCannotDownloadAFileInMonitorAgentMustBeDownloadedThroughSync", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot start monitor after it has been disposed.
+        /// </summary>
+        internal static string MonitorAgentCannotStartMonitorAfterItHasBeenDisposed {
+            get {
+                return ResourceManager.GetString("MonitorAgentCannotStartMonitorAfterItHasBeenDisposed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to checkDisposed cannot be null.
+        /// </summary>
+        internal static string MonitorAgentcheckDisposedCannotBeNull {
+            get {
+                return ResourceManager.GetString("MonitorAgentcheckDisposedCannotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MonitorAgent: CheckMetadataAgainstFile: AllPaths contains this item: {0}..
+        /// </summary>
+        internal static string MonitorAgentCheckMetadataAgainstFileAllPathsContainsItem0 {
+            get {
+                return ResourceManager.GetString("MonitorAgentCheckMetadataAgainstFileAllPathsContainsItem0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MonitorAgent: CheckMetadataAgainstFile: Metadata different..
+        /// </summary>
+        internal static string MonitorAgentCheckMetaDataAgainstFileMetadataDifferent {
+            get {
+                return ResourceManager.GetString("MonitorAgentCheckMetaDataAgainstFileMetadataDifferent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MonitorAgent: CheckMetadataAgainstFile: Not folder, and not ignoring folder modifies. Call ReplacementMetadataIfDifferent..
+        /// </summary>
+        internal static string MonitorAgentCheckMetadataAgainstFileNotFolderAndNotIgnoringFolderModifiesCallReplacementMetadataIfDifferent {
+            get {
+                return ResourceManager.GetString("MonitorAgentCheckMetadataAgainstFileNotFolderAndNotIgnoringFolderModifiesCallRepl" +
+                        "acementMetadataIfDifferent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MonitorAgent: CheckMetadataAgainstFile: Changed or Created event..
+        /// </summary>
+        internal static string MonitorAgentCheckMetedataAgainstFileChangedOrCreatedEvent {
+            get {
+                return ResourceManager.GetString("MonitorAgentCheckMetedataAgainstFileChangedOrCreatedEvent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MonitorAgent: CheckMetadataAgainstFile: File exists..
+        /// </summary>
+        internal static string MonitorAgentCheckMetedataAgainstFileFileExists {
+            get {
+                return ResourceManager.GetString("MonitorAgentCheckMetedataAgainstFileFileExists", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MonitorAgent: CheckMetadataAgainstFile: File or folder does not exist..
+        /// </summary>
+        internal static string MonitorAgentCheckMetedataAgainstFileFileorFolderDoesNotExist {
+            get {
+                return ResourceManager.GetString("MonitorAgentCheckMetedataAgainstFileFileorFolderDoesNotExist", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MonitorAgent: CheckMetadataAgainstFile: File or folder exists: {0}..
+        /// </summary>
+        internal static string MonitorAgentCheckMetedataAgainstFileFileorFolderExists {
+            get {
+                return ResourceManager.GetString("MonitorAgentCheckMetedataAgainstFileFileorFolderExists", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Creating selectedWithDependencies returned an error.
+        /// </summary>
+        internal static string MonitorAgentCreatingSelectedWithDependenciesReturnedAnError {
+            get {
+                return ResourceManager.GetString("MonitorAgentCreatingSelectedWithDependenciesReturnedAnError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error setting DependencyFileChange MD5.
+        /// </summary>
+        internal static string MonitorAgentDependencyFileChangeMD5 {
+            get {
+                return ResourceManager.GetString("MonitorAgentDependencyFileChangeMD5", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error adding QueuedChanges within processing/failed changes dependency tree to SQL.
+        /// </summary>
+        internal static string MonitorAgentErrorAddingQueuedChangesWithinProcessingFailedChangesDependencyTreeToSQL {
+            get {
+                return ResourceManager.GetString("MonitorAgentErrorAddingQueuedChangesWithinProcessingFailedChangesDependencyTreeTo" +
+                        "SQL", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error on applying sync from directory move and an error checking if directory exists at new path.
+        /// </summary>
+        internal static string MonitorAgentErrorApplyingSyncfromDirectoryMoveandAnErrorCheckingIfDirectoryExistsAtNewPath {
+            get {
+                return ResourceManager.GetString("MonitorAgentErrorApplyingSyncfromDirectoryMoveandAnErrorCheckingIfDirectoryExists" +
+                        "AtNewPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error converting FileChange to FileChangeWithDependencies.
+        /// </summary>
+        internal static string MonitorAgentErrorCreatingFileChangeToFileChangeWithDependencies {
+            get {
+                return ResourceManager.GetString("MonitorAgentErrorCreatingFileChangeToFileChangeWithDependencies", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error in GetUploadDownloadTransfersInProgress.
+        /// </summary>
+        internal static string MonitorAgentErrorGettingUploadTransferProgress {
+            get {
+                return ResourceManager.GetString("MonitorAgentErrorGettingUploadTransferProgress", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error grabbing hierarchy for oldPath from AllPaths.
+        /// </summary>
+        internal static string MonitorAgentErrorGrabbingHeirarchyForoldPathFromAllPaths {
+            get {
+                return ResourceManager.GetString("MonitorAgentErrorGrabbingHeirarchyForoldPathFromAllPaths", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error grabbing hierarchy from upDownsForDeleted.
+        /// </summary>
+        internal static string MonitorAgentErrorGrabbingHierarchyFromupDowsForDeleted {
+            get {
+                return ResourceManager.GetString("MonitorAgentErrorGrabbingHierarchyFromupDowsForDeleted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error grabbing hierarchy from upDownsForRenamed.
+        /// </summary>
+        internal static string MonitorAgentErrorGrabbingHierarchyFromupDowsForRenamed {
+            get {
+                return ResourceManager.GetString("MonitorAgentErrorGrabbingHierarchyFromupDowsForRenamed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error grabbing hierarchy from uploads and downloads in progress before merging new events to the database:.
+        /// </summary>
+        internal static string MonitorAgentErrorGrabbingHierarchyFromUploadsAndDownloadsInProgressBeforeMergingNewEventsToTheDataBase {
+            get {
+                return ResourceManager.GetString("MonitorAgentErrorGrabbingHierarchyFromUploadsAndDownloadsInProgressBeforeMergingN" +
+                        "ewEventsToTheDataBase", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error in CreationModificationDependencyCheck.
+        /// </summary>
+        internal static string MonitorAgentErrorInCreationModifactionDependencyCheck {
+            get {
+                return ResourceManager.GetString("MonitorAgentErrorInCreationModifactionDependencyCheck", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error in DeleteDependencyCheck.
+        /// </summary>
+        internal static string MonitorAgentErrorInDeleteDependencyCheck {
+            get {
+                return ResourceManager.GetString("MonitorAgentErrorInDeleteDependencyCheck", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error in RenameDependencyCheck.
+        /// </summary>
+        internal static string MonitorAgentErrorInRenameDependencyCheck {
+            get {
+                return ResourceManager.GetString("MonitorAgentErrorInRenameDependencyCheck", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to An error occurred checking against uploads or downloads in progress before merging new events into the database: .
+        /// </summary>
+        internal static string MonitorAgentErrorOccurredChackingUploadsAgainstsDownloadsInProgressBeforeMergingNewEvents {
+            get {
+                return ResourceManager.GetString("MonitorAgentErrorOccurredChackingUploadsAgainstsDownloadsInProgressBeforeMergingN" +
+                        "ewEvents", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error replacing a portion of the path of CurrentEarlierChange.
+        /// </summary>
+        internal static string MonitorAgentErrorReplacingAPortionOfThePathOfCurrentEarlierChange {
+            get {
+                return ResourceManager.GetString("MonitorAgentErrorReplacingAPortionOfThePathOfCurrentEarlierChange", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error starting Cloud, ProcessWatcher_ChangedQueue sender is not of type KeyValuePair&lt;MonitorAgent, KeyValuePair&lt;FileSystemEventArgs, bool&gt;&gt;.
+        /// </summary>
+        internal static string MonitorAgentErrorStartingCloudProcessWatcher_ChangedQueueIsNotOfTypeKeyValuePair {
+            get {
+                return ResourceManager.GetString("MonitorAgentErrorStartingCloudProcessWatcher_ChangedQueueIsNotOfTypeKeyValuePair", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error updating creation time for folder to event in database.
+        /// </summary>
+        internal static string MonitorAgentErrorUpdatingCreationTimeForFolderToEventDatabase {
+            get {
+                return ResourceManager.GetString("MonitorAgentErrorUpdatingCreationTimeForFolderToEventDatabase", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error updating SQL after replacing NewPath.
+        /// </summary>
+        internal static string MonitorAgentErrorUpdatingSQLAfterReplacingNewPath {
+            get {
+                return ResourceManager.GetString("MonitorAgentErrorUpdatingSQLAfterReplacingNewPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to EventId was zero on a FileChange to queue to ProcessingChanges:.
+        /// </summary>
+        internal static string MonitorAgentEventIDWasZeroOnAFileChangeToQueueToProcessingChanges {
+            get {
+                return ResourceManager.GetString("MonitorAgentEventIDWasZeroOnAFileChangeToQueueToProcessingChanges", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Exception on main ApplySyncFromFileChange switch and exception on onBeforeAllPathsUnlock.
+        /// </summary>
+        internal static string MonitorAgentExceptionOnMainApplySyncFromFileChangeSwitchandExceptionononBeforeAllPathsUnlock {
+            get {
+                return ResourceManager.GetString("MonitorAgentExceptionOnMainApplySyncFromFileChangeSwitchandExceptionononBeforeAll" +
+                        "PathsUnlock", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to FileChange&apos;s NewPath does not fall within the root directory.
+        /// </summary>
+        internal static string MonitorAgentFileChangesNewPathDoesNotFallWithinTheRootDirectory {
+            get {
+                return ResourceManager.GetString("MonitorAgentFileChangesNewPathDoesNotFallWithinTheRootDirectory", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Files bigger than {0} are not yet supported; File: {1}, Size: {2}.
+        /// </summary>
+        internal static string MonitorAgentFilesBiggerThan0AreNotYetSupportedFile1Size2 {
+            get {
+                return ResourceManager.GetString("MonitorAgentFilesBiggerThan0AreNotYetSupportedFile1Size2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Folder not found at provided folder path.
+        /// </summary>
+        internal static string MonitorAgentFolderNotFoundAtProvidedPath {
+            get {
+                return ResourceManager.GetString("MonitorAgentFolderNotFoundAtProvidedPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Folder path cannot be null or empty.
+        /// </summary>
+        internal static string MonitorAgentFolderPathCannotBeNullOrEmpty {
+            get {
+                return ResourceManager.GetString("MonitorAgentFolderPathCannotBeNullOrEmpty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to GetUploadDownloadTransfersInProgress return cannot have a null Key.
+        /// </summary>
+        internal static string MonitorAgentGetUploadTranfersInProgressReturnCannotHaveNullKey {
+            get {
+                return ResourceManager.GetString("MonitorAgentGetUploadTranfersInProgressReturnCannotHaveNullKey", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Instance not available until after Initialize is called.
+        /// </summary>
+        internal static string MonitorAgentInstanceNotAvailableAfterInitializeIsCalled {
+            get {
+                return ResourceManager.GetString("MonitorAgentInstanceNotAvailableAfterInitializeIsCalled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error updating LaterChange in CreationModificationDependencyCheck to Created Type.
+        /// </summary>
+        internal static string MonitorAgentLaterChangeInCreationModificationDependencyChecktoCreatedType {
+            get {
+                return ResourceManager.GetString("MonitorAgentLaterChangeInCreationModificationDependencyChecktoCreatedType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MonitorAgent: RenameDependencyCheck: Add later change to changes to dispose..
+        /// </summary>
+        internal static string MonitorAgentRenameDependencyCheckAddLaterChangeToChangesToDispose {
+            get {
+                return ResourceManager.GetString("MonitorAgentRenameDependencyCheckAddLaterChangeToChangesToDispose", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MonitorAgent: RenameDependencyCheck: Break out of enumeration..
+        /// </summary>
+        internal static string MonitorAgentRenameDependencyCheckBreakOutOfEnumeration {
+            get {
+                return ResourceManager.GetString("MonitorAgentRenameDependencyCheckBreakOutOfEnumeration", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MonitorAgent: RenameDependencyCheck: Call CheckFileChangeDependenciesForDuplicates on inner rename..
+        /// </summary>
+        internal static string MonitorAgentRenameDependencyCheckCallCheckFileChangeDependenciesForDuplicatesOnInnerRename {
+            get {
+                return ResourceManager.GetString("MonitorAgentRenameDependencyCheckCallCheckFileChangeDependenciesForDuplicatesOnIn" +
+                        "nerRename", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MonitorAgent: RenameDependencyCheck: Continue processing: {0}..
+        /// </summary>
+        internal static string MonitorAgentRenameDependencyCheckContinueProcessing {
+            get {
+                return ResourceManager.GetString("MonitorAgentRenameDependencyCheckContinueProcessing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MonitorAgent: RenameDependencyCheck: CurrentEarlierChange: Direction: {0}. Type: {1}. OldPath: {2}. NewPath: {3}..
+        /// </summary>
+        internal static string MonitorAgentRenameDependencyCheckCurrentEarlierChangeDirection0Type1OldPath2NewPath3 {
+            get {
+                return ResourceManager.GetString("MonitorAgentRenameDependencyCheckCurrentEarlierChangeDirection0Type1OldPath2NewPa" +
+                        "th3", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MonitorAgent: RenameDependencyCheck: CurrentInnerRename: Direction: {0}. OldPath: {1}. NewPath: {2}..
+        /// </summary>
+        internal static string MonitorAgentRenameDependencyCheckCurrentInnerRenameDirection0OldPathNewPath2 {
+            get {
+                return ResourceManager.GetString("MonitorAgentRenameDependencyCheckCurrentInnerRenameDirection0OldPathNewPath2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MonitorAgent: RenameDependencyCheck: Earlier change contains OldPath..
+        /// </summary>
+        internal static string MonitorAgentRenameDependencyCheckEarlierChangeContainsOldPath {
+            get {
+                return ResourceManager.GetString("MonitorAgentRenameDependencyCheckEarlierChangeContainsOldPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MonitorAgent: RenameDependencyCheck: Earlier change is Created..
+        /// </summary>
+        internal static string MonitorAgentRenameDependencyCheckEarlierChangeIsCreated {
+            get {
+                return ResourceManager.GetString("MonitorAgentRenameDependencyCheckEarlierChangeIsCreated", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MonitorAgent: RenameDependencyCheck: Earlier change is Created or Modified..
+        /// </summary>
+        internal static string MonitorAgentRenameDependencyCheckEarlierChangeIsCreatedOrModified {
+            get {
+                return ResourceManager.GetString("MonitorAgentRenameDependencyCheckEarlierChangeIsCreatedOrModified", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MonitorAgent: RenameDependencyCheck: Earlier change is Deleted..
+        /// </summary>
+        internal static string MonitorAgentRenameDependencyCheckEarlierChangeIsDeleted {
+            get {
+                return ResourceManager.GetString("MonitorAgentRenameDependencyCheckEarlierChangeIsDeleted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MonitorAgent: RenameDependencyCheck: Earlier change is Renamed.
+        /// </summary>
+        internal static string MonitorAgentRenameDependencyCheckEarlierChangeIsRenamed {
+            get {
+                return ResourceManager.GetString("MonitorAgentRenameDependencyCheckEarlierChangeIsRenamed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MonitorAgent: RenameDependencyCheck: ERROR: {0}..
+        /// </summary>
+        internal static string MonitorAgentRenameDependencyCheckError0 {
+            get {
+                return ResourceManager.GetString("MonitorAgentRenameDependencyCheckError0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MonitorAgent: RenameDependencyCheck: Inner new path contains laterChange old path, or laterChange old path contains inner new path..
+        /// </summary>
+        internal static string MonitorAgentRenameDependencyCheckInnerNewPathContainsLaterChangeOldPathorLAterChangeOldPathContainsInnerNewPath {
+            get {
+                return ResourceManager.GetString("MonitorAgentRenameDependencyCheckInnerNewPathContainsLaterChangeOldPathorLAterCha" +
+                        "ngeOldPathContainsInnerNewPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MonitorAgent: RenameDependencyCheck: LaterChange: Direction: {0}. Type: {1}. OldPath: {2}. NewPath: {3}..
+        /// </summary>
+        internal static string MonitorAgentRenameDependencyCheckLaterChangeDirection0Type1OldPath2NewPath3 {
+            get {
+                return ResourceManager.GetString("MonitorAgentRenameDependencyCheckLaterChangeDirection0Type1OldPath2NewPath3", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MonitorAgent: RenameDependencyCheck: Later old path contains earlier new path..
+        /// </summary>
+        internal static string MonitorAgentRenameDependencyCheckLaterOldPathContainsEarlierNewPath {
+            get {
+                return ResourceManager.GetString("MonitorAgentRenameDependencyCheckLaterOldPathContainsEarlierNewPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MonitorAgent: RenameDependencyCheck: Loop thru onlyRenamePathsFromTop..
+        /// </summary>
+        internal static string MonitorAgentRenameDependencyCheckLoopThruOnlyRenamePathsFromTop {
+            get {
+                return ResourceManager.GetString("MonitorAgentRenameDependencyCheckLoopThruOnlyRenamePathsFromTop", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MonitorAgent: RenameDependencyCheck: NewPath does not equal OldPath. Loop until recursing parent is null. renamedOverlapChild: {0}..
+        /// </summary>
+        internal static string MonitorAgentRenameDependencyCheckNewPathDoesNotEqualOldPathLoopUntilRecursingParentIsRenamed {
+            get {
+                return ResourceManager.GetString("MonitorAgentRenameDependencyCheckNewPathDoesNotEqualOldPathLoopUntilRecursingPare" +
+                        "ntIsRenamed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MonitorAgent: RenameDependencyCheck: NewPath equals OldPath..
+        /// </summary>
+        internal static string MonitorAgentRenameDependencyCheckNewPathEqualsOldPath {
+            get {
+                return ResourceManager.GetString("MonitorAgentRenameDependencyCheckNewPathEqualsOldPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MonitorAgent: RenameDependencyCheck: No DependenciesAddeedToLaterChange..
+        /// </summary>
+        internal static string MonitorAgentRenameDependencyCheckNoDependenciesAddedToLaterChange {
+            get {
+                return ResourceManager.GetString("MonitorAgentRenameDependencyCheckNoDependenciesAddedToLaterChange", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MonitorAgent: RenameDependencyCheck: No DependenciesAddeedToLaterChange (2)..
+        /// </summary>
+        internal static string MonitorAgentRenameDependencyCheckNoDependenciesAddedToLaterChange2 {
+            get {
+                return ResourceManager.GetString("MonitorAgentRenameDependencyCheckNoDependenciesAddedToLaterChange2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MonitorAgent: RenameDependencyCheck: Process renamedOverlap: {0}..
+        /// </summary>
+        internal static string MonitorAgentRenameDependencyCheckProcessRenamedOverlap {
+            get {
+                return ResourceManager.GetString("MonitorAgentRenameDependencyCheckProcessRenamedOverlap", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MonitorAgent: RenameDependencyCheck: Remove dependency from laterParent: LaterChange: Direction: {0}. OldPath: {1}. NewPath: {2}..
+        /// </summary>
+        internal static string MonitorAgentRenameDependencyCheckRemoveDependencyFromLaterParentLaterChangeDirection0OldPath1NewPath2 {
+            get {
+                return ResourceManager.GetString("MonitorAgentRenameDependencyCheckRemoveDependencyFromLaterParentLaterChangeDirect" +
+                        "ion0OldPath1NewPath2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MonitorAgent: RenameDependencyCheck: Remove dependency dependencyToMove: Direction: {0}. OldPath: {1}. NewPath: {2}..
+        /// </summary>
+        internal static string MonitorAgentRenameDependencyCheckRemoveDependencyToMoveDirection0OldPathNewPath2 {
+            get {
+                return ResourceManager.GetString("MonitorAgentRenameDependencyCheckRemoveDependencyToMoveDirection0OldPathNewPath2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MonitorAgent: RenameDependencyCheck: renamedOverlap equals later change OldPath: {0}. Merge earlier change to SQL..
+        /// </summary>
+        internal static string MonitorAgentRenameDependencyCheckRenamedOverlapEqualsLaterChangeOldPath0MergeEarlierChangeToSQL {
+            get {
+                return ResourceManager.GetString("MonitorAgentRenameDependencyCheckRenamedOverlapEqualsLaterChangeOldPath0MergeEarl" +
+                        "ierChangeToSQL", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MonitorAgent: RenameDependencyCheck: RenamePathSearches not null. Add this inner rename to RenamePathSearches..
+        /// </summary>
+        internal static string MonitorAgentRenameDependencyCheckRenamePathSearchesNotNullAddThisInnerRenameToRenamePathSearches {
+            get {
+                return ResourceManager.GetString("MonitorAgentRenameDependencyCheckRenamePathSearchesNotNullAddThisInnerRenameToRen" +
+                        "amePathSearches", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MonitorAgent: RenameDependencyCheck: RenamePathSearches is null..
+        /// </summary>
+        internal static string MonitorAgentRenameDependencyCheckRenamePathSearchsIsFull {
+            get {
+                return ResourceManager.GetString("MonitorAgentRenameDependencyCheckRenamePathSearchsIsFull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error updating SQL.
+        /// </summary>
+        internal static string MonitorAgentSQLUpdateError {
+            get {
+                return ResourceManager.GetString("MonitorAgentSQLUpdateError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to System does not support Shell32, file will be assumed to be a valid shortcut.
+        /// </summary>
+        internal static string MonitorAgentSystemDoesNotSupportShell32FileWillBeAssumedToBeValidShortcut {
+            get {
+                return ResourceManager.GetString("MonitorAgentSystemDoesNotSupportShell32FileWillBeAssumedToBeValidShortcut", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to toAdd cannot be null.
+        /// </summary>
+        internal static string MonitorAgentToAddCannotBeNull {
+            get {
+                return ResourceManager.GetString("MonitorAgentToAddCannotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to cast thisAction as Action&lt;SQLIndexer.Model.FindFileResult, DateTime, FilePathDictionary&lt;FileMetadata&gt;, GenericHolder&lt;SQLIndexer.Model.FindFileResult&gt;, object&gt;.
+        /// </summary>
+        internal static string MonitorAgentUnableToCastThisActionAsAction {
+            get {
+                return ResourceManager.GetString("MonitorAgentUnableToCastThisActionAsAction", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to fire OnProcessEventGroupCallback due to parameter mismatch.
+        /// </summary>
+        internal static string MonitorAgentUnableToFireOnProcessEventGroupParameterMismatch {
+            get {
+                return ResourceManager.GetString("MonitorAgentUnableToFireOnProcessEventGroupParameterMismatch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to remove FileChange from QueuedChanges after merging to SQL.
+        /// </summary>
+        internal static string MonitorAgentUnableToRemoveFileChangeFromQueuedChangesAfterMergingToSQL {
+            get {
+                return ResourceManager.GetString("MonitorAgentUnableToRemoveFileChangeFromQueuedChangesAfterMergingToSQL", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unknown FileChangeType for CurrentEarlierChange:.
+        /// </summary>
+        internal static string MonitorAgentUnknownFileChangeTypeForCurrentEarlierChange {
+            get {
+                return ResourceManager.GetString("MonitorAgentUnknownFileChangeTypeForCurrentEarlierChange", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unknown FileChangeType for InnerFileChange:.
+        /// </summary>
+        internal static string MonitorAgentUnknownFileChangeTypeforInnerFileChange {
+            get {
+                return ResourceManager.GetString("MonitorAgentUnknownFileChangeTypeforInnerFileChange", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error writing updated file upload metadata to SQL.
+        /// </summary>
+        internal static string MonitorAgentWritingUpdatedFileUploadMetadataToSQL {
+            get {
+                return ResourceManager.GetString("MonitorAgentWritingUpdatedFileUploadMetadataToSQL", resourceCulture);
             }
         }
         
@@ -1123,6 +5764,33 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to BadgeType is not within the acceptable range.
+        /// </summary>
+        internal static string SetBadgeBadgeTypeIsNotWithinTheAcceptableRange {
+            get {
+                return ResourceManager.GetString("SetBadgeBadgeTypeIsNotWithinTheAcceptableRange", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot retrieve property values on an invalid SetBadge.
+        /// </summary>
+        internal static string SetBadgeCannotRetrievePropertyValuesOnAnInvalidSetBadge {
+            get {
+                return ResourceManager.GetString("SetBadgeCannotRetrievePropertyValuesOnAnInvalidSetBadge", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to PathToBadge cannot be null.
+        /// </summary>
+        internal static string SetBadgePathToBadgeCannotBeNull {
+            get {
+                return ResourceManager.GetString("SetBadgePathToBadgeCannotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to ---File upload started---.
         /// </summary>
         internal static string StartedFileUpload {
@@ -1146,6 +5814,15 @@ namespace Cloud.Static {
         internal static string StartMenuFolderNameXP {
             get {
                 return ResourceManager.GetString("StartMenuFolderNameXP", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to PathToBadge cannot be null.
+        /// </summary>
+        internal static string UpdatePathArgsPathToBadgeCannotBeNull {
+            get {
+                return ResourceManager.GetString("UpdatePathArgsPathToBadgeCannotBeNull", resourceCulture);
             }
         }
     }
