@@ -22,7 +22,7 @@ namespace Cloud.JsonContracts
         public string DeviceId { get; set; }
 
         [DataMember(Name = CLDefinitions.RESTRequestFileOrFolderDeletes, IsRequired = false)]
-        public FileOrFolderDeleteRequest [] Deletes { get; set; }
+        public string[] Deletes { get; set; }
 
         [DataMember(Name = CLDefinitions.QueryStringSyncboxId, IsRequired = false)]
         public Nullable<long> SyncboxId { get; set; }

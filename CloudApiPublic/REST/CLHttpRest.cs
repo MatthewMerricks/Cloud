@@ -984,7 +984,7 @@ namespace Cloud.REST
                         Resources.ExceptionOnDemandRenameMissingParameters);
                 }
 
-                FileOrFolderDeleteRequest[] jsonContractDeletes = new FileOrFolderDeleteRequest[itemsToDelete.Length];
+                string[] jsonContractDeletes = new string[itemsToDelete.Length];
 
                 for (int paramIdx = 0; paramIdx < itemsToDelete.Length; paramIdx++)
                 {
@@ -994,12 +994,7 @@ namespace Cloud.REST
                         throw new CLArgumentException(CLExceptionCode.OnDemand_FileRename, String.Format(Resources.ExceptionOnDemandFileItemNullAtIndexMsg0, paramIdx.ToString()));
                     }
 
-                    jsonContractDeletes[paramIdx] = new FileOrFolderDeleteRequest()
-                    {
-                        DeviceId = _copiedSettings.DeviceId,
-                        ServerUid = currentFileItem.Uid,
-                        SyncboxId = _syncbox.SyncboxId
-                    };
+                    jsonContractDeletes[paramIdx] = currentFileItem.Uid;
                 }
 
                 if (!(_copiedSettings.HttpTimeoutMilliseconds > 0))
@@ -1229,7 +1224,7 @@ namespace Cloud.REST
                         Resources.ExceptionOnDemandRenameMissingParameters);
                 }
 
-                FileOrFolderDeleteRequest[] jsonContractDeletes = new FileOrFolderDeleteRequest[itemsToDelete.Length];
+                string[] jsonContractDeletes = new string[itemsToDelete.Length];
 
                 for (int paramIdx = 0; paramIdx < itemsToDelete.Length; paramIdx++)
                 {
@@ -1239,12 +1234,12 @@ namespace Cloud.REST
                         throw new CLArgumentException(CLExceptionCode.OnDemand_FileRename, String.Format(Resources.ExceptionOnDemandFileItemNullAtIndexMsg0, paramIdx.ToString()));
                     }
 
-                    jsonContractDeletes[paramIdx] = new FileOrFolderDeleteRequest()
-                    {
-                        DeviceId = _copiedSettings.DeviceId,
-                        ServerUid = currentFileItem.Uid,
-                        SyncboxId = _syncbox.SyncboxId
-                    };
+                    jsonContractDeletes[paramIdx] = currentFileItem.Uid;
+                    //{
+                        //DeviceId = _copiedSettings.DeviceId,
+                        
+                        //SyncboxId = _syncbox.SyncboxId
+                    //};
                 }
 
                 if (!(_copiedSettings.HttpTimeoutMilliseconds > 0))
@@ -7084,9 +7079,9 @@ namespace Cloud.REST
                         // file deletion and folder deletion share a json contract object for deletion
                         requestContent = new JsonContracts.FileOrFolderDeleteRequest()
                         {
-                            DeviceId = _copiedSettings.DeviceId,
+                            //DeviceId = _copiedSettings.DeviceId,
                             ServerUid = serverUid,
-                            SyncboxId = _syncbox.SyncboxId
+                            //SyncboxId = _syncbox.SyncboxId
                         };
 
                         // server method path switched from whether change is a folder or not

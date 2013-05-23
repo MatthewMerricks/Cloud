@@ -21,7 +21,7 @@ namespace Cloud.JsonContracts
     [DataContract]
     public sealed class SyncboxDeleteFilesResponse
     {
-        [DataMember(Name = CLDefinitions.RESTResponseDeleteFolders, IsRequired = false)]
+        [DataMember(Name = CLDefinitions.RESTResponseDeleteFiles, IsRequired = false)]
         public JsonContracts.FileChangeResponse[] DeleteResponses { get; set; }
     }
 }
