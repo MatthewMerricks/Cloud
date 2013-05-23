@@ -761,8 +761,7 @@ namespace Cloud.Static
     public enum CLSyncMode : int
     {
         CLSyncModeLive,
-        CLSyncModeLiveWithShellExt,
-        CLSyncModeOnDemand
+        CLSyncModeLiveWithShellExt
     }
 
     /// <summary>

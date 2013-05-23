@@ -349,6 +349,11 @@ namespace Cloud
             }
         }
 
+        /// <summary>
+        /// lock on _startLocker for modifications or retrieval
+        /// </summary>
+        private CLSyncEngine _syncEngine = null;
+
         private SetPathProperties setPathHolder;
 
         private sealed class SetPathProperties
@@ -371,20 +376,10 @@ namespace Cloud
             }
             private readonly CLHttpRest _httpRestClient;
 
-            public CLSyncEngine SyncEngine
-            {
-                get
-                {
-                    return _syncEngine;
-                }
-            }
-            private readonly CLSyncEngine _syncEngine;
-
-            public SetPathProperties(string path, CLHttpRest httpRestClient, CLSyncEngine syncEngine)
+            public SetPathProperties(string path, CLHttpRest httpRestClient)
             {
                 this._path = path;
                 this._httpRestClient = httpRestClient;
-                this._syncEngine = syncEngine;
             }
         }
 
@@ -771,30 +766,73 @@ namespace Cloud
                         throw new CLInvalidOperationException(CLExceptionCode.Syncbox_AlreadyStarted, Resources.CLSyncEngineAlreadyStarted);
                     }
 
-                    CLSyncEngine syncEngine;
-                    GetInstanceSyncEngine(out syncEngine);
-
-                    if (mode == CLSyncMode.CLSyncModeOnDemand)
+                    if (this._syncEngine != null)
                     {
-                        throw new ArgumentException("CLSyncMode.CLSyncModeOnDemand is not supported");    //&&&& fix
+                        throw new CLInvalidOperationException(CLExceptionCode.Syncbox_AlreadyStarted, Resources.ExceptionCLSyncboxBeginSyncExistingEngine);
                     }
-                    _syncMode = mode;
 
-                    // Start the sync engine
-                    CLError syncEngineStartError = syncEngine.Start(
-                        statusUpdated: syncStatusChangedCallback, // called when sync status is updated
-                        statusUpdatedUserState: syncStatusChangedCallbackUserState); // the user state passed to the callback above
-
-                    if (syncEngineStartError != null)
+                    bool debugDependenciesValue;
+                    lock (debugDependencies)
                     {
-                        _trace.writeToLog(1, "Error starting sync engine. Msg: {0}. Code: {1}.", syncEngineStartError.PrimaryException.Message, syncEngineStartError.PrimaryException.Code);
-                        syncEngineStartError.Log(_copiedSettings.TraceLocation, _copiedSettings.LogErrors);
-                        startExceptionLogged = true;
-                        throw new CLException(syncEngineStartError.PrimaryException.Code, "Error starting active syncing", syncEngineStartError.Exceptions);
+                        debugDependenciesValue = debugDependencies.Value;
+                    }
+                    bool copyDatabaseBetweenChangesValue;
+                    lock (copyDatabaseBetweenChanges)
+                    {
+                        copyDatabaseBetweenChangesValue = copyDatabaseBetweenChanges.Value;
+                    }
+                    bool debugFileMonitorMemoryValue;
+                    lock (debugFileMonitorMemory)
+                    {
+                        debugFileMonitorMemoryValue = debugFileMonitorMemory.Value;
+                    }
+
+                    // Create the sync engine for this syncbox instance
+                    _syncEngine = new CLSyncEngine(this, debugDependenciesValue, copyDatabaseBetweenChangesValue, debugFileMonitorMemoryValue); // syncbox to sync (contains required settings)
+
+                    try
+                    {
+                        //// OnDemand mode does not start\stop sync, so it is not a valid CLSyncMode anyways (it was removed from that enumeration)
+                        //
+                        //if (mode == CLSyncMode.CLSyncModeOnDemand)
+                        //{
+                        //    throw new CLNotSupportedException(CLExceptionCode.Syncbox_GeneralStart, Resources.ExceptionCLSyncboxBeginSyncOnDemandNotSupported);
+                        //}
+
+                        _syncMode = mode;
+
+                        // Start the sync engine
+                        CLError syncEngineStartError = _syncEngine.Start(
+                            statusUpdated: syncStatusChangedCallback, // called when sync status is updated
+                            statusUpdatedUserState: syncStatusChangedCallbackUserState); // the user state passed to the callback above
+
+                        if (syncEngineStartError != null)
+                        {
+                            _trace.writeToLog(1, "Error starting sync engine. Msg: {0}. Code: {1}.", syncEngineStartError.PrimaryException.Message, syncEngineStartError.PrimaryException.Code);
+                            syncEngineStartError.Log(_copiedSettings.TraceLocation, _copiedSettings.LogErrors);
+                            startExceptionLogged = true;
+                            throw new CLException(syncEngineStartError.PrimaryException.Code, Resources.ExceptionCLSyncboxBeginSyncStartEngine, syncEngineStartError.Exceptions);
+                        }
+                    }
+                    catch
+                    {
+                        if (this._syncEngine != null)
+                        {
+                            try
+                            {
+                                this._syncEngine.Stop();
+                            }
+                            catch
+                            {
+                            }
+                            this._syncEngine = null;
+                        }
+
+                        throw;
                     }
 
                     // The sync engines started with syncboxes must be tracked statically so we can stop them all when the application terminates (in the ShutDown) method.
-                    _startedSyncEngines.Add(syncEngine);
+                    _startedSyncEngines.Add(_syncEngine);
                     _isStarted = true;
                 }
             }
@@ -824,24 +862,23 @@ namespace Cloud
             {
                 lock (_startLocker)
                 {
-                    if (!_isStarted)
+                    if (!_isStarted
+                        || _syncEngine == null)
                     {
                         return;
                     }
 
-                    CLSyncEngine syncEngine;
-                    GetInstanceSyncEngine(out syncEngine);
-
-                    if (syncEngine == null)
+                    try
                     {
-                        return;
+                        // Stop the sync engine.
+                        _syncEngine.Stop();
                     }
-
-                    // Stop the sync engine.
-                    syncEngine.Stop();
+                    catch
+                    {
+                    }
 
                     // Remove this engine from the tracking list.
-                    _startedSyncEngines.Remove(syncEngine);
+                    _startedSyncEngines.Remove(_syncEngine);
 
                     _isStarted = false;
                 }
@@ -870,14 +907,35 @@ namespace Cloud
                 {
                     if (_isStarted)
                     {
-                        throw new CLInvalidOperationException(CLExceptionCode.Syncbox_AlreadyStarted, "Stop the syncbox before resetting local cache.");
+                        throw new CLInvalidOperationException(CLExceptionCode.Syncbox_AlreadyStarted, Resources.ExceptionCLSyncboxResetLocalCacheAlreadyStarted);
                     }
 
-                    CLSyncEngine syncEngine;
-                    GetInstanceSyncEngine(out syncEngine);
+                    if (_syncEngine != null)
+                    {
+                        throw new CLInvalidOperationException(CLExceptionCode.Syncbox_AlreadyStarted, Resources.ExceptionCLSyncboxBeginSyncExistingEngine);
+                    }
+
+                    bool debugDependenciesValue;
+                    lock (debugDependencies)
+                    {
+                        debugDependenciesValue = debugDependencies.Value;
+                    }
+                    bool copyDatabaseBetweenChangesValue;
+                    lock (copyDatabaseBetweenChanges)
+                    {
+                        copyDatabaseBetweenChangesValue = copyDatabaseBetweenChanges.Value;
+                    }
+                    bool debugFileMonitorMemoryValue;
+                    lock (debugFileMonitorMemory)
+                    {
+                        debugFileMonitorMemoryValue = debugFileMonitorMemory.Value;
+                    }
+
+                    // Create the sync engine for this syncbox instance
+                    CLSyncEngine tempSyncEngine = new CLSyncEngine(this, debugDependenciesValue, copyDatabaseBetweenChangesValue, debugFileMonitorMemoryValue); // syncbox to sync (contains required settings)
 
                     // Reset the sync engine
-                    CLError resetSyncError = syncEngine.SyncReset(this);
+                    CLError resetSyncError = tempSyncEngine.SyncReset(this);
                     if (resetSyncError != null)
                     {
                         _trace.writeToLog(1, "CLSyncbox: ResetLocalCache: ERROR: From syncEngine.SyncReset: Msg: {0}. Code {1}.", resetSyncError.PrimaryException.Message, resetSyncError.PrimaryException.Code);
@@ -920,22 +978,15 @@ namespace Cloud
                 {
                     if (!_isStarted)
                     {
-                        throw new CLInvalidOperationException(CLExceptionCode.Syncbox_NotStarted, "Start the syncbox first.");
+                        throw new CLInvalidOperationException(CLExceptionCode.Syncbox_NotStarted, Resources.ExceptionCLSyncboxNotStarted);
                     }
 
-                    CLSyncEngine syncEngine;
-                    GetInstanceSyncEngine(out syncEngine);
+                    if (_syncEngine == null)
+                    {
+                        throw new CLInvalidOperationException(CLExceptionCode.Syncbox_NotStarted, Resources.ExceptionCLSyncboxEngineNotFound);
+                    }
 
-                    if (syncEngine == null)
-                    {
-                        //throw new NullReferenceException("Sync not started");
-                        status = new CLSyncCurrentStatus(CLSyncCurrentState.Idle, null);
-                        return null;
-                    }
-                    else
-                    {
-                        return syncEngine.GetCurrentStatus(out status);
-                    }
+                    return _syncEngine.GetCurrentStatus(out status);
                 }
             }
             catch (Exception ex)
@@ -945,7 +996,7 @@ namespace Cloud
             }
         }
 
-        /// <summary>
+        /// <summary>l
         /// Call when application is shutting down.
         /// </summary>
         public static void Shutdown()
@@ -4291,8 +4342,7 @@ namespace Cloud
         /// </summary>
         /// <param name="path">(output) The syncbox path.</param>
         /// <param name="httpRestClient">(output) The HTTP REST client.</param>
-        /// <param name="syncEngine">(output) The sync engine.</param>
-        private void GetInstanceVariables(out string path, out CLHttpRest httpRestClient, out CLSyncEngine syncEngine)
+        private void GetInstanceVariables(out string path, out CLHttpRest httpRestClient)
         {
             if (setPathLocker != null)
             {
@@ -4302,55 +4352,18 @@ namespace Cloud
             {
                 if (setPathHolder == null
                     || setPathHolder.Path == null
-                    || setPathHolder.HttpRestClient == null
-                    || setPathHolder.SyncEngine == null)
+                    || setPathHolder.HttpRestClient == null)
                 {
-                    throw new CLNullReferenceException(CLExceptionCode.Syncbox_BadPath, "path must be set first");
+                    throw new CLNullReferenceException(CLExceptionCode.Syncbox_BadPath, Resources.ExceptionCLSyncboxPathNotSet);
                 }
 
                 path = setPathHolder.Path;
                 httpRestClient = setPathHolder.HttpRestClient;
-                syncEngine = setPathHolder.SyncEngine;
             }
             catch (Exception ex)
             {
                 path = null;
                 httpRestClient = null;
-                syncEngine = null;
-                throw ex;
-            }
-            finally
-            {
-                if (setPathLocker != null)
-                {
-                    Monitor.Exit(setPathLocker);
-                }
-            }
-        }
-
-        /// <summary>
-        /// Get this syncbox's sync engine instance.  Throws if null.
-        /// </summary>
-        /// <param name="syncEngine">(output) The sync engine.</param>
-        private void GetInstanceSyncEngine(out CLSyncEngine syncEngine)
-        {
-            if (setPathLocker != null)
-            {
-                Monitor.Enter(setPathLocker);
-            }
-            try
-            {
-                if (setPathHolder == null
-                    || setPathHolder.SyncEngine == null)
-                {
-                    throw new CLNullReferenceException(CLExceptionCode.Syncbox_BadPath, "path must be set first");
-                }
-
-                syncEngine = setPathHolder.SyncEngine;
-            }
-            catch (Exception ex)
-            {
-                syncEngine = null;
                 throw ex;
             }
             finally
@@ -4447,7 +4460,7 @@ namespace Cloud
 
 
                 // Set the path early because the CLHttpRest factory needs it.
-                setPathHolder = new SetPathProperties(path, null, null);
+                setPathHolder = new SetPathProperties(path, null);
 
                 // Create an instance of the CLHttpRest client for this syncbox
                 CLHttpRest localRestClient;
@@ -4478,11 +4491,17 @@ namespace Cloud
 
                     throw new CLNullReferenceException(CLExceptionCode.Syncbox_CreateRestClient, nullRestClient);
                 }
+                
+                // after removing CLSyncEngine from SetPathProperties, can now set the final setPathHolder here
+                setPathHolder = new SetPathProperties(path, localRestClient);
 
                 if (shouldUupdateSyncboxStatusFromServer)
                 {
-                    // Set the rest client early too because GetCurrentSyncboxStatus neeeds it.
-                    setPathHolder = new SetPathProperties(path, localRestClient, null);
+                    //// removed CLSyncEngine from SetPathProperties, so can completely set setPathHolder before this statement
+                    //
+                    //// OLD CODE:
+                    //// Set the rest client early too because GetCurrentSyncboxStatus neeeds it.
+                    //setPathHolder = new SetPathProperties(path, localRestClient, null);
 
                     // We need to validate the syncbox ID with the server with these credentials.  We will also retrieve the other syncbox
                     // properties from the server and set them into this local object's properties.
@@ -4492,27 +4511,6 @@ namespace Cloud
                         throw new CLException(CLExceptionCode.Syncbox_InitialStatus, Resources.ExceptionSyncboxStartStatus, errorFromStatus.Exceptions);
                     }
                 }
-
-                bool debugDependenciesValue;
-                lock (debugDependencies)
-                {
-                    debugDependenciesValue = debugDependencies.Value;
-                }
-                bool copyDatabaseBetweenChangesValue;
-                lock (copyDatabaseBetweenChanges)
-                {
-                    copyDatabaseBetweenChangesValue = copyDatabaseBetweenChanges.Value;
-                }
-                bool debugFileMonitorMemoryValue;
-                lock (debugFileMonitorMemory)
-                {
-                    debugFileMonitorMemoryValue = debugFileMonitorMemory.Value;
-                }
-
-                // Create the sync engine for this syncbox instance
-                CLSyncEngine localSyncEngine = new CLSyncEngine(this, debugDependenciesValue, copyDatabaseBetweenChangesValue, debugFileMonitorMemoryValue); // syncbox to sync (contains required settings)
-
-                setPathHolder = new SetPathProperties(path, localRestClient, localSyncEngine);
             }
             catch (Exception ex)
             {

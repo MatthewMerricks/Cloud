@@ -3216,7 +3216,7 @@ namespace Cloud.Static
                         try
                         {
                             // grab the upload request stream asynchronously since it can take longer than the provided timeout milliseconds
-                            httpRequestStream = AsyncGetUploadRequestStreamOrDownloadResponse(uploadDownload.ShutdownToken, httpRequest, upload: true) as Stream;
+                            httpRequestStream = AsyncGetUploadRequestStreamOrDownloadResponse(uploadDownload.ShutdownToken, httpRequest, upload: true, millisecondsTimeout: timeoutMilliseconds) as Stream;
                         }
                         catch (WebException ex)
                         {
@@ -3457,7 +3457,7 @@ namespace Cloud.Static
                     try
                     {
                         // grab the download response asynchronously so its time is not limited to the timeout milliseconds
-                        httpResponse = AsyncGetUploadRequestStreamOrDownloadResponse(uploadDownload.ShutdownToken, httpRequest, upload: false) as HttpWebResponse;
+                        httpResponse = AsyncGetUploadRequestStreamOrDownloadResponse(uploadDownload.ShutdownToken, httpRequest, upload: false, millisecondsTimeout: timeoutMilliseconds) as HttpWebResponse;
 
                         storeEx = null;
                     }
@@ -4401,7 +4401,7 @@ namespace Cloud.Static
         /// <summary>
         /// a dual-function wrapper for making asynchronous calls for either retrieving an upload request stream or retrieving a download response
         /// </summary>
-        internal static object AsyncGetUploadRequestStreamOrDownloadResponse(CancellationTokenSource shutdownToken, HttpWebRequest httpRequest, bool upload)
+        internal static object AsyncGetUploadRequestStreamOrDownloadResponse(CancellationTokenSource shutdownToken, HttpWebRequest httpRequest, bool upload, int millisecondsTimeout)
         {
             // declare the output object which would be either a Stream for upload request or an HttpWebResponse for a download response
             object toReturn;
@@ -4476,15 +4476,6 @@ namespace Cloud.Static
                     {
                         // mark AsyncRequestHolder with error and pulse out
                         Data.Error.Value = ex;
-
-                        if (param1 == null
-                            || !param1.CompletedSynchronously)
-                        {
-                            lock (Data)
-                            {
-                                Monitor.Pulse(Data);
-                            }
-                        }
                     }
                 },
                 null);
@@ -4492,30 +4483,33 @@ namespace Cloud.Static
             // declare result from async http call
             IAsyncResult requestOrResponseAsyncResult;
 
-            // lock on async holder for modification
-            lock (MakeAsyncRequestSynchronous.TypedData)
+            // create a callback which handles the IAsyncResult style used in wrapping an asyncronous method to make it synchronous
+            AsyncCallback requestOrResponseCallback = new AsyncCallback(MakeAsyncRequestSynchronous.VoidProcess);
+
+            // if this helper was called for an upload, then the action is for the request stream
+            if (upload)
             {
-                // create a callback which handles the IAsyncResult style used in wrapping an asyncronous method to make it synchronous
-                AsyncCallback requestOrResponseCallback = new AsyncCallback(MakeAsyncRequestSynchronous.VoidProcess);
+                // begin getting the upload request stream asynchronously, using callback which will take the async holder and make the request synchronous again, storing the result
+                requestOrResponseAsyncResult = httpRequest.BeginGetRequestStream(requestOrResponseCallback, state: null); // state is contained in the callback itself
+            }
+            // else if this helper was called for a download, then the action is for the response
+            else
+            {
+                // begin getting the download response asynchronously, using callback which will take the async holder and make the request synchronous again, storing the result
+                requestOrResponseAsyncResult = httpRequest.BeginGetResponse(requestOrResponseCallback, state: null); // state is contained in the callback itself
+            }
 
-                // if this helper was called for an upload, then the action is for the request stream
-                if (upload)
+            // if the request was not already completed synchronously, wait on it to complete
+            if (!MakeAsyncRequestSynchronous.TypedData.CompletedSynchronously.Value)
+            {
+                // wait on the request to become synchronous again
+                if (!requestOrResponseAsyncResult.AsyncWaitHandle.WaitOne(millisecondsTimeout))
                 {
-                    // begin getting the upload request stream asynchronously, using callback which will take the async holder and make the request synchronous again, storing the result
-                    requestOrResponseAsyncResult = httpRequest.BeginGetRequestStream(requestOrResponseCallback, state: null); // state is contained in the callback itself
-                }
-                // else if this helper was called for a download, then the action is for the response
-                else
-                {
-                    // begin getting the download response asynchronously, using callback which will take the async holder and make the request synchronous again, storing the result
-                    requestOrResponseAsyncResult = httpRequest.BeginGetResponse(requestOrResponseCallback, state: null); // state is contained in the callback itself
-                }
-
-                // if the request was not already completed synchronously, wait on it to complete
-                if (!MakeAsyncRequestSynchronous.TypedData.CompletedSynchronously.Value)
-                {
-                    // wait on the request to become synchronous again
-                    Monitor.Wait(MakeAsyncRequestSynchronous.TypedData);
+                    throw new CLHttpException(
+                        status: null,
+                        response: null,
+                        code: CLExceptionCode.Http_NoResponse,
+                        message: Resources.ExceptionHelpersProcessHttpInnerAsyncTimeout);
                 }
             }
 

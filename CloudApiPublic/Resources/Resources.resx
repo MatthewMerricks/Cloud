@@ -1575,4 +1575,28 @@
     <value>Error on SetMD5 from MD5 of an existing change</value>
     <comment>SetMD5 and MD5 should not be translated</comment>
   </data>
+  <data name="ExceptionCLSyncboxBeginSyncExistingEngine" xml:space="preserve">
+    <value>Not marked as already started, but still has an existing CLSyncEngine</value>
+    <comment>CLSyncEngine should not be translated</comment>
+  </data>
+  <data name="ExceptionCLSyncboxBeginSyncStartEngine" xml:space="preserve">
+    <value>Error starting active syncing</value>
+  </data>
+  <data name="ExceptionCLSyncboxEngineNotFound" xml:space="preserve">
+    <value>Marked as started, but does not have an existing CLSyncEngine</value>
+    <comment>CLSyncEngine should not be translated</comment>
+  </data>
+  <data name="ExceptionCLSyncboxNotStarted" xml:space="preserve">
+    <value>Start the syncbox first</value>
+  </data>
+  <data name="ExceptionCLSyncboxPathNotSet" xml:space="preserve">
+    <value>path must be set first</value>
+    <comment>path should not be translated</comment>
+  </data>
+  <data name="ExceptionCLSyncboxResetLocalCacheAlreadyStarted" xml:space="preserve">
+    <value>Stop the syncbox before resetting local cache</value>
+  </data>
+  <data name="ExceptionHelpersProcessHttpInnerAsyncTimeout" xml:space="preserve">
+    <value>Asynchronously getting request stream or getting response has timed out</value>
+  </data>
 </root>

@@ -2544,8 +2544,11 @@ namespace Cloud.FileMonitor
                         List<FileChange> logFailedOut = null;
                         bool loggingEnabled = (this._syncbox.CopiedSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow;
 
-                        List<FilePath> queuedChangesFilteredKeys = null;
-                        List<FileChange> queuedChangesForceProcessingFilteredKeys = null;
+                        //// do not check for orphaned records by EventId since events from initial indexing which already existed have a non-zero EventId
+                        //
+                        //List<FilePath> queuedChangesFilteredKeys = null;
+                        //List<FileChange> queuedChangesForceProcessingFilteredKeys = null;
+
                         var AllFileChanges = (ProcessingChanges.DequeueAll()
                             .Where(currentProcessingChange => nullCheckAndMarkFound(currentProcessingChange, nullFound)) // added nullable FileChange so that syncing can be triggered by queueing a null
                             .Select(currentProcessingChange => new KeyValuePair<FileChangeSource, KeyValuePair<bool, FileChange>>(FileChangeSource.ProcessingChanges, new KeyValuePair<bool, FileChange>(false, currentProcessingChange)))
@@ -2553,45 +2556,49 @@ namespace Cloud.FileMonitor
                             .Concat((failedOutChanges ?? Enumerable.Empty<FileChange>()).Select(currentFailedOut => new KeyValuePair<FileChangeSource, KeyValuePair<bool, FileChange>>(FileChangeSource.FailedOutList, new KeyValuePair<bool,FileChange>(false, currentFailedOut))))
                             .OrderBy(eventOrdering => eventOrdering.Value.Value.EventId)
                             .Concat(QueuedChanges
-                                .Where(queuedChange => // just in case there was a leftover change in one of the queues and the event probably already continued to processing
-                                    {
-                                        if (queuedChange.Value.EventId == 0)
-                                        {
-                                            return true;
-                                        }
-
-                                        // cleanup the orphaned change
-                                        if (queuedChangesFilteredKeys == null)
-                                        {
-                                            queuedChangesFilteredKeys = new List<FilePath>(Helpers.EnumerateSingleItem(queuedChange.Key));
-                                        }
-                                        else
-                                        {
-                                            queuedChangesFilteredKeys.Add(queuedChange.Key);
-                                        }
-
-                                        return false;
-                                    })
+                                //// do not check for orphaned records by EventId since events from initial indexing which already existed have a non-zero EventId
+                                //
+                                //.Where(queuedChange => // just in case there was a leftover change in one of the queues and the event probably already continued to processing
+                                //    {
+                                //        if (queuedChange.Value.EventId == 0)
+                                //        {
+                                //            return true;
+                                //        }
+                                //
+                                //        // cleanup the orphaned change
+                                //        if (queuedChangesFilteredKeys == null)
+                                //        {
+                                //            queuedChangesFilteredKeys = new List<FilePath>(Helpers.EnumerateSingleItem(queuedChange.Key));
+                                //        }
+                                //        else
+                                //        {
+                                //            queuedChangesFilteredKeys.Add(queuedChange.Key);
+                                //        }
+                                //
+                                //        return false;
+                                //    })
                                 .Concat(QueuedChangesForceProcessing
-                                    .Where(forcedToProcess => // just in case there was a leftover change in one of the queues and the event probably already continued to processing
-                                        {
-                                            if (forcedToProcess.EventId == 0)
-                                            {
-                                                return true;
-                                            }
-
-                                            // cleanup the orphaned change
-                                            if (queuedChangesForceProcessingFilteredKeys == null)
-                                            {
-                                                queuedChangesForceProcessingFilteredKeys = new List<FileChange>(Helpers.EnumerateSingleItem(forcedToProcess));
-                                            }
-                                            else
-                                            {
-                                                queuedChangesForceProcessingFilteredKeys.Add(forcedToProcess);
-                                            }
-
-                                            return false;
-                                        })
+                                    //// do not check for orphaned records by EventId since events from initial indexing which already existed have a non-zero EventId
+                                    //
+                                    //.Where(forcedToProcess => // just in case there was a leftover change in one of the queues and the event probably already continued to processing
+                                    //    {
+                                    //        if (forcedToProcess.EventId == 0)
+                                    //        {
+                                    //            return true;
+                                    //        }
+                                    //
+                                    //        // cleanup the orphaned change
+                                    //        if (queuedChangesForceProcessingFilteredKeys == null)
+                                    //        {
+                                    //            queuedChangesForceProcessingFilteredKeys = new List<FileChange>(Helpers.EnumerateSingleItem(forcedToProcess));
+                                    //        }
+                                    //        else
+                                    //        {
+                                    //            queuedChangesForceProcessingFilteredKeys.Add(forcedToProcess);
+                                    //        }
+                                    //
+                                    //        return false;
+                                    //    })
                                     .Select(forcedToProcess => new KeyValuePair<FilePath, FileChange>(/* FilePath */ null, forcedToProcess)))
                                 .OrderBy(memoryIdOrdering => memoryIdOrdering.Value.InMemoryId)
                                 .Select(queuedChange => reselectQueuedChangeAndAddToMapping(queuedChange, originalQueuedChangesIndexesByInMemoryIds)))
@@ -2656,14 +2663,17 @@ namespace Cloud.FileMonitor
                                     };
                                 })
                             .ToArray();
-                        if (queuedChangesFilteredKeys != null)
-                        {
-                            queuedChangesFilteredKeys.ForEach(queuedChange => QueuedChanges.Remove(queuedChange));
-                        }
-                        if (queuedChangesForceProcessingFilteredKeys != null)
-                        {
-                            queuedChangesForceProcessingFilteredKeys.ForEach(forcedToProcess => QueuedChangesForceProcessing.Remove(forcedToProcess));
-                        }
+
+                        //// do not check for orphaned records by EventId since events from initial indexing which already existed have a non-zero EventId
+                        //
+                        //if (queuedChangesFilteredKeys != null)
+                        //{
+                        //    queuedChangesFilteredKeys.ForEach(queuedChange => QueuedChanges.Remove(queuedChange));
+                        //}
+                        //if (queuedChangesForceProcessingFilteredKeys != null)
+                        //{
+                        //    queuedChangesForceProcessingFilteredKeys.ForEach(forcedToProcess => QueuedChangesForceProcessing.Remove(forcedToProcess));
+                        //}
 
                         // advanced trace
                         if (loggingEnabled)
