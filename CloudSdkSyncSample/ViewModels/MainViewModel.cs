@@ -1310,7 +1310,7 @@ namespace SampleLiveSync.ViewModels
                 {
                     // start syncing
                     CLSyncMode syncMode = Properties.Settings.Default.BadgingEnabled ? CLSyncMode.CLSyncModeLiveWithShellExt : CLSyncMode.CLSyncModeLive;
-                    CLError errorFromSyncboxStart = _syncbox.BeginSync(
+                    CLError errorFromSyncboxStart = _syncbox.StartLiveSync(
                         syncMode,
                         syncStatusChangedCallback: OnSyncStatusUpdated, // called when sync status is updated
                         syncStatusChangedCallbackUserState: this); // the user state passed to the callback above
@@ -1573,7 +1573,7 @@ namespace SampleLiveSync.ViewModels
                     {
                         SetSyncboxStartedState(isStartedStateToSet: false);
                         _syncStarted = false;
-                        _syncbox.EndSync();
+                        _syncbox.StopLiveSync();
                     }
                 }
             }

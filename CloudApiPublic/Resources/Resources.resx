@@ -1621,4 +1621,10 @@
     <value>newName must be specified</value>
     <comment>Do not translate "newName".</comment>
   </data>
+  <data name="ExceptionOnDemandItemToMoveMustNotBeNull" xml:space="preserve">
+    <value>Item to move must not be null</value>
+  </data>
+  <data name="ExceptionOnDemandNewParentFolderMustBeSpecified" xml:space="preserve">
+    <value>New parent folder must be specified</value>
+  </data>
 </root>

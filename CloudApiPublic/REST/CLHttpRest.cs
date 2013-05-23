@@ -363,9 +363,9 @@ namespace Cloud.REST
         }
         #endregion  // end GetItemAtPath (Gets the metedata at a particular server syncbox path)
 
-        #region RenameFiles (Rename files in the syncbox.)
+        #region RenameFiles (Rename files in-place in the syncbox.)
         /// <summary>
-        /// Asynchronously starts renaming files in the syncbox.
+        /// Asynchronously starts renaming files in-place in the syncbox.
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
         /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
@@ -417,7 +417,7 @@ namespace Cloud.REST
         }
 
         /// <summary>
-        /// Finishes renaming files in the syncbox, if it has not already finished via its asynchronous result, and outputs the result,
+        /// Finishes renaming files in-place in the syncbox, if it has not already finished via its asynchronous result, and outputs the result,
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
         /// </summary>
         /// <param name="asyncResult">The asynchronous result provided upon starting the request</param>
@@ -429,7 +429,7 @@ namespace Cloud.REST
         }
 
         /// <summary>
-        /// Rename files in the syncbox.
+        /// Rename files in-place in the syncbox.
         /// </summary>
         /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
         /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the item completion callback above is fired.</param>
@@ -475,10 +475,8 @@ namespace Cloud.REST
                     // file move (rename) and folder move (rename) share a json contract object for move (rename)
                     jsonContractMoves[paramIdx] = new FileOrFolderMove()
                     {
-                        DeviceId = _copiedSettings.DeviceId,
                         RelativeToPath = fullPathNew.GetRelativePath(_syncbox.Path, true),
                         ServerUid = currentParams.ItemToRename.Uid,
-                        SyncboxId = _syncbox.SyncboxId
                     };
                 }
 
@@ -628,11 +626,11 @@ namespace Cloud.REST
             return null;
         }
 
-        #endregion  // end RenameFiles (Renames files in the syncbox.)
+        #endregion  // end RenameFiles (Renames files in-place in the syncbox.)
 
-        #region RenameFolders (Rename folders in the syncbox.)
+        #region RenameFolders (Rename folders in-place in the syncbox.)
         /// <summary>
-        /// Asynchronously starts renaming folders in the syncbox.
+        /// Asynchronously starts renaming folders in-place in the syncbox.
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
         /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
@@ -684,7 +682,7 @@ namespace Cloud.REST
         }
 
         /// <summary>
-        /// Finishes renaming folders in the syncbox, if it has not already finished via its asynchronous result, and outputs the result,
+        /// Finishes renaming folders in-place in the syncbox, if it has not already finished via its asynchronous result, and outputs the result,
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
         /// </summary>
         /// <param name="asyncResult">The asynchronous result provided upon starting the request</param>
@@ -696,7 +694,7 @@ namespace Cloud.REST
         }
 
         /// <summary>
-        /// Rename folders in the syncbox.
+        /// Rename folders in-place in the syncbox.
         /// </summary>
         /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
         /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the item completion callback above is fired.</param>
@@ -742,10 +740,542 @@ namespace Cloud.REST
                     // file move (rename) and folder move (rename) share a json contract object for move (rename)
                     jsonContractMoves[paramIdx] = new FileOrFolderMove()
                     {
-                        DeviceId = _copiedSettings.DeviceId,
                         RelativeToPath = fullPathNew.GetRelativePath(_syncbox.Path, true),
                         ServerUid = currentParams.ItemToRename.Uid,
-                        SyncboxId = _syncbox.SyncboxId
+                    };
+                }
+
+                if (!(_copiedSettings.HttpTimeoutMilliseconds > 0))
+                {
+                    throw new CLArgumentException(CLExceptionCode.OnDemand_TimeoutMilliseconds, Resources.CLCredentialMSTimeoutMustBeGreaterThanZero);
+                }
+
+                // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
+                Helpers.RequestNewCredentialsInfo requestNewCredentialsInfo = new Helpers.RequestNewCredentialsInfo()
+                {
+                    ProcessingStateByThreadId = _processingStateByThreadId,
+                    GetNewCredentialsCallback = _getNewCredentialsCallback,
+                    GetNewCredentialsCallbackUserState = _getNewCredentialsCallbackUserState,
+                    GetCurrentCredentialsCallback = GetCurrentCredentialsCallback,
+                    SetCurrentCredentialsCallback = SetCurrentCredentialCallback,
+                };
+
+                // Now make the REST request content.
+                object requestContent = new JsonContracts.FileOrFolderMoves()
+                {
+                    SyncboxId = _syncbox.SyncboxId,
+                    Moves = jsonContractMoves,
+                    DeviceId = _copiedSettings.DeviceId
+                };
+
+                // server method path
+                string serverMethodPath = CLDefinitions.MethodPathOneOffFolderMoves;
+
+                // Communicate with the server to get the response.
+                JsonContracts.SyncboxMoveFilesOrFoldersResponse responseFromServer;
+                responseFromServer = Helpers.ProcessHttp<JsonContracts.SyncboxMoveFilesOrFoldersResponse>(requestContent, // dynamic type of request content based on method path
+                    CLDefinitions.CLMetaDataServerURL, // base domain is the MDS server
+                    serverMethodPath, // dynamic path to appropriate one-off method
+                    Helpers.requestMethod.post, // one-off methods are all posts
+                    _copiedSettings.HttpTimeoutMilliseconds, // time before communication timeout
+                    null, // not an upload or download
+                    Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
+                    _copiedSettings, // pass the copied settings
+                    _syncbox.SyncboxId, // pass the unique id of the sync box on the server
+                    requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
+                    true);
+
+                // Convert these items to the output array.
+                if (responseFromServer != null && responseFromServer.MoveResponses != null)
+                {
+                    if (responseFromServer.MoveResponses.Length != itemParams.Length)
+                    {
+                        throw new CLException(CLExceptionCode.OnDemand_FolderRename, Resources.ExceptionOnDemandResponseArrayLength);
+                    }
+
+                    List<CLFileItem> listFileItems = new List<CLFileItem>();
+                    List<CLError> listErrors = new List<CLError>();
+
+                    for (int responseIdx = 0; responseIdx < responseFromServer.MoveResponses.Length; responseIdx++)
+                    {
+                        try
+                        {
+                            FileChangeResponse currentMoveResponse = responseFromServer.MoveResponses[responseIdx];
+
+                            if (currentMoveResponse == null)
+                            {
+                                throw new CLNullReferenceException(CLExceptionCode.OnDemand_MissingResponseField, Resources.ExceptionOnDemandNullItem);
+                            }
+                            if (currentMoveResponse.Header == null || string.IsNullOrEmpty(currentMoveResponse.Header.Status))
+                            {
+                                throw new CLNullReferenceException(CLExceptionCode.OnDemand_MissingResponseField, Resources.ExceptionOnDemandNullStatus);
+                            }
+                            if (currentMoveResponse.Metadata == null)
+                            {
+                                throw new CLNullReferenceException(CLExceptionCode.OnDemand_MissingResponseField, Resources.ExceptionOnDemandNullMetadata);
+                            }
+
+                            switch (currentMoveResponse.Header.Status)
+                            {
+                                case CLDefinitions.CLEventTypeNoOperation:
+                                case CLDefinitions.CLEventTypeAccepted:
+                                    CLFileItem resultItem = new CLFileItem(currentMoveResponse.Metadata, currentMoveResponse.Header.Action, currentMoveResponse.Action, _syncbox);
+                                    if (itemCompletionCallback != null)
+                                    {
+                                        try
+                                        {
+                                            itemCompletionCallback(responseIdx, resultItem, error: null, userState: itemCompletionCallbackUserState);
+                                        }
+                                        catch
+                                        {
+                                        }
+                                    }
+                                    break;
+
+                                case CLDefinitions.CLEventTypeAlreadyDeleted:
+                                    throw new CLException(CLExceptionCode.OnDemand_AlreadyDeleted, Resources.ExceptionOnDemandAlreadyDeleted);
+
+                                //// to_parent_uid not an input parameter, we do not expect to see it in the status so it is commented out:
+                                //case CLDefinitions.CLEventTypeToParentNotFound:
+                                case CLDefinitions.CLEventTypeNotFound:
+                                    throw new CLException(CLExceptionCode.OnDemand_NotFound, Resources.ExceptionOnDemandNotFound);
+
+                                case CLDefinitions.CLEventTypeConflict:
+                                    throw new CLException(CLExceptionCode.OnDemand_Conflict, Resources.ExceptionOnDemandConflict);
+
+                                case CLDefinitions.RESTResponseStatusFailed:
+                                    Exception innerEx;
+                                    string errorMessageString;
+                                    try
+                                    {
+                                        errorMessageString = string.Join(Environment.NewLine, currentMoveResponse.Metadata.ErrorMessage);
+                                        innerEx = null;
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        errorMessageString = Resources.ExceptionOnDemandDeserializeErrorMessage;
+                                        innerEx = ex;
+                                    }
+
+                                    throw new CLException(CLExceptionCode.OnDemand_ItemError, Resources.ExceptionOnDemandItemError, new Exception(errorMessageString, innerEx));
+
+                                default:
+                                    throw new CLException(CLExceptionCode.OnDemand_UnknownItemStatus, string.Format(Resources.ExceptionOnDemandUnknownItemStatus, currentMoveResponse.Header.Status));
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            if (itemCompletionCallback != null)
+                            {
+                                try
+                                {
+                                    itemCompletionCallback(responseIdx, completedItem: null, error: ex, userState: itemCompletionCallbackUserState);
+                                }
+                                catch
+                                {
+                                }
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    throw new CLNullReferenceException(CLExceptionCode.OnDemand_FolderRename, Resources.ExceptionCLHttpRestWithoutMoveResponses);
+                }
+            }
+            catch (Exception ex)
+            {
+                return ex;
+            }
+
+            return null;
+        }
+
+        #endregion  // end RenameFolders (Renames folders in-place in the syncbox.)
+
+        #region MoveFiles (Move files in the syncbox.)
+        /// <summary>
+        /// Asynchronously starts moving files in the syncbox.
+        /// </summary>
+        /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
+        /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
+        /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
+        /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the item completion callback above is fired.</param>
+        /// <param name="itemParams">One or more parameter pairs (item to rename and new name) to be used to move each item.</param>
+        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        internal IAsyncResult BeginMoveFiles(AsyncCallback asyncCallback, object asyncCallbackUserState, CLFileItemCompletion itemCompletionCallback, object itemCompletionCallbackUserState, params MoveItemParams[] itemParams)
+        {
+            var asyncThread = DelegateAndDataHolderBase.Create(
+                // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
+                new
+                {
+                    // create the asynchronous result to return
+                    toReturn = new GenericAsyncResult<CLError>(
+                        asyncCallback,
+                        asyncCallbackUserState),
+                    itemParams = itemParams
+                },
+                (Data, errorToAccumulate) =>
+                {
+                    // The ThreadProc.
+                    // try/catch to process with the input parameters, on catch set the exception in the asyncronous result
+                    try
+                    {
+                        // alloc and init the syncbox with the passed parameters, storing any error that occurs
+                        CLError overallError = MoveFiles(
+                            itemCompletionCallback,
+                            itemCompletionCallbackUserState,
+                            Data.itemParams);
+
+                        Data.toReturn.Complete(overallError, // any overall error that may have occurred during processing
+                            sCompleted: false); // processing did not complete synchronously
+                    }
+                    catch (Exception ex)
+                    {
+                        Data.toReturn.HandleException(
+                            ex, // the exception which was not handled correctly by the CLError wrapping
+                            sCompleted: false); // processing did not complete synchronously
+                    }
+                },
+                null);
+
+            // create the thread from a void (object) parameterized start which wraps the synchronous method call
+            (new Thread(new ThreadStart(asyncThread.VoidProcess))).Start(); // start the asynchronous processing thread which is attached to its data
+
+            // return the asynchronous result
+            return asyncThread.TypedData.toReturn;
+        }
+
+        /// <summary>
+        /// Finishes moving files in the syncbox, if it has not already finished via its asynchronous result, and outputs the result,
+        /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
+        /// </summary>
+        /// <param name="asyncResult">The asynchronous result provided upon starting the request</param>
+        /// <param name="result">(output) An overall error which occurred during processing, if any</param>
+        /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
+        internal CLError EndMoveFiles(IAsyncResult asyncResult, out SyncboxMoveFilesResult result)
+        {
+            return Helpers.EndAsyncOperation<SyncboxMoveFilesResult>(asyncResult, out result);
+        }
+
+        /// <summary>
+        /// Move files in the syncbox.
+        /// </summary>
+        /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
+        /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the item completion callback above is fired.</param>
+        /// <param name="itemParams">One or more parameter pairs (item to rename and new name) to be used to move each item.</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        internal CLError MoveFiles(CLFileItemCompletion itemCompletionCallback, object itemCompletionCallbackUserState, params MoveItemParams[] itemParams)
+        {
+            // try/catch to process the request,  On catch return the error
+            try
+            {
+                // check input parameters.
+
+                if (itemParams == null
+                    || itemParams.Length == 0)
+                {
+                    throw new CLArgumentNullException(
+                        CLExceptionCode.OnDemand_RenameMissingParameters,
+                        Resources.ExceptionOnDemandRenameMissingParameters);
+                }
+
+                FileOrFolderMove[] jsonContractMoves = new FileOrFolderMove[itemParams.Length];
+                FilePath syncboxPathObject = _syncbox.Path;
+
+                for (int paramIdx = 0; paramIdx < itemParams.Length; paramIdx++)
+                {
+                    MoveItemParams currentParams = itemParams[paramIdx];
+                    if (currentParams == null)
+                    {
+                        throw new CLArgumentException(CLExceptionCode.OnDemand_FileRename, String.Format(Resources.ExceptionOnDemandFileItemNullAtIndexMsg0, paramIdx.ToString()));
+                    }
+
+                    // The CLFileItem represents an existing file, and should be valid because we created it.  The new full path must
+                    // fit the specs for the Windows client.  Determine the new full path of the renamed file path and check its validity.
+                    if (String.IsNullOrWhiteSpace(currentParams.ItemToMove.Path))
+                    {
+                        throw new CLArgumentException(CLExceptionCode.OnDemand_InvalidExistingPath, String.Format(Resources.ExceptionOnDemandRenameFilesInvalidExistingPathInItemMsg0, paramIdx.ToString()));
+                    }
+                    FilePath fullPathExisting = new FilePath(currentParams.ItemToMove.Path, _syncbox.Path);
+                    string nameExisting = fullPathExisting.Name;
+                    FilePath fullPathNewParentFolder = new FilePath(currentParams.NewParentPath);
+                    FilePath fullPathNewMovedFile = new FilePath(nameExisting, fullPathNewParentFolder);
+
+                    CheckPath(fullPathNewMovedFile, CLExceptionCode.OnDemand_MovedItemBadPath);
+
+                    // file move (rename) and folder move (rename) share a json contract object for move (rename)
+                    jsonContractMoves[paramIdx] = new FileOrFolderMove()
+                    {
+                        RelativeToPath = fullPathNewMovedFile.GetRelativePath(_syncbox.Path, true),
+                        ServerUid = currentParams.ItemToMove.Uid,
+                    };
+                }
+
+                if (!(_copiedSettings.HttpTimeoutMilliseconds > 0))
+                {
+                    throw new CLArgumentException(CLExceptionCode.OnDemand_TimeoutMilliseconds, Resources.CLCredentialMSTimeoutMustBeGreaterThanZero);
+                }
+
+                // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
+                Helpers.RequestNewCredentialsInfo requestNewCredentialsInfo = new Helpers.RequestNewCredentialsInfo()
+                {
+                    ProcessingStateByThreadId = _processingStateByThreadId,
+                    GetNewCredentialsCallback = _getNewCredentialsCallback,
+                    GetNewCredentialsCallbackUserState = _getNewCredentialsCallbackUserState,
+                    GetCurrentCredentialsCallback = GetCurrentCredentialsCallback,
+                    SetCurrentCredentialsCallback = SetCurrentCredentialCallback,
+                };
+
+                // Now make the REST request content.
+                object requestContent = new JsonContracts.FileOrFolderMoves()
+                {
+                    SyncboxId = _syncbox.SyncboxId,
+                    Moves = jsonContractMoves,
+                    DeviceId = _copiedSettings.DeviceId
+                };
+
+                // server method path
+                string serverMethodPath = CLDefinitions.MethodPathOneOffFileMoves;
+
+                // Communicate with the server to get the response.
+                JsonContracts.SyncboxMoveFilesOrFoldersResponse responseFromServer;
+                responseFromServer = Helpers.ProcessHttp<JsonContracts.SyncboxMoveFilesOrFoldersResponse>(requestContent, // dynamic type of request content based on method path
+                    CLDefinitions.CLMetaDataServerURL, // base domain is the MDS server
+                    serverMethodPath, // dynamic path to appropriate one-off method
+                    Helpers.requestMethod.post, // one-off methods are all posts
+                    _copiedSettings.HttpTimeoutMilliseconds, // time before communication timeout
+                    null, // not an upload or download
+                    Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
+                    _copiedSettings, // pass the copied settings
+                    _syncbox.SyncboxId, // pass the unique id of the sync box on the server
+                    requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
+                    true);
+
+                // Convert these items to the output array.
+                if (responseFromServer != null && responseFromServer.MoveResponses != null)
+                {
+                    if (responseFromServer.MoveResponses.Length != itemParams.Length)
+                    {
+                        throw new CLException(CLExceptionCode.OnDemand_FileRename, Resources.ExceptionOnDemandResponseArrayLength);
+                    }
+
+                    List<CLFileItem> listFileItems = new List<CLFileItem>();
+                    List<CLError> listErrors = new List<CLError>();
+
+                    for (int responseIdx = 0; responseIdx < responseFromServer.MoveResponses.Length; responseIdx++)
+                    {
+                        try
+                        {
+                            FileChangeResponse currentMoveResponse = responseFromServer.MoveResponses[responseIdx];
+
+                            if (currentMoveResponse == null)
+                            {
+                                throw new CLNullReferenceException(CLExceptionCode.OnDemand_MissingResponseField, Resources.ExceptionOnDemandNullItem);
+                            }
+                            if (currentMoveResponse.Header == null || string.IsNullOrEmpty(currentMoveResponse.Header.Status))
+                            {
+                                throw new CLNullReferenceException(CLExceptionCode.OnDemand_MissingResponseField, Resources.ExceptionOnDemandNullStatus);
+                            }
+                            if (currentMoveResponse.Metadata == null)
+                            {
+                                throw new CLNullReferenceException(CLExceptionCode.OnDemand_MissingResponseField, Resources.ExceptionOnDemandNullMetadata);
+                            }
+
+                            switch (currentMoveResponse.Header.Status)
+                            {
+                                case CLDefinitions.CLEventTypeNoOperation:
+                                case CLDefinitions.CLEventTypeAccepted:
+                                    CLFileItem resultItem = new CLFileItem(currentMoveResponse.Metadata, currentMoveResponse.Header.Action, currentMoveResponse.Action, _syncbox);
+                                    if (itemCompletionCallback != null)
+                                    {
+                                        try
+                                        {
+                                            itemCompletionCallback(responseIdx, resultItem, error: null, userState: itemCompletionCallbackUserState);
+                                        }
+                                        catch
+                                        {
+                                        }
+                                    }
+                                    break;
+
+                                case CLDefinitions.CLEventTypeAlreadyDeleted:
+                                    throw new CLException(CLExceptionCode.OnDemand_AlreadyDeleted, Resources.ExceptionOnDemandAlreadyDeleted);
+
+                                //// to_parent_uid not an input parameter, we do not expect to see it in the status so it is commented out:
+                                //case CLDefinitions.CLEventTypeToParentNotFound:
+                                case CLDefinitions.CLEventTypeNotFound:
+                                    throw new CLException(CLExceptionCode.OnDemand_NotFound, Resources.ExceptionOnDemandNotFound);
+
+                                case CLDefinitions.CLEventTypeConflict:
+                                    throw new CLException(CLExceptionCode.OnDemand_Conflict, Resources.ExceptionOnDemandConflict);
+
+                                case CLDefinitions.RESTResponseStatusFailed:
+                                    Exception innerEx;
+                                    string errorMessageString;
+                                    try
+                                    {
+                                        errorMessageString = string.Join(Environment.NewLine, currentMoveResponse.Metadata.ErrorMessage);
+                                        innerEx = null;
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        errorMessageString = Resources.ExceptionOnDemandDeserializeErrorMessage;
+                                        innerEx = ex;
+                                    }
+
+                                    throw new CLException(CLExceptionCode.OnDemand_ItemError, Resources.ExceptionOnDemandItemError, new Exception(errorMessageString, innerEx));
+
+                                default:
+                                    throw new CLException(CLExceptionCode.OnDemand_UnknownItemStatus, string.Format(Resources.ExceptionOnDemandUnknownItemStatus, currentMoveResponse.Header.Status));
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            if (itemCompletionCallback != null)
+                            {
+                                try
+                                {
+                                    itemCompletionCallback(responseIdx, completedItem: null, error: ex, userState: itemCompletionCallbackUserState);
+                                }
+                                catch
+                                {
+                                }
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    throw new CLNullReferenceException(CLExceptionCode.OnDemand_FileRename, Resources.ExceptionCLHttpRestWithoutRenameResponses);
+                }
+            }
+            catch (Exception ex)
+            {
+                return ex;
+            }
+
+            return null;
+        }
+
+        #endregion  // end MoveFiles (Move files in the syncbox.)
+
+        #region MoveFolders (Move folders in the syncbox.)
+        /// <summary>
+        /// Asynchronously starts moving folders in the syncbox.
+        /// </summary>
+        /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
+        /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
+        /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
+        /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the item completion callback above is fired.</param>
+        /// <param name="itemParams">One or more parameter pairs (item to rename and new name) to be used to move each item.</param>
+        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        internal IAsyncResult BeginMoveFolders(AsyncCallback asyncCallback, object asyncCallbackUserState, CLFileItemCompletion itemCompletionCallback, object itemCompletionCallbackUserState, params MoveItemParams[] itemParams)
+        {
+            var asyncThread = DelegateAndDataHolderBase.Create(
+                // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
+                new
+                {
+                    // create the asynchronous result to return
+                    toReturn = new GenericAsyncResult<CLError>(
+                        asyncCallback,
+                        asyncCallbackUserState),
+                    itemParams = itemParams
+                },
+                (Data, errorToAccumulate) =>
+                {
+                    // The ThreadProc.
+                    // try/catch to process with the input parameters, on catch set the exception in the asyncronous result
+                    try
+                    {
+                        // alloc and init the syncbox with the passed parameters, storing any error that occurs
+                        CLError overallError = MoveFolders(
+                            itemCompletionCallback,
+                            itemCompletionCallbackUserState,
+                            Data.itemParams);
+
+                        Data.toReturn.Complete(overallError, // any overall error that may have occurred during processing
+                            sCompleted: false); // processing did not complete synchronously
+                    }
+                    catch (Exception ex)
+                    {
+                        Data.toReturn.HandleException(
+                            ex, // the exception which was not handled correctly by the CLError wrapping
+                            sCompleted: false); // processing did not complete synchronously
+                    }
+                },
+                null);
+
+            // create the thread from a void (object) parameterized start which wraps the synchronous method call
+            (new Thread(new ThreadStart(asyncThread.VoidProcess))).Start(); // start the asynchronous processing thread which is attached to its data
+
+            // return the asynchronous result
+            return asyncThread.TypedData.toReturn;
+        }
+
+        /// <summary>
+        /// Finishes moving folders in the syncbox, if it has not already finished via its asynchronous result, and outputs the result,
+        /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
+        /// </summary>
+        /// <param name="asyncResult">The asynchronous result provided upon starting the request</param>
+        /// <param name="result">(output) An overall error which occurred during processing, if any</param>
+        /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
+        internal CLError EndMoveFolders(IAsyncResult asyncResult, out SyncboxMoveFoldersResult result)
+        {
+            return Helpers.EndAsyncOperation<SyncboxMoveFoldersResult>(asyncResult, out result);
+        }
+
+        /// <summary>
+        /// Move folders in the syncbox.
+        /// </summary>
+        /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
+        /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the item completion callback above is fired.</param>
+        /// <param name="itemParams">One or more parameter pairs (item to rename and new name) to be used to rename each item in place.</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        internal CLError MoveFolders(CLFileItemCompletion itemCompletionCallback, object itemCompletionCallbackUserState, params MoveItemParams[] itemParams)
+        {
+            // try/catch to process the request,  On catch return the error
+            try
+            {
+                // check input parameters.
+
+                if (itemParams == null
+                    || itemParams.Length == 0)
+                {
+                    throw new CLArgumentNullException(
+                        CLExceptionCode.OnDemand_RenameMissingParameters,
+                        Resources.ExceptionOnDemandRenameMissingParameters);
+                }
+
+                FileOrFolderMove[] jsonContractMoves = new FileOrFolderMove[itemParams.Length];
+                FilePath syncboxPathObject = _syncbox.Path;
+
+                for (int paramIdx = 0; paramIdx < itemParams.Length; paramIdx++)
+                {
+                    MoveItemParams currentParams = itemParams[paramIdx];
+                    if (currentParams == null)
+                    {
+                        throw new CLArgumentException(CLExceptionCode.OnDemand_FileRename, String.Format(Resources.ExceptionOnDemandFolderItemNullAtIndexMsg0, paramIdx.ToString()));
+                    }
+
+                    // The CLFileItem represents an existing folder, and should be valid because we created it.  The new full path must
+                    // fit the specs for the Windows client.  Form the new full path and check its validity.
+                    if (String.IsNullOrWhiteSpace(currentParams.ItemToMove.Path))
+                    {
+                        throw new CLArgumentException(CLExceptionCode.OnDemand_InvalidExistingPath, String.Format(Resources.ExceptionOnDemandRenameFilesInvalidExistingPathInItemMsg0, paramIdx.ToString()));
+                    }
+                    FilePath fullPathExisting = new FilePath(currentParams.ItemToMove.Path, _syncbox.Path);
+                    string nameExisting = fullPathExisting.Name;
+                    FilePath fullPathNewParentFolder = new FilePath(currentParams.NewParentPath);
+                    FilePath fullPathNewMovedFolder = new FilePath(nameExisting, fullPathNewParentFolder);
+
+                    CheckPath(fullPathNewMovedFolder, CLExceptionCode.OnDemand_MovedItemBadPath);
+
+                    // file move (rename) and folder move (rename) share a json contract object for move (rename)
+                    jsonContractMoves[paramIdx] = new FileOrFolderMove()
+                    {
+                        RelativeToPath = fullPathNewMovedFolder.GetRelativePath(_syncbox.Path, true),
+                        ServerUid = currentParams.ItemToMove.Uid,
                     };
                 }
 
@@ -7158,15 +7688,11 @@ namespace Cloud.REST
                         // file move (rename) and folder move (rename) share a json contract object for move (rename)
                         requestContent = new JsonContracts.FileOrFolderMove()
                         {
-                            DeviceId = _copiedSettings.DeviceId,
-                            RelativeFromPath = toCommunicate.OldPath.GetRelativePath(_syncbox.Path, true) +
-                                (toCommunicate.Metadata.HashableProperties.IsFolder ? "/" : string.Empty),
                             RelativeToPath = (toCommunicate.NewPath == null
                                 ? null
                                 : toCommunicate.NewPath.GetRelativePath(_syncbox.Path, true)
                                     + (toCommunicate.Metadata.HashableProperties.IsFolder ? "/" : string.Empty)),
                             ServerUid = serverUid,
-                            SyncboxId = _syncbox.SyncboxId
                         };
 
                         // server method path switched on whether change is a folder or not

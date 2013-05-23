@@ -748,7 +748,7 @@ namespace Cloud
         /// <remarks>Note that only SyncMode.CLSyncModeLive is currently supported.</remarks>
         /// <param name="mode">The sync mode to start.</param>
         /// <returns></returns>
-        public CLError BeginSync(
+        public CLError StartLiveSync(
                 CLSyncMode mode,
                 System.Threading.WaitCallback syncStatusChangedCallback = null,
                 object syncStatusChangedCallbackUserState = null)
@@ -854,7 +854,7 @@ namespace Cloud
         /// Stop syncing.
         /// </summary>
         /// <remarks>Note that after stopping it is possible to call BeginSync() again to restart syncing.</remarks>
-        public void EndSync()
+        public void StopLiveSync()
         {
             CheckDisposed();
 
@@ -889,6 +889,15 @@ namespace Cloud
                 error.Log(_copiedSettings.TraceLocation, _copiedSettings.LogErrors);
                 _trace.writeToLog(1, "CLSyncbox: StopSync: ERROR.  Exception.  Msg: <{0}>. Code: {1}.", error.PrimaryException.Message, error.PrimaryException.Code);
             }
+        }
+
+        /// <summary>
+        /// Return true if LiveSync is started.  Otherwise, false.
+        /// </summary>
+        /// <returns>true: LiveSync is started.</returns>
+        public bool IsLiveSyncStarted()
+        {
+            return _isStarted;
         }
 
         /// <summary>
@@ -1740,6 +1749,112 @@ namespace Cloud
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
             return httpRestClient.RenameFolders(itemCompletionCallback, itemCompletionCallbackUserState, itemsToRename);
+        }
+
+        #endregion  // end RenameFolders (Rename folders in the syncbox)
+
+        #region MoveFiles (Move files in the syncbox)
+        /// <summary>
+        /// Asynchronously starts moving files in the syncbox.  Each item completion will fire an asynchronous callback with the completion status or error for that item.
+        /// </summary>
+        /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
+        /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
+        /// <param name="itemCompletionCallback">Delegate which will be fired upon successful communication for every response item.</param>
+        /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the completion delegate is fired.</param>
+        /// <param name="itemsToMove">One or more pairs of items to move and the new full path of each item.</param>
+        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        public IAsyncResult BeginMoveFiles(AsyncCallback asyncCallback, object asyncCallbackUserState, CLFileItemCompletion itemCompletionCallback, object itemCompletionCallbackUserState, params MoveItemParams[] itemsToMove)
+        {
+            CheckDisposed(true);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.BeginMoveFiles(asyncCallback, asyncCallbackUserState, itemCompletionCallback, itemCompletionCallbackUserState, itemsToMove);
+        }
+
+        /// <summary>
+        /// Finishes moving files in the syncbox, if it has not already finished via its asynchronous result, and outputs the result,
+        /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
+        /// </summary>
+        /// <param name="asyncResult">The asynchronous result provided upon starting the metadata query</param>
+        /// <param name="result">(output) An overall error which occurred during processing, if any</param>
+        /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
+        public CLError EndMoveFiles(IAsyncResult asyncResult, out SyncboxMoveFilesResult result)
+        {
+            CheckDisposed(true);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.EndMoveFiles(asyncResult, out result);
+        }
+
+        /// <summary>
+        /// Moves files in the syncbox.  Each item completion will fire an asynchronous callback with the completion status or error for that item.
+        /// </summary>
+        /// <param name="itemCompletionCallback">Delegate which will be fired upon successful communication for every response item.</param>
+        /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the completion delegate is fired.</param>
+        /// <param name="itemsToMove">One or more pairs of items to move and the new full path of each item.</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        public CLError MoveFiles(CLFileItemCompletion itemCompletionCallback, object itemCompletionCallbackUserState, params MoveItemParams[] itemsToMove)
+        {
+            CheckDisposed(true);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.MoveFiles(itemCompletionCallback, itemCompletionCallbackUserState, itemsToMove);
+        }
+
+        #endregion  // end MoveFiles (Move files in the syncbox)
+
+        #region MoveFolders (Move folders in the syncbox)
+        /// <summary>
+        /// Asynchronously starts moving folders in the syncbox.  Each item completion will fire an asynchronous callback with the completion status or error for that item.
+        /// </summary>
+        /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
+        /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
+        /// <param name="itemCompletionCallback">Delegate which will be fired upon successful communication for every response item.</param>
+        /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the completion delegate is fired.</param>
+        /// <param name="itemsToMove">One or more pairs of items to move and the new full path each item.</param>
+        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        public IAsyncResult BeginMoveFolders(AsyncCallback asyncCallback, object asyncCallbackUserState, CLFileItemCompletion itemCompletionCallback, object itemCompletionCallbackUserState, params MoveItemParams[] itemsToMove)
+        {
+            CheckDisposed(true);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.BeginMoveFolders(asyncCallback, asyncCallbackUserState, itemCompletionCallback, itemCompletionCallbackUserState, itemsToMove);
+        }
+
+        /// <summary>
+        /// Finishes moving folders in the syncbox, if it has not already finished via its asynchronous result, and outputs the result,
+        /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
+        /// </summary>
+        /// <param name="asyncResult">The asynchronous result provided upon starting the metadata query</param>
+        /// <param name="result">(output) An overall error which occurred during processing, if any</param>
+        /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
+        public CLError EndMoveFolders(IAsyncResult asyncResult, out SyncboxMoveFoldersResult result)
+        {
+            CheckDisposed(true);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.EndMoveFolders(asyncResult, out result);
+        }
+
+        /// <summary>
+        /// Moves folders in the syncbox.  Each item completion will fire an asynchronous callback with the completion status or error for that item.
+        /// </summary>
+        /// <param name="itemCompletionCallback">Delegate which will be fired upon successful communication for every response item.</param>
+        /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the completion delegate is fired.</param>
+        /// <param name="itemsToMove">An array of pairs of items to rename and the new name of each item (just the last token in the path).</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        public CLError MoveFolders(CLFileItemCompletion itemCompletionCallback, object itemCompletionCallbackUserState, params MoveItemParams[] itemsToMove)
+        {
+            CheckDisposed(true);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.MoveFolders(itemCompletionCallback, itemCompletionCallbackUserState, itemsToMove);
         }
 
         #endregion  // end RenameFolders (Rename folders in the syncbox)
