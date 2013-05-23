@@ -972,7 +972,7 @@ namespace Cloud
             {
                 if (Helpers.AllHaltedOnUnrecoverableError)
                 {
-                    throw new InvalidOperationException("Cannot do anything with the Cloud SDK if Helpers.AllHaltedOnUnrecoverableError is set");  //&&&& fix
+                    throw new InvalidOperationException(Resources.CLCredentialHelpersAllHaltedOnUnrecoverableErrorIsSet);
                 }
 
                 lock (_startLocker)

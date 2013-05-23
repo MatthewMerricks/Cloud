@@ -7,6 +7,7 @@
 
 using Cloud.Interfaces;
 using Cloud.Model;
+using Cloud.Static;
 using Cloud.Support;
 using System;
 using System.Collections.Generic;
@@ -160,7 +161,7 @@ namespace Cloud.Model
             }
             if (Syncbox == null)
             {
-                throw new NullReferenceException("Syncbox cannot be null");
+                throw new NullReferenceException(Resources.CLNotificationServiceSyncBoxCannotBeNull);
             }
             if (DownloadErrorTimer == null)
             {

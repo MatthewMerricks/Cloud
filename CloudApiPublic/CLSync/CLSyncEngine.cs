@@ -223,7 +223,7 @@ namespace Cloud
 
         //        return Start(
         //            new CLSyncSettings(
-        //                Helpers.GetComputerFriendlyName() + Guid.NewGuid().ToString("N"),
+        //                Helpers.GetComputerFriendlyName() + Guid.NewGuid().ToString(Resources.CLCredentialStringSettingsN),
         //                ApplicationKey,
         //                ApplicationSecret,
         //                SyncboxId,

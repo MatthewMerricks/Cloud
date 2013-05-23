@@ -830,7 +830,7 @@ namespace Cloud.FileMonitor
 
             if (syncbox == null)
             {
-                throw new NullReferenceException("syncbox cannot be null");
+                throw new NullReferenceException(Resources.CLEngineSyncboxCannotBeNull);
             }
 
             // Initialize Cloud trace in case it is not already initialized.

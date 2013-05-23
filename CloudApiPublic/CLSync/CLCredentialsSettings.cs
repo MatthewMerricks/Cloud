@@ -130,7 +130,7 @@ namespace Cloud
                     toCopy.TraceLocation,
                     toCopy.TraceExcludeAuthorization,
                     toCopy.TraceLevel,
-                    Environment.MachineName + Guid.NewGuid().ToString(Resources.NotTranslatedCLCredentialStringSettingsN),
+                    Environment.MachineName + Guid.NewGuid().ToString("N"),
                     String.Empty,
                     toCopy.ClientDescription,
                     toCopy.HttpTimeoutMilliseconds,

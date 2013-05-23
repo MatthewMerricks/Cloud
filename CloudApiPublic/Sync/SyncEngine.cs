@@ -200,7 +200,7 @@ namespace Cloud.Sync
             }
             if (syncbox == null)
             {
-                throw new NullReferenceException("syncbox cannot be null");
+                throw new NullReferenceException(Resources.CLEngineSyncboxCannotBeNull);
             }
             if (httpRestClient == null)
             {
@@ -1558,7 +1558,7 @@ namespace Cloud.Sync
                     {
                         if (Helpers.AllHaltedOnUnrecoverableError)
                         {
-                            throw new InvalidOperationException("Cannot do anything with the Cloud SDK if Helpers.AllHaltedOnUnrecoverableError is set");
+                            throw new InvalidOperationException(Resources.CLCredentialHelpersAllHaltedOnUnrecoverableErrorIsSet);
                         }
 
                         // status message
@@ -5073,7 +5073,7 @@ namespace Cloud.Sync
         {
             if (Helpers.AllHaltedOnUnrecoverableError)
             {
-                throw new InvalidOperationException("Cannot do anything with the Cloud SDK if Helpers.AllHaltedOnUnrecoverableError is set");
+                throw new InvalidOperationException(Resources.CLCredentialHelpersAllHaltedOnUnrecoverableErrorIsSet);
             }
 
             // Define cast state, defaulting to null
@@ -5605,7 +5605,7 @@ namespace Cloud.Sync
             _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: DownloadForTask: Entry."));
             if (Helpers.AllHaltedOnUnrecoverableError)
             {
-                throw new InvalidOperationException("Cannot do anything with the Cloud SDK if Helpers.AllHaltedOnUnrecoverableError is set");
+                throw new InvalidOperationException(Resources.CLCredentialHelpersAllHaltedOnUnrecoverableErrorIsSet);
             }
 
             // Define cast state, defaulting to null
@@ -5774,7 +5774,7 @@ namespace Cloud.Sync
                                 // try/catch to check hash of file, silencing errors
                                 try
                                 {
-                                    string existingDownloadPath = castState.TempDownloadFolderPath + "\\" + currentTempDownload.Id.ToString("N");
+                                    string existingDownloadPath = castState.TempDownloadFolderPath + "\\" + currentTempDownload.Id.ToString(Resources.CLCredentialStringSettingsN);
                                     if (System.IO.File.Exists(existingDownloadPath))
                                     {
                                         _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: DownloadForTask: File exists: {0}.", existingDownloadPath));
@@ -5865,7 +5865,7 @@ namespace Cloud.Sync
                     if (newTempFile != null)
                     {
                         // calculate and store the path for the existing file
-                        string newTempFileString = castState.TempDownloadFolderPath + "\\" + ((Guid)newTempFile).ToString("N");
+                        string newTempFileString = castState.TempDownloadFolderPath + "\\" + ((Guid)newTempFile).ToString(Resources.CLCredentialStringSettingsN);
 
                         GenericHolder<bool> cancelledButCompletedDownload = new GenericHolder<bool>(false);
 
@@ -6501,7 +6501,7 @@ namespace Cloud.Sync
                                     foreach (DownloadIdAndMD5 matchedErrorTemp in errorTemp.Where(currentError => currentError.Id == (Guid)exceptionState.TempDownloadFileId))
                                     {
                                         // delete the current temp file
-                                        System.IO.File.Delete(exceptionState.TempDownloadFolderPath + "\\" + ((Guid)exceptionState.TempDownloadFileId).ToString("N"));
+                                        System.IO.File.Delete(exceptionState.TempDownloadFolderPath + "\\" + ((Guid)exceptionState.TempDownloadFileId).ToString(Resources.CLCredentialStringSettingsN));
 
                                         // remove the current temp file id from the list
                                         errorTemp.Remove(matchedErrorTemp);

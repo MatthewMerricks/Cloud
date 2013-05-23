@@ -304,7 +304,7 @@ namespace Cloud.REST
                 }
                 if (!(_copiedSettings.HttpTimeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException("timeoutMilliseconds must be greater than zero");
+                    throw new ArgumentException(Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
 
                 // build the location of the metadata retrieval method on the server dynamically
@@ -1474,7 +1474,7 @@ namespace Cloud.REST
 
                 if (!(_copiedSettings.HttpTimeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException("timeoutMilliseconds must be greater than zero");
+                    throw new ArgumentException(Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
 
                 // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
@@ -1669,7 +1669,7 @@ namespace Cloud.REST
 
                 if (!(_copiedSettings.HttpTimeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException("timeoutMilliseconds must be greater than zero");
+                    throw new ArgumentException(Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
 
                 // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
@@ -6209,7 +6209,7 @@ namespace Cloud.REST
                 }
 
                 // if the folder path for downloads is too long, then throw an exception
-                if (currentDownloadFolder.Length > 222) // 222 calculated by 259 max path length minus 1 character for a folder slash seperator plus 36 characters for (Guid).ToString("N")
+                if (currentDownloadFolder.Length > 222) // 222 calculated by 259 max path length minus 1 character for a folder slash seperator plus 36 characters for (Guid).ToString(Resources.CLCredentialStringSettingsN)
                 {
                     throw new ArgumentException(Resources.CLHttpRestFolderPathTooLong + (currentDownloadFolder.Length - 222).ToString());
                 }
@@ -6414,7 +6414,7 @@ namespace Cloud.REST
                 // if trying to cast the internal state as the holder for progress failed, then throw an error (non-descriptive since it's our error)
                 if (iState == null)
                 {
-                    throw new Exception("There was an internal error attempting to retrieve the progress, Error 2");
+                    throw new Exception(Resources.CLHttpRestInternalPRogressRetreivalFailure2);
                 }
 
                 // lock on the holder and retrieve the progress for output
