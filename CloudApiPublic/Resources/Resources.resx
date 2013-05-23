@@ -353,14 +353,6 @@
     <value>Byte</value>
     <comment>SI Unit. Do Not Translate</comment>
   </data>
-  <data name="CLHttpRestaResultInternalTypeMismatch" xml:space="preserve">
-    <value>aResult does not match expected internal type</value>
-    <comment>Internal Type Mismatch</comment>
-  </data>
-  <data name="CLHttpRestCannotCastStateAs" xml:space="preserve">
-    <value>Cannot cast state as</value>
-    <comment>Translate</comment>
-  </data>
   <data name="CLHttpRestChangeDirectionIsNotToServer" xml:space="preserve">
     <value>deletionChange Direction is not To the server</value>
     <comment>"deletionChange" should not be translated</comment>
@@ -461,7 +453,7 @@
     <value>syncbox Credential cannot be null</value>
     <comment>syncbox field must be filled</comment>
   </data>
-  <data name="CLHttpRestSyncboxMustNotBeNull" xml:space="preserve">
+  <data name="SyncboxMustNotBeNull" xml:space="preserve">
     <value>syncbox must not be null</value>
     <comment>"Syncbox" should not be translated</comment>
   </data>
@@ -757,11 +749,11 @@
     <value>Start Menu</value>
     <comment>XP only; defined translations must perfectly match Microsoft documentation</comment>
   </data>
-  <data name="CLCredentialaResultInternalTypeMismatch" xml:space="preserve">
+  <data name="CLaResultInternalTypeMismatch" xml:space="preserve">
     <value>aResult does not match expected internal type</value>
     <comment>"aResult" is a variable name. Do Not Translate</comment>
   </data>
-  <data name="CLCredentialCannotCastStateAs" xml:space="preserve">
+  <data name="CLCannotCastStateAs" xml:space="preserve">
     <value>Cannot cast state as</value>
     <comment>Translate</comment>
   </data>
@@ -773,7 +765,7 @@
     <value>Key cannot be null</value>
     <comment>Translate</comment>
   </data>
-  <data name="CLCredentialMSTimeoutMustBeGreaterThanZero" xml:space="preserve">
+  <data name="CLMSTimeoutMustBeGreaterThanZero" xml:space="preserve">
     <value>timeoutMilliseconds must be greater than zero</value>
     <comment>"timeoutMilliseconds" should not be translated</comment>
   </data>
@@ -791,7 +783,7 @@
   </data>
   <data name="CLCredentialStringSettingsN" xml:space="preserve">
     <value>N</value>
-    <comment>"N" should not be translated</comment>
+    <comment>Resources.CLCredentialStringSettingsN should not be translated</comment>
   </data>
   <data name="CLEngineSyncboxCannotBeNull" xml:space="preserve">
     <value>syncbox cannot be null</value>
@@ -1145,7 +1137,7 @@
     <value>CLNotificationService: CreateEngineTimer: ERROR: Exception: Msg: {0}.</value>
     <comment>"CLNotificationService" and " CreateEngineTimer" should not be translated.</comment>
   </data>
-  <data name="CLNotificationServiceDisconnectNotificationServerRemoteClient0" xml:space="preserve">
+  <data name="CLNotificationServiceDisconnectNotificationServerRemoveClient0" xml:space="preserve">
     <value>CLNotificationService: DisconnectPushNotificationServer: Remove client: {0}.</value>
     <comment>"CLNotificationService", "DisconnectPushNotificationServer" should not be translated.</comment>
   </data>

@@ -84,7 +84,7 @@ namespace Cloud.CLSync
             }
             if (syncbox == null)
             {
-                throw new ArgumentNullException("syncbox must not be null");
+                throw new ArgumentNullException(Resources.SyncboxMustNotBeNull);
             }
             if (syncbox.HttpRestClient == null)
             {
@@ -126,7 +126,7 @@ namespace Cloud.CLSync
             }
             if (syncbox == null)
             {
-                throw new ArgumentNullException("syncbox must not be null");
+                throw new ArgumentNullException(Resources.SyncboxMustNotBeNull);
             }
             if (syncbox.HttpRestClient == null)
             {

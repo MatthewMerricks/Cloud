@@ -75,7 +75,7 @@ namespace Cloud.Model
         /// </summary>
         public CLStoragePlan()
         {
-            throw new NotSupportedException("Default constructor not supported");
+            throw new NotSupportedException(Resources.CLNotificationManualPollingEngineDefaultConstructorNotSupported);
         }
 
         /// <summary>
@@ -261,7 +261,7 @@ namespace Cloud.Model
 
                 if (!(copiedSettings.HttpTimeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException("timeoutMilliseconds must be greater than zero");
+                    throw new ArgumentException(Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
 
                 // Query the server and get the response.

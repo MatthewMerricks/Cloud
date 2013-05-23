@@ -139,12 +139,12 @@ namespace Cloud
             if (string.IsNullOrEmpty(Key))
             {
                 status = CLCredentialsCreationStatus.ErrorNullKey;
-                throw new NullReferenceException("Key cannot be null");
+                throw new NullReferenceException(Resources.CLCredentialKeyCannotBeNull);
             }
             if (string.IsNullOrEmpty(Secret))
             {
                 status = CLCredentialsCreationStatus.ErrorNullSecret;
-                throw new NullReferenceException("Secret cannot be null");
+                throw new NullReferenceException(Resources.CLCredentialSecretCannotBeNull);
             }
 
             // Since we allow null then reverse-null coalesce from empty string
@@ -176,11 +176,11 @@ namespace Cloud
             // check input parameters
             if (string.IsNullOrEmpty(session.Key))
             {
-                throw new NullReferenceException("Key cannot be null");
+                throw new NullReferenceException(Resources.CLCredentialKeyCannotBeNull);
             }
             if (string.IsNullOrEmpty(session.Secret))
             {
-                throw new NullReferenceException("Secret cannot be null");
+                throw new NullReferenceException(Resources.CLCredentialSecretCannotBeNull);
             }
 
             // Since we allow null then reverse-null coalesce from empty string
@@ -338,7 +338,7 @@ namespace Cloud
                 // check input parameters
                 if (!(copiedSettings.HttpTimeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException("timeoutMilliseconds must be greater than zero");
+                    throw new ArgumentException(Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
 
                 // Communicate with the server.
@@ -495,7 +495,7 @@ namespace Cloud
 
                 if (!(copiedSettings.HttpTimeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException("timeoutMilliseconds must be greater than zero");
+                    throw new ArgumentException(Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
 
                 // Determine the request JSON contract to use.  If the syncboxIds parameter is null, use the "all"
@@ -660,7 +660,7 @@ namespace Cloud
 
                 if (!(copiedSettings.HttpTimeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException("timeoutMilliseconds must be greater than zero");
+                    throw new ArgumentException(Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
 
                 // Build the query string.
@@ -804,7 +804,7 @@ namespace Cloud
                 // check input parameters
                 if (!(copiedSettings.HttpTimeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException("timeoutMilliseconds must be greater than zero");
+                    throw new ArgumentException(Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
 
                 // Build the query string.
@@ -966,11 +966,11 @@ namespace Cloud
                 // check input parameters
                 if (request == null)
                 {
-                    throw new ArgumentException("pushRequest must not be null");
+                    throw new ArgumentException(Resources.CLCredentialPushRequestCannotBeNull);
                 }
                 if (!(timeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException("timeoutMilliseconds must be greater than zero");
+                    throw new ArgumentException(Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
 
                 // copy settings so they don't change while processing; this also defaults some values
@@ -1149,11 +1149,11 @@ namespace Cloud
                 // check input parameters
                 if (request == null)
                 {
-                    throw new ArgumentException("pushRequest must not be null");
+                    throw new ArgumentException(Resources.CLCredentialPushRequestCannotBeNull);
                 }
                 if (!(timeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException("timeoutMilliseconds must be greater than zero");
+                    throw new ArgumentException(Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
 
                 // copy settings so they don't change while processing; this also defaults some values
@@ -1315,11 +1315,11 @@ namespace Cloud
                 // check input parameters
                 if (request == null)
                 {
-                    throw new ArgumentException("pushRequest must not be null");
+                    throw new ArgumentException(Resources.CLCredentialPushRequestCannotBeNull);
                 }
                 if (!(timeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException("timeoutMilliseconds must be greater than zero");
+                    throw new ArgumentException(Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
 
                 // copy settings so they don't change while processing; this also defaults some values

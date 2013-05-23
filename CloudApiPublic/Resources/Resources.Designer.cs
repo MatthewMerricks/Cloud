@@ -126,18 +126,18 @@ namespace Cloud.Static {
         /// <summary>
         ///   Looks up a localized string similar to aResult does not match expected internal type.
         /// </summary>
-        internal static string CLCredentialaResultInternalTypeMismatch {
+        internal static string CLaResultInternalTypeMismatch {
             get {
-                return ResourceManager.GetString("CLCredentialaResultInternalTypeMismatch", resourceCulture);
+                return ResourceManager.GetString("CLaResultInternalTypeMismatch", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Cannot cast state as.
         /// </summary>
-        internal static string CLCredentialCannotCastStateAs {
+        internal static string CLCannotCastStateAs {
             get {
-                return ResourceManager.GetString("CLCredentialCannotCastStateAs", resourceCulture);
+                return ResourceManager.GetString("CLCannotCastStateAs", resourceCulture);
             }
         }
         
@@ -156,15 +156,6 @@ namespace Cloud.Static {
         internal static string CLCredentialKeyCannotBeNull {
             get {
                 return ResourceManager.GetString("CLCredentialKeyCannotBeNull", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to timeoutMilliseconds must be greater than zero.
-        /// </summary>
-        internal static string CLCredentialMSTimeoutMustBeGreaterThanZero {
-            get {
-                return ResourceManager.GetString("CLCredentialMSTimeoutMustBeGreaterThanZero", resourceCulture);
             }
         }
         
@@ -210,24 +201,6 @@ namespace Cloud.Static {
         internal static string CLEngineSyncboxCannotBeNull {
             get {
                 return ResourceManager.GetString("CLEngineSyncboxCannotBeNull", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to aResult does not match expected internal type.
-        /// </summary>
-        internal static string CLHttpRestaResultInternalTypeMismatch {
-            get {
-                return ResourceManager.GetString("CLHttpRestaResultInternalTypeMismatch", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Cannot cast state as.
-        /// </summary>
-        internal static string CLHttpRestCannotCastStateAs {
-            get {
-                return ResourceManager.GetString("CLHttpRestCannotCastStateAs", resourceCulture);
             }
         }
         
@@ -457,15 +430,6 @@ namespace Cloud.Static {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to syncbox must not be null.
-        /// </summary>
-        internal static string CLHttpRestSyncboxMustNotBeNull {
-            get {
-                return ResourceManager.GetString("CLHttpRestSyncboxMustNotBeNull", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to settings SyncRoot represents a bad path.
         /// </summary>
         internal static string CLHttpRestSyncRootBadPath {
@@ -565,6 +529,15 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to timeoutMilliseconds must be greater than zero.
+        /// </summary>
+        internal static string CLMSTimeoutMustBeGreaterThanZero {
+            get {
+                return ResourceManager.GetString("CLMSTimeoutMustBeGreaterThanZero", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Already initialized.
         /// </summary>
         internal static string CLNotificationManualPollingEngineAlreadyInitialized {
@@ -657,9 +630,9 @@ namespace Cloud.Static {
         /// <summary>
         ///   Looks up a localized string similar to CLNotificationService: DisconnectPushNotificationServer: Remove client: {0}..
         /// </summary>
-        internal static string CLNotificationServiceDisconnectNotificationServerRemoteClient0 {
+        internal static string CLNotificationServiceDisconnectNotificationServerRemoveClient0 {
             get {
-                return ResourceManager.GetString("CLNotificationServiceDisconnectNotificationServerRemoteClient0", resourceCulture);
+                return ResourceManager.GetString("CLNotificationServiceDisconnectNotificationServerRemoveClient0", resourceCulture);
             }
         }
         
@@ -5814,6 +5787,15 @@ namespace Cloud.Static {
         internal static string StartMenuFolderNameXP {
             get {
                 return ResourceManager.GetString("StartMenuFolderNameXP", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to syncbox must not be null.
+        /// </summary>
+        internal static string SyncboxMustNotBeNull {
+            get {
+                return ResourceManager.GetString("SyncboxMustNotBeNull", resourceCulture);
             }
         }
         

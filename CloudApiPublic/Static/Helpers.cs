@@ -2142,7 +2142,7 @@ namespace Cloud.Static
                 }
                 if (string.IsNullOrEmpty(settings.DeviceId))
                 {
-                    throw new NullReferenceException("settings DeviceId cannot be null");
+                    throw new NullReferenceException(Resources.CLHttpRestDeviceIDCannotBeNull);
                 }
 
                 // Gather the path info
@@ -3713,7 +3713,7 @@ namespace Cloud.Static
                             }
 
                             // calculate location for downloading the file
-                            string newTempFileString = ((downloadParams)uploadDownload).TempDownloadFolderPath + (/* '\\' */ (char)0x005c) + ((Guid)newTempFile).ToString("N");
+                            string newTempFileString = ((downloadParams)uploadDownload).TempDownloadFolderPath + (/* '\\' */ (char)0x005c) + ((Guid)newTempFile).ToString(Resources.CLCredentialStringSettingsN);
 
                             if (uploadDownload.ProgressHolder != null)
                             {
@@ -5029,7 +5029,7 @@ namespace Cloud.Static
                 // if trying to cast the asynchronous result failed, then throw an error
                 if (castAResult == null)
                 {
-                    throw new CLInvalidOperationException(CLExceptionCode.General_Invalid, "aResult does not match expected internal type");
+                    throw new CLInvalidOperationException(CLExceptionCode.General_Invalid, Resources.CLaResultInternalTypeMismatch);
                 }
 
                 // pull the result for output (may not yet be complete)
@@ -5076,7 +5076,7 @@ namespace Cloud.Static
         {
             if (AllHaltedOnUnrecoverableError)
             {
-                throw new InvalidOperationException("Cannot do anything with the Cloud SDK if Helpers.AllHaltedOnUnrecoverableError is set");
+                throw new InvalidOperationException(Resources.CLCredentialHelpersAllHaltedOnUnrecoverableErrorIsSet);
             }
         }
 

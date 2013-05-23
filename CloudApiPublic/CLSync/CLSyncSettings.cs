@@ -243,7 +243,7 @@ namespace Cloud
         {
             if (toCopy == null)
             {
-                throw new ArgumentNullException("toCopy must not be null");
+                throw new ArgumentNullException(Resources.CLCredentialSettingsToCopyNotBeNull);
             }
             return new AdvancedSyncSettings(
                 toCopy.LogErrors,
@@ -262,7 +262,7 @@ namespace Cloud
         {
             if (toCopy == null)
             {
-                throw new ArgumentNullException("toCopy must not be null");
+                throw new ArgumentNullException(Resources.CLCredentialSettingsToCopyNotBeNull);
             }
             ICLSyncSettingsAdvanced advancedCopy = toCopy as ICLSyncSettingsAdvanced;
             if (advancedCopy == null)

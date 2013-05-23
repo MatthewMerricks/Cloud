@@ -65,18 +65,18 @@ namespace Cloud.PushNotification
         {
             if (syncbox == null)
             {
-                throw new ArgumentNullException("syncbox must not be null");
+                throw new ArgumentNullException(Resources.SyncboxMustNotBeNull);
             }
             if (delegateSendManualPoll == null)
             {
-                throw new ArgumentNullException("delegateSendManualPoll must not be null");
+                throw new ArgumentNullException(Resources.CLNotificationManualPollingEngineDelegateSendManualPollMustNotBeNull);
             }
 
             lock (_locker)
             {
                 if (_isInitialized)
                 {
-                    throw new InvalidOperationException("Already initialized");
+                    throw new InvalidOperationException(Resources.CLNotificationManualPollingEngineAlreadyInitialized);
                 }
 
                 _syncbox = syncbox;
@@ -93,7 +93,7 @@ namespace Cloud.PushNotification
 
         public CLNotificationManualPollingEngine()
         {
-            throw new NotSupportedException("Default constructor not supported");
+            throw new NotSupportedException(Resources.CLNotificationManualPollingEngineDefaultConstructorNotSupported);
         }
 
         #endregion
@@ -115,7 +115,7 @@ namespace Cloud.PushNotification
 
                     if (_isStarted)
                     {
-                        throw new InvalidOperationException("Already started");
+                        throw new InvalidOperationException(Resources.CLNotificationManualPollingEngineAlreadyStarted);
                     }
                     _isStarted = true;
                 }
@@ -132,7 +132,7 @@ namespace Cloud.PushNotification
             }
             catch (Exception ex)
             {
-                _trace.writeToLog(1, "CLNotificationManualPollingEngine: Start: ERROR: Exception: Msg: {0}.", ex.Message);
+                _trace.writeToLog(1, Resources.CLNotificationManualPollingEngineStartErrorExceptionMsg0, ex.Message);
                 fToReturnSuccess = false;
             }
 

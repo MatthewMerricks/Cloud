@@ -164,7 +164,7 @@ namespace Cloud
             {
                 if (Helpers.AllHaltedOnUnrecoverableError)
                 {
-                    throw new InvalidOperationException("Cannot do anything with the Cloud SDK if Helpers.AllHaltedOnUnrecoverableError is set");
+                    throw new InvalidOperationException(Resources.CLCredentialHelpersAllHaltedOnUnrecoverableErrorIsSet);
                 }
 
                 lock (_locker)
@@ -206,7 +206,7 @@ namespace Cloud
                     {
                         if (Helpers.AllHaltedOnUnrecoverableError)
                         {
-                            throw new InvalidOperationException("Cannot do anything with the Cloud SDK if Helpers.AllHaltedOnUnrecoverableError is set");
+                            throw new InvalidOperationException(Resources.CLCredentialHelpersAllHaltedOnUnrecoverableErrorIsSet);
                         }
 
                         return _monitor.SyncData.WipeIndex(_monitor.GetCurrentPath());
@@ -236,12 +236,12 @@ namespace Cloud
             {
                 if (Helpers.AllHaltedOnUnrecoverableError)
                 {
-                    throw new InvalidOperationException("Cannot do anything with the Cloud SDK if Helpers.AllHaltedOnUnrecoverableError is set");
+                    throw new InvalidOperationException(Resources.CLCredentialHelpersAllHaltedOnUnrecoverableErrorIsSet);
                 }
 
                 if (syncbox == null)
                 {
-                    throw new NullReferenceException("syncbox cannot be null");
+                    throw new NullReferenceException(Resources.CLEngineSyncboxCannotBeNull);
                 }
 
                 // Initialize trace in case it is not already initialized.
@@ -327,7 +327,7 @@ namespace Cloud
 
         //        return Start(
         //            new CLSyncSettings(
-        //                Helpers.GetComputerFriendlyName() + Guid.NewGuid().ToString("N"),
+        //                Helpers.GetComputerFriendlyName() + Guid.NewGuid().ToString(Resources.CLCredentialStringSettingsN),
         //                ApplicationKey,
         //                ApplicationSecret,
         //                SyncboxId,
@@ -367,12 +367,12 @@ namespace Cloud
             {
                 if (Helpers.AllHaltedOnUnrecoverableError)
                 {
-                    throw new InvalidOperationException("Cannot do anything with the Cloud SDK if Helpers.AllHaltedOnUnrecoverableError is set");
+                    throw new InvalidOperationException(Resources.CLCredentialHelpersAllHaltedOnUnrecoverableErrorIsSet);
                 }
 
                 if (Syncbox == null)
                 {
-                    const string settingsError = "syncbox cannot be null";
+                    string settingsError = Resources.CLEngineSyncboxCannotBeNull;
                     _trace.writeToLog(1, "CLSyncEngine: ERROR: {0}.", settingsError);
                     Status = CLSyncStartStatus.ErrorNullSyncbox;
                     return new NullReferenceException(settingsError);
@@ -514,7 +514,7 @@ namespace Cloud
                         Syncbox.ResetReserveForActiveSync();
                     }
 
-                    CLError error = new Exception("Already started");
+                    CLError error = new Exception(Resources.CLNotificationManualPollingEngineAlreadyStarted);
                     _trace.writeToLog(1, "CLSyncEngine: Start: ERROR: {0}.", error.PrimaryException.Message);
                     Status = CLSyncStartStatus.ErrorAlreadyStarted;
                     return error;

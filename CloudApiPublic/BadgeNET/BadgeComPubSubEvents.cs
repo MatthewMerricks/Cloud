@@ -15,6 +15,7 @@ using Cloud.Support;
 using Cloud.Model;
 using Cloud.Interfaces;
 using Cloud.Sync;
+using Cloud.Static;
 
 namespace Cloud.BadgeNET
 {
@@ -88,7 +89,7 @@ namespace Cloud.BadgeNET
                 {
                     if (_fIsInitialized)
                     {
-                        CLError error = new Exception("Already initialized");
+                        CLError error = new Exception(Resources.CLNotificationManualPollingEngineAlreadyInitialized);
                         error.Log(_syncSettings.TraceLocation, _syncSettings.LogErrors);
                         _trace.writeToLog(1, "BadgeComPubSubEvents: Initialize: ERROR: Exception (2): Msg: <{0}>.", error.PrimaryException.Message);
                         return;

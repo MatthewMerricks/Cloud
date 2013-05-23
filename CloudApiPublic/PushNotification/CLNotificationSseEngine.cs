@@ -104,11 +104,11 @@ namespace Cloud.PushNotification
         {
             if (syncbox == null)
             {
-                throw new ArgumentNullException("syncbox must not be null");
+                throw new ArgumentNullException(Resources.SyncboxMustNotBeNull);
             }
             if (delegateCreateEngineTimer == null)
             {
-                throw new ArgumentNullException("delegateCreateEngineTimer must not be null");
+                throw new ArgumentNullException(Resources.CLNotificationSseEngineDelegateCreateEngineTimerMustNotBeNull);
             }
             if (delegateStartEngineTimeout == null)
             {
@@ -116,15 +116,15 @@ namespace Cloud.PushNotification
             }
             if (delegateCancelEngineTimeout == null)
             {
-                throw new ArgumentNullException("delegateCancelEngineTimeout must not be null");
+                throw new ArgumentNullException(Resources.CLNotificationSseEngineDelegateCancelEngineTimeoutMustNotBeNull);
             }
             if (delegateDisposeEngineTimer == null)
             {
-                throw new ArgumentNullException("delegateDisposeEngineTimer must not be null");
+                throw new ArgumentNullException(Resources.CLNotificationSseEngineDelegateDisposeEngineTimerMustNotBeNull);
             }
             if (delegateSendNotificationEvent == null)
             {
-                throw new ArgumentNullException("delegateSendNotificationEvent must not be null");
+                throw new ArgumentNullException(Resources.CLNotificationSseEngineDelegateSendNotificationEventMustNotBeNull);
             }
 
             _syncbox = syncbox;
@@ -138,7 +138,7 @@ namespace Cloud.PushNotification
 
         public CLNotificationSseEngine()
         {
-            throw new NotSupportedException("Default constructor not supported");
+            throw new NotSupportedException(Resources.CLNotificationManualPollingEngineDefaultConstructorNotSupported);
         }
 
         #endregion
@@ -155,7 +155,7 @@ namespace Cloud.PushNotification
                 {
                     if (_isEngineThreadStarted)
                     {
-                        throw new InvalidOperationException("Already initialized");
+                        throw new InvalidOperationException(Resources.CLNotificationManualPollingEngineAlreadyInitialized);
                     }
 
                     _delegateCreateEngineTimer(this);
