@@ -1,0 +1,20 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BadgeCOM", "BadgeCOM.vcxproj", "{84373324-5261-45D7-AA92-5C4A88C07233}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Release|Mixed Platforms = Release|Mixed Platforms
+		Release64|Mixed Platforms = Release64|Mixed Platforms
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{84373324-5261-45D7-AA92-5C4A88C07233}.Release|Mixed Platforms.ActiveCfg = Release|Win32
+		{84373324-5261-45D7-AA92-5C4A88C07233}.Release|Mixed Platforms.Build.0 = Release|Win32
+		{84373324-5261-45D7-AA92-5C4A88C07233}.Release64|Mixed Platforms.ActiveCfg = Release64|x64
+		{84373324-5261-45D7-AA92-5C4A88C07233}.Release64|Mixed Platforms.Build.0 = Release64|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

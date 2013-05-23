@@ -212,7 +212,7 @@ namespace Cloud.PushNotification
             {
                 if (syncbox == null)
                 {
-                    throw new NullReferenceException(Resources.CLEngineSyncboxCannotBeNull);
+                    throw new NullReferenceException(Resources.CLNotificationServiceSyncBoxCannotBeNull);
                 }
 
                 lock (NotificationClientsRunning)
@@ -242,11 +242,11 @@ namespace Cloud.PushNotification
 
                 if (syncbox == null)
                 {
-                    throw new NullReferenceException(Resources.CLEngineSyncboxCannotBeNull);
+                    throw new NullReferenceException(Resources.CLNotificationServiceSyncBoxCannotBeNull);
                 }
                 if (string.IsNullOrEmpty(syncbox.CopiedSettings.DeviceId))
                 {
-                    throw new NullReferenceException("syncbox CopiedSettings DeviceId cannot be null");
+                    throw new NullReferenceException(Resources.CLNotificationServiceSyncBoxCopiedSettingsCannotBeNull);
                 }
 
                 lock (this)
@@ -258,7 +258,7 @@ namespace Cloud.PushNotification
                     // We should not already be started
                     if (_isServiceStarted)
                     {
-                        throw new InvalidOperationException(Resources.CLNotificationManualPollingEngineAlreadyStarted);
+                        throw new InvalidOperationException(Resources.CLNotificationServiceAlreadyStarted);
                     }
 
                     // sync settings are copied so that changes require stopping and starting notification services
@@ -452,7 +452,8 @@ namespace Cloud.PushNotification
                                                     delegateStartEngineTimeout: this.StartEngineTimeoutCallback,
                                                     delegateCancelEngineTimeout: this.CancelEngineTimeoutCallback,
                                                     delegateDisposeEngineTimer: this.DisposeEngineTimer,
-                                                    delegateSendNotificationEvent: this.SendNotificationEventCallback);
+                                                    delegateSendNotificationEvent: this.SendNotificationEventCallback,
+                                                    delegateSendManualPoll: this.SendManualPollCallback);
                                         _currentEngine = engineSse;
                                         _currentEngineIndex = engineIndex;
                                         break;
@@ -481,7 +482,7 @@ namespace Cloud.PushNotification
                                         break;
 
                                     default:
-                                        throw new InvalidOperationException("Unknown engine index");
+                                        throw new InvalidOperationException(Resources.CLNotificationUnknownEngineIndex);
                                 }
                             }
 
@@ -717,7 +718,7 @@ namespace Cloud.PushNotification
             {
                 if (!wasThreadAborted)
                 {
-                    _trace.writeToLog(1, "CLNotificationService: DisposeEngineTimer: ERROR: Exception: Msg: {0}.", ex.Message);
+                    _trace.writeToLog(1, Resources.CLNotificationServiceDisposeEngineTimerErrorExceptionMsg0, ex.Message);
                 }
             }
         }

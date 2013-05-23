@@ -126,18 +126,30 @@ namespace Cloud.Static {
         /// <summary>
         ///   Looks up a localized string similar to aResult does not match expected internal type.
         /// </summary>
+<<<<<<< HEAD
         internal static string CLaResultInternalTypeMismatch {
             get {
                 return ResourceManager.GetString("CLaResultInternalTypeMismatch", resourceCulture);
+=======
+        internal static string CLCredentialaResultInternalTypeMismatch {
+            get {
+                return ResourceManager.GetString("CLCredentialaResultInternalTypeMismatch", resourceCulture);
+>>>>>>> 4875c7138096cc3112a7744855eb4ea247836d13
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Cannot cast state as.
         /// </summary>
+<<<<<<< HEAD
         internal static string CLCannotCastStateAs {
             get {
                 return ResourceManager.GetString("CLCannotCastStateAs", resourceCulture);
+=======
+        internal static string CLCredentialCannotCastStateAs {
+            get {
+                return ResourceManager.GetString("CLCredentialCannotCastStateAs", resourceCulture);
+>>>>>>> 4875c7138096cc3112a7744855eb4ea247836d13
             }
         }
         
@@ -160,6 +172,18 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+<<<<<<< HEAD
+=======
+        ///   Looks up a localized string similar to timeoutMilliseconds must be greater than zero.
+        /// </summary>
+        internal static string CLCredentialMSTimeoutMustBeGreaterThanZero {
+            get {
+                return ResourceManager.GetString("CLCredentialMSTimeoutMustBeGreaterThanZero", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+>>>>>>> 4875c7138096cc3112a7744855eb4ea247836d13
         ///   Looks up a localized string similar to pushRequest must not be null.
         /// </summary>
         internal static string CLCredentialPushRequestCannotBeNull {
@@ -187,20 +211,45 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+<<<<<<< HEAD
         ///   Looks up a localized string similar to N.
         /// </summary>
         internal static string CLCredentialStringSettingsN {
             get {
                 return ResourceManager.GetString("CLCredentialStringSettingsN", resourceCulture);
-            }
-        }
-        
-        /// <summary>
+=======
         ///   Looks up a localized string similar to syncbox cannot be null.
         /// </summary>
         internal static string CLEngineSyncboxCannotBeNull {
             get {
                 return ResourceManager.GetString("CLEngineSyncboxCannotBeNull", resourceCulture);
+>>>>>>> 4875c7138096cc3112a7744855eb4ea247836d13
+            }
+        }
+        
+        /// <summary>
+<<<<<<< HEAD
+        ///   Looks up a localized string similar to syncbox cannot be null.
+        /// </summary>
+        internal static string CLEngineSyncboxCannotBeNull {
+            get {
+                return ResourceManager.GetString("CLEngineSyncboxCannotBeNull", resourceCulture);
+=======
+        ///   Looks up a localized string similar to aResult does not match expected internal type.
+        /// </summary>
+        internal static string CLHttpRestaResultInternalTypeMismatch {
+            get {
+                return ResourceManager.GetString("CLHttpRestaResultInternalTypeMismatch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot cast state as.
+        /// </summary>
+        internal static string CLHttpRestCannotCastStateAs {
+            get {
+                return ResourceManager.GetString("CLHttpRestCannotCastStateAs", resourceCulture);
+>>>>>>> 4875c7138096cc3112a7744855eb4ea247836d13
             }
         }
         
@@ -232,6 +281,7 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+<<<<<<< HEAD
         ///   Looks up a localized string similar to syncbox.CopiedSettings must not be null.
         /// </summary>
         internal static string CLHttpRestCopiedSettingsMustNotBeNull {
@@ -241,6 +291,8 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+=======
+>>>>>>> 4875c7138096cc3112a7744855eb4ea247836d13
         ///   Looks up a localized string similar to copyTargetPath cannot be null.
         /// </summary>
         internal static string CLHttpRestCopyPathCannotBeNull {
@@ -313,11 +365,19 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+<<<<<<< HEAD
         ///   Looks up a localized string similar to fullPath does not contain settings SyncRoot.
         /// </summary>
         internal static string CLHttpRestFullPathDoesNotContainSettingsSyncRoot {
             get {
                 return ResourceManager.GetString("CLHttpRestFullPathDoesNotContainSettingsSyncRoot", resourceCulture);
+=======
+        ///   Looks up a localized string similar to fullPath does not contain syncbox path.
+        /// </summary>
+        internal static string CLHttpRestFullPathDoesNotContainSettingsSyncboxPath {
+            get {
+                return ResourceManager.GetString("CLHttpRestFullPathDoesNotContainSettingsSyncboxPath", resourceCulture);
+>>>>>>> 4875c7138096cc3112a7744855eb4ea247836d13
             }
         }
         
@@ -333,18 +393,30 @@ namespace Cloud.Static {
         /// <summary>
         ///   Looks up a localized string similar to There was an internal error attempting to retrieve the progress, Error 1.
         /// </summary>
+<<<<<<< HEAD
         internal static string CLHttpRestInternalPRogressRetreivalFailure1 {
             get {
                 return ResourceManager.GetString("CLHttpRestInternalPRogressRetreivalFailure1", resourceCulture);
+=======
+        internal static string CLHttpRestInternalPRogressRetrievalFailure1 {
+            get {
+                return ResourceManager.GetString("CLHttpRestInternalPRogressRetrievalFailure1", resourceCulture);
+>>>>>>> 4875c7138096cc3112a7744855eb4ea247836d13
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to There was an internal error attempting to retrieve the progress, Error 2.
         /// </summary>
+<<<<<<< HEAD
         internal static string CLHttpRestInternalPRogressRetreivalFailure2 {
             get {
                 return ResourceManager.GetString("CLHttpRestInternalPRogressRetreivalFailure2", resourceCulture);
+=======
+        internal static string CLHttpRestInternalPRogressRetrievalFailure2 {
+            get {
+                return ResourceManager.GetString("CLHttpRestInternalPRogressRetrievalFailure2", resourceCulture);
+>>>>>>> 4875c7138096cc3112a7744855eb4ea247836d13
             }
         }
         
@@ -376,6 +448,7 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+<<<<<<< HEAD
         ///   Looks up a localized string similar to toCommunicate Metadata Revision cannot be null.
         /// </summary>
         internal static string CLHttpRestMetaDataRevisionCannotBeNull {
@@ -385,6 +458,8 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+=======
+>>>>>>> 4875c7138096cc3112a7744855eb4ea247836d13
         ///   Looks up a localized string similar to toCommunicate NewPath cannot be null.
         /// </summary>
         internal static string CLHttpRestNewPathCannotBeNull {
@@ -421,6 +496,47 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+<<<<<<< HEAD
+        ///   Looks up a localized string similar to syncbox Credential cannot be null.
+        /// </summary>
+        internal static string CLHttpRestsyncboxCredentialCannotBeNull {
+            get {
+                return ResourceManager.GetString("CLHttpRestsyncboxCredentialCannotBeNull", resourceCulture);
+=======
+        ///   Looks up a localized string similar to revision cannot be null.
+        /// </summary>
+        internal static string CLHttpRestRevisionCannotBeNull {
+            get {
+                return ResourceManager.GetString("CLHttpRestRevisionCannotBeNull", resourceCulture);
+>>>>>>> 4875c7138096cc3112a7744855eb4ea247836d13
+            }
+        }
+        
+        /// <summary>
+<<<<<<< HEAD
+        ///   Looks up a localized string similar to settings SyncRoot represents a bad path.
+        /// </summary>
+        internal static string CLHttpRestSyncRootBadPath {
+            get {
+                return ResourceManager.GetString("CLHttpRestSyncRootBadPath", resourceCulture);
+=======
+        ///   Looks up a localized string similar to Syncbox path is bad.
+        /// </summary>
+        internal static string CLHttpRestSyncboxBadPath {
+            get {
+                return ResourceManager.GetString("CLHttpRestSyncboxBadPath", resourceCulture);
+>>>>>>> 4875c7138096cc3112a7744855eb4ea247836d13
+            }
+        }
+        
+        /// <summary>
+<<<<<<< HEAD
+        ///   Looks up a localized string similar to settings SyncRoot cannot be null.
+        /// </summary>
+        internal static string CLHttpRestSyncRootCannotBeNull {
+            get {
+                return ResourceManager.GetString("CLHttpRestSyncRootCannotBeNull", resourceCulture);
+=======
         ///   Looks up a localized string similar to syncbox Credential cannot be null.
         /// </summary>
         internal static string CLHttpRestsyncboxCredentialCannotBeNull {
@@ -430,20 +546,12 @@ namespace Cloud.Static {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to settings SyncRoot represents a bad path.
+        ///   Looks up a localized string similar to Syncbox path cannot be null.
         /// </summary>
-        internal static string CLHttpRestSyncRootBadPath {
+        internal static string CLHttpRestSyncboxPathCannotBeNull {
             get {
-                return ResourceManager.GetString("CLHttpRestSyncRootBadPath", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to settings SyncRoot cannot be null.
-        /// </summary>
-        internal static string CLHttpRestSyncRootCannotBeNull {
-            get {
-                return ResourceManager.GetString("CLHttpRestSyncRootCannotBeNull", resourceCulture);
+                return ResourceManager.GetString("CLHttpRestSyncboxPathCannotBeNull", resourceCulture);
+>>>>>>> 4875c7138096cc3112a7744855eb4ea247836d13
             }
         }
         
@@ -511,7 +619,11 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+<<<<<<< HEAD
         ///   Looks up a localized string similar to Either toCommunicate NewPath must not be null or toCommunicate Metadata ServerId must not be null or both must not be null.
+=======
+        ///   Looks up a localized string similar to Either toCommunicate NewPath must not be null or serverUid must not be null or both must not be null.
+>>>>>>> 4875c7138096cc3112a7744855eb4ea247836d13
         /// </summary>
         internal static string CLHttpRestXORNewPathServerIDCannotBeNull {
             get {
@@ -529,6 +641,7 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+<<<<<<< HEAD
         ///   Looks up a localized string similar to timeoutMilliseconds must be greater than zero.
         /// </summary>
         internal static string CLMSTimeoutMustBeGreaterThanZero {
@@ -538,6 +651,8 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+=======
+>>>>>>> 4875c7138096cc3112a7744855eb4ea247836d13
         ///   Looks up a localized string similar to Already initialized.
         /// </summary>
         internal static string CLNotificationManualPollingEngineAlreadyInitialized {
@@ -630,9 +745,15 @@ namespace Cloud.Static {
         /// <summary>
         ///   Looks up a localized string similar to CLNotificationService: DisconnectPushNotificationServer: Remove client: {0}..
         /// </summary>
+<<<<<<< HEAD
         internal static string CLNotificationServiceDisconnectNotificationServerRemoveClient0 {
             get {
                 return ResourceManager.GetString("CLNotificationServiceDisconnectNotificationServerRemoveClient0", resourceCulture);
+=======
+        internal static string CLNotificationServiceDisconnectNotificationServerRemoteClient0 {
+            get {
+                return ResourceManager.GetString("CLNotificationServiceDisconnectNotificationServerRemoteClient0", resourceCulture);
+>>>>>>> 4875c7138096cc3112a7744855eb4ea247836d13
             }
         }
         
@@ -1016,7 +1137,11 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+<<<<<<< HEAD
         ///   Looks up a localized string similar to Syncbox cannot be null.
+=======
+        ///   Looks up a localized string similar to syncbox cannot be null.
+>>>>>>> 4875c7138096cc3112a7744855eb4ea247836d13
         /// </summary>
         internal static string CLNotificationServiceSyncBoxCannotBeNull {
             get {
@@ -1025,7 +1150,11 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+<<<<<<< HEAD
         ///   Looks up a localized string similar to Syncbox CopiedSettings DeviceId cannot be null.
+=======
+        ///   Looks up a localized string similar to syncbox CopiedSettings DeviceId cannot be null.
+>>>>>>> 4875c7138096cc3112a7744855eb4ea247836d13
         /// </summary>
         internal static string CLNotificationServiceSyncBoxCopiedSettingsCannotBeNull {
             get {
@@ -1388,15 +1517,22 @@ namespace Cloud.Static {
         /// <summary>
         ///   Looks up a localized string similar to Cannot do anything with the Cloud SDK if Helpers.AllHaltedOnUnrecoverableError is set.
         /// </summary>
+<<<<<<< HEAD
         internal static string CLSyncBoxAllHaltedOnUnrecoverableErrorIsSet {
             get {
                 return ResourceManager.GetString("CLSyncBoxAllHaltedOnUnrecoverableErrorIsSet", resourceCulture);
+=======
+        internal static string CLSyncboxAllHaltedOnUnrecoverableErrorIsSet {
+            get {
+                return ResourceManager.GetString("CLSyncboxAllHaltedOnUnrecoverableErrorIsSet", resourceCulture);
+>>>>>>> 4875c7138096cc3112a7744855eb4ea247836d13
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to CLSyncbox: Constructing....
         /// </summary>
+<<<<<<< HEAD
         internal static string CLSyncBoxConstructing {
             get {
                 return ResourceManager.GetString("CLSyncBoxConstructing", resourceCulture);
@@ -1409,48 +1545,78 @@ namespace Cloud.Static {
         internal static string CLSyncboxConstructionError0 {
             get {
                 return ResourceManager.GetString("CLSyncboxConstructionError0", resourceCulture);
+=======
+        internal static string CLSyncboxConstructing {
+            get {
+                return ResourceManager.GetString("CLSyncboxConstructing", resourceCulture);
+>>>>>>> 4875c7138096cc3112a7744855eb4ea247836d13
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to CLSyncbox: Construction: ERROR: Msg: {0}..
         /// </summary>
+<<<<<<< HEAD
         internal static string CLSyncBoxConstructionErrorMsg0 {
             get {
                 return ResourceManager.GetString("CLSyncBoxConstructionErrorMsg0", resourceCulture);
+=======
+        internal static string CLSyncboxConstructionErrorMsg0 {
+            get {
+                return ResourceManager.GetString("CLSyncboxConstructionErrorMsg0", resourceCulture);
+>>>>>>> 4875c7138096cc3112a7744855eb4ea247836d13
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to CLSyncbox: Construction: ERROR: Msg: {0}. Code: {1}..
         /// </summary>
+<<<<<<< HEAD
         internal static string CLSyncBoxConstructionErrorMsg0Code1 {
             get {
                 return ResourceManager.GetString("CLSyncBoxConstructionErrorMsg0Code1", resourceCulture);
+=======
+        internal static string CLSyncboxConstructionErrorMsg0Code1 {
+            get {
+                return ResourceManager.GetString("CLSyncboxConstructionErrorMsg0Code1", resourceCulture);
+>>>>>>> 4875c7138096cc3112a7744855eb4ea247836d13
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Error creating REST HTTP client.
         /// </summary>
+<<<<<<< HEAD
         internal static string CLSyncBoxErrorCreatingRestHTTPClient {
             get {
                 return ResourceManager.GetString("CLSyncBoxErrorCreatingRestHTTPClient", resourceCulture);
+=======
+        internal static string CLSyncboxErrorCreatingRestHTTPClient {
+            get {
+                return ResourceManager.GetString("CLSyncboxErrorCreatingRestHTTPClient", resourceCulture);
+>>>>>>> 4875c7138096cc3112a7744855eb4ea247836d13
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Unknown error creating HTTP REST client.
         /// </summary>
+<<<<<<< HEAD
         internal static string CLSyncBoxErrorUnknownErrorCreatingRestClient {
             get {
                 return ResourceManager.GetString("CLSyncBoxErrorUnknownErrorCreatingRestClient", resourceCulture);
+=======
+        internal static string CLSyncboxErrorUnknownErrorCreatingRestClient {
+            get {
+                return ResourceManager.GetString("CLSyncboxErrorUnknownErrorCreatingRestClient", resourceCulture);
+>>>>>>> 4875c7138096cc3112a7744855eb4ea247836d13
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to CLSyncbox: Start: Create rest client..
         /// </summary>
+<<<<<<< HEAD
         internal static string CLSyncBoxStartCreateRestClient {
             get {
                 return ResourceManager.GetString("CLSyncBoxStartCreateRestClient", resourceCulture);
@@ -1463,6 +1629,11 @@ namespace Cloud.Static {
         internal static string CLSynceEngineOnNotificationPerformManualSyncFrom {
             get {
                 return ResourceManager.GetString("CLSynceEngineOnNotificationPerformManualSyncFrom", resourceCulture);
+=======
+        internal static string CLSyncboxStartCreateRestClient {
+            get {
+                return ResourceManager.GetString("CLSyncboxStartCreateRestClient", resourceCulture);
+>>>>>>> 4875c7138096cc3112a7744855eb4ea247836d13
             }
         }
         
@@ -1505,9 +1676,15 @@ namespace Cloud.Static {
         /// <summary>
         ///   Looks up a localized string similar to An error occurred starting push notification.
         /// </summary>
+<<<<<<< HEAD
         internal static string CLSyncEngineErrorOccurredStarrtingNotification {
             get {
                 return ResourceManager.GetString("CLSyncEngineErrorOccurredStarrtingNotification", resourceCulture);
+=======
+        internal static string CLSyncEngineErrorOccurredStartingNotification {
+            get {
+                return ResourceManager.GetString("CLSyncEngineErrorOccurredStartingNotification", resourceCulture);
+>>>>>>> 4875c7138096cc3112a7744855eb4ea247836d13
             }
         }
         
@@ -1593,6 +1770,7 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+<<<<<<< HEAD
         ///   Looks up a localized string similar to CLSyncEngine: OnConnectionError: Entry. ERROR: Manual poll error: &lt;{0}&gt;. Web socket error: &lt;{1}&gt;..
         /// </summary>
         internal static string CLSyncEngineOnConnectionErrorEntryErrorManualPollErrorWebSocketError {
@@ -1607,6 +1785,13 @@ namespace Cloud.Static {
         internal static string CLSyncEngineOnConnectionErrorNotifyApplication {
             get {
                 return ResourceManager.GetString("CLSyncEngineOnConnectionErrorNotifyApplication", resourceCulture);
+=======
+        ///   Looks up a localized string similar to CLSyncEngine: OnNotificationPerformManualSyncFrom: Send a Perform Manual SyncFrom to monitor..
+        /// </summary>
+        internal static string CLSyncEngineOnNotificationPerformManualSyncFrom {
+            get {
+                return ResourceManager.GetString("CLSyncEngineOnNotificationPerformManualSyncFrom", resourceCulture);
+>>>>>>> 4875c7138096cc3112a7744855eb4ea247836d13
             }
         }
         
@@ -1631,9 +1816,15 @@ namespace Cloud.Static {
         /// <summary>
         ///   Looks up a localized string similar to CLSyncEngine: ReleaseResources: Indexer stopped..
         /// </summary>
+<<<<<<< HEAD
         internal static string CLsyncEngineReleaseResourcesIndexerStopped {
             get {
                 return ResourceManager.GetString("CLsyncEngineReleaseResourcesIndexerStopped", resourceCulture);
+=======
+        internal static string CLSyncEngineReleaseResourcesIndexerStopped {
+            get {
+                return ResourceManager.GetString("CLSyncEngineReleaseResourcesIndexerStopped", resourceCulture);
+>>>>>>> 4875c7138096cc3112a7744855eb4ea247836d13
             }
         }
         
@@ -1809,7 +2000,11 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+<<<<<<< HEAD
         ///   Looks up a localized string similar to Syncbox path in settings is too long, check it first via Helpers.CheckSyncRootLength.
+=======
+        ///   Looks up a localized string similar to Syncbox path in settings is too long, check it first via Helpers.CheckSyncboxPathLength.
+>>>>>>> 4875c7138096cc3112a7744855eb4ea247836d13
         /// </summary>
         internal static string CLSyncEngineSyncboxPathSettingsTooLong {
             get {
@@ -1881,6 +2076,7 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+<<<<<<< HEAD
         ///   Looks up a localized string similar to syncRoot must not be null.
         /// </summary>
         internal static string CLSyncSettingsSyncRootCannotBeNull {
@@ -1890,6 +2086,8 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+=======
+>>>>>>> 4875c7138096cc3112a7744855eb4ea247836d13
         ///   Looks up a localized string similar to toCopy must not be null.
         /// </summary>
         internal static string CLSyncSettingstoCopyMustNotBeNull {
@@ -1935,6 +2133,7 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+<<<<<<< HEAD
         ///   Looks up a localized string similar to Could not find path to rename at oldPath.
         /// </summary>
         internal static string CouldNotFindPathToRenameOldPath {
@@ -1944,6 +2143,8 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+=======
+>>>>>>> 4875c7138096cc3112a7744855eb4ea247836d13
         ///   Looks up a localized string similar to Users.
         /// </summary>
         internal static string DocumentsAndSettingsVista {
@@ -2016,6 +2217,153 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+<<<<<<< HEAD
+=======
+        ///   Looks up a localized string similar to Path cannot be null.
+        /// </summary>
+        internal static string ExceptionCLHttpRestNullPath {
+            get {
+                return ResourceManager.GetString("ExceptionCLHttpRestNullPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to serverUid cannot be null.
+        /// </summary>
+        internal static string ExceptionCLHttpRestNullServerUid {
+            get {
+                return ResourceManager.GetString("ExceptionCLHttpRestNullServerUid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to syncbox cannot be null.
+        /// </summary>
+        internal static string ExceptionCLHttpRestNullSyncbox {
+            get {
+                return ResourceManager.GetString("ExceptionCLHttpRestNullSyncbox", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Server responded without an array of delete responses.
+        /// </summary>
+        internal static string ExceptionCLHttpRestWithoutDeleteResponses {
+            get {
+                return ResourceManager.GetString("ExceptionCLHttpRestWithoutDeleteResponses", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Server responded without an array of Metadata.
+        /// </summary>
+        internal static string ExceptionCLHttpRestWithoutMetadata {
+            get {
+                return ResourceManager.GetString("ExceptionCLHttpRestWithoutMetadata", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Server responded without an array of move responses.
+        /// </summary>
+        internal static string ExceptionCLHttpRestWithoutMoveResponses {
+            get {
+                return ResourceManager.GetString("ExceptionCLHttpRestWithoutMoveResponses", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Server responded without an array of Plans.
+        /// </summary>
+        internal static string ExceptionCLHttpRestWithoutPlans {
+            get {
+                return ResourceManager.GetString("ExceptionCLHttpRestWithoutPlans", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Server responded without an array of rename responses.
+        /// </summary>
+        internal static string ExceptionCLHttpRestWithoutRenameResponses {
+            get {
+                return ResourceManager.GetString("ExceptionCLHttpRestWithoutRenameResponses", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Server responded without an array of Sessions.
+        /// </summary>
+        internal static string ExceptionCLHttpRestWithoutSessions {
+            get {
+                return ResourceManager.GetString("ExceptionCLHttpRestWithoutSessions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Not marked as already started, but still has an existing CLSyncEngine.
+        /// </summary>
+        internal static string ExceptionCLSyncboxBeginSyncExistingEngine {
+            get {
+                return ResourceManager.GetString("ExceptionCLSyncboxBeginSyncExistingEngine", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error starting active syncing.
+        /// </summary>
+        internal static string ExceptionCLSyncboxBeginSyncStartEngine {
+            get {
+                return ResourceManager.GetString("ExceptionCLSyncboxBeginSyncStartEngine", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Marked as started, but does not have an existing CLSyncEngine.
+        /// </summary>
+        internal static string ExceptionCLSyncboxEngineNotFound {
+            get {
+                return ResourceManager.GetString("ExceptionCLSyncboxEngineNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Start the syncbox first.
+        /// </summary>
+        internal static string ExceptionCLSyncboxNotStarted {
+            get {
+                return ResourceManager.GetString("ExceptionCLSyncboxNotStarted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to path must be set first.
+        /// </summary>
+        internal static string ExceptionCLSyncboxPathNotSet {
+            get {
+                return ResourceManager.GetString("ExceptionCLSyncboxPathNotSet", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Stop the syncbox before resetting local cache.
+        /// </summary>
+        internal static string ExceptionCLSyncboxResetLocalCacheAlreadyStarted {
+            get {
+                return ResourceManager.GetString("ExceptionCLSyncboxResetLocalCacheAlreadyStarted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The syncbox folder does not exist at the specified path: {0}..
+        /// </summary>
+        internal static string ExceptionCLSyncEngineMissingSyncFolder {
+            get {
+                return ResourceManager.GetString("ExceptionCLSyncEngineMissingSyncFolder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+>>>>>>> 4875c7138096cc3112a7744855eb4ea247836d13
         ///   Looks up a localized string similar to Oops. We&apos;re sorry, it seems like something went wrong while creating your account.  The error code is {0}..
         /// </summary>
         internal static string ExceptionCreatingUserRegistrationWithCode {
@@ -2052,6 +2400,54 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+<<<<<<< HEAD
+=======
+        ///   Looks up a localized string similar to response IsFolder must not be null or headerAction must not be null or action must not be null.
+        /// </summary>
+        internal static string ExceptionFileItemNullIsFolderActionAndHeaderAction {
+            get {
+                return ResourceManager.GetString("ExceptionFileItemNullIsFolderActionAndHeaderAction", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to response must not be null.
+        /// </summary>
+        internal static string ExceptionFileItemNullResponse {
+            get {
+                return ResourceManager.GetString("ExceptionFileItemNullResponse", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to syncbox must not be null.
+        /// </summary>
+        internal static string ExceptionFileItemNullSyncbox {
+            get {
+                return ResourceManager.GetString("ExceptionFileItemNullSyncbox", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to determine if action represents a file or a folder. action: {0}.
+        /// </summary>
+        internal static string ExceptionFileItemUnknownAction {
+            get {
+                return ResourceManager.GetString("ExceptionFileItemUnknownAction", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error on SetMD5 from MD5 of an existing change.
+        /// </summary>
+        internal static string ExceptionFileMonitorBeginProcessingSetMD5 {
+            get {
+                return ResourceManager.GetString("ExceptionFileMonitorBeginProcessingSetMD5", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+>>>>>>> 4875c7138096cc3112a7744855eb4ea247836d13
         ///   Looks up a localized string similar to MakeAsyncRequestSynchronous was processed without param1.
         /// </summary>
         internal static string ExceptionHelpersAsyncGetUploadRequestStreamOrDownloadResponseMakeSyncParam1 {
@@ -2106,20 +2502,36 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+<<<<<<< HEAD
         ///   Looks up a localized string similar to syncRootFullPath is too long by {0} characters.
         /// </summary>
         internal static string ExceptionHelpersCheckSyncRootLengthTooLongPlural {
             get {
                 return ResourceManager.GetString("ExceptionHelpersCheckSyncRootLengthTooLongPlural", resourceCulture);
+=======
+        ///   Looks up a localized string similar to syncbox path is too long by {0} characters.
+        /// </summary>
+        internal static string ExceptionHelpersCheckSyncboxPathLengthTooLongPlural {
+            get {
+                return ResourceManager.GetString("ExceptionHelpersCheckSyncboxPathLengthTooLongPlural", resourceCulture);
+>>>>>>> 4875c7138096cc3112a7744855eb4ea247836d13
             }
         }
         
         /// <summary>
+<<<<<<< HEAD
         ///   Looks up a localized string similar to syncRootFullPath is too long by {0} character.
         /// </summary>
         internal static string ExceptionHelpersCheckSyncRootLengthTooLongSingular {
             get {
                 return ResourceManager.GetString("ExceptionHelpersCheckSyncRootLengthTooLongSingular", resourceCulture);
+=======
+        ///   Looks up a localized string similar to syncbox path is too long by {0} character.
+        /// </summary>
+        internal static string ExceptionHelpersCheckSyncboxPathLengthTooLongSingular {
+            get {
+                return ResourceManager.GetString("ExceptionHelpersCheckSyncboxPathLengthTooLongSingular", resourceCulture);
+>>>>>>> 4875c7138096cc3112a7744855eb4ea247836d13
             }
         }
         
@@ -2160,6 +2572,18 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+<<<<<<< HEAD
+=======
+        ///   Looks up a localized string similar to Asynchronously getting request stream or getting response has timed out.
+        /// </summary>
+        internal static string ExceptionHelpersProcessHttpInnerAsyncTimeout {
+            get {
+                return ResourceManager.GetString("ExceptionHelpersProcessHttpInnerAsyncTimeout", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+>>>>>>> 4875c7138096cc3112a7744855eb4ea247836d13
         ///   Looks up a localized string similar to Operation cancelled by client.
         /// </summary>
         internal static string ExceptionHelpersProcessHttpInnerClientCancelled {
@@ -2421,6 +2845,7 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+<<<<<<< HEAD
         ///   Looks up a localized string similar to Oops. We&apos;re sorry, it seems like something went wrong while removing this device from your account..
         /// </summary>
         internal static string ExceptionUnlinking {
@@ -2550,327 +2975,616 @@ namespace Cloud.Static {
             get {
                 return ResourceManager.GetString("IconOverlaybadgeComPubSubEventsOnBadgeComInitializationSubscriptionFailedSubscrib" +
                         "eToBadgeComPubSubEvents", resourceCulture);
+=======
+        ///   Looks up a localized string similar to Item has already been deleted.
+        /// </summary>
+        internal static string ExceptionOnDemandAlreadyDeleted {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandAlreadyDeleted", resourceCulture);
+>>>>>>> 4875c7138096cc3112a7744855eb4ea247836d13
             }
         }
         
         /// <summary>
+<<<<<<< HEAD
         ///   Looks up a localized string similar to IconOverlay: _badgeComPubSubEvents_OnBadgeComInitializationSubscriptionFailed: threadInit entry..
         /// </summary>
         internal static string IconOverlaybadgeComPubSubEventsOnBadgeComInitializationSubscriptionFailedThreadInitEntry {
             get {
                 return ResourceManager.GetString("IconOverlaybadgeComPubSubEventsOnBadgeComInitializationSubscriptionFailedThreadIn" +
                         "itEntry", resourceCulture);
+=======
+        ///   Looks up a localized string similar to pathToCheck is bad, see InnerException.
+        /// </summary>
+        internal static string ExceptionOnDemandCheckPathBad {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandCheckPathBad", resourceCulture);
+>>>>>>> 4875c7138096cc3112a7744855eb4ea247836d13
             }
         }
         
         /// <summary>
+<<<<<<< HEAD
         ///   Looks up a localized string similar to IconOverlay: BadgeComPubSubEvents_OnBadgeComInitialized: Entry. BadgeType: {0}..
         /// </summary>
         internal static string IconOverlayBadgeComPubSubEventsOnBadgeComInitializedEntryBadgeType0 {
             get {
                 return ResourceManager.GetString("IconOverlayBadgeComPubSubEventsOnBadgeComInitializedEntryBadgeType0", resourceCulture);
+=======
+        ///   Looks up a localized string similar to pathToCheck does not contain syncbox Path.
+        /// </summary>
+        internal static string ExceptionOnDemandCheckPathNotContained {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandCheckPathNotContained", resourceCulture);
+>>>>>>> 4875c7138096cc3112a7744855eb4ea247836d13
             }
         }
         
         /// <summary>
+<<<<<<< HEAD
         ///   Looks up a localized string similar to IconOverlay: BadgeComPubSubEvents_OnBadgeComInitialized: ERROR: Exception: Msg: &lt;{0}&gt;..
         /// </summary>
         internal static string IconOverlayBadgeComPubSubEventsOnBadgeComInitializedERRORExceptionMsg0 {
             get {
                 return ResourceManager.GetString("IconOverlayBadgeComPubSubEventsOnBadgeComInitializedERRORExceptionMsg0", resourceCulture);
+=======
+        ///   Looks up a localized string similar to pathToCheck cannot be null.
+        /// </summary>
+        internal static string ExceptionOnDemandCheckPathNull {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandCheckPathNull", resourceCulture);
+>>>>>>> 4875c7138096cc3112a7744855eb4ea247836d13
             }
         }
         
         /// <summary>
+<<<<<<< HEAD
         ///   Looks up a localized string similar to IconOverlay: _badgeComPubSubEvents_OnBadgeComWatcherFailed: ERROR: Exception: Msg: &lt;{0}&gt;..
         /// </summary>
         internal static string IconOverlaybadgeComPubSubEventsOnBadgeComWatcherFailedERRORExceptionMessage0 {
             get {
                 return ResourceManager.GetString("IconOverlaybadgeComPubSubEventsOnBadgeComWatcherFailedERRORExceptionMessage0", resourceCulture);
+=======
+        ///   Looks up a localized string similar to Syncbox Path cannot be null.
+        /// </summary>
+        internal static string ExceptionOnDemandCheckPathSyncboxPathNull {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandCheckPathSyncboxPathNull", resourceCulture);
+>>>>>>> 4875c7138096cc3112a7744855eb4ea247836d13
             }
         }
         
         /// <summary>
+<<<<<<< HEAD
         ///   Looks up a localized string similar to BadgeType: {0}. Path: &lt;{1}..
         /// </summary>
         internal static string IconOverlayBadgeType0Path1 {
             get {
                 return ResourceManager.GetString("IconOverlayBadgeType0Path1", resourceCulture);
+=======
+        ///   Looks up a localized string similar to Destination item already exists.
+        /// </summary>
+        internal static string ExceptionOnDemandConflict {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandConflict", resourceCulture);
+>>>>>>> 4875c7138096cc3112a7744855eb4ea247836d13
             }
         }
         
         /// <summary>
+<<<<<<< HEAD
         ///   Looks up a localized string similar to IconOverlay: Badging is not enabled. Exit..
         /// </summary>
         internal static string IconOverlayBadgingIsNotEnabledExit {
             get {
                 return ResourceManager.GetString("IconOverlayBadgingIsNotEnabledExit", resourceCulture);
+=======
+        ///   Looks up a localized string similar to An error occurred deserializing the error message for current item in error.
+        /// </summary>
+        internal static string ExceptionOnDemandDeserializeErrorMessage {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandDeserializeErrorMessage", resourceCulture);
+>>>>>>> 4875c7138096cc3112a7744855eb4ea247836d13
             }
         }
         
         /// <summary>
+<<<<<<< HEAD
         ///   Looks up a localized string similar to IconOverlay: Call ShouldIconBeBadged (at this path). currentBadge: {0}..
         /// </summary>
         internal static string IconOverlayCallShouldIconBeBadgedAtThisPathCurrentBadge0 {
             get {
                 return ResourceManager.GetString("IconOverlayCallShouldIconBeBadgedAtThisPathCurrentBadge0", resourceCulture);
+=======
+        ///   Looks up a localized string similar to File item must not be null at item index {0}.
+        /// </summary>
+        internal static string ExceptionOnDemandFileItemNullAtIndexMsg0 {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandFileItemNullAtIndexMsg0", resourceCulture);
+>>>>>>> 4875c7138096cc3112a7744855eb4ea247836d13
             }
         }
         
         /// <summary>
+<<<<<<< HEAD
         ///   Looks up a localized string similar to &gt;..
         /// </summary>
         internal static string IconOverlayCloseBracket {
             get {
                 return ResourceManager.GetString("IconOverlayCloseBracket", resourceCulture);
+=======
+        ///   Looks up a localized string similar to Folder item must not be null at item index {0}.
+        /// </summary>
+        internal static string ExceptionOnDemandFolderItemNullAtIndexMsg0 {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandFolderItemNullAtIndexMsg0", resourceCulture);
+>>>>>>> 4875c7138096cc3112a7744855eb4ea247836d13
             }
         }
         
         /// <summary>
+<<<<<<< HEAD
         ///   Looks up a localized string similar to Cloud.
         /// </summary>
         internal static string IconOverlayCloud {
             get {
                 return ResourceManager.GetString("IconOverlayCloud", resourceCulture);
+=======
+        ///   Looks up a localized string similar to An error occurred for the current item, check the InnerException Message.
+        /// </summary>
+        internal static string ExceptionOnDemandItemError {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandItemError", resourceCulture);
+>>>>>>> 4875c7138096cc3112a7744855eb4ea247836d13
             }
         }
         
         /// <summary>
+<<<<<<< HEAD
         ///   Looks up a localized string similar to cloudRoot must not be null or empty.
         /// </summary>
         internal static string IconOverlayCloudRootMustNotBeNullOrEmpty {
             get {
                 return ResourceManager.GetString("IconOverlayCloudRootMustNotBeNullOrEmpty", resourceCulture);
+=======
+        ///   Looks up a localized string similar to itemToRename must not be null.
+        /// </summary>
+        internal static string ExceptionOnDemandItemToRenameMustNotBeNull {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandItemToRenameMustNotBeNull", resourceCulture);
+>>>>>>> 4875c7138096cc3112a7744855eb4ea247836d13
             }
         }
         
         /// <summary>
+<<<<<<< HEAD
         ///   Looks up a localized string similar to DeleteBadgePath (after):.
         /// </summary>
         internal static string IconOverlayDeleteBadgePathAfter {
             get {
                 return ResourceManager.GetString("IconOverlayDeleteBadgePathAfter", resourceCulture);
+=======
+        ///   Looks up a localized string similar to newName must be specified.
+        /// </summary>
+        internal static string ExceptionOnDemandNewNameMustBeSpecified {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandNewNameMustBeSpecified", resourceCulture);
+>>>>>>> 4875c7138096cc3112a7744855eb4ea247836d13
             }
         }
         
         /// <summary>
+<<<<<<< HEAD
         ///   Looks up a localized string similar to DeleteBadgePath (before):.
         /// </summary>
         internal static string IconOverlayDeleteBadgePathBefore {
             get {
                 return ResourceManager.GetString("IconOverlayDeleteBadgePathBefore", resourceCulture);
+=======
+        ///   Looks up a localized string similar to Item was not found.
+        /// </summary>
+        internal static string ExceptionOnDemandNotFound {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandNotFound", resourceCulture);
+>>>>>>> 4875c7138096cc3112a7744855eb4ea247836d13
             }
         }
         
         /// <summary>
+<<<<<<< HEAD
         ///   Looks up a localized string similar to IconOverlay: DeleteBadgePath. ERROR: THROW: Must be initialized before renaming badge paths..
         /// </summary>
         internal static string IconOverlayDeleteBadgePathERRORTHROWMustBeInitializedBeforeRenamingBadgePaths {
             get {
                 return ResourceManager.GetString("IconOverlayDeleteBadgePathERRORTHROWMustBeInitializedBeforeRenamingBadgePaths", resourceCulture);
+=======
+        ///   Looks up a localized string similar to Server responded with a null item in the response array.
+        /// </summary>
+        internal static string ExceptionOnDemandNullItem {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandNullItem", resourceCulture);
+>>>>>>> 4875c7138096cc3112a7744855eb4ea247836d13
             }
         }
         
         /// <summary>
+<<<<<<< HEAD
         ///   Looks up a localized string similar to IconOverlay: DeleteBadgePath. Pass this delete to the dictionary..
         /// </summary>
         internal static string IconOverlayDeleteBadgePathPassThisDeleteToDictionary {
             get {
                 return ResourceManager.GetString("IconOverlayDeleteBadgePathPassThisDeleteToDictionary", resourceCulture);
+=======
+        ///   Looks up a localized string similar to Server responded with an item without metadata.
+        /// </summary>
+        internal static string ExceptionOnDemandNullMetadata {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandNullMetadata", resourceCulture);
+>>>>>>> 4875c7138096cc3112a7744855eb4ea247836d13
             }
         }
         
         /// <summary>
+<<<<<<< HEAD
         ///   Looks up a localized string similar to IconOverlay: DetermineBadgeStatusFromHierarchyOfChildrenOfThisNode. Get the hierarchy for path: {0}..
         /// </summary>
         internal static string IconOverlayDetermineBadgeStatusFromHierarchyOfChildrenOfThisNodeGetTheHierarchyForPath0 {
             get {
                 return ResourceManager.GetString("IconOverlayDetermineBadgeStatusFromHierarchyOfChildrenOfThisNodeGetTheHierarchyFo" +
                         "rPath0", resourceCulture);
+=======
+        ///   Looks up a localized string similar to Server responded with an item without a status.
+        /// </summary>
+        internal static string ExceptionOnDemandNullStatus {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandNullStatus", resourceCulture);
+>>>>>>> 4875c7138096cc3112a7744855eb4ea247836d13
             }
         }
         
         /// <summary>
+<<<<<<< HEAD
         ///   Looks up a localized string similar to IconOverlay: Dispose. Clear current badges..
         /// </summary>
         internal static string IconOverlayDisposeClearCurrentBadges {
             get {
                 return ResourceManager.GetString("IconOverlayDisposeClearCurrentBadges", resourceCulture);
+=======
+        ///   Looks up a localized string similar to Invalid existing Path in input item {0}.
+        /// </summary>
+        internal static string ExceptionOnDemandRenameFilesInvalidExistingPathInItemMsg0 {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandRenameFilesInvalidExistingPathInItemMsg0", resourceCulture);
+>>>>>>> 4875c7138096cc3112a7744855eb4ea247836d13
             }
         }
         
         /// <summary>
+<<<<<<< HEAD
         ///   Looks up a localized string similar to IconOverlay: Dispose. Clear current synced badges..
         /// </summary>
         internal static string IconOverlayDisposeClearCurrentSyncedBadges {
             get {
                 return ResourceManager.GetString("IconOverlayDisposeClearCurrentSyncedBadges", resourceCulture);
+=======
+        ///   Looks up a localized string similar to itemParams cannot be null nor empty.
+        /// </summary>
+        internal static string ExceptionOnDemandRenameMissingParameters {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandRenameMissingParameters", resourceCulture);
+>>>>>>> 4875c7138096cc3112a7744855eb4ea247836d13
             }
         }
         
         /// <summary>
+<<<<<<< HEAD
         ///   Looks up a localized string similar to IconOverlay: Dispose. ERROR: Exception sending BadgeNet_RemoveSyncboxFolderPath event. Msg: &lt;{0}&gt;..
         /// </summary>
         internal static string IconOverlayDisposedERRORExceptionSendingBadgeNetRemoveSyncboxFolderPathEventMsg0 {
             get {
                 return ResourceManager.GetString("IconOverlayDisposedERRORExceptionSendingBadgeNetRemoveSyncboxFolderPathEventMsg0", resourceCulture);
+=======
+        ///   Looks up a localized string similar to Server responded with a different number of items than the input array.
+        /// </summary>
+        internal static string ExceptionOnDemandResponseArrayLength {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandResponseArrayLength", resourceCulture);
+>>>>>>> 4875c7138096cc3112a7744855eb4ea247836d13
             }
         }
         
         /// <summary>
+<<<<<<< HEAD
         ///   Looks up a localized string similar to IconOverlay: Dispose. Disposing..
         /// </summary>
         internal static string IconOverlayDisposeDisposing {
             get {
                 return ResourceManager.GetString("IconOverlayDisposeDisposing", resourceCulture);
+=======
+        ///   Looks up a localized string similar to The syncbox path has already been set.
+        /// </summary>
+        internal static string ExceptionOnDemandSyncboxPathAlreadySet {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandSyncboxPathAlreadySet", resourceCulture);
+>>>>>>> 4875c7138096cc3112a7744855eb4ea247836d13
             }
         }
         
         /// <summary>
+<<<<<<< HEAD
         ///   Looks up a localized string similar to IconOverlay: Dispose. ERROR: Exception terminating the BadgeCom initialzation watcher. Msg: &lt;{0}&gt;..
         /// </summary>
         internal static string IconOverlayDisposeERRORExceptionTerminatingTheBadgeComInitializationWatcherMsg0 {
             get {
                 return ResourceManager.GetString("IconOverlayDisposeERRORExceptionTerminatingTheBadgeComInitializationWatcherMsg0", resourceCulture);
+=======
+        ///   Looks up a localized string similar to An unknown status was returned for an item. Status: {0}.
+        /// </summary>
+        internal static string ExceptionOnDemandUnknownItemStatus {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandUnknownItemStatus", resourceCulture);
+>>>>>>> 4875c7138096cc3112a7744855eb4ea247836d13
             }
         }
         
         /// <summary>
+<<<<<<< HEAD
         ///   Looks up a localized string similar to IconOverlay: Dispose. Initialized..
         /// </summary>
         internal static string IconOverlayDisposeInitialized {
             get {
                 return ResourceManager.GetString("IconOverlayDisposeInitialized", resourceCulture);
+=======
+        ///   Looks up a localized string similar to Error creating FileMonitor.
+        /// </summary>
+        internal static string ExceptionSyncboxCreateFileMonitor {
+            get {
+                return ResourceManager.GetString("ExceptionSyncboxCreateFileMonitor", resourceCulture);
+>>>>>>> 4875c7138096cc3112a7744855eb4ea247836d13
             }
         }
         
         /// <summary>
+<<<<<<< HEAD
         ///   Looks up a localized string similar to IconOverlay: Dispose.  Lock..
         /// </summary>
         internal static string IconOverlayDisposeLock {
             get {
                 return ResourceManager.GetString("IconOverlayDisposeLock", resourceCulture);
+=======
+        ///   Looks up a localized string similar to Error creating local index for syncbox.
+        /// </summary>
+        internal static string ExceptionSyncboxCreateIndex {
+            get {
+                return ResourceManager.GetString("ExceptionSyncboxCreateIndex", resourceCulture);
+>>>>>>> 4875c7138096cc3112a7744855eb4ea247836d13
             }
         }
         
         /// <summary>
+<<<<<<< HEAD
         ///   Looks up a localized string similar to IconOverlay: Dispose. PipeLocker..
         /// </summary>
         internal static string IconOverlayDisposePipeLocker {
             get {
                 return ResourceManager.GetString("IconOverlayDisposePipeLocker", resourceCulture);
+=======
+        ///   Looks up a localized string similar to Unable to lock syncbox folder.
+        /// </summary>
+        internal static string ExceptionSyncboxLockPath {
+            get {
+                return ResourceManager.GetString("ExceptionSyncboxLockPath", resourceCulture);
+>>>>>>> 4875c7138096cc3112a7744855eb4ea247836d13
             }
         }
         
         /// <summary>
+<<<<<<< HEAD
         ///   Looks up a localized string similar to IconOverlay: Dispose. Send BadgeNet_RemoveSyncboxFolderPath event..
         /// </summary>
         internal static string IconOverlayDisposeSendBadgeNetRemoveSyncbicFolderPathEvent {
             get {
                 return ResourceManager.GetString("IconOverlayDisposeSendBadgeNetRemoveSyncbicFolderPathEvent", resourceCulture);
+=======
+        ///   Looks up a localized string similar to CLSyncEngine: ERROR: CreateFile after checking Syncbox path. Msg: {0}.
+        /// </summary>
+        internal static string ExceptionSyncboxLockPathTrace {
+            get {
+                return ResourceManager.GetString("ExceptionSyncboxLockPathTrace", resourceCulture);
+>>>>>>> 4875c7138096cc3112a7744855eb4ea247836d13
             }
         }
         
         /// <summary>
+<<<<<<< HEAD
         ///   Looks up a localized string similar to IconOverlay: Dispose.  Set Disposed..
         /// </summary>
         internal static string IconOverlayDisposeSetDisposed {
             get {
                 return ResourceManager.GetString("IconOverlayDisposeSetDisposed", resourceCulture);
+=======
+        ///   Looks up a localized string similar to Error starting FileMonitor.
+        /// </summary>
+        internal static string ExceptionSyncboxStartFileMonitor {
+            get {
+                return ResourceManager.GetString("ExceptionSyncboxStartFileMonitor", resourceCulture);
+>>>>>>> 4875c7138096cc3112a7744855eb4ea247836d13
             }
         }
         
         /// <summary>
+<<<<<<< HEAD
         ///   Looks up a localized string similar to IconOverlay: Dispose. Unsubscribe from BadgeCom events..
         /// </summary>
         internal static string IconOverlayDisposeUnsubscribeFromBadgeComEvents {
             get {
                 return ResourceManager.GetString("IconOverlayDisposeUnsubscribeFromBadgeComEvents", resourceCulture);
+=======
+        ///   Looks up a localized string similar to A general exception occurred starting a syncbox, see InnerException.
+        /// </summary>
+        internal static string ExceptionSyncboxStartGeneral {
+            get {
+                return ResourceManager.GetString("ExceptionSyncboxStartGeneral", resourceCulture);
+>>>>>>> 4875c7138096cc3112a7744855eb4ea247836d13
             }
         }
         
         /// <summary>
+<<<<<<< HEAD
         ///   Looks up a localized string similar to IconOverlay error creating badging dictionary.
         /// </summary>
         internal static string IconOverlayErrorCreatingBadgingDictionary {
             get {
                 return ResourceManager.GetString("IconOverlayErrorCreatingBadgingDictionary", resourceCulture);
+=======
+        ///   Looks up a localized string similar to Error starting initial indexing.
+        /// </summary>
+        internal static string ExceptionSyncboxStartInitialIndexing {
+            get {
+                return ResourceManager.GetString("ExceptionSyncboxStartInitialIndexing", resourceCulture);
+>>>>>>> 4875c7138096cc3112a7744855eb4ea247836d13
             }
         }
         
         /// <summary>
+<<<<<<< HEAD
         ///   Looks up a localized string similar to Error from setting Syncbox root badge.
         /// </summary>
         internal static string IconOverlayErrorFromSettingSyncboxRootBadge {
             get {
                 return ResourceManager.GetString("IconOverlayErrorFromSettingSyncboxRootBadge", resourceCulture);
+=======
+        ///   Looks up a localized string similar to Error getting syncbox status from Cloud.
+        /// </summary>
+        internal static string ExceptionSyncboxStartStatus {
+            get {
+                return ResourceManager.GetString("ExceptionSyncboxStartStatus", resourceCulture);
+>>>>>>> 4875c7138096cc3112a7744855eb4ea247836d13
             }
         }
         
         /// <summary>
+<<<<<<< HEAD
         ///   Looks up a localized string similar to ERROR: Grabbing filePath hierarchy: tree is null.
         /// </summary>
         internal static string IconOverlayERRORGrabbingfilePathHeirarchyTreeIsNull {
             get {
                 return ResourceManager.GetString("IconOverlayERRORGrabbingfilePathHeirarchyTreeIsNull", resourceCulture);
+=======
+        ///   Looks up a localized string similar to {0}. Http status code: {1}.
+        /// </summary>
+        internal static string ExceptionSyncEngineHttpStatus {
+            get {
+                return ResourceManager.GetString("ExceptionSyncEngineHttpStatus", resourceCulture);
+>>>>>>> 4875c7138096cc3112a7744855eb4ea247836d13
             }
         }
         
         /// <summary>
+<<<<<<< HEAD
         ///   Looks up a localized string similar to ERROR: Grabbing oldPath hierarchy: tree is null.
         /// </summary>
         internal static string IconOverlayERRORGrabbingOldPathHeirarchyTreeIsNull {
             get {
                 return ResourceManager.GetString("IconOverlayERRORGrabbingOldPathHeirarchyTreeIsNull", resourceCulture);
+=======
+        ///   Looks up a localized string similar to Oops. We&apos;re sorry, it seems like something went wrong while removing this device from your account..
+        /// </summary>
+        internal static string ExceptionUnlinking {
+            get {
+                return ResourceManager.GetString("ExceptionUnlinking", resourceCulture);
+>>>>>>> 4875c7138096cc3112a7744855eb4ea247836d13
             }
         }
         
         /// <summary>
+<<<<<<< HEAD
         ///   Looks up a localized string similar to Explorer icon badging has failed.
         /// </summary>
         internal static string IconOverlayExplorerIconBadgingHasFailed {
             get {
                 return ResourceManager.GetString("IconOverlayExplorerIconBadgingHasFailed", resourceCulture);
+=======
+        ///   Looks up a localized string similar to Oops. We&apos;re sorry, it seems like something went wrong while removing this device from your account.  The error code is {0}..
+        /// </summary>
+        internal static string ExceptionUnlinkingWithCode {
+            get {
+                return ResourceManager.GetString("ExceptionUnlinkingWithCode", resourceCulture);
+>>>>>>> 4875c7138096cc3112a7744855eb4ea247836d13
             }
         }
         
         /// <summary>
+<<<<<<< HEAD
         ///   Looks up a localized string similar to flatBadgeType null.
         /// </summary>
         internal static string IconOverlayFlatBadgeTypeNull {
             get {
                 return ResourceManager.GetString("IconOverlayFlatBadgeTypeNull", resourceCulture);
+=======
+        ///   Looks up a localized string similar to baseChange cannot be null.
+        /// </summary>
+        internal static string FileChangeWithDependenciesBaseChangeCannotBeNull {
+            get {
+                return ResourceManager.GetString("FileChangeWithDependenciesBaseChangeCannotBeNull", resourceCulture);
+>>>>>>> 4875c7138096cc3112a7744855eb4ea247836d13
             }
         }
         
         /// <summary>
+<<<<<<< HEAD
         ///   Looks up a localized string similar to IconOverlay: genericSetter: badgeType: {0}. Path: {1}..
         /// </summary>
         internal static string IconOverlayGenericSetterbadgeType0Path1 {
             get {
                 return ResourceManager.GetString("IconOverlayGenericSetterbadgeType0Path1", resourceCulture);
+=======
+        ///   Looks up a localized string similar to Error setting MD5 from baseChange to new FileChangeWithDependencies.
+        /// </summary>
+        internal static string FileChangeWithDependenciesErrorSettingMD5FromBaseChangeToNewFileChangeWithDependencies {
+            get {
+                return ResourceManager.GetString("FileChangeWithDependenciesErrorSettingMD5FromBaseChangeToNewFileChangeWithDepende" +
+                        "ncies", resourceCulture);
+>>>>>>> 4875c7138096cc3112a7744855eb4ea247836d13
             }
         }
         
         /// <summary>
+<<<<<<< HEAD
         ///   Looks up a localized string similar to IconOverlay: genericSetter: StackTrace: {0}..
         /// </summary>
         internal static string IconOverlayGenericSetterStackTrace0 {
             get {
                 return ResourceManager.GetString("IconOverlayGenericSetterStackTrace0", resourceCulture);
+=======
+        ///   Looks up a localized string similar to final hash does not match; file has been edited;.
+        /// </summary>
+        internal static string HashedStreamReaderAdapterFinalHashDoesNotMatchFileWasEdited {
+            get {
+                return ResourceManager.GetString("HashedStreamReaderAdapterFinalHashDoesNotMatchFileWasEdited", resourceCulture);
+>>>>>>> 4875c7138096cc3112a7744855eb4ea247836d13
             }
         }
         
         /// <summary>
+<<<<<<< HEAD
         ///   Looks up a localized string similar to genericSetter.Process (after): badgeType:.
         /// </summary>
         internal static string IconOverlayGenricSetterProcessAfterBadgeType {
             get {
                 return ResourceManager.GetString("IconOverlayGenricSetterProcessAfterBadgeType", resourceCulture);
+=======
+        ///   Looks up a localized string similar to intermediate hash does not match; file has been edited;.
+        /// </summary>
+        internal static string HashedStreamReaderAdapterIntermediateHashDoesNotMatchFileWasEdited {
+            get {
+                return ResourceManager.GetString("HashedStreamReaderAdapterIntermediateHashDoesNotMatchFileWasEdited", resourceCulture);
+>>>>>>> 4875c7138096cc3112a7744855eb4ea247836d13
             }
         }
         
         /// <summary>
+<<<<<<< HEAD
         ///   Looks up a localized string similar to IconOverlay: getBadgeTypeForFileAtPath: Entry. path: {0}..
         /// </summary>
         internal static string IconOverlayGetBadgeTypeForFileAtPathEntryPath0 {
@@ -4499,12 +5213,18 @@ namespace Cloud.Static {
         ///   Looks up a localized string similar to ---Incomplete file download---.
         /// </summary>
         internal static string IncompleteFileDownload {
+=======
+        ///   Looks up a localized string similar to ---Incomplete file download---.
+        /// </summary>
+        internal static string IncompleteFileDownload {
+>>>>>>> 4875c7138096cc3112a7744855eb4ea247836d13
             get {
                 return ResourceManager.GetString("IncompleteFileDownload", resourceCulture);
             }
         }
         
         /// <summary>
+<<<<<<< HEAD
         ///   Looks up a localized string similar to IndexingAgent: UpdateServerUid: Migrated forwards: serverUidId: {0}..
         /// </summary>
         internal static string IndexingAgentUpdateServerUIDMigratedForwardsServerUIDID0 {
@@ -4514,6 +5234,8 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+=======
+>>>>>>> 4875c7138096cc3112a7744855eb4ea247836d13
         ///   Looks up a localized string similar to AppData\Local.
         /// </summary>
         internal static string LocalAppDataFolderNameVista {
@@ -5404,6 +6126,15 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to N.
+        /// </summary>
+        internal static string NotTranslatedCLCredentialStringSettingsN {
+            get {
+                return ResourceManager.GetString("NotTranslatedCLCredentialStringSettingsN", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to CommonStartMenuParentFolderNameVista.
         /// </summary>
         internal static string NotTranslatedCommonStartMenuParentFolderNameVistaName {
@@ -5791,6 +6522,7 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+<<<<<<< HEAD
         ///   Looks up a localized string similar to syncbox must not be null.
         /// </summary>
         internal static string SyncboxMustNotBeNull {
@@ -5800,6 +6532,8 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+=======
+>>>>>>> 4875c7138096cc3112a7744855eb4ea247836d13
         ///   Looks up a localized string similar to PathToBadge cannot be null.
         /// </summary>
         internal static string UpdatePathArgsPathToBadgeCannotBeNull {

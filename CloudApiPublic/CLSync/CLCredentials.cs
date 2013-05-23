@@ -127,40 +127,40 @@ namespace Cloud
         /// Private constructor
         /// </summary>
         private CLCredentials(
-            string Key,
-            string Secret,
-            string Token, 
+            string key,
+            string secret,
+            string token, 
             ref CLCredentialsCreationStatus status,
             ICLCredentialsSettings settings = null)
         {
             Helpers.CheckHalted();
 
             // check input parameters
-            if (string.IsNullOrEmpty(Key))
+            if (string.IsNullOrEmpty(key))
             {
                 status = CLCredentialsCreationStatus.ErrorNullKey;
                 throw new NullReferenceException(Resources.CLCredentialKeyCannotBeNull);
             }
-            if (string.IsNullOrEmpty(Secret))
+            if (string.IsNullOrEmpty(secret))
             {
                 status = CLCredentialsCreationStatus.ErrorNullSecret;
                 throw new NullReferenceException(Resources.CLCredentialSecretCannotBeNull);
             }
 
             // Since we allow null then reverse-null coalesce from empty string
-            if (Token == string.Empty)
+            if (token == string.Empty)
             {
-                Token = null;
+                token = null;
             }
 
-            this._key = Key;
-            this._secret = Secret;
+            this._key = key;
+            this._secret = secret;
             
-            this._token = Token;
+            this._token = token;
 
             // copy settings so they don't change while processing; this also defaults some values
             _copiedSettings = (settings == null
-                ? NullSyncRoot.Instance.CopySettings()
+                ? NullDeviceId.Instance.CopySettings()
                 : settings.CopySettings());
         }
 
@@ -197,7 +197,7 @@ namespace Cloud
 
             // copy settings so they don't change while processing; this also defaults some values
             _copiedSettings = (settings == null
-                ? NullSyncRoot.Instance.CopySettings()
+                ? NullDeviceId.Instance.CopySettings()
                 : settings.CopySettings());
         }
 
@@ -218,16 +218,8 @@ namespace Cloud
 
         #region public authorization HTTP API calls
         #region default settings for CLCredentials HTTP calls
-        private sealed class NullSyncRoot : ICLSyncSettings
+        private sealed class NullDeviceId : ICLSyncSettings
         {
-            public string SyncRoot
-            {
-                get
-                {
-                    return null;
-                }
-            }
-
             public string DeviceId
             {
                 get
@@ -236,9 +228,9 @@ namespace Cloud
                 }
             }
 
-            public static readonly NullSyncRoot Instance = new NullSyncRoot();
+            public static readonly NullDeviceId Instance = new NullDeviceId();
 
-            private NullSyncRoot() { }
+            private NullDeviceId() { }
         }
         #endregion
 
@@ -332,7 +324,7 @@ namespace Cloud
             {
                 // copy settings so they don't change while processing; this also defaults some values
                 ICLSyncSettingsAdvanced copiedSettings = (settings == null
-                    ? NullSyncRoot.Instance.CopySettings()
+                    ? NullDeviceId.Instance.CopySettings()
                     : settings.CopySettings());
 
                 // check input parameters
@@ -353,7 +345,8 @@ namespace Cloud
                     Helpers.HttpStatusesOkAccepted,
                     copiedSettings,
                     Credentials: this,
-                    SyncboxId: null);
+                    SyncboxId: null, 
+                    isOneOff: false);
 
                 // Convert the server response to the requested output format.
                 if (responseFromServer != null && responseFromServer.Sessions != null)
@@ -374,7 +367,7 @@ namespace Cloud
                 }
                 else
                 {
-                    throw new NullReferenceException("Server responded without an array of Sessions");
+                    throw new NullReferenceException(Resources.ExceptionCLHttpRestWithoutSessions);
                 }
             }
             catch (Exception ex)
@@ -488,7 +481,7 @@ namespace Cloud
             {
                 // copy settings so they don't change while processing; this also defaults some values
                 ICLSyncSettingsAdvanced copiedSettings = (settings == null
-                    ? NullSyncRoot.Instance.CopySettings()
+                    ? NullDeviceId.Instance.CopySettings()
                     : settings.CopySettings());
 
                 // check input parameters
@@ -532,7 +525,8 @@ namespace Cloud
                     Helpers.HttpStatusesOkCreatedNotModifiedNoContent,
                     copiedSettings,
                     this,
-                    null);
+                    null, 
+                    false);
 
                 // Convert the server response to a CLCredentials object and pass that back as the response.
                 if (responseFromServer != null && responseFromServer.Session != null)
@@ -653,7 +647,7 @@ namespace Cloud
             {
                 // copy settings so they don't change while processing; this also defaults some values
                 ICLSyncSettingsAdvanced copiedSettings = (settings == null
-                    ? NullSyncRoot.Instance.CopySettings()
+                    ? NullDeviceId.Instance.CopySettings()
                     : settings.CopySettings());
 
                 // check input parameters
@@ -679,7 +673,8 @@ namespace Cloud
                     Helpers.HttpStatusesOkAccepted,
                     copiedSettings,
                     this,
-                    null);
+                    null, 
+                    true);
 
                 // Convert the server response to a CLCredentials object and pass that back as the response.
                 if (responseFromServer != null && responseFromServer.Session != null)
@@ -798,7 +793,7 @@ namespace Cloud
             {
                 // copy settings so they don't change while processing; this also defaults some values
                 ICLSyncSettingsAdvanced copiedSettings = (settings == null
-                    ? NullSyncRoot.Instance.CopySettings()
+                    ? NullDeviceId.Instance.CopySettings()
                     : settings.CopySettings());
 
                 // check input parameters
@@ -824,7 +819,8 @@ namespace Cloud
                     Helpers.HttpStatusesOkAccepted,
                     copiedSettings,
                     this,
-                    null);
+                    null, 
+                    false);
             }
             catch (Exception ex)
             {
@@ -975,7 +971,7 @@ namespace Cloud
 
                 // copy settings so they don't change while processing; this also defaults some values
                 ICLSyncSettingsAdvanced copiedSettings = (settings == null
-                    ? NullSyncRoot.Instance.CopySettings()
+                    ? NullDeviceId.Instance.CopySettings()
                     : settings.CopySettings());
 
                 // Set the Key and Secret from these credentials.
@@ -1002,7 +998,8 @@ namespace Cloud
                     httpStatusCodesAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes.
                     copiedSettings, // pass the copied settings
                     this, // pass the key/secret
-                    null); // no unique id of the sync box on the server
+                    null,
+                    false); // no unique id of the sync box on the server
             }
             catch (Exception ex)
             {
@@ -1158,7 +1155,7 @@ namespace Cloud
 
                 // copy settings so they don't change while processing; this also defaults some values
                 ICLSyncSettingsAdvanced copiedSettings = (settings == null
-                    ? NullSyncRoot.Instance.CopySettings()
+                    ? NullDeviceId.Instance.CopySettings()
                     : settings.CopySettings());
 
                 // Set the Key and Secret from these credentials.
@@ -1176,7 +1173,8 @@ namespace Cloud
                     Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
                     copiedSettings, // pass the copied settings
                     this, // pass the key/secret
-                    null); // no unique id of the sync box on the server
+                    null, // no unique id of the sync box on the server
+                    false);
             }
             catch (Exception ex)
             {
@@ -1324,7 +1322,7 @@ namespace Cloud
 
                 // copy settings so they don't change while processing; this also defaults some values
                 ICLSyncSettingsAdvanced copiedSettings = (settings == null
-                    ? NullSyncRoot.Instance.CopySettings()
+                    ? NullDeviceId.Instance.CopySettings()
                     : settings.CopySettings());
 
                 // run the HTTP communication and store the response object to the output parameter
@@ -1338,7 +1336,8 @@ namespace Cloud
                     Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
                     copiedSettings, // pass the copied settings
                     this, // pass the key/secret
-                    null); // no unique id of the sync box on the server
+                    null, // no unique id of the sync box on the server
+                    false);
             }
             catch (Exception ex)
             {

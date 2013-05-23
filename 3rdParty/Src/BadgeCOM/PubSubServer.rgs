@@ -1,0 +1,23 @@
+HKCR
+{
+	BadgeCOM.PubSubServer = s 'PubSubServer Class'
+	{
+		CLSID = s '{53AC487B-051C-476F-AE8A-FE660AA427B8}'
+	}
+	NoRemove CLSID
+	{
+		ForceRemove {53AC487B-051C-476F-AE8A-FE660AA427B8} = s 'PubSubServer Class'
+		{
+			ProgID = s 'BadgeCOM.PubSubServer'
+			VersionIndependentProgID = s 'BadgeCOM.PubSubServer'
+			ForceRemove Programmable
+			InprocServer32 = s '%MODULE%'
+			{
+				val ThreadingModel = s 'Both'
+			}
+			val AppID = s '%APPID%'
+			TypeLib = s '{B0E0EEB6-3C6D-4F7A-90AE-A0C285F4D8C1}'
+			Version = s '1.0'
+		}
+	}
+}

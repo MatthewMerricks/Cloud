@@ -38,7 +38,7 @@ namespace Cloud.BadgeNET
 
         private PubSubServerClass _pubSubServer = null;
         private const int _knSubscriptionTimeoutMs = 1000;                          // time to wait for an event to arrive before timing out
-        private const int _knTimeBetweenWatchingThreadChecksMs = 20000;             // time between checks on the subscribing thread
+        private const int _knTimeBetweenWatchingThreadChecksMs = 60000;             // time between checks on the subscribing thread
         private const int _knShortRetries = 5;										// number of retries when giving up short amounts of CPU
         private const int _knShortRetrySleepMs = 50;								// time to wait when giving up short amounts of CPU
         private const int _knWaitForSubscriberThreadToStartSleepMs = 60000;			// time to wait for the Subscriber thread to start.

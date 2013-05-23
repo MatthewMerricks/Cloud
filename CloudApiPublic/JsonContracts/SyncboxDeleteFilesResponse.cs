@@ -1,5 +1,5 @@
 ﻿//
-// SyncboxDeleteFilesResponse.cs
+// SyncboxDeleteFoldersResponse.cs
 // Cloud Windows
 //
 // Created By BobS.
@@ -16,12 +16,12 @@ using System.Text;
 namespace Cloud.JsonContracts
 {
     /// <summary>
-    /// Result from <see cref="Cloud.CLSyncbox.DeleteFiles"/>
+    /// Result from <see cref="Cloud.CLSyncbox.DeleteFolders"/>
     /// </summary>
     [DataContract]
     public sealed class SyncboxDeleteFilesResponse
     {
-        [DataMember(Name = CLDefinitions.RESTResponseDeleteFiles, IsRequired = false)]
+        [DataMember(Name = CLDefinitions.RESTResponseDeleteFolders, IsRequired = false)]
         public JsonContracts.FileChangeResponse[] DeleteResponses { get; set; }
     }
 }

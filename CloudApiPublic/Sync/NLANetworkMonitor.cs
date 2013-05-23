@@ -19,7 +19,6 @@ namespace Cloud.Sync
         private Nullable<bool> _lastConnected = null;
         private readonly object _lock = new object(); // "this" private lock
 
-
         public NLANetworkMonitor()
         {
             NativeMethods.WSAData data;
@@ -30,7 +29,6 @@ namespace Cloud.Sync
             byte[] guid_ = guid.ToByteArray();
             this.NLA_SERVICE_CLASS_GUID = Marshal.AllocHGlobal(guid_.Length);
             Marshal.Copy(guid_, 0, NLA_SERVICE_CLASS_GUID, guid_.Length);
-
         }
 
         protected override void DisposeManagedObjects()
@@ -76,7 +74,6 @@ namespace Cloud.Sync
                 base.NotifyNetworkChanged(connected);
             }
         }
-
 
         public override bool CheckInternetIsConnected()
         {
@@ -176,8 +173,6 @@ namespace Cloud.Sync
             return isConnected;
         }
 
-
-
         protected override void InternalStartNetworkMonitor()
         {
             if (!_WSAInitialized)
@@ -186,6 +181,8 @@ namespace Cloud.Sync
             }
 
             _stopEvent = new ManualResetEvent(false);
+
+            _lastConnected = null;
 
             _monitorThread = new Thread(new ThreadStart(MonitorNetwork_));
             _monitorThread.Name = "Network Monitor";
@@ -294,7 +291,5 @@ namespace Cloud.Sync
 
             networkChangedEvent.Dispose();
         }
-
     }
-
 }

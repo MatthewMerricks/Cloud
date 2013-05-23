@@ -81,6 +81,7 @@
     <Compile Include="EventMessageReceiver\EventMessageImplementations\DownloadingMessage.cs" />
     <Compile Include="EventMessageReceiver\EventMessageImplementations\ErrorMessage.cs" />
     <Compile Include="EventMessageReceiver\EventMessageImplementations\InformationalMessage.cs" />
+    <Compile Include="EventMessageReceiver\EventMessageImplementations\InternetConnectivityMessage.cs" />
     <Compile Include="EventMessageReceiver\EventMessageImplementations\UploadedMessage.cs" />
     <Compile Include="EventMessageReceiver\EventMessageImplementations\UploadingMessage.cs" />
     <Compile Include="EventMessageReceiver\EventMessageReceiver.cs" />
@@ -191,6 +192,10 @@
   <PropertyGroup>
     <PostBuildEvent>
     </PostBuildEvent>
+  </PropertyGroup>
+  <PropertyGroup>
+    <PreBuildEvent>
+    </PreBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

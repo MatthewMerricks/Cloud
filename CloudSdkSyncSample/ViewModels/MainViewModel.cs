@@ -743,7 +743,7 @@ namespace SampleLiveSync.ViewModels
 
                 // Validate the length of the Syncbox full path.
                 int tooLongChars;
-                CLError errorFromLengthCheck = Cloud.Static.Helpers.CheckSyncRootLength(SyncRoot, out tooLongChars);
+                CLError errorFromLengthCheck = Cloud.Static.Helpers.CheckSyncboxPathLength(SyncRoot, out tooLongChars);
                 if (errorFromLengthCheck != null)
                 {
                     NotifyException(this, new NotificationEventArgs<CLError>() { Data = null, Message = String.Format("The Syncbox Folder is too long by {0} characters.  Please shorten the path.", tooLongChars) });
@@ -1181,6 +1181,22 @@ namespace SampleLiveSync.ViewModels
             {
                 bool startSyncbox = false;
 
+                // Don't start syncing if the syncbox root directory is missing.
+                if (!Directory.Exists(SettingsAdvancedImpl.Instance.SyncRoot))
+                {
+                    string msg = String.Format("The syncbox root folder is missing: {0}.", SettingsAdvancedImpl.Instance.SyncRoot);
+                    if (NotifyException != null)
+                    {
+                        NotifyException(this, new NotificationEventArgs<CLError>()
+                        {
+                            Data = new ArgumentException(msg),
+                            Message = msg
+                        });
+                    }
+                    _trace.writeToLog(1, "MainViewModel: StartSyncing: ERROR: From StartSyncing: Msg: <{0}>.", msg);
+                    return;
+                }
+
                 lock (_locker)
                 {
                     if (!_syncStarted)
@@ -1486,7 +1502,6 @@ namespace SampleLiveSync.ViewModels
                     Properties.Settings.Default.ShouldResetSync = true;
                     Properties.Settings.Default.Save();
                 }
-
             }
             catch (Exception ex)
             {

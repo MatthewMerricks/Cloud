@@ -528,6 +528,21 @@ namespace Cloud.Static
         public static extern bool FindClose(IntPtr hFindFile);
         #endregion
 
+        // CreateFile along with extra attribute allowing locking a folder
+        #region CreateFile
+        [DllImport("Kernel32.dll", SetLastError = true, CharSet = CharSet.Auto)]
+        public static extern SafeFileHandle CreateFile(
+            string fileName,
+            [MarshalAs(UnmanagedType.U4)] FileAccess fileAccess,
+            [MarshalAs(UnmanagedType.U4)] FileShare fileShare,
+            IntPtr securityAttributes,
+            [MarshalAs(UnmanagedType.U4)] FileMode creationDisposition,
+            [MarshalAs(UnmanagedType.U4)] FileAttributes flags,
+            IntPtr template);
+
+        public const int FileAttributesFileFlagBackupSemantics = 0x02000000;
+        #endregion
+
         #region network monitoring
         [StructLayout(LayoutKind.Sequential)]
         public struct WSAData

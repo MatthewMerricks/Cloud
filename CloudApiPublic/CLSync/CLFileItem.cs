@@ -11,6 +11,7 @@ using Cloud.REST;
 using Cloud.Static;
 using System;
 using System.Drawing;
+using System.Linq;
 
 namespace Cloud.CLSync
 {
@@ -44,33 +45,146 @@ namespace Cloud.CLSync
 
         #region Public Readonly Properties
 
-        public string Name { get; private set; }
-        public string Path { get; private set; }
-        public string Revision { get; private set; }
-        public Nullable<long> Size { get; private set; }
-        public string MimeType { get; private set; }
-        public DateTime CreatedDate { get; private set; }
-        public Nullable<DateTime> ModifiedDate { get; private set; }
-        public string Uid { get; private set; }
-        public string ParentUid { get; private set; }
-        public bool IsFolder { get; private set; }
-        public bool IsDeleted { get; private set; }
-        public Nullable<POSIXPermissions> Permissions { get; private set; }
-        public CLSyncbox Syncbox { get; private set; }
-        public int ChildrenCount { get; private set; }
+        public string Name
+        {
+            get
+            {
+                return _name;
+            }
+        }
+        private readonly string _name;
+
+        public string Path
+        {
+            get
+            {
+                return _path;
+            }
+        }
+        private readonly string _path;
+
+        public string Revision
+        {
+            get
+            {
+                return _revision;
+            }
+        }
+        private readonly string _revision;
+
+        public Nullable<long> Size
+        {
+            get
+            {
+                return _size;
+            }
+        }
+        private readonly Nullable<long> _size;
+
+        public string MimeType
+        {
+            get
+            {
+                return _mimeType;
+            }
+        }
+        private readonly string _mimeType;
+
+        public DateTime CreatedDate
+        {
+            get
+            {
+                return _createdDate;
+            }
+        }
+        private readonly DateTime _createdDate;
+
+        public DateTime ModifiedDate
+        {
+            get
+            {
+                return _modifiedDate;
+            }
+        }
+        private readonly DateTime _modifiedDate;
+
+        public string Uid
+        {
+            get
+            {
+                return _uid;
+            }
+        }
+        private readonly string _uid;
+
+        public string ParentUid
+        {
+            get
+            {
+                return _parentUid;
+            }
+        }
+        private readonly string _parentUid;
+
+        public bool IsFolder
+        {
+            get
+            {
+                return _isFolder;
+            }
+        }
+        private readonly bool _isFolder;
+
+        public bool IsDeleted
+        {
+            get
+            {
+                return _isDeleted;
+            }
+        }
+        private readonly bool _isDeleted;
+
+        public Nullable<POSIXPermissions> Permissions
+        {
+            get
+            {
+                return _permissions;
+            }
+        }
+        private readonly Nullable<POSIXPermissions> _permissions;
+
+        public CLSyncbox Syncbox
+        {
+            get
+            {
+                return _syncbox;
+            }
+        }
+        private readonly CLSyncbox _syncbox;
+
+        //// in public SDK documents, but for now it's always zero, so don't expose it
+        //public int ChildrenCount
+        //{
+        //    get
+        //    {
+        //        return _childrenCount;
+        //    }
+        //}
+        //private readonly int _childrenCount;
 
         #endregion  // end Public Properties
 
         #region Constructors
         
-        public CLFileItem(
+        // iOS is not allowing public construction of the CLFileItem, it can only be produced internally by create operations or by queries
+        internal /* public */ CLFileItem(
             string name,
             string path,
             string revision,
             Nullable<long> size,
             string mimeType,
             DateTime createdDate,
-            Nullable<DateTime> modifiedDate,
+            DateTime modifiedDate,
             string uid,
             string parentUid,
             bool isFolder,
@@ -78,79 +192,94 @@ namespace Cloud.CLSync
             Nullable<POSIXPermissions> permissions,
             CLSyncbox syncbox)
         {
-            if (createdDate == null)
-            {
-                throw new ArgumentNullException("createdDate must not be null");
-            }
             if (syncbox == null)
             {
-                throw new ArgumentNullException(Resources.SyncboxMustNotBeNull);
-            }
-            if (syncbox.HttpRestClient == null)
-            {
-                throw new NullReferenceException("syncbox HTTP REST client must not be null");
-            }
-            if (syncbox.CopiedSettings == null)
-            {
-                throw new NullReferenceException("syncbox CopiedSettings must not be null");
+                throw new CLArgumentNullException(CLExceptionCode.FileItem_NullSyncbox, Resources.ExceptionFileItemNullSyncbox);
             }
 
-            this.Name = name;
-            this.Path = path;
-            this.Revision = revision;
-            this.Size = size;
-            this.MimeType = mimeType;
-            this.CreatedDate = createdDate;
-            this.ModifiedDate = modifiedDate;
-            this.Uid = uid;
-            this.ParentUid = parentUid;
-            this.IsFolder = isFolder;
-            this.IsDeleted = isDeleted;
-            this.Permissions = permissions;
-            this.Syncbox = syncbox;
-            this.ChildrenCount = 0;
+            this._name = name;
+            this._path = path;
+            this._revision = revision;
+            this._size = size;
+            this._mimeType = mimeType;
+            this._createdDate = createdDate;
+            this._modifiedDate = modifiedDate;
+            this._uid = uid;
+            this._parentUid = parentUid;
+            this._isFolder = isFolder;
+            this._isDeleted = isDeleted;
+            this._permissions = permissions;
+            this._syncbox = syncbox;
+            //// in public SDK documents, but for now it's always zero, so don't expose it
+            //this._childrenCount = 0;
 
             this._httpRestClient = syncbox.HttpRestClient;
             this._copiedSettings = syncbox.CopiedSettings;
         }
 
-        internal CLFileItem(JsonContracts.SyncboxMetadataResponse response, CLSyncbox syncbox)
+        /// <summary>
+        /// Use this if the response does not have a headerAction or action.
+        /// </summary>
+        /// <param name="response"></param>
+        /// <param name="syncbox"></param>
+        internal CLFileItem(JsonContracts.SyncboxMetadataResponse response, CLSyncbox syncbox) : this(response, null, null, syncbox)
+        {
+        }
+
+        /// <param name="headerAction">[FileChangeResponse].Header.Action, used as primary fallback for setting IsFolder</param>
+        /// <param name="action">[FileChangeResponse].Action, used as secondary fallback for setting IsFolder</param>
+        internal CLFileItem(JsonContracts.SyncboxMetadataResponse response, string headerAction, string action, CLSyncbox syncbox)
         {
             if (response == null)
             {
-                throw new NullReferenceException("response must not be null");
-            }
-            if (response.CreatedDate == null)
-            {
-                throw new NullReferenceException("response CreatedDate must not be null");
+                throw new CLArgumentNullException(CLExceptionCode.FileItem_NullResponse, Resources.ExceptionFileItemNullResponse);
             }
             if (syncbox == null)
             {
-                throw new ArgumentNullException(Resources.SyncboxMustNotBeNull);
-            }
-            if (syncbox.HttpRestClient == null)
-            {
-                throw new NullReferenceException("syncbox HTTP REST client must not be null");
-            }
-            if (syncbox.CopiedSettings == null)
-            {
-                throw new NullReferenceException("syncbox CopiedSettings must not be null");
+                throw new CLArgumentNullException(CLExceptionCode.FileItem_NullSyncbox, Resources.ExceptionFileItemNullSyncbox);
             }
 
-            this.Name = response.Name;
-            this.Path = response.RelativePath;
-            this.Revision = response.Revision;
-            this.Size = response.Size;
-            this.MimeType = response.MimeType;
-            this.CreatedDate = (DateTime)response.CreatedDate;
-            this.ModifiedDate = response.ModifiedDate;
-            this.Uid = response.ServerUid;
-            this.ParentUid = response.ParentUid;
-            this.IsFolder = response.IsFolder ?? false;
-            this.IsDeleted = response.IsDeleted ?? false;
-            this.Permissions = response.PermissionsEnum;
-            this.Syncbox = syncbox;
-            this.ChildrenCount = 0;
+            if (response.IsFolder == null)
+            {
+                string pullAction = headerAction ?? action;
+
+                if (string.IsNullOrEmpty(pullAction))
+                {
+                    throw new CLNullReferenceException(CLExceptionCode.FileItem_NullIsFolder, Resources.ExceptionFileItemNullIsFolderActionAndHeaderAction);
+                }
+
+                if (CLDefinitions.SyncHeaderIsFolders.Contains(pullAction))
+                {
+                    this._isFolder = true;
+                }
+                else if (CLDefinitions.SyncHeaderIsFiles.Contains(pullAction))
+                {
+                    this._isFolder = false;
+                }
+                else
+                {
+                    throw new CLNullReferenceException(CLExceptionCode.FileItem_UnknownAction, string.Format(Resources.ExceptionFileItemUnknownAction, pullAction));
+                }
+            }
+            else
+            {
+                this._isFolder = (bool)response.IsFolder;
+            }
+
+            this._name = response.Name;
+            this._path = response.RelativePath;
+            this._revision = response.Revision;
+            this._size = response.Size;
+            this._mimeType = response.MimeType;
+            this._createdDate = response.CreatedDate ?? new DateTime(FileConstants.InvalidUtcTimeTicks, DateTimeKind.Utc);
+            this._modifiedDate = response.ModifiedDate ?? new DateTime(FileConstants.InvalidUtcTimeTicks, DateTimeKind.Utc);
+            this._uid = response.ServerUid;
+            this._parentUid = response.ParentUid;
+            this._isDeleted = response.IsDeleted ?? false;
+            this._permissions = response.PermissionsEnum;
+            this._syncbox = syncbox;
+            //// in public SDK documents, but for now it's always zero, so don't expose it
+            //this._childrenCount = 0;
 
             this._httpRestClient = syncbox.HttpRestClient;
             this._copiedSettings = syncbox.CopiedSettings;
@@ -180,14 +309,9 @@ namespace Cloud.CLSync
 
             FileChange fcToDownload = new FileChange()
             {
-                 Direction = SyncDirection.From,
-                 Metadata = new FileMetadata()
-                 {
-                     ServerUid = this.Uid,
-                     Revision = this.Revision
-                 }
+                 Direction = SyncDirection.From
             };
-            return _httpRestClient.BeginDownloadFile(callback, callbackUserState,fcToDownload, OnAfterDownloadToTempFile, this, _copiedSettings.HttpTimeoutMilliseconds);
+            return _httpRestClient.BeginDownloadFile(callback, callbackUserState, fcToDownload, this.Uid, this.Revision, OnAfterDownloadToTempFile, this, _copiedSettings.HttpTimeoutMilliseconds);
         }
 
         /// <summary>
@@ -213,13 +337,9 @@ namespace Cloud.CLSync
             {
                 Direction = SyncDirection.From,
                 Metadata = new FileMetadata()
-                {
-                    ServerUid = this.Uid,
-                    Revision = this.Revision
-                }
             };
 
-            return _httpRestClient.DownloadFile(fcToDownload, OnAfterDownloadToTempFile, this, _copiedSettings.HttpTimeoutMilliseconds);
+            return _httpRestClient.DownloadFile(fcToDownload, this.Uid, this.Revision, OnAfterDownloadToTempFile, this, _copiedSettings.HttpTimeoutMilliseconds);
         }
 
         /// <summary>
@@ -317,7 +437,7 @@ namespace Cloud.CLSync
         /// <param name="children">(output) The array of CLFileItem objects representing the children of this folder object in the cloud, or null.</param>
         /// <returns></returns>
         /// <remarks>This method will return an error if called when IsFolder is false.</remarks>
-        CLError Children(out CLFileItem [] children)
+        CLError Children(out CLFileItem[] children)
         {
             children = null;
             return null;

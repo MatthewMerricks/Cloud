@@ -22,7 +22,7 @@ namespace Cloud.Model
                 return _state;
             }
         }
-        private PathState _state;
+        private readonly PathState _state;
 
         public FilePath Path
         {
@@ -31,13 +31,13 @@ namespace Cloud.Model
                 return _path;
             }
         }
-        private FilePath _path;
+        private readonly FilePath _path;
 
         public UpdatePathArgs(SetBadge badgeChange)
         {
             if (badgeChange.PathToBadge == null)
             {
-                throw new NullReferenceException("PathToBadge cannot be null");
+                throw new NullReferenceException(Resources.UpdatePathArgsPathToBadgeCannotBeNull);
             }
 
             this._state = State;

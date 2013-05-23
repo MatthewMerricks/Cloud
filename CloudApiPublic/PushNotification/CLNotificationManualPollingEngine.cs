@@ -65,7 +65,7 @@ namespace Cloud.PushNotification
         {
             if (syncbox == null)
             {
-                throw new ArgumentNullException(Resources.SyncboxMustNotBeNull);
+                throw new ArgumentNullException(Resources.CLNotificationManualPollingEngineSyncBoxMustNotBeNull);
             }
             if (delegateSendManualPoll == null)
             {
@@ -110,7 +110,7 @@ namespace Cloud.PushNotification
                 {
                     if (!_isInitialized)
                     {
-                        throw new InvalidOperationException("Initialize first");
+                        throw new InvalidOperationException(Resources.CLNotificationManualPollingEngineInitializeFirst);
                     }
 
                     if (_isStarted)

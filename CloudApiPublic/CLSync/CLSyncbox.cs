@@ -6,6 +6,7 @@
 // Copyright (c) Cloud.com. All rights reserved.
 
 using Cloud.CLSync;
+using Cloud.CLSync.CLSyncboxParameters;
 using Cloud.Interfaces;
 using Cloud.Model;
 using Cloud.Model.EventMessages.ErrorInfo;
@@ -45,17 +46,154 @@ namespace Cloud
     /// </summary>
     public sealed class CLSyncbox : IDisposable
     {
+        #region hidden debug properties
+
+        // following flag should always be false except for when debugging dependencies
+        private readonly GenericHolder<bool> debugDependencies = new GenericHolder<bool>(false);
+
+        #region hidden Dependencies debug
+        //// --------- adding \cond and \endcond makes the section in between hidden from doxygen
+
+        // \cond
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+        public bool DependenciesDebug
+        {
+            get
+            {
+                lock (debugDependencies)
+                {
+                    return debugDependencies.Value;
+                }
+            }
+            set
+            {
+                lock (debugDependencies)
+                {
+                    debugDependencies.Value = value;
+                }
+            }
+        }
+        // \endcond
+        #endregion
+
+        // following flag should always be false except for when debugging database by copying on every change
+        private readonly GenericHolder<bool> copyDatabaseBetweenChanges = new GenericHolder<bool>(false);
+
+        #region hidden copy database debug
+        //// --------- adding \cond and \endcond makes the section in between hidden from doxygen
+
+        // \cond
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+        public bool DebugCopyDatabase
+        {
+            get
+            {
+                lock (copyDatabaseBetweenChanges)
+                {
+                    return copyDatabaseBetweenChanges.Value;
+                }
+            }
+            set
+            {
+                lock (copyDatabaseBetweenChanges)
+                {
+                    copyDatabaseBetweenChanges.Value = value;
+                }
+            }
+        }
+        // \endcond
+        #endregion
+
+        // following flag should always be false except for when debugging FileMonitor memory
+        private readonly GenericHolder<bool> debugFileMonitorMemory = new GenericHolder<bool>(false);
+
+        #region hidden FileMonitor debug
+        //// --------- adding \cond and \endcond makes the section in between hidden from doxygen
+
+        // \cond
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+        public bool FileMonitorMemoryDebug
+        {
+            get
+            {
+                lock (debugFileMonitorMemory)
+                {
+                    return debugFileMonitorMemory.Value;
+                }
+            }
+            set
+            {
+                lock (debugFileMonitorMemory)
+                {
+                    if (debugFileMonitorMemory.Value
+                        && !value)
+                    {
+                        FileMonitor.MonitorAgent.memoryDebugger.Instance.wipeMemory();
+                    }
+
+                    debugFileMonitorMemory.Value = value;
+                }
+            }
+        }
+        // \endcond
+
+        // \cond
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+        public string FileMonitorMemory
+        {
+            get
+            {
+                lock (debugFileMonitorMemory)
+                {
+                    if (!debugFileMonitorMemory.Value)
+                    {
+                        return null;
+                    }
+                }
+
+                return FileMonitor.MonitorAgent.memoryDebugger.Instance.serializeMemory();
+            }
+        }
+        // \endcond
+
+        // \cond
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+        public bool WipeFileMonitorDebugMemory
+        {
+            set
+            {
+                if (value)
+                {
+                    bool needsWipe;
+
+                    lock (debugFileMonitorMemory)
+                    {
+                        needsWipe = debugFileMonitorMemory.Value;
+                    }
+
+                    if (needsWipe)
+                    {
+                        FileMonitor.MonitorAgent.memoryDebugger.Instance.wipeMemory();
+                    }
+                }
+            }
+        }
+        // \endcond
+        #endregion
+
+        #endregion
+
         #region Private Fields
-        
+
         private static readonly CLTrace _trace = CLTrace.Instance;
         private static readonly List<CLSyncEngine> _startedSyncEngines = new List<CLSyncEngine>();
         private static readonly object _startLocker = new object();
 
-        private readonly CLSyncEngine _syncEngine;
         private bool _isStarted = false;
         private bool Disposed = false;   // This stores if this current instance has been disposed (defaults to not disposed)
         private readonly ReaderWriterLockSlim _propertyChangeLocker = new ReaderWriterLockSlim();  // for locking any reads and writes to the changeable properties.
-
+        private readonly Helpers.ReplaceExpiredCredentials _getNewCredentialsCallback = null;
+        private readonly object _getNewCredentialsCallbackUserState = null;
 
         #endregion  // end Private Fields
 
@@ -90,22 +228,27 @@ namespace Cloud
         {
             get
             {
-                return _httpRestClient.IsModifyingSyncboxViaPublicAPICalls;
+                if (setPathLocker != null)
+                {
+                    Monitor.Enter(setPathLocker);
+                }
+                try
+                {
+                    if (setPathHolder == null)
+                    {
+                        return false;
+                    }
+                    return setPathHolder.HttpRestClient.IsModifyingSyncboxViaPublicAPICalls;
+                }
+                finally
+                {
+                    if (setPathLocker != null)
+                    {
+                        Monitor.Exit(setPathLocker);
+                    }
+                }
             }
         }
-
-        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        /// <summary>
-        /// Internal client for passing HTTP REST calls to the server
-        /// </summary>
-        public CLHttpRest HttpRestClient
-        {
-            get
-            {
-                return _httpRestClient;
-            }
-        }
-        private readonly CLHttpRest _httpRestClient;
 
         #endregion  // end Internal Properties
 
@@ -124,7 +267,7 @@ namespace Cloud
         private readonly long _syncboxId;
 
         /// <summary>
-        /// The friendly name of this Syncbox in the cloud.
+        /// The friendly name of this Syncbox in the syncbox.
         /// </summary>
         public string FriendlyName
         {
@@ -143,6 +286,10 @@ namespace Cloud
         }
         private string _friendlyName;
 
+        #region properties set on SetPath
+
+        private readonly object setPathLocker;
+
         /// <summary>
         /// The full path on the disk associated with this syncbox.
         /// </summary>
@@ -150,10 +297,93 @@ namespace Cloud
         {
             get
             {
-                return _path;
+                if (setPathLocker != null)
+                {
+                    Monitor.Enter(setPathLocker);
+                }
+                try
+                {
+                    if (setPathHolder == null)
+                    {
+                        return null;
+                    }
+                    return setPathHolder.Path;
+                }
+                finally
+                {
+                    if (setPathLocker != null)
+                    {
+                        Monitor.Exit(setPathLocker);
+                    }
+                }
             }
         }
-        private string _path;
+
+        /// <summary>
+        /// Internal client for passing HTTP REST calls to the server
+        /// </summary>
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+        public CLHttpRest HttpRestClient
+        {
+            get
+            {
+                if (setPathLocker != null)
+                {
+                    Monitor.Enter(setPathLocker);
+                }
+                try
+                {
+                    if (setPathHolder == null)
+                    {
+                        return null;
+                    }
+                    return setPathHolder.HttpRestClient;
+                }
+                finally
+                {
+                    if (setPathLocker != null)
+                    {
+                        Monitor.Exit(setPathLocker);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// lock on _startLocker for modifications or retrieval
+        /// </summary>
+        private CLSyncEngine _syncEngine = null;
+
+        private SetPathProperties setPathHolder;
+
+        private sealed class SetPathProperties
+        {
+            public string Path
+            {
+                get
+                {
+                    return _path;
+                }
+            }
+            private readonly string _path;
+
+            public CLHttpRest HttpRestClient
+            {
+                get
+                {
+                    return _httpRestClient;
+                }
+            }
+            private readonly CLHttpRest _httpRestClient;
+
+            public SetPathProperties(string path, CLHttpRest httpRestClient)
+            {
+                this._path = path;
+                this._httpRestClient = httpRestClient;
+            }
+        }
+
+        #endregion
 
         /// <summary>
         /// The ID of the storage plan to use for this syncbox.
@@ -209,10 +439,19 @@ namespace Cloud
         /// </summary>
         public event EventHandler<NotificationErrorEventArgs> PushNotificationError;
 
-        #endregion  // end Public Events
+       #endregion  // end Public Events
 
         #region Private Constructors
 
+        /// <summary>
+        /// Private constructor to create a syncbox object.  Called from public member AllocAndInit.
+        /// </summary>
+        /// <param name="syncboxId">The syncbox ID.</param>
+        /// <param name="credentials">The credentials to use to create this syncbox.</param>
+        /// <param name="path">(optional) The full path on disk of the folder to associate with this syncbox.</param>
+        /// <param name="settings">(optional) The settings to use.</param>
+        /// <param name="getNewCredentialsCallback">(optional) The delegate to call for getting new temporary credentials.</param>
+        /// <param name="getNewCredentialsCallbackUserState">(optional) The user state to pass to the delegate above.</param>
         private CLSyncbox(
             long syncboxId,
             CLCredentials credentials,
@@ -223,14 +462,14 @@ namespace Cloud
         {
             // check input parameters
 
-            if (syncboxId == 0)
+            if (syncboxId <= 0)
             {
-                throw new ArgumentException("syncboxId must be specified");
+                throw new ArgumentException("syncboxId must be specified");  //&&&& fix
             }
 
             if (credentials == null)
             {
-                throw new NullReferenceException("Credentials cannot be null");
+                throw new NullReferenceException("Credentials cannot be null");  //&&&& fix
             }
 
             // Copy the settings so the user can't change them.
@@ -243,49 +482,33 @@ namespace Cloud
                 this._copiedSettings = settings.CopySettings();
             }
 
+            // Initialize trace in case it is not already initialized.
+            CLTrace.Initialize(this._copiedSettings.TraceLocation, "Cloud", "log", this._copiedSettings.TraceLevel, this._copiedSettings.LogErrors);
+            _trace.writeToLog(1, Resources.CLSyncboxConstructing);
+
             // Set up the syncbox
             lock (_startLocker)
             {
+
                 // Save the parameters in properties.
                 this.Credentials = credentials;
                 this._syncboxId = syncboxId;
-                this._path = path;
+                this._getNewCredentialsCallback = getNewCredentialsCallback;
+                this._getNewCredentialsCallbackUserState = getNewCredentialsCallbackUserState;
 
-                // Initialize trace in case it is not already initialized.
-                CLTrace.Initialize(this._copiedSettings.TraceLocation, "Cloud", "log", this._copiedSettings.TraceLevel, this._copiedSettings.LogErrors);
-                _trace.writeToLog(1, "CLSyncbox: Constructing...");
-
-                // Create the http rest client
-                _trace.writeToLog(9, "CLSyncbox: Start: Create rest client.");
-                CLError createRestClientError = CLHttpRest.CreateAndInitialize(
-                                credentials: this.Credentials,
-                                syncbox: this,
-                                client: out _httpRestClient,
-                                settings: this._copiedSettings,
-                                getNewCredentialsCallback: getNewCredentialsCallback,
-                                getNewCredentialsCallbackUserState: getNewCredentialsCallbackUserState);
-                if (createRestClientError != null)
+                if (path == null)
                 {
-                    _trace.writeToLog(1, "CLSyncbox: Construction: ERROR: Msg: {0}. Code: {1}.", createRestClientError.PrimaryException.Message, createRestClientError.PrimaryException.Code.ToString());
-                    throw new CLException(CLExceptionCode.Syncbox_CreateRestClient, "Error creating REST HTTP client", createRestClientError.Exceptions);
+                    setPathLocker = new object();
                 }
-                if (_httpRestClient == null)
+                else
                 {
-                    const string nullRestClient = "Unknown error creating HTTP REST client";
-                    _trace.writeToLog(1, "CLSyncbox: Construction: ERROR: Msg: {0}.", nullRestClient);
-                    throw new CLNullReferenceException(CLExceptionCode.Syncbox_CreateRestClient, nullRestClient);
+                    setPathLocker = null;
+                    CLError setPathError = UpdatePathInternal(path, shouldUupdateSyncboxStatusFromServer: true);
+                    if (setPathError != null)
+                    {
+                        throw new CLException(CLExceptionCode.Syncbox_Initializing, "Error initializing the syncbox", setPathError.Exceptions);
+                    }
                 }
-
-                // We need to validate the syncbox ID with the server with these credentials.  We will also retrieve the other syncbox
-                // properties from the server and set them into this local object's properties.
-                CLError errorFromStatus = GetCurrentSyncboxStatus();
-                if (errorFromStatus != null)
-                {
-                    throw new CLException(CLExceptionCode.Syncbox_InitialStatus, "Error getting syncbox status from Cloud", errorFromStatus.Exceptions);
-                }
-
-                // Create the sync engine
-                _syncEngine = new CLSyncEngine();
             }
         }
 
@@ -294,13 +517,15 @@ namespace Cloud
         /// </summary>
         /// <param name="syncboxContract">The syncbox contract to use.</param>
         /// <param name="credentials">The credentials to use.</param>
-        /// <param name="settings">The settings to use.</param>
-        /// <param name="getNewCredentialsCallback">The delegate to call for getting new temporary credentials.</param>
-        /// <param name="getNewCredentialsCallbackUserState">The user state to pass to the delegate above.</param>
+        /// <param name="path">(optional) The full path on the local disk of the folder to associate with this syncbox.</param>
+        /// <param name="settings">(optional) The settings to use.</param>
+        /// <param name="getNewCredentialsCallback">(optional) The delegate to call for getting new temporary credentials.</param>
+        /// <param name="getNewCredentialsCallbackUserState">(optional) The user state to pass to the delegate above.</param>
         private CLSyncbox(
             JsonContracts.Syncbox syncboxContract,
             CLCredentials credentials,
-            ICLSyncSettings settings,
+            string path = null,
+            ICLSyncSettings settings = null,
             Helpers.ReplaceExpiredCredentials getNewCredentialsCallback = null,
             object getNewCredentialsCallbackUserState = null)
         {
@@ -310,19 +535,19 @@ namespace Cloud
 
             if (syncboxContract == null)
             {
-                throw new NullReferenceException("syncboxContract must not be null");
+                throw new NullReferenceException("syncboxContract must not be null");  //&&&& fix
             }
             if (syncboxContract.Id == null)
             {
-                throw new NullReferenceException("syncboxContract Id must not be null");
+                throw new NullReferenceException("syncboxContract Id must not be null");  //&&&& fix
             }
             if (syncboxContract.PlanId == null)
             {
-                throw new NullReferenceException("syncboxContract Id must not be null");
+                throw new NullReferenceException("syncboxContract Id must not be null");  //&&&& fix
             }
             if (credentials == null)
             {
-                throw new NullReferenceException("credentials must not be null");
+                throw new NullReferenceException("credentials must not be null");  //&&&& fix
             }
 
             // Copy the settings so the user can't change them.
@@ -335,43 +560,35 @@ namespace Cloud
                 this._copiedSettings = settings.CopySettings();
             }
 
+            // Initialize trace in case it is not already initialized.
+            CLTrace.Initialize(this._copiedSettings.TraceLocation, "Cloud", "log", this._copiedSettings.TraceLevel, this._copiedSettings.LogErrors);
+            _trace.writeToLog(1, "CLSyncbox: Constructing from contract...");
+
             // Set up the syncbox
             lock (_startLocker)
             {
                 // Save the parameters in properties.
                 this.Credentials = credentials;
                 this._syncboxId = (long)syncboxContract.Id;
-                this._path = null;      // the server doesn't know the local path.  The user must provide that later.
                 this._storagePlanId = (long)syncboxContract.PlanId;
                 this._friendlyName = syncboxContract.FriendlyName;
+                this._getNewCredentialsCallback = getNewCredentialsCallback;
+                this._getNewCredentialsCallbackUserState = getNewCredentialsCallbackUserState;
 
-                // Initialize trace in case it is not already initialized.
-                CLTrace.Initialize(this._copiedSettings.TraceLocation, "Cloud", "log", this._copiedSettings.TraceLevel, this._copiedSettings.LogErrors);
-                _trace.writeToLog(1, "CLSyncbox: Constructing from contract...");
-
-                // Create the http rest client
-                _trace.writeToLog(9, "CLSyncbox: CLSyncbox(contract): Create rest client.");
-                CLError createRestClientError = CLHttpRest.CreateAndInitialize(
-                                credentials: this.Credentials,
-                                syncbox: this,
-                                client: out _httpRestClient,
-                                settings: this._copiedSettings,
-                                getNewCredentialsCallback: getNewCredentialsCallback,
-                                getNewCredentialsCallbackUserState: getNewCredentialsCallbackUserState);
-                if (createRestClientError != null)
+                if (path == null)
                 {
-                    _trace.writeToLog(1, "CLSyncbox: CLSyncbox(contract): ERROR: Msg: {0}. Code: {1}.", createRestClientError.PrimaryException.Message, createRestClientError.PrimaryException.Code);
-                    throw new CLException(CLExceptionCode.Syncbox_CreateRestClient, "Error creating REST HTTP client", createRestClientError.Exceptions);
+                    setPathLocker = new object();
                 }
-                if (_httpRestClient == null)
+                else
                 {
-                    const string nullRestClient = "Unknown error creating HTTP REST client";
-                    _trace.writeToLog(1, "CLSyncbox: CLSyncbox(contract): ERROR: Msg: {0}.", nullRestClient);
-                    throw new CLNullReferenceException(CLExceptionCode.Syncbox_CreateRestClient, nullRestClient);
+                    setPathLocker = null;
+                    CLError setPathError = UpdatePathInternal(path, shouldUupdateSyncboxStatusFromServer: false);  // the information in the server response filled in the current syncbox status.
+                    if (setPathError != null)
+                    {
+                        //&&&& Put all strings in resources.
+                        throw new CLException(CLExceptionCode.Syncbox_Initializing, "Error initializing the syncbox", setPathError.Exceptions);
+                    }
                 }
-
-                // Create the sync engine
-                _syncEngine = new CLSyncEngine();
             }
         }
 
@@ -386,7 +603,7 @@ namespace Cloud
         /// <param name="callbackUserState">Userstate to pass to the callback when it is fired.  Can be null.</param>
         /// <param name="syncboxId">The cloud syncbox ID to use.</param>
         /// <param name="credentials">The credentials to use with this request.</param>
-        /// <param name="path">(optional) The full path of the folder on disk to associate with this syncbox. If this parameter is null, the syncbox local disk directory will be %USEERPROFILE%\Cloud. </param>
+        /// <param name="path">The full path of the folder on disk to associate with this syncbox. If this parameter is null, the syncbox local disk directory will be %USEERPROFILE%\Cloud. </param>
         /// <param name="settings">(optional) settings to use with this method.</param>
         /// <param name="getNewCredentialsCallback">(optional) A delegate which will be called to retrieve a new set of credentials when credentials have expired.</param>
         /// <param name="getNewCredentialsCallbackUserState">(optional) The user state to pass as a parameter to the delegate above.</param>
@@ -396,7 +613,7 @@ namespace Cloud
             object callbackUserState,
             long syncboxId,
             CLCredentials credentials,
-            string path = null,
+            string path,
             ICLSyncSettings settings = null,
             Helpers.ReplaceExpiredCredentials getNewCredentialsCallback = null,
             object getNewCredentialsCallbackUserState = null)
@@ -477,7 +694,7 @@ namespace Cloud
         /// <param name="syncboxId">Unique ID of the syncbox generated by Cloud</param>
         /// <param name="credentials">Credentials to use with this request.</param>
         /// <param name="syncbox">(output) Created local object representation of the Syncbox</param>
-        /// <param name="path">(optional) The full path of the folder on disk to associate with this syncbox. If this parameter is null, the syncbox local disk directory will be %USEERPROFILE%\Cloud. </param>
+        /// <param name="path">The full path of the folder on disk to associate with this syncbox. If this parameter is null, the syncbox local disk directory will be %USEERPROFILE%\Cloud. </param>
         /// <param name="settings">(optional) Settings to use with this request</param>
         /// <param name="getNewCredentialsCallback">(optional) A delegate that will be called to provide new credentials when the current credentials token expires.</param>
         /// <param name="getNewCredentialsCallbackUserState">(optional) The user state that will be passed back to the getNewCredentialsCallback delegate.</param>
@@ -486,7 +703,7 @@ namespace Cloud
             long syncboxId,
             CLCredentials credentials,
             out CLSyncbox syncbox,
-            string path = null,
+            string path,
             ICLSyncSettings settings = null,
             Helpers.ReplaceExpiredCredentials getNewCredentialsCallback = null,
             object getNewCredentialsCallbackUserState = null)
@@ -497,7 +714,11 @@ namespace Cloud
             {
                 if (Helpers.AllHaltedOnUnrecoverableError)
                 {
-                    throw new InvalidOperationException(Resources.CLCredentialHelpersAllHaltedOnUnrecoverableErrorIsSet);
+                    throw new InvalidOperationException("Cannot do anything with the Cloud SDK if Helpers.AllHaltedOnUnrecoverableError is set");  //&&&& fix
+                }
+                if (path == null)
+                {
+                    throw new CLArgumentNullException(CLExceptionCode.Syncbox_BadPath, "path must not be null");
                 }
 
                 syncbox = new CLSyncbox(
@@ -506,8 +727,7 @@ namespace Cloud
                     path: path,
                     settings: settings,
                     getNewCredentialsCallback: getNewCredentialsCallback,
-                    getNewCredentialsCallbackUserState: getNewCredentialsCallbackUserState
-                    );
+                    getNewCredentialsCallbackUserState: getNewCredentialsCallbackUserState);
             }
             catch (Exception ex)
             {
@@ -530,7 +750,6 @@ namespace Cloud
         /// <returns></returns>
         public CLError BeginSync(
                 CLSyncMode mode,
-                string path = null,
                 System.Threading.WaitCallback syncStatusChangedCallback = null,
                 object syncStatusChangedCallbackUserState = null)
         {
@@ -542,49 +761,74 @@ namespace Cloud
             {
                 lock (_startLocker)
                 {
-                    if (_syncEngine == null)
+                    if (_isStarted)
                     {
-                        throw new NullReferenceException("syncEngine must not be null");
-                    }
-                    if (mode == CLSyncMode.CLSyncModeOnDemand)
-                    {
-                        throw new ArgumentException("CLSyncMode.CLSyncModeOnDemand is not supported");
+                        throw new CLInvalidOperationException(CLExceptionCode.Syncbox_AlreadyStarted, Resources.CLSyncEngineAlreadyStarted);
                     }
 
-
-                    if (path != null)
+                    if (this._syncEngine != null)
                     {
-                        int nOutTooLongChars;
-                        CLError errorPathTooLong = Helpers.CheckSyncRootLength(path, out nOutTooLongChars);
-                        if (errorPathTooLong != null)
+                        throw new CLInvalidOperationException(CLExceptionCode.Syncbox_AlreadyStarted, Resources.ExceptionCLSyncboxBeginSyncExistingEngine);
+                    }
+
+                    bool debugDependenciesValue;
+                    lock (debugDependencies)
+                    {
+                        debugDependenciesValue = debugDependencies.Value;
+                    }
+                    bool copyDatabaseBetweenChangesValue;
+                    lock (copyDatabaseBetweenChanges)
+                    {
+                        copyDatabaseBetweenChangesValue = copyDatabaseBetweenChanges.Value;
+                    }
+                    bool debugFileMonitorMemoryValue;
+                    lock (debugFileMonitorMemory)
+                    {
+                        debugFileMonitorMemoryValue = debugFileMonitorMemory.Value;
+                    }
+
+                    // Create the sync engine for this syncbox instance
+                    _syncEngine = new CLSyncEngine(this, debugDependenciesValue, copyDatabaseBetweenChangesValue, debugFileMonitorMemoryValue); // syncbox to sync (contains required settings)
+
+                    try
+                    {
+                        //// OnDemand mode does not start\stop sync, so it is not a valid CLSyncMode anyways (it was removed from that enumeration)
+                        //
+                        //if (mode == CLSyncMode.CLSyncModeOnDemand)
+                        //{
+                        //    throw new CLNotSupportedException(CLExceptionCode.Syncbox_GeneralStart, Resources.ExceptionCLSyncboxBeginSyncOnDemandNotSupported);
+                        //}
+
+                        _syncMode = mode;
+
+                        // Start the sync engine
+                        CLError syncEngineStartError = _syncEngine.Start(
+                            statusUpdated: syncStatusChangedCallback, // called when sync status is updated
+                            statusUpdatedUserState: syncStatusChangedCallbackUserState); // the user state passed to the callback above
+
+                        if (syncEngineStartError != null)
                         {
-                            throw new CLArgumentException(errorPathTooLong.PrimaryException.Code, string.Format("syncbox path is too long by {0} characters.", nOutTooLongChars), errorPathTooLong.Exceptions);
+                            _trace.writeToLog(1, "Error starting sync engine. Msg: {0}. Code: {1}.", syncEngineStartError.PrimaryException.Message, syncEngineStartError.PrimaryException.Code);
+                            syncEngineStartError.Log(_copiedSettings.TraceLocation, _copiedSettings.LogErrors);
+                            startExceptionLogged = true;
+                            throw new CLException(syncEngineStartError.PrimaryException.Code, Resources.ExceptionCLSyncboxBeginSyncStartEngine, syncEngineStartError.Exceptions);
+                        }
+                    }
+                    catch
+                    {
+                        if (this._syncEngine != null)
+                        {
+                            try
+                            {
+                                this._syncEngine.Stop();
+                            }
+                            catch
+                            {
+                            }
+                            this._syncEngine = null;
                         }
 
-                        CLError errorBadPath = Helpers.CheckForBadPath(path);
-                        if (errorBadPath != null)
-                        {
-                            throw new CLArgumentException(errorBadPath.PrimaryException.Code, "syncbox path contains invalid characters.", errorBadPath.Exceptions);
-                        }
-                        this._path = path;
-                    }
-
-                    _syncMode = mode;
-
-                    // Start the sync engine
-                    CLSyncStartStatus startStatus;
-                    CLError syncEngineStartError = _syncEngine.Start(
-                        Syncbox: this, // syncbox to sync (contains required settings)
-                        Status: out startStatus, // The completion status of the Start() function
-                        StatusUpdated: syncStatusChangedCallback, // called when sync status is updated
-                        StatusUpdatedUserState: syncStatusChangedCallbackUserState); // the user state passed to the callback above
-
-                    if (syncEngineStartError != null)
-                    {
-                        _trace.writeToLog(1, "Error starting sync engine. Msg: {0}. Code: {1}.", syncEngineStartError.PrimaryException.Message, syncEngineStartError.PrimaryException.Code);
-                        syncEngineStartError.Log(_copiedSettings.TraceLocation, _copiedSettings.LogErrors);
-                        startExceptionLogged = true;
-                        throw new CLException(syncEngineStartError.PrimaryException.Code, "Error starting active syncing", syncEngineStartError.Exceptions);
+                        throw;
                     }
 
                     // The sync engines started with syncboxes must be tracked statically so we can stop them all when the application terminates (in the ShutDown) method.
@@ -618,18 +862,20 @@ namespace Cloud
             {
                 lock (_startLocker)
                 {
-                    if (!_isStarted)
+                    if (!_isStarted
+                        || _syncEngine == null)
                     {
                         return;
                     }
 
-                    if (_syncEngine == null)
+                    try
                     {
-                        return;
+                        // Stop the sync engine.
+                        _syncEngine.Stop();
                     }
-
-                    // Stop the sync engine.
-                    _syncEngine.Stop();
+                    catch
+                    {
+                    }
 
                     // Remove this engine from the tracking list.
                     _startedSyncEngines.Remove(_syncEngine);
@@ -661,11 +907,35 @@ namespace Cloud
                 {
                     if (_isStarted)
                     {
-                        throw new CLInvalidOperationException(CLExceptionCode.General_Invalid, "Stop the syncbox first.");
+                        throw new CLInvalidOperationException(CLExceptionCode.Syncbox_AlreadyStarted, Resources.ExceptionCLSyncboxResetLocalCacheAlreadyStarted);
                     }
 
+                    if (_syncEngine != null)
+                    {
+                        throw new CLInvalidOperationException(CLExceptionCode.Syncbox_AlreadyStarted, Resources.ExceptionCLSyncboxBeginSyncExistingEngine);
+                    }
+
+                    bool debugDependenciesValue;
+                    lock (debugDependencies)
+                    {
+                        debugDependenciesValue = debugDependencies.Value;
+                    }
+                    bool copyDatabaseBetweenChangesValue;
+                    lock (copyDatabaseBetweenChanges)
+                    {
+                        copyDatabaseBetweenChangesValue = copyDatabaseBetweenChanges.Value;
+                    }
+                    bool debugFileMonitorMemoryValue;
+                    lock (debugFileMonitorMemory)
+                    {
+                        debugFileMonitorMemoryValue = debugFileMonitorMemory.Value;
+                    }
+
+                    // Create the sync engine for this syncbox instance
+                    CLSyncEngine tempSyncEngine = new CLSyncEngine(this, debugDependenciesValue, copyDatabaseBetweenChangesValue, debugFileMonitorMemoryValue); // syncbox to sync (contains required settings)
+
                     // Reset the sync engine
-                    CLError resetSyncError = _syncEngine.SyncReset(this);
+                    CLError resetSyncError = tempSyncEngine.SyncReset(this);
                     if (resetSyncError != null)
                     {
                         _trace.writeToLog(1, "CLSyncbox: ResetLocalCache: ERROR: From syncEngine.SyncReset: Msg: {0}. Code {1}.", resetSyncError.PrimaryException.Message, resetSyncError.PrimaryException.Code);
@@ -708,19 +978,15 @@ namespace Cloud
                 {
                     if (!_isStarted)
                     {
-                        throw new InvalidOperationException("Start the syncbox first.");
+                        throw new CLInvalidOperationException(CLExceptionCode.Syncbox_NotStarted, Resources.ExceptionCLSyncboxNotStarted);
                     }
 
                     if (_syncEngine == null)
                     {
-                        //throw new NullReferenceException("Sync not started");
-                        status = new CLSyncCurrentStatus(CLSyncCurrentState.Idle, null);
-                        return null;
+                        throw new CLInvalidOperationException(CLExceptionCode.Syncbox_NotStarted, Resources.ExceptionCLSyncboxEngineNotFound);
                     }
-                    else
-                    {
-                        return _syncEngine.GetCurrentStatus(out status);
-                    }
+
+                    return _syncEngine.GetCurrentStatus(out status);
                 }
             }
             catch (Exception ex)
@@ -730,7 +996,7 @@ namespace Cloud
             }
         }
 
-        /// <summary>
+        /// <summary>l
         /// Call when application is shutting down.
         /// </summary>
         public static void Shutdown()
@@ -807,23 +1073,27 @@ namespace Cloud
 
         #region Public Static HTTP REST Methods
 
-        #region CreateSyncbox (create a syncbox in the cloud)
+        #region CreateSyncbox (create a syncbox in the syncbox)
 
         /// <summary>
-        /// Asynchronously starts creating a new Syncbox in the cloud.
+        /// Asynchronously starts creating a new Syncbox in the syncbox.
         /// </summary>
         /// <param name="callback">Callback method to fire when operation completes.  Can be null.</param>
         /// <param name="callbackUserState">Userstate to pass to the callback when it is fired.  Can be null.</param>
         /// <param name="plan">The storage plan to use with this Syncbox.</param>
         /// <param name="credentials">The credentials to use with this request.</param>
+        /// <param name="path">The path on the local disk to associate with this syncbox.</param>
         /// <param name="friendlyName">(optional) The friendly name of the Syncbox.</param>
         /// <param name="settings">(optional) Settings to use with this method.</param>
+        /// <param name="getNewCredentialsCallback">(optional) The callback function that will provide new credentials with temporary credentials expire.</param>
+        /// <param name="getNewCredentialsCallbackUserState">(optional) The user state that will be passed as a parameter to the callback function above.</param>
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public static IAsyncResult BeginCreateSyncbox(
                     AsyncCallback callback,
                     object callbackUserState,
                     CLStoragePlan plan,
                     CLCredentials credentials,
+                    string path,
                     string friendlyName = null,
                     ICLSyncSettings settings = null,
                     Helpers.ReplaceExpiredCredentials getNewCredentialsCallback = null,
@@ -834,11 +1104,11 @@ namespace Cloud
             // Check the parameters
             if (plan == null)
             {
-                throw new ArgumentNullException("plan must not be null");
+                throw new ArgumentNullException("plan must not be null");  //&&&& fix
             }
             if (credentials == null)
             {
-                throw new ArgumentNullException("credentials must not be null");
+                throw new ArgumentNullException("credentials must not be null");  //&&&& fix
             }
 
             var asyncThread = DelegateAndDataHolderBase.Create(
@@ -868,6 +1138,7 @@ namespace Cloud
                         CLError processError = CreateSyncbox(
                             Data.plan,
                             Data.credentials,
+                            path,
                             out response,
                             Data.friendlyName,
                             Data.settings,
@@ -897,7 +1168,7 @@ namespace Cloud
         }
 
         /// <summary>
-        /// Finishes creating a Syncbox in the cloud, if it has not already finished via its asynchronous result, and outputs the result,
+        /// Finishes creating a Syncbox in the syncbox, if it has not already finished via its asynchronous result, and outputs the result,
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
         /// </summary>
         /// <param name="aResult">The asynchronous result provided upon starting creating the syncbox</param>
@@ -909,17 +1180,21 @@ namespace Cloud
         }
 
         /// <summary>
-        /// Create a Syncbox in the cloud for the current application.  This is a synchronous method.
+        /// Create a Syncbox in the syncbox for the current application.  This is a synchronous method.
         /// </summary>
         /// <param name="plan">The storage plan to use with this Syncbox.</param>
         /// <param name="credentials">The credentials to use for this request.</param>
+        /// <param name="path">The path on the local disk to associate with this syncbox.</param>
         /// <param name="syncbox">(output) Response object from communication</param>
-        /// <param name="name">(optional) The friendly name of the Syncbox.</param>
+        /// <param name="friendlyName">(optional) The friendly name of the Syncbox.</param>
         /// <param name="settings">(optional) The settings to use with this method</param>
+        /// <param name="getNewCredentialsCallback">(optional) The callback function that will provide new credentials with temporary credentials expire.</param>
+        /// <param name="getNewCredentialsCallbackUserState">(optional) The user state that will be passed as a parameter to the callback function above.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public static CLError CreateSyncbox(
                     CLStoragePlan plan,
                     CLCredentials credentials,
+                    string path,
                     out CLSyncbox syncbox,
                     string friendlyName = null,
                     ICLSyncSettings settings = null,
@@ -934,11 +1209,15 @@ namespace Cloud
                 // Check the input parameters.
                 if (plan == null)
                 {
-                    throw new ArgumentNullException("plan must not be null");
+                    throw new ArgumentNullException("plan must not be null");  //&&&& fix
                 }
                 if (credentials == null)
                 {
-                    throw new ArgumentNullException("credentials must not be null");
+                    throw new ArgumentNullException("credentials must not be null");  //&&&& fix
+                }
+                if (path == null)
+                {
+                    throw new CLArgumentNullException(CLExceptionCode.Syncbox_BadPath, "path must not be null");
                 }
 
                 // copy settings so they don't change while processing; this also defaults some values
@@ -969,20 +1248,27 @@ namespace Cloud
                     validStatusCodes: Helpers.HttpStatusesOkAccepted,
                     CopiedSettings: copiedSettings,
                     Credentials: credentials,
-                    SyncboxId: null);
+                    SyncboxId: null, 
+                    isOneOff: false);
 
                 // Check the server response.
                 if (responseFromServer == null)
                 {
-                    throw new NullReferenceException("Response from server must not be null");
+                    throw new NullReferenceException("Response from server must not be null");  //&&&& fix
                 }
                 if (responseFromServer.Syncbox == null)
                 {
-                    throw new NullReferenceException("Server response syncbox must not be null");
+                    throw new NullReferenceException("Server response syncbox must not be null");  //&&&& fix
                 }
 
                 // Convert the response object to a CLSyncbox and return that.
-                syncbox = new CLSyncbox(responseFromServer.Syncbox, credentials, copiedSettings, getNewCredentialsCallback, getNewCredentialsCallbackUserState);
+                syncbox =  new CLSyncbox(
+                    syncboxContract: responseFromServer.Syncbox,
+                    credentials: credentials,
+                    path: path,
+                    settings: copiedSettings,
+                    getNewCredentialsCallback: getNewCredentialsCallback,
+                    getNewCredentialsCallbackUserState: getNewCredentialsCallbackUserState);
             }
             catch (Exception ex)
             {
@@ -993,10 +1279,10 @@ namespace Cloud
         }
         #endregion
 
-        #region DeleteSyncbox (delete a syncbox in the cloud)
+        #region DeleteSyncbox (delete a syncbox in the syncbox)
 
         /// <summary>
-        /// Asynchronously starts deleting a new Syncbox in the cloud.
+        /// Asynchronously starts deleting a new Syncbox in the syncbox.
         /// </summary>
         /// <param name="callback">Callback method to fire when operation completes.  Can be null.</param>
         /// <param name="callbackUserState">Userstate to pass as a parameter to the callback when it is fired.  Can be null.</param>
@@ -1063,7 +1349,7 @@ namespace Cloud
         }
 
         /// <summary>
-        /// Finishes deleting a Syncbox in the cloud, if it has not already finished via its asynchronous result, and outputs the result,
+        /// Finishes deleting a Syncbox in the syncbox, if it has not already finished via its asynchronous result, and outputs the result,
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
         /// </summary>
         /// <param name="aResult">The asynchronous result provided upon starting the asynchronous operation</param>
@@ -1075,7 +1361,7 @@ namespace Cloud
         }
 
         /// <summary>
-        /// Delete a Syncbox in the cloud.  This is a synchronous method.
+        /// Delete a Syncbox in the syncbox.  This is a synchronous method.
         /// </summary>
         /// <param name="syncboxId">the ID of the syncbox to delete.
         /// <param name="credentials">The credentials to use for this request.</param>
@@ -1114,7 +1400,8 @@ namespace Cloud
                     validStatusCodes: Helpers.HttpStatusesOkAccepted,
                     CopiedSettings: copiedSettings,
                     Credentials: credentials,
-                    SyncboxId: null);
+                    SyncboxId: null, 
+                    isOneOff: false);
 
             }
             catch (Exception ex)
@@ -1126,10 +1413,10 @@ namespace Cloud
         }
         #endregion
 
-        #region ListAllSyncboxesWithCredentials (list syncboxes in the cloud)
+        #region ListAllSyncboxesWithCredentials (list syncboxes in the syncbox)
 
         /// <summary>
-        /// Asynchronously starts listing syncboxes in the cloud.
+        /// Asynchronously starts listing syncboxes in the syncbox.
         /// </summary>
         /// <param name="callback">Callback method to fire when operation completes.  Can be null.</param>
         /// <param name="callbackUserState">Userstate to pass as a parameter to the callback when it is fired.  Can be null.</param>
@@ -1192,7 +1479,7 @@ namespace Cloud
         }
 
         /// <summary>
-        /// Finishes listing syncboxes in the cloud, if it has not already finished via its asynchronous result, and outputs the result,
+        /// Finishes listing syncboxes in the syncbox, if it has not already finished via its asynchronous result, and outputs the result,
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
         /// </summary>
         /// <param name="aResult">The asynchronous result provided upon starting the asynchronous operation</param>
@@ -1205,7 +1492,7 @@ namespace Cloud
         }
 
         /// <summary>
-        /// List syncboxes in the cloud for these credentials.  This is a synchronous method.
+        /// List syncboxes in the syncbox for these credentials.  This is a synchronous method.
         /// </summary>
         /// <param name="credentials">The credentials to use for this request.</param>
         /// <param name="response">(output) response object from communication</param>
@@ -1216,7 +1503,7 @@ namespace Cloud
         /// <remarks>The response array may be null, empty, or may contain null items.</remarks>
         public static CLError ListAllSyncboxesWithCredentials(
                     CLCredentials credentials,
-                    out CLSyncbox [] response,
+                    out CLSyncbox[] response,
                     ICLCredentialsSettings settings = null,
                     Helpers.ReplaceExpiredCredentials getNewCredentialsCallback = null,
                     object getNewCredentialsCallbackUserState = null)
@@ -1243,7 +1530,8 @@ namespace Cloud
                     validStatusCodes: Helpers.HttpStatusesOkAccepted,
                     CopiedSettings: copiedSettings,
                     Credentials: credentials,
-                    SyncboxId: null);
+                    SyncboxId: null, 
+                    isOneOff: false);
 
                 // Convert the server response to a list of initialized CLSyncboxes.
                 if (responseFromServer != null && responseFromServer.Syncboxes != null)
@@ -1253,7 +1541,7 @@ namespace Cloud
                     {
                         if (syncbox != null)
                         {
-                            listSyncboxes.Add(new CLSyncbox(syncbox, credentials, copiedSettings, getNewCredentialsCallback, getNewCredentialsCallbackUserState));
+                            listSyncboxes.Add(new CLSyncbox(syncbox, credentials, null, copiedSettings, getNewCredentialsCallback, getNewCredentialsCallbackUserState));
                         }
                         else
                         {
@@ -1264,7 +1552,7 @@ namespace Cloud
                 }
                 else
                 {
-                    throw new NullReferenceException("Server responded without an array of Sessions");
+                    throw new NullReferenceException(Resources.ExceptionCLHttpRestWithoutSessions);  //&&&& fix
                 }
 
             }
@@ -1275,7 +1563,7 @@ namespace Cloud
             }
             return null;
         }
-        #endregion  // end List (list syncboxes in the cloud)
+        #endregion  // end List (list syncboxes in the syncbox)
 
         #endregion  // end Public Static HTTP REST Methods
 
@@ -1309,7 +1597,10 @@ namespace Cloud
         public IAsyncResult BeginGetItemAtPath(AsyncCallback callback, object callbackUserState, string path)
         {
             CheckDisposed();
-            return _httpRestClient.BeginGetItemAtPath(callback, callbackUserState, path);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.BeginGetItemAtPath(callback, callbackUserState, path);
         }
 
         /// <summary>
@@ -1322,7 +1613,10 @@ namespace Cloud
         public CLError EndGetItemAtPath(IAsyncResult aResult, out SyncboxGetItemAtPathResult result)
         {
             CheckDisposed();
-            return _httpRestClient.EndGetItemAtPath(aResult, out result);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.EndGetItemAtPath(aResult, out result);
         }
 
         /// <summary>
@@ -1331,344 +1625,129 @@ namespace Cloud
         /// </summary>
         /// <param name="path">Full path to where file or folder would exist locally on disk</param>
         /// <param name="response">(output) response object from communication</param>
+        /// <param name="isOneOff">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError GetItemAtPath(string path, out CLFileItem response)
+        public CLError GetItemAtPath(string path, out CLFileItem response, bool isOneOff)
         {
-            CheckDisposed();
-            return _httpRestClient.GetItemAtPath(path, out response);
+            CheckDisposed(isOneOff);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.GetItemAtPath(path, out response, true);
         }
 
         #endregion  // end GetItemAtPath (Queries the cloud for the item at a particular path)
 
-        #region RenameFile (Renames a file in the cloud)
+        #region RenameFiles (Rename files in-place in the syncbox)
         /// <summary>
-        /// Asynchronously starts renaming a file in the cloud; outputs a CLFileItem object.
+        /// Asynchronously starts renaming files in-place in the syncbox.  Each item completion will fire an asynchronous callback with the completion status or error for that item.
         /// </summary>
-        /// <param name="callback">Callback method to fire when operation completes</param>
-        /// <param name="callbackUserState">Userstate to pass when firing async callback</param>
-        /// <param name="path">Full path to where the file would exist locally on disk.</param>
-        /// <param name="newPath">Full path to the new location of the file.</param>
+        /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
+        /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
+        /// <param name="itemCompletionCallback">Delegate which will be fired upon successful communication for every response item.</param>
+        /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the completion delegate is fired.</param>
+        /// <param name="itemsToRename">One or more pairs of items to rename and the new name of each item (just the filename.ext).</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginRenameFile(AsyncCallback callback, object callbackUserState, string path, string newPath)
+        public IAsyncResult BeginRenameFiles(AsyncCallback asyncCallback, object asyncCallbackUserState, CLFileItemCompletion itemCompletionCallback, object itemCompletionCallbackUserState, params RenameItemParams[] itemsToRename)
         {
-            CheckDisposed();
-            string[] paths = new string[1] { path };
-            string[] newPaths = new string[1] { newPath };
-            return _httpRestClient.BeginRenameFiles(callback, callbackUserState, paths, newPaths);
+            CheckDisposed(true);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.BeginRenameFiles(asyncCallback, asyncCallbackUserState, itemCompletionCallback, itemCompletionCallbackUserState, itemsToRename);
         }
 
         /// <summary>
-        /// Finishes renaming a file in the cloud, if it has not already finished via its asynchronous result, and outputs the result,
+        /// Finishes renaming files in-place in the syncbox, if it has not already finished via its asynchronous result, and outputs the result,
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
         /// </summary>
-        /// <param name="aResult">The asynchronous result provided upon starting the metadata query</param>
-        /// <param name="result">(output) The result from the metadata query</param>
+        /// <param name="asyncResult">The asynchronous result provided upon starting the metadata query</param>
+        /// <param name="result">(output) An overall error which occurred during processing, if any</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndRenameFile(IAsyncResult aResult, out SyncboxRenameFileResult result)
+        public CLError EndRenameFiles(IAsyncResult asyncResult, out SyncboxRenameFilesResult result)
         {
-            CheckDisposed();
+            CheckDisposed(true);
 
-            // Complete the async operation.
-            SyncboxRenameFilesResult results;
-            CLError error = _httpRestClient.EndRenameFiles(aResult, out results);
-
-            // Return resulting error or item
-            if (error != null)
-            {
-                // We got an overall error.  Return it.
-                result = null;
-                return error;
-            }
-            // error == null  (no overall error)
-            else if (results == null)
-            {
-                // No overall error, but also no results.  Return an error.
-                result = null;
-                return new CLError(new CLException(CLExceptionCode.Rest_Syncbox_File_Rename_No_Server_Responses_Or_Errors, "No error or responses from server results null"));
-            }
-            // error == null && results != null  (no overall error, and we got a results object)
-            else if (results.Errors != null && results.Errors.Length >= 1)
-            {
-                // No overall error, got a results object, and it has an error.  Return that error.
-                result = null;
-                return results.Errors[0];
-            }
-            // (error == null && results != null) && (results.Errors == null || results.Errors.Length == 0)  (no overall error, we got a results object, and there are no errors in results)
-            else if (results.FileItems != null && results.FileItems.Length >= 1)
-            {
-                // No overall error, got a results object, is has no errors, and it has a rename response.  This is the normal case.  Return that rename response as the result.
-                result = new SyncboxRenameFileResult(error: null, _fileItem: results.FileItems[0]);
-                return null;        // normal condition
-            }
-            // ((error == null && results != null) && (results.Errors == null || results.Errors.Length == 0)) && (results.Responses == null || results.Responses.Length == 0)
-            else
-            {
-                // No error, got a results object, but there were no errors and no rename responses inside.  Return an error.
-                result = null;
-                return new CLError(new CLException(CLExceptionCode.Rest_Syncbox_File_Rename_No_Server_Responses_Or_Errors, "No error or responses from server"));
-            }
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.EndRenameFiles(asyncResult, out result);
         }
 
         /// <summary>
-        /// Renames a file in the cloud.
+        /// Renames files in-place in the syncbox.  Each item completion will fire an asynchronous callback with the completion status or error for that item.
         /// </summary>
-        /// <param name="path">Full path to where the file would exist locally on disk</param>
-        /// <param name="newPath">Full path to the new location of the file.</param>
-        /// <param name="fileItem">(output) response object from communication</param>
+        /// <param name="itemCompletionCallback">Delegate which will be fired upon successful communication for every response item.</param>
+        /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the completion delegate is fired.</param>
+        /// <param name="itemsToRename">One or more pairs of items to rename and the new name of each item (just the filename.ext).</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError RenameFile(string path, string newPath, out CLFileItem fileItem)
+        public CLError RenameFiles(CLFileItemCompletion itemCompletionCallback, object itemCompletionCallbackUserState, params RenameItemParams[] itemsToRename)
         {
-            CheckDisposed();
-            string[] paths = new string[1] { path };
-            string[] newPaths = new string[1] { newPath };
+            CheckDisposed(true);
 
-            // Communicate and get the results.
-            CLError[] outErrors;
-            CLFileItem[] outItems;
-            CLError error = _httpRestClient.RenameFiles(paths, newPaths, out outItems, out outErrors);
-
-            // Return resulting error or item
-            if (error != null)
-            {
-                // There was an overall error.  Return it
-                fileItem = null;
-                return error;
-            }
-            // error == null
-            else if (outErrors != null && outErrors.Length >= 1)
-            {
-                // No overall error, but there was an item error.  Return it.
-                fileItem = null;
-                return outErrors[0];
-            }
-            // error == null && (outErrors == null || outErrors.Length == 0)
-            else if (outItems != null && outItems.Length >= 1)
-            {
-                // No overall error, no item errors, and we have an item.  Return it.  This is the normal condition
-                fileItem = outItems[0];
-                return null;
-            }
-            // (error == null && (outErrors == null || outErrors.Length == 0)) && (outItems == null || outItems.Length == 0)
-            else
-            {
-                // No overall error, no item errors, and no items.  No responses from server.  Return error.
-                fileItem = null;
-                return new CLError(new CLException(CLExceptionCode.Rest_Syncbox_File_Rename_No_Server_Responses_Or_Errors, "No responses or status from serer"));
-            }
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.RenameFiles(itemCompletionCallback, itemCompletionCallbackUserState, itemsToRename);
         }
 
-        #endregion  // end GetItemAtPath (Queries the cloud for the item at a particular path)
+        #endregion  // end RenameFiles (Rename files in-place in the syncbox)
 
-        #region RenameFiles (Rename files in the cloud)
+        #region RenameFolders (Rename folders in-place in the syncbox)
         /// <summary>
-        /// Asynchronously starts renaming files in the cloud; outputs an array of  CLFileItem objects, and possibly an array of CLError objects.
+        /// Asynchronously starts renaming folders in-place in the syncbox.  Each item completion will fire an asynchronous callback with the completion status or error for that item.
         /// </summary>
-        /// <param name="callback">Callback method to fire when operation completes</param>
-        /// <param name="callbackUserState">Userstate to pass when firing async callback</param>
-        /// <param name="paths">An array of full paths to where the files would exist locally on disk.</param>
-        /// <param name="newPaths">An array of full paths to the new location of the files, corresponding to the paths array.</param>
+        /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
+        /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
+        /// <param name="itemCompletionCallback">Delegate which will be fired upon successful communication for every response item.</param>
+        /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the completion delegate is fired.</param>
+        /// <param name="itemsToRename">One or more pairs of items to rename and the new name of each item (just the last token in the path).</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginRenameFiles(AsyncCallback callback, object callbackUserState, string [] paths, string [] newPaths)
+        public IAsyncResult BeginRenameFolders(AsyncCallback asyncCallback, object asyncCallbackUserState, CLFileItemCompletion itemCompletionCallback, object itemCompletionCallbackUserState, params RenameItemParams[] itemsToRename)
         {
-            CheckDisposed();
-            return _httpRestClient.BeginRenameFiles(callback, callbackUserState, paths, newPaths);
+            CheckDisposed(true);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.BeginRenameFolders(asyncCallback, asyncCallbackUserState, itemCompletionCallback, itemCompletionCallbackUserState, itemsToRename);
         }
 
         /// <summary>
-        /// Finishes renaming files in the cloud, if it has not already finished via its asynchronous result, and outputs the result,
+        /// Finishes renaming folders in-place in the syncbox, if it has not already finished via its asynchronous result, and outputs the result,
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
         /// </summary>
-        /// <param name="aResult">The asynchronous result provided upon starting the metadata query</param>
-        /// <param name="result">(output) The result from the metadata query</param>
+        /// <param name="asyncResult">The asynchronous result provided upon starting the metadata query</param>
+        /// <param name="result">(output) An overall error which occurred during processing, if any</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndRenameFiles(IAsyncResult aResult, out SyncboxRenameFilesResult result)
+        public CLError EndRenameFolders(IAsyncResult asyncResult, out SyncboxRenameFoldersResult result)
         {
-            CheckDisposed();
-            return _httpRestClient.EndRenameFiles(aResult, out result);
+            CheckDisposed(true);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.EndRenameFolders(asyncResult, out result);
         }
 
         /// <summary>
-        /// Renames files in the cloud.
+        /// Renames folders in-place in the syncbox.  Each item completion will fire an asynchronous callback with the completion status or error for that item.
         /// </summary>
-        /// <param name="paths">An array of full paths to where the files would exist locally on disk.</param>
-        /// <param name="newPaths">An array of full paths to the new location of the files, corresponding to the paths array.</param>
-        /// <param name="fileItems">(output) response object from communication</param>
-        /// <param name="errors">(output) Any errors that occur, or null</param>
+        /// <param name="itemCompletionCallback">Delegate which will be fired upon successful communication for every response item.</param>
+        /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the completion delegate is fired.</param>
+        /// <param name="itemsToRename">An array of pairs of items to rename and the new name of each item (just the last token in the path).</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError RenameFiles(string [] paths, string [] newPaths, out CLFileItem [] fileItems, out CLError [] errors)
+        public CLError RenameFolders(CLFileItemCompletion itemCompletionCallback, object itemCompletionCallbackUserState, params RenameItemParams[] itemsToRename)
         {
-            CheckDisposed();
-            return _httpRestClient.RenameFiles(paths, newPaths, out fileItems, out errors);
+            CheckDisposed(true);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.RenameFolders(itemCompletionCallback, itemCompletionCallbackUserState, itemsToRename);
         }
 
-        #endregion  // end GetItemAtPath (Queries the cloud for the item at a particular path)
+        #endregion  // end RenameFolders (Rename folders in the syncbox)
 
-        #region RenameFolder (Renames a folder in the cloud)
+#if NEEDS_REWORK
+        #region MoveFile (Moves a file in the syncbox)
         /// <summary>
-        /// Asynchronously starts renaming a folder in the cloud; outputs a CLFileItem object.
-        /// </summary>
-        /// <param name="callback">Callback method to fire when operation completes</param>
-        /// <param name="callbackUserState">Userstate to pass when firing async callback</param>
-        /// <param name="path">Full path to where the folder would exist locally on disk.</param>
-        /// <param name="newPath">Full path to the new location of the folder.</param>
-        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginRenameFolder(AsyncCallback callback, object callbackUserState, string path, string newPath)
-        {
-            CheckDisposed();
-            string[] paths = new string[1] { path };
-            string[] newPaths = new string[1] { newPath };
-            return _httpRestClient.BeginRenameFolders(callback, callbackUserState, paths, newPaths);
-        }
-
-        /// <summary>
-        /// Finishes renaming a folder in the cloud, if it has not already finished via its asynchronous result, and outputs the result,
-        /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
-        /// </summary>
-        /// <param name="aResult">The asynchronous result provided upon starting the metadata query</param>
-        /// <param name="result">(output) The result from the metadata query</param>
-        /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndRenameFolder(IAsyncResult aResult, out SyncboxRenameFolderResult result)
-        {
-            CheckDisposed();
-
-            // Complete the async operation.
-            SyncboxRenameFoldersResult results;
-            CLError error = _httpRestClient.EndRenameFolders(aResult, out results);
-
-            // Return resulting error or item
-            if (error != null)
-            {
-                // We got an overall error.  Return it.
-                result = null;
-                return error;
-            }
-            // error == null  (no overall error)
-            else if (results == null)
-            {
-                // No overall error, but also no results.  Return an error.
-                result = null;
-                return new CLError(new CLException(CLExceptionCode.Rest_Syncbox_Folder_Rename_No_Server_Responses_Or_Errors, "No error or responses from server results null"));
-            }
-            // error == null && results != null  (no overall error, and we got a results object)
-            else if (results.Errors != null && results.Errors.Length >= 1)
-            {
-                // No overall error, got a results object, and it has an error.  Return that error.
-                result = null;
-                return results.Errors[0];
-            }
-            // (error == null && results != null) && (results.Errors == null || results.Errors.Length == 0)  (no overall error, we got a results object, and there are no errors in results)
-            else if (results.FolderItems != null && results.FolderItems.Length >= 1)
-            {
-                // No overall error, got a results object, is has no errors, and it has a rename response.  This is the normal case.  Return that rename response as the result.
-                result = new SyncboxRenameFolderResult(error: null, folderItem: results.FolderItems[0]);
-                return null;        // normal condition
-            }
-            // ((error == null && results != null) && (results.Errors == null || results.Errors.Length == 0)) && (results.Responses == null || results.Responses.Length == 0)
-            else
-            {
-                // No error, got a results object, but there were no errors and no rename responses inside.  Return an error.
-                result = null;
-                return new CLError(new CLException(CLExceptionCode.Rest_Syncbox_Folder_Rename_No_Server_Responses_Or_Errors, "No error or responses from server"));
-            }
-        }
-
-        /// <summary>
-        /// Renames a folder in the cloud.
-        /// </summary>
-        /// <param name="path">Full path to where the folder would exist locally on disk</param>
-        /// <param name="newPath">Full path to the new location of the folder.</param>
-        /// <param name="folderItem">(output) response object from communication</param>
-        /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError RenameFolder(string path, string newPath, out CLFileItem folderItem)
-        {
-            CheckDisposed();
-            string[] paths = new string[1] { path };
-            string[] newPaths = new string[1] { newPath };
-
-            // Communicate and get the results.
-            CLError[] outErrors;
-            CLFileItem[] outItems;
-            CLError error = _httpRestClient.RenameFolders(paths, newPaths, out outItems, out outErrors);
-
-            // Return resulting error or item
-            if (error != null)
-            {
-                // There was an overall error.  Return it
-                folderItem = null;
-                return error;
-            }
-            // error == null
-            else if (outErrors != null && outErrors.Length >= 1)
-            {
-                // No overall error, but there was an item error.  Return it.
-                folderItem = null;
-                return outErrors[0];
-            }
-            // error == null && (outErrors == null || outErrors.Length == 0)
-            else if (outItems != null && outItems.Length >= 1)
-            {
-                // No overall error, no item errors, and we have an item.  Return it.  This is the normal condition
-                folderItem = outItems[0];
-                return null;
-            }
-            // (error == null && (outErrors == null || outErrors.Length == 0)) && (outItems == null || outItems.Length == 0)
-            else
-            {
-                // No overall error, no item errors, and no items.  No responses from server.  Return error.
-                folderItem = null;
-                return new CLError(new CLException(CLExceptionCode.Rest_Syncbox_Folder_Rename_No_Server_Responses_Or_Errors, "No responses or status from serer"));
-            }
-        }
-
-        #endregion  // end RenameFolder (Renames a folder in the cloud)
-
-        #region RenameFolders (Rename folders in the cloud)
-        /// <summary>
-        /// Asynchronously starts renaming folders in the cloud; outputs an array of  CLFileItem objects, and possibly an array of CLError objects.
-        /// </summary>
-        /// <param name="callback">Callback method to fire when operation completes</param>
-        /// <param name="callbackUserState">Userstate to pass when firing async callback</param>
-        /// <param name="paths">An array of full paths to where the folders would exist locally on disk.</param>
-        /// <param name="newPaths">An array of full paths to the new location of the folders, corresponding to the paths array.</param>
-        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginRenameFolders(AsyncCallback callback, object callbackUserState, string[] paths, string[] newPaths)
-        {
-            CheckDisposed();
-            return _httpRestClient.BeginRenameFolders(callback, callbackUserState, paths, newPaths);
-        }
-
-        /// <summary>
-        /// Finishes renaming folders in the cloud, if it has not already finished via its asynchronous result, and outputs the result,
-        /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
-        /// </summary>
-        /// <param name="aResult">The asynchronous result provided upon starting the metadata query</param>
-        /// <param name="result">(output) The result from the metadata query</param>
-        /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndRenameFolders(IAsyncResult aResult, out SyncboxRenameFoldersResult result)
-        {
-            CheckDisposed();
-            return _httpRestClient.EndRenameFolders(aResult, out result);
-        }
-
-        /// <summary>
-        /// Renames folders in the cloud.
-        /// </summary>
-        /// <param name="paths">An array of full paths to where the folders would exist locally on disk.</param>
-        /// <param name="newPaths">An array of full paths to the new location of the folders, corresponding to the paths array.</param>
-        /// <param name="folderItems">(output) response object from communication</param>
-        /// <param name="errors">(output) Any errors that occur, or null.</param>
-        /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError RenameFolders(string[] paths, string[] newPaths, out CLFileItem[] folderItems, out CLError[] errors)
-        {
-            CheckDisposed();
-            return _httpRestClient.RenameFolders(paths, newPaths, out folderItems, out errors);
-        }
-
-        #endregion  // end RenameFolders (Rename folders in the cloud)
-
-        #region MoveFile (Moves a file in the cloud)
-        /// <summary>
-        /// Asynchronously starts renaming a file in the cloud; outputs a CLFileItem object.
+        /// Asynchronously starts renaming a file in the syncbox; outputs a CLFileItem object.
         /// </summary>
         /// <param name="callback">Callback method to fire when operation completes</param>
         /// <param name="callbackUserState">Userstate to pass when firing async callback</param>
@@ -1680,11 +1759,14 @@ namespace Cloud
             CheckDisposed();
             string[] paths = new string[1] { path };
             string[] newPaths = new string[1] { newPath };
-            return _httpRestClient.BeginRenameFiles(callback, callbackUserState, paths, newPaths);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.BeginRenameFiles(callback, callbackUserState, paths, newPaths);
         }
 
         /// <summary>
-        /// Finishes renaming a file in the cloud, if it has not already finished via its asynchronous result, and outputs the result,
+        /// Finishes renaming a file in the syncbox, if it has not already finished via its asynchronous result, and outputs the result,
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
         /// </summary>
         /// <param name="aResult">The asynchronous result provided upon starting the metadata query</param>
@@ -1696,7 +1778,10 @@ namespace Cloud
 
             // Complete the async operation.
             SyncboxRenameFilesResult results;
-            CLError error = _httpRestClient.EndRenameFiles(aResult, out results);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            CLError error = httpRestClient.EndRenameFiles(aResult, out results);
 
             // Return resulting error or item
             if (error != null)
@@ -1710,7 +1795,7 @@ namespace Cloud
             {
                 // No overall error, but also no results.  Return an error.
                 result = null;
-                return new CLError(new CLException(CLExceptionCode.Rest_Syncbox_File_Move_No_Server_Responses_Or_Errors, "No error or responses from server results null"));
+                return new CLError(new CLException(CLExceptionCode.OnDemand_FileMoveNoServerResponsesOrErrors, "No error or responses from server results null"));
             }
             // error == null && results != null  (no overall error, and we got a results object)
             else if (results.Errors != null && results.Errors.Length >= 1)
@@ -1731,12 +1816,12 @@ namespace Cloud
             {
                 // No error, got a results object, but there were no errors and no rename responses inside.  Return an error.
                 result = null;
-                return new CLError(new CLException(CLExceptionCode.Rest_Syncbox_File_Move_No_Server_Responses_Or_Errors, "No error or responses from server"));
+                return new CLError(new CLException(CLExceptionCode.OnDemand_FileMoveNoServerResponsesOrErrors, "No error or responses from server"));
             }
         }
 
         /// <summary>
-        /// Moves a file in the cloud.
+        /// Moves a file in the syncbox.
         /// </summary>
         /// <param name="path">Full path to where the file would exist locally on disk</param>
         /// <param name="newPath">Full path to the new location of the file.</param>
@@ -1751,7 +1836,10 @@ namespace Cloud
             // Communicate and get the results.
             CLError[] outErrors;
             CLFileItem[] outItems;
-            CLError error = _httpRestClient.RenameFiles(paths, newPaths, out outItems, out outErrors);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            CLError error = httpRestClient.RenameFiles(paths, newPaths, out outItems, out outErrors);
 
             // Return resulting error or item
             if (error != null)
@@ -1779,15 +1867,17 @@ namespace Cloud
             {
                 // No overall error, no item errors, and no items.  No responses from server.  Return error.
                 fileItem = null;
-                return new CLError(new CLException(CLExceptionCode.Rest_Syncbox_File_Move_No_Server_Responses_Or_Errors, "No responses or status from serer"));
+                return new CLError(new CLException(CLExceptionCode.OnDemand_FileMoveNoServerResponsesOrErrors, "No responses or status from serer"));
             }
         }
 
         #endregion  // end GetItemAtPath (Queries the cloud for the item at a particular path)
+#endif // end NEEDS_REWORK
 
-        #region MoveFiles (Move files in the cloud)
+#if NEEDS_REWORK
+        #region MoveFiles (Move files in the syncbox)
         /// <summary>
-        /// Asynchronously starts renaming files in the cloud; outputs an array of  CLFileItem objects, and possibly an array of CLError objects.
+        /// Asynchronously starts renaming files in the syncbox; outputs an array of  CLFileItem objects, and possibly an array of CLError objects.
         /// </summary>
         /// <param name="callback">Callback method to fire when operation completes</param>
         /// <param name="callbackUserState">Userstate to pass when firing async callback</param>
@@ -1797,11 +1887,14 @@ namespace Cloud
         public IAsyncResult BeginMoveFiles(AsyncCallback callback, object callbackUserState, string[] paths, string[] newPaths)
         {
             CheckDisposed();
-            return _httpRestClient.BeginRenameFiles(callback, callbackUserState, paths, newPaths);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.BeginRenameFiles(callback, callbackUserState, paths, newPaths);
         }
 
         /// <summary>
-        /// Finishes renaming files in the cloud, if it has not already finished via its asynchronous result, and outputs the result,
+        /// Finishes renaming files in the syncbox, if it has not already finished via its asynchronous result, and outputs the result,
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
         /// </summary>
         /// <param name="aResult">The asynchronous result provided upon starting the metadata query</param>
@@ -1811,7 +1904,10 @@ namespace Cloud
         {
             CheckDisposed();
             SyncboxRenameFilesResult renameResult;
-            CLError error = _httpRestClient.EndRenameFiles(aResult, out renameResult);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            CLError error = httpRestClient.EndRenameFiles(aResult, out renameResult);
 
             if (error != null)
             {
@@ -1824,7 +1920,7 @@ namespace Cloud
         }
 
         /// <summary>
-        /// Moves files in the cloud.
+        /// Moves files in the syncbox.
         /// </summary>
         /// <param name="paths">An array of full paths to where the files would exist locally on disk.</param>
         /// <param name="newPaths">An array of full paths to the new location of the files, corresponding to the paths array.</param>
@@ -1834,14 +1930,19 @@ namespace Cloud
         public CLError MoveFiles(string[] paths, string[] newPaths, out CLFileItem[] fileItems, out CLError[] errors)
         {
             CheckDisposed();
-            return _httpRestClient.RenameFiles(paths, newPaths, out fileItems, out errors);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.RenameFiles(paths, newPaths, out fileItems, out errors);
         }
 
-        #endregion  // end GetItemAtPath (Queries the cloud for the item at a particular path)
+        #endregion  // end MoveFiles (Move files in the syncbox)
+#endif  // end NEEDS_REWORK
 
-        #region MoveFolder (Moves a folder in the cloud)
+#if NEEDS_REWORK
+        #region MoveFolder (Moves a folder in the syncbox)
         /// <summary>
-        /// Asynchronously starts renaming a folder in the cloud; outputs a CLFileItem object.
+        /// Asynchronously starts renaming a folder in the syncbox; outputs a CLFileItem object.
         /// </summary>
         /// <param name="callback">Callback method to fire when operation completes</param>
         /// <param name="callbackUserState">Userstate to pass when firing async callback</param>
@@ -1853,11 +1954,14 @@ namespace Cloud
             CheckDisposed();
             string[] paths = new string[1] { path };
             string[] newPaths = new string[1] { newPath };
-            return _httpRestClient.BeginRenameFolders(callback, callbackUserState, paths, newPaths);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.BeginRenameFolders(callback, callbackUserState, paths, newPaths);
         }
 
         /// <summary>
-        /// Finishes renaming a folder in the cloud, if it has not already finished via its asynchronous result, and outputs the result,
+        /// Finishes renaming a folder in the syncbox, if it has not already finished via its asynchronous result, and outputs the result,
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
         /// </summary>
         /// <param name="aResult">The asynchronous result provided upon starting the metadata query</param>
@@ -1869,7 +1973,10 @@ namespace Cloud
 
             // Complete the async operation.
             SyncboxRenameFoldersResult results;
-            CLError error = _httpRestClient.EndRenameFolders(aResult, out results);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            CLError error = httpRestClient.EndRenameFolders(aResult, out results);
 
             // Return resulting error or item
             if (error != null)
@@ -1883,7 +1990,7 @@ namespace Cloud
             {
                 // No overall error, but also no results.  Return an error.
                 result = null;
-                return new CLError(new CLException(CLExceptionCode.Rest_Syncbox_Folder_Move_No_Server_Responses_Or_Errors, "No error or responses from server results null"));
+                return new CLError(new CLException(CLExceptionCode.OnDemand_MoveNoServerResponsesOrErrors, "No error or responses from server results null"));
             }
             // error == null && results != null  (no overall error, and we got a results object)
             else if (results.Errors != null && results.Errors.Length >= 1)
@@ -1904,12 +2011,12 @@ namespace Cloud
             {
                 // No error, got a results object, but there were no errors and no rename responses inside.  Return an error.
                 result = null;
-                return new CLError(new CLException(CLExceptionCode.Rest_Syncbox_Folder_Move_No_Server_Responses_Or_Errors, "No error or responses from server"));
+                return new CLError(new CLException(CLExceptionCode.OnDemand_MoveNoServerResponsesOrErrors, "No error or responses from server"));
             }
         }
 
         /// <summary>
-        /// Moves a folder in the cloud.
+        /// Moves a folder in the syncbox.
         /// </summary>
         /// <param name="path">Full path to where the folder would exist locally on disk</param>
         /// <param name="newPath">Full path to the new location of the folder.</param>
@@ -1924,7 +2031,10 @@ namespace Cloud
             // Communicate and get the results.
             CLError[] outErrors;
             CLFileItem[] outItems;
-            CLError error = _httpRestClient.RenameFolders(paths, newPaths, out outItems, out outErrors);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            CLError error = httpRestClient.RenameFolders(paths, newPaths, out outItems, out outErrors);
 
             // Return resulting error or item
             if (error != null)
@@ -1952,15 +2062,15 @@ namespace Cloud
             {
                 // No overall error, no item errors, and no items.  No responses from server.  Return error.
                 folderItem = null;
-                return new CLError(new CLException(CLExceptionCode.Rest_Syncbox_Folder_Move_No_Server_Responses_Or_Errors, "No responses or status from serer"));
+                return new CLError(new CLException(CLExceptionCode.OnDemand_MoveNoServerResponsesOrErrors, "No responses or status from serer"));
             }
         }
 
-        #endregion  // end MoveFolder (Moves a folder in the cloud)
+        #endregion  // end MoveFolder (Moves a folder in the syncbox)
 
-        #region MoveFolders (Move folders in the cloud)
+        #region MoveFolders (Move folders in the syncbox)
         /// <summary>
-        /// Asynchronously starts renaming folders in the cloud; outputs an array of  CLFileItem objects, and possibly an array of CLError objects.
+        /// Asynchronously starts renaming folders in the syncbox; outputs an array of  CLFileItem objects, and possibly an array of CLError objects.
         /// </summary>
         /// <param name="callback">Callback method to fire when operation completes</param>
         /// <param name="callbackUserState">Userstate to pass when firing async callback</param>
@@ -1970,11 +2080,14 @@ namespace Cloud
         public IAsyncResult BeginMoveFolders(AsyncCallback callback, object callbackUserState, string[] paths, string[] newPaths)
         {
             CheckDisposed();
-            return _httpRestClient.BeginRenameFolders(callback, callbackUserState, paths, newPaths);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.BeginRenameFolders(callback, callbackUserState, paths, newPaths);
         }
 
         /// <summary>
-        /// Finishes renaming folders in the cloud, if it has not already finished via its asynchronous result, and outputs the result,
+        /// Finishes renaming folders in the syncbox, if it has not already finished via its asynchronous result, and outputs the result,
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
         /// </summary>
         /// <param name="aResult">The asynchronous result provided upon starting the metadata query</param>
@@ -1984,7 +2097,10 @@ namespace Cloud
         {
             CheckDisposed();
             SyncboxRenameFoldersResult renameResult;
-            CLError error = _httpRestClient.EndRenameFolders(aResult, out renameResult);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            CLError error = httpRestClient.EndRenameFolders(aResult, out renameResult);
 
             if (error != null)
             {
@@ -1997,7 +2113,7 @@ namespace Cloud
         }
 
         /// <summary>
-        /// Moves folders in the cloud.
+        /// Moves folders in the syncbox.
         /// </summary>
         /// <param name="paths">An array of full paths to where the folders would exist locally on disk.</param>
         /// <param name="newPaths">An array of full paths to the new location of the folders, corresponding to the paths array.</param>
@@ -2007,348 +2123,124 @@ namespace Cloud
         public CLError MoveFolders(string[] paths, string[] newPaths, out CLFileItem[] folderItems, out CLError[] errors)
         {
             CheckDisposed();
-            return _httpRestClient.RenameFolders(paths, newPaths, out folderItems, out errors);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.RenameFolders(paths, newPaths, out folderItems, out errors);
         }
 
-        #endregion  // end MoveFolders (Move folders in the cloud)
+        #endregion  // end MoveFolders (Move folders in the syncbox)
+#endif // end NEEDS_REWORK
 
-        #region DeleteFile (Deletes a file in the cloud)
+        #region DeleteFiles (Delete files in the syncbox)
         /// <summary>
-        /// Asynchronously starts deleting a file in the cloud; outputs a CLFileItem object.
+        /// Asynchronously starts deleting files in the syncbox.  Each item completion will fire an asynchronous callback with the completion status or error for that item.
         /// </summary>
-        /// <param name="callback">Callback method to fire when operation completes</param>
-        /// <param name="callbackUserState">Userstate to pass when firing async callback</param>
-        /// <param name="path">Full path to where the file would exist locally on disk.</param>
+        /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
+        /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
+        /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
+        /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the item completion callback above is fired.</param>
+        /// <param name="itemsToDelete">One or more file items to delete.</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginDeleteFile(AsyncCallback callback, object callbackUserState, string path)
+        public IAsyncResult BeginDeleteFiles(AsyncCallback asyncCallback, object asyncCallbackUserState, CLFileItemCompletion itemCompletionCallback, object itemCompletionCallbackUserState, params CLFileItem[] itemsToDelete)
         {
-            CheckDisposed();
-            string[] paths = new string[1] { path };
-            return _httpRestClient.BeginDeleteFiles(callback, callbackUserState, paths);
+            CheckDisposed(true);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.BeginDeleteFiles(asyncCallback, asyncCallbackUserState, itemCompletionCallback, itemCompletionCallbackUserState, itemsToDelete);
         }
 
         /// <summary>
-        /// Finishes deleting a file in the cloud, if it has not already finished via its asynchronous result, and outputs the result,
+        /// Finishes deleting files in the syncbox, if it has not already finished via its asynchronous result, and outputs the result,
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
         /// </summary>
-        /// <param name="aResult">The asynchronous result provided upon starting the metadata query</param>
-        /// <param name="result">(output) The result from the metadata query</param>
+        /// <param name="asyncResult">The asynchronous result provided upon starting the metadata query</param>
+        /// <param name="result">(output) An overall error which occurred during processing, if any</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndDeleteFile(IAsyncResult aResult, out SyncboxDeleteFileResult result)
+        public CLError EndDeleteFiles(IAsyncResult asyncResult, out SyncboxDeleteFilesResult result)
         {
-            CheckDisposed();
+            CheckDisposed(true);
 
-            // Complete the async operation.
-            SyncboxDeleteFilesResult results;
-            CLError error = _httpRestClient.EndDeleteFiles(aResult, out results);
-
-            // Return resulting error or item
-            if (error != null)
-            {
-                // We got an overall error.  Return it.
-                result = null;
-                return error;
-            }
-            // error == null  (no overall error)
-            else if (results == null)
-            {
-                // No overall error, but also no results.  Return an error.
-                result = null;
-                return new CLError(new CLException(CLExceptionCode.Rest_Syncbox_File_Delete_No_Server_Responses_Or_Errors, "No error or responses from server results null"));
-            }
-            // error == null && results != null  (no overall error, and we got a results object)
-            else if (results.Errors != null && results.Errors.Length >= 1)
-            {
-                // No overall error, got a results object, and it has an error.  Return that error.
-                result = null;
-                return results.Errors[0];
-            }
-            // (error == null && results != null) && (results.Errors == null || results.Errors.Length == 0)  (no overall error, we got a results object, and there are no errors in results)
-            else if (results.FileItems != null && results.FileItems.Length >= 1)
-            {
-                // No overall error, got a results object, is has no errors, and it has a delete response.  This is the normal case.  Return that delete response as the result.
-                result = new SyncboxDeleteFileResult(error: null, fileItem: results.FileItems[0]);
-                return null;        // normal condition
-            }
-            // ((error == null && results != null) && (results.Errors == null || results.Errors.Length == 0)) && (results.Responses == null || results.Responses.Length == 0)
-            else
-            {
-                // No error, got a results object, but there were no errors and no delete responses inside.  Return an error.
-                result = null;
-                return new CLError(new CLException(CLExceptionCode.Rest_Syncbox_File_Delete_No_Server_Responses_Or_Errors, "No error or responses from server"));
-            }
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.EndDeleteFiles(asyncResult, out result);
         }
 
         /// <summary>
-        /// Deletes a file in the cloud.
+        /// Deletes files in the syncbox.  Each item completion will fire an asynchronous callback with the completion status or error for that item.
         /// </summary>
-        /// <param name="path">Full path to where the file would exist locally on disk</param>
-        /// <param name="fileItem">(output) response object from communication</param>
+        /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
+        /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the item completion callback above is fired.</param>
+        /// <param name="itemsToDelete">One or more file items to delete.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError DeleteFile(string path, out CLFileItem fileItem)
+        public CLError DeleteFiles(CLFileItemCompletion itemCompletionCallback, object itemCompletionCallbackUserState, params CLFileItem[] itemsToDelete)
         {
-            CheckDisposed();
-            string[] paths = new string[1] { path };
+            CheckDisposed(true);
 
-            // Communicate and get the results.
-            CLError[] outErrors;
-            CLFileItem[] outItems;
-            CLError error = _httpRestClient.DeleteFiles(paths, out outItems, out outErrors);
-
-            // Return resulting error or item
-            if (error != null)
-            {
-                // There was an overall error.  Return it
-                fileItem = null;
-                return error;
-            }
-            // error == null
-            else if (outErrors != null && outErrors.Length >= 1)
-            {
-                // No overall error, but there was an item error.  Return it.
-                fileItem = null;
-                return outErrors[0];
-            }
-            // error == null && (outErrors == null || outErrors.Length == 0)
-            else if (outItems != null && outItems.Length >= 1)
-            {
-                // No overall error, no item errors, and we have an item.  Return it.  This is the normal condition
-                fileItem = outItems[0];
-                return null;
-            }
-            // (error == null && (outErrors == null || outErrors.Length == 0)) && (outItems == null || outItems.Length == 0)
-            else
-            {
-                // No overall error, no item errors, and no items.  No responses from server.  Return error.
-                fileItem = null;
-                return new CLError(new CLException(CLExceptionCode.Rest_Syncbox_File_Delete_No_Server_Responses_Or_Errors, "No responses or status from serer"));
-            }
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.DeleteFiles(itemCompletionCallback, itemCompletionCallbackUserState, itemsToDelete);
         }
 
-        #endregion  // end GetItemAtPath (Queries the cloud for the item at a particular path)
+        #endregion  // end DeleteFiles (Delete files in the syncbox)
 
-        #region DeleteFiles (Delete files in the cloud)
+        #region DeleteFolders (Delete folders in the syncbox)
         /// <summary>
-        /// Asynchronously starts deleting files in the cloud; outputs an array of  CLFileItem objects, and possibly an array of CLError objects.
+        /// Asynchronously starts deleting folders in the syncbox.  Each item completion will fire an asynchronous callback with the completion status or error for that item.
         /// </summary>
-        /// <param name="callback">Callback method to fire when operation completes</param>
-        /// <param name="callbackUserState">Userstate to pass when firing async callback</param>
-        /// <param name="paths">An array of full paths to where the files would exist locally on disk.</param>
+        /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
+        /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
+        /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
+        /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the item completion callback above is fired.</param>
+        /// <param name="itemsToDelete">One or more folder items to delete.</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginDeleteFiles(AsyncCallback callback, object callbackUserState, string[] paths)
+        public IAsyncResult BeginDeleteFolders(AsyncCallback asyncCallback, object asyncCallbackUserState, CLFileItemCompletion itemCompletionCallback, object itemCompletionCallbackUserState, params CLFileItem[] itemsToDelete)
         {
-            CheckDisposed();
-            return _httpRestClient.BeginDeleteFiles(callback, callbackUserState, paths);
+            CheckDisposed(true);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.BeginDeleteFolders(asyncCallback, asyncCallbackUserState, itemCompletionCallback, itemCompletionCallbackUserState, itemsToDelete);
         }
 
         /// <summary>
-        /// Finishes deleting files in the cloud, if it has not already finished via its asynchronous result, and outputs the result,
+        /// Finishes deleting folders in the syncbox, if it has not already finished via its asynchronous result, and outputs the result,
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
         /// </summary>
-        /// <param name="aResult">The asynchronous result provided upon starting the metadata query</param>
-        /// <param name="result">(output) The result from the metadata query</param>
+        /// <param name="asyncResult">The asynchronous result provided upon starting the metadata query</param>
+        /// <param name="result">(output) An overall error which occurred during processing, if any</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndDeleteFiles(IAsyncResult aResult, out SyncboxDeleteFilesResult result)
+        public CLError EndDeleteFolders(IAsyncResult asyncResult, out SyncboxDeleteFoldersResult result)
         {
-            CheckDisposed();
-            SyncboxDeleteFilesResult deleteResult;
-            CLError error = _httpRestClient.EndDeleteFiles(aResult, out deleteResult);
+            CheckDisposed(true);
 
-            if (error != null)
-            {
-                result = null;
-                return error;
-            }
-
-            result = new SyncboxDeleteFilesResult(deleteResult.OverallError, deleteResult.Errors, deleteResult.FileItems);
-            return error;
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.EndDeleteFolders(asyncResult, out result);
         }
 
         /// <summary>
-        /// Deletes files in the cloud.
+        /// Deletes folders in the syncbox.  Each item completion will fire an asynchronous callback with the completion status or error for that item.
         /// </summary>
-        /// <param name="paths">An array of full paths to where the files would exist locally on disk.</param>
-        /// <param name="fileItems">(output) response object from communication</param>
-        /// <param name="errors">(output) Any errors that occur, or null</param>
+        /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
+        /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the item completion callback above is fired.</param>
+        /// <param name="itemsToDelete">One or more folder items to delete.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError DeleteFiles(string[] paths, out CLFileItem[] fileItems, out CLError[] errors)
+        public CLError DeleteFolders(CLFileItemCompletion itemCompletionCallback, object itemCompletionCallbackUserState, params CLFileItem[] itemsToDelete)
         {
-            CheckDisposed();
-            return _httpRestClient.DeleteFiles(paths, out fileItems, out errors);
+            CheckDisposed(true);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.DeleteFolders(itemCompletionCallback, itemCompletionCallbackUserState, itemsToDelete);
         }
 
-        #endregion  // end DeleteFiles (Delete files in the cloud)
+        #endregion  // end DeleteFolders (Delete folders in the syncbox)
 
-        #region DeleteFolder (Deletes a folder in the cloud)
+        #region AddFolder (Adds a folder in the syncbox)
         /// <summary>
-        /// Asynchronously starts deleting a folder in the cloud; outputs a CLFileItem object.
-        /// </summary>
-        /// <param name="callback">Callback method to fire when operation completes</param>
-        /// <param name="callbackUserState">Userstate to pass when firing async callback</param>
-        /// <param name="path">Full path to where the folder would exist locally on disk.</param>
-        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginDeleteFolder(AsyncCallback callback, object callbackUserState, string path)
-        {
-            CheckDisposed();
-            string[] paths = new string[1] { path };
-            return _httpRestClient.BeginDeleteFolders(callback, callbackUserState, paths);
-        }
-
-        /// <summary>
-        /// Finishes deleting a folder in the cloud, if it has not already finished via its asynchronous result, and outputs the result,
-        /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
-        /// </summary>
-        /// <param name="aResult">The asynchronous result provided upon starting the metadata query</param>
-        /// <param name="result">(output) The result from the metadata query</param>
-        /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndDeleteFolder(IAsyncResult aResult, out SyncboxDeleteFolderResult result)
-        {
-            CheckDisposed();
-
-            // Complete the async operation.
-            SyncboxDeleteFoldersResult results;
-            CLError error = _httpRestClient.EndDeleteFolders(aResult, out results);
-
-            // Return resulting error or item
-            if (error != null)
-            {
-                // We got an overall error.  Return it.
-                result = null;
-                return error;
-            }
-            // error == null  (no overall error)
-            else if (results == null)
-            {
-                // No overall error, but also no results.  Return an error.
-                result = null;
-                return new CLError(new CLException(CLExceptionCode.Rest_Syncbox_Folder_Delete_No_Server_Responses_Or_Errors, "No error or responses from server results null"));
-            }
-            // error == null && results != null  (no overall error, and we got a results object)
-            else if (results.Errors != null && results.Errors.Length >= 1)
-            {
-                // No overall error, got a results object, and it has an error.  Return that error.
-                result = null;
-                return results.Errors[0];
-            }
-            // (error == null && results != null) && (results.Errors == null || results.Errors.Length == 0)  (no overall error, we got a results object, and there are no errors in results)
-            else if (results.FolderItems != null && results.FolderItems.Length >= 1)
-            {
-                // No overall error, got a results object, is has no errors, and it has a delete response.  This is the normal case.  Return that delete response as the result.
-                result = new SyncboxDeleteFolderResult(error: null, folderItem: results.FolderItems[0]);
-                return null;        // normal condition
-            }
-            // ((error == null && results != null) && (results.Errors == null || results.Errors.Length == 0)) && (results.Responses == null || results.Responses.Length == 0)
-            else
-            {
-                // No error, got a results object, but there were no errors and no delete responses inside.  Return an error.
-                result = null;
-                return new CLError(new CLException(CLExceptionCode.Rest_Syncbox_Folder_Delete_No_Server_Responses_Or_Errors, "No error or responses from server"));
-            }
-        }
-
-        /// <summary>
-        /// Deletes a folder in the cloud.
-        /// </summary>
-        /// <param name="path">Full path to where the folder would exist locally on disk</param>
-        /// <param name="folderItem">(output) response object from communication</param>
-        /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError DeleteFolder(string path, out CLFileItem folderItem)
-        {
-            CheckDisposed();
-            string[] paths = new string[1] { path };
-
-            // Communicate and get the results.
-            CLError[] outErrors;
-            CLFileItem[] outItems;
-            CLError error = _httpRestClient.DeleteFolders(paths, out outItems, out outErrors);
-
-            // Return resulting error or item
-            if (error != null)
-            {
-                // There was an overall error.  Return it
-                folderItem = null;
-                return error;
-            }
-            // error == null
-            else if (outErrors != null && outErrors.Length >= 1)
-            {
-                // No overall error, but there was an item error.  Return it.
-                folderItem = null;
-                return outErrors[0];
-            }
-            // error == null && (outErrors == null || outErrors.Length == 0)
-            else if (outItems != null && outItems.Length >= 1)
-            {
-                // No overall error, no item errors, and we have an item.  Return it.  This is the normal condition
-                folderItem = outItems[0];
-                return null;
-            }
-            // (error == null && (outErrors == null || outErrors.Length == 0)) && (outItems == null || outItems.Length == 0)
-            else
-            {
-                // No overall error, no item errors, and no items.  No responses from server.  Return error.
-                folderItem = null;
-                return new CLError(new CLException(CLExceptionCode.Rest_Syncbox_Folder_Delete_No_Server_Responses_Or_Errors, "No responses or status from serer"));
-            }
-        }
-
-        #endregion  // end DeleteFolder (Deletes a folder in the cloud)
-
-        #region DeleteFolders (Delete folders in the cloud)
-        /// <summary>
-        /// Asynchronously starts deleting folders in the cloud; outputs an array of  CLFileItem objects, and possibly an array of CLError objects.
-        /// </summary>
-        /// <param name="callback">Callback method to fire when operation completes</param>
-        /// <param name="callbackUserState">Userstate to pass when firing async callback</param>
-        /// <param name="paths">An array of full paths to where the folders would exist locally on disk.</param>
-        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginDeleteFolders(AsyncCallback callback, object callbackUserState, string[] paths)
-        {
-            CheckDisposed();
-            return _httpRestClient.BeginDeleteFolders(callback, callbackUserState, paths);
-        }
-
-        /// <summary>
-        /// Finishes deleting folders in the cloud, if it has not already finished via its asynchronous result, and outputs the result,
-        /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
-        /// </summary>
-        /// <param name="aResult">The asynchronous result provided upon starting the metadata query</param>
-        /// <param name="result">(output) The result from the metadata query</param>
-        /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndDeleteFolders(IAsyncResult aResult, out SyncboxDeleteFoldersResult result)
-        {
-            CheckDisposed();
-            SyncboxDeleteFoldersResult deleteResult;
-            CLError error = _httpRestClient.EndDeleteFolders(aResult, out deleteResult);
-
-            if (error != null)
-            {
-                result = null;
-                return error;
-            }
-
-            result = new SyncboxDeleteFoldersResult(deleteResult.OverallError, deleteResult.Errors, deleteResult.FolderItems);
-            return error;
-        }
-
-        /// <summary>
-        /// Deletes folders in the cloud.
-        /// </summary>
-        /// <param name="paths">An array of full paths to where the folders would exist locally on disk.</param>
-        /// <param name="folderItems">(output) response object from communication</param>
-        /// <param name="errors">(output) Any returned errors, or null.</param>
-        /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError DeleteFolders(string[] paths, out CLFileItem[] folderItems, out CLError[] errors)
-        {
-            CheckDisposed();
-            return _httpRestClient.DeleteFolders(paths, out folderItems, out errors);
-        }
-
-        #endregion  // end DeleteFolders (Delete folders in the cloud)
-
-        #region AddFolder (Adds a folder in the cloud)
-        /// <summary>
-        /// Asynchronously starts adding a folder in the cloud; outputs a CLFileItem object.
+        /// Asynchronously starts adding a folder in the syncbox; outputs a CLFileItem object.
         /// </summary>
         /// <param name="callback">Callback method to fire when operation completes</param>
         /// <param name="callbackUserState">Userstate to pass when firing async callback</param>
@@ -2356,13 +2248,16 @@ namespace Cloud
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
         public IAsyncResult BeginAddFolder(AsyncCallback callback, object callbackUserState, string path)
         {
-            CheckDisposed();
+            CheckDisposed(true);
             string[] paths = new string[1] { path };
-            return _httpRestClient.BeginAddFolders(callback, callbackUserState, paths);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.BeginAddFolders(callback, callbackUserState, paths);
         }
 
         /// <summary>
-        /// Finishes adding a folder in the cloud, if it has not already finished via its asynchronous result, and outputs the result,
+        /// Finishes adding a folder in the syncbox, if it has not already finished via its asynchronous result, and outputs the result,
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
         /// </summary>
         /// <param name="aResult">The asynchronous result provided upon starting the metadata query</param>
@@ -2370,11 +2265,14 @@ namespace Cloud
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndAddFolder(IAsyncResult aResult, out SyncboxAddFolderResult result)
         {
-            CheckDisposed();
+            CheckDisposed(true);
 
             // Complete the async operation.
             SyncboxAddFoldersResult results;
-            CLError error = _httpRestClient.EndAddFolders(aResult, out results);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            CLError error = httpRestClient.EndAddFolders(aResult, out results);
 
             // Return resulting error or item
             if (error != null)
@@ -2388,7 +2286,7 @@ namespace Cloud
             {
                 // No overall error, but also no results.  Return an error.
                 result = null;
-                return new CLError(new CLException(CLExceptionCode.Rest_Syncbox_Folder_Add_No_Server_Responses_Or_Errors, "No error or responses from server results null"));
+                return new CLError(new CLException(CLExceptionCode.OnDemand_FolderAddNoServerResponsesOrErrors, "No error or responses from server results null"));
             }
             // error == null && results != null  (no overall error, and we got a results object)
             else if (results.Errors != null && results.Errors.Length >= 1)
@@ -2409,25 +2307,28 @@ namespace Cloud
             {
                 // No error, got a results object, but there were no errors and no delete responses inside.  Return an error.
                 result = null;
-                return new CLError(new CLException(CLExceptionCode.Rest_Syncbox_Folder_Add_No_Server_Responses_Or_Errors, "No error or responses from server"));
+                return new CLError(new CLException(CLExceptionCode.OnDemand_FolderAddNoServerResponsesOrErrors, "No error or responses from server"));
             }
         }
 
         /// <summary>
-        /// Adds a folder in the cloud.
+        /// Adds a folder in the syncbox.
         /// </summary>
         /// <param name="path">Full path to where the folder would exist locally on disk</param>
         /// <param name="folderItem">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError AddFolder(string path, out CLFileItem folderItem)
         {
-            CheckDisposed();
+            CheckDisposed(true);
             string[] paths = new string[1] { path };
 
             // Communicate and get the results.
             CLError[] outErrors;
             CLFileItem[] outItems;
-            CLError error = _httpRestClient.AddFolders(paths, out outItems, out outErrors);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            CLError error = httpRestClient.AddFolders(paths, out outItems, out outErrors);
 
             // Return resulting error or item
             if (error != null)
@@ -2455,15 +2356,15 @@ namespace Cloud
             {
                 // No overall error, no item errors, and no items.  No responses from server.  Return error.
                 folderItem = null;
-                return new CLError(new CLException(CLExceptionCode.Rest_Syncbox_Folder_Add_No_Server_Responses_Or_Errors, "No responses or status from serer"));
+                return new CLError(new CLException(CLExceptionCode.OnDemand_FolderAddNoServerResponsesOrErrors, "No responses or status from serer"));
             }
         }
 
-        #endregion  // end AddFolder (Adds a folder in the cloud)
+        #endregion  // end AddFolder (Adds a folder in the syncbox)
 
-        #region AddFolders (Add folders in the cloud)
+        #region AddFolders (Add folders in the syncbox)
         /// <summary>
-        /// Asynchronously starts adding folders in the cloud; outputs an array of  CLFileItem objects, and possibly an array of CLError objects.
+        /// Asynchronously starts adding folders in the syncbox; outputs an array of  CLFileItem objects, and possibly an array of CLError objects.
         /// </summary>
         /// <param name="callback">Callback method to fire when operation completes</param>
         /// <param name="callbackUserState">Userstate to pass when firing async callback</param>
@@ -2471,12 +2372,15 @@ namespace Cloud
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
         public IAsyncResult BeginAddFolders(AsyncCallback callback, object callbackUserState, string[] paths)
         {
-            CheckDisposed();
-            return _httpRestClient.BeginAddFolders(callback, callbackUserState, paths);
+            CheckDisposed(true);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.BeginAddFolders(callback, callbackUserState, paths);
         }
 
         /// <summary>
-        /// Finishes adding folders in the cloud, if it has not already finished via its asynchronous result, and outputs the result,
+        /// Finishes adding folders in the syncbox, if it has not already finished via its asynchronous result, and outputs the result,
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
         /// </summary>
         /// <param name="aResult">The asynchronous result provided upon starting the metadata query</param>
@@ -2484,9 +2388,12 @@ namespace Cloud
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndAddFolders(IAsyncResult aResult, out SyncboxAddFoldersResult result)
         {
-            CheckDisposed();
+            CheckDisposed(true);
             SyncboxAddFoldersResult deleteResult;
-            CLError error = _httpRestClient.EndAddFolders(aResult, out deleteResult);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            CLError error = httpRestClient.EndAddFolders(aResult, out deleteResult);
 
             if (error != null)
             {
@@ -2499,7 +2406,7 @@ namespace Cloud
         }
 
         /// <summary>
-        /// Adds folders in the cloud.
+        /// Adds folders in the syncbox.
         /// </summary>
         /// <param name="paths">An array of full paths to where the folders would exist locally on disk.</param>
         /// <param name="folderItems">(output) response object from communication</param>
@@ -2507,15 +2414,18 @@ namespace Cloud
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError AddFolders(string[] paths, out CLFileItem[] folderItems, out CLError[] errors)
         {
-            CheckDisposed();
-            return _httpRestClient.AddFolders(paths, out folderItems, out errors);
+            CheckDisposed(true);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.AddFolders(paths, out folderItems, out errors);
         }
 
-        #endregion  // end AddFolders (Add folders in the cloud)
+        #endregion  // end AddFolders (Add folders in the syncbox)
 
-        #region AddFile (Adds a file in the cloud)
+        #region AddFile (Adds a file in the syncbox)
         /// <summary>
-        /// Asynchronously starts adding a file in the cloud; outputs a CLFileItem object.
+        /// Asynchronously starts adding a file in the syncbox; outputs a CLFileItem object.
         /// </summary>
         /// <param name="callback">Callback method to fire when operation completes</param>
         /// <param name="callbackUserState">Userstate to pass when firing async callback</param>
@@ -2523,13 +2433,16 @@ namespace Cloud
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
         public IAsyncResult BeginAddFile(AsyncCallback callback, object callbackUserState, string path)
         {
-            CheckDisposed();
+            CheckDisposed(true);
             string[] paths = new string[1] { path };
-            return _httpRestClient.BeginAddFiles(callback, callbackUserState, paths);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.BeginAddFiles(callback, callbackUserState, paths);
         }
 
         /// <summary>
-        /// Finishes adding a file in the cloud, if it has not already finished via its asynchronous result, and outputs the result,
+        /// Finishes adding a file in the syncbox, if it has not already finished via its asynchronous result, and outputs the result,
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
         /// </summary>
         /// <param name="aResult">The asynchronous result provided upon starting the metadata query</param>
@@ -2537,11 +2450,14 @@ namespace Cloud
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndAddFile(IAsyncResult aResult, out SyncboxAddFileResult result)
         {
-            CheckDisposed();
+            CheckDisposed(true);
 
             // Complete the async operation.
             SyncboxAddFilesResult results;
-            CLError error = _httpRestClient.EndAddFiles(aResult, out results);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            CLError error = httpRestClient.EndAddFiles(aResult, out results);
 
             // Return resulting error or item
             if (error != null)
@@ -2555,7 +2471,7 @@ namespace Cloud
             {
                 // No overall error, but also no results.  Return an error.
                 result = null;
-                return new CLError(new CLException(CLExceptionCode.Rest_Syncbox_File_Add_No_Server_Responses_Or_Errors, "No error or responses from server results null"));
+                return new CLError(new CLException(CLExceptionCode.OnDemand_FileAddNoServerResponsesOrErrors, "No error or responses from server results null"));
             }
             // error == null && results != null  (no overall error, and we got a results object)
             else if (results.Errors != null && results.Errors.Length >= 1)
@@ -2576,25 +2492,28 @@ namespace Cloud
             {
                 // No error, got a results object, but there were no errors and no delete responses inside.  Return an error.
                 result = null;
-                return new CLError(new CLException(CLExceptionCode.Rest_Syncbox_File_Add_No_Server_Responses_Or_Errors, "No error or responses from server"));
+                return new CLError(new CLException(CLExceptionCode.OnDemand_FileAddNoServerResponsesOrErrors, "No error or responses from server"));
             }
         }
 
         /// <summary>
-        /// Adds a file in the cloud.
+        /// Adds a file in the syncbox.
         /// </summary>
         /// <param name="path">Full path to where the file would exist locally on disk</param>
         /// <param name="fileItem">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError AddFile(string path, out CLFileItem fileItem)
         {
-            CheckDisposed();
+            CheckDisposed(true);
             string[] paths = new string[1] { path };
 
             // Communicate and get the results.
             CLError[] outErrors;
             CLFileItem[] outItems;
-            CLError error = _httpRestClient.AddFiles(paths, out outItems, out outErrors);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            CLError error = httpRestClient.AddFiles(paths, out outItems, out outErrors);
 
             // Return resulting error or item
             if (error != null)
@@ -2622,15 +2541,15 @@ namespace Cloud
             {
                 // No overall error, no item errors, and no items.  No responses from server.  Return error.
                 fileItem = null;
-                return new CLError(new CLException(CLExceptionCode.Rest_Syncbox_File_Add_No_Server_Responses_Or_Errors, "No responses or status from serer"));
+                return new CLError(new CLException(CLExceptionCode.OnDemand_FileAddNoServerResponsesOrErrors, "No responses or status from serer"));
             }
         }
 
-        #endregion  // end AddFile (Adds a file in the cloud)
+        #endregion  // end AddFile (Adds a file in the syncbox)
 
-        #region AddFiles (Add files in the cloud)
+        #region AddFiles (Add files in the syncbox)
         /// <summary>
-        /// Asynchronously starts adding files in the cloud; outputs an array of  CLFileItem objects, and possibly an array of CLError objects.
+        /// Asynchronously starts adding files in the syncbox; outputs an array of  CLFileItem objects, and possibly an array of CLError objects.
         /// </summary>
         /// <param name="callback">Callback method to fire when operation completes</param>
         /// <param name="callbackUserState">Userstate to pass when firing async callback</param>
@@ -2638,12 +2557,15 @@ namespace Cloud
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
         public IAsyncResult BeginAddFiles(AsyncCallback callback, object callbackUserState, string[] paths)
         {
-            CheckDisposed();
-            return _httpRestClient.BeginAddFiles(callback, callbackUserState, paths);
+            CheckDisposed(true);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.BeginAddFiles(callback, callbackUserState, paths);
         }
 
         /// <summary>
-        /// Finishes adding files in the cloud, if it has not already finished via its asynchronous result, and outputs the result,
+        /// Finishes adding files in the syncbox, if it has not already finished via its asynchronous result, and outputs the result,
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
         /// </summary>
         /// <param name="aResult">The asynchronous result provided upon starting the metadata query</param>
@@ -2651,9 +2573,12 @@ namespace Cloud
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndAddFiles(IAsyncResult aResult, out SyncboxAddFilesResult result)
         {
-            CheckDisposed();
+            CheckDisposed(true);
             SyncboxAddFilesResult deleteResult;
-            CLError error = _httpRestClient.EndAddFiles(aResult, out deleteResult);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            CLError error = httpRestClient.EndAddFiles(aResult, out deleteResult);
 
             if (error != null)
             {
@@ -2666,7 +2591,7 @@ namespace Cloud
         }
 
         /// <summary>
-        /// Adds files in the cloud.
+        /// Adds files in the syncbox.
         /// </summary>
         /// <param name="paths">An array of full paths to where the files would exist locally on disk.</param>
         /// <param name="fileItems">(output) response object from communication</param>
@@ -2674,11 +2599,14 @@ namespace Cloud
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError AddFiles(string[] paths, out CLFileItem[] fileItems, out CLError[] errors)
         {
-            CheckDisposed();
-            return _httpRestClient.AddFiles(paths, out fileItems, out errors);
+            CheckDisposed(true);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.AddFiles(paths, out fileItems, out errors);
         }
 
-        #endregion  // end AddFiles (Add files in the cloud)
+        #endregion  // end AddFiles (Add files in the syncbox)
 
         #region GetAllPending
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
@@ -2693,8 +2621,11 @@ namespace Cloud
             object aState,
             int timeoutMilliseconds)
         {
-            CheckDisposed();
-            return _httpRestClient.BeginGetAllPending(aCallback, aState, timeoutMilliseconds);
+            CheckDisposed(true);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.BeginGetAllPending(aCallback, aState, timeoutMilliseconds);
         }
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
@@ -2707,8 +2638,10 @@ namespace Cloud
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndGetAllPending(IAsyncResult aResult, out GetAllPendingResult result)
         {
-            CheckDisposed();
-            return _httpRestClient.EndGetAllPending(aResult, out result);
+            CheckDisposed(true);
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.EndGetAllPending(aResult, out result);
         }
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
@@ -2720,8 +2653,11 @@ namespace Cloud
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError GetAllPending(int timeoutMilliseconds, out JsonContracts.PendingResponse response)
         {
-            CheckDisposed();
-            return _httpRestClient.GetAllPending(timeoutMilliseconds, out response);
+            CheckDisposed(true);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.GetAllPending(timeoutMilliseconds, out response);
         }
         #endregion
 
@@ -2741,7 +2677,10 @@ namespace Cloud
             int timeoutMilliseconds)
         {
             CheckDisposed();
-            return _httpRestClient.BeginGetFileVersions(aCallback,
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.BeginGetFileVersions(aCallback,
                 aState,
                 fileServerId,
                 timeoutMilliseconds);
@@ -2764,7 +2703,10 @@ namespace Cloud
             bool includeDeletedVersions)
         {
             CheckDisposed();
-            return _httpRestClient.BeginGetFileVersions(aCallback,
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.BeginGetFileVersions(aCallback,
                 aState,
                 fileServerId,
                 timeoutMilliseconds,
@@ -2787,7 +2729,10 @@ namespace Cloud
             FilePath pathToFile)
         {
             CheckDisposed();
-            return _httpRestClient.BeginGetFileVersions(aCallback, aState, timeoutMilliseconds, pathToFile);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.BeginGetFileVersions(aCallback, aState, timeoutMilliseconds, pathToFile);
         }
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
@@ -2808,7 +2753,10 @@ namespace Cloud
             bool includeDeletedVersions)
         {
             CheckDisposed();
-            return _httpRestClient.BeginGetFileVersions(aCallback, aState, timeoutMilliseconds, pathToFile, includeDeletedVersions);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.BeginGetFileVersions(aCallback, aState, timeoutMilliseconds, pathToFile, includeDeletedVersions);
         }
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
@@ -2828,7 +2776,10 @@ namespace Cloud
             FilePath pathToFile)
         {
             CheckDisposed();
-            return _httpRestClient.BeginGetFileVersions(aCallback, aState, fileServerId, timeoutMilliseconds, pathToFile);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.BeginGetFileVersions(aCallback, aState, fileServerId, timeoutMilliseconds, pathToFile);
         }
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
@@ -2850,7 +2801,10 @@ namespace Cloud
             bool includeDeletedVersions)
         {
             CheckDisposed();
-            return _httpRestClient.BeginGetFileVersions(aCallback, aState, fileServerId, timeoutMilliseconds, pathToFile, includeDeletedVersions);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.BeginGetFileVersions(aCallback, aState, fileServerId, timeoutMilliseconds, pathToFile, includeDeletedVersions);
         }
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
@@ -2864,7 +2818,10 @@ namespace Cloud
         public CLError EndGetFileVersions(IAsyncResult aResult, out GetFileVersionsResult result)
         {
             CheckDisposed();
-            return _httpRestClient.EndGetFileVersions(aResult, out result);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.EndGetFileVersions(aResult, out result);
         }
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
@@ -2875,10 +2832,13 @@ namespace Cloud
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError GetFileVersions(string fileServerId, int timeoutMilliseconds, out JsonContracts.FileVersion[] response)
+        public CLError GetFileVersions(string fileServerId, int timeoutMilliseconds, out JsonContracts.FileVersions response)
         {
             CheckDisposed();
-            return _httpRestClient.GetFileVersions(fileServerId, timeoutMilliseconds, out response);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.GetFileVersions(fileServerId, timeoutMilliseconds, out response);
         }
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
@@ -2890,10 +2850,13 @@ namespace Cloud
         /// <param name="response">(output) response object from communication</param>
         /// <param name="includeDeletedVersions">(optional) whether to include file versions which are deleted</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError GetFileVersions(string fileServerId, int timeoutMilliseconds, out JsonContracts.FileVersion[] response, bool includeDeletedVersions)
+        public CLError GetFileVersions(string fileServerId, int timeoutMilliseconds, out JsonContracts.FileVersions response, bool includeDeletedVersions)
         {
             CheckDisposed();
-            return _httpRestClient.GetFileVersions(fileServerId, timeoutMilliseconds, out response, includeDeletedVersions);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.GetFileVersions(fileServerId, timeoutMilliseconds, out response, includeDeletedVersions);
         }
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
@@ -2904,10 +2867,13 @@ namespace Cloud
         /// <param name="pathToFile">Full path to the file where it would be placed locally within the sync root</param>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError GetFileVersions(int timeoutMilliseconds, FilePath pathToFile, out JsonContracts.FileVersion[] response)
+        public CLError GetFileVersions(int timeoutMilliseconds, FilePath pathToFile, out JsonContracts.FileVersions response)
         {
             CheckDisposed();
-            return _httpRestClient.GetFileVersions(timeoutMilliseconds, pathToFile, out response);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.GetFileVersions(timeoutMilliseconds, pathToFile, out response);
         }
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
@@ -2919,10 +2885,13 @@ namespace Cloud
         /// <param name="response">(output) response object from communication</param>
         /// <param name="includeDeletedVersions">(optional) whether to include file versions which are deleted</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError GetFileVersions(int timeoutMilliseconds, FilePath pathToFile, out JsonContracts.FileVersion[] response, bool includeDeletedVersions)
+        public CLError GetFileVersions(int timeoutMilliseconds, FilePath pathToFile, out JsonContracts.FileVersions response, bool includeDeletedVersions)
         {
             CheckDisposed();
-            return _httpRestClient.GetFileVersions(timeoutMilliseconds, pathToFile, out response, includeDeletedVersions);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.GetFileVersions(timeoutMilliseconds, pathToFile, out response, includeDeletedVersions);
         }
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
@@ -2934,10 +2903,13 @@ namespace Cloud
         /// <param name="pathToFile">Full path to the file where it would be placed locally within the sync root</param>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError GetFileVersions(string fileServerId, int timeoutMilliseconds, FilePath pathToFile, out JsonContracts.FileVersion[] response)
+        public CLError GetFileVersions(string fileServerId, int timeoutMilliseconds, FilePath pathToFile, out JsonContracts.FileVersions response)
         {
             CheckDisposed();
-            return _httpRestClient.GetFileVersions(fileServerId, timeoutMilliseconds, pathToFile, out response);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.GetFileVersions(fileServerId, timeoutMilliseconds, pathToFile, out response);
         }
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
@@ -2950,10 +2922,13 @@ namespace Cloud
         /// <param name="response">(output) response object from communication</param>
         /// <param name="includeDeletedVersions">(optional) whether to include file versions which are deleted</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError GetFileVersions(string fileServerId, int timeoutMilliseconds, FilePath pathToFile, out JsonContracts.FileVersion[] response, bool includeDeletedVersions)
+        public CLError GetFileVersions(string fileServerId, int timeoutMilliseconds, FilePath pathToFile, out JsonContracts.FileVersions response, bool includeDeletedVersions)
         {
             CheckDisposed();
-            return _httpRestClient.GetFileVersions(fileServerId, timeoutMilliseconds, pathToFile, out response, includeDeletedVersions);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.GetFileVersions(fileServerId, timeoutMilliseconds, pathToFile, out response, includeDeletedVersions);
         }
         #endregion
 
@@ -2966,8 +2941,11 @@ namespace Cloud
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
         public IAsyncResult BeginGetAllImageItems(AsyncCallback callback, object callbackUserState)
         {
-            CheckDisposed();
-            return _httpRestClient.BeginGetAllImageItems(callback, callbackUserState);
+            CheckDisposed(true);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.BeginGetAllImageItems(callback, callbackUserState);
         }
 
         /// <summary>
@@ -2979,8 +2957,11 @@ namespace Cloud
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndGetAllImageItems(IAsyncResult aResult, out SyncboxGetAllImageItemsResult result)
         {
-            CheckDisposed();
-            return _httpRestClient.EndGetAllImageItems(aResult, out result);
+            CheckDisposed(true);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.EndGetAllImageItems(aResult, out result);
         }
 
         /// <summary>
@@ -2990,8 +2971,11 @@ namespace Cloud
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError GetAllImageItems(out CLFileItem[] response)
         {
-            CheckDisposed();
-            return _httpRestClient.GetAllImageItems(out response);
+            CheckDisposed(true);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.GetAllImageItems(out response);
         }
         #endregion  // end GetAllImageItems (Gets all of the image items from the cloud for this syncbox)
 
@@ -3004,8 +2988,11 @@ namespace Cloud
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
         public IAsyncResult BeginGetAllVideoItems(AsyncCallback callback, object callbackUserState)
         {
-            CheckDisposed();
-            return _httpRestClient.BeginGetAllVideoItems(callback, callbackUserState);
+            CheckDisposed(true);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.BeginGetAllVideoItems(callback, callbackUserState);
         }
 
         /// <summary>
@@ -3017,8 +3004,11 @@ namespace Cloud
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndGetAllVideoItems(IAsyncResult aResult, out SyncboxGetAllVideoItemsResult result)
         {
-            CheckDisposed();
-            return _httpRestClient.EndGetAllVideoItems(aResult, out result);
+            CheckDisposed(true);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.EndGetAllVideoItems(aResult, out result);
         }
 
         /// <summary>
@@ -3026,10 +3016,13 @@ namespace Cloud
         /// </summary>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError GetGetAllVideoItems(CLFileItem[] response)
+        public CLError GetGetAllVideoItems(out CLFileItem[] response)
         {
-            CheckDisposed();
-            return _httpRestClient.GetAllVideoItems(out response);
+            CheckDisposed(true);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.GetAllVideoItems(out response);
         }
         #endregion  // end GetAllVideoItems  (Gets all of the video items from the cloud for this syncbox)
 
@@ -3042,8 +3035,11 @@ namespace Cloud
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
         public IAsyncResult BeginGetAllAudioItems(AsyncCallback callback, object callbackUserState)
         {
-            CheckDisposed();
-            return _httpRestClient.BeginGetAllAudioItems(callback, callbackUserState);
+            CheckDisposed(true);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.BeginGetAllAudioItems(callback, callbackUserState);
         }
 
         /// <summary>
@@ -3055,8 +3051,11 @@ namespace Cloud
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndGetAllAudioItems(IAsyncResult aResult, out SyncboxGetAllAudioItemsResult result)
         {
-            CheckDisposed();
-            return _httpRestClient.EndGetAllAudioItems(aResult, out result);
+            CheckDisposed(true);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.EndGetAllAudioItems(aResult, out result);
         }
 
         /// <summary>
@@ -3064,10 +3063,13 @@ namespace Cloud
         /// </summary>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError GetAllAudioItems(CLFileItem [] response)
+        public CLError GetAllAudioItems(CLFileItem[] response)
         {
-            CheckDisposed();
-            return _httpRestClient.GetAllAudioItems(out response);
+            CheckDisposed(true);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.GetAllAudioItems(out response);
         }
         #endregion  // end GetAllAudioItems (Gets all of the audio items from the cloud for this syncbox)
 
@@ -3080,8 +3082,11 @@ namespace Cloud
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
         public IAsyncResult BeginGetAllDocumentItems(AsyncCallback callback, object callbackUserState)
         {
-            CheckDisposed();
-            return _httpRestClient.BeginGetAllDocumentItems(callback, callbackUserState);
+            CheckDisposed(true);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.BeginGetAllDocumentItems(callback, callbackUserState);
         }
 
         /// <summary>
@@ -3093,8 +3098,11 @@ namespace Cloud
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndGetAllDocumentItems(IAsyncResult aResult, out SyncboxGetAllDocumentItemsResult result)
         {
-            CheckDisposed();
-            return _httpRestClient.EndGetAllDocumentItems(aResult, out result);
+            CheckDisposed(true);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.EndGetAllDocumentItems(aResult, out result);
         }
 
         /// <summary>
@@ -3102,10 +3110,13 @@ namespace Cloud
         /// </summary>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError GetAllDocumentItems(CLFileItem[] response)
+        public CLError GetAllDocumentItems(out CLFileItem[] response)
         {
-            CheckDisposed();
-            return _httpRestClient.GetAllDocumentItems(out response);
+            CheckDisposed(true);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.GetAllDocumentItems(out response);
         }
         #endregion  // end GetAllDocumentItems  (Gets all of the document items from the cloud for this syncbox)
 
@@ -3118,8 +3129,11 @@ namespace Cloud
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
         public IAsyncResult BeginGetAllPresentationItems(AsyncCallback callback, object callbackUserState)
         {
-            CheckDisposed();
-            return _httpRestClient.BeginGetAllPresentationItems(callback, callbackUserState);
+            CheckDisposed(true);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.BeginGetAllPresentationItems(callback, callbackUserState);
         }
 
         /// <summary>
@@ -3131,8 +3145,11 @@ namespace Cloud
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndGetAllPresentationItems(IAsyncResult aResult, out SyncboxGetAllPresentationItemsResult result)
         {
-            CheckDisposed();
-            return _httpRestClient.EndGetAllPresentationItems(aResult, out result);
+            CheckDisposed(true);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.EndGetAllPresentationItems(aResult, out result);
         }
 
         /// <summary>
@@ -3140,10 +3157,13 @@ namespace Cloud
         /// </summary>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError GetAllPresentationItems(CLFileItem[] response)
+        public CLError GetAllPresentationItems(out CLFileItem[] response)
         {
-            CheckDisposed();
-            return _httpRestClient.GetAllPresentationItems(out response);
+            CheckDisposed(true);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.GetAllPresentationItems(out response);
         }
         #endregion  // end GetAllPresentationItems  (Gets all of the presentation items from the cloud for this syncbox)
 
@@ -3156,8 +3176,11 @@ namespace Cloud
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
         public IAsyncResult BeginGetAllTextItems(AsyncCallback callback, object callbackUserState)
         {
-            CheckDisposed();
-            return _httpRestClient.BeginGetAllTextItems(callback, callbackUserState);
+            CheckDisposed(true);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.BeginGetAllTextItems(callback, callbackUserState);
         }
 
         /// <summary>
@@ -3169,8 +3192,11 @@ namespace Cloud
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndGetAllTextItems(IAsyncResult aResult, out SyncboxGetAllTextItemsResult result)
         {
-            CheckDisposed();
-            return _httpRestClient.EndGetAllTextItems(aResult, out result);
+            CheckDisposed(true);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.EndGetAllTextItems(aResult, out result);
         }
 
         /// <summary>
@@ -3178,10 +3204,13 @@ namespace Cloud
         /// </summary>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError GetAllTextItems(CLFileItem[] response)
+        public CLError GetAllTextItems(out CLFileItem[] response)
         {
-            CheckDisposed();
-            return _httpRestClient.GetAllTextItems(out response);
+            CheckDisposed(true);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.GetAllTextItems(out response);
         }
         #endregion  // end GetAllTextItems  (Gets all of the text items from the cloud for this syncbox)
 
@@ -3194,8 +3223,11 @@ namespace Cloud
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
         public IAsyncResult BeginGetAllArchiveItems(AsyncCallback callback, object callbackUserState)
         {
-            CheckDisposed();
-            return _httpRestClient.BeginGetAllArchiveItems(callback, callbackUserState);
+            CheckDisposed(true);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.BeginGetAllArchiveItems(callback, callbackUserState);
         }
 
         /// <summary>
@@ -3207,8 +3239,11 @@ namespace Cloud
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndGetAllArchiveItems(IAsyncResult aResult, out SyncboxGetAllArchiveItemsResult result)
         {
-            CheckDisposed();
-            return _httpRestClient.EndGetAllArchiveItems(aResult, out result);
+            CheckDisposed(true);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.EndGetAllArchiveItems(aResult, out result);
         }
 
         /// <summary>
@@ -3216,10 +3251,13 @@ namespace Cloud
         /// </summary>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError GetAllArchiveItems(CLFileItem[] response)
+        public CLError GetAllArchiveItems(out CLFileItem[] response)
         {
-            CheckDisposed();
-            return _httpRestClient.GetAllArchiveItems(out response);
+            CheckDisposed(true);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.GetAllArchiveItems(out response);
         }
         #endregion  // end GetAllArchiveItems  (Gets all of the archive items from the cloud for this syncbox)
 
@@ -3239,8 +3277,11 @@ namespace Cloud
             Nullable<int> returnLimit)
 
         {
-            CheckDisposed();
-            return _httpRestClient.BeginGetRecents(callback, callbackUserState, sinceDate, returnLimit);
+            CheckDisposed(true);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.BeginGetRecents(callback, callbackUserState, sinceDate, returnLimit);
         }
 
         /// <summary>
@@ -3252,8 +3293,11 @@ namespace Cloud
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndGetRecentFilesSinceDateWithLimit(IAsyncResult aResult, out SyncboxGetRecentsResult result)
         {
-            CheckDisposed();
-            return _httpRestClient.EndGetRecents(aResult, out result);
+            CheckDisposed(true);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.EndGetRecents(aResult, out result);
         }
 
         /// <summary>
@@ -3266,10 +3310,13 @@ namespace Cloud
         public CLError GetRecentFilesSinceDateWithLimit(
             Nullable<DateTime> sinceDate,
             Nullable<int> returnLimit,
-            out CLFileItem [] response)
+            out CLFileItem[] response)
         {
-            CheckDisposed();
-            return _httpRestClient.GetRecents(sinceDate, returnLimit, out response);
+            CheckDisposed(true);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.GetRecents(sinceDate, returnLimit, out response);
         }
         #endregion  // end GetRecentFilesSinceDateWithLimit (get a list of the recent files starting at a particular time)
 
@@ -3283,8 +3330,11 @@ namespace Cloud
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
         public IAsyncResult BeginGetFolderContents(AsyncCallback callback, object callbackUserState, string path)
         {
-            CheckDisposed();
-            return _httpRestClient.BeginGetFolderContentsAtPath(callback, callbackUserState, path);
+            CheckDisposed(true);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.BeginGetFolderContentsAtPath(callback, callbackUserState, path);
         }
 
         /// <summary>
@@ -3296,8 +3346,11 @@ namespace Cloud
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndGetFolderContentsAtPath(IAsyncResult aResult, out SyncboxGetFolderContentsAtPathResult result)
         {
-            CheckDisposed();
-            return _httpRestClient.EndGetFolderContents(aResult, out result);
+            CheckDisposed(true);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.EndGetFolderContents(aResult, out result);
         }
 
         /// <summary>
@@ -3308,10 +3361,13 @@ namespace Cloud
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError GetFolderContents(
             string path,
-            out CLFileItem [] response)
+            out CLFileItem[] response)
         {
-            CheckDisposed();
-            return _httpRestClient.GetFolderContentsAtPath(path, out response);
+            CheckDisposed(true);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.GetFolderContentsAtPath(path, out response);
         }
 
         #endregion  // end GetFolderContentsAtPath (Query the cloud for the contents of a syncbox folder at a path)
@@ -3328,8 +3384,11 @@ namespace Cloud
             object aState,
             int timeoutMilliseconds)
         {
-            CheckDisposed();
-            return _httpRestClient.BeginGetFolderHierarchy(aCallback, aState, timeoutMilliseconds);
+            CheckDisposed(true);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.BeginGetFolderHierarchy(aCallback, aState, timeoutMilliseconds);
         }
 
         /// <summary>
@@ -3345,8 +3404,11 @@ namespace Cloud
             int timeoutMilliseconds,
             FilePath hierarchyRoot)
         {
-            CheckDisposed();
-            return _httpRestClient.BeginGetFolderHierarchy(aCallback, aState, timeoutMilliseconds, hierarchyRoot);
+            CheckDisposed(true);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.BeginGetFolderHierarchy(aCallback, aState, timeoutMilliseconds, hierarchyRoot);
         }
         
         /// <summary>
@@ -3358,8 +3420,11 @@ namespace Cloud
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndGetFolderHierarchy(IAsyncResult aResult, out GetFolderHierarchyResult result)
         {
-            CheckDisposed();
-            return _httpRestClient.EndGetFolderHierarchy(aResult, out result);
+            CheckDisposed(true);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.EndGetFolderHierarchy(aResult, out result);
         }
 
         /// <summary>
@@ -3370,8 +3435,11 @@ namespace Cloud
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError GetFolderHierarchy(int timeoutMilliseconds,out JsonContracts.Folders response)
         {
-            CheckDisposed();
-            return _httpRestClient.GetFolderHierarchy(timeoutMilliseconds, out response);
+            CheckDisposed(true);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.GetFolderHierarchy(timeoutMilliseconds, out response);
         }
 
         /// <summary>
@@ -3383,8 +3451,11 @@ namespace Cloud
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError GetFolderHierarchy(int timeoutMilliseconds, out JsonContracts.Folders response, FilePath hierarchyRoot)
         {
-            CheckDisposed();
-            return _httpRestClient.GetFolderHierarchy(timeoutMilliseconds, out response, hierarchyRoot);
+            CheckDisposed(true);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.GetFolderHierarchy(timeoutMilliseconds, out response, hierarchyRoot);
         }
         #endregion
 
@@ -3397,8 +3468,11 @@ namespace Cloud
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
         public IAsyncResult BeginGetDataUsage(AsyncCallback callback, object callbackUserState)
         {
-            CheckDisposed();
-            return _httpRestClient.BeginGetSyncboxUsage(callback, callbackUserState, _copiedSettings.HttpTimeoutMilliseconds);
+            CheckDisposed(true);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.BeginGetSyncboxUsage(callback, callbackUserState, _copiedSettings.HttpTimeoutMilliseconds);
         }
 
         /// <summary>
@@ -3410,8 +3484,11 @@ namespace Cloud
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndGetDataUsage(IAsyncResult aResult, out SyncboxUsageResult result)
         {
-            CheckDisposed();
-            return _httpRestClient.EndGetSyncboxUsage(aResult, out result);
+            CheckDisposed(true);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.EndGetSyncboxUsage(aResult, out result);
         }
 
         /// <summary>
@@ -3421,8 +3498,11 @@ namespace Cloud
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError GetDataUsage(out JsonContracts.SyncboxUsageResponse response)
         {
-            CheckDisposed();
-            return _httpRestClient.GetSyncboxUsage(_copiedSettings.HttpTimeoutMilliseconds, out response);
+            CheckDisposed(true);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.GetSyncboxUsage(_copiedSettings.HttpTimeoutMilliseconds, out response);
         }
         #endregion  // end GetDataUsage (get the usage information for this syncbox from the cloud)
 
@@ -3440,8 +3520,11 @@ namespace Cloud
             IDictionary<string, T> metadata,
             int timeoutMilliseconds)
         {
-            CheckDisposed();
-            return _httpRestClient.BeginUpdateSyncboxExtendedMetadata(aCallback, aState, metadata, timeoutMilliseconds);
+            CheckDisposed(true);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.BeginUpdateSyncboxExtendedMetadata(aCallback, aState, metadata, timeoutMilliseconds);
         }
 
         /// <summary>
@@ -3457,8 +3540,11 @@ namespace Cloud
             JsonContracts.MetadataDictionary metadata,
             int timeoutMilliseconds)
         {
-            CheckDisposed();
-            return _httpRestClient.BeginUpdateSyncboxExtendedMetadata(aCallback, aState, metadata, timeoutMilliseconds);
+            CheckDisposed(true);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.BeginUpdateSyncboxExtendedMetadata(aCallback, aState, metadata, timeoutMilliseconds);
         }
 
         /// <summary>
@@ -3470,8 +3556,11 @@ namespace Cloud
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndUpdateSyncboxExtendedMetadata(IAsyncResult aResult, out SyncboxUpdateExtendedMetadataResult result)
         {
-            CheckDisposed();
-            return _httpRestClient.EndUpdateSyncboxExtendedMetadata(aResult, out result);
+            CheckDisposed(true);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.EndUpdateSyncboxExtendedMetadata(aResult, out result);
         }
 
         /// <summary>
@@ -3483,8 +3572,11 @@ namespace Cloud
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError UpdateSyncboxExtendedMetadata<T>(IDictionary<string, T> metadata, int timeoutMilliseconds, out JsonContracts.SyncboxResponse response)
         {
-            CheckDisposed();
-            return _httpRestClient.UpdateSyncboxExtendedMetadata(metadata, timeoutMilliseconds, out response);
+            CheckDisposed(true);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.UpdateSyncboxExtendedMetadata(metadata, timeoutMilliseconds, out response);
         }
 
         /// <summary>
@@ -3496,14 +3588,17 @@ namespace Cloud
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError SyncboxUpdateExtendedMetadata(JsonContracts.MetadataDictionary metadata, int timeoutMilliseconds, out JsonContracts.SyncboxResponse response)
         {
-            CheckDisposed();
-            return _httpRestClient.UpdateSyncboxExtendedMetadata(metadata, timeoutMilliseconds, out response);
+            CheckDisposed(true);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.UpdateSyncboxExtendedMetadata(metadata, timeoutMilliseconds, out response);
         }
         #endregion
 
-        #region UpdateStoragePlan (changes the storage plan associated with this syncbox in the cloud)
+        #region UpdateStoragePlan (changes the storage plan associated with this syncbox in the syncbox)
         /// <summary>
-        /// Asynchronously updates the storage plan for a syncbox in the cloud.
+        /// Asynchronously updates the storage plan for a syncbox in the syncbox.
         /// Updates this object's StoragePlanId property.
         /// </summary>
         /// <param name="callback">Callback method to fire when operation completes</param>
@@ -3512,8 +3607,11 @@ namespace Cloud
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
         public IAsyncResult BeginUpdateStoragePlan(AsyncCallback callback, object callbackUserState, CLStoragePlan storagePlan)
         {
-            CheckDisposed();
-            return _httpRestClient.BeginSyncboxUpdateStoragePlan(
+            CheckDisposed(true);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.BeginSyncboxUpdateStoragePlan(
                 callback, 
                 callbackUserState, 
                 storagePlan.Id, 
@@ -3532,12 +3630,15 @@ namespace Cloud
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndUpdateStoragePlan(IAsyncResult aResult, out SyncboxUpdateStoragePlanResult result)
         {
-            CheckDisposed();
-            return _httpRestClient.EndSyncboxUpdateStoragePlan(aResult, out result);
+            CheckDisposed(true);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.EndSyncboxUpdateStoragePlan(aResult, out result);
         }
 
         /// <summary>
-        /// Updates the storage plan for a syncbox in the cloud.  This is a synchronous method.
+        /// Updates the storage plan for a syncbox in the syncbox.  This is a synchronous method.
         /// Updates this object's StoragePlanId property.
         /// </summary>
         /// <param name="storagePlan">The storage plan to set (new storage plan to use for this syncbox)</param>
@@ -3545,8 +3646,11 @@ namespace Cloud
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError UpdateStoragePlan(CLStoragePlan storagePlan, out JsonContracts.SyncboxUpdateStoragePlanResponse response)
         {
-            CheckDisposed();
-            return _httpRestClient.UpdateSyncboxStoragePlan(
+            CheckDisposed(true);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.UpdateSyncboxStoragePlan(
                 storagePlan.Id, 
                 _copiedSettings.HttpTimeoutMilliseconds, 
                 out response, 
@@ -3564,15 +3668,15 @@ namespace Cloud
         {
             if (response == null)
             {
-                throw new NullReferenceException("response cannot be null");
+                throw new NullReferenceException("response cannot be null");  //&&&& fix
             }
             if (response.Syncbox == null)
             {
-                throw new NullReferenceException("response Syncbox cannot be null");
+                throw new NullReferenceException("response Syncbox cannot be null");  //&&&& fix
             }
             if (response.Syncbox.PlanId == null)
             {
-                throw new NullReferenceException("response Syncbox PlanId cannot be null");
+                throw new NullReferenceException("response Syncbox PlanId cannot be null");  //&&&& fix
             }
 
             // Update this object's properties atomically.
@@ -3586,7 +3690,7 @@ namespace Cloud
                 this._propertyChangeLocker.ExitWriteLock();
             }
         }
-        #endregion  // end (changes the storage plan associated with this syncbox in the cloud)
+        #endregion  // end (changes the storage plan associated with this syncbox in the syncbox)
 
         #region GetCurrentStatus (update the status of this syncbox from the cloud)
         /// <summary>
@@ -3597,8 +3701,11 @@ namespace Cloud
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
         public IAsyncResult BeginGetCurrentSyncboxStatus(AsyncCallback callback, object callbackUserState)
         {
-            CheckDisposed();
-            return _httpRestClient.BeginGetSyncboxStatus(callback, callbackUserState, _copiedSettings.HttpTimeoutMilliseconds, new Action<JsonContracts.SyncboxStatusResponse, object>(OnStatusCompletion), null);
+            CheckDisposed(true);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.BeginGetSyncboxStatus(callback, callbackUserState, _copiedSettings.HttpTimeoutMilliseconds, new Action<JsonContracts.SyncboxStatusResponse, object>(OnStatusCompletion), null);
         }
         
         /// <summary>
@@ -3611,8 +3718,11 @@ namespace Cloud
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndGetCurrentSyncboxStatus(IAsyncResult aResult, out SyncboxStatusResult result)
         {
-            CheckDisposed();
-            return _httpRestClient.EndGetSyncboxStatus(aResult, out result);
+            CheckDisposed(true);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.EndGetSyncboxStatus(aResult, out result);
         }
 
         /// <summary>
@@ -3622,10 +3732,14 @@ namespace Cloud
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError GetCurrentSyncboxStatus()
         {
-            CheckDisposed();
+            CheckDisposed(true);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
             JsonContracts.SyncboxStatusResponse response;
-            return _httpRestClient.GetSyncboxStatus(_copiedSettings.HttpTimeoutMilliseconds, out response, new Action<JsonContracts.SyncboxStatusResponse, object>(OnStatusCompletion), null);
+            return httpRestClient.GetSyncboxStatus(_copiedSettings.HttpTimeoutMilliseconds, out response, new Action<JsonContracts.SyncboxStatusResponse, object>(OnStatusCompletion), null);
         }
+
 
         /// <summary>
         /// Called back when the HTTP request completes.
@@ -3636,15 +3750,15 @@ namespace Cloud
         {
             if (response == null)
             {
-                throw new NullReferenceException("response cannot be null");
+                throw new NullReferenceException("response cannot be null");  //&&&& fix
             }
             if (response.Syncbox == null)
             {
-                throw new NullReferenceException("response Syncbox cannot be null");
+                throw new NullReferenceException("response Syncbox cannot be null");  //&&&& fix
             }
             if (response.Syncbox.PlanId == null)
             {
-                throw new NullReferenceException("response Syncbox PlanId cannot be null");
+                throw new NullReferenceException("response Syncbox PlanId cannot be null");  //&&&& fix
             }
 
             this._propertyChangeLocker.EnterWriteLock();
@@ -3660,9 +3774,210 @@ namespace Cloud
         }
         #endregion  // end GetCurrentStatus (update the status of this syncbox from the cloud)
 
+        /// <summary>
+        /// Sets the full path on the local disk that is associated with this Syncbox.  This method does not communicate with the server.
+        /// </summary>
+        /// <returns>Returns any error that occurred, or null</returns>
+        /// <remarks>The path may be set only once.</remarks>
+        public CLError UpdatePath(string path)
+        {
+            CLError errorFromSet = UpdatePathInternal(path, shouldUupdateSyncboxStatusFromServer: true);
+            return errorFromSet;
+        }
+
         #endregion  // end Public Instance HTTP REST Methods
 
         #region Private Instance Support Functions
+
+        /// <summary>
+        /// Get this syncbox's instance variables which were set via UpdatePathInternal.  Throws if anything is null.
+        /// </summary>
+        /// <param name="path">(output) The syncbox path.</param>
+        /// <param name="httpRestClient">(output) The HTTP REST client.</param>
+        private void GetInstanceVariables(out string path, out CLHttpRest httpRestClient)
+        {
+            if (setPathLocker != null)
+            {
+                Monitor.Enter(setPathLocker);
+            }
+            try
+            {
+                if (setPathHolder == null
+                    || setPathHolder.Path == null
+                    || setPathHolder.HttpRestClient == null)
+                {
+                    throw new CLNullReferenceException(CLExceptionCode.Syncbox_BadPath, Resources.ExceptionCLSyncboxPathNotSet);
+                }
+
+                path = setPathHolder.Path;
+                httpRestClient = setPathHolder.HttpRestClient;
+            }
+            catch (Exception ex)
+            {
+                path = null;
+                httpRestClient = null;
+                throw ex;
+            }
+            finally
+            {
+                if (setPathLocker != null)
+                {
+                    Monitor.Exit(setPathLocker);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Get this syncbox's HTTP REST instance.  Throws if null.
+        /// </summary>
+        /// <param name="httpRestClient">(output) The HTTP REST client.</param>
+        private void GetInstanceRestClient(out CLHttpRest httpRestClient)
+        {
+            if (setPathLocker != null)
+            {
+                Monitor.Enter(setPathLocker);
+            }
+            try
+            {
+                if (setPathHolder == null
+                    || setPathHolder.HttpRestClient == null)
+                {
+                    throw new CLNullReferenceException(CLExceptionCode.Syncbox_BadPath, "path must be set first");
+                }
+
+                httpRestClient = setPathHolder.HttpRestClient;
+            }
+            catch (Exception ex)
+            {
+                httpRestClient = null;
+                throw ex;
+            }
+            finally
+            {
+                if (setPathLocker != null)
+                {
+                    Monitor.Exit(setPathLocker);
+                }
+            }
+        }
+
+        /// <summary>
+        /// It is possible to create non-functional syncbox instances.  For example, listing all of the syncboxes for a set of credentials via the server constructs
+        /// an array of CLSyncbox instances, but the information from the server does not include the local syncbox paths.  The instances are unusable in this state
+        /// and any operation that requires the local syncbox path will throw an error.  It is up to the app to provide the local syncbox path before using the instance.
+        /// This is done via SetSyncboxPath().  SetSyncboxPath() defers to this internal version.  This function acts like an extension of the constructor, and it
+        /// if called by constructors to create the CLHttpRest client, fill in missing information from the server, and to create an instance of CLSyncEngine that will
+        /// be used by this syncbox instance.
+        /// </summary>
+        /// <param name="path"></param>
+        /// <param name="shouldUupdateSyncboxStatusFromServer"></param>
+        /// <returns></returns>
+        private CLError UpdatePathInternal(string path, bool shouldUupdateSyncboxStatusFromServer)
+        {
+            if (path == null)
+            {
+                return new CLArgumentNullException(CLExceptionCode.Syncbox_BadPath, "path must not be null");
+            }
+
+            if (setPathLocker != null)
+            {
+                Monitor.Enter(setPathLocker);
+            }
+            try
+            {
+                if (setPathHolder != null)
+                {
+                    throw new CLException(CLExceptionCode.Syncbox_PathAlreadySet, Resources.ExceptionOnDemandSyncboxPathAlreadySet);
+                }
+
+                //TODO: Remove this when the sync engine support case insensitive paths.
+                // This was required because OSD code was providing paths that started with a lower case drive letter.
+                if (path.Length >= 2 && path[1] == ':')
+                {
+                    path = char.ToUpper(path[0]) + path.Substring(1);
+                }
+
+                int nOutTooLongChars;
+                CLError errorPathTooLong = Helpers.CheckSyncboxPathLength(path, out nOutTooLongChars);
+                if (errorPathTooLong != null)
+                {
+                    throw new CLArgumentException(errorPathTooLong.PrimaryException.Code, string.Format("syncbox path is too long by {0} characters.", nOutTooLongChars), errorPathTooLong.Exceptions);
+                }
+
+                CLError errorBadPath = Helpers.CheckForBadPath(path);
+                if (errorBadPath != null)
+                {
+                    throw new CLArgumentException(errorBadPath.PrimaryException.Code, "syncbox path contains invalid characters.", errorBadPath.Exceptions);
+                }
+
+
+                // Set the path early because the CLHttpRest factory needs it.
+                setPathHolder = new SetPathProperties(path, null);
+
+                // Create an instance of the CLHttpRest client for this syncbox
+                CLHttpRest localRestClient;
+                // Create the http rest client
+                _trace.writeToLog(9, Resources.CLSyncboxStartCreateRestClient);
+                CLError createRestClientError = CLHttpRest.CreateAndInitialize(
+                                credentials: this.Credentials,
+                                syncbox: this,
+                                client: out localRestClient,
+                                settings: this._copiedSettings,
+                                getNewCredentialsCallback: _getNewCredentialsCallback,
+                                getNewCredentialsCallbackUserState: _getNewCredentialsCallbackUserState);
+                if (createRestClientError != null)
+                {
+                    _trace.writeToLog(1,
+                        Resources.CLSyncboxConstructionErrorMsg0Code1,
+                        createRestClientError.PrimaryException.Message,
+                        createRestClientError.PrimaryException.Code);
+
+                    throw new CLException(CLExceptionCode.Syncbox_CreateRestClient,
+                        Resources.CLSyncboxErrorCreatingRestHTTPClient,
+                        createRestClientError.Exceptions);
+                }
+                if (localRestClient == null)
+                {
+                    const string nullRestClient = "Unknown error creating HTTP REST client";
+                    _trace.writeToLog(1, Resources.CLSyncboxConstructionErrorMsg0, nullRestClient);
+
+                    throw new CLNullReferenceException(CLExceptionCode.Syncbox_CreateRestClient, nullRestClient);
+                }
+                
+                // after removing CLSyncEngine from SetPathProperties, can now set the final setPathHolder here
+                setPathHolder = new SetPathProperties(path, localRestClient);
+
+                if (shouldUupdateSyncboxStatusFromServer)
+                {
+                    //// removed CLSyncEngine from SetPathProperties, so can completely set setPathHolder before this statement
+                    //
+                    //// OLD CODE:
+                    //// Set the rest client early too because GetCurrentSyncboxStatus neeeds it.
+                    //setPathHolder = new SetPathProperties(path, localRestClient, null);
+
+                    // We need to validate the syncbox ID with the server with these credentials.  We will also retrieve the other syncbox
+                    // properties from the server and set them into this local object's properties.
+                    CLError errorFromStatus = GetCurrentSyncboxStatus();
+                    if (errorFromStatus != null)
+                    {
+                        throw new CLException(CLExceptionCode.Syncbox_InitialStatus, Resources.ExceptionSyncboxStartStatus, errorFromStatus.Exceptions);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                return ex;
+            }
+            finally
+            {
+                if (setPathLocker != null)
+                {
+                    Monitor.Exit(setPathLocker);
+                }
+            }
+
+            return null;
+        }
 
         internal bool ReservedForActiveSync
         {
@@ -3676,7 +3991,9 @@ namespace Cloud
         }
         internal bool TryReserveForActiveSync()
         {
-            if (!_httpRestClient.IsModifyingSyncboxViaPublicAPICalls)
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            if (!httpRestClient.IsModifyingSyncboxViaPublicAPICalls)
             {
                 lock (_reservedForActiveSync)
                 {
@@ -3770,12 +4087,26 @@ namespace Cloud
         {
             if (Disposed)
             {
-                throw new Exception("Object disposed");
+                throw new Exception("Object disposed");  //&&&& fix
             }
 
             Helpers.CheckHalted();
         }
 
+        /// <summary>
+        /// Throw an exception if already disposed
+        /// </summary>
+        private void CheckDisposed(bool isOneOff)
+        {
+            if (Disposed)
+            {
+                throw new Exception("Object disposed");  //&&&& fix
+            }
+            if (!isOneOff)
+            {
+                Helpers.CheckHalted();
+            }
+        }
         // Disposing this object provides no user functionality, so we are hiding Dispose behind its interface.
         ///// <summary>
         ///// Call this to cleanup FileSystemWatchers such as on application shutdown,

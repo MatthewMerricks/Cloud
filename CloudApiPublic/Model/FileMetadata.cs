@@ -23,10 +23,6 @@ namespace Cloud.Model
         /// </summary>
         public FileMetadataHashableProperties HashableProperties { get; set; }
         /// <summary>
-        /// Revision from server to identify file change version
-        /// </summary>
-        public string Revision { get; set; }
-        /// <summary>
         /// Storage key to identify server location for MDS events
         /// </summary>
         public string StorageKey { get; set; }
@@ -39,9 +35,16 @@ namespace Cloud.Model
         /// </summary>
         public Nullable<int> Version { get; set; }
         /// <summary>
-        /// "uid" from server which uniquely represents a file or a folder regardless of where it moves
+        /// Id to the "uid" from server which uniquely represents a file or a folder regardless of where it moves
         /// </summary>
-        public string ServerUid { get; set; }
+        internal long ServerUidId
+        {
+            get
+            {
+                return _serverUidId;
+            }
+        }
+        private readonly long _serverUidId;
         /// <summary>
         /// "uid" of the parent folder which uniquely identifies it on the server
         /// </summary>
@@ -59,33 +62,27 @@ namespace Cloud.Model
         /// </summary>
         public DateTime EventTime { get; set; }
 
-        internal RevisionChanger RevisionChanger { get; private set; }
+        // Todo: add this constructor back when FileMetadata is programmed to work with the new ServerUids
+        public FileMetadata() : this(0) { }
 
-        public FileMetadata() : this(null) { }
-
-        internal FileMetadata(RevisionChanger revisionChanger)
+        internal FileMetadata(long ServerUidId)
         {
-            if (revisionChanger == null)
-            {
-                this.RevisionChanger = new RevisionChanger();
-            }
-            else
-            {
-                this.RevisionChanger = revisionChanger;
-            }
-            lock (this.RevisionChanger.RevisionChangeLocker)
-            {
-                this.RevisionChanger.RevisionChanged += OnRevisionChanged;
-            }
+            this._serverUidId = ServerUidId;
         }
 
-        private void OnRevisionChanged(object sender, RevisionAndOtherDataEventArgs e)
+        internal FileMetadata CopyWithNewServerUidId(long ServerUidId)
         {
-            if (this != sender)
+            return new FileMetadata(ServerUidId)
             {
-                Revision = e.Revision;
-                ServerUid = e.ServerUid;
-            }
+                EventTime = this.EventTime,
+                HashableProperties = this.HashableProperties,
+                IsShare = this.IsShare,
+                MimeType = this.MimeType,
+                ParentFolderServerUid = this.ParentFolderServerUid,
+                Permissions = this.Permissions,
+                StorageKey = this.StorageKey,
+                Version = this.Version
+            };
         }
     }
     /// <summary>

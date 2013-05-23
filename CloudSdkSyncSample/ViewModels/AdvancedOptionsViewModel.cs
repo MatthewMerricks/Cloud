@@ -371,7 +371,7 @@ namespace SampleLiveSync.ViewModels
             if (!String.IsNullOrEmpty(TempDownloadFolderFullPath) &&
                 !Directory.Exists(TempDownloadFolderFullPath))
             {
-                MessageBox.Show("The temporary download folder must be the full path of a valid directory.  Please create the directory first.");
+                MessageBox.Show(System.Windows.Application.Current.MainWindow, "The temporary download folder must be the full path of a valid directory.  Please create the directory first.");
                 this.IsTempDownloadFolderFullPathFocused = true;
                 return;
             }
@@ -379,7 +379,7 @@ namespace SampleLiveSync.ViewModels
             // Validate the length of the temp download file path.
             if (TempDownloadFolderFullPath.Length > 0 && TempDownloadFolderFullPath.Length > (259 - 33))             // 259 maximum path length on Windows, minus the length of the temp file names (GUIDs (32 characters)), minus one char for backslash.
             {
-                MessageBox.Show(String.Format("The temporary download folder is too long by {0} characters.  Please shorten the path.", TempDownloadFolderFullPath.Length - (259 - 33)));
+                MessageBox.Show(System.Windows.Application.Current.MainWindow, String.Format("The temporary download folder is too long by {0} characters.  Please shorten the path.", TempDownloadFolderFullPath.Length - (259 - 33)));
                 this.IsTempDownloadFolderFullPathFocused = true;
                 return;
             }
@@ -389,7 +389,7 @@ namespace SampleLiveSync.ViewModels
             FilePath fpSyncbox = _settingsCaller.SyncboxFullPath;
             if (fpTemp.Contains(fpSyncbox, insensitiveNameSearch: true))
             {
-                MessageBox.Show("The temporary download folder cannot be inside the Syncbox directory.");
+                MessageBox.Show(System.Windows.Application.Current.MainWindow, "The temporary download folder cannot be inside the Syncbox directory.");
                 this.IsTempDownloadFolderFullPathFocused = true;
                 return;
             }
@@ -399,7 +399,7 @@ namespace SampleLiveSync.ViewModels
             if (!String.IsNullOrEmpty(DatabaseFolderFullPath) &&
                 !Directory.Exists(DatabaseFolderFullPath))
             {
-                MessageBox.Show("The database folder must be the full path of a valid directory.  Please create the directory first.");
+                MessageBox.Show(System.Windows.Application.Current.MainWindow, "The database folder must be the full path of a valid directory.  Please create the directory first.");
                 this.IsDatabaseFolderFullPathFocused = true;
                 return;
             }
@@ -407,7 +407,7 @@ namespace SampleLiveSync.ViewModels
             // The entire path must be 259 chars or less.  Validate the entire length of the database file path, including the database filename.ext.
             if (DatabaseFolderFullPath.Length > 0 && DatabaseFolderFullPath.Length > (259 - (CLDefinitions.kSyncDatabaseFileName.Length + 1)))             // 259 maximum path length on Windows, minus the length of the database filename.ext, minus one char for backslash.
             {
-                MessageBox.Show(String.Format("The database folder path is too long by {0} characters.  Please shorten the path.", DatabaseFolderFullPath.Length - (259 - (CLDefinitions.kSyncDatabaseFileName.Length + 1))));
+                MessageBox.Show(System.Windows.Application.Current.MainWindow, String.Format("The database folder path is too long by {0} characters.  Please shorten the path.", DatabaseFolderFullPath.Length - (259 - (CLDefinitions.kSyncDatabaseFileName.Length + 1))));
                 this.IsDatabaseFolderFullPathFocused = true;
                 return;
             }
@@ -416,7 +416,7 @@ namespace SampleLiveSync.ViewModels
             fpTemp = DatabaseFolderFullPath;
             if (fpTemp.Contains(fpSyncbox, insensitiveNameSearch: true))
             {
-                MessageBox.Show("The database folder cannot be inside the Syncbox directory.");
+                MessageBox.Show(System.Windows.Application.Current.MainWindow, "The database folder cannot be inside the Syncbox directory.");
                 this.IsDatabaseFolderFullPathFocused = true;
                 return;
             }
@@ -426,7 +426,7 @@ namespace SampleLiveSync.ViewModels
             if (!String.IsNullOrEmpty(TraceFolderFullPath) &&
                 !Directory.Exists(TraceFolderFullPath))
             {
-                MessageBox.Show("The trace folder must be the full path of a valid directory.");
+                MessageBox.Show(System.Windows.Application.Current.MainWindow, "The trace folder must be the full path of a valid directory.");
                 this.IsTraceFolderFullPathFocused = true;
                 return;
             }
@@ -434,7 +434,7 @@ namespace SampleLiveSync.ViewModels
             // The entire path must be 259 chars or less.  Validate the entire length of the trace file path, including the max trace filename.ext.
             if (TraceFolderFullPath.Length > 0 && TraceFolderFullPath.Length > (259 - (CLDefinitions.kMaxTraceFilenameExtLength + 1)))             // 259 maximum path length on Windows, minus the max length of a trace filename.ext, minus one char for backslash.
             {
-                MessageBox.Show(String.Format("The trace folder path is too long by {0} characters.  Please shorten the path.", TraceFolderFullPath.Length - (259 - (CLDefinitions.kMaxTraceFilenameExtLength + 1))));
+                MessageBox.Show(System.Windows.Application.Current.MainWindow, String.Format("The trace folder path is too long by {0} characters.  Please shorten the path.", TraceFolderFullPath.Length - (259 - (CLDefinitions.kMaxTraceFilenameExtLength + 1))));
                 this.IsTraceFolderFullPathFocused = true;
                 return;
             }
@@ -443,7 +443,7 @@ namespace SampleLiveSync.ViewModels
             fpTemp = TraceFolderFullPath;
             if (fpTemp.Contains(fpSyncbox, insensitiveNameSearch: true))
             {
-                MessageBox.Show("The trace folder cannot be inside the Syncbox directory.");
+                MessageBox.Show(System.Windows.Application.Current.MainWindow, "The trace folder cannot be inside the Syncbox directory.");
                 this.IsTraceFolderFullPathFocused = true;
                 return;
             }
@@ -452,11 +452,10 @@ namespace SampleLiveSync.ViewModels
             ulong valueTraceType;
             if (String.IsNullOrEmpty(TraceType) ||
                 !Utilities.ConvertStringToUlong(TraceType, out valueTraceType) ||
-                valueTraceType > 7 ||
-                valueTraceType == 2 ||
-                valueTraceType == 6)
+                valueTraceType > 15 ||
+                ((valueTraceType & (ulong)Cloud.Static.TraceType.AddAuthorization) == (ulong)Cloud.Static.TraceType.AddAuthorization) && (valueTraceType & (ulong)Cloud.Static.TraceType.Communication) == 0UL)
             {
-                MessageBox.Show("The TraceType is a bit mask.  It must be a non-negative decimal number with value 0, 1, 3, 4, 5 or 7.  If in doubt, use 0 (none) or 5 (full minus authorization information).");
+                MessageBox.Show(System.Windows.Application.Current.MainWindow, "The TraceType is a bit mask.  It must be a non-negative decimal number <= 15.  with value 0, 1, 3, 4, 5, 7, 8, 9, 11, 12, 13 or 15.  If in doubt, use 0 (none) or 13 (full minus authorization information).");
                 this.IsTraceTypeFocused = true;
                 return;
             }
@@ -465,7 +464,7 @@ namespace SampleLiveSync.ViewModels
             if (String.IsNullOrEmpty(TraceLevel) ||
                 !Utilities.ConvertStringToUlong(TraceLevel, out valueTraceType))
             {
-                MessageBox.Show("The TraceLevel must be a non-negative decimal number convertible to an unsigned integer <= 18446744073709551615.  If in doubt, use 0 (none) or 10 (full).");
+                MessageBox.Show(System.Windows.Application.Current.MainWindow, "The TraceLevel must be a non-negative decimal number convertible to an unsigned integer <= 18446744073709551615.  If in doubt, use 0 (none) or 10 (full).");
                 this.IsTraceLevelFocused = true;
                 return;
             }
@@ -473,7 +472,7 @@ namespace SampleLiveSync.ViewModels
             // LogErrors must not be set if TraceLocation is not set.
             if (String.IsNullOrEmpty(TraceFolderFullPath) && LogErrors)
             {
-                MessageBox.Show("The Trace Folder must be set if Log Errors is checked.  Please set the Trace Folder or uncheck Log Errors.");
+                MessageBox.Show(System.Windows.Application.Current.MainWindow, "The Trace Folder must be set if Log Errors is checked.  Please set the Trace Folder or uncheck Log Errors.");
                 this.IsTraceFolderFullPathFocused = true;
                 return;
             }

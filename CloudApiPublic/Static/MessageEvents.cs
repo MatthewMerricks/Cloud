@@ -9,10 +9,12 @@ using Cloud.Interfaces;
 using Cloud.Model;
 using Cloud.Model.EventMessages;
 using Cloud.Model.EventMessages.ErrorInfo;
+using Cloud.Support;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 
 namespace Cloud.Static
 {
@@ -23,6 +25,8 @@ namespace Cloud.Static
     /// </summary>
     public static class MessageEvents
     {
+        private const int removeHandlerTimeoutMilliseconds = 10000;
+
         #region IEventMessageReceiver subscription
         public static CLError SubscribeMessageReceiver(long SyncboxId, string DeviceId, IEventMessageReceiver receiver)
         {
@@ -38,9 +42,13 @@ namespace Cloud.Static
                 }
 
                 string receiverKey = SyncboxId.ToString() + " " + DeviceId;
-                lock (InternalReceivers)
+
+                lock (_internalReceiversHandlers)
                 {
-                    InternalReceivers[receiverKey] = receiver;
+                    if (!_internalReceiversHandlers.ContainsKey(receiverKey))
+                    {
+                        _internalReceiversHandlers.Add(receiverKey, new Tuple<IEventMessageReceiver, ManualResetEvent>(receiver, new ManualResetEvent(true)));
+                    }
                 }
             }
             catch (Exception ex)
@@ -59,13 +67,37 @@ namespace Cloud.Static
                 }
 
                 string receiverKey = SyncboxId.ToString() + " " + DeviceId;
-                lock (InternalReceivers)
+
+                ManualResetEvent syncEvent = null;
+
+                lock (_internalReceiversHandlers)
                 {
-                    if (!InternalReceivers.Remove(receiverKey))
+                    Tuple<IEventMessageReceiver, ManualResetEvent> data_;
+                    if (_internalReceiversHandlers.TryGetValue(receiverKey, out data_))
                     {
-                        throw new ArgumentException("Receiver with given SyncboxId and DeviceId not found to unsubscribe");
+                        syncEvent = data_.Item2;
+                        _internalReceiversHandlers.Remove(receiverKey);
                     }
                 }
+
+                if (syncEvent != null)
+                {
+                    bool needsWait;
+
+                    lock (_internalReceiversThreads)
+                    {
+                        Thread executingThread;
+                        needsWait = !_internalReceiversThreads.TryGetValue(syncEvent, out executingThread)
+                                    || executingThread != Thread.CurrentThread;
+                    }
+
+                    if (needsWait
+                        && !syncEvent.WaitOne(removeHandlerTimeoutMilliseconds))
+                    {
+                        throw new TimeoutException("Unable to synchronize removing event handler");
+                    }
+                }
+
             }
             catch (Exception ex)
             {
@@ -73,8 +105,134 @@ namespace Cloud.Static
             }
             return null;
         }
-        // Holds subscribed EventMessageReceivers. <-- incomplete comment???
-        private static readonly Dictionary<string, IEventMessageReceiver> InternalReceivers = new Dictionary<string, IEventMessageReceiver>(StringComparer.InvariantCulture);
+        /// <summary>
+        ///  every unique syncboxId-deviceId pair has exactly one event message receiver associated;
+        ///  one event message receiver can handle messages for more than one syncboxId-deviceId unique pair;
+        ///  event stream for every unique syncboxId-deviceId pair is guaranteed to be consistent:
+        ///     - no call for a unique syncboxId-deviceId pair shall be made before the previous one has returned;
+        ///     - unsubscribe for a unique syncboxId-deviceId pair is guaranteed to return after all queued before the time of the call events are handled;
+        /// </summary>
+        private static readonly Dictionary<string, Tuple<IEventMessageReceiver, ManualResetEvent>> _internalReceiversHandlers = new Dictionary<string, Tuple<IEventMessageReceiver, ManualResetEvent>>();
+        private static readonly Dictionary<ManualResetEvent, Thread> _internalReceiversThreads = new Dictionary<ManualResetEvent, Thread>();
+        #endregion
+
+        #region IEventMessageReceiver helpers
+        private static void FireInternalReceiverInternal(long syncboxId, string deviceId, EventMessageArgs newArgs, ref EventHandledLevel toReturn,
+                                                            Action<IEventMessageReceiver, EventMessageArgs> action)
+        {
+            string receiverKey = syncboxId.ToString() + " " + deviceId;
+
+            WaitCallback closure = null;
+
+            lock (_internalReceiversHandlers)
+            {
+                Tuple<IEventMessageReceiver, ManualResetEvent> data_;
+                if (_internalReceiversHandlers.TryGetValue(receiverKey, out data_))
+                {
+                    IEventMessageReceiver handler = data_.Item1;
+                    ManualResetEvent syncEvent = new ManualResetEvent(false);
+                    ManualResetEvent prevSyncEvent = data_.Item2;
+                    _internalReceiversHandlers[receiverKey] = new Tuple<IEventMessageReceiver, ManualResetEvent>(handler, syncEvent);
+
+                    closure = (object state) =>
+                    {
+                        prevSyncEvent.WaitOne();
+                        try
+                        {
+                            lock (_internalReceiversThreads)
+                            {
+                                _internalReceiversThreads[syncEvent] = Thread.CurrentThread;
+                            }
+                            action(handler, newArgs);
+                        }
+                        catch
+                        {
+                        }
+                        finally
+                        {
+                            lock (_internalReceiversThreads)
+                            {
+                                _internalReceiversThreads.Remove(syncEvent);
+                            }
+                        }
+                        syncEvent.Set();
+                    };
+                }
+            }
+
+            if (closure != null)
+            {
+                try
+                {
+                    closure(null);
+                }
+                catch
+                {
+                }
+                toReturn = (newArgs.Handled
+                    ? EventHandledLevel.IsHandled
+                    : EventHandledLevel.FiredButNotHandled);
+            }
+        }
+
+        private static void FireAllInternalReceiversInternal(EventMessageArgs newArgs, ref EventHandledLevel toReturn,
+                                                                Action<IEventMessageReceiver, EventMessageArgs> action)
+        {
+            List<WaitCallback> closures = new List<WaitCallback>();
+
+            lock (_internalReceiversHandlers)
+            {
+                foreach (string receiverKey in _internalReceiversHandlers.Keys.ToArray())
+                {
+                    Tuple<IEventMessageReceiver, ManualResetEvent> data_ = _internalReceiversHandlers[receiverKey];
+                    IEventMessageReceiver handler = data_.Item1;
+                    ManualResetEvent syncEvent = new ManualResetEvent(false);
+                    ManualResetEvent prevSyncEvent = data_.Item2;
+                    _internalReceiversHandlers[receiverKey] = new Tuple<IEventMessageReceiver, ManualResetEvent>(handler, syncEvent);
+
+                    closures.Add((object state) =>
+                    {
+                        prevSyncEvent.WaitOne();
+                        try
+                        {
+                            lock (_internalReceiversThreads)
+                            {
+                                _internalReceiversThreads[syncEvent] = Thread.CurrentThread;
+                            }
+                            action(handler, newArgs);
+                        }
+                        catch
+                        {
+                        }
+                        finally
+                        {
+                            lock (_internalReceiversThreads)
+                            {
+                                _internalReceiversThreads.Remove(syncEvent);
+                            }
+                        }
+                        syncEvent.Set();
+                    });
+                }
+            }
+
+            if (closures.Count != 0)
+            {
+                try
+                {
+                    foreach (WaitCallback closure in closures)
+                    {
+                        closure(null);
+                    }
+                }
+                catch
+                {
+                }
+                toReturn = (newArgs.Handled
+                    ? EventHandledLevel.IsHandled
+                    : EventHandledLevel.FiredButNotHandled);
+            }
+        }
         #endregion
 
         #region public events
@@ -82,21 +240,113 @@ namespace Cloud.Static
         {
             add
             {
-                lock (NewEventMessageLocker)
+                lock (_newEventMessageHandlers)
                 {
-                    _newEventMessage += value;
+                    if (!_newEventMessageHandlers.ContainsKey(value))
+                    {
+                        _newEventMessageHandlers.Add(value, new ManualResetEvent(true));
+                    }
                 }
             }
             remove
             {
-                lock (NewEventMessageLocker)
+                ManualResetEvent syncEvent = null;
+
+                lock (_newEventMessageHandlers)
                 {
-                    _newEventMessage -= value;
+                    ManualResetEvent syncEvent_;
+                    if (_newEventMessageHandlers.TryGetValue(value, out syncEvent_))
+                    {
+                        syncEvent = syncEvent_;
+                        _newEventMessageHandlers.Remove(value);
+                    }
+                }
+
+                if (syncEvent != null)
+                {
+                    bool needsWait;
+
+                    lock (_newEventMessageThreads)
+                    {
+                        Thread executingThread;
+                        needsWait = !_newEventMessageThreads.TryGetValue(syncEvent, out executingThread)
+                                    || executingThread != Thread.CurrentThread;
+                    }
+
+                    if (needsWait
+                        && !syncEvent.WaitOne(removeHandlerTimeoutMilliseconds))
+                    {
+                        throw new TimeoutException("Unable to synchronize removing event handler"); 
+                    }
                 }
             }
         }
-        private static event EventMessageArgsHandler _newEventMessage;
-        private static readonly object NewEventMessageLocker = new object();
+        private static readonly Dictionary<EventMessageArgsHandler, ManualResetEvent> _newEventMessageHandlers = new Dictionary<EventMessageArgsHandler, ManualResetEvent>();
+        private static readonly Dictionary<ManualResetEvent, Thread> _newEventMessageThreads = new Dictionary<ManualResetEvent, Thread>();
+
+        /// <summary>
+        /// This is a helper for invoking synchronously the generic NewEventMessage event; Event handlers are executed in the context of the calling thread;
+        /// </summary>
+        /// <param name="newArgs">the generic event message args holder; the concrete message is in newArgs.Message</param>
+        /// <param name="toReturn">summary on the handled status as reported in newArgs.Handled</param>
+        private static void FireNewEventMessageInternal(EventMessageArgs newArgs, ref EventHandledLevel toReturn)
+        {
+            List<WaitCallback> closures = new List<WaitCallback>();
+
+            lock (_newEventMessageHandlers)
+            {
+                EventMessageArgsHandler[] handlers = _newEventMessageHandlers.Keys.ToArray();
+                for (int i = 0; i < handlers.Length; ++i)
+                {
+                    EventMessageArgsHandler handler = handlers[i];
+                    ManualResetEvent syncEvent = new ManualResetEvent(false);
+                    ManualResetEvent prevSyncEvent = _newEventMessageHandlers[handler];
+                    _newEventMessageHandlers[handler] = syncEvent;
+
+                    closures.Add((object state) =>
+                    {
+                        prevSyncEvent.WaitOne();
+                        try
+                        {
+                            lock (_newEventMessageThreads)
+                            {
+                                _newEventMessageThreads[syncEvent] = Thread.CurrentThread;
+                            }
+                            handler(newArgs);
+                        }
+                        catch
+                        {
+                        }
+                        finally
+                        {
+                            lock (_newEventMessageThreads)
+                            {
+                                _newEventMessageThreads.Remove(syncEvent);
+                            }
+                        }
+                        syncEvent.Set();
+                    });
+                }
+            }
+
+            if (closures.Count != 0)
+            {
+                try
+                {
+                    foreach (WaitCallback closure in closures)
+                    {
+                        closure(null);
+                    }
+                }
+                catch
+                {
+                }
+                toReturn = (newArgs.Handled
+                    ? EventHandledLevel.IsHandled
+                    : EventHandledLevel.FiredButNotHandled);
+            }
+        }
+
         public static EventHandledLevel FireNewEventMessage(
             string Message,
             EventMessageLevel Level = EventMessageLevel.Minor,
@@ -108,9 +358,29 @@ namespace Cloud.Static
                 && Error.ErrorType == ErrorMessageType.HaltAllOfCloudSDK)
             {
                 Helpers.HaltAllOnUnrecoverableError();
+
+                string stack;
+                try
+                {
+                    stack = (new System.Diagnostics.StackTrace(fNeedFileInfo: true)).ToString();
+                }
+                catch (Exception ex)
+                {
+                    try
+                    {
+                        stack = ex.StackTrace;
+                    }
+                    catch
+                    {
+                        stack = "Unable to retrieve StackTrace";
+                    }
+                }
+
+                CLTrace.Instance.writeToLog(1, "Helpers: HaltAllOnUnrecoverableError: ERROR: Sync engine halted.  Msg: {0}. Error: {1}. Stack trace: {2}.",
+                    Message, Error == null ? "null" : Error.ErrorType.ToString(), stack);
             }
 
-            EventHandledLevel toReturn;
+            EventHandledLevel toReturn = EventHandledLevel.NothingFired;
             
             EventMessageArgs newArgs = new EventMessageArgs(
                 (Error != null
@@ -126,81 +396,27 @@ namespace Cloud.Static
                         SyncboxId,
                         DeviceId)));
 
-            lock (NewEventMessageLocker)
-            {
-                if (_newEventMessage == null)
-                {
-                    toReturn = EventHandledLevel.NothingFired;
-                }
-                else
-                {
-                    try
-                    {
-                        _newEventMessage(newArgs);
-                    }
-                    catch
-                    {
-                    }
-                    toReturn = (newArgs.Handled
-                        ? EventHandledLevel.IsHandled
-                        : EventHandledLevel.FiredButNotHandled);
-                }
-            }
+            FireNewEventMessageInternal(newArgs, ref toReturn);
 
             if (SyncboxId != null
                 && !string.IsNullOrEmpty(DeviceId))
             {
-                string receiverKey = ((long)SyncboxId).ToString() + " " + DeviceId;
-                lock (InternalReceivers)
-                {
-                    IEventMessageReceiver foundReceiver;
-                    if (InternalReceivers.TryGetValue(receiverKey, out foundReceiver))
-                    {
-                        try
-                        {
-                            BasicMessage newArgsMessage = new BasicMessage(newArgs); // informational or error message occurs
-                            foundReceiver.MessageEvents_NewEventMessage(newArgsMessage);
-                            foundReceiver.AddStatusMessage(newArgsMessage);
-                        }
-                        catch
-                        {
-                        }
-
-                        toReturn = (newArgs.Handled
-                            ? EventHandledLevel.IsHandled
-                            : EventHandledLevel.FiredButNotHandled);
-                    }
-                }
+                FireInternalReceiverInternal((long)SyncboxId, DeviceId, newArgs, ref toReturn, 
+                    (IEventMessageReceiver handler, EventMessageArgs newArgs_) => {
+                        BasicMessage newArgsMessage = new BasicMessage(newArgs_); // informational or error message occurs
+                        handler.MessageEvents_NewEventMessage(newArgsMessage);
+                        handler.AddStatusMessage(newArgsMessage);
+                    });
             }
             else if (Error != null
                 && Error.ErrorType == ErrorMessageType.HaltAllOfCloudSDK)
             {
-                bool internalReceiverFired = false;
-
-                lock (InternalReceivers)
-                {
-                    foreach (IEventMessageReceiver currentReceiver in InternalReceivers.Values)
-                    {
-                        try
-                        {
-                            BasicMessage newArgsMessage = new BasicMessage(newArgs); // severe halt all error message
-                            currentReceiver.MessageEvents_NewEventMessage(newArgsMessage);
-                            currentReceiver.AddStatusMessage(newArgsMessage);
-                        }
-                        catch
-                        {
-                        }
-
-                        internalReceiverFired = true;
-                    }
-                }
-
-                if (internalReceiverFired)
-                {
-                    toReturn = (newArgs.Handled
-                        ? EventHandledLevel.IsHandled
-                        : EventHandledLevel.FiredButNotHandled);
-                }
+                FireAllInternalReceiversInternal(newArgs, ref toReturn,
+                    (IEventMessageReceiver handler, EventMessageArgs newArgs_) => {
+                        BasicMessage newArgsMessage = new BasicMessage(newArgs_); // severe halt all error message
+                        handler.MessageEvents_NewEventMessage(newArgsMessage);
+                        handler.AddStatusMessage(newArgsMessage);
+                    });
             }
 
             return toReturn;
@@ -210,7 +426,7 @@ namespace Cloud.Static
             Nullable<long> SyncboxId = null,
             string DeviceId = null)
         {
-            EventHandledLevel toReturn;
+            EventHandledLevel toReturn = EventHandledLevel.NothingFired;
 
             EventMessageArgs newArgs = new EventMessageArgs(
                 new DownloadingCountMessage(
@@ -218,49 +434,15 @@ namespace Cloud.Static
                     SyncboxId,
                     DeviceId));
 
-            lock (NewEventMessageLocker)
-            {
-                if (_newEventMessage == null)
-                {
-                    toReturn = EventHandledLevel.NothingFired;
-                }
-                else
-                {
-                    try
-                    {
-                        _newEventMessage(newArgs);
-                    }
-                    catch
-                    {
-                    }
-                    toReturn = (newArgs.Handled
-                        ? EventHandledLevel.IsHandled
-                        : EventHandledLevel.FiredButNotHandled);
-                }
-            }
+            FireNewEventMessageInternal(newArgs, ref toReturn);
 
             if (SyncboxId != null
                 && !string.IsNullOrEmpty(DeviceId))
             {
-                string receiverKey = ((long)SyncboxId).ToString() + " " + DeviceId;
-                lock (InternalReceivers)
-                {
-                    IEventMessageReceiver foundReceiver;
-                    if (InternalReceivers.TryGetValue(receiverKey, out foundReceiver))
-                    {
-                        try
-                        {
-                            foundReceiver.SetDownloadingCount(new SetCountMessage(newArgs));
-                        }
-                        catch
-                        {
-                        }
-
-                        toReturn = (newArgs.Handled
-                            ? EventHandledLevel.IsHandled
-                            : EventHandledLevel.FiredButNotHandled);
-                    }
-                }
+                FireInternalReceiverInternal((long)SyncboxId, DeviceId, newArgs, ref toReturn,
+                    (IEventMessageReceiver handler, EventMessageArgs newArgs_) => {
+                        handler.SetDownloadingCount(new SetCountMessage(newArgs_));
+                    });
             }
 
             return toReturn;
@@ -270,7 +452,7 @@ namespace Cloud.Static
             Nullable<long> SyncboxId = null,
             string DeviceId = null)
         {
-            EventHandledLevel toReturn;
+            EventHandledLevel toReturn = EventHandledLevel.NothingFired;
 
             EventMessageArgs newArgs = new EventMessageArgs(
                 new UploadingCountMessage(
@@ -278,50 +460,16 @@ namespace Cloud.Static
                     SyncboxId,
                     DeviceId));
 
-            lock (NewEventMessageLocker)
-            {
-                if (_newEventMessage == null)
-                {
-                    toReturn = EventHandledLevel.NothingFired;
-                }
-                else
-                {
-                    try
-                    {
-                        _newEventMessage(newArgs);
-                    }
-                    catch
-                    {
-                    }
-
-                    toReturn = (newArgs.Handled
-                        ? EventHandledLevel.IsHandled
-                        : EventHandledLevel.FiredButNotHandled);
-                }
-            }
+            FireNewEventMessageInternal(newArgs, ref toReturn);
 
             if (SyncboxId != null
                 && !string.IsNullOrEmpty(DeviceId))
             {
-                string receiverKey = ((long)SyncboxId).ToString() + " " + DeviceId;
-                lock (InternalReceivers)
-                {
-                    IEventMessageReceiver foundReceiver;
-                    if (InternalReceivers.TryGetValue(receiverKey, out foundReceiver))
+                FireInternalReceiverInternal((long)SyncboxId, DeviceId, newArgs, ref toReturn,
+                    (IEventMessageReceiver handler, EventMessageArgs newArgs_) =>
                     {
-                        try
-                        {
-                            foundReceiver.SetUploadingCount(new SetCountMessage(newArgs));
-                        }
-                        catch
-                        {
-                        }
-
-                        toReturn = (newArgs.Handled
-                            ? EventHandledLevel.IsHandled
-                            : EventHandledLevel.FiredButNotHandled);
-                    }
-                }
+                        handler.SetUploadingCount(new SetCountMessage(newArgs_));
+                    });
             }
 
             return toReturn;
@@ -331,7 +479,7 @@ namespace Cloud.Static
             Nullable<long> SyncboxId = null,
             string DeviceId = null)
         {
-            EventHandledLevel toReturn;
+            EventHandledLevel toReturn = EventHandledLevel.NothingFired;
 
             EventMessageArgs newArgs = new EventMessageArgs(
                 new SuccessfulDownloadsIncrementedMessage(
@@ -339,50 +487,16 @@ namespace Cloud.Static
                     SyncboxId,
                     DeviceId));
 
-            lock (NewEventMessageLocker)
-            {
-                if (_newEventMessage == null)
-                {
-                    toReturn = EventHandledLevel.NothingFired;
-                }
-                else
-                {
-                    try
-                    {
-                        _newEventMessage(newArgs);
-                    }
-                    catch
-                    {
-                    }
-
-                    toReturn = (newArgs.Handled
-                        ? EventHandledLevel.IsHandled
-                        : EventHandledLevel.FiredButNotHandled);
-                }
-            }
+            FireNewEventMessageInternal(newArgs, ref toReturn);
 
             if (SyncboxId != null
                 && !string.IsNullOrEmpty(DeviceId))
             {
-                string receiverKey = ((long)SyncboxId).ToString() + " " + DeviceId;
-                lock (InternalReceivers)
-                {
-                    IEventMessageReceiver foundReceiver;
-                    if (InternalReceivers.TryGetValue(receiverKey, out foundReceiver))
+                FireInternalReceiverInternal((long)SyncboxId, DeviceId, newArgs, ref toReturn,
+                    (IEventMessageReceiver handler, EventMessageArgs newArgs_) =>
                     {
-                        try
-                        {
-                            foundReceiver.IncrementDownloadedCount(new IncrementCountMessage(newArgs));
-                        }
-                        catch
-                        {
-                        }
-
-                        toReturn = (newArgs.Handled
-                            ? EventHandledLevel.IsHandled
-                            : EventHandledLevel.FiredButNotHandled);
-                    }
-                }
+                        handler.IncrementDownloadedCount(new IncrementCountMessage(newArgs_));
+                    });
             }
 
             return toReturn;
@@ -392,7 +506,7 @@ namespace Cloud.Static
             Nullable<long> SyncboxId = null,
             string DeviceId = null)
         {
-            EventHandledLevel toReturn;
+            EventHandledLevel toReturn = EventHandledLevel.NothingFired;
 
             EventMessageArgs newArgs = new EventMessageArgs(
                 new SuccessfulUploadsIncrementedMessage(
@@ -400,50 +514,16 @@ namespace Cloud.Static
                     SyncboxId,
                     DeviceId));
 
-            lock (NewEventMessageLocker)
-            {
-                if (_newEventMessage == null)
-                {
-                    toReturn = EventHandledLevel.NothingFired;
-                }
-                else
-                {
-                    try
-                    {
-                        _newEventMessage(newArgs);
-                    }
-                    catch
-                    {
-                    }
-
-                    toReturn = (newArgs.Handled
-                        ? EventHandledLevel.IsHandled
-                        : EventHandledLevel.FiredButNotHandled);
-                }
-            }
+            FireNewEventMessageInternal(newArgs, ref toReturn);
 
             if (SyncboxId != null
                 && !string.IsNullOrEmpty(DeviceId))
             {
-                string receiverKey = ((long)SyncboxId).ToString() + " " + DeviceId;
-                lock (InternalReceivers)
-                {
-                    IEventMessageReceiver foundReceiver;
-                    if (InternalReceivers.TryGetValue(receiverKey, out foundReceiver))
+                FireInternalReceiverInternal((long)SyncboxId, DeviceId, newArgs, ref toReturn,
+                    (IEventMessageReceiver handler, EventMessageArgs newArgs_) =>
                     {
-                        try
-                        {
-                            foundReceiver.IncrementUploadedCount(new IncrementCountMessage(newArgs));
-                        }
-                        catch
-                        {
-                        }
-
-                        toReturn = (newArgs.Handled
-                            ? EventHandledLevel.IsHandled
-                            : EventHandledLevel.FiredButNotHandled);
-                    }
-                }
+                        handler.IncrementUploadedCount(new IncrementCountMessage(newArgs_));
+                    });
             }
 
             return toReturn;
@@ -454,7 +534,7 @@ namespace Cloud.Static
             Nullable<long> SyncboxId = null,
             string DeviceId = null)
         {
-            EventHandledLevel toReturn;
+            EventHandledLevel toReturn = EventHandledLevel.NothingFired;
 
             EventMessageArgs newArgs = new EventMessageArgs(
                 new UploadProgressMessage(
@@ -463,50 +543,16 @@ namespace Cloud.Static
                     SyncboxId,
                     DeviceId));
 
-            lock (NewEventMessageLocker)
-            {
-                if (_newEventMessage == null)
-                {
-                    toReturn = EventHandledLevel.NothingFired;
-                }
-                else
-                {
-                    try
-                    {
-                        _newEventMessage(newArgs);
-                    }
-                    catch
-                    {
-                    }
-
-                    toReturn = (newArgs.Handled
-                        ? EventHandledLevel.IsHandled
-                        : EventHandledLevel.FiredButNotHandled);
-                }
-            }
+            FireNewEventMessageInternal(newArgs, ref toReturn);
 
             if (SyncboxId != null
                 && !string.IsNullOrEmpty(DeviceId))
             {
-                string receiverKey = ((long)SyncboxId).ToString() + " " + DeviceId;
-                lock (InternalReceivers)
-                {
-                    IEventMessageReceiver foundReceiver;
-                    if (InternalReceivers.TryGetValue(receiverKey, out foundReceiver))
+                FireInternalReceiverInternal((long)SyncboxId, DeviceId, newArgs, ref toReturn,
+                    (IEventMessageReceiver handler, EventMessageArgs newArgs_) =>
                     {
-                        try
-                        {
-                            foundReceiver.UpdateFileUpload(new TransferUpdateMessage(newArgs));
-                        }
-                        catch
-                        {
-                        }
-
-                        toReturn = (newArgs.Handled
-                            ? EventHandledLevel.IsHandled
-                            : EventHandledLevel.FiredButNotHandled);
-                    }
-                }
+                        handler.UpdateFileUpload(new TransferUpdateMessage(newArgs_));
+                    });
             }
 
             return toReturn;
@@ -517,7 +563,7 @@ namespace Cloud.Static
             Nullable<long> SyncboxId = null,
             string DeviceId = null)
         {
-            EventHandledLevel toReturn;
+            EventHandledLevel toReturn = EventHandledLevel.NothingFired;
 
             EventMessageArgs newArgs = new EventMessageArgs(
                 new DownloadProgressMessage(
@@ -526,57 +572,46 @@ namespace Cloud.Static
                     SyncboxId,
                     DeviceId));
 
-            lock (NewEventMessageLocker)
-            {
-                if (_newEventMessage == null)
-                {
-                    toReturn = EventHandledLevel.NothingFired;
-                }
-                else
-                {
-                    try
-                    {
-                        _newEventMessage(newArgs);
-                    }
-                    catch
-                    {
-                    }
-
-                    toReturn = (newArgs.Handled
-                        ? EventHandledLevel.IsHandled
-                        : EventHandledLevel.FiredButNotHandled);
-                }
-            }
+            FireNewEventMessageInternal(newArgs, ref toReturn);
 
             if (SyncboxId != null
                 && !string.IsNullOrEmpty(DeviceId))
             {
-                string receiverKey = ((long)SyncboxId).ToString() + " " + DeviceId;
-                lock (InternalReceivers)
-                {
-                    IEventMessageReceiver foundReceiver;
-                    if (InternalReceivers.TryGetValue(receiverKey, out foundReceiver))
+                FireInternalReceiverInternal((long)SyncboxId, DeviceId, newArgs, ref toReturn,
+                    (IEventMessageReceiver handler, EventMessageArgs newArgs_) =>
                     {
-                        try
-                        {
-                            foundReceiver.UpdateFileDownload(new TransferUpdateMessage(newArgs));
-                        }
-                        catch
-                        {
-                        }
-
-                        toReturn = (newArgs.Handled
-                            ? EventHandledLevel.IsHandled
-                            : EventHandledLevel.FiredButNotHandled);
-                    }
-                }
+                        handler.UpdateFileDownload(new TransferUpdateMessage(newArgs_));
+                    });
             }
+
+            return toReturn;
+        }
+        public static EventHandledLevel DetectedInternetConnectivityChange(
+            bool internetConnected)
+        {
+            EventHandledLevel toReturn = EventHandledLevel.NothingFired;
+
+            EventMessageArgs newArgs = new EventMessageArgs(
+                new InternetChangeMessage(internetConnected));
+
+            FireNewEventMessageInternal(newArgs, ref toReturn);
+
+            FireAllInternalReceiversInternal(newArgs, ref toReturn,
+                (IEventMessageReceiver handler, EventMessageArgs newArgs_) =>
+                {
+                    handler.InternetConnectivityChanged(new InternetConnectivityMessage(newArgs_));
+                });
 
             return toReturn;
         }
         #endregion
 
+
         #region internal events
+
+        // Note: Internal events do not have to be as generic and protected as the external 
+        //      since the implementation has full visibility and control on their use
+
         internal static event EventHandler<SetBadgeQueuedArgs> PathStateChanged
         {
             add

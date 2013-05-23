@@ -8,8 +8,8 @@
 // Back end definitions
 // @@@@@@@@@ AUTO-BUILD SECTION.  DON'T CHANGE THE FORMAT @@@@@@@@@@@@@@@@@
 //#define PRODUCTION_BACKEND    // cloud.com
-#define DEVELOPMENT_BACKEND     // cliff.cloudburrito.com
-//#define STAGING_BACKEND       // cloudstaging.us
+//#define DEVELOPMENT_BACKEND     // cliff.cloudburrito.com
+#define STAGING_BACKEND       // cloudstaging.us
 // @@@@@@@@@ END AUTO-BUILD SECTION.  DON'T CHANGE THE FORMAT @@@@@@@@@@@@@@@@@
 
 // URL definitions
@@ -35,7 +35,7 @@ namespace Cloud.Static
         // Define the subdomain
 #if URL_API
         public const string SubDomainPrefix = "api.";
-        public const string CloudAppSubDomainPrefix = "cloudapp.";
+        public const string CloudAppSubDomainPrefix = "cloudapp."; 
 #else
         public const string SubDomainPrefix = "";
         public const string CloudAppSubDomainPrefix = "cloudapp";
@@ -170,6 +170,14 @@ namespace Cloud.Static
         #region Notification operations
         public const string MethodPathPushSubscribe = VersionPrefix + "/sync/notifications/subscribe";                  // GET
         public const string MethodPathPushUnsubscribe = VersionPrefix + "/sync/notifications/unsubscribe";              // POST
+        #endregion
+
+        #region Attributes
+        internal const string EnumCategory_EnumCategories = "EnumCategories";
+        internal const string SqlEnum_Events = "Events";
+        internal const string EnumCategory_Enum = "Enums";
+        internal const string FileSystemObjects = "FileSystemObjects";
+        internal const string Sync_Syncs = "Syncs";
         #endregion
 
         #region Platform Management operations
@@ -475,6 +483,16 @@ namespace Cloud.Static
             CLEventTypeModifyLink
         };
 
+        public static readonly string[] SyncHeaderIsLinks =
+        {
+            CLEventTypeDeleteLink,
+            CLEventTypeAddLink,
+            CLEventTypeCopyLink,
+            CLEventTypeRenameLink,
+            CLEventTypeMoveLink,
+            CLEventTypeModifyLink
+        };
+
         // Syncbox
         public const string CLSyncboxClientAppId = "client_application_id";
         public const string CLSyncboxCreatedAt = "created_at";
@@ -495,6 +513,7 @@ namespace Cloud.Static
         public const string CLEventTypeConflict = "conflict";
         public const string CLEventTypeNotFound = "not_found";
         public const string CLEventTypeDownload = "download";
+        public const string CLEventTypeToParentNotFound = "to_parent_not_found";
 
         // Cloud Metadata Protocol
         public const string CLMetadataFileObject = "file_object";
@@ -527,9 +546,11 @@ namespace Cloud.Static
         public const string CLMetadataMimeType = "mime_type";
         public const string CLMetadataIcon = "icon";
         public const string CLMetadataVersion = "version";
+        public const string CLMetadataVersions = "versions";
         public const string CLMetadataFiles = "files";
         public const string CLMetadataFile = "file";
         public const string CLMetadataServerId = "uid";
+        public const string CLMetadataFileDownloadServerUid = "file_uid";
         public const string CLMetadataTotalCount = "total_count";
         public const string CLMetadataIsStored = "is_stored";
         public const string CLMetadataLocal = "local";
@@ -583,7 +604,7 @@ namespace Cloud.Static
 
         // REST Request fields
         public const string RESTRequestFileOrFolderMoves = "moves";
-        public const string RESTRequestFileOrFolderDeletes = "paths";
+        public const string RESTRequestFileOrFolderDeletes = "uids";
         public const string RESTRequestFolderAdds = "folders";
         public const string RESTRequestFileAdds = "files";
 
@@ -627,7 +648,7 @@ namespace Cloud.Static
         public const string RESTResponsePlan_ApplicationPlanTierId = "application_plan_tier_id";
         public const string RESTResponsePlan_PlanName = "plan_name";
         public const string RESTResponsePlan_MaxTransferBytes = "max_transfer_bytes";
-        public const string RESTResponsePlan_StorageSize = "storage_size";
+        public const string RESTResponsePlan_StorageSize = "storage_size_bytes";
         public const string RESTResponsePlan_IsDefault = "is_default";
         public const string RESTResponsePlan_CreatedAt = "created_at";
         public const string RESTResponsePlan_UpdatedAt = "updated_at";

@@ -218,8 +218,8 @@ namespace CloudApiPrivate.Static
         /// <param name="source">The source string.</param> 
         /// <returns>string[].  The path components array.</returns> 
         /// Call like this:
-        /// string [] myPathComponents = sourceString.PathComponents();
-        public static string [] PathComponents(this string source)
+        /// string[] myPathComponents = sourceString.PathComponents();
+        public static string[] PathComponents(this string source)
         {
             var separators = new char[] {
                 Path.DirectorySeparatorChar,

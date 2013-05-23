@@ -147,7 +147,7 @@ enum CLExceptionCode inherits UInt64
         Syncbox_DeviceId = (((ulong)CLExceptionDomain.Syncbox) << 32) | 5, // 2_5
 
         /// <summary>
-        /// SyncRoot too long; check path first with Cloud.Static.Helpers.CheckSyncRootLength
+        /// SyncRoot too long; check path first with Cloud.Static.Helpers.CheckSyncboxPathLength
         /// </summary>
         Syncbox_LongSyncRoot = (((ulong)CLExceptionDomain.Syncbox) << 32) | 6, // 2_6
 

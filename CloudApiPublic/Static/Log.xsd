@@ -38,6 +38,13 @@
                 </xs:documentation>
               </xs:annotation>
             </xs:enumeration>
+            <xs:enumeration value="8">
+              <xs:annotation>
+                <xs:documentation>
+                  Server UID and Revision changed
+                </xs:documentation>
+              </xs:annotation>
+            </xs:enumeration>
             <!-- Add more types of trace logs here, make them all bases of 2 unless they represent a combination of base 2 types -->
           </xs:restriction>
         </xs:simpleType>
@@ -100,7 +107,12 @@
               <xs:restriction base="xs:string">
                 <xs:enumeration value="FileMonitorAddingToQueuedChanges" />
                 <xs:enumeration value="FileMonitorAddingBatchToSQL" />
+                <xs:enumeration value="FileMonitorAlreadyRemovedFileChanges" />
                 <xs:enumeration value="SyncRunInitialErrors" />
+                <xs:enumeration value="FileMonitorGrabPreprocessedQueuedChanges" />
+                <xs:enumeration value="FileMonitorGrabPreprocessedFailureQueue" />
+                <xs:enumeration value="FileMonitorGrabPreprocessedProcessingChanges" />
+                <xs:enumeration value="FileMonitorGrabPreprocessedFailedOutList" />
                 <xs:enumeration value="GrabChangesQueuedChangesAddedToSQL" />
                 <xs:enumeration value="GrabChangesOutputChanges" />
                 <xs:enumeration value="GrabChangesOutputChangesInError" />
@@ -114,6 +126,9 @@
                 <xs:enumeration value="CommunicationIncompletedChanges" />
                 <xs:enumeration value="CommunicationChangesInError" />
                 <xs:enumeration value="SyncRunPostCommunicationDequeuedFailures" />
+                <xs:enumeration value="FileMonitorAssignDependenciesFailureQueue" />
+                <xs:enumeration value="FileMonitorAssignDependenciesProcessingChanges" />
+                <xs:enumeration value="FileMonitorAssignDependenciesFailedOutList" />
                 <xs:enumeration value="DependencyAssignmentOutputChanges" />
                 <xs:enumeration value="DependencyAssignmentTopLevelErrors" />
                 <xs:enumeration value="SyncRunPostCommunicationSynchronous" />
@@ -136,6 +151,22 @@
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>
+  <xs:complexType name="ServerUidRevisionEntry">
+    <xs:annotation>
+      <xs:documentation>
+        Corresponds to Type "8"
+      </xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="Entry">
+        <xs:sequence>
+          <xs:element name="ServerUidId" minOccurs="1" maxOccurs="1" type="xs:long" />
+          <xs:element name="ServerUid" minOccurs="0" maxOccurs="1" type="xs:string" />
+          <xs:element name="Revision" minOccurs="0" maxOccurs="1" type="xs:string" />
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
   <xs:complexType name="Copyright">
     <xs:sequence>
       <xs:element name="FileName" minOccurs="0" maxOccurs="1" type="xs:string" />
@@ -151,8 +182,8 @@
   </xs:complexType>
   <xs:complexType name="TraceFileChange">
     <xs:all>
-      <xs:element name="ServerUid" minOccurs="0" maxOccurs="1" type="xs:string" />
       <xs:element name="EventId" minOccurs="0" maxOccurs="1" type="xs:long" />
+      <xs:element name="ServerUidId" minOccurs="1" maxOccurs="1" type="xs:long" />
       <xs:element name="NewPath" minOccurs="1" maxOccurs="1" type="xs:string" />
       <xs:element name="OldPath" minOccurs="0" maxOccurs="1" type="xs:string" />
       <xs:element name="IsFolder" minOccurs="1" maxOccurs="1" type="xs:boolean" />
