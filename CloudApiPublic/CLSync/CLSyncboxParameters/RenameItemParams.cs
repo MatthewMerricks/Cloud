@@ -5,6 +5,8 @@
 // Created By BobS.
 // Copyright (c) Cloud.com. All rights reserved.
 
+using Cloud.Model;
+using Cloud.Static;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -48,6 +50,15 @@ namespace Cloud.CLSync.CLSyncboxParameters
         /// <param name="newName">New name of the item</param>
         public RenameItemParams(CLFileItem itemToRename, string newName)
         {
+            if (itemToRename == null)
+            {
+                throw new CLArgumentNullException(Static.CLExceptionCode.OnDemand_RenameMissingParameters, Resources.ExceptionOnDemandItemToRenameMustNotBeNull);
+            }
+            if (String.IsNullOrWhiteSpace(newName))
+            {
+                throw new CLArgumentNullException(Static.CLExceptionCode.OnDemand_RenameMissingParameters, Resources.ExceptionOnDemandNewNameMustBeSpecified);
+            }
+
             this._itemToRename = itemToRename;
             this._newName = newName;
         }

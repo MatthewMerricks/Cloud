@@ -147,14 +147,14 @@
     <Compile Include="Interfaces\IEventMessageReceiver.cs" />
     <Compile Include="Interfaces\ITransferTaskState.cs" />
     <Compile Include="JsonContracts\Archives.cs" />
+    <Compile Include="JsonContracts\SyncboxDeleteFoldersResponse.cs" />
     <Compile Include="JsonContracts\FileAdds.cs" />
-    <Compile Include="JsonContracts\FileDeleteRequest.cs" />
     <Compile Include="JsonContracts\FileVersions.cs" />
     <Compile Include="JsonContracts\SyncboxAddFilesResponse.cs" />
     <Compile Include="JsonContracts\SyncboxAddFoldersResponse.cs" />
     <Compile Include="JsonContracts\FolderAdds.cs" />
     <Compile Include="JsonContracts\SyncboxDeleteFilesResponse.cs" />
-    <Compile Include="JsonContracts\FileOrFolderDeletes.cs" />
+    <Compile Include="JsonContracts\FileOrFolderDeletesRequest.cs" />
     <Compile Include="JsonContracts\FileOrFolderMoves.cs" />
     <Compile Include="JsonContracts\SyncboxMoveFilesOrFoldersResponse.cs" />
     <Compile Include="JsonContracts\SyncboxGetAllArchiveItemsResponse.cs" />
@@ -203,7 +203,7 @@
     <Compile Include="JsonContracts\StoragePlanResponse.cs" />
     <Compile Include="JsonContracts\FileAdd.cs" />
     <Compile Include="JsonContracts\FileCopy.cs" />
-    <Compile Include="JsonContracts\FileOrFolderDelete.cs" />
+    <Compile Include="JsonContracts\FileOrFolderDeleteRequest.cs" />
     <Compile Include="JsonContracts\FileModify.cs" />
     <Compile Include="JsonContracts\FileOrFolderMove.cs" />
     <Compile Include="JsonContracts\FileOrFolderUndelete.cs" />

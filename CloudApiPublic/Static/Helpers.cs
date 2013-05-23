@@ -2609,9 +2609,8 @@ namespace Cloud.Static
             { typeof(JsonContracts.FileAdd), JsonContractHelpers.FileAddSerializer },
             { typeof(JsonContracts.FileModify), JsonContractHelpers.FileModifySerializer },
 
-            { typeof(JsonContracts.FileOrFolderDelete), JsonContractHelpers.FileOrFolderDeleteSerializer },
-            { typeof(JsonContracts.FileOrFolderDeletes), JsonContractHelpers.FileOrFolderDeletesSerializer },
-            { typeof(JsonContracts.FileDeleteRequest), JsonContractHelpers.FileDeleteRequestSerializer },
+            { typeof(JsonContracts.FileOrFolderDeleteRequest), JsonContractHelpers.FileOrFolderDeleteSerializer },
+            { typeof(JsonContracts.FileOrFolderDeletesRequest), JsonContractHelpers.FileOrFolderDeletesSerializer },
             { typeof(JsonContracts.FileOrFolderMove), JsonContractHelpers.FileOrFolderMoveSerializer },
             { typeof(JsonContracts.FileOrFolderMoves), JsonContractHelpers.FileOrFolderMovesSerializer },
             { typeof(JsonContracts.FileOrFolderUndelete), JsonContractHelpers.FileOrFolderUndeleteSerializer },
@@ -2680,6 +2679,7 @@ namespace Cloud.Static
             { typeof(JsonContracts.SyncboxAuthResponse), JsonContractHelpers.SyncboxAuthResponseSerializer},
             { typeof(JsonContracts.LinkDeviceResponse), JsonContractHelpers.LinkDeviceResponseSerializer},
             { typeof(JsonContracts.UnlinkDeviceResponse), JsonContractHelpers.UnlinkDeviceResponseSerializer},
+            { typeof(JsonContracts.SyncboxDeleteFoldersResponse), JsonContractHelpers.SyncboxDeleteFoldersResponseSerializer},
             #endregion
         };
         #endregion

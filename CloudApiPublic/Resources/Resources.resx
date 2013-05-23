@@ -1575,4 +1575,26 @@
     <value>Error on SetMD5 from MD5 of an existing change</value>
     <comment>SetMD5 and MD5 should not be translated</comment>
   </data>
+  <data name="ExceptionCLHttpRestWithoutDeleteResponses" xml:space="preserve">
+    <value>Server responded without an array of delete responses</value>
+  </data>
+  <data name="ExceptionCLHttpRestWithoutRenameResponses" xml:space="preserve">
+    <value>Server responded without an array of rename responses</value>
+  </data>
+  <data name="ExceptionOnDemandFileItemNullAtIndexMsg0" xml:space="preserve">
+    <value>File item must not be null at item index {0}</value>
+    <comment>Do not translate "{0}.</comment>
+  </data>
+  <data name="ExceptionOnDemandFolderItemNullAtIndexMsg0" xml:space="preserve">
+    <value>Folder item must not be null at item index {0}</value>
+    <comment>Do not translate "{0}.</comment>
+  </data>
+  <data name="ExceptionOnDemandItemToRenameMustNotBeNull" xml:space="preserve">
+    <value>itemToRename must not be null</value>
+    <comment>Do not translate "itemToRename".</comment>
+  </data>
+  <data name="ExceptionOnDemandNewNameMustBeSpecified" xml:space="preserve">
+    <value>newName must be specified</value>
+    <comment>Do not translate "newName".</comment>
+  </data>
 </root>

@@ -296,7 +296,7 @@ namespace Cloud.JsonContracts
                 lock (FileOrFolderDeleteSerializerLocker)
                 {
                     return _fileOrFolderDeleteSerializer
-                        ?? (_fileOrFolderDeleteSerializer = new DataContractJsonSerializer(typeof(JsonContracts.FileOrFolderDelete)));
+                        ?? (_fileOrFolderDeleteSerializer = new DataContractJsonSerializer(typeof(JsonContracts.FileOrFolderDeleteRequest)));
                 }
             }
         }
@@ -311,26 +311,12 @@ namespace Cloud.JsonContracts
                 lock (FileOrFolderDeletesSerializerLocker)
                 {
                     return _fileOrFolderDeletesSerializer
-                        ?? (_fileOrFolderDeletesSerializer = new DataContractJsonSerializer(typeof(JsonContracts.FileOrFolderDeletes)));
+                        ?? (_fileOrFolderDeletesSerializer = new DataContractJsonSerializer(typeof(JsonContracts.FileOrFolderDeletesRequest)));
                 }
             }
         }
         private static DataContractJsonSerializer _fileOrFolderDeletesSerializer = null;
         private static readonly object FileOrFolderDeletesSerializerLocker = new object();
-
-        public static DataContractJsonSerializer FileDeleteRequestSerializer
-        {
-            get
-            {
-                lock (FileDeleteRequestSerializerLocker)
-                {
-                    return _fileDeleteRequestSerializer
-                        ?? (_fileDeleteRequestSerializer = new DataContractJsonSerializer(typeof(JsonContracts.FileDeleteRequest)));
-                }
-            }
-        }
-        private static DataContractJsonSerializer _fileDeleteRequestSerializer = null;
-        private static readonly object FileDeleteRequestSerializerLocker = new object();
 
         public static DataContractJsonSerializer FileOrFolderMoveSerializer
         {
@@ -982,6 +968,20 @@ namespace Cloud.JsonContracts
         }
         private static DataContractJsonSerializer _unlinkDeviceResponseSerializer = null;
         private static readonly object UnlinkDeviceResponseSerializerLocker = new object();
+
+        public static DataContractJsonSerializer SyncboxDeleteFoldersResponseSerializer
+        {
+            get
+            {
+                lock (SyncboxDeleteFoldersResponseSerializerLocker)
+                {
+                    return _syncboxDeleteFoldersResponseSerializer
+                        ?? (_syncboxDeleteFoldersResponseSerializer = new DataContractJsonSerializer(typeof(JsonContracts.SyncboxDeleteFoldersResponse)));
+                }
+            }
+        }
+        private static DataContractJsonSerializer _syncboxDeleteFoldersResponseSerializer = null;
+        private static readonly object SyncboxDeleteFoldersResponseSerializerLocker = new object();
         #endregion
     }
 }
