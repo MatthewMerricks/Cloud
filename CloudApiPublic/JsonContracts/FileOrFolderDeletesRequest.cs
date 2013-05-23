@@ -16,13 +16,13 @@ using System.Text;
 namespace Cloud.JsonContracts
 {
     [DataContract]
-    internal sealed class FileOrFolderDeletes
+    internal sealed class FileOrFolderDeletesRequest
     {
         [DataMember(Name = CLDefinitions.QueryStringDeviceId, IsRequired = false)]
         public string DeviceId { get; set; }
 
         [DataMember(Name = CLDefinitions.RESTRequestFileOrFolderDeletes, IsRequired = false)]
-        public FileOrFolderDelete [] Deletes { get; set; }
+        public FileOrFolderDeleteRequest [] Deletes { get; set; }
 
         [DataMember(Name = CLDefinitions.QueryStringSyncboxId, IsRequired = false)]
         public Nullable<long> SyncboxId { get; set; }

@@ -267,7 +267,7 @@ namespace Cloud
         private readonly long _syncboxId;
 
         /// <summary>
-        /// The friendly name of this Syncbox in the cloud.
+        /// The friendly name of this Syncbox in the syncbox.
         /// </summary>
         public string FriendlyName
         {
@@ -1073,10 +1073,10 @@ namespace Cloud
 
         #region Public Static HTTP REST Methods
 
-        #region CreateSyncbox (create a syncbox in the cloud)
+        #region CreateSyncbox (create a syncbox in the syncbox)
 
         /// <summary>
-        /// Asynchronously starts creating a new Syncbox in the cloud.
+        /// Asynchronously starts creating a new Syncbox in the syncbox.
         /// </summary>
         /// <param name="callback">Callback method to fire when operation completes.  Can be null.</param>
         /// <param name="callbackUserState">Userstate to pass to the callback when it is fired.  Can be null.</param>
@@ -1168,7 +1168,7 @@ namespace Cloud
         }
 
         /// <summary>
-        /// Finishes creating a Syncbox in the cloud, if it has not already finished via its asynchronous result, and outputs the result,
+        /// Finishes creating a Syncbox in the syncbox, if it has not already finished via its asynchronous result, and outputs the result,
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
         /// </summary>
         /// <param name="aResult">The asynchronous result provided upon starting creating the syncbox</param>
@@ -1180,7 +1180,7 @@ namespace Cloud
         }
 
         /// <summary>
-        /// Create a Syncbox in the cloud for the current application.  This is a synchronous method.
+        /// Create a Syncbox in the syncbox for the current application.  This is a synchronous method.
         /// </summary>
         /// <param name="plan">The storage plan to use with this Syncbox.</param>
         /// <param name="credentials">The credentials to use for this request.</param>
@@ -1279,10 +1279,10 @@ namespace Cloud
         }
         #endregion
 
-        #region DeleteSyncbox (delete a syncbox in the cloud)
+        #region DeleteSyncbox (delete a syncbox in the syncbox)
 
         /// <summary>
-        /// Asynchronously starts deleting a new Syncbox in the cloud.
+        /// Asynchronously starts deleting a new Syncbox in the syncbox.
         /// </summary>
         /// <param name="callback">Callback method to fire when operation completes.  Can be null.</param>
         /// <param name="callbackUserState">Userstate to pass as a parameter to the callback when it is fired.  Can be null.</param>
@@ -1349,7 +1349,7 @@ namespace Cloud
         }
 
         /// <summary>
-        /// Finishes deleting a Syncbox in the cloud, if it has not already finished via its asynchronous result, and outputs the result,
+        /// Finishes deleting a Syncbox in the syncbox, if it has not already finished via its asynchronous result, and outputs the result,
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
         /// </summary>
         /// <param name="aResult">The asynchronous result provided upon starting the asynchronous operation</param>
@@ -1361,7 +1361,7 @@ namespace Cloud
         }
 
         /// <summary>
-        /// Delete a Syncbox in the cloud.  This is a synchronous method.
+        /// Delete a Syncbox in the syncbox.  This is a synchronous method.
         /// </summary>
         /// <param name="syncboxId">the ID of the syncbox to delete.
         /// <param name="credentials">The credentials to use for this request.</param>
@@ -1413,10 +1413,10 @@ namespace Cloud
         }
         #endregion
 
-        #region ListAllSyncboxesWithCredentials (list syncboxes in the cloud)
+        #region ListAllSyncboxesWithCredentials (list syncboxes in the syncbox)
 
         /// <summary>
-        /// Asynchronously starts listing syncboxes in the cloud.
+        /// Asynchronously starts listing syncboxes in the syncbox.
         /// </summary>
         /// <param name="callback">Callback method to fire when operation completes.  Can be null.</param>
         /// <param name="callbackUserState">Userstate to pass as a parameter to the callback when it is fired.  Can be null.</param>
@@ -1479,7 +1479,7 @@ namespace Cloud
         }
 
         /// <summary>
-        /// Finishes listing syncboxes in the cloud, if it has not already finished via its asynchronous result, and outputs the result,
+        /// Finishes listing syncboxes in the syncbox, if it has not already finished via its asynchronous result, and outputs the result,
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
         /// </summary>
         /// <param name="aResult">The asynchronous result provided upon starting the asynchronous operation</param>
@@ -1492,7 +1492,7 @@ namespace Cloud
         }
 
         /// <summary>
-        /// List syncboxes in the cloud for these credentials.  This is a synchronous method.
+        /// List syncboxes in the syncbox for these credentials.  This is a synchronous method.
         /// </summary>
         /// <param name="credentials">The credentials to use for this request.</param>
         /// <param name="response">(output) response object from communication</param>
@@ -1563,7 +1563,7 @@ namespace Cloud
             }
             return null;
         }
-        #endregion  // end List (list syncboxes in the cloud)
+        #endregion  // end List (list syncboxes in the syncbox)
 
         #endregion  // end Public Static HTTP REST Methods
 
@@ -1638,400 +1638,116 @@ namespace Cloud
 
         #endregion  // end GetItemAtPath (Queries the cloud for the item at a particular path)
 
-        #region RenameFile (Renames a file in the cloud)
+        #region RenameFiles (Rename files in-place in the syncbox)
         /// <summary>
-        /// Asynchronously starts renaming a file in the cloud; outputs a CLFileItem object.
+        /// Asynchronously starts renaming files in-place in the syncbox.  Each item completion will fire an asynchronous callback with the completion status or error for that item.
         /// </summary>
-        /// <param name="callback">Callback method to fire when the async operation completes.</param>
-        /// <param name="callbackUserState">Userstate to pass when firing async callback above.</param>
-        /// <param name="itemToRename">The file item to rename.</param>
-        /// <param name="newName">The new name of the file (just the filename.ext).</param>
-        /// <param name="completionCallback">Delegate which will be fired upon successful communication for the response item</param>
-        /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion delegate is fired</param>
+        /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
+        /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
+        /// <param name="itemCompletionCallback">Delegate which will be fired upon successful communication for every response item.</param>
+        /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the completion delegate is fired.</param>
+        /// <param name="itemsToRename">One or more pairs of items to rename and the new name of each item (just the filename.ext).</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginRenameFile(AsyncCallback callback, object callbackUserState, CLFileItem itemToRename, string newName, CLFileItemCompletion completionCallback, object completionCallbackUserState)
+        public IAsyncResult BeginRenameFiles(AsyncCallback asyncCallback, object asyncCallbackUserState, CLFileItemCompletion itemCompletionCallback, object itemCompletionCallbackUserState, params RenameItemParams[] itemsToRename)
         {
             CheckDisposed(true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.BeginRenameFiles(callback, callbackUserState, new[] { new RenameItemParams(itemToRename, newName) }, completionCallback, completionCallbackUserState);
+            return httpRestClient.BeginRenameFiles(asyncCallback, asyncCallbackUserState, itemCompletionCallback, itemCompletionCallbackUserState, itemsToRename);
         }
 
         /// <summary>
-        /// Finishes renaming a file in the cloud, if it has not already finished via its asynchronous result, and outputs the result,
+        /// Finishes renaming files in-place in the syncbox, if it has not already finished via its asynchronous result, and outputs the result,
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
         /// </summary>
-        /// <param name="aResult">The asynchronous result provided upon starting the metadata query</param>
+        /// <param name="asyncResult">The asynchronous result provided upon starting the metadata query</param>
         /// <param name="result">(output) An overall error which occurred during processing, if any</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndRenameFile(IAsyncResult aResult, out SyncboxRenameFilesResult result)
+        public CLError EndRenameFiles(IAsyncResult asyncResult, out SyncboxRenameFilesResult result)
         {
             CheckDisposed(true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.EndRenameFiles(aResult, out result);
+            return httpRestClient.EndRenameFiles(asyncResult, out result);
         }
 
         /// <summary>
-        /// Renames a file in the cloud.
+        /// Renames files in-place in the syncbox.  Each item completion will fire an asynchronous callback with the completion status or error for that item.
         /// </summary>
-        /// <param name="itemToRename">The file item to rename.</param>
-        /// <param name="newName">The new name of the file (just the filename.ext).</param>
-        /// <param name="completionCallback">Delegate which will be fired upon successful communication for the response item</param>
-        /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion delegate is fired</param>
+        /// <param name="itemCompletionCallback">Delegate which will be fired upon successful communication for every response item.</param>
+        /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the completion delegate is fired.</param>
+        /// <param name="itemsToRename">One or more pairs of items to rename and the new name of each item (just the filename.ext).</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError RenameFile(CLFileItem itemToRename, string newName, CLFileItemCompletion completionCallback, object completionCallbackUserState)
+        public CLError RenameFiles(CLFileItemCompletion itemCompletionCallback, object itemCompletionCallbackUserState, params RenameItemParams[] itemsToRename)
         {
             CheckDisposed(true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.RenameFiles(new[] { new RenameItemParams(itemToRename, newName) }, completionCallback, completionCallbackUserState);
+            return httpRestClient.RenameFiles(itemCompletionCallback, itemCompletionCallbackUserState, itemsToRename);
         }
 
-        #endregion  // end GetItemAtPath (Queries the cloud for the item at a particular path)
+        #endregion  // end RenameFiles (Rename files in-place in the syncbox)
 
-        #region RenameFiles (Rename files in the cloud)
+        #region RenameFolders (Rename folders in-place in the syncbox)
         /// <summary>
-        /// Asynchronously starts renaming files in the cloud.  Each item completion will fire an asynchronous callback with the completion status or error for that item.
+        /// Asynchronously starts renaming folders in-place in the syncbox.  Each item completion will fire an asynchronous callback with the completion status or error for that item.
         /// </summary>
-        /// <param name="callback">Callback method to fire when the async operation completes.</param>
-        /// <param name="callbackUserState">Userstate to pass when firing the async callback above.</param>
-        /// <param name="itemsToRename">An array of pairs of items to rename and the new name of each item (just the filename.ext).</param>
-        /// <param name="completionCallback">Delegate which will be fired upon successful communication for every response item.</param>
-        /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion delegate is fired.</param>
+        /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
+        /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
+        /// <param name="itemCompletionCallback">Delegate which will be fired upon successful communication for every response item.</param>
+        /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the completion delegate is fired.</param>
+        /// <param name="itemsToRename">One or more pairs of items to rename and the new name of each item (just the last token in the path).</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginRenameFiles(AsyncCallback callback, object callbackUserState, RenameItemParams[] itemsToRename, CLFileItemCompletion completionCallback, object completionCallbackUserState)
+        public IAsyncResult BeginRenameFolders(AsyncCallback asyncCallback, object asyncCallbackUserState, CLFileItemCompletion itemCompletionCallback, object itemCompletionCallbackUserState, params RenameItemParams[] itemsToRename)
         {
             CheckDisposed(true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.BeginRenameFiles(callback, callbackUserState, itemsToRename, completionCallback, completionCallbackUserState);
+            return httpRestClient.BeginRenameFolders(asyncCallback, asyncCallbackUserState, itemCompletionCallback, itemCompletionCallbackUserState, itemsToRename);
         }
 
         /// <summary>
-        /// Finishes renaming files in the cloud, if it has not already finished via its asynchronous result, and outputs the result,
+        /// Finishes renaming folders in-place in the syncbox, if it has not already finished via its asynchronous result, and outputs the result,
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
         /// </summary>
-        /// <param name="aResult">The asynchronous result provided upon starting the metadata query</param>
+        /// <param name="asyncResult">The asynchronous result provided upon starting the metadata query</param>
         /// <param name="result">(output) An overall error which occurred during processing, if any</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndRenameFiles(IAsyncResult aResult, out SyncboxRenameFilesResult result)
+        public CLError EndRenameFolders(IAsyncResult asyncResult, out SyncboxRenameFoldersResult result)
         {
             CheckDisposed(true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.EndRenameFiles(aResult, out result);
+            return httpRestClient.EndRenameFolders(asyncResult, out result);
         }
 
         /// <summary>
-        /// Renames files in the cloud.
+        /// Renames folders in-place in the syncbox.  Each item completion will fire an asynchronous callback with the completion status or error for that item.
         /// </summary>
-        /// <param name="itemsToRename">An array of pairs of items to rename and the new name of each item (just the filename.ext).</param>
-        /// <param name="completionCallback">Delegate which will be fired upon successful communication for every response item.</param>
-        /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion delegate is fired.</param>
-        /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError RenameFiles(RenameItemParams[] itemsToRename, CLFileItemCompletion completionCallback, object completionCallbackUserState)
-        {
-            CheckDisposed(true);
-
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.RenameFiles(itemsToRename, completionCallback, completionCallbackUserState);
-        }
-
-        #endregion  // end GetItemAtPath (Queries the cloud for the item at a particular path)
-
-        #region RenameFolder (Renames a folder in the cloud)
-        /// <summary>
-        /// Asynchronously starts renaming a folder in the cloud.
-        /// </summary>
-        /// <param name="callback">Callback method to fire when the async operation completes.</param>
-        /// <param name="callbackUserState">Userstate to pass when firing async callback above.</param>
-        /// <param name="itemToRename">The folder item to rename in place.</param>
-        /// <param name="newName">The new name of the folder (just the last token in the path).</param>
-        /// <param name="completionCallback">Delegate which will be fired upon successful communication for the response item</param>
-        /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion delegate is fired</param>
-        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginRenameFolder(AsyncCallback callback, object callbackUserState, CLFileItem itemToRename, string newName, CLFileItemCompletion completionCallback, object completionCallbackUserState)
-        {
-            CheckDisposed(true);
-
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.BeginRenameFolders(callback, callbackUserState, new[] { new RenameItemParams(itemToRename, newName) }, completionCallback, completionCallbackUserState);
-        }
-
-        /// <summary>
-        /// Finishes renaming a folder in the cloud, if it has not already finished via its asynchronous result, and outputs the result,
-        /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
-        /// </summary>
-        /// <param name="aResult">The asynchronous result provided upon starting the metadata query</param>
-        /// <param name="result">(output) An overall error which occurred during processing, if any</param>
-        /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndRenameFolder(IAsyncResult aResult, out SyncboxRenameFoldersResult result)
-        {
-            CheckDisposed(true);
-
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.EndRenameFolders(aResult, out result);
-        }
-
-        /// <summary>
-        /// Renames a folder in the cloud.
-        /// </summary>
-        /// <param name="itemToRename">The folder item to rename in place.</param>
-        /// <param name="newName">The new name of the folder (just the last token in the path).</param>
-        /// <param name="completionCallback">Delegate which will be fired upon successful communication for the response item</param>
-        /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion delegate is fired</param>
-        /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError RenameFolder(CLFileItem itemToRename, string newName, CLFileItemCompletion completionCallback, object completionCallbackUserState)
-        {
-            CheckDisposed(true);
-
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.RenameFolders(new[] { new RenameItemParams(itemToRename, newName) }, completionCallback, completionCallbackUserState);
-        }
-
-        ///// <summary>
-        ///// Asynchronously starts renaming a folder in the cloud; outputs a CLFileItem object.
-        ///// </summary>
-        ///// <param name="callback">Callback method to fire when operation completes</param>
-        ///// <param name="callbackUserState">Userstate to pass when firing async callback</param>
-        ///// <param name="path">Full path to where the folder would exist locally on disk.</param>
-        ///// <param name="newPath">Full path to the new location of the folder.</param>
-        ///// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        //public IAsyncResult BeginRenameFolder(AsyncCallback callback, object callbackUserState, string path, string newPath)
-        //{
-        //    CheckDisposed();
-        //    string[] paths = new string[1] { path };
-        //    string[] newPaths = new string[1] { newPath };
-
-        //    CLHttpRest httpRestClient;
-        //    GetInstanceRestClient(out httpRestClient);
-        //    return httpRestClient.BeginRenameFolders(callback, callbackUserState, paths, newPaths);
-        //}
-
-        ///// <summary>
-        ///// Finishes renaming a folder in the cloud, if it has not already finished via its asynchronous result, and outputs the result,
-        ///// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
-        ///// </summary>
-        ///// <param name="aResult">The asynchronous result provided upon starting the metadata query</param>
-        ///// <param name="result">(output) The result from the metadata query</param>
-        ///// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        //public CLError EndRenameFolder(IAsyncResult aResult, out SyncboxRenameFolderResult result)
-        //{
-        //    CheckDisposed();
-
-        //    // Complete the async operation.
-        //    SyncboxRenameFoldersResult results;
-        //    CLHttpRest httpRestClient;
-        //    GetInstanceRestClient(out httpRestClient);
-        //    CLError error = httpRestClient.EndRenameFolders(aResult, out results);
-
-        //    // Return resulting error or item
-        //    if (error != null)
-        //    {
-        //        // We got an overall error.  Return it.
-        //        result = null;
-        //        return error;
-        //    }
-        //    // error == null  (no overall error)
-        //    else if (results == null)
-        //    {
-        //        // No overall error, but also no results.  Return an error.
-        //        result = null;
-        //        return new CLError(new CLException(CLExceptionCode.OnDemand_FolderRenameNoServerResponsesOrErrors, "No error or responses from server results null"));
-        //    }
-        //    // error == null && results != null  (no overall error, and we got a results object)
-        //    else if (results.Errors != null && results.Errors.Length >= 1)
-        //    {
-        //        // No overall error, got a results object, and it has an error.  Return that error.
-        //        result = null;
-        //        return results.Errors[0];
-        //    }
-        //    // (error == null && results != null) && (results.Errors == null || results.Errors.Length == 0)  (no overall error, we got a results object, and there are no errors in results)
-        //    else if (results.FolderItems != null && results.FolderItems.Length >= 1)
-        //    {
-        //        // No overall error, got a results object, is has no errors, and it has a rename response.  This is the normal case.  Return that rename response as the result.
-        //        result = new SyncboxRenameFolderResult(error: null, folderItem: results.FolderItems[0]);
-        //        return null;        // normal condition
-        //    }
-        //    // ((error == null && results != null) && (results.Errors == null || results.Errors.Length == 0)) && (results.Responses == null || results.Responses.Length == 0)
-        //    else
-        //    {
-        //        // No error, got a results object, but there were no errors and no rename responses inside.  Return an error.
-        //        result = null;
-        //        return new CLError(new CLException(CLExceptionCode.OnDemand_FolderRenameNoServerResponsesOrErrors, "No error or responses from server"));
-        //    }
-        //}
-
-        ///// <summary>
-        ///// Renames a folder in the cloud.
-        ///// </summary>
-        ///// <param name="path">Full path to where the folder would exist locally on disk</param>
-        ///// <param name="newPath">Full path to the new location of the folder.</param>
-        ///// <param name="folderItem">(output) response object from communication</param>
-        ///// <returns>Returns any error that occurred during communication, if any</returns>
-        //public CLError RenameFolder(string path, string newPath, out CLFileItem folderItem)
-        //{
-        //    CheckDisposed();
-        //    string[] paths = new string[1] { path };
-        //    string[] newPaths = new string[1] { newPath };
-
-        //    // Communicate and get the results.
-        //    CLError[] outErrors;
-        //    CLFileItem[] outItems;
-
-        //    CLHttpRest httpRestClient;
-        //    GetInstanceRestClient(out httpRestClient);
-        //    CLError error = httpRestClient.RenameFolders(paths, newPaths, out outItems, out outErrors);
-
-        //    // Return resulting error or item
-        //    if (error != null)
-        //    {
-        //        // There was an overall error.  Return it
-        //        folderItem = null;
-        //        return error;
-        //    }
-        //    // error == null
-        //    else if (outErrors != null && outErrors.Length >= 1)
-        //    {
-        //        // No overall error, but there was an item error.  Return it.
-        //        folderItem = null;
-        //        return outErrors[0];
-        //    }
-        //    // error == null && (outErrors == null || outErrors.Length == 0)
-        //    else if (outItems != null && outItems.Length >= 1)
-        //    {
-        //        // No overall error, no item errors, and we have an item.  Return it.  This is the normal condition
-        //        folderItem = outItems[0];
-        //        return null;
-        //    }
-        //    // (error == null && (outErrors == null || outErrors.Length == 0)) && (outItems == null || outItems.Length == 0)
-        //    else
-        //    {
-        //        // No overall error, no item errors, and no items.  No responses from server.  Return error.
-        //        folderItem = null;
-        //        return new CLError(new CLException(CLExceptionCode.OnDemand_FolderRenameNoServerResponsesOrErrors, "No responses or status from serer"));
-        //    }
-        //}
-
-        #endregion  // end RenameFolder (Renames a folder in the cloud)
-
-        #region RenameFolders (Rename folders in the cloud)
-        /// <summary>
-        /// Asynchronously starts renaming folders in place in the cloud.  Each item completion will fire an asynchronous callback with the completion status or error for that item.
-        /// </summary>
-        /// <param name="callback">Callback method to fire when the async operation completes.</param>
-        /// <param name="callbackUserState">Userstate to pass when firing the async callback above.</param>
+        /// <param name="itemCompletionCallback">Delegate which will be fired upon successful communication for every response item.</param>
+        /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the completion delegate is fired.</param>
         /// <param name="itemsToRename">An array of pairs of items to rename and the new name of each item (just the last token in the path).</param>
-        /// <param name="completionCallback">Delegate which will be fired upon successful communication for every response item.</param>
-        /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion delegate is fired.</param>
-        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginRenameFolders(AsyncCallback callback, object callbackUserState, RenameItemParams[] itemsToRename, CLFileItemCompletion completionCallback, object completionCallbackUserState)
-        {
-            CheckDisposed(true);
-
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.BeginRenameFolders(callback, callbackUserState, itemsToRename, completionCallback, completionCallbackUserState);
-        }
-
-        /// <summary>
-        /// Finishes renaming folders in place in the cloud, if it has not already finished via its asynchronous result, and outputs the result,
-        /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
-        /// </summary>
-        /// <param name="aResult">The asynchronous result provided upon starting the metadata query</param>
-        /// <param name="result">(output) An overall error which occurred during processing, if any</param>
-        /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndRenameFolders(IAsyncResult aResult, out SyncboxRenameFoldersResult result)
-        {
-            CheckDisposed(true);
-
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.EndRenameFolders(aResult, out result);
-        }
-
-        /// <summary>
-        /// Renames folders in place in the cloud.
-        /// </summary>
-        /// <param name="itemsToRename">An array of pairs of items to rename and the new name of each item (just the last token in the path).</param>
-        /// <param name="completionCallback">Delegate which will be fired upon successful communication for every response item.</param>
-        /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion delegate is fired.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError RenameFolders(RenameItemParams[] itemsToRename, CLFileItemCompletion completionCallback, object completionCallbackUserState)
+        public CLError RenameFolders(CLFileItemCompletion itemCompletionCallback, object itemCompletionCallbackUserState, params RenameItemParams[] itemsToRename)
         {
             CheckDisposed(true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.RenameFolders(itemsToRename, completionCallback, completionCallbackUserState);
+            return httpRestClient.RenameFolders(itemCompletionCallback, itemCompletionCallbackUserState, itemsToRename);
         }
 
-        ///// <summary>
-        ///// Asynchronously starts renaming folders in the cloud; outputs an array of  CLFileItem objects, and possibly an array of CLError objects.
-        ///// </summary>
-        ///// <param name="callback">Callback method to fire when operation completes</param>
-        ///// <param name="callbackUserState">Userstate to pass when firing async callback</param>
-        ///// <param name="paths">An array of full paths to where the folders would exist locally on disk.</param>
-        ///// <param name="newPaths">An array of full paths to the new location of the folders, corresponding to the paths array.</param>
-        ///// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        //public IAsyncResult BeginRenameFolders(AsyncCallback callback, object callbackUserState, string[] paths, string[] newPaths)
-        //{
-        //    CheckDisposed();
-
-        //    CLHttpRest httpRestClient;
-        //    GetInstanceRestClient(out httpRestClient);
-        //    return httpRestClient.BeginRenameFolders(callback, callbackUserState, paths, newPaths);
-        //}
-
-        ///// <summary>
-        ///// Finishes renaming folders in the cloud, if it has not already finished via its asynchronous result, and outputs the result,
-        ///// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
-        ///// </summary>
-        ///// <param name="aResult">The asynchronous result provided upon starting the metadata query</param>
-        ///// <param name="result">(output) The result from the metadata query</param>
-        ///// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        //public CLError EndRenameFolders(IAsyncResult aResult, out SyncboxRenameFoldersResult result)
-        //{
-        //    CheckDisposed();
-
-        //    CLHttpRest httpRestClient;
-        //    GetInstanceRestClient(out httpRestClient);
-        //    return httpRestClient.EndRenameFolders(aResult, out result);
-        //}
-
-        ///// <summary>
-        ///// Renames folders in the cloud.
-        ///// </summary>
-        ///// <param name="paths">An array of full paths to where the folders would exist locally on disk.</param>
-        ///// <param name="newPaths">An array of full paths to the new location of the folders, corresponding to the paths array.</param>
-        ///// <param name="folderItems">(output) response object from communication</param>
-        ///// <param name="errors">(output) Any errors that occur, or null.</param>
-        ///// <returns>Returns any error that occurred during communication, if any</returns>
-        //public CLError RenameFolders(string[] paths, string[] newPaths, out CLFileItem[] folderItems, out CLError[] errors)
-        //{
-        //    CheckDisposed();
-
-        //    CLHttpRest httpRestClient;
-        //    GetInstanceRestClient(out httpRestClient);
-        //    return httpRestClient.RenameFolders(paths, newPaths, out folderItems, out errors);
-        //}
-
-        #endregion  // end RenameFolders (Rename folders in the cloud)
+        #endregion  // end RenameFolders (Rename folders in the syncbox)
 
 #if NEEDS_REWORK
-        #region MoveFile (Moves a file in the cloud)
+        #region MoveFile (Moves a file in the syncbox)
         /// <summary>
-        /// Asynchronously starts renaming a file in the cloud; outputs a CLFileItem object.
+        /// Asynchronously starts renaming a file in the syncbox; outputs a CLFileItem object.
         /// </summary>
         /// <param name="callback">Callback method to fire when operation completes</param>
         /// <param name="callbackUserState">Userstate to pass when firing async callback</param>
@@ -2050,7 +1766,7 @@ namespace Cloud
         }
 
         /// <summary>
-        /// Finishes renaming a file in the cloud, if it has not already finished via its asynchronous result, and outputs the result,
+        /// Finishes renaming a file in the syncbox, if it has not already finished via its asynchronous result, and outputs the result,
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
         /// </summary>
         /// <param name="aResult">The asynchronous result provided upon starting the metadata query</param>
@@ -2105,7 +1821,7 @@ namespace Cloud
         }
 
         /// <summary>
-        /// Moves a file in the cloud.
+        /// Moves a file in the syncbox.
         /// </summary>
         /// <param name="path">Full path to where the file would exist locally on disk</param>
         /// <param name="newPath">Full path to the new location of the file.</param>
@@ -2159,9 +1875,9 @@ namespace Cloud
 #endif // end NEEDS_REWORK
 
 #if NEEDS_REWORK
-        #region MoveFiles (Move files in the cloud)
+        #region MoveFiles (Move files in the syncbox)
         /// <summary>
-        /// Asynchronously starts renaming files in the cloud; outputs an array of  CLFileItem objects, and possibly an array of CLError objects.
+        /// Asynchronously starts renaming files in the syncbox; outputs an array of  CLFileItem objects, and possibly an array of CLError objects.
         /// </summary>
         /// <param name="callback">Callback method to fire when operation completes</param>
         /// <param name="callbackUserState">Userstate to pass when firing async callback</param>
@@ -2178,7 +1894,7 @@ namespace Cloud
         }
 
         /// <summary>
-        /// Finishes renaming files in the cloud, if it has not already finished via its asynchronous result, and outputs the result,
+        /// Finishes renaming files in the syncbox, if it has not already finished via its asynchronous result, and outputs the result,
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
         /// </summary>
         /// <param name="aResult">The asynchronous result provided upon starting the metadata query</param>
@@ -2204,7 +1920,7 @@ namespace Cloud
         }
 
         /// <summary>
-        /// Moves files in the cloud.
+        /// Moves files in the syncbox.
         /// </summary>
         /// <param name="paths">An array of full paths to where the files would exist locally on disk.</param>
         /// <param name="newPaths">An array of full paths to the new location of the files, corresponding to the paths array.</param>
@@ -2220,13 +1936,13 @@ namespace Cloud
             return httpRestClient.RenameFiles(paths, newPaths, out fileItems, out errors);
         }
 
-        #endregion  // end MoveFiles (Move files in the cloud)
+        #endregion  // end MoveFiles (Move files in the syncbox)
 #endif  // end NEEDS_REWORK
 
 #if NEEDS_REWORK
-        #region MoveFolder (Moves a folder in the cloud)
+        #region MoveFolder (Moves a folder in the syncbox)
         /// <summary>
-        /// Asynchronously starts renaming a folder in the cloud; outputs a CLFileItem object.
+        /// Asynchronously starts renaming a folder in the syncbox; outputs a CLFileItem object.
         /// </summary>
         /// <param name="callback">Callback method to fire when operation completes</param>
         /// <param name="callbackUserState">Userstate to pass when firing async callback</param>
@@ -2245,7 +1961,7 @@ namespace Cloud
         }
 
         /// <summary>
-        /// Finishes renaming a folder in the cloud, if it has not already finished via its asynchronous result, and outputs the result,
+        /// Finishes renaming a folder in the syncbox, if it has not already finished via its asynchronous result, and outputs the result,
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
         /// </summary>
         /// <param name="aResult">The asynchronous result provided upon starting the metadata query</param>
@@ -2300,7 +2016,7 @@ namespace Cloud
         }
 
         /// <summary>
-        /// Moves a folder in the cloud.
+        /// Moves a folder in the syncbox.
         /// </summary>
         /// <param name="path">Full path to where the folder would exist locally on disk</param>
         /// <param name="newPath">Full path to the new location of the folder.</param>
@@ -2350,11 +2066,11 @@ namespace Cloud
             }
         }
 
-        #endregion  // end MoveFolder (Moves a folder in the cloud)
+        #endregion  // end MoveFolder (Moves a folder in the syncbox)
 
-        #region MoveFolders (Move folders in the cloud)
+        #region MoveFolders (Move folders in the syncbox)
         /// <summary>
-        /// Asynchronously starts renaming folders in the cloud; outputs an array of  CLFileItem objects, and possibly an array of CLError objects.
+        /// Asynchronously starts renaming folders in the syncbox; outputs an array of  CLFileItem objects, and possibly an array of CLError objects.
         /// </summary>
         /// <param name="callback">Callback method to fire when operation completes</param>
         /// <param name="callbackUserState">Userstate to pass when firing async callback</param>
@@ -2371,7 +2087,7 @@ namespace Cloud
         }
 
         /// <summary>
-        /// Finishes renaming folders in the cloud, if it has not already finished via its asynchronous result, and outputs the result,
+        /// Finishes renaming folders in the syncbox, if it has not already finished via its asynchronous result, and outputs the result,
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
         /// </summary>
         /// <param name="aResult">The asynchronous result provided upon starting the metadata query</param>
@@ -2397,7 +2113,7 @@ namespace Cloud
         }
 
         /// <summary>
-        /// Moves folders in the cloud.
+        /// Moves folders in the syncbox.
         /// </summary>
         /// <param name="paths">An array of full paths to where the folders would exist locally on disk.</param>
         /// <param name="newPaths">An array of full paths to the new location of the folders, corresponding to the paths array.</param>
@@ -2413,382 +2129,118 @@ namespace Cloud
             return httpRestClient.RenameFolders(paths, newPaths, out folderItems, out errors);
         }
 
-        #endregion  // end MoveFolders (Move folders in the cloud)
+        #endregion  // end MoveFolders (Move folders in the syncbox)
 #endif // end NEEDS_REWORK
 
-        #region DeleteFile (Deletes a file in the cloud)
+        #region DeleteFiles (Delete files in the syncbox)
         /// <summary>
-        /// Asynchronously starts deleting a file in the cloud; outputs a CLFileItem object.
+        /// Asynchronously starts deleting files in the syncbox.  Each item completion will fire an asynchronous callback with the completion status or error for that item.
         /// </summary>
-        /// <param name="callback">Callback method to fire when operation completes</param>
-        /// <param name="callbackUserState">Userstate to pass when firing async callback</param>
-        /// <param name="path">Full path to where the file would exist locally on disk.</param>
+        /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
+        /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
+        /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
+        /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the item completion callback above is fired.</param>
+        /// <param name="itemsToDelete">One or more file items to delete.</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginDeleteFile(AsyncCallback callback, object callbackUserState, string path)
+        public IAsyncResult BeginDeleteFiles(AsyncCallback asyncCallback, object asyncCallbackUserState, CLFileItemCompletion itemCompletionCallback, object itemCompletionCallbackUserState, params CLFileItem[] itemsToDelete)
         {
             CheckDisposed(true);
-            string[] paths = new string[1] { path };
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.BeginDeleteFiles(callback, callbackUserState, paths);
+            return httpRestClient.BeginDeleteFiles(asyncCallback, asyncCallbackUserState, itemCompletionCallback, itemCompletionCallbackUserState, itemsToDelete);
         }
 
         /// <summary>
-        /// Finishes deleting a file in the cloud, if it has not already finished via its asynchronous result, and outputs the result,
+        /// Finishes deleting files in the syncbox, if it has not already finished via its asynchronous result, and outputs the result,
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
         /// </summary>
-        /// <param name="aResult">The asynchronous result provided upon starting the metadata query</param>
-        /// <param name="result">(output) The result from the metadata query</param>
+        /// <param name="asyncResult">The asynchronous result provided upon starting the metadata query</param>
+        /// <param name="result">(output) An overall error which occurred during processing, if any</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndDeleteFile(IAsyncResult aResult, out SyncboxDeleteFileResult result)
+        public CLError EndDeleteFiles(IAsyncResult asyncResult, out SyncboxDeleteFilesResult result)
         {
             CheckDisposed(true);
 
-            // Complete the async operation.
-            SyncboxDeleteFilesResult results;
-
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            CLError error = httpRestClient.EndDeleteFiles(aResult, out results);
-
-            // Return resulting error or item
-            if (error != null)
-            {
-                // We got an overall error.  Return it.
-                result = null;
-                return error;
-            }
-            // error == null  (no overall error)
-            else if (results == null)
-            {
-                // No overall error, but also no results.  Return an error.
-                result = null;
-                return new CLError(new CLException(CLExceptionCode.OnDemand_FileDeleteNoServerResponsesOrErrors, "No error or responses from server results null"));
-            }
-            // error == null && results != null  (no overall error, and we got a results object)
-            else if (results.Errors != null && results.Errors.Length >= 1)
-            {
-                // No overall error, got a results object, and it has an error.  Return that error.
-                result = null;
-                return results.Errors[0];
-            }
-            // (error == null && results != null) && (results.Errors == null || results.Errors.Length == 0)  (no overall error, we got a results object, and there are no errors in results)
-            else if (results.FileItems != null && results.FileItems.Length >= 1)
-            {
-                // No overall error, got a results object, is has no errors, and it has a delete response.  This is the normal case.  Return that delete response as the result.
-                result = new SyncboxDeleteFileResult(error: null, fileItem: results.FileItems[0]);
-                return null;        // normal condition
-            }
-            // ((error == null && results != null) && (results.Errors == null || results.Errors.Length == 0)) && (results.Responses == null || results.Responses.Length == 0)
-            else
-            {
-                // No error, got a results object, but there were no errors and no delete responses inside.  Return an error.
-                result = null;
-                return new CLError(new CLException(CLExceptionCode.OnDemand_FileDeleteNoServerResponsesOrErrors, "No error or responses from server"));
-            }
+            return httpRestClient.EndDeleteFiles(asyncResult, out result);
         }
 
         /// <summary>
-        /// Deletes a file in the cloud.
+        /// Deletes files in the syncbox.  Each item completion will fire an asynchronous callback with the completion status or error for that item.
         /// </summary>
-        /// <param name="path">Full path to where the file would exist locally on disk</param>
-        /// <param name="fileItem">(output) response object from communication</param>
+        /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
+        /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the item completion callback above is fired.</param>
+        /// <param name="itemsToDelete">One or more file items to delete.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError DeleteFile(string path, out CLFileItem fileItem)
+        public CLError DeleteFiles(CLFileItemCompletion itemCompletionCallback, object itemCompletionCallbackUserState, params CLFileItem[] itemsToDelete)
         {
             CheckDisposed(true);
-            string[] paths = new string[1] { path };
-
-            // Communicate and get the results.
-            CLError[] outErrors;
-            CLFileItem[] outItems;
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            CLError error = httpRestClient.DeleteFiles(paths, out outItems, out outErrors);
-
-            // Return resulting error or item
-            if (error != null)
-            {
-                // There was an overall error.  Return it
-                fileItem = null;
-                return error;
-            }
-            // error == null
-            else if (outErrors != null && outErrors.Length >= 1)
-            {
-                // No overall error, but there was an item error.  Return it.
-                fileItem = null;
-                return outErrors[0];
-            }
-            // error == null && (outErrors == null || outErrors.Length == 0)
-            else if (outItems != null && outItems.Length >= 1)
-            {
-                // No overall error, no item errors, and we have an item.  Return it.  This is the normal condition
-                fileItem = outItems[0];
-                return null;
-            }
-            // (error == null && (outErrors == null || outErrors.Length == 0)) && (outItems == null || outItems.Length == 0)
-            else
-            {
-                // No overall error, no item errors, and no items.  No responses from server.  Return error.
-                fileItem = null;
-                return new CLError(new CLException(CLExceptionCode.OnDemand_FileDeleteNoServerResponsesOrErrors, "No responses or status from serer"));
-            }
+            return httpRestClient.DeleteFiles(itemCompletionCallback, itemCompletionCallbackUserState, itemsToDelete);
         }
 
-        #endregion  // end GetItemAtPath (Queries the cloud for the item at a particular path)
+        #endregion  // end DeleteFiles (Delete files in the syncbox)
 
-        #region DeleteFiles (Delete files in the cloud)
+        #region DeleteFolders (Delete folders in the syncbox)
         /// <summary>
-        /// Asynchronously starts deleting files in the cloud; outputs an array of  CLFileItem objects, and possibly an array of CLError objects.
+        /// Asynchronously starts deleting folders in the syncbox.  Each item completion will fire an asynchronous callback with the completion status or error for that item.
         /// </summary>
-        /// <param name="callback">Callback method to fire when operation completes</param>
-        /// <param name="callbackUserState">Userstate to pass when firing async callback</param>
-        /// <param name="paths">An array of full paths to where the files would exist locally on disk.</param>
+        /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
+        /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
+        /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
+        /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the item completion callback above is fired.</param>
+        /// <param name="itemsToDelete">One or more folder items to delete.</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginDeleteFiles(AsyncCallback callback, object callbackUserState, string[] paths)
+        public IAsyncResult BeginDeleteFolders(AsyncCallback asyncCallback, object asyncCallbackUserState, CLFileItemCompletion itemCompletionCallback, object itemCompletionCallbackUserState, params CLFileItem[] itemsToDelete)
         {
             CheckDisposed(true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.BeginDeleteFiles(callback, callbackUserState, paths);
+            return httpRestClient.BeginDeleteFolders(asyncCallback, asyncCallbackUserState, itemCompletionCallback, itemCompletionCallbackUserState, itemsToDelete);
         }
 
         /// <summary>
-        /// Finishes deleting files in the cloud, if it has not already finished via its asynchronous result, and outputs the result,
+        /// Finishes deleting folders in the syncbox, if it has not already finished via its asynchronous result, and outputs the result,
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
         /// </summary>
-        /// <param name="aResult">The asynchronous result provided upon starting the metadata query</param>
-        /// <param name="result">(output) The result from the metadata query</param>
+        /// <param name="asyncResult">The asynchronous result provided upon starting the metadata query</param>
+        /// <param name="result">(output) An overall error which occurred during processing, if any</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndDeleteFiles(IAsyncResult aResult, out SyncboxDeleteFilesResult result)
+        public CLError EndDeleteFolders(IAsyncResult asyncResult, out SyncboxDeleteFoldersResult result)
         {
             CheckDisposed(true);
-            SyncboxDeleteFilesResult deleteResult;
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            CLError error = httpRestClient.EndDeleteFiles(aResult, out deleteResult);
-
-            if (error != null)
-            {
-                result = null;
-                return error;
-            }
-
-            result = new SyncboxDeleteFilesResult(deleteResult.OverallError, deleteResult.Errors, deleteResult.FileItems);
-            return error;
+            return httpRestClient.EndDeleteFolders(asyncResult, out result);
         }
 
         /// <summary>
-        /// Deletes files in the cloud.
+        /// Deletes folders in the syncbox.  Each item completion will fire an asynchronous callback with the completion status or error for that item.
         /// </summary>
-        /// <param name="paths">An array of full paths to where the files would exist locally on disk.</param>
-        /// <param name="fileItems">(output) response object from communication</param>
-        /// <param name="errors">(output) Any errors that occur, or null</param>
+        /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
+        /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the item completion callback above is fired.</param>
+        /// <param name="itemsToDelete">One or more folder items to delete.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError DeleteFiles(string[] paths, out CLFileItem[] fileItems, out CLError[] errors)
+        public CLError DeleteFolders(CLFileItemCompletion itemCompletionCallback, object itemCompletionCallbackUserState, params CLFileItem[] itemsToDelete)
         {
             CheckDisposed(true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.DeleteFiles(paths, out fileItems, out errors);
+            return httpRestClient.DeleteFolders(itemCompletionCallback, itemCompletionCallbackUserState, itemsToDelete);
         }
 
-        #endregion  // end DeleteFiles (Delete files in the cloud)
+        #endregion  // end DeleteFolders (Delete folders in the syncbox)
 
-        #region DeleteFolder (Deletes a folder in the cloud)
+        #region AddFolder (Adds a folder in the syncbox)
         /// <summary>
-        /// Asynchronously starts deleting a folder in the cloud; outputs a CLFileItem object.
-        /// </summary>
-        /// <param name="callback">Callback method to fire when operation completes</param>
-        /// <param name="callbackUserState">Userstate to pass when firing async callback</param>
-        /// <param name="path">Full path to where the folder would exist locally on disk.</param>
-        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginDeleteFolder(AsyncCallback callback, object callbackUserState, string path)
-        {
-            CheckDisposed(true);
-            string[] paths = new string[1] { path };
-
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.BeginDeleteFolders(callback, callbackUserState, paths);
-        }
-
-        /// <summary>
-        /// Finishes deleting a folder in the cloud, if it has not already finished via its asynchronous result, and outputs the result,
-        /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
-        /// </summary>
-        /// <param name="aResult">The asynchronous result provided upon starting the metadata query</param>
-        /// <param name="result">(output) The result from the metadata query</param>
-        /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndDeleteFolder(IAsyncResult aResult, out SyncboxDeleteFolderResult result)
-        {
-            CheckDisposed(true);
-
-            // Complete the async operation.
-            SyncboxDeleteFoldersResult results;
-
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            CLError error = httpRestClient.EndDeleteFolders(aResult, out results);
-
-            // Return resulting error or item
-            if (error != null)
-            {
-                // We got an overall error.  Return it.
-                result = null;
-                return error;
-            }
-            // error == null  (no overall error)
-            else if (results == null)
-            {
-                // No overall error, but also no results.  Return an error.
-                result = null;
-                return new CLError(new CLException(CLExceptionCode.OnDemand_FolderDeleteNoServerResponsesOrErrors, "No error or responses from server results null"));
-            }
-            // error == null && results != null  (no overall error, and we got a results object)
-            else if (results.Errors != null && results.Errors.Length >= 1)
-            {
-                // No overall error, got a results object, and it has an error.  Return that error.
-                result = null;
-                return results.Errors[0];
-            }
-            // (error == null && results != null) && (results.Errors == null || results.Errors.Length == 0)  (no overall error, we got a results object, and there are no errors in results)
-            else if (results.FolderItems != null && results.FolderItems.Length >= 1)
-            {
-                // No overall error, got a results object, is has no errors, and it has a delete response.  This is the normal case.  Return that delete response as the result.
-                result = new SyncboxDeleteFolderResult(error: null, folderItem: results.FolderItems[0]);
-                return null;        // normal condition
-            }
-            // ((error == null && results != null) && (results.Errors == null || results.Errors.Length == 0)) && (results.Responses == null || results.Responses.Length == 0)
-            else
-            {
-                // No error, got a results object, but there were no errors and no delete responses inside.  Return an error.
-                result = null;
-                return new CLError(new CLException(CLExceptionCode.OnDemand_FolderDeleteNoServerResponsesOrErrors, "No error or responses from server"));
-            }
-        }
-
-        /// <summary>
-        /// Deletes a folder in the cloud.
-        /// </summary>
-        /// <param name="path">Full path to where the folder would exist locally on disk</param>
-        /// <param name="folderItem">(output) response object from communication</param>
-        /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError DeleteFolder(string path, out CLFileItem folderItem)
-        {
-            CheckDisposed(true);
-            string[] paths = new string[1] { path };
-
-            // Communicate and get the results.
-            CLError[] outErrors;
-            CLFileItem[] outItems;
-
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            CLError error = httpRestClient.DeleteFolders(paths, out outItems, out outErrors);
-
-            // Return resulting error or item
-            if (error != null)
-            {
-                // There was an overall error.  Return it
-                folderItem = null;
-                return error;
-            }
-            // error == null
-            else if (outErrors != null && outErrors.Length >= 1)
-            {
-                // No overall error, but there was an item error.  Return it.
-                folderItem = null;
-                return outErrors[0];
-            }
-            // error == null && (outErrors == null || outErrors.Length == 0)
-            else if (outItems != null && outItems.Length >= 1)
-            {
-                // No overall error, no item errors, and we have an item.  Return it.  This is the normal condition
-                folderItem = outItems[0];
-                return null;
-            }
-            // (error == null && (outErrors == null || outErrors.Length == 0)) && (outItems == null || outItems.Length == 0)
-            else
-            {
-                // No overall error, no item errors, and no items.  No responses from server.  Return error.
-                folderItem = null;
-                return new CLError(new CLException(CLExceptionCode.OnDemand_FolderDeleteNoServerResponsesOrErrors, "No responses or status from serer"));
-            }
-        }
-
-        #endregion  // end DeleteFolder (Deletes a folder in the cloud)
-
-        #region DeleteFolders (Delete folders in the cloud)
-        /// <summary>
-        /// Asynchronously starts deleting folders in the cloud; outputs an array of  CLFileItem objects, and possibly an array of CLError objects.
-        /// </summary>
-        /// <param name="callback">Callback method to fire when operation completes</param>
-        /// <param name="callbackUserState">Userstate to pass when firing async callback</param>
-        /// <param name="paths">An array of full paths to where the folders would exist locally on disk.</param>
-        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginDeleteFolders(AsyncCallback callback, object callbackUserState, string[] paths)
-        {
-            CheckDisposed(true);
-
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.BeginDeleteFolders(callback, callbackUserState, paths);
-        }
-
-        /// <summary>
-        /// Finishes deleting folders in the cloud, if it has not already finished via its asynchronous result, and outputs the result,
-        /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
-        /// </summary>
-        /// <param name="aResult">The asynchronous result provided upon starting the metadata query</param>
-        /// <param name="result">(output) The result from the metadata query</param>
-        /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndDeleteFolders(IAsyncResult aResult, out SyncboxDeleteFoldersResult result)
-        {
-            CheckDisposed(true);
-            SyncboxDeleteFoldersResult deleteResult;
-
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            CLError error = httpRestClient.EndDeleteFolders(aResult, out deleteResult);
-
-            if (error != null)
-            {
-                result = null;
-                return error;
-            }
-
-            result = new SyncboxDeleteFoldersResult(deleteResult.OverallError, deleteResult.Errors, deleteResult.FolderItems);
-            return error;
-        }
-
-        /// <summary>
-        /// Deletes folders in the cloud.
-        /// </summary>
-        /// <param name="paths">An array of full paths to where the folders would exist locally on disk.</param>
-        /// <param name="folderItems">(output) response object from communication</param>
-        /// <param name="errors">(output) Any returned errors, or null.</param>
-        /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError DeleteFolders(string[] paths, out CLFileItem[] folderItems, out CLError[] errors)
-        {
-            CheckDisposed(true);
-
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.DeleteFolders(paths, out folderItems, out errors);
-        }
-
-        #endregion  // end DeleteFolders (Delete folders in the cloud)
-
-        #region AddFolder (Adds a folder in the cloud)
-        /// <summary>
-        /// Asynchronously starts adding a folder in the cloud; outputs a CLFileItem object.
+        /// Asynchronously starts adding a folder in the syncbox; outputs a CLFileItem object.
         /// </summary>
         /// <param name="callback">Callback method to fire when operation completes</param>
         /// <param name="callbackUserState">Userstate to pass when firing async callback</param>
@@ -2805,7 +2257,7 @@ namespace Cloud
         }
 
         /// <summary>
-        /// Finishes adding a folder in the cloud, if it has not already finished via its asynchronous result, and outputs the result,
+        /// Finishes adding a folder in the syncbox, if it has not already finished via its asynchronous result, and outputs the result,
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
         /// </summary>
         /// <param name="aResult">The asynchronous result provided upon starting the metadata query</param>
@@ -2860,7 +2312,7 @@ namespace Cloud
         }
 
         /// <summary>
-        /// Adds a folder in the cloud.
+        /// Adds a folder in the syncbox.
         /// </summary>
         /// <param name="path">Full path to where the folder would exist locally on disk</param>
         /// <param name="folderItem">(output) response object from communication</param>
@@ -2908,11 +2360,11 @@ namespace Cloud
             }
         }
 
-        #endregion  // end AddFolder (Adds a folder in the cloud)
+        #endregion  // end AddFolder (Adds a folder in the syncbox)
 
-        #region AddFolders (Add folders in the cloud)
+        #region AddFolders (Add folders in the syncbox)
         /// <summary>
-        /// Asynchronously starts adding folders in the cloud; outputs an array of  CLFileItem objects, and possibly an array of CLError objects.
+        /// Asynchronously starts adding folders in the syncbox; outputs an array of  CLFileItem objects, and possibly an array of CLError objects.
         /// </summary>
         /// <param name="callback">Callback method to fire when operation completes</param>
         /// <param name="callbackUserState">Userstate to pass when firing async callback</param>
@@ -2928,7 +2380,7 @@ namespace Cloud
         }
 
         /// <summary>
-        /// Finishes adding folders in the cloud, if it has not already finished via its asynchronous result, and outputs the result,
+        /// Finishes adding folders in the syncbox, if it has not already finished via its asynchronous result, and outputs the result,
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
         /// </summary>
         /// <param name="aResult">The asynchronous result provided upon starting the metadata query</param>
@@ -2954,7 +2406,7 @@ namespace Cloud
         }
 
         /// <summary>
-        /// Adds folders in the cloud.
+        /// Adds folders in the syncbox.
         /// </summary>
         /// <param name="paths">An array of full paths to where the folders would exist locally on disk.</param>
         /// <param name="folderItems">(output) response object from communication</param>
@@ -2969,11 +2421,11 @@ namespace Cloud
             return httpRestClient.AddFolders(paths, out folderItems, out errors);
         }
 
-        #endregion  // end AddFolders (Add folders in the cloud)
+        #endregion  // end AddFolders (Add folders in the syncbox)
 
-        #region AddFile (Adds a file in the cloud)
+        #region AddFile (Adds a file in the syncbox)
         /// <summary>
-        /// Asynchronously starts adding a file in the cloud; outputs a CLFileItem object.
+        /// Asynchronously starts adding a file in the syncbox; outputs a CLFileItem object.
         /// </summary>
         /// <param name="callback">Callback method to fire when operation completes</param>
         /// <param name="callbackUserState">Userstate to pass when firing async callback</param>
@@ -2990,7 +2442,7 @@ namespace Cloud
         }
 
         /// <summary>
-        /// Finishes adding a file in the cloud, if it has not already finished via its asynchronous result, and outputs the result,
+        /// Finishes adding a file in the syncbox, if it has not already finished via its asynchronous result, and outputs the result,
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
         /// </summary>
         /// <param name="aResult">The asynchronous result provided upon starting the metadata query</param>
@@ -3045,7 +2497,7 @@ namespace Cloud
         }
 
         /// <summary>
-        /// Adds a file in the cloud.
+        /// Adds a file in the syncbox.
         /// </summary>
         /// <param name="path">Full path to where the file would exist locally on disk</param>
         /// <param name="fileItem">(output) response object from communication</param>
@@ -3093,11 +2545,11 @@ namespace Cloud
             }
         }
 
-        #endregion  // end AddFile (Adds a file in the cloud)
+        #endregion  // end AddFile (Adds a file in the syncbox)
 
-        #region AddFiles (Add files in the cloud)
+        #region AddFiles (Add files in the syncbox)
         /// <summary>
-        /// Asynchronously starts adding files in the cloud; outputs an array of  CLFileItem objects, and possibly an array of CLError objects.
+        /// Asynchronously starts adding files in the syncbox; outputs an array of  CLFileItem objects, and possibly an array of CLError objects.
         /// </summary>
         /// <param name="callback">Callback method to fire when operation completes</param>
         /// <param name="callbackUserState">Userstate to pass when firing async callback</param>
@@ -3113,7 +2565,7 @@ namespace Cloud
         }
 
         /// <summary>
-        /// Finishes adding files in the cloud, if it has not already finished via its asynchronous result, and outputs the result,
+        /// Finishes adding files in the syncbox, if it has not already finished via its asynchronous result, and outputs the result,
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
         /// </summary>
         /// <param name="aResult">The asynchronous result provided upon starting the metadata query</param>
@@ -3139,7 +2591,7 @@ namespace Cloud
         }
 
         /// <summary>
-        /// Adds files in the cloud.
+        /// Adds files in the syncbox.
         /// </summary>
         /// <param name="paths">An array of full paths to where the files would exist locally on disk.</param>
         /// <param name="fileItems">(output) response object from communication</param>
@@ -3154,7 +2606,7 @@ namespace Cloud
             return httpRestClient.AddFiles(paths, out fileItems, out errors);
         }
 
-        #endregion  // end AddFiles (Add files in the cloud)
+        #endregion  // end AddFiles (Add files in the syncbox)
 
         #region GetAllPending
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
@@ -4144,9 +3596,9 @@ namespace Cloud
         }
         #endregion
 
-        #region UpdateStoragePlan (changes the storage plan associated with this syncbox in the cloud)
+        #region UpdateStoragePlan (changes the storage plan associated with this syncbox in the syncbox)
         /// <summary>
-        /// Asynchronously updates the storage plan for a syncbox in the cloud.
+        /// Asynchronously updates the storage plan for a syncbox in the syncbox.
         /// Updates this object's StoragePlanId property.
         /// </summary>
         /// <param name="callback">Callback method to fire when operation completes</param>
@@ -4186,7 +3638,7 @@ namespace Cloud
         }
 
         /// <summary>
-        /// Updates the storage plan for a syncbox in the cloud.  This is a synchronous method.
+        /// Updates the storage plan for a syncbox in the syncbox.  This is a synchronous method.
         /// Updates this object's StoragePlanId property.
         /// </summary>
         /// <param name="storagePlan">The storage plan to set (new storage plan to use for this syncbox)</param>
@@ -4238,7 +3690,7 @@ namespace Cloud
                 this._propertyChangeLocker.ExitWriteLock();
             }
         }
-        #endregion  // end (changes the storage plan associated with this syncbox in the cloud)
+        #endregion  // end (changes the storage plan associated with this syncbox in the syncbox)
 
         #region GetCurrentStatus (update the status of this syncbox from the cloud)
         /// <summary>

@@ -1998,6 +1998,15 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Server responded without an array of delete responses.
+        /// </summary>
+        internal static string ExceptionCLHttpRestWithoutDeleteResponses {
+            get {
+                return ResourceManager.GetString("ExceptionCLHttpRestWithoutDeleteResponses", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Server responded without an array of Metadata.
         /// </summary>
         internal static string ExceptionCLHttpRestWithoutMetadata {
@@ -2021,6 +2030,15 @@ namespace Cloud.Static {
         internal static string ExceptionCLHttpRestWithoutPlans {
             get {
                 return ResourceManager.GetString("ExceptionCLHttpRestWithoutPlans", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Server responded without an array of rename responses.
+        /// </summary>
+        internal static string ExceptionCLHttpRestWithoutRenameResponses {
+            get {
+                return ResourceManager.GetString("ExceptionCLHttpRestWithoutRenameResponses", resourceCulture);
             }
         }
         
@@ -2619,11 +2637,47 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to File item must not be null at item index {0}.
+        /// </summary>
+        internal static string ExceptionOnDemandFileItemNullAtIndexMsg0 {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandFileItemNullAtIndexMsg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Folder item must not be null at item index {0}.
+        /// </summary>
+        internal static string ExceptionOnDemandFolderItemNullAtIndexMsg0 {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandFolderItemNullAtIndexMsg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to An error occurred for the current item, check the InnerException Message.
         /// </summary>
         internal static string ExceptionOnDemandItemError {
             get {
                 return ResourceManager.GetString("ExceptionOnDemandItemError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to itemToRename must not be null.
+        /// </summary>
+        internal static string ExceptionOnDemandItemToRenameMustNotBeNull {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandItemToRenameMustNotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to newName must be specified.
+        /// </summary>
+        internal static string ExceptionOnDemandNewNameMustBeSpecified {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandNewNameMustBeSpecified", resourceCulture);
             }
         }
         
