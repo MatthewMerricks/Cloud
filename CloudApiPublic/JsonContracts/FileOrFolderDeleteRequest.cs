@@ -26,5 +26,8 @@ namespace Cloud.JsonContracts
 
         [DataMember(Name = CLDefinitions.QueryStringSyncboxId, IsRequired = false)]
         public Nullable<long> SyncboxId { get; set; }
+
+        [DataMember(Name = CLDefinitions.CLMetadataCloudPath, IsRequired = false)]
+        public string RelativePath { get; set; }
     }
 }

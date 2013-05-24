@@ -188,10 +188,10 @@ namespace Cloud.REST
     /// <summary>
     /// Holds result properties
     /// </summary>
-    public sealed class GetFolderHierarchyResult : BaseCLHttpRestResult<JsonContracts.Folders>
+    public sealed class GetFolderHierarchyResult : BaseCLHttpRestResult<JsonContracts.FoldersResponse>
     {
         // construct with all readonly properties
-        internal GetFolderHierarchyResult(CLError Error, JsonContracts.Folders Response)
+        internal GetFolderHierarchyResult(CLError Error, JsonContracts.FoldersResponse Response)
             : base(Error, Response) { }
     }
 

@@ -1603,7 +1603,7 @@ namespace Cloud
         /// <param name="itemCompletionCallback">Delegate which will be fired upon successful communication for every response item.</param>
         /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the completion delegate is fired.</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginItemForPath(AsyncCallback asyncCallback, object asyncCallbackUserState, CLFileItemCompletion itemCompletionCallback, object itemCompletionCallbackUserState)
+        public IAsyncResult BeginRootFolder(AsyncCallback asyncCallback, object asyncCallbackUserState, CLFileItemCompletion itemCompletionCallback, object itemCompletionCallbackUserState)
         {
             CheckDisposed();
 
@@ -1619,7 +1619,7 @@ namespace Cloud
         /// <param name="asyncResult">The asynchronous result provided upon starting the metadata query</param>
         /// <param name="result">(output) The result from the metadata query</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndItemForPath(IAsyncResult asyncResult, out SyncboxGetItemAtPathResult result)
+        public CLError EndRootFolder(IAsyncResult asyncResult, out SyncboxGetItemAtPathResult result)
         {
             CheckDisposed();
 
@@ -1634,7 +1634,7 @@ namespace Cloud
         /// <param name="itemCompletionCallback">Delegate which will be fired upon successful communication for every response item.</param>
         /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the completion delegate is fired.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError ItemForPath(CLFileItemCompletion itemCompletionCallback, object itemCompletionCallbackUserState)
+        public CLError RootFolder(CLFileItemCompletion itemCompletionCallback, object itemCompletionCallbackUserState)
         {
             CheckDisposed(isOneOff: true);
 
@@ -2018,8 +2018,7 @@ namespace Cloud
 
         #endregion  // end DeleteFolders (Delete folders in the syncbox)
 
-        #region AddFolders (Add folders in the syncbox)
-#if TRASH
+        #region AddFolders (Add folders to the syncbox)
         /// <summary>
         /// Asynchronously starts adding folders to the syncbox.  Each item completion will fire an asynchronous callback with the completion status or error for that item.
         /// </summary>
@@ -2027,50 +2026,50 @@ namespace Cloud
         /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
         /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
         /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the item completion callback above is fired.</param>
-        /// <param name="itemsToDelete">One or more folder items to add.</param>
+        /// <param name="folderItemsToAdd">One or more pairs of folder parent item and name of the new folder to add.</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginDeleteFiles(AsyncCallback asyncCallback, object asyncCallbackUserState, CLFileItemCompletion itemCompletionCallback, object itemCompletionCallbackUserState, params CLFileItem[] itemsToDelete)
+        public IAsyncResult BeginAddFolders(AsyncCallback asyncCallback, object asyncCallbackUserState, CLFileItemCompletion itemCompletionCallback, object itemCompletionCallbackUserState, params AddItemParams[] folderItemsToAdd)
         {
             CheckDisposed(true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.BeginDeleteFiles(asyncCallback, asyncCallbackUserState, itemCompletionCallback, itemCompletionCallbackUserState, itemsToDelete);
+            return httpRestClient.BeginAddFolders(asyncCallback, asyncCallbackUserState, itemCompletionCallback, itemCompletionCallbackUserState, folderItemsToAdd);
         }
 
         /// <summary>
-        /// Finishes deleting files in the syncbox, if it has not already finished via its asynchronous result, and outputs the result,
+        /// Finishes adding folders to the syncbox, if it has not already finished via its asynchronous result, and outputs the result,
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
         /// </summary>
         /// <param name="asyncResult">The asynchronous result provided upon starting the metadata query</param>
         /// <param name="result">(output) An overall error which occurred during processing, if any</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndDeleteFiles(IAsyncResult asyncResult, out SyncboxDeleteFilesResult result)
+        public CLError EndDeleteFiles(IAsyncResult asyncResult, out SyncboxAddFoldersResult result)
         {
             CheckDisposed(true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.EndDeleteFiles(asyncResult, out result);
+            return httpRestClient.EndAddFolders(asyncResult, out result);
         }
 
         /// <summary>
-        /// Deletes files in the syncbox.  Each item completion will fire an asynchronous callback with the completion status or error for that item.
+        /// Adds folders to the syncbox.  Each item completion will fire an asynchronous callback with the completion status or error for that item.
         /// </summary>
         /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
         /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the item completion callback above is fired.</param>
         /// <param name="itemsToDelete">One or more file items to delete.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError DeleteFiles(CLFileItemCompletion itemCompletionCallback, object itemCompletionCallbackUserState, params CLFileItem[] itemsToDelete)
+        public CLError DeleteFiles(CLFileItemCompletion itemCompletionCallback, object itemCompletionCallbackUserState, params AddItemParams[] folderItemsToAdd)
         {
             CheckDisposed(true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.DeleteFiles(itemCompletionCallback, itemCompletionCallbackUserState, itemsToDelete);
+            return httpRestClient.AddFolders(itemCompletionCallback, itemCompletionCallbackUserState, folderItemsToAdd);
         }
-#endif // TRASH
-        #endregion  // end AddFolders (Add folders in the syncbox)
+
+        #endregion  // end AddFolders (Add folders to the syncbox)
 
         #region AddFile (Adds a file in the syncbox)
         /// <summary>
@@ -3082,7 +3081,7 @@ namespace Cloud
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError GetFolderHierarchy(int timeoutMilliseconds,out JsonContracts.Folders response)
+        public CLError GetFolderHierarchy(int timeoutMilliseconds,out JsonContracts.FoldersResponse response)
         {
             CheckDisposed(true);
 
@@ -3098,7 +3097,7 @@ namespace Cloud
         /// <param name="response">(output) response object from communication</param>
         /// <param name="hierarchyRoot">(optional) root path of hierarchy query</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError GetFolderHierarchy(int timeoutMilliseconds, out JsonContracts.Folders response, FilePath hierarchyRoot)
+        public CLError GetFolderHierarchy(int timeoutMilliseconds, out JsonContracts.FoldersResponse response, FilePath hierarchyRoot)
         {
             CheckDisposed(true);
 
