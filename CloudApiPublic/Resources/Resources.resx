@@ -2573,10 +2573,6 @@
     <value>IconOverlay: SendRemoveBadgePathEvent. Exception.  Msg: {0}.</value>
     <comment>"IconOverlay" and "SendAddBadgePathEvent" should not be translated.</comment>
   </data>
-  <data name="IconOverlayUknownMergedEventDirection" xml:space="preserve">
-    <value>Unknown mergedEvent.Direction:</value>
-    <comment>"mergedEvent.Direction" should not be translated. </comment>
-  </data>
   <data name="IconOverlayUnknownMergedEventDirection" xml:space="preserve">
     <value>Unknown mergedEvent.Direction:</value>
     <comment>"mergedEvent.Direction" should not be translated.</comment>
@@ -2836,5 +2832,17 @@
   <data name="ExceptionFileMonitorBeginProcessingSetMD5" xml:space="preserve">
     <value>Error on SetMD5 from MD5 of an existing change</value>
     <comment>SetMD5 and MD5 should not be translated</comment>
+  </data>
+  <data name="CLFileItemCastStateCopiedSettingsMustNotBeNull" xml:space="preserve">
+    <value>castState _copiedSettings must not be null</value>
+    <comment>"castState_copiedSettings" should not be translated</comment>
+  </data>
+  <data name="CLFileItemCastStateMustBeACLFileItem" xml:space="preserve">
+    <value>castState must be a CLFileItem</value>
+    <comment>"castState" and "CLFileItem" should not be translated</comment>
+  </data>
+  <data name="CLNotificationSseEngineInvalidStatusCodeOnStartingSSEEngine0" xml:space="preserve">
+    <value>Invalid status code on starting SSE engine: {0}</value>
+    <comment>"SSE engine" should not be translated</comment>
   </data>
 </root>

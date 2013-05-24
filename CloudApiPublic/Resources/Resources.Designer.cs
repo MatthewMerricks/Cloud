@@ -196,6 +196,24 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to castState _copiedSettings must not be null.
+        /// </summary>
+        internal static string CLFileItemCastStateCopiedSettingsMustNotBeNull {
+            get {
+                return ResourceManager.GetString("CLFileItemCastStateCopiedSettingsMustNotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to castState must be a CLFileItem.
+        /// </summary>
+        internal static string CLFileItemCastStateMustBeACLFileItem {
+            get {
+                return ResourceManager.GetString("CLFileItemCastStateMustBeACLFileItem", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to deletionChange Direction is not To the server.
         /// </summary>
         internal static string CLHttpRestChangeDirectionIsNotToServer {
@@ -1067,6 +1085,15 @@ namespace Cloud.Static {
         internal static string CLNotificationSseEngineErrorExceptionMsg0 {
             get {
                 return ResourceManager.GetString("CLNotificationSseEngineErrorExceptionMsg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid status code on starting SSE engine: {0}.
+        /// </summary>
+        internal static string CLNotificationSseEngineInvalidStatusCodeOnStartingSSEEngine0 {
+            get {
+                return ResourceManager.GetString("CLNotificationSseEngineInvalidStatusCodeOnStartingSSEEngine0", resourceCulture);
             }
         }
         
@@ -4707,15 +4734,6 @@ namespace Cloud.Static {
         internal static string IconOverlayTraceBadgingDictionariesCurrentSyncedBadges {
             get {
                 return ResourceManager.GetString("IconOverlayTraceBadgingDictionariesCurrentSyncedBadges", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Unknown mergedEvent.Direction:.
-        /// </summary>
-        internal static string IconOverlayUknownMergedEventDirection {
-            get {
-                return ResourceManager.GetString("IconOverlayUknownMergedEventDirection", resourceCulture);
             }
         }
         

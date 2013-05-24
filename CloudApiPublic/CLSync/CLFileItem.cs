@@ -357,11 +357,11 @@ namespace Cloud.CLSync
                 CLFileItem castState = UserState as CLFileItem;
                 if (castState == null)
                 {
-                    throw new NullReferenceException("castState must be a CLFileItem");
+                    throw new NullReferenceException(Resources.CLFileItemCastStateMustBeACLFileItem);
                 }
                 if (castState._copiedSettings == null)
                 {
-                    throw new NullReferenceException("castState _copiedSettings must not be null");
+                    throw new NullReferenceException(Resources.CLFileItemCastStateCopiedSettingsMustNotBeNull);
                 }
                 if (castState.Syncbox == null)
                 {
