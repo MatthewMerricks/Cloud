@@ -15,12 +15,12 @@ using System.Text;
 namespace Cloud.CLSync.CLSyncboxParameters
 {
     /// <summary>
-    /// Contains the old path and new path for renaming a single item
+    /// Contains the item and new full path for moving a single item
     /// </summary>
     public sealed class MoveItemParams
     {
         /// <summary>
-        /// Returns the item (file or folder) to rename in place.
+        /// Returns the item (file or folder) to move.
         /// </summary>
         public CLFileItem ItemToMove
         {
@@ -32,7 +32,7 @@ namespace Cloud.CLSync.CLSyncboxParameters
         private readonly CLFileItem _itemToMove;
 
         /// <summary>
-        /// Returns the new name of the item.
+        /// Returns the full path of the new parent of the item.
         /// </summary>
         public string NewParentPath
         {
@@ -44,7 +44,7 @@ namespace Cloud.CLSync.CLSyncboxParameters
         private readonly string _newParentPath;
 
         /// <summary>
-        /// Construct parameters for renaming an item in place.
+        /// Construct parameters for moving an item.
         /// </summary>
         /// <param name="itemToMove">The item (file or folder) to move.</param>
         /// <param name="newParentPath">Full path of the new parent folder.</param>

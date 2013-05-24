@@ -1601,7 +1601,7 @@
     <comment>"PathToBadge" should not be translated</comment>
   </data>
   <data name="UpdatePathArgsPathToBadgeCannotBeNull" xml:space="preserve">
-    <value>PathToBadge cannot be null</value>
+    <value>PathToBadge must not be null</value>
     <comment>"PathToBadge" should not be translated</comment>
   </data>
   <data name="CLNotificationSseEngineAlreadyInitialized" xml:space="preserve">
@@ -2698,35 +2698,12 @@
     <value>newName must be specified</value>
     <comment>Do not translate "newName".</comment>
   </data>
-  <data name="ExceptionCLHttpRestWithoutDeleteResponses" xml:space="preserve">
-    <value>Server responded without an array of delete responses</value>
-  </data>
-  <data name="ExceptionCLHttpRestWithoutRenameResponses" xml:space="preserve">
-    <value>Server responded without an array of rename responses</value>
-  </data>
-  <data name="ExceptionOnDemandFileItemNullAtIndexMsg0" xml:space="preserve">
-    <value>File item must not be null at item index {0}</value>
-    <comment>Do not translate "{0}.</comment>
-  </data>
-  <data name="ExceptionOnDemandFolderItemNullAtIndexMsg0" xml:space="preserve">
-    <value>Folder item must not be null at item index {0}</value>
-    <comment>Do not translate "{0}.</comment>
-  </data>
-  <data name="ExceptionOnDemandItemToRenameMustNotBeNull" xml:space="preserve">
-    <value>itemToRename must not be null</value>
-    <comment>Do not translate "itemToRename".</comment>
-  </data>
-  <data name="ExceptionOnDemandNewNameMustBeSpecified" xml:space="preserve">
-    <value>newName must be specified</value>
-    <comment>Do not translate "newName".</comment>
-  </data>
   <data name="ExceptionOnDemandItemToMoveMustNotBeNull" xml:space="preserve">
     <value>Item to move must not be null</value>
   </data>
   <data name="ExceptionOnDemandNewParentFolderMustBeSpecified" xml:space="preserve">
     <value>New parent folder must be specified</value>
   </data>
-  <!-- Added -->
   <data name="ExceptionCLSyncEngineMissingSyncFolder" xml:space="preserve">
     <value>The syncbox folder does not exist at the specified path: {0}.</value>
   </data>
@@ -2809,7 +2786,7 @@
   <data name="ExceptionOnDemandCheckPathNotContained" xml:space="preserve">
     <value>pathToCheck does not contain syncbox Path</value>
     <comment>pathToCheck, syncbox, and Path should not be translated</comment>
-   </data>
+  </data>
   <data name="ExceptionOnDemandCheckPathNull" xml:space="preserve">
     <value>pathToCheck cannot be null</value>
     <comment>pathToCheck should not be translated</comment>
@@ -2867,56 +2844,8 @@
     <value>Error on SetMD5 from MD5 of an existing change</value>
     <comment>SetMD5 and MD5 should not be translated</comment>
   </data>
-  <data name="ExceptionCLSyncboxBeginSyncExistingEngine" xml:space="preserve">
-    <value>Not marked as already started, but still has an existing CLSyncEngine</value>
-    <comment>CLSyncEngine should not be translated</comment>
-  </data>
-  <data name="ExceptionCLSyncboxBeginSyncStartEngine" xml:space="preserve">
-    <value>Error starting active syncing</value>
-  </data>
-  <data name="ExceptionCLSyncboxEngineNotFound" xml:space="preserve">
-    <value>Marked as started, but does not have an existing CLSyncEngine</value>
-    <comment>CLSyncEngine should not be translated</comment>
-  </data>
-  <data name="ExceptionCLSyncboxNotStarted" xml:space="preserve">
-    <value>Start the syncbox first</value>
-  </data>
-  <data name="ExceptionCLSyncboxPathNotSet" xml:space="preserve">
-    <value>path must be set first</value>
-    <comment>path should not be translated</comment>
-  </data>
-  <data name="ExceptionCLSyncboxResetLocalCacheAlreadyStarted" xml:space="preserve">
-    <value>Stop the syncbox before resetting local cache</value>
-  </data>
-  <data name="ExceptionHelpersProcessHttpInnerAsyncTimeout" xml:space="preserve">
-    <value>Asynchronously getting request stream or getting response has timed out</value>
-  </data>
-  <data name="ExceptionCLHttpRestWithoutDeleteResponses" xml:space="preserve">
-    <value>Server responded without an array of delete responses</value>
-  </data>
-  <data name="ExceptionCLHttpRestWithoutRenameResponses" xml:space="preserve">
-    <value>Server responded without an array of rename responses</value>
-  </data>
-  <data name="ExceptionOnDemandFileItemNullAtIndexMsg0" xml:space="preserve">
-    <value>File item must not be null at item index {0}</value>
-    <comment>Do not translate "{0}.</comment>
-  </data>
-  <data name="ExceptionOnDemandFolderItemNullAtIndexMsg0" xml:space="preserve">
-    <value>Folder item must not be null at item index {0}</value>
-    <comment>Do not translate "{0}.</comment>
-  </data>
-  <data name="ExceptionOnDemandItemToRenameMustNotBeNull" xml:space="preserve">
-    <value>itemToRename must not be null</value>
-    <comment>Do not translate "itemToRename".</comment>
-  </data>
-  <data name="ExceptionOnDemandNewNameMustBeSpecified" xml:space="preserve">
-    <value>newName must be specified</value>
-    <comment>Do not translate "newName".</comment>
-  </data>
-  <data name="ExceptionOnDemandItemToMoveMustNotBeNull" xml:space="preserve">
-    <value>Item to move must not be null</value>
-  </data>
-  <data name="ExceptionOnDemandNewParentFolderMustBeSpecified" xml:space="preserve">
-    <value>New parent folder must be specified</value>
+  <data name="ExceptionOnDemandPathMustNotBeNull" xml:space="preserve">
+    <value>path must not be null</value>
+    <comment>"path" should not be translated</comment>
   </data>
 </root>
