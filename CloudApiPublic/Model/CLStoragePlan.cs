@@ -143,8 +143,8 @@ namespace Cloud.Model
             Name = response.Name;
             Tier = response.Tier;
             ClientApplicationId = (long)response.ClientApplicationId;
-            BandwidthQuota = (long)response.BandwidthQuota;
-            StorageQuota = (long)response.StorageQuota;
+            BandwidthQuota = response.BandwidthQuota;
+            StorageQuota = response.StorageQuota;
             IsDefaultPlan = response.IsDefaultPlan ?? false;
             PlanCreatedAt = response.PlanCreatedAt;
             PlanUpdatedAt = response.PlanUpdatedAt;

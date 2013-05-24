@@ -878,6 +878,7 @@ namespace Cloud
                     }
 
                     // Remove this engine from the tracking list.
+                    _syncEngine = null;
                     _startedSyncEngines.Remove(_syncEngine);
 
                     _isStarted = false;
