@@ -5989,68 +5989,44 @@ namespace Cloud.FileMonitor
                 {
                     SyncRunLocker.Value = true;
 
-                    // run Sync
-                    (new Thread(new ParameterizedThreadStart(RunOnProcessEventGroupCallback)))
-                        .Start(new object[]
+                    var runOnProcessEventGroupCallback = DelegateAndDataHolderBase.Create(
+                        new
                         {
-                            emptyProcessingQueue,
-                            this.SyncRun,
-                            SyncRunLocker,
-                            NextSyncQueued
-                        });
-                }
-            }
-        }
-
-        private static void RunOnProcessEventGroupCallback(object state)
-        {
-            object[] castState = state as object[];
-            bool matchedParameters = false;
-
-            if (castState != null
-                && castState.Length == 4)
-            {
-                Nullable<bool> argOneNullable = castState[0] as Nullable<bool>;
-
-                Func<bool, CLError> RunSyncRun = castState[1] as Func<bool, CLError>;
-
-                GenericHolder<bool> RunLocker = castState[2] as GenericHolder<bool>;
-                GenericHolder<bool> NextRunQueued = castState[3] as GenericHolder<bool>;
-
-                if (argOneNullable != null
-                    && RunSyncRun != null
-                    && RunLocker != null
-                    && NextRunQueued != null)
-                {
-                    matchedParameters = true;
-
-                    Func<GenericHolder<bool>, GenericHolder<bool>, bool> runAgain = (runLock, nextQueue) =>
+                            thisAgent = this,
+                            emptyProcessingQueue = emptyProcessingQueue
+                        },
+                        (Data, errorToAccumulate) =>
                         {
-                            lock (runLock)
+                            Func<GenericHolder<bool>, GenericHolder<bool>, bool> runAgain = (runLock, nextQueue) =>
                             {
-                                if (nextQueue.Value)
+                                lock (runLock)
                                 {
-                                    nextQueue.Value = false;
-                                    return true;
+                                    if (nextQueue.Value)
+                                    {
+                                        nextQueue.Value = false;
+                                        return true;
+                                    }
+                                    else
+                                    {
+                                        runLock.Value = false;
+                                        return false;
+                                    }
                                 }
-                                else
-                                {
-                                    runLock.Value = false;
-                                    return false;
-                                }
-                            }
-                        };
+                            };
 
-                    do
-                    {
-                        RunSyncRun((bool)argOneNullable);
-                    } while (runAgain(RunLocker, NextRunQueued));
+                            do
+                            {
+                                if (!Data.thisAgent._isStopping)
+                                {
+                                    Data.thisAgent.SyncRun(Data.emptyProcessingQueue);
+                                }
+                            } while (runAgain(Data.thisAgent.SyncRunLocker, Data.thisAgent.NextSyncQueued));
+                        },
+                        null);
+
+                    // run Sync
+                    (new Thread(new ThreadStart(runOnProcessEventGroupCallback.VoidProcess))).Start();
                 }
-            }
-
-            if (!matchedParameters)
-            {
-                throw new InvalidOperationException(Resources.MonitorAgentUnableToFireOnProcessEventGroupParameterMismatch);
             }
         }
         #endregion
