@@ -23,7 +23,7 @@ namespace Cloud.Model
     public sealed class FilePath
     {
         /// <summary>
-        /// File or folder name
+        /// File or folder name.  This is the last token name of a folder, or the filename plus extension of a file.
         /// </summary>
         public string Name
         {
