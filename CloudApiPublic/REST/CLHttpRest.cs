@@ -736,7 +736,7 @@ namespace Cloud.REST
                     {
                         throw new CLArgumentException(CLExceptionCode.OnDemand_InvalidExistingPath, String.Format(Resources.ExceptionOnDemandRenameFilesInvalidExistingPathInItemMsg0, paramIdx.ToString()));
                     }
-                    FilePath fullPathExisting = new FilePath(_syncbox.Path + currentParams.ItemToRename.Path.Replace('/', '\\'));
+                    FilePath fullPathExisting = new FilePath(_syncbox.Path + currentParams.ItemToRename.Path.Replace('/', '\\').TrimTrailingSlash());
                     FilePath fullPathNew = new FilePath(currentParams.NewName, fullPathExisting.Parent);
                     CheckPath(fullPathNew, CLExceptionCode.OnDemand_RenameNewName);
 
