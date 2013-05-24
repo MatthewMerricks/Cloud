@@ -1594,17 +1594,56 @@ namespace Cloud
 
         #region Public Instance HTTP REST Methods
 
+        #region RootFolder (Queries the syncbox for the item at the root path)
         /// <summary>
-        /// Returns the syncbox root folder via the completion callback.
+        /// Asynchronously starts querying the syncbox for an item at the syncbox root path; outputs a CLFileItem object.
         /// </summary>
-        /// <param name="itemCompletionCallback">Callback method to fire at completion.</param>
-        /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the completion callback above is fired.</param>
+        /// <param name="asyncCallback">Callback method to fire when operation completes</param>
+        /// <param name="asyncCallbackUserState">Userstate to pass when firing async callback</param>
+        /// <param name="itemCompletionCallback">Delegate which will be fired upon successful communication for every response item.</param>
+        /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the completion delegate is fired.</param>
+        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        public IAsyncResult BeginItemForPath(AsyncCallback asyncCallback, object asyncCallbackUserState, CLFileItemCompletion itemCompletionCallback, object itemCompletionCallbackUserState)
+        {
+            CheckDisposed();
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.BeginItemForPath(asyncCallback, asyncCallbackUserState, itemCompletionCallback, itemCompletionCallbackUserState, this.Path);
+        }
+
+        /// <summary>
+        /// Finishes querying the syncbox for an item at the syncbox root path, if it has not already finished via its asynchronous result, and outputs the result,
+        /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
+        /// </summary>
+        /// <param name="asyncResult">The asynchronous result provided upon starting the metadata query</param>
+        /// <param name="result">(output) The result from the metadata query</param>
+        /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
+        public CLError EndItemForPath(IAsyncResult asyncResult, out SyncboxGetItemAtPathResult result)
+        {
+            CheckDisposed();
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.EndItemForPath(asyncResult, out result);
+        }
+
+        /// <summary>
+        /// Queries the syncbox for an item at the syncbox root path.
+        /// </summary>
+        /// <param name="itemCompletionCallback">Delegate which will be fired upon successful communication for every response item.</param>
+        /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the completion delegate is fired.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError SyncboxRootFolder(CLFileItemCompletion itemCompletionCallback, object itemCompletionCallbackUserState)
+        public CLError ItemForPath(CLFileItemCompletion itemCompletionCallback, object itemCompletionCallbackUserState)
         {
             CheckDisposed(isOneOff: true);
-            return null;   //&&&& fix
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.ItemForPath(itemCompletionCallback, itemCompletionCallbackUserState, this.Path);
         }
+
+        #endregion  // end GetItemAtPath (Queries the cloud for the item at a particular path)
 
         #region ItemForPath (Queries the syncbox for the item at a particular path)
         /// <summary>
@@ -1643,7 +1682,7 @@ namespace Cloud
         }
 
         /// <summary>
-        /// Queries the server at a given file or folder path (must be specified) for existing metadata at that path.
+        /// Queries the syncbox at a given file or folder path (must be specified) for existing item metadata at that path.
         /// Check for Deleted flag being true in case the metadata represents a deleted item.
         /// </summary>
         /// <param name="itemCompletionCallback">Delegate which will be fired upon successful communication for every response item.</param>
