@@ -268,7 +268,7 @@ namespace Cloud.JsonContracts
                 lock (FolderAddSerializerLocker)
                 {
                     return _folderAddSerializer
-                        ?? (_folderAddSerializer = new DataContractJsonSerializer(typeof(JsonContracts.FolderAdd)));
+                        ?? (_folderAddSerializer = new DataContractJsonSerializer(typeof(JsonContracts.FolderAddRequest)));
                 }
             }
         }
@@ -622,7 +622,7 @@ namespace Cloud.JsonContracts
                 lock (FoldersSerializerLocker)
                 {
                     return _foldersSerializer
-                        ?? (_foldersSerializer = new DataContractJsonSerializer(typeof(JsonContracts.Folders)));
+                        ?? (_foldersSerializer = new DataContractJsonSerializer(typeof(JsonContracts.FoldersResponse)));
                 }
             }
         }

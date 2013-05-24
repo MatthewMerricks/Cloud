@@ -381,9 +381,9 @@
     <value>deletionChange cannot be null</value>
     <comment>"deletionChange" should not be translated</comment>
   </data>
-  <data name="CLHttpRestDeletionChangeMetadataServerIDMustnotBeNull" xml:space="preserve">
-    <value>deletionChange Metadata ServerId must not be null</value>
-    <comment>"deletionChange" should not be translated; "ServerId" should not be translated</comment>
+  <data name="CLHttpRestDeletionChangeMetadataServerUidMustnotBeNull" xml:space="preserve">
+    <value>deletionChange Metadata ServerUid must not be null</value>
+    <comment>"deletionChange" should not be translated; "ServerUid" should not be translated</comment>
   </data>
   <data name="CLHttpRestDeviceIDCannotBeNull" xml:space="preserve">
     <value>settings DeviceId cannot be null</value>
@@ -405,9 +405,9 @@
     <value>fullPath does not contain settings syncbox path</value>
     <comment>"fullPath" should not be translated</comment>
   </data>
-  <data name="CLHttpRestFullPathorServerIDRequired" xml:space="preserve">
+  <data name="CLHttpRestFullPathorServerUidRequired" xml:space="preserve">
     <value>Both fullPath and serverId cannot be null, at least one is required</value>
-    <comment>"fullPath" should not be translated; "ServerId" should not be translated</comment>
+    <comment>"fullPath" should not be translated; "ServerUid" should not be translated</comment>
   </data>
   <data name="CLHttpRestInternalProgressRetrievalFailure1" xml:space="preserve">
     <value>There was an internal error attempting to retrieve the progress, Error 1</value>
@@ -492,13 +492,13 @@
     <value>toCommunicate Type is an unknown FileChangeType: </value>
     <comment>"toCommunicate" should not be translated</comment>
   </data>
-  <data name="CLHttpRestXORNewPathServerIDCannotBeNull" xml:space="preserve">
-    <value>Either toCommunicate NewPath must not be null or toCommunicate Metadata ServerId must not be null or both must not be null</value>
-    <comment>"toCommunicate", "NewPath", and "ServerId" should not be translated</comment>
+  <data name="CLHttpRestXORNewPathServerUidCannotBeNull" xml:space="preserve">
+    <value>Either toCommunicate NewPath must not be null or toCommunicate Metadata ServerUid must not be null or both must not be null</value>
+    <comment>"toCommunicate", "NewPath", "Metadata", and "ServerUid" should not be translated</comment>
   </data>
-  <data name="CLHttpRestXORPathtoFileFileServerIDMustNotBeNull" xml:space="preserve">
-    <value>Either pathToFile must not be null or fileServerId must not be null or both must not be null</value>
-    <comment>"pathToFile" should not be translated; "fileServerId" should not be translated</comment>
+  <data name="CLHttpRestXORPathtoFileFileServerUidMustNotBeNull" xml:space="preserve">
+    <value>Either pathToFile must not be null or fileServerUid must not be null or both must not be null</value>
+    <comment>"pathToFile" should not be translated; "fileServerUid" should not be translated</comment>
   </data>
   <data name="CommonStartMenuParentFolderNameVista" xml:space="preserve">
     <value>ProgramData\Microsoft\Windows</value>
@@ -2847,5 +2847,41 @@
   <data name="ExceptionOnDemandPathMustNotBeNull" xml:space="preserve">
     <value>path must not be null</value>
     <comment>"path" should not be translated</comment>
+  </data>
+  <data name="ExceptionOnDemandAddFoldersNoFoldersToAdd" xml:space="preserve">
+    <value>foldersToAdd must be specified, and must have at least one element</value>
+    <comment>"foldersToAdd" should not be translated</comment>
+  </data>
+  <data name="CLHttpRestXORNewPathParentFolderServerUidCannotBeNull" xml:space="preserve">
+    <value>Either toCommunicate NewPath must not be null or toCommunicate Metadata ParentFolderServerUid must not be null or both must not be null</value>
+    <comment>"toCommunicate", "NewPath", "Metadata", and "ParentFolderServerUid" should not be translated</comment>
+  </data>
+  <data name="CLHttpRestXOROldPathServerUidCannotBeNull" xml:space="preserve">
+    <value>Either toCommunicate OldPath must not be null or toCommunicate Metadata ServerUid must not be null or both must not be null</value>
+    <comment>"toCommunicate", "OldPath", "Metadata", and "ServerUid" should not be translated</comment>
+  </data>
+  <data name="ExceptionCLHttpRestWithoutAddFolderResponses" xml:space="preserve">
+    <value>The server responded without an array of add folder responses</value>
+    <comment>Translate</comment>
+  </data>
+  <data name="ExceptionOnDemandAddFoldersParentFolderDeleted" xml:space="preserve">
+    <value>The parent folder was found, but it has been deleted</value>
+    <comment>Translate</comment>
+  </data>
+  <data name="ExceptionOnDemandAddFoldersParentFolderNotFound" xml:space="preserve">
+    <value>The parent folder was not found</value>
+    <comment>Translate</comment>
+  </data>
+  <data name="ExceptionOnDemandAddFoldersTargetFolderAlreadyExists" xml:space="preserve">
+    <value>The target folder already exists</value>
+    <comment>Translate</comment>
+  </data>
+  <data name="ExceptionOnDemandAddItemItemMustNotBeNull" xml:space="preserve">
+    <value>Item must not be null</value>
+    <comment>"Item" shoud not be translated</comment>
+  </data>
+  <data name="ExceptionOnDemandAddItemNameMustBeSpecified" xml:space="preserve">
+    <value>Name must be specified</value>
+    <comment>"Name" should not be translated</comment>
   </data>
 </root>

@@ -19,11 +19,8 @@ namespace Cloud.JsonContracts
     /// Result from <see cref="Cloud.CLSyncbox.GetFolderHierarchy"/>
     /// </summary>
     [DataContract]
-    public sealed class Folders
+    public sealed class FoldersResponse
     {
-        [DataMember(Name = CLDefinitions.CLMetadataTotalCount, IsRequired = false)]
-        public Nullable<long> TotalCount { get; set; }
-
         [DataMember(Name = CLDefinitions.CLMetadataFolders, IsRequired = false)]
         public JsonContracts.SyncboxMetadataResponse[] Metadata { get; set; }
     }

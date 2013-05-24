@@ -54,7 +54,7 @@ namespace Cloud.CLSync.CLSyncboxParameters
             {
                 throw new CLArgumentNullException(Static.CLExceptionCode.OnDemand_MoveItemParamsMissingProperties, Resources.ExceptionOnDemandItemToMoveMustNotBeNull);
             }
-            if (String.IsNullOrWhiteSpace(newParentPath))
+            if (String.IsNullOrEmpty(newParentPath))
             {
                 throw new CLArgumentNullException(Static.CLExceptionCode.OnDemand_MoveItemParamsMissingProperties, Resources.ExceptionOnDemandNewParentFolderMustBeSpecified);
             }

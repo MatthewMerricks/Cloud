@@ -268,11 +268,11 @@ namespace Cloud.Static {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to deletionChange Metadata ServerId must not be null.
+        ///   Looks up a localized string similar to deletionChange Metadata ServerUid must not be null.
         /// </summary>
-        internal static string CLHttpRestDeletionChangeMetadataServerIDMustnotBeNull {
+        internal static string CLHttpRestDeletionChangeMetadataServerUidMustnotBeNull {
             get {
-                return ResourceManager.GetString("CLHttpRestDeletionChangeMetadataServerIDMustnotBeNull", resourceCulture);
+                return ResourceManager.GetString("CLHttpRestDeletionChangeMetadataServerUidMustnotBeNull", resourceCulture);
             }
         }
         
@@ -324,9 +324,9 @@ namespace Cloud.Static {
         /// <summary>
         ///   Looks up a localized string similar to Both fullPath and serverId cannot be null, at least one is required.
         /// </summary>
-        internal static string CLHttpRestFullPathorServerIDRequired {
+        internal static string CLHttpRestFullPathorServerUidRequired {
             get {
-                return ResourceManager.GetString("CLHttpRestFullPathorServerIDRequired", resourceCulture);
+                return ResourceManager.GetString("CLHttpRestFullPathorServerUidRequired", resourceCulture);
             }
         }
         
@@ -511,20 +511,38 @@ namespace Cloud.Static {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Either toCommunicate NewPath must not be null or toCommunicate Metadata ServerId must not be null or both must not be null.
+        ///   Looks up a localized string similar to Either toCommunicate NewPath must not be null or toCommunicate Metadata ParentFolderServerUid must not be null or both must not be null.
         /// </summary>
-        internal static string CLHttpRestXORNewPathServerIDCannotBeNull {
+        internal static string CLHttpRestXORNewPathParentFolderServerUidCannotBeNull {
             get {
-                return ResourceManager.GetString("CLHttpRestXORNewPathServerIDCannotBeNull", resourceCulture);
+                return ResourceManager.GetString("CLHttpRestXORNewPathParentFolderServerUidCannotBeNull", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Either pathToFile must not be null or fileServerId must not be null or both must not be null.
+        ///   Looks up a localized string similar to Either toCommunicate NewPath must not be null or toCommunicate Metadata ServerUid must not be null or both must not be null.
         /// </summary>
-        internal static string CLHttpRestXORPathtoFileFileServerIDMustNotBeNull {
+        internal static string CLHttpRestXORNewPathServerUidCannotBeNull {
             get {
-                return ResourceManager.GetString("CLHttpRestXORPathtoFileFileServerIDMustNotBeNull", resourceCulture);
+                return ResourceManager.GetString("CLHttpRestXORNewPathServerUidCannotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Either toCommunicate OldPath must not be null or toCommunicate Metadata ServerUid must not be null or both must not be null.
+        /// </summary>
+        internal static string CLHttpRestXOROldPathServerUidCannotBeNull {
+            get {
+                return ResourceManager.GetString("CLHttpRestXOROldPathServerUidCannotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Either pathToFile must not be null or fileServerUid must not be null or both must not be null.
+        /// </summary>
+        internal static string CLHttpRestXORPathtoFileFileServerUidMustNotBeNull {
+            get {
+                return ResourceManager.GetString("CLHttpRestXORPathtoFileFileServerUidMustNotBeNull", resourceCulture);
             }
         }
         
@@ -2034,6 +2052,15 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The server responded without an array of add folder responses.
+        /// </summary>
+        internal static string ExceptionCLHttpRestWithoutAddFolderResponses {
+            get {
+                return ResourceManager.GetString("ExceptionCLHttpRestWithoutAddFolderResponses", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Server responded without an array of delete responses.
         /// </summary>
         internal static string ExceptionCLHttpRestWithoutDeleteResponses {
@@ -2606,6 +2633,60 @@ namespace Cloud.Static {
         internal static string ExceptionLoggingInWithCode {
             get {
                 return ResourceManager.GetString("ExceptionLoggingInWithCode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to foldersToAdd must be specified, and must have at least one element.
+        /// </summary>
+        internal static string ExceptionOnDemandAddFoldersNoFoldersToAdd {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandAddFoldersNoFoldersToAdd", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The parent folder was found, but it has been deleted.
+        /// </summary>
+        internal static string ExceptionOnDemandAddFoldersParentFolderDeleted {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandAddFoldersParentFolderDeleted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The parent folder was not found.
+        /// </summary>
+        internal static string ExceptionOnDemandAddFoldersParentFolderNotFound {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandAddFoldersParentFolderNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The target folder already exists.
+        /// </summary>
+        internal static string ExceptionOnDemandAddFoldersTargetFolderAlreadyExists {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandAddFoldersTargetFolderAlreadyExists", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Item must not be null.
+        /// </summary>
+        internal static string ExceptionOnDemandAddItemItemMustNotBeNull {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandAddItemItemMustNotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Name must be specified.
+        /// </summary>
+        internal static string ExceptionOnDemandAddItemNameMustBeSpecified {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandAddItemNameMustBeSpecified", resourceCulture);
             }
         }
         
