@@ -48,7 +48,8 @@ namespace Cloud.Static
 #if PRODUCTION_BACKEND
         public const string Domain = "cloud.com";
 #elif STAGING_BACKEND
-        public const string Domain = "cloudstaging.us";
+        public const string Domain = "cliff.cloudburrito.com";
+        //public const string Domain = "cloudstaging.us";
 #else
         public const string Domain = "cliff.cloudburrito.com";
 #endif
