@@ -3583,7 +3583,7 @@ namespace Cloud.SQLIndexer
         {
             if (syncbox == null)
             {
-                throw new NullReferenceException(Resources.CLEngineSyncboxCannotBeNull);
+                throw new NullReferenceException(Resources.SyncboxMustNotBeNull);
             }
             if (string.IsNullOrEmpty(syncbox.CopiedSettings.DeviceId))
             {

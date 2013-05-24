@@ -200,7 +200,7 @@ namespace Cloud.Sync
             }
             if (syncbox == null)
             {
-                throw new NullReferenceException(Resources.CLEngineSyncboxCannotBeNull);
+                throw new NullReferenceException(Resources.SyncboxMustNotBeNull);
             }
             if (httpRestClient == null)
             {

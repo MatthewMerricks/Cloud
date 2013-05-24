@@ -1059,7 +1059,7 @@ namespace Cloud.BadgeNET
                                                 existingSyncedHolder = new GenericHolder<cloudAppIconBadgeType>(cloudAppIconBadgeType.cloudAppBadgeSynced);
                                             }
 
-                                            _trace.writeToMemory(() => _trace.trcFmtStr(1, "IconOverlay: RenameBadgePath. Remove badge at oldPath: {0}.", oldPath));
+                                            _trace.writeToMemory(() => _trace.trcFmtStr(1, Resources.IconOverlayRenameBadgePathRemoveBadgeOldPath0, oldPath));
                                             SendRemoveBadgePathEvent(oldPath);
                                             _trace.writeToMemory(() => _trace.trcFmtStr(1, "IconOverlay: RenameBadgePath. Remove badge at newPath: {0}.", newPath));
                                             SendRemoveBadgePathEvent(newPath);

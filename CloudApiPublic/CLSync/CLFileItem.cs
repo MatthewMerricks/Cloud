@@ -194,7 +194,7 @@ namespace Cloud.CLSync
         {
             if (syncbox == null)
             {
-                throw new CLArgumentNullException(CLExceptionCode.FileItem_NullSyncbox, Resources.ExceptionFileItemNullSyncbox);
+                throw new CLArgumentNullException(CLExceptionCode.FileItem_NullSyncbox, Resources.SyncboxMustNotBeNull);
             }
 
             this._name = name;
@@ -236,7 +236,7 @@ namespace Cloud.CLSync
             }
             if (syncbox == null)
             {
-                throw new CLArgumentNullException(CLExceptionCode.FileItem_NullSyncbox, Resources.ExceptionFileItemNullSyncbox);
+                throw new CLArgumentNullException(CLExceptionCode.FileItem_NullSyncbox, Resources.SyncboxMustNotBeNull);
             }
 
             if (response.IsFolder == null)
@@ -357,11 +357,11 @@ namespace Cloud.CLSync
                 CLFileItem castState = UserState as CLFileItem;
                 if (castState == null)
                 {
-                    throw new NullReferenceException("castState must be a CLFileItem");
+                    throw new NullReferenceException(Resources.CLFileItemCastStateMustBeACLFileItem);
                 }
                 if (castState._copiedSettings == null)
                 {
-                    throw new NullReferenceException("castState _copiedSettings must not be null");
+                    throw new NullReferenceException(Resources.CLFileItemCastStateCopiedSettingsMustNotBeNull);
                 }
                 if (castState.Syncbox == null)
                 {

@@ -106,7 +106,7 @@ namespace Cloud.PushNotification
         {
             if (syncbox == null)
             {
-                throw new ArgumentNullException(Resources.CLNotificationSseEngineSyncboxCannotBeNull);
+                throw new ArgumentNullException(Resources.SyncboxMustNotBeNull);
             }
             if (delegateCreateEngineTimer == null)
             {
@@ -542,7 +542,7 @@ namespace Cloud.PushNotification
                             }
                         }
 
-                        throw new Exception(string.Format("Invalid status code on starting SSE engine: {0}", ((int)response.StatusCode)), storeWebEx); // rethrow the stored exception from above, also may be wrapped with an outer exception message and passed via InnerException
+                        throw new Exception(string.Format(Resources.CLNotificationSseEngineInvalidStatusCodeOnStartingSSEEngine0, ((int)response.StatusCode)), storeWebEx); // rethrow the stored exception from above, also may be wrapped with an outer exception message and passed via InnerException
                 }
             }
             catch (ThreadAbortException)

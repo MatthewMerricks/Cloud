@@ -129,7 +129,7 @@ namespace Cloud.REST
         {
             if (syncbox == null)
             {
-                throw new NullReferenceException(Resources.ExceptionCLHttpRestNullSyncbox);
+                throw new NullReferenceException(Resources.SyncboxMustNotBeNull);
             }
 
             if (string.IsNullOrEmpty(syncbox.Path))
@@ -2718,7 +2718,7 @@ namespace Cloud.REST
 
                 if (!(timeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException(Resources.CLHttpRestTimeoutMustBeGreaterThanZero);
+                    throw new ArgumentException(Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
                 if (deletionChange == null)
                 {
@@ -3026,7 +3026,7 @@ namespace Cloud.REST
 
                 if (!(timeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException(Resources.CLHttpRestTimeoutMustBeGreaterThanZero);
+                    throw new ArgumentException(Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
                 if (_syncbox.Path == null)
                 {
@@ -3166,7 +3166,7 @@ namespace Cloud.REST
 
                 if (!(_copiedSettings.HttpTimeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException(Resources.CLHttpRestTimeoutMustBeGreaterThanZero);
+                    throw new ArgumentException(Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
 
                 // build the location of the pictures retrieval method on the server dynamically
@@ -3311,7 +3311,7 @@ namespace Cloud.REST
 
                 if (!(_copiedSettings.HttpTimeoutMilliseconds> 0))
                 {
-                    throw new ArgumentException(Resources.CLHttpRestTimeoutMustBeGreaterThanZero);
+                    throw new ArgumentException(Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
 
                 // build the location of the videos retrieval method on the server dynamically
@@ -3456,7 +3456,7 @@ namespace Cloud.REST
 
                 if (!(_copiedSettings.HttpTimeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException(Resources.CLHttpRestTimeoutMustBeGreaterThanZero);
+                    throw new ArgumentException(Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
 
                 // build the location of the audios retrieval method on the server dynamically
@@ -3601,7 +3601,7 @@ namespace Cloud.REST
 
                 if (!(_copiedSettings.HttpTimeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException(Resources.CLHttpRestTimeoutMustBeGreaterThanZero);
+                    throw new ArgumentException(Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
 
                 // build the location of the audios retrieval method on the server dynamically
@@ -3746,7 +3746,7 @@ namespace Cloud.REST
 
                 if (!(_copiedSettings.HttpTimeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException(Resources.CLHttpRestTimeoutMustBeGreaterThanZero);
+                    throw new ArgumentException(Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
 
                 // build the location of the audios retrieval method on the server dynamically
@@ -3891,7 +3891,7 @@ namespace Cloud.REST
 
                 if (!(_copiedSettings.HttpTimeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException(Resources.CLHttpRestTimeoutMustBeGreaterThanZero);
+                    throw new ArgumentException(Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
 
                 // build the location of the audios retrieval method on the server dynamically
@@ -4036,7 +4036,7 @@ namespace Cloud.REST
 
                 if (!(_copiedSettings.HttpTimeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException(Resources.CLHttpRestTimeoutMustBeGreaterThanZero);
+                    throw new ArgumentException(Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
 
                 // build the location of the audios retrieval method on the server dynamically
@@ -4195,7 +4195,7 @@ namespace Cloud.REST
 
                 if (!(_copiedSettings.HttpTimeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException(Resources.CLHttpRestTimeoutMustBeGreaterThanZero);
+                    throw new ArgumentException(Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
 
                 // build the location of the recents retrieval method on the server dynamically
@@ -4414,7 +4414,7 @@ namespace Cloud.REST
 
                 if (!(timeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException(Resources.CLHttpRestTimeoutMustBeGreaterThanZero);
+                    throw new ArgumentException(Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
 
                 // build the location of the sync box usage retrieval method on the server dynamically
@@ -4615,7 +4615,7 @@ namespace Cloud.REST
 
                 if (!(timeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException(Resources.CLHttpRestTimeoutMustBeGreaterThanZero);
+                    throw new ArgumentException(Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
                 if (string.IsNullOrEmpty(_syncbox.Path))
                 {
@@ -4777,7 +4777,7 @@ namespace Cloud.REST
                 }
                 if (!(_copiedSettings.HttpTimeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException(Resources.CLHttpRestTimeoutMustBeGreaterThanZero);
+                    throw new ArgumentException(Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
 
                 // build the location of the folder contents retrieval method on the server dynamically
@@ -5120,7 +5120,7 @@ namespace Cloud.REST
 
                 if (!(timeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException(Resources.CLHttpRestTimeoutMustBeGreaterThanZero);
+                    throw new ArgumentException(Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
 
                 // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
@@ -5362,7 +5362,7 @@ namespace Cloud.REST
 
                 if (!(timeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException(Resources.CLHttpRestTimeoutMustBeGreaterThanZero);
+                    throw new ArgumentException(Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
 
                 if (planId == 0)
@@ -5632,7 +5632,7 @@ namespace Cloud.REST
 
                 if (!(timeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException(Resources.CLHttpRestTimeoutMustBeGreaterThanZero);
+                    throw new ArgumentException(Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
 
                 if (String.IsNullOrWhiteSpace(friendlyName))
@@ -5876,7 +5876,7 @@ namespace Cloud.REST
 
                 if (!(timeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException(Resources.CLHttpRestTimeoutMustBeGreaterThanZero);
+                    throw new ArgumentException(Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
 
                 // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
@@ -6085,7 +6085,7 @@ namespace Cloud.REST
 
                 if (!(timeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException(Resources.CLHttpRestTimeoutMustBeGreaterThanZero);
+                    throw new ArgumentException(Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
 
                 // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
@@ -6156,7 +6156,7 @@ namespace Cloud.REST
                 }
                 if (!(timeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException(Resources.CLHttpRestTimeoutMustBeGreaterThanZero);
+                    throw new ArgumentException(Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
 
                 // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
@@ -6211,7 +6211,7 @@ namespace Cloud.REST
                 }
                 if (!(timeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException(Resources.CLHttpRestTimeoutMustBeGreaterThanZero);
+                    throw new ArgumentException(Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
 
                 // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
@@ -6261,7 +6261,7 @@ namespace Cloud.REST
                 // check input parameters
                 if (!(timeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException(Resources.CLHttpRestTimeoutMustBeGreaterThanZero);
+                    throw new ArgumentException(Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
 
                 JsonContracts.NotificationUnsubscribeRequest request = new JsonContracts.NotificationUnsubscribeRequest()
@@ -6563,7 +6563,7 @@ namespace Cloud.REST
 
                 if (!(timeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException(Resources.CLHttpRestTimeoutMustBeGreaterThanZero);
+                    throw new ArgumentException(Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
 
                 // build the location of the metadata retrieval method on the server dynamically
@@ -6950,7 +6950,7 @@ namespace Cloud.REST
 
                 if (timeoutMilliseconds <= 0)
                 {
-                    throw new ArgumentException(Resources.CLHttpRestTimeoutMustBeGreaterThanZero);
+                    throw new ArgumentException(Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
 
                 if (serverUid == null)
@@ -7349,7 +7349,7 @@ namespace Cloud.REST
 
                 if (timeoutMilliseconds <= 0)
                 {
-                    throw new ArgumentException(Resources.CLHttpRestTimeoutMustBeGreaterThanZero);
+                    throw new ArgumentException(Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
 
                 // build the location of the metadata retrieval method on the server dynamically
@@ -7561,7 +7561,7 @@ namespace Cloud.REST
 
                 if (!(timeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException(Resources.CLHttpRestTimeoutMustBeGreaterThanZero);
+                    throw new ArgumentException(Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
 
                 // build the location of the pending retrieval method on the server dynamically
@@ -7784,7 +7784,7 @@ namespace Cloud.REST
                 }
                 if (!(timeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException(Resources.CLHttpRestTimeoutMustBeGreaterThanZero);
+                    throw new ArgumentException(Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
 
                 // build the location of the one-off method on the server dynamically
@@ -8241,7 +8241,7 @@ namespace Cloud.REST
 
                 if (!(timeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException(Resources.CLHttpRestTimeoutMustBeGreaterThanZero);
+                    throw new ArgumentException(Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
                 if (pathToFile == null
                     && string.IsNullOrEmpty(fileServerId))
@@ -8460,7 +8460,7 @@ namespace Cloud.REST
 
                 if (!(timeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException(Resources.CLHttpRestTimeoutMustBeGreaterThanZero);
+                    throw new ArgumentException(Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
 
                 // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
