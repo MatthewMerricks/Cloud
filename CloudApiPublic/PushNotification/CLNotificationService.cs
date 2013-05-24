@@ -303,7 +303,7 @@ namespace Cloud.PushNotification
                 {
                     lock (NotificationClientsRunning)
                     {
-                        _trace.writeToLog(9, Resources.CLNotificationServiceDisconnectNotificationServerRemoteClient0, syncboxDeviceIdCombined);
+                        _trace.writeToLog(9, Resources.CLNotificationServiceDisconnectNotificationServerRemoveClient0, syncboxDeviceIdCombined);
                         NotificationClientsRunning.Remove(syncboxDeviceIdCombined);
                     }
                 }
@@ -431,7 +431,7 @@ namespace Cloud.PushNotification
                         while (true)
                         {
                             // Construct a new instance and start this engine.
-                            _trace.writeToLog(9,Resources.CLNotificationServiceServiceManagerThreadProcTopOfLoopRunningEngine0, engineIndex.ToString());
+                            _trace.writeToLog(9, Resources.CLNotificationServiceServiceManagerThreadProcTopOfLoopRunningEngine0, engineIndex.ToString());
                             lock (this)
                             {
                                 // Don't run another engine if we have been stopped.
@@ -705,7 +705,7 @@ namespace Cloud.PushNotification
                     {
                         _trace.writeToLog(1, Resources.CLNotificationServiceDisposeEngineTimerDisposeTimer);
                         _timerEngineWatcher.Dispose();
-                        _trace.writeToLog(1,Resources.CLNotificationServiceDisposeEngineTimerBackFromDispose);
+                        _trace.writeToLog(1, Resources.CLNotificationServiceDisposeEngineTimerBackFromDispose);
                         _timerEngineWatcher = null;
                     }
                 }

@@ -124,20 +124,20 @@ namespace Cloud.Static {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to aResult does not match expected internal type.
+        ///   Looks up a localized string similar to asyncResult does not match expected internal type.
         /// </summary>
-        internal static string CLCredentialaResultInternalTypeMismatch {
+        internal static string CLAsyncResultInternalTypeMismatch {
             get {
-                return ResourceManager.GetString("CLCredentialaResultInternalTypeMismatch", resourceCulture);
+                return ResourceManager.GetString("CLAsyncResultInternalTypeMismatch", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Cannot cast state as.
         /// </summary>
-        internal static string CLCredentialCannotCastStateAs {
+        internal static string CLCannotCastStateAs {
             get {
-                return ResourceManager.GetString("CLCredentialCannotCastStateAs", resourceCulture);
+                return ResourceManager.GetString("CLCannotCastStateAs", resourceCulture);
             }
         }
         
@@ -156,15 +156,6 @@ namespace Cloud.Static {
         internal static string CLCredentialKeyCannotBeNull {
             get {
                 return ResourceManager.GetString("CLCredentialKeyCannotBeNull", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to timeoutMilliseconds must be greater than zero.
-        /// </summary>
-        internal static string CLCredentialMSTimeoutMustBeGreaterThanZero {
-            get {
-                return ResourceManager.GetString("CLCredentialMSTimeoutMustBeGreaterThanZero", resourceCulture);
             }
         }
         
@@ -196,29 +187,20 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to N.
+        /// </summary>
+        internal static string CLCredentialStringSettingsN {
+            get {
+                return ResourceManager.GetString("CLCredentialStringSettingsN", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to syncbox cannot be null.
         /// </summary>
         internal static string CLEngineSyncboxCannotBeNull {
             get {
                 return ResourceManager.GetString("CLEngineSyncboxCannotBeNull", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to aResult does not match expected internal type.
-        /// </summary>
-        internal static string CLHttpRestaResultInternalTypeMismatch {
-            get {
-                return ResourceManager.GetString("CLHttpRestaResultInternalTypeMismatch", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Cannot cast state as.
-        /// </summary>
-        internal static string CLHttpRestCannotCastStateAs {
-            get {
-                return ResourceManager.GetString("CLHttpRestCannotCastStateAs", resourceCulture);
             }
         }
         
@@ -246,6 +228,15 @@ namespace Cloud.Static {
         internal static string CLHttpRestCommunicateCannotBeNull {
             get {
                 return ResourceManager.GetString("CLHttpRestCommunicateCannotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to syncbox.CopiedSettings must not be null.
+        /// </summary>
+        internal static string CLHttpRestCopiedSettingsMustNotBeNull {
+            get {
+                return ResourceManager.GetString("CLHttpRestCopiedSettingsMustNotBeNull", resourceCulture);
             }
         }
         
@@ -322,7 +313,7 @@ namespace Cloud.Static {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to fullPath does not contain syncbox path.
+        ///   Looks up a localized string similar to fullPath does not contain settings syncbox path.
         /// </summary>
         internal static string CLHttpRestFullPathDoesNotContainSettingsSyncboxPath {
             get {
@@ -340,20 +331,20 @@ namespace Cloud.Static {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to There was an internal error attempting to retrieve the progress, Error 1.
+        ///   Looks up a localized string similar to There was an internal error attempting to retrieve the progress, Error 2.
         /// </summary>
-        internal static string CLHttpRestInternalPRogressRetrievalFailure1 {
+        internal static string CLHttpRestInternalPRogressRetreivalFailure2 {
             get {
-                return ResourceManager.GetString("CLHttpRestInternalPRogressRetrievalFailure1", resourceCulture);
+                return ResourceManager.GetString("CLHttpRestInternalPRogressRetreivalFailure2", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to There was an internal error attempting to retrieve the progress, Error 2.
+        ///   Looks up a localized string similar to There was an internal error attempting to retrieve the progress, Error 1.
         /// </summary>
-        internal static string CLHttpRestInternalPRogressRetrievalFailure2 {
+        internal static string CLHttpRestInternalProgressRetrievalFailure1 {
             get {
-                return ResourceManager.GetString("CLHttpRestInternalPRogressRetrievalFailure2", resourceCulture);
+                return ResourceManager.GetString("CLHttpRestInternalProgressRetrievalFailure1", resourceCulture);
             }
         }
         
@@ -381,6 +372,15 @@ namespace Cloud.Static {
         internal static string CLHttpRestMetadataHashablePropertiesSizeCannotBeNull {
             get {
                 return ResourceManager.GetString("CLHttpRestMetadataHashablePropertiesSizeCannotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to toCommunicate Metadata Revision cannot be null.
+        /// </summary>
+        internal static string CLHttpRestMetaDataRevisionCannotBeNull {
+            get {
+                return ResourceManager.GetString("CLHttpRestMetaDataRevisionCannotBeNull", resourceCulture);
             }
         }
         
@@ -421,16 +421,7 @@ namespace Cloud.Static {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to revision cannot be null.
-        /// </summary>
-        internal static string CLHttpRestRevisionCannotBeNull {
-            get {
-                return ResourceManager.GetString("CLHttpRestRevisionCannotBeNull", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Syncbox path is bad.
+        ///   Looks up a localized string similar to syncbox path is bad.
         /// </summary>
         internal static string CLHttpRestSyncboxBadPath {
             get {
@@ -520,7 +511,7 @@ namespace Cloud.Static {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Either toCommunicate NewPath must not be null or serverUid must not be null or both must not be null.
+        ///   Looks up a localized string similar to Either toCommunicate NewPath must not be null or toCommunicate Metadata ServerId must not be null or both must not be null.
         /// </summary>
         internal static string CLHttpRestXORNewPathServerIDCannotBeNull {
             get {
@@ -534,6 +525,15 @@ namespace Cloud.Static {
         internal static string CLHttpRestXORPathtoFileFileServerIDMustNotBeNull {
             get {
                 return ResourceManager.GetString("CLHttpRestXORPathtoFileFileServerIDMustNotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to timeoutMilliseconds must be greater than zero.
+        /// </summary>
+        internal static string CLMSTimeoutMustBeGreaterThanZero {
+            get {
+                return ResourceManager.GetString("CLMSTimeoutMustBeGreaterThanZero", resourceCulture);
             }
         }
         
@@ -630,9 +630,9 @@ namespace Cloud.Static {
         /// <summary>
         ///   Looks up a localized string similar to CLNotificationService: DisconnectPushNotificationServer: Remove client: {0}..
         /// </summary>
-        internal static string CLNotificationServiceDisconnectNotificationServerRemoteClient0 {
+        internal static string CLNotificationServiceDisconnectNotificationServerRemoveClient0 {
             get {
-                return ResourceManager.GetString("CLNotificationServiceDisconnectNotificationServerRemoteClient0", resourceCulture);
+                return ResourceManager.GetString("CLNotificationServiceDisconnectNotificationServerRemoveClient0", resourceCulture);
             }
         }
         
@@ -1016,7 +1016,7 @@ namespace Cloud.Static {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to syncbox cannot be null.
+        ///   Looks up a localized string similar to Syncbox cannot be null.
         /// </summary>
         internal static string CLNotificationServiceSyncBoxCannotBeNull {
             get {
@@ -1025,7 +1025,7 @@ namespace Cloud.Static {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to syncbox CopiedSettings DeviceId cannot be null.
+        ///   Looks up a localized string similar to Syncbox CopiedSettings DeviceId cannot be null.
         /// </summary>
         internal static string CLNotificationServiceSyncBoxCopiedSettingsCannotBeNull {
             get {
@@ -1388,9 +1388,9 @@ namespace Cloud.Static {
         /// <summary>
         ///   Looks up a localized string similar to Cannot do anything with the Cloud SDK if Helpers.AllHaltedOnUnrecoverableError is set.
         /// </summary>
-        internal static string CLSyncboxAllHaltedOnUnrecoverableErrorIsSet {
+        internal static string CLSyncBoxAllHaltedOnUnrecoverableErrorIsSet {
             get {
-                return ResourceManager.GetString("CLSyncboxAllHaltedOnUnrecoverableErrorIsSet", resourceCulture);
+                return ResourceManager.GetString("CLSyncBoxAllHaltedOnUnrecoverableErrorIsSet", resourceCulture);
             }
         }
         
@@ -1404,7 +1404,7 @@ namespace Cloud.Static {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to CLSyncbox: Construction: ERROR: Msg: {0}..
+        ///   Looks up a localized string similar to CLSyncbox: Construction: ERROR: {0}..
         /// </summary>
         internal static string CLSyncboxConstructionErrorMsg0 {
             get {
@@ -1571,6 +1571,24 @@ namespace Cloud.Static {
         internal static string CLSyncEngineMonitorCannotBeNull {
             get {
                 return ResourceManager.GetString("CLSyncEngineMonitorCannotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLSyncEngine: OnConnectionError: Entry. ERROR: Manual poll error: &lt;{0}&gt;. Web socket error: &lt;{1}&gt;..
+        /// </summary>
+        internal static string CLSyncEngineOnConnectionErrorEntryErrorManualPollErrorWebSocketError {
+            get {
+                return ResourceManager.GetString("CLSyncEngineOnConnectionErrorEntryErrorManualPollErrorWebSocketError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLSyncEngine: OnConnectionError: Notify the application..
+        /// </summary>
+        internal static string CLSyncEngineOnConnectionErrorNotifyApplication {
+            get {
+                return ResourceManager.GetString("CLSyncEngineOnConnectionErrorNotifyApplication", resourceCulture);
             }
         }
         
@@ -1782,7 +1800,7 @@ namespace Cloud.Static {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Syncbox path in settings is too long, check it first via Helpers.CheckSyncboxPathLength.
+        ///   Looks up a localized string similar to Syncbox path in settings is too long, check it first via Helpers.CheckSyncRootLength.
         /// </summary>
         internal static string CLSyncEngineSyncboxPathSettingsTooLong {
             get {
@@ -1854,6 +1872,15 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to syncRoot must not be null.
+        /// </summary>
+        internal static string CLSyncSettingsSyncRootCannotBeNull {
+            get {
+                return ResourceManager.GetString("CLSyncSettingsSyncRootCannotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to toCopy must not be null.
         /// </summary>
         internal static string CLSyncSettingstoCopyMustNotBeNull {
@@ -1895,6 +1922,15 @@ namespace Cloud.Static {
         internal static string CompleteFileUpload {
             get {
                 return ResourceManager.GetString("CompleteFileUpload", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Could not find path to rename at oldPath.
+        /// </summary>
+        internal static string CouldNotFindPathToRenameOldPath {
+            get {
+                return ResourceManager.GetString("CouldNotFindPathToRenameOldPath", resourceCulture);
             }
         }
         
@@ -2250,7 +2286,7 @@ namespace Cloud.Static {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to syncbox path is too long by {0} characters.
+        ///   Looks up a localized string similar to syncRootFullPath is too long by {0} characters.
         /// </summary>
         internal static string ExceptionHelpersCheckSyncboxPathLengthTooLongPlural {
             get {
@@ -2259,7 +2295,7 @@ namespace Cloud.Static {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to syncbox path is too long by {0} character.
+        ///   Looks up a localized string similar to syncRootFullPath is too long by {0} character.
         /// </summary>
         internal static string ExceptionHelpersCheckSyncboxPathLengthTooLongSingular {
             get {
@@ -2917,11 +2953,2040 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Have not handled badging when two events are merged together.
+        /// </summary>
+        internal static string HaveNotHandledBadgingWhenTwoEventsMergedTogether {
+            get {
+                return ResourceManager.GetString("HaveNotHandledBadgingWhenTwoEventsMergedTogether", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: Add badge for path {0}, value {1}..
+        /// </summary>
+        internal static string IconOverlayAddBadgeForPath0Value1 {
+            get {
+                return ResourceManager.GetString("IconOverlayAddBadgeForPath0Value1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: _badgeComPubSubEvents_OnBadgeComInitializationSubscriptionFailed: ERROR: threadRestart exception: Msg: &lt;{0}&gt;..
+        /// </summary>
+        internal static string IconOverlaybadgeComPubSubEventsOnBadgeComInitializationSubscriptionFailedERRORthreadRestartexceptionMessage0 {
+            get {
+                return ResourceManager.GetString("IconOverlaybadgeComPubSubEventsOnBadgeComInitializationSubscriptionFailedERRORthr" +
+                        "eadRestartexceptionMessage0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: _badgeComPubSubEvents_OnBadgeComInitializationSubscriptionFailed: ERROR.  Wrong threading model..
+        /// </summary>
+        internal static string IconOverlaybadgeComPubSubEventsOnBadgeComInitializationSubscriptionFailedERRORWrongThreadingModel {
+            get {
+                return ResourceManager.GetString("IconOverlaybadgeComPubSubEventsOnBadgeComInitializationSubscriptionFailedERRORWro" +
+                        "ngThreadingModel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: _badgeComPubSubEvents_OnBadgeComInitializationSubscriptionFailed: Entry.  Kill BadgeComPubSubEvents..
+        /// </summary>
+        internal static string IconOverlaybadgeComPubSubEventsOnBadgeComInitializationSubscriptionFailedKillBadgeComPubSubEvents {
+            get {
+                return ResourceManager.GetString("IconOverlaybadgeComPubSubEventsOnBadgeComInitializationSubscriptionFailedKillBadg" +
+                        "eComPubSubEvents", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: _badgeComPubSubEvents_OnBadgeComInitializationSubscriptionFailed: Entry.  Restart BadgeComPubSubEvents..
+        /// </summary>
+        internal static string IconOverlaybadgeComPubSubEventsOnBadgeComInitializationSubscriptionFailedRestartBadgeComPubSubEvents {
+            get {
+                return ResourceManager.GetString("IconOverlaybadgeComPubSubEventsOnBadgeComInitializationSubscriptionFailedRestartB" +
+                        "adgeComPubSubEvents", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: _badgeComPubSubEvents_OnBadgeComInitializationSubscriptionFailed: Send badging database..
+        /// </summary>
+        internal static string IconOverlaybadgeComPubSubEventsOnBadgeComInitializationSubscriptionFailedSendBadingDatabase {
+            get {
+                return ResourceManager.GetString("IconOverlaybadgeComPubSubEventsOnBadgeComInitializationSubscriptionFailedSendBadi" +
+                        "ngDatabase", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: _badgeComPubSubEvents_OnBadgeComInitializationSubscriptionFailed: Subscribe to BadgeCom init events..
+        /// </summary>
+        internal static string IconOverlaybadgeComPubSubEventsOnBadgeComInitializationSubscriptionFailedSubscribeToBadgeComPubSubEvents {
+            get {
+                return ResourceManager.GetString("IconOverlaybadgeComPubSubEventsOnBadgeComInitializationSubscriptionFailedSubscrib" +
+                        "eToBadgeComPubSubEvents", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: _badgeComPubSubEvents_OnBadgeComInitializationSubscriptionFailed: threadInit entry..
+        /// </summary>
+        internal static string IconOverlaybadgeComPubSubEventsOnBadgeComInitializationSubscriptionFailedThreadInitEntry {
+            get {
+                return ResourceManager.GetString("IconOverlaybadgeComPubSubEventsOnBadgeComInitializationSubscriptionFailedThreadIn" +
+                        "itEntry", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: BadgeComPubSubEvents_OnBadgeComInitialized: Entry. BadgeType: {0}..
+        /// </summary>
+        internal static string IconOverlayBadgeComPubSubEventsOnBadgeComInitializedEntryBadgeType0 {
+            get {
+                return ResourceManager.GetString("IconOverlayBadgeComPubSubEventsOnBadgeComInitializedEntryBadgeType0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: BadgeComPubSubEvents_OnBadgeComInitialized: ERROR: Exception: Msg: &lt;{0}&gt;..
+        /// </summary>
+        internal static string IconOverlayBadgeComPubSubEventsOnBadgeComInitializedERRORExceptionMsg0 {
+            get {
+                return ResourceManager.GetString("IconOverlayBadgeComPubSubEventsOnBadgeComInitializedERRORExceptionMsg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: _badgeComPubSubEvents_OnBadgeComWatcherFailed: ERROR: Exception: Msg: &lt;{0}&gt;..
+        /// </summary>
+        internal static string IconOverlaybadgeComPubSubEventsOnBadgeComWatcherFailedERRORExceptionMessage0 {
+            get {
+                return ResourceManager.GetString("IconOverlaybadgeComPubSubEventsOnBadgeComWatcherFailedERRORExceptionMessage0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to BadgeType: {0}. Path: &lt;{1}..
+        /// </summary>
+        internal static string IconOverlayBadgeType0Path1 {
+            get {
+                return ResourceManager.GetString("IconOverlayBadgeType0Path1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: Badging is not enabled. Exit..
+        /// </summary>
+        internal static string IconOverlayBadgingIsNotEnabledExit {
+            get {
+                return ResourceManager.GetString("IconOverlayBadgingIsNotEnabledExit", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: Call ShouldIconBeBadged (at this path). currentBadge: {0}..
+        /// </summary>
+        internal static string IconOverlayCallShouldIconBeBadgedAtThisPathCurrentBadge0 {
+            get {
+                return ResourceManager.GetString("IconOverlayCallShouldIconBeBadgedAtThisPathCurrentBadge0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &gt;..
+        /// </summary>
+        internal static string IconOverlayCloseBracket {
+            get {
+                return ResourceManager.GetString("IconOverlayCloseBracket", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cloud.
+        /// </summary>
+        internal static string IconOverlayCloud {
+            get {
+                return ResourceManager.GetString("IconOverlayCloud", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to cloudRoot must not be null or empty.
+        /// </summary>
+        internal static string IconOverlayCloudRootMustNotBeNullOrEmpty {
+            get {
+                return ResourceManager.GetString("IconOverlayCloudRootMustNotBeNullOrEmpty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to DeleteBadgePath (after):.
+        /// </summary>
+        internal static string IconOverlayDeleteBadgePathAfter {
+            get {
+                return ResourceManager.GetString("IconOverlayDeleteBadgePathAfter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to DeleteBadgePath (before):.
+        /// </summary>
+        internal static string IconOverlayDeleteBadgePathBefore {
+            get {
+                return ResourceManager.GetString("IconOverlayDeleteBadgePathBefore", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: DeleteBadgePath. ERROR: THROW: Must be initialized before renaming badge paths..
+        /// </summary>
+        internal static string IconOverlayDeleteBadgePathERRORTHROWMustBeInitializedBeforeRenamingBadgePaths {
+            get {
+                return ResourceManager.GetString("IconOverlayDeleteBadgePathERRORTHROWMustBeInitializedBeforeRenamingBadgePaths", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: DeleteBadgePath. Pass this delete to the dictionary..
+        /// </summary>
+        internal static string IconOverlayDeleteBadgePathPassThisDeleteToDictionary {
+            get {
+                return ResourceManager.GetString("IconOverlayDeleteBadgePathPassThisDeleteToDictionary", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: DetermineBadgeStatusFromHierarchyOfChildrenOfThisNode. Get the hierarchy for path: {0}..
+        /// </summary>
+        internal static string IconOverlayDetermineBadgeStatusFromHierarchyOfChildrenOfThisNodeGetTheHierarchyForPath0 {
+            get {
+                return ResourceManager.GetString("IconOverlayDetermineBadgeStatusFromHierarchyOfChildrenOfThisNodeGetTheHierarchyFo" +
+                        "rPath0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: Dispose. Clear current badges..
+        /// </summary>
+        internal static string IconOverlayDisposeClearCurrentBadges {
+            get {
+                return ResourceManager.GetString("IconOverlayDisposeClearCurrentBadges", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: Dispose. Clear current synced badges..
+        /// </summary>
+        internal static string IconOverlayDisposeClearCurrentSyncedBadges {
+            get {
+                return ResourceManager.GetString("IconOverlayDisposeClearCurrentSyncedBadges", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: Dispose. ERROR: Exception sending BadgeNet_RemoveSyncboxFolderPath event. Msg: &lt;{0}&gt;..
+        /// </summary>
+        internal static string IconOverlayDisposedERRORExceptionSendingBadgeNetRemoveSyncboxFolderPathEventMsg0 {
+            get {
+                return ResourceManager.GetString("IconOverlayDisposedERRORExceptionSendingBadgeNetRemoveSyncboxFolderPathEventMsg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: Dispose. Disposing..
+        /// </summary>
+        internal static string IconOverlayDisposeDisposing {
+            get {
+                return ResourceManager.GetString("IconOverlayDisposeDisposing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: Dispose. ERROR: Exception terminating the BadgeCom initialzation watcher. Msg: &lt;{0}&gt;..
+        /// </summary>
+        internal static string IconOverlayDisposeERRORExceptionTerminatingTheBadgeComInitializationWatcherMsg0 {
+            get {
+                return ResourceManager.GetString("IconOverlayDisposeERRORExceptionTerminatingTheBadgeComInitializationWatcherMsg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: Dispose. Initialized..
+        /// </summary>
+        internal static string IconOverlayDisposeInitialized {
+            get {
+                return ResourceManager.GetString("IconOverlayDisposeInitialized", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: Dispose.  Lock..
+        /// </summary>
+        internal static string IconOverlayDisposeLock {
+            get {
+                return ResourceManager.GetString("IconOverlayDisposeLock", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: Dispose. PipeLocker..
+        /// </summary>
+        internal static string IconOverlayDisposePipeLocker {
+            get {
+                return ResourceManager.GetString("IconOverlayDisposePipeLocker", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: Dispose. Send BadgeNet_RemoveSyncboxFolderPath event..
+        /// </summary>
+        internal static string IconOverlayDisposeSendBadgeNetRemoveSyncbicFolderPathEvent {
+            get {
+                return ResourceManager.GetString("IconOverlayDisposeSendBadgeNetRemoveSyncbicFolderPathEvent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: Dispose.  Set Disposed..
+        /// </summary>
+        internal static string IconOverlayDisposeSetDisposed {
+            get {
+                return ResourceManager.GetString("IconOverlayDisposeSetDisposed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: Dispose. Unsubscribe from BadgeCom events..
+        /// </summary>
+        internal static string IconOverlayDisposeUnsubscribeFromBadgeComEvents {
+            get {
+                return ResourceManager.GetString("IconOverlayDisposeUnsubscribeFromBadgeComEvents", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay error creating badging dictionary.
+        /// </summary>
+        internal static string IconOverlayErrorCreatingBadgingDictionary {
+            get {
+                return ResourceManager.GetString("IconOverlayErrorCreatingBadgingDictionary", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error from setting Syncbox root badge.
+        /// </summary>
+        internal static string IconOverlayErrorFromSettingSyncboxRootBadge {
+            get {
+                return ResourceManager.GetString("IconOverlayErrorFromSettingSyncboxRootBadge", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ERROR: Grabbing filePath hierarchy: tree is null.
+        /// </summary>
+        internal static string IconOverlayERRORGrabbingfilePathHeirarchyTreeIsNull {
+            get {
+                return ResourceManager.GetString("IconOverlayERRORGrabbingfilePathHeirarchyTreeIsNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ERROR: Grabbing oldPath hierarchy: tree is null.
+        /// </summary>
+        internal static string IconOverlayERRORGrabbingOldPathHeirarchyTreeIsNull {
+            get {
+                return ResourceManager.GetString("IconOverlayERRORGrabbingOldPathHeirarchyTreeIsNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Explorer icon badging has failed.
+        /// </summary>
+        internal static string IconOverlayExplorerIconBadgingHasFailed {
+            get {
+                return ResourceManager.GetString("IconOverlayExplorerIconBadgingHasFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to flatBadgeType null.
+        /// </summary>
+        internal static string IconOverlayFlatBadgeTypeNull {
+            get {
+                return ResourceManager.GetString("IconOverlayFlatBadgeTypeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: genericSetter: badgeType: {0}. Path: {1}..
+        /// </summary>
+        internal static string IconOverlayGenericSetterbadgeType0Path1 {
+            get {
+                return ResourceManager.GetString("IconOverlayGenericSetterbadgeType0Path1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: genericSetter: StackTrace: {0}..
+        /// </summary>
+        internal static string IconOverlayGenericSetterStackTrace0 {
+            get {
+                return ResourceManager.GetString("IconOverlayGenericSetterStackTrace0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to genericSetter.Process (after): badgeType:.
+        /// </summary>
+        internal static string IconOverlayGenricSetterProcessAfterBadgeType {
+            get {
+                return ResourceManager.GetString("IconOverlayGenricSetterProcessAfterBadgeType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: getBadgeTypeForFileAtPath: Entry. path: {0}..
+        /// </summary>
+        internal static string IconOverlayGetBadgeTypeForFileAtPathEntryPath0 {
+            get {
+                return ResourceManager.GetString("IconOverlayGetBadgeTypeForFileAtPathEntryPath0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: getBadgeTypeForFileAtPath: ERROR: Exception: Msg: &lt;{0}&gt;, Code: {1}..
+        /// </summary>
+        internal static string IconOverlaygetBadgeTypeForFileAtPathERRORExceptionMsg0Code1 {
+            get {
+                return ResourceManager.GetString("IconOverlaygetBadgeTypeForFileAtPathERRORExceptionMsg0Code1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: getBadgeTypeForFileAtPath: In _currentBadgesLocker..
+        /// </summary>
+        internal static string IconOverlayGetBadgeTypeForFileAtPathInCurrentBadgesLocker {
+            get {
+                return ResourceManager.GetString("IconOverlayGetBadgeTypeForFileAtPathInCurrentBadgesLocker", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: GetDesiredBadgeTypeViaRecursivePostorderTraversal. Entry. node.path: {0}. node.badgeType: {1}..
+        /// </summary>
+        internal static string IconOverlayGetDesiredBadgeTypeViaRecursivePostorderTraversalEntryNodePath0NodeBadgeType1 {
+            get {
+                return ResourceManager.GetString("IconOverlayGetDesiredBadgeTypeViaRecursivePostorderTraversalEntryNodePath0NodeBad" +
+                        "geType1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: GetDesiredBadgeTypeViaRecursivePostorderTraversal. Got returnBadgeType: {0}..
+        /// </summary>
+        internal static string IconOverlayGetDesiredBadgeTypeViaRecursivePostorderTraversalGotReturnBadgeType0 {
+            get {
+                return ResourceManager.GetString("IconOverlayGetDesiredBadgeTypeViaRecursivePostorderTraversalGotReturnBadgeType0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: GetDesiredBadgeTypeViaRecursivePostorderTraversal. Has value..
+        /// </summary>
+        internal static string IconOverlayGetDesiredBadgeTypeViaRecursivePostorderTraversalHasValue {
+            get {
+                return ResourceManager.GetString("IconOverlayGetDesiredBadgeTypeViaRecursivePostorderTraversalHasValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: GetDesiredBadgeTypeViaRecursivePostorderTraversal. Node is null.  Return synced...
+        /// </summary>
+        internal static string IconOverlayGetDesiredBadgeTypeViaRecursivePostorderTraversalNodeIsNullReturnSynced {
+            get {
+                return ResourceManager.GetString("IconOverlayGetDesiredBadgeTypeViaRecursivePostorderTraversalNodeIsNullReturnSynce" +
+                        "d", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: GetDesiredBadgeTypeViaRecursivePostorderTraversal. Return synced..
+        /// </summary>
+        internal static string IconOverlayGetDesiredBadgeTypeViaRecursivePostorderTraversalReturnSynced {
+            get {
+                return ResourceManager.GetString("IconOverlayGetDesiredBadgeTypeViaRecursivePostorderTraversalReturnSynced", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: GetDesiredBadgeTypeViaRecursivePostorderTraversal. Return synced (2)..
+        /// </summary>
+        internal static string IconOverlayGetDesiredBadgeTypeViaRecursivePostorderTraversalReturnSynced2 {
+            get {
+                return ResourceManager.GetString("IconOverlayGetDesiredBadgeTypeViaRecursivePostorderTraversalReturnSynced2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: GetDesiredBadgeTypeViaRecursivePostorderTraversal. Return synced (3)..
+        /// </summary>
+        internal static string IconOverlayGetDesiredBadgeTypeViaRecursivePostorderTraversalReturnSynced3 {
+            get {
+                return ResourceManager.GetString("IconOverlayGetDesiredBadgeTypeViaRecursivePostorderTraversalReturnSynced3", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: GetDesiredBadgeTypeViaRecursivePostorderTraversal. Return synced (4)..
+        /// </summary>
+        internal static string IconOverlayGetDesiredBadgeTypeViaRecursivePostorderTraversalReturnSynced4 {
+            get {
+                return ResourceManager.GetString("IconOverlayGetDesiredBadgeTypeViaRecursivePostorderTraversalReturnSynced4", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: GetDesiredBadgeTypeViaRecursivePostorderTraversal. Return syncing..
+        /// </summary>
+        internal static string IconOverlayGetDesiredBadgeTypeViaRecursivePostorderTraversalReturnSyncing {
+            get {
+                return ResourceManager.GetString("IconOverlayGetDesiredBadgeTypeViaRecursivePostorderTraversalReturnSyncing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: GetDesiredBadgeTypeViaRecursivePostorderTraversal. Return syncing (2)..
+        /// </summary>
+        internal static string IconOverlayGetDesiredBadgeTypeViaRecursivePostorderTraversalReturnSyncing2 {
+            get {
+                return ResourceManager.GetString("IconOverlayGetDesiredBadgeTypeViaRecursivePostorderTraversalReturnSyncing2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: GetDesiredBadgeTypeViaRecursivePostorderTraversal. Return that badge type..
+        /// </summary>
+        internal static string IconOverlayGetDesiredBadgeTypeViaRecursivePostorderTraversalreturnThatBadgeType {
+            get {
+                return ResourceManager.GetString("IconOverlayGetDesiredBadgeTypeViaRecursivePostorderTraversalreturnThatBadgeType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: IconOverlay: GUID for this publisher: {0}..
+        /// </summary>
+        internal static string IconOverlayGUIDForThisPublisher {
+            get {
+                return ResourceManager.GetString("IconOverlayGUIDForThisPublisher", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to hierarchicalBadgeType null.
+        /// </summary>
+        internal static string IconOverlayHeirarchicalBadgeTypeNull {
+            get {
+                return ResourceManager.GetString("IconOverlayHeirarchicalBadgeTypeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: Initialize: Entry..
+        /// </summary>
+        internal static string IconOverlayInitializeEntry {
+            get {
+                return ResourceManager.GetString("IconOverlayInitializeEntry", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: InitializeOrReplace. Add this item to the dictionary..
+        /// </summary>
+        internal static string IconOverlayInitializeOrReplaceAddThisItemToDictionary {
+            get {
+                return ResourceManager.GetString("IconOverlayInitializeOrReplaceAddThisItemToDictionary", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: InitializeOrReplace. Clear all badges..
+        /// </summary>
+        internal static string IconOverlayInitializeOrReplaceClearAllBadges {
+            get {
+                return ResourceManager.GetString("IconOverlayInitializeOrReplaceClearAllBadges", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: InitializeOrReplace. currentReplaceItem. Path {0}, Type: {1})..
+        /// </summary>
+        internal static string IconOverlayInitializeOrReplaceCurrentReplaceItemPath0Type1 {
+            get {
+                return ResourceManager.GetString("IconOverlayInitializeOrReplaceCurrentReplaceItemPath0Type1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: InitializeOrReplace. Entry..
+        /// </summary>
+        internal static string IconOverlayInitializeOrReplaceEntry {
+            get {
+                return ResourceManager.GetString("IconOverlayInitializeOrReplaceEntry", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: InitializeOrReplace: ERROR: Exception: Msg: &lt;{0}&gt;, Code: {1}..
+        /// </summary>
+        internal static string IconOverlayInitializeOrReplaceERRORExceptionMsg0Code1 {
+            get {
+                return ResourceManager.GetString("IconOverlayInitializeOrReplaceERRORExceptionMsg0Code1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: InitializeOrReplace. List not processed..
+        /// </summary>
+        internal static string IconOverlayInitializeOrReplaceListNotProcessed {
+            get {
+                return ResourceManager.GetString("IconOverlayInitializeOrReplaceListNotProcessed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: InitializeOrReplace. Not initialized yet.  Initialize..
+        /// </summary>
+        internal static string IconOverlayInitializeOrReplaceNotInitializedYetInitialize {
+            get {
+                return ResourceManager.GetString("IconOverlayInitializeOrReplaceNotInitializedYetInitialize", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay Instance already initialized.
+        /// </summary>
+        internal static string IconOverlayInstanceAlreadyInitialized {
+            get {
+                return ResourceManager.GetString("IconOverlayInstanceAlreadyInitialized", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: pInitialize: ERROR: THROW: Instance already initialized..
+        /// </summary>
+        internal static string IconOverlayInstanceERRORTHROWAlreadyInitialized {
+            get {
+                return ResourceManager.GetString("IconOverlayInstanceERRORTHROWAlreadyInitialized", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: Initialize: ERROR: Exception: Msg: &lt;{0}&gt;, Code: {1}..
+        /// </summary>
+        internal static string IconOverlayIntializeERRORExceptionMsg0Code1 {
+            get {
+                return ResourceManager.GetString("IconOverlayIntializeERRORExceptionMsg0Code1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: IsBadgingInitialized: ERROR: Exception: Msg: &lt;{0}&gt;, Code: {1}..
+        /// </summary>
+        internal static string IconOverlayIsBadgingInitializedERRORExceptionMsg0Code1 {
+            get {
+                return ResourceManager.GetString("IconOverlayIsBadgingInitializedERRORExceptionMsg0Code1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to log.
+        /// </summary>
+        internal static string IconOverlayLog {
+            get {
+                return ResourceManager.GetString("IconOverlayLog", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unknown mergedEvent.Type:.
+        /// </summary>
+        internal static string IconOverlayMergedEventType {
+            get {
+                return ResourceManager.GetString("IconOverlayMergedEventType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: MessageEvents_BadgePathDeleted: Path: {0}..
+        /// </summary>
+        internal static string IconOverlayMessageEventsBadgePathDeletedPath0 {
+            get {
+                return ResourceManager.GetString("IconOverlayMessageEventsBadgePathDeletedPath0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: MessageEvents_BadgePathDeleted: ERROR: Msg: &lt;{0}&gt;, Code: {1}..
+        /// </summary>
+        internal static string IconOverlayMessageEventsBadgePathERRORMsg0Code1 {
+            get {
+                return ResourceManager.GetString("IconOverlayMessageEventsBadgePathERRORMsg0Code1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: MessageEvents_BadgePathRenamed: ERROR: Throw. Msg: &lt;{0}&gt;, Code: {1}. FromPath: {2}. ToPath: {3}.
+        /// </summary>
+        internal static string IconOverlayMessageEventsBadgePathRenamedERRORThrowMas0Code1FromPath2ToPath3 {
+            get {
+                return ResourceManager.GetString("IconOverlayMessageEventsBadgePathRenamedERRORThrowMas0Code1FromPath2ToPath3", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: MessageEvents_BadgePathRenamed: FromPath: {0}. ToPath: {1}..
+        /// </summary>
+        internal static string IconOverlayMessageEventsBadgePathRenamedFromPath0ToPath1 {
+            get {
+                return ResourceManager.GetString("IconOverlayMessageEventsBadgePathRenamedFromPath0ToPath1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: MessageEvents_FileChangeMergeToStateChanged: Call QueueNewEventBadge()..
+        /// </summary>
+        internal static string IconOverlayMessageEventsFileChangeMergeToStateChangedCallQueueNewEventsBadge {
+            get {
+                return ResourceManager.GetString("IconOverlayMessageEventsFileChangeMergeToStateChangedCallQueueNewEventsBadge", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: MessageEvents_PathStateChanged: State: {0}, Path: {1}..
+        /// </summary>
+        internal static string IconOverlayMessageEventsPathStateChangedState0Path1 {
+            get {
+                return ResourceManager.GetString("IconOverlayMessageEventsPathStateChangedState0Path1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: MessageEvents_QueueSetBadgeChanged: State: {0}, Path: {1}..
+        /// </summary>
+        internal static string IconOverlayMessageEventsQueueSetBadgeChangedState0Path1 {
+            get {
+                return ResourceManager.GetString("IconOverlayMessageEventsQueueSetBadgeChangedState0Path1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay must be initialized before renaming badge paths.
+        /// </summary>
+        internal static string IconOverlayMustBeInitializedBeforeRenamingBadgePaths {
+            get {
+                return ResourceManager.GetString("IconOverlayMustBeInitializedBeforeRenamingBadgePaths", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay must be initialized before setting badges.
+        /// </summary>
+        internal static string IconOverlayMustBeInitializedBeforeSettingBadges {
+            get {
+                return ResourceManager.GetString("IconOverlayMustBeInitializedBeforeSettingBadges", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay must be initialized before setting badges.
+        /// </summary>
+        internal static string IconOverlayMustInitializedBeforeSettingsBadges {
+            get {
+                return ResourceManager.GetString("IconOverlayMustInitializedBeforeSettingsBadges", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: newEvent: eventToRemove: Type: {0}. Old: {1}. New: {2}..
+        /// </summary>
+        internal static string IconOverlayNewEventEventToRemoveType0Old1New2 {
+            get {
+                return ResourceManager.GetString("IconOverlayNewEventEventToRemoveType0Old1New2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: newEvent: mergedEvent: Type: {0}. Old: {1}. New: {2}..
+        /// </summary>
+        internal static string IconOverlayNewEventMergedEventType0Old1New2 {
+            get {
+                return ResourceManager.GetString("IconOverlayNewEventMergedEventType0Old1New2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to newEvent.Process (after): badgeType:.
+        /// </summary>
+        internal static string IconOverlayNewEventProcessAfterBadgeType {
+            get {
+                return ResourceManager.GetString("IconOverlayNewEventProcessAfterBadgeType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to newEvent.Process (before): badgeType:.
+        /// </summary>
+        internal static string IconOverlayNewEventProcessBeforeBadgeType {
+            get {
+                return ResourceManager.GetString("IconOverlayNewEventProcessBeforeBadgeType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: newEvent: StackTrace: {0}..
+        /// </summary>
+        internal static string IconOverlayNewEventStackTrace0 {
+            get {
+                return ResourceManager.GetString("IconOverlayNewEventStackTrace0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &gt;. newPath: &lt;.
+        /// </summary>
+        internal static string IconOverlayNewPath {
+            get {
+                return ResourceManager.GetString("IconOverlayNewPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to newPath must not be null.
+        /// </summary>
+        internal static string IconOverlayNewPathMustNotNotBeNull {
+            get {
+                return ResourceManager.GetString("IconOverlayNewPathMustNotNotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to node must not be null.
+        /// </summary>
+        internal static string IconOverlayNodeMustNotBeNull {
+            get {
+                return ResourceManager.GetString("IconOverlayNodeMustNotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to NodeNull.
+        /// </summary>
+        internal static string IconOverlayNodeNull {
+            get {
+                return ResourceManager.GetString("IconOverlayNodeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to NodeNull2.
+        /// </summary>
+        internal static string IconOverlayNodeNull2 {
+            get {
+                return ResourceManager.GetString("IconOverlayNodeNull2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to NoNodeValue.
+        /// </summary>
+        internal static string IconOverlayNoNodeValue {
+            get {
+                return ResourceManager.GetString("IconOverlayNoNodeValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to NoNodeValue2.
+        /// </summary>
+        internal static string IconOverlayNoNodeValue2 {
+            get {
+                return ResourceManager.GetString("IconOverlayNoNodeValue2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to oldPath must not be null.
+        /// </summary>
+        internal static string IconOverlayOldPathMustNotBeNull {
+            get {
+                return ResourceManager.GetString("IconOverlayOldPathMustNotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: OnAllBadgesRecursiveDelete: ERROR: Exception: Msg: &lt;{0}&gt;..
+        /// </summary>
+        internal static string IconOverlayOnAllBadgesRecursiveDeleteERRORExceptionMsg0 {
+            get {
+                return ResourceManager.GetString("IconOverlayOnAllBadgesRecursiveDeleteERRORExceptionMsg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: OnAllBadgesRecursiveRename: ERROR: Exception: Msg: &lt;{0}&gt;..
+        /// </summary>
+        internal static string IconOverlayOnAllBadgesRecursiveRenameERRORExceptionMsg0 {
+            get {
+                return ResourceManager.GetString("IconOverlayOnAllBadgesRecursiveRenameERRORExceptionMsg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: OnCurrentBadgesSyncedRecursiveDelete: ERROR: Exception Msg: &lt;{0}&gt;..
+        /// </summary>
+        internal static string IconOverlayOnCurrentBadgesSyncedRecursiveDeleteERRORExceptionMsg0 {
+            get {
+                return ResourceManager.GetString("IconOverlayOnCurrentBadgesSyncedRecursiveDeleteERRORExceptionMsg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: OnCurrentBadgesSyncedRecursiveRename: ERROR: Exception Msg: &lt;{0}&gt;..
+        /// </summary>
+        internal static string IconOverlayOnCurrentBadgesSyncedRecursiveRenameERRORExceptionMsg0 {
+            get {
+                return ResourceManager.GetString("IconOverlayOnCurrentBadgesSyncedRecursiveRenameERRORExceptionMsg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to . Path: &lt;.
+        /// </summary>
+        internal static string IconOverlayPath {
+            get {
+                return ResourceManager.GetString("IconOverlayPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Path: &lt;{0}&gt;..
+        /// </summary>
+        internal static string IconOverlayPath0 {
+            get {
+                return ResourceManager.GetString("IconOverlayPath0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: pInitialize: ERROR: Exception: Msg: &lt;{0}&gt;..
+        /// </summary>
+        internal static string IconOverlaypInitializeERRORExceptionMsg0 {
+            get {
+                return ResourceManager.GetString("IconOverlaypInitializeERRORExceptionMsg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: pInitialize: ERROR: threadInit exception: Msg: &lt;{0}&gt;..
+        /// </summary>
+        internal static string IconOverlaypInitializeERRORthreadInitExceptionMsg0 {
+            get {
+                return ResourceManager.GetString("IconOverlaypInitializeERRORthreadInitExceptionMsg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: pInitialize: ERROR: threadInit was not started..
+        /// </summary>
+        internal static string IconOverlaypInitializeERRORThreadInitWasNotStarted {
+            get {
+                return ResourceManager.GetString("IconOverlaypInitializeERRORThreadInitWasNotStarted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: pInitialize: ERROR: THROW: Error from CreateAndInitialize allBadges..
+        /// </summary>
+        internal static string IconOverlaypInitializeERRORTHROWErrorfromCreateAndInitializeAllBadges {
+            get {
+                return ResourceManager.GetString("IconOverlaypInitializeERRORTHROWErrorfromCreateAndInitializeAllBadges", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: pInitialize: ERROR: THROW: Error from CreateAndInitialize _currentBadgesSynced..
+        /// </summary>
+        internal static string IconOverlaypInitializeERRORTHROWErrorfromCreateAndInitializeCurrentBadgesSynced {
+            get {
+                return ResourceManager.GetString("IconOverlaypInitializeERRORTHROWErrorfromCreateAndInitializeCurrentBadgesSynced", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: pInitialize: ERROR: THROW: Error creating badging dictionary..
+        /// </summary>
+        internal static string IconOverlaypInitializeERRORTHROWErrorFromCreatingBadgingDictionary {
+            get {
+                return ResourceManager.GetString("IconOverlaypInitializeERRORTHROWErrorFromCreatingBadgingDictionary", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: pInitialize: Got initial list..
+        /// </summary>
+        internal static string IconOverlaypInitializeGotInitialList {
+            get {
+                return ResourceManager.GetString("IconOverlaypInitializeGotInitialList", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: pInitialize: Return success..
+        /// </summary>
+        internal static string IconOverlaypInitializeReturnSuccess {
+            get {
+                return ResourceManager.GetString("IconOverlaypInitializeReturnSuccess", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: pInitialize: Tell UI the badging has failed..
+        /// </summary>
+        internal static string IconOverlaypInitializeTellUITheBadgingHasFailed {
+            get {
+                return ResourceManager.GetString("IconOverlaypInitializeTellUITheBadgingHasFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: pInitialize: threadInit completed OK..
+        /// </summary>
+        internal static string IconOverlaypInitializethreadInitCompletedOK {
+            get {
+                return ResourceManager.GetString("IconOverlaypInitializethreadInitCompletedOK", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: Process: Created/Modified: setBadge syncing at NewPath..
+        /// </summary>
+        internal static string IconOverlayProcessCreatedModifiedSetBadgeSyncingAtNewPath {
+            get {
+                return ResourceManager.GetString("IconOverlayProcessCreatedModifiedSetBadgeSyncingAtNewPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: Process: Deleted: Dir: From. Set NewPath to syncing..
+        /// </summary>
+        internal static string IconOverlayProcessDeletedDirFromSetNewPathToSyncing {
+            get {
+                return ResourceManager.GetString("IconOverlayProcessDeletedDirFromSetNewPathToSyncing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: Process: Deleted: Dir: To. DeleteBadgePath at NewPath. isDeleted: {0}..
+        /// </summary>
+        internal static string IconOverlayProcessDeletedDirToDeleteBadgePathAtNewPathIsDeleted0 {
+            get {
+                return ResourceManager.GetString("IconOverlayProcessDeletedDirToDeleteBadgePathAtNewPathIsDeleted0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: Process: mergedEvent.Type: {0}. mergedEvent.Direction: {1}.  mergedEvent.OldPath: {2}, mergedEvent.NewPath: {3}..
+        /// </summary>
+        internal static string IconOverlayProcessMergedEventType0MergedEventDirection1mergedEventOldPath2MergedEventNewPath3 {
+            get {
+                return ResourceManager.GetString("IconOverlayProcessMergedEventType0MergedEventDirection1mergedEventOldPath2MergedE" +
+                        "ventNewPath3", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: Process: Renamed. Dir: From. SetBadge syncing at OldPath..
+        /// </summary>
+        internal static string IconOverlayProcessRenamedDirFromSetBadgeSyncingAtOldPath {
+            get {
+                return ResourceManager.GetString("IconOverlayProcessRenamedDirFromSetBadgeSyncingAtOldPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: Process: Renamed. Dir: To. Call RenameBadgePath..
+        /// </summary>
+        internal static string IconOverlayProcessRenamedDirToCallRenameBadgePath {
+            get {
+                return ResourceManager.GetString("IconOverlayProcessRenamedDirToCallRenameBadgePath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: Process: Renamed. Dir: To. setBadge syncing at oldPath..
+        /// </summary>
+        internal static string IconOverlayProcessRenamedDirTosetBadgeSyncingAtOldPath {
+            get {
+                return ResourceManager.GetString("IconOverlayProcessRenamedDirTosetBadgeSyncingAtOldPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: pShutdown: ERROR: Exception: Msg: &lt;{0}&gt;, Code: {1}..
+        /// </summary>
+        internal static string IconOverlayPShutdownERRORExceptionMsg0Code1 {
+            get {
+                return ResourceManager.GetString("IconOverlayPShutdownERRORExceptionMsg0Code1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: RenameBadgePath. In _currentBadgesSyncedLocker..
+        /// </summary>
+        internal static string IconOverlayRenameBadePathInCurrentBadgesSyncedLocker {
+            get {
+                return ResourceManager.GetString("IconOverlayRenameBadePathInCurrentBadgesSyncedLocker", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: RenameBadgePath. Add badge at newPath: {0}. Badge: {1}..
+        /// </summary>
+        internal static string IconOverlayRenameBadgePathAddBadgeAtNewPath0Badge1 {
+            get {
+                return ResourceManager.GetString("IconOverlayRenameBadgePathAddBadgeAtNewPath0Badge1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to RenameBadgePath (after): OldPath: &lt;.
+        /// </summary>
+        internal static string IconOverlayRenameBadgePathAfterOldPath {
+            get {
+                return ResourceManager.GetString("IconOverlayRenameBadgePathAfterOldPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: RenameBadgePath. Badge newPath with {0}..
+        /// </summary>
+        internal static string IconOverlayRenameBadgePathBadgeNewPathWith0 {
+            get {
+                return ResourceManager.GetString("IconOverlayRenameBadgePathBadgeNewPathWith0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to RenameBadgePath (before): OldPath: &lt;.
+        /// </summary>
+        internal static string IconOverlayRenameBadgePathBeforeOldPath {
+            get {
+                return ResourceManager.GetString("IconOverlayRenameBadgePathBeforeOldPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: RenameBadgePath. Call ManuallyApplyRenamesInHierarchyAndUpdateBadgeState..
+        /// </summary>
+        internal static string IconOverlayRenameBadgePathCallManuallyApplyRenamesInHeirarchyAndUpdateBadgeState {
+            get {
+                return ResourceManager.GetString("IconOverlayRenameBadgePathCallManuallyApplyRenamesInHeirarchyAndUpdateBadgeState", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: RenameBadgePath. Contains oldPath..
+        /// </summary>
+        internal static string IconOverlayRenameBadgePathContainsOldPath {
+            get {
+                return ResourceManager.GetString("IconOverlayRenameBadgePathContainsOldPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: RenameBadgePath. _currentBadgesSynced not null..
+        /// </summary>
+        internal static string IconOverlayRenameBadgePathCurrentBadgesSyncedNotNull {
+            get {
+                return ResourceManager.GetString("IconOverlayRenameBadgePathCurrentBadgesSyncedNotNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: RenameBadgePath. Delete the oldPath..
+        /// </summary>
+        internal static string IconOverlayRenameBadgePathDeleteOldPath {
+            get {
+                return ResourceManager.GetString("IconOverlayRenameBadgePathDeleteOldPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: RenameBadgePath: ERROR: Exception: Msg: &lt;{0}&gt;, Code: {1}..
+        /// </summary>
+        internal static string IconOverlayRenameBadgePathERRORExceptionMessage0Code1 {
+            get {
+                return ResourceManager.GetString("IconOverlayRenameBadgePathERRORExceptionMessage0Code1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: RenameBadgePath. ERROR: grabbing hierarchy or nothing grabbed..
+        /// </summary>
+        internal static string IconOverlayRenameBadgePathERRORGrabbingHeirarchyOrNothingGrabbed {
+            get {
+                return ResourceManager.GetString("IconOverlayRenameBadgePathERRORGrabbingHeirarchyOrNothingGrabbed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: RenameBadgePath. ERROR: Grabbing oldPath hierarchy. Msg: &lt;{0}&gt;.  Code: {1}..
+        /// </summary>
+        internal static string IconOverlayRenameBadgePathERRORGrabbingOldPathHeirarchyMsg0Code1 {
+            get {
+                return ResourceManager.GetString("IconOverlayRenameBadgePathERRORGrabbingOldPathHeirarchyMsg0Code1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: RenameBadgePath. ERROR: Renaming in allBadges. Msg: &lt;{0}&gt;.  Code: {1}..
+        /// </summary>
+        internal static string IconOverlayRenameBadgePathERRORRenamingInAllBadgesMsg0Code1 {
+            get {
+                return ResourceManager.GetString("IconOverlayRenameBadgePathERRORRenamingInAllBadgesMsg0Code1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: RenameBadgePath. ERROR: THROW: Must be initialized before renaming badge paths..
+        /// </summary>
+        internal static string IconOverlayRenameBadgePathERRORTHROWMustBeInitializedBeforeRenamingBadgePaths {
+            get {
+                return ResourceManager.GetString("IconOverlayRenameBadgePathERRORTHROWMustBeInitializedBeforeRenamingBadgePaths", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: RenameBadgePath. existingSyncedHolder is synced..
+        /// </summary>
+        internal static string IconOverlayRenameBadgePathExistingSynchedHolderIsSynced {
+            get {
+                return ResourceManager.GetString("IconOverlayRenameBadgePathExistingSynchedHolderIsSynced", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: RenameBadgePath. existingSyncedHolder is synced (2)..
+        /// </summary>
+        internal static string IconOverlayRenameBadgePathExistingSynchedHolderIsSynced2 {
+            get {
+                return ResourceManager.GetString("IconOverlayRenameBadgePathExistingSynchedHolderIsSynced2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: RenameBadgePath. Got _currentBadges oldPath item. Remove oldPath..
+        /// </summary>
+        internal static string IconOverlayRenameBadgePathGotCurrentBadgesOldPathItemRemoveOldPath {
+            get {
+                return ResourceManager.GetString("IconOverlayRenameBadgePathGotCurrentBadgesOldPathItemRemoveOldPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: RenameBadgePath. Got _currentBadgesSynced oldPath item..
+        /// </summary>
+        internal static string IconOverlayRenameBadgePathGotCurrentBadgeSyncedOldPathItem {
+            get {
+                return ResourceManager.GetString("IconOverlayRenameBadgePathGotCurrentBadgeSyncedOldPathItem", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: RenameBadgePath. In _currentBadgesSyncedLocker..
+        /// </summary>
+        internal static string IconOverlayRenameBadgePathInCurrentBadgesSyncedLocker {
+            get {
+                return ResourceManager.GetString("IconOverlayRenameBadgePathInCurrentBadgesSyncedLocker", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: RenameBadgePath. Old path: {0}, New path: {1}..
+        /// </summary>
+        internal static string IconOverlayRenameBadgePathOldPath0NewPath1 {
+            get {
+                return ResourceManager.GetString("IconOverlayRenameBadgePathOldPath0NewPath1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: RenameBadgePath. oldPath found in _currentBadgesSynced.  Rename..
+        /// </summary>
+        internal static string IconOverlayRenameBadgePathOldPathFoundInCurrentBadgesSynedRename {
+            get {
+                return ResourceManager.GetString("IconOverlayRenameBadgePathOldPathFoundInCurrentBadgesSynedRename", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: RenameBadgePath. Pass this rename to the dictionary..
+        /// </summary>
+        internal static string IconOverlayRenameBadgePathPassThisRenameToTheDictionary {
+            get {
+                return ResourceManager.GetString("IconOverlayRenameBadgePathPassThisRenameToTheDictionary", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: RenameBadgePath. Remove badge at newPath: {0}..
+        /// </summary>
+        internal static string IconOverlayRenameBadgePathRemoveBadgeNewPath0 {
+            get {
+                return ResourceManager.GetString("IconOverlayRenameBadgePathRemoveBadgeNewPath0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: RenameBadgePath. Remove badge at oldPath: {0}..
+        /// </summary>
+        internal static string IconOverlayRenameBadgePathRemoveBadgeOldPath0 {
+            get {
+                return ResourceManager.GetString("IconOverlayRenameBadgePathRemoveBadgeOldPath0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: RenameBadgePath. Remove newPath..
+        /// </summary>
+        internal static string IconOverlayRenameBadgePathRemoveNewPath {
+            get {
+                return ResourceManager.GetString("IconOverlayRenameBadgePathRemoveNewPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: RenameBadgePath. Rename oldPath to newPath in _currentBadgesSynced..
+        /// </summary>
+        internal static string IconOverlayRenameBadgePathRenameOldPathToNewPathInCurrentBadgesSynched {
+            get {
+                return ResourceManager.GetString("IconOverlayRenameBadgePathRenameOldPathToNewPathInCurrentBadgesSynched", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: RenameBadgePath. Set ERROR: Could not find path to rename at oldPath..
+        /// </summary>
+        internal static string IconOverlayRenameBadgePathSetERRORCouldNotFindPathToRenameAtOldPath {
+            get {
+                return ResourceManager.GetString("IconOverlayRenameBadgePathSetERRORCouldNotFindPathToRenameAtOldPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: RenameBadgePath. Set newPath to _currentBadgesSynced. Value: {0}..
+        /// </summary>
+        internal static string IconOverlayRenameBadgePathSetNewPathToCurrentBadgesSyncedValue0 {
+            get {
+                return ResourceManager.GetString("IconOverlayRenameBadgePathSetNewPathToCurrentBadgesSyncedValue0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: RenameBadgePath. Set return status OK..
+        /// </summary>
+        internal static string IconOverlayRenameBadgePathSetReturnStatusOK {
+            get {
+                return ResourceManager.GetString("IconOverlayRenameBadgePathSetReturnStatusOK", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: RenameBadgePath. Set return status OK (2)..
+        /// </summary>
+        internal static string IconOverlayRenameBadgePathSetReturnStatusOK2 {
+            get {
+                return ResourceManager.GetString("IconOverlayRenameBadgePathSetReturnStatusOK2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: RenameBadgePath. Success on allBadges rename..
+        /// </summary>
+        internal static string IconOverlayRenameBadgePathSuccessOnAllBadgesRename {
+            get {
+                return ResourceManager.GetString("IconOverlayRenameBadgePathSuccessOnAllBadgesRename", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: RenameBadgePath. Update badge state up the tree from newPath..
+        /// </summary>
+        internal static string IconOverlayRenameBadgePathUpdateBadgeStateUpTheTreeFromNewPath {
+            get {
+                return ResourceManager.GetString("IconOverlayRenameBadgePathUpdateBadgeStateUpTheTreeFromNewPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: RenameBadgePath. Update badge state up the tree from oldPath..
+        /// </summary>
+        internal static string IconOverlayRenameBadgePathUpdateBadgeStateUpTheTreeFromOldPath {
+            get {
+                return ResourceManager.GetString("IconOverlayRenameBadgePathUpdateBadgeStateUpTheTreeFromOldPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: Return null (no badge type)..
+        /// </summary>
+        internal static string IconOverlayReturnNullNoBadgeType {
+            get {
+                return ResourceManager.GetString("IconOverlayReturnNullNoBadgeType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: Return this badge type..
+        /// </summary>
+        internal static string IconOverlayReturnThisBadgeType {
+            get {
+                return ResourceManager.GetString("IconOverlayReturnThisBadgeType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to rootPath cannot be null.
+        /// </summary>
+        internal static string IconOVerlayRootPathCannotBeNull {
+            get {
+                return ResourceManager.GetString("IconOVerlayRootPathCannotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: SendAddBadgePathEvent. Entry.  Path: {0}..
+        /// </summary>
+        internal static string IconOverlaySendAddBadgePathEventEntryPath0 {
+            get {
+                return ResourceManager.GetString("IconOverlaySendAddBadgePathEventEntryPath0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: SendAddBadgePathEvent. Exception.  Msg: {0}..
+        /// </summary>
+        internal static string IconOverlaySendAddBadgePathEventExceptionMsg0 {
+            get {
+                return ResourceManager.GetString("IconOverlaySendAddBadgePathEventExceptionMsg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: SendRemoveBadgePathEvent. Entry.  Path: {0}..
+        /// </summary>
+        internal static string IconOverlaySendRemoveBadgePathEventEntryPath0 {
+            get {
+                return ResourceManager.GetString("IconOverlaySendRemoveBadgePathEventEntryPath0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: SendRemoveBadgePathEvent. Exception.  Msg: {0}..
+        /// </summary>
+        internal static string IconOverlaySendRemoveBadgePathEventExceptionMsg0 {
+            get {
+                return ResourceManager.GetString("IconOverlaySendRemoveBadgePathEventExceptionMsg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: setBadgeType. Back from UpdateBadgeStateUpTreeStartingWithParentOfNode..
+        /// </summary>
+        internal static string IconOverlaySetBadgeTypeBackFromUpdateBadgeStateUpTreeStartingWithParentOfNode {
+            get {
+                return ResourceManager.GetString("IconOverlaySetBadgeTypeBackFromUpdateBadgeStateUpTreeStartingWithParentOfNode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: setBadgeType. Call UpdateBadgeStateAtPath..
+        /// </summary>
+        internal static string IconOverlaySetBadgeTypeCallUpdateBadgeStateAtPath {
+            get {
+                return ResourceManager.GetString("IconOverlaySetBadgeTypeCallUpdateBadgeStateAtPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: setBadgeType. Call UpdateBadgeStateUpTreeStartingWithParentOfNode..
+        /// </summary>
+        internal static string IconOverlaySetBadgeTypeCallUpdateBadgeStateUpTreeStartingWithParentOfNode {
+            get {
+                return ResourceManager.GetString("IconOverlaySetBadgeTypeCallUpdateBadgeStateUpTreeStartingWithParentOfNode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: setBadgeType: Entry. newType: {0}. filePath: {1}..
+        /// </summary>
+        internal static string IconOverlaySetBadgeTypeEntryNewType0FilePath1 {
+            get {
+                return ResourceManager.GetString("IconOverlaySetBadgeTypeEntryNewType0FilePath1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: setBadgeType: ERROR: Exception: Msg: &lt;{0}&gt;, Code: {1}..
+        /// </summary>
+        internal static string IconOverlaySetBadgeTypeERRORExceptionMsg0Code1 {
+            get {
+                return ResourceManager.GetString("IconOverlaySetBadgeTypeERRORExceptionMsg0Code1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: setBadgeType. ERROR: Grabbing filePath hierarchy. Msg: &lt;{0}&gt;.  Code: {1}..
+        /// </summary>
+        internal static string IconOverlaySetBadgeTypeERRORGrabbingFilePathHeirarchyMsg0Code1 {
+            get {
+                return ResourceManager.GetString("IconOverlaySetBadgeTypeERRORGrabbingFilePathHeirarchyMsg0Code1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: setBadgeType. Got selective tree..
+        /// </summary>
+        internal static string IconOverlaySetBadgeTypeGotSelectiveTree {
+            get {
+                return ResourceManager.GetString("IconOverlaySetBadgeTypeGotSelectiveTree", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: setBadgeType: In _currentBadgesLocker..
+        /// </summary>
+        internal static string IconOverlaySetBadgeTypeInCurrentBadgesLocker {
+            get {
+                return ResourceManager.GetString("IconOverlaySetBadgeTypeInCurrentBadgesLocker", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: setBadgeType: New is selective..
+        /// </summary>
+        internal static string IconOverlaySetBadgeTypeNewIsSelective {
+            get {
+                return ResourceManager.GetString("IconOverlaySetBadgeTypeNewIsSelective", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: setBadgeType. newType is {0}..
+        /// </summary>
+        internal static string IconOverlaySetBadgeTypeNewTypeIs0 {
+            get {
+                return ResourceManager.GetString("IconOverlaySetBadgeTypeNewTypeIs0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: setBadgeType. newType is synced..
+        /// </summary>
+        internal static string IconOverlaySetBadgeTypeNewTypeIsSynced {
+            get {
+                return ResourceManager.GetString("IconOverlaySetBadgeTypeNewTypeIsSynced", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: ShouldIconBeBadged. Break to determine the badge status from the children of this node..
+        /// </summary>
+        internal static string IconOverlayShouldIconBeBadgedBreakToDeterminBadgeStatusFromChildrenOfNode {
+            get {
+                return ResourceManager.GetString("IconOverlayShouldIconBeBadgedBreakToDeterminBadgeStatusFromChildrenOfNode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: ShouldIconBeBadged. Chain up..
+        /// </summary>
+        internal static string IconOverlayShouldIconBeBadgedChainUp {
+            get {
+                return ResourceManager.GetString("IconOverlayShouldIconBeBadgedChainUp", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: ShouldIconBeBadged. Contains Cloud root..
+        /// </summary>
+        internal static string IconOverlayShouldIconBeBadgedContainsCloudRoot {
+            get {
+                return ResourceManager.GetString("IconOverlayShouldIconBeBadgedContainsCloudRoot", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: ShouldIconBeBadged. Entry. badgeType: {0}. filePath: {1}..
+        /// </summary>
+        internal static string IconOverlayShouldIconBeBadgedEntrybadgeType0FilePath1 {
+            get {
+                return ResourceManager.GetString("IconOverlayShouldIconBeBadgedEntrybadgeType0FilePath1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: ShouldIconBeBadged. ERROR: Exception. Return(4): {0}..
+        /// </summary>
+        internal static string IconOverlayShouldIconBeBadgedERRORExceptionReturn40 {
+            get {
+                return ResourceManager.GetString("IconOverlayShouldIconBeBadgedERRORExceptionReturn40", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: ShouldIconBeBadged. Exception.  Normal? Msg: {0}, Code: (1)..
+        /// </summary>
+        internal static string IconOverlayShouldIconBeBadgedExceptionNormalMsg0Code1 {
+            get {
+                return ResourceManager.GetString("IconOverlayShouldIconBeBadgedExceptionNormalMsg0Code1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: ShouldIconBeBadged. Get the type for path: {0}..
+        /// </summary>
+        internal static string IconOverlayShouldIconBeBadgedGetTheTypeForPath0 {
+            get {
+                return ResourceManager.GetString("IconOverlayShouldIconBeBadgedGetTheTypeForPath0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: ShouldIconBeBadged. Got type {0}..
+        /// </summary>
+        internal static string IconOverlayShouldIconBeBadgedGotType0 {
+            get {
+                return ResourceManager.GetString("IconOverlayShouldIconBeBadgedGotType0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: ShouldIconBeBadged. Got value from allBadges. Return: {0}..
+        /// </summary>
+        internal static string IconOverlayShouldIconBeBadgedGotValueFromAllBadgesReturn0 {
+            get {
+                return ResourceManager.GetString("IconOverlayShouldIconBeBadgedGotValueFromAllBadgesReturn0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: ShouldIconBeBadged. Have we reached the Cloud root?.
+        /// </summary>
+        internal static string IconOverlayShouldIconBeBadgedHaveWeReachedCloudRoot {
+            get {
+                return ResourceManager.GetString("IconOverlayShouldIconBeBadgedHaveWeReachedCloudRoot", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: ShouldIconBeBadged. Locked..
+        /// </summary>
+        internal static string IconOverlayShouldIconBeBadgedLocked {
+            get {
+                return ResourceManager.GetString("IconOverlayShouldIconBeBadgedLocked", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: ShouldIconBeBadged. Not in the cloud folder. Return: Don&apos;t badge..
+        /// </summary>
+        internal static string IconOverlayShouldIconBeBadgedNotInTheCloudFolderReturnDontBadge {
+            get {
+                return ResourceManager.GetString("IconOverlayShouldIconBeBadgedNotInTheCloudFolderReturnDontBadge", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: ShouldIconBeBadged. Recurse thru parents..
+        /// </summary>
+        internal static string IconOverlayShouldIconBeBadgedRecurseThruParents {
+            get {
+                return ResourceManager.GetString("IconOverlayShouldIconBeBadgedRecurseThruParents", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: ShouldIconBeBadged. Return (2): {0}..
+        /// </summary>
+        internal static string IconOverlayShouldIconBeBadgedReturn20 {
+            get {
+                return ResourceManager.GetString("IconOverlayShouldIconBeBadgedReturn20", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: ShouldIconBeBadged. Return(3): {0}..
+        /// </summary>
+        internal static string IconOverlayShouldIconBeBadgedReturn30 {
+            get {
+                return ResourceManager.GetString("IconOverlayShouldIconBeBadgedReturn30", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: ShouldIconBeBadged. Return false..
+        /// </summary>
+        internal static string IconOverlayShouldIconBeBadgedReturnFalse {
+            get {
+                return ResourceManager.GetString("IconOverlayShouldIconBeBadgedReturnFalse", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: ShouldIconBeBadged. Successful getting the hierarcy.  Call GetDesiredBadgeTypeViaRecursivePostorderTraversal..
+        /// </summary>
+        internal static string IconOverlayShouldIconBeBadgedSuccessfulGettingTheHeirarchyCallGetDesiredBadgeTypeViaRecursivePostorderTraversal {
+            get {
+                return ResourceManager.GetString("IconOverlayShouldIconBeBadgedSuccessfulGettingTheHeirarchyCallGetDesiredBadgeType" +
+                        "ViaRecursivePostorderTraversal", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: ShouldIconBeBadged. TryGetValue not successful..
+        /// </summary>
+        internal static string IconOverlayShouldIconBeBadgedTryGetValueNotSuccessful {
+            get {
+                return ResourceManager.GetString("IconOverlayShouldIconBeBadgedTryGetValueNotSuccessful", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Subscription failed.
+        /// </summary>
+        internal static string IconOverlaySubscriptionFailed {
+            get {
+                return ResourceManager.GetString("IconOverlaySubscriptionFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SyncSettings cannot be null.
+        /// </summary>
+        internal static string IconOverlaySyncSettingsCannotBeNull {
+            get {
+                return ResourceManager.GetString("IconOverlaySyncSettingsCannotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: threadInit: threadInit entry..
+        /// </summary>
+        internal static string IconOverlaythreadInitEntry {
+            get {
+                return ResourceManager.GetString("IconOverlaythreadInitEntry", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: threadInit: ERROR. Wrong threading model..
+        /// </summary>
+        internal static string IconOverlaythreadInitERRORWrongThreadingModel {
+            get {
+                return ResourceManager.GetString("IconOverlaythreadInitERRORWrongThreadingModel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: threadInit: Exit thread..
+        /// </summary>
+        internal static string IconOverlayThreadInitExitThread {
+            get {
+                return ResourceManager.GetString("IconOverlayThreadInitExitThread", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: threadInit: Exit thread (2)..
+        /// </summary>
+        internal static string IconOverlaythreadInitExitThread2 {
+            get {
+                return ResourceManager.GetString("IconOverlaythreadInitExitThread2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: threadInit: Finished sending badging dictionary..
+        /// </summary>
+        internal static string IconOverlaythreadInitFinishedSendingBadgingDictionary {
+            get {
+                return ResourceManager.GetString("IconOverlaythreadInitFinishedSendingBadgingDictionary", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: threadInit: Instantiate BadgeComPubSubEvents..
+        /// </summary>
+        internal static string IconOverlayThreadInitInstantiateBadgeComPubSubEvents {
+            get {
+                return ResourceManager.GetString("IconOverlayThreadInitInstantiateBadgeComPubSubEvents", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: threadInit: Send badging dictionary..
+        /// </summary>
+        internal static string IconOverlaythreadInitSendBadgingDictionary {
+            get {
+                return ResourceManager.GetString("IconOverlaythreadInitSendBadgingDictionary", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: threadInit: Subscribe to BadgeCom init events..
+        /// </summary>
+        internal static string IconOverlaythreadInitSubscribeBadgeComInitEvents {
+            get {
+                return ResourceManager.GetString("IconOverlaythreadInitSubscribeBadgeComInitEvents", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to threadInit was not started..
+        /// </summary>
+        internal static string IconOverlayThreadInitWasNotStarted {
+            get {
+                return ResourceManager.GetString("IconOverlayThreadInitWasNotStarted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: TraceBadgingDictionaries: CurrentBadges: Called from: {0}..
+        /// </summary>
+        internal static string IconOverlayTraceBadgingDictionariesCurrentBadgesCalledFrom0 {
+            get {
+                return ResourceManager.GetString("IconOverlayTraceBadgingDictionariesCurrentBadgesCalledFrom0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: TraceBadgingDictionaries: CurrentSyncedBadges:.
+        /// </summary>
+        internal static string IconOverlayTraceBadgingDictionariesCurrentSyncedBadges {
+            get {
+                return ResourceManager.GetString("IconOverlayTraceBadgingDictionariesCurrentSyncedBadges", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unknown mergedEvent.Direction:.
+        /// </summary>
+        internal static string IconOverlayUknownMergedEventDirection {
+            get {
+                return ResourceManager.GetString("IconOverlayUknownMergedEventDirection", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unknown mergedEvent.Direction:.
+        /// </summary>
+        internal static string IconOverlayUnknownMergedEventDirection {
+            get {
+                return ResourceManager.GetString("IconOverlayUnknownMergedEventDirection", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unknown PathState:.
+        /// </summary>
+        internal static string IconOverlayUnknownState {
+            get {
+                return ResourceManager.GetString("IconOverlayUnknownState", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: UpdateBadgeStateAtPath. Add synced badge at this path..
+        /// </summary>
+        internal static string IconOverlayUpdateBadgeStateAtPathAddSyncedBadgeAtThisPath {
+            get {
+                return ResourceManager.GetString("IconOverlayUpdateBadgeStateAtPathAddSyncedBadgeAtThisPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: UpdateBadgeStateAtPath. _currentBadges returned {0}..
+        /// </summary>
+        internal static string IconOverlayUpdateBadgeStateAtPathCurrentBadgesReturned0 {
+            get {
+                return ResourceManager.GetString("IconOverlayUpdateBadgeStateAtPathCurrentBadgesReturned0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: UpdateBadgeStateAtPath. Different..
+        /// </summary>
+        internal static string IconOverlayUpdateBadgeStateAtPathDifferent {
+            get {
+                return ResourceManager.GetString("IconOverlayUpdateBadgeStateAtPathDifferent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: UpdateBadgeStateAtPath. Different and no flat.  Add..
+        /// </summary>
+        internal static string IconOverlayUpdateBadgeStateAtPathDifferentAndNoFlatAdd {
+            get {
+                return ResourceManager.GetString("IconOverlayUpdateBadgeStateAtPathDifferentAndNoFlatAdd", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: UpdateBadgeStateAtPath. Different and no hierarchical badge.  Remove..
+        /// </summary>
+        internal static string IconOverlayUpdateBadgeStateAtPathDifferentAndNoHeirarchicalBadgeRemove {
+            get {
+                return ResourceManager.GetString("IconOverlayUpdateBadgeStateAtPathDifferentAndNoHeirarchicalBadgeRemove", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: UpdateBadgeStateAtPath. Entry. nodePath: {0}..
+        /// </summary>
+        internal static string IconOverlayUpdateBadgeStateAtPathEntryNodePath0 {
+            get {
+                return ResourceManager.GetString("IconOverlayUpdateBadgeStateAtPathEntryNodePath0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: UpdateBadgeStateAtPath. getBadgeTypeForFileAtPath returned: {0}..
+        /// </summary>
+        internal static string IconOverlayUpdateBadgeStateAtPathGetBadgeTypeForFileAtPathReturned0 {
+            get {
+                return ResourceManager.GetString("IconOverlayUpdateBadgeStateAtPathGetBadgeTypeForFileAtPathReturned0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: UpdateBadgeStateAtPath. Have flatBadgeType..
+        /// </summary>
+        internal static string IconOverlayUpdateBadgeStateAtPathHaveFlatBadgeType {
+            get {
+                return ResourceManager.GetString("IconOverlayUpdateBadgeStateAtPathHaveFlatBadgeType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: UpdateBadgeStateAtPath. Have hierarchicalBadgeType..
+        /// </summary>
+        internal static string IconOverlayUpdateBadgeStateAtPathHaveHeirarchicalBadgeType {
+            get {
+                return ResourceManager.GetString("IconOverlayUpdateBadgeStateAtPathHaveHeirarchicalBadgeType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: UpdateBadgeStateAtPath. In _currentBadgesSyncedLocker..
+        /// </summary>
+        internal static string IconOverlayUpdateBadgeStateAtPathInCurrentBadgeSyncedLocker {
+            get {
+                return ResourceManager.GetString("IconOverlayUpdateBadgeStateAtPathInCurrentBadgeSyncedLocker", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: UpdateBadgeStateAtPath. Remove synced badge at this path..
+        /// </summary>
+        internal static string IconOverlayUpdateBadgeStateAtPathRemoveSyncedBadgeAtPathThisPath {
+            get {
+                return ResourceManager.GetString("IconOverlayUpdateBadgeStateAtPathRemoveSyncedBadgeAtPathThisPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: UpdateBadgeStateAtPath. Reset _currentBadgesSynced for this path..
+        /// </summary>
+        internal static string IconOverlayUpdateBadgeStateAtPathResetCurrentBadgesSyncedForThisPath {
+            get {
+                return ResourceManager.GetString("IconOverlayUpdateBadgeStateAtPathResetCurrentBadgesSyncedForThisPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: UpdateBadgeStateAtPath. Return..
+        /// </summary>
+        internal static string IconOverlayUpdateBadgeStateAtPathReturn {
+            get {
+                return ResourceManager.GetString("IconOverlayUpdateBadgeStateAtPathReturn", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: UpdateBadgeStateAtPath. Set _currentBadgesSynced for this path..
+        /// </summary>
+        internal static string IconOverlayUpdateBadgeStateAtPathSetCurrentBadgesSyncedForThisPath {
+            get {
+                return ResourceManager.GetString("IconOverlayUpdateBadgeStateAtPathSetCurrentBadgesSyncedForThisPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: UpdateBadgeStateUpTreeStartingWithParentOfNode. Call UpdateBadgeStateAtPath..
+        /// </summary>
+        internal static string IconOverlayUpdateBadgeStateUpTreeStartingWithParentOfNodeCallUpdateBadgeStateAtPath {
+            get {
+                return ResourceManager.GetString("IconOverlayUpdateBadgeStateUpTreeStartingWithParentOfNodeCallUpdateBadgeStateAtPa" +
+                        "th", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IconOverlay: UpdateBadgeStateUpTreeStartingWithParentOfNode. Entry.  nodePath: {0}..
+        /// </summary>
+        internal static string IconOverlayUpdateBadgeStateUpTreeStartingWithParentOfNodeEntryNodePath0 {
+            get {
+                return ResourceManager.GetString("IconOverlayUpdateBadgeStateUpTreeStartingWithParentOfNodeEntryNodePath0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Wrong threading model.
+        /// </summary>
+        internal static string IconOverlayWrongThreadingModel {
+            get {
+                return ResourceManager.GetString("IconOverlayWrongThreadingModel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to genericSetter.Process (before): badgeType:.
+        /// </summary>
+        internal static string IconOverlyGenericSetterProcessBeforeBadgeType {
+            get {
+                return ResourceManager.GetString("IconOverlyGenericSetterProcessBeforeBadgeType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to ---Incomplete file download---.
         /// </summary>
         internal static string IncompleteFileDownload {
             get {
                 return ResourceManager.GetString("IncompleteFileDownload", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IndexingAgent: UpdateServerUid: Migrated forwards: serverUidId: {0}..
+        /// </summary>
+        internal static string IndexingAgentUpdateServerUIDMigratedForwardsServerUIDID0 {
+            get {
+                return ResourceManager.GetString("IndexingAgentUpdateServerUIDMigratedForwardsServerUIDID0", resourceCulture);
             }
         }
         
@@ -3816,15 +5881,6 @@ namespace Cloud.Static {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to N.
-        /// </summary>
-        internal static string NotTranslatedCLCredentialStringSettingsN {
-            get {
-                return ResourceManager.GetString("NotTranslatedCLCredentialStringSettingsN", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to CommonStartMenuParentFolderNameVista.
         /// </summary>
         internal static string NotTranslatedCommonStartMenuParentFolderNameVistaName {
@@ -4208,6 +6264,15 @@ namespace Cloud.Static {
         internal static string StartMenuFolderNameXP {
             get {
                 return ResourceManager.GetString("StartMenuFolderNameXP", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to syncbox must not be null.
+        /// </summary>
+        internal static string SyncboxMustNotBeNull {
+            get {
+                return ResourceManager.GetString("SyncboxMustNotBeNull", resourceCulture);
             }
         }
         

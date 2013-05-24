@@ -117,14 +117,229 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="CancelledHttpResponseAppend" xml:space="preserve">
+    <value>: cancelled---</value>
+    <comment>Translate</comment>
+  </data>
+  <data name="CompleteFileUpload" xml:space="preserve">
+    <value>---File upload complete---</value>
+    <comment>Translate</comment>
+  </data>
+  <data name="ExceptionDelegateAndDataHolderNullDelegateToWrap" xml:space="preserve">
+    <value>delegateToWrap cannot be processed when null</value>
+    <comment>delegateToWrap should not be translated</comment>
+  </data>
+  <data name="ExceptionHelpersAsyncGetUploadRequestStreamOrDownloadResponseMakeSyncParam1" xml:space="preserve">
+    <value>MakeAsyncRequestSynchronous was processed without param1</value>
+    <comment>MakeAsyncRequestSynchronous and param1 should not be translated</comment>
+  </data>
+  <data name="ExceptionHelpersCheckSyncboxPathLengthTooLongPlural" xml:space="preserve">
+    <value>syncRootFullPath is too long by {0} characters</value>
+    <comment>syncRootFullPath should not be translated</comment>
+  </data>
+  <data name="ExceptionHelpersCheckSyncboxPathLengthTooLongSingular" xml:space="preserve">
+    <value>syncRootFullPath is too long by {0} character</value>
+    <comment>syncRootFullPath should not be translated</comment>
+  </data>
+  <data name="ExceptionHelpersHandleUploadDownloadStatusNullEventSource" xml:space="preserve">
+    <value>eventSource cannot be null</value>
+    <comment>eventSource should not be translated</comment>
+  </data>
+  <data name="ExceptionHelpersProcessHttpInnerAllHaltedOnUnrecoverableError" xml:space="preserve">
+    <value>Cannot do anything with the Cloud SDK if Helpers.AllHaltedOnUnrecoverableError is set</value>
+    <comment>Cloud and Helpers.AllHaltedOnUnrecoverableError should not be translated</comment>
+  </data>
+  <data name="ExceptionHelpersProcessHttpInnerClientCancelled" xml:space="preserve">
+    <value>Operation cancelled by client</value>
+    <comment>Translate</comment>
+  </data>
+  <data name="ExceptionHelpersProcessHttpInnerDownloadNullResponse" xml:space="preserve">
+    <value>Download httpRequest EndGetResponse threw a WebException without a WebResponse</value>
+    <comment>httpRequest, EndGetResponse, WebException, and WebResponse should not be translated</comment>
+  </data>
+  <data name="ExceptionHelpersProcessHttpInnerDownloadRequestStream" xml:space="preserve">
+    <value>Error getting request stream for a download</value>
+    <comment>Translate</comment>
+  </data>
+  <data name="ExceptionHelpersProcessHttpInnerGeneralNullResponse" xml:space="preserve">
+    <value>httpResponse GetResponse at URL {0}, MethodPath {1} threw a WebException without a WebResponse</value>
+    <comment>httpResponse, GetResponse, WebException, and WebResponse should not be translated</comment>
+  </data>
+  <data name="ExceptionHelpersProcessHttpInnerGeneralNullResponseNullServerMethodPath" xml:space="preserve">
+    <value>{missing serverMethodPath}</value>
+    <comment>serverMethodPath should not be translated</comment>
+  </data>
+  <data name="ExceptionHelpersProcessHttpInnerGeneralNullResponseNullServerUrl" xml:space="preserve">
+    <value>{missing serverUrl}</value>
+    <comment>serverUrl should not be translated</comment>
+  </data>
+  <data name="ExceptionHelpersProcessHttpInnerGeneralRequestStream" xml:space="preserve">
+    <value>Error getting request stream for a post operation</value>
+    <comment>Translate</comment>
+  </data>
+  <data name="ExceptionHelpersProcessHttpInnerHttpMethod" xml:space="preserve">
+    <value>Unknown method: {0}</value>
+    <comment>Translate</comment>
+  </data>
+  <data name="ExceptionHelpersProcessHttpInnerInvalidResponseStatus" xml:space="preserve">
+    <value>Invalid HTTP response status code at URL {0}, MethodPath {1}</value>
+    <comment>"MethodPath" should not be translated. </comment>
+  </data>
+  <data name="ExceptionHelpersProcessHttpInnerInvalidStatusStreamRead" xml:space="preserve">
+    <value>Unable to read the response stream</value>
+    <comment>Translate</comment>
+  </data>
+  <data name="ExceptionHelpersProcessHttpInnerMissingAuthenticationErrorResponse" xml:space="preserve">
+    <value>Unable to find serializer for JsonContracts.AuthenticationErrorResponse in SerializableResponseTypes</value>
+    <comment>JsonContracts.AuthenticationErrorResponse and SerializableResponseTypes should not be translated</comment>
+  </data>
+  <data name="ExceptionHelpersProcessHttpInnerNullHttpRequest" xml:space="preserve">
+    <value>httpRequest cannot be null</value>
+    <comment>httpRequest should not be translated</comment>
+  </data>
+  <data name="ExceptionHelpersProcessHttpInnerRequestContentType" xml:space="preserve">
+    <value>Unknown requestContent Type: {0}</value>
+    <comment>requestContent and Type should not be translated</comment>
+  </data>
+  <data name="ExceptionHelpersProcessHttpInnerRequestStringJsonObject" xml:space="preserve">
+    <value>Deserialized JsonObject null from requestString</value>
+    <comment>JsonObject and requestString should not be translated</comment>
+  </data>
+  <data name="ExceptionHelpersProcessHttpInnerResponseDeserializeMissedEarlierCheck" xml:space="preserve">
+    <value>Unable to deserialize response stream and missed an earlier check for this condition</value>
+    <comment>Translate</comment>
+  </data>
+  <data name="ExceptionHelpersProcessHttpInnerResponseStringJsonObject" xml:space="preserve">
+    <value>Deserialized JsonObject null from responseString</value>
+    <comment>JsonObject and responseString should not be translated</comment>
+  </data>
+  <data name="ExceptionHelpersProcessHttpInnerTempDownloadFolderPath" xml:space="preserve">
+    <value>uploadDownload TempDownloadFolderPath cannot be null</value>
+    <comment>uploadDownload and TempDownloadFolderPath should not be translated</comment>
+  </data>
+  <data name="ExceptionHelpersProcessHttpInnerUploadDownloadType" xml:space="preserve">
+    <value>uploadDownload must be either upload or download</value>
+    <comment>uploadDownload should not be translated</comment>
+  </data>
+  <data name="ExceptionHelpersProcessHttpInnerUploadRequestStream" xml:space="preserve">
+    <value>Error getting request stream for an upload</value>
+    <comment>Translate</comment>
+  </data>
+  <data name="ExceptionHelpersProcessHttpNullGetCurrentCredentialsCallback" xml:space="preserve">
+    <value>RequestNewCredentialsInfo GetCurrentCredentialsCallback must not be null</value>
+    <comment>RequestNewCredentialsInfo and GetCurrentCredentialsCallback should not be translated</comment>
+  </data>
+  <data name="ExceptionHelpersProcessHttpNullProcessingStateByThreadId" xml:space="preserve">
+    <value>RequestNewCredentialsInfo ProcessingStateByThreadId must not be null</value>
+    <comment>RequestNewCredentialsInfo and ProcessingStateByThreadId should not be translated</comment>
+  </data>
+  <data name="ExceptionHelpersProcessHttpNullRequestNewCredentialsInfo" xml:space="preserve">
+    <value>RequestNewCredentialsInfo must not be null</value>
+    <comment>RequestNewCredentialsInfo should not be translated</comment>
+  </data>
+  <data name="ExceptionHelpersProcessHttpNullSetNewCredentialsCallback" xml:space="preserve">
+    <value>RequestNewCredentialsInfo SetNewCredentialsCallback must not be null</value>
+    <comment>RequestNewCredentialsInfo and SetNewCredentialsCallback should not be translated</comment>
+  </data>
+  <data name="ExceptionHelpersRunActionWithRetriesFailedRetries" xml:space="preserve">
+    <value>Operation failed all retries with a numRetries of {0}</value>
+    <comment>numRetries should not be translated</comment>
+  </data>
+  <data name="ExceptionLoggingInWithCode" xml:space="preserve">
+    <value>Oops. We're sorry, it seems like something went wrong while logging into your account.  The error code is {0}.</value>
+    <comment>Translate</comment>
+  </data>
+  <data name="ExceptionUnlinking" xml:space="preserve">
+    <value>Oops. We're sorry, it seems like something went wrong while removing this device from your account.</value>
+    <comment>Translate</comment>
+  </data>
+  <data name="ExceptionUnlinkingWithCode" xml:space="preserve">
+    <value>Oops. We're sorry, it seems like something went wrong while removing this device from your account.  The error code is {0}.</value>
+    <comment>Translate</comment>
+  </data>
+  <data name="IncompleteFileDownload" xml:space="preserve">
+    <value>---Incomplete file download---</value>
+    <comment>Must end with three hypen characters</comment>
+  </data>
+  <data name="LocalAppDataFolderNameVista" xml:space="preserve">
+    <value>AppData\Local</value>
+    <comment>Vista and up; defined translations must perfectly match Microsoft documentation</comment>
+  </data>
+  <data name="LogCloudExceptionType" xml:space="preserve">
+    <value>Cloud exception type: {0}</value>
+    <comment>Translate</comment>
+  </data>
+  <data name="LogHttpResponse" xml:space="preserve">
+    <value>Http response:{0}{1}</value>
+    <comment>Translate</comment>
+  </data>
+  <data name="LogHttpStatus" xml:space="preserve">
+    <value>Http status code: {0}</value>
+    <comment>Translate</comment>
+  </data>
+  <data name="LogStacktrace" xml:space="preserve">
+    <value>StackTrace:{0}{1}</value>
+    <comment>"StackTrace" should not be translated. </comment>
+  </data>
+  <data name="MusicFolderNameVista" xml:space="preserve">
+    <value>Music</value>
+    <comment>Vista and up; defined translations must perfectly match Microsoft documentation</comment>
+  </data>
+  <data name="NotTranslatedHttpClose" xml:space="preserve">
+    <value>Close</value>
+    <comment>Do Not Translate</comment>
+  </data>
+  <data name="NotTranslatedHttpContinue" xml:space="preserve">
+    <value>100-continue</value>
+    <comment>Do Not Translate</comment>
+  </data>
+  <data name="NotTranslatedHttpKeepAlive" xml:space="preserve">
+    <value>Keep-Alive</value>
+    <comment>Do Not Translate</comment>
+  </data>
+  <data name="NotTranslatedImplicitOperator" xml:space="preserve">
+    <value>op_Implicit</value>
+    <comment>Do Not Translate</comment>
+  </data>
+  <data name="NullHttpResponseBody" xml:space="preserve">
+    <value>---responseBody set to null---</value>
+    <comment>responseBody should not be translated; Must end with three hyphen characters</comment>
+  </data>
+  <data name="OsBits" xml:space="preserve">
+    <value>bits</value>
+    <comment>e.g., "32 bits" or "64 bits"</comment>
+  </data>
+  <data name="StartedFileUpload" xml:space="preserve">
+    <value>---File upload started---</value>
+    <comment>Translate</comment>
+  </data>
+  <data name="StartMenuFolderNameVista" xml:space="preserve">
+    <value>AppData\Roaming\Microsoft\Windows\Start Menu</value>
+    <comment>Vista and up; defined translations must perfectly match Microsoft documentation</comment>
+  </data>
+  <data name="CompletedFileDownloadHttpBody" xml:space="preserve">
+    <value>---Completed file download---</value>
+    <comment>must end with three hyphen characters</comment>
+  </data>
+  <data name="ErrorMovingDownloadedFileHttpBody" xml:space="preserve">
+    <value>---Error moving downloaded file---</value>
+    <comment>must end with three hyphen characters</comment>
+  </data>
+  <data name="ExceptionHelpersProcessHttpInnerDownload" xml:space="preserve">
+    <value>{0}: {1}---</value>
+    <comment>must end with three hyphen characters</comment>
+  </data>
   <data name="AbbreviatedGigabytes" xml:space="preserve">
     <value>GB</value>
+    <comment>SI Unit. Do Not Translate</comment>
   </data>
   <data name="AbbreviatedKilobytes" xml:space="preserve">
     <value>KB</value>
+    <comment>SI Unit. Do Not Translate</comment>
   </data>
   <data name="AbbreviatedMegabytes" xml:space="preserve">
     <value>MB</value>
+    <comment>SI Unit. Do Not Translate</comment>
   </data>
   <data name="AppDataFolderNameVista" xml:space="preserve">
     <value>AppData</value>
@@ -132,92 +347,118 @@
   </data>
   <data name="BytesPlural" xml:space="preserve">
     <value>Bytes</value>
+    <comment>SI Unit. Do Not Translate</comment>
   </data>
   <data name="BytesSingular" xml:space="preserve">
     <value>Byte</value>
-  </data>
-  <data name="CLHttpRestaResultInternalTypeMismatch" xml:space="preserve">
-    <value>aResult does not match expected internal type</value>
-    <comment>Internal Type Mismatch</comment>
-  </data>
-  <data name="CLHttpRestCannotCastStateAs" xml:space="preserve">
-    <value>Cannot cast state as</value>
+    <comment>SI Unit. Do Not Translate</comment>
   </data>
   <data name="CLHttpRestChangeDirectionIsNotToServer" xml:space="preserve">
     <value>deletionChange Direction is not To the server</value>
+    <comment>"deletionChange" should not be translated</comment>
   </data>
   <data name="CLHttpRestChangeIsNotOfTypeDeletion" xml:space="preserve">
     <value>deletionChange is not of Type Deletion</value>
+    <comment>"deletionChange" should not be translated</comment>
   </data>
   <data name="CLHttpRestCommunicateCannotBeNull" xml:space="preserve">
     <value>toCommunicate cannot be null</value>
+    <comment>"toCommunicate" should not be translated</comment>
+  </data>
+  <data name="CLHttpRestCopiedSettingsMustNotBeNull" xml:space="preserve">
+    <value>syncbox.CopiedSettings must not be null</value>
+    <comment>"syncbox.CopiedSettings" should not be translated</comment>
   </data>
   <data name="CLHttpRestCopyPathCannotBeNull" xml:space="preserve">
     <value>copyTargetPath cannot be null</value>
+    <comment>"copyTargetPath" should not be translated</comment>
   </data>
   <data name="CLHttpRestCurrentSyncboxCannotBeModifiedWhileSyncing" xml:space="preserve">
     <value>Current Syncbox cannot be modified while in use in active syncing</value>
+    <comment>"Current Syncbox" should not be translated</comment>
   </data>
   <data name="CLHttpRestDeletionChangeCannotBeNull" xml:space="preserve">
     <value>deletionChange cannot be null</value>
+    <comment>"deletionChange" should not be translated</comment>
   </data>
   <data name="CLHttpRestDeletionChangeMetadataServerIDMustnotBeNull" xml:space="preserve">
     <value>deletionChange Metadata ServerId must not be null</value>
+    <comment>"deletionChange" should not be translated; "ServerId" should not be translated</comment>
   </data>
   <data name="CLHttpRestDeviceIDCannotBeNull" xml:space="preserve">
     <value>settings DeviceId cannot be null</value>
+    <comment>"DeviceId" should not be translated</comment>
   </data>
   <data name="CLHttpRestFolderPathTooLong" xml:space="preserve">
     <value>Folder path for temp download files is too long by</value>
+    <comment>"deletionChange" should not be translated.</comment>
   </data>
   <data name="CLHttpRestFriendlyNameNotSpecified" xml:space="preserve">
     <value>friendlyName must be specified</value>
+    <comment>"friendlyName" should not be translated</comment>
   </data>
   <data name="CLHttpRestFullPathBadFormat" xml:space="preserve">
     <value>fullPath is not in the proper format</value>
+    <comment>"fullPath" should not be translated</comment>
   </data>
   <data name="CLHttpRestFullPathDoesNotContainSettingsSyncboxPath" xml:space="preserve">
-    <value>fullPath does not contain syncbox path</value>
+    <value>fullPath does not contain settings syncbox path</value>
+    <comment>"fullPath" should not be translated</comment>
   </data>
   <data name="CLHttpRestFullPathorServerIDRequired" xml:space="preserve">
     <value>Both fullPath and serverId cannot be null, at least one is required</value>
+    <comment>"fullPath" should not be translated; "ServerId" should not be translated</comment>
   </data>
-  <data name="CLHttpRestInternalPRogressRetrievalFailure1" xml:space="preserve">
+  <data name="CLHttpRestInternalProgressRetrievalFailure1" xml:space="preserve">
     <value>There was an internal error attempting to retrieve the progress, Error 1</value>
+    <comment>Translate</comment>
   </data>
-  <data name="CLHttpRestInternalPRogressRetrievalFailure2" xml:space="preserve">
+  <data name="CLHttpRestInternalPRogressRetreivalFailure2" xml:space="preserve">
     <value>There was an internal error attempting to retrieve the progress, Error 2</value>
+    <comment>Translate</comment>
   </data>
   <data name="CLHttpRestMD5LowerCaseStringSet" xml:space="preserve">
     <value>MD5 lowercase string retrieved from Resources.CLHttpRestCommunicateCannotBeNull, set via toCommunicate.SetMD5</value>
+    <comment>"MD5" should not be translated</comment>
   </data>
   <data name="CLHttpRestMetadataCannotBeNull" xml:space="preserve">
     <value>deletionChange Metadata cannot be null</value>
+    <comment>"deletionChangeMetadata" should not be translated</comment>
   </data>
   <data name="CLHttpRestMetadataHashablePropertiesSizeCannotBeNull" xml:space="preserve">
     <value>toCommunicate Metadata HashableProperties Size cannot be null</value>
+    <comment>"toCommunicate" should not be translated  "HashableProperties"  should not be translated</comment>
   </data>
-  <data name="CLHttpRestRevisionCannotBeNull" xml:space="preserve">
-    <value>revision cannot be null</value>
+  <data name="CLHttpRestMetaDataRevisionCannotBeNull" xml:space="preserve">
+    <value>toCommunicate Metadata Revision cannot be null</value>
+    <comment>"toCommunicate" should not be translated</comment>
   </data>
   <data name="CLHttpRestNewPathCannotBeNull" xml:space="preserve">
     <value>toCommunicate NewPath cannot be null</value>
+    <comment>"toCommunicate" should not be translated  "NewPath"  should not be translated</comment>
   </data>
   <data name="CLHttpRestOldPathCannotBeNull" xml:space="preserve">
     <value>toCommunicate OldPath cannot be null</value>
+    <comment>"toCommunicate" should not be translated "OldPath"  should not be translated</comment>
   </data>
   <data name="CLHttpRestPlanIDCannotBeZero" xml:space="preserve">
     <value>planId must not be zero</value>
+    <comment>"planID" should not be translated</comment>
   </data>
   <data name="CLHttpRestPushRequestMustNotBeNull" xml:space="preserve">
     <value>pushRequest must not be null</value>
+    <comment>"pushRequest" should not be translated</comment>
   </data>
   <data name="CLHttpRestsyncboxCredentialCannotBeNull" xml:space="preserve">
     <value>syncbox Credential cannot be null</value>
     <comment>syncbox field must be filled</comment>
   </data>
+  <data name="SyncboxMustNotBeNull" xml:space="preserve">
+    <value>syncbox must not be null</value>
+    <comment>"Syncbox" should not be translated</comment>
+  </data>
   <data name="CLHttpRestSyncboxBadPath" xml:space="preserve">
-    <value>Syncbox path is bad</value>
+    <value>syncbox path is bad</value>
     <comment>Path invalid</comment>
   </data>
   <data name="CLHttpRestSyncboxPathCannotBeNull" xml:space="preserve">
@@ -225,33 +466,39 @@
   </data>
   <data name="CLHttpRestSyncToRequestMustNotBeNull" xml:space="preserve">
     <value>syncToRequest must not be null</value>
+    <comment>"syncToRequest" should not be translated</comment>
   </data>
   <data name="CLHttpRestThecustomDownloadFolderFullPathIsBad" xml:space="preserve">
     <value>The customDownloadFolderFullPath is bad</value>
+    <comment>"customDownloadFolderPath" should not be translated</comment>
   </data>
   <data name="CLHttpRestTimeoutMustBeGreaterThanZero" xml:space="preserve">
     <value>timeoutMilliseconds must be greater than zero</value>
+    <comment>"timeoutMilliseconds" should not be translated</comment>
   </data>
   <data name="CLHttpRestToCommunicateCannotBeFolderandModified" xml:space="preserve">
     <value>toCommunicate cannot be both a folder and of type Modified</value>
+    <comment>"toCommunicate" should not be translated</comment>
   </data>
   <data name="CLHttpRestToCommunicateDirectionisNotToServer" xml:space="preserve">
     <value>toCommunicate Direction is not To the server</value>
+    <comment>"toCommunicate" should not be translated</comment>
   </data>
   <data name="CLHttpRestToCommunicateMetedataCannotBeNull" xml:space="preserve">
     <value>toCommunicate Metadata cannot be null</value>
+    <comment>"toCommunicate" should not be translated</comment>
   </data>
   <data name="CLHttpRestToCommunicateTypeIsUnknownFileChangeType" xml:space="preserve">
     <value>toCommunicate Type is an unknown FileChangeType: </value>
+    <comment>"toCommunicate" should not be translated</comment>
   </data>
   <data name="CLHttpRestXORNewPathServerIDCannotBeNull" xml:space="preserve">
-    <value>Either toCommunicate NewPath must not be null or serverUid must not be null or both must not be null</value>
+    <value>Either toCommunicate NewPath must not be null or toCommunicate Metadata ServerId must not be null or both must not be null</value>
+    <comment>"toCommunicate", "NewPath", and "ServerId" should not be translated</comment>
   </data>
   <data name="CLHttpRestXORPathtoFileFileServerIDMustNotBeNull" xml:space="preserve">
     <value>Either pathToFile must not be null or fileServerId must not be null or both must not be null</value>
-  </data>
-  <data name="CancelledHttpResponseAppend" xml:space="preserve">
-    <value>: cancelled---</value>
+    <comment>"pathToFile" should not be translated; "fileServerId" should not be translated</comment>
   </data>
   <data name="CommonStartMenuParentFolderNameVista" xml:space="preserve">
     <value>ProgramData\Microsoft\Windows</value>
@@ -260,9 +507,6 @@
   <data name="CommonStartMenuParentFolderNameXP" xml:space="preserve">
     <value>Documents and Settings\All Users</value>
     <comment>XP only; defined translations must perfectly match Microsoft documentation</comment>
-  </data>
-  <data name="CompleteFileUpload" xml:space="preserve">
-    <value>---File upload complete---</value>
   </data>
   <data name="DocumentsAndSettingsVista" xml:space="preserve">
     <value>Users</value>
@@ -290,13 +534,11 @@
   </data>
   <data name="ErrorPuttingUploadOrDownloadToServer" xml:space="preserve">
     <value>Oops.  We're sorry, it seems that something when wrong while starting a server file upload or download. </value>
+    <comment>Translate</comment>
   </data>
   <data name="ExceptionCreatingUserRegistrationWithCode" xml:space="preserve">
     <value>Oops. We're sorry, it seems like something went wrong while creating your account.  The error code is {0}.</value>
-  </data>
-  <data name="ExceptionDelegateAndDataHolderNullDelegateToWrap" xml:space="preserve">
-    <value>delegateToWrap cannot be processed when null</value>
-    <comment>delegateToWrap should not be translated</comment>
+    <comment>Translate</comment>
   </data>
   <data name="ExceptionFileChangeSetMD5ByteLength" xml:space="preserve">
     <value>MD5 must be 128 bits (a byte array of length 16)</value>
@@ -305,10 +547,6 @@
   <data name="ExceptionFileChangeUpDownEventArgsNullSendBackChange" xml:space="preserve">
     <value>SendBackChange cannot be null</value>
     <comment>SendBackChange should not be translated</comment>
-  </data>
-  <data name="ExceptionHelpersAsyncGetUploadRequestStreamOrDownloadResponseMakeSyncParam1" xml:space="preserve">
-    <value>MakeAsyncRequestSynchronous was processed without param1</value>
-    <comment>MakeAsyncRequestSynchronous and param1 should not be translated</comment>
   </data>
   <data name="ExceptionHelpersCheckForBadPathDriveLetter" xml:space="preserve">
     <value>rootPathObject must start with a upper-case drive letter</value>
@@ -330,117 +568,13 @@
     <value>TraceCategory must not be null</value>
     <comment>TraceCategory must not be null</comment>
   </data>
-  <data name="ExceptionHelpersCheckSyncboxPathLengthTooLongPlural" xml:space="preserve">
-    <value>syncbox path is too long by {0} characters</value>
-    <comment>syncRootFullPath should not be translated</comment>
-  </data>
-  <data name="ExceptionHelpersCheckSyncboxPathLengthTooLongSingular" xml:space="preserve">
-    <value>syncbox path is too long by {0} character</value>
-    <comment>syncRootFullPath should not be translated</comment>
-  </data>
   <data name="ExceptionHelpersDictionaryTryGetValueResultInvalid" xml:space="preserve">
     <value>Cannot retrieve property values on an invalid DictionaryTryGetValueResult</value>
     <comment>Dictionary and TryGetValueResult should not be translated</comment>
   </data>
-  <data name="ExceptionHelpersHandleUploadDownloadStatusNullEventSource" xml:space="preserve">
-    <value>eventSource cannot be null</value>
-    <comment>eventSource should not be translated</comment>
-  </data>
   <data name="ExceptionHelpersParseHexadecimalStringToByteArrayHashStringFormat" xml:space="preserve">
     <value>hashString must be in a hexadecimal string format with no seperator characters and two characters per byte</value>
     <comment>hashString should not be translated</comment>
-  </data>
-  <data name="ExceptionHelpersProcessHttpInnerAllHaltedOnUnrecoverableError" xml:space="preserve">
-    <value>Cannot do anything with the Cloud SDK if Helpers.AllHaltedOnUnrecoverableError is set</value>
-    <comment>Cloud and Helpers.AllHaltedOnUnrecoverableError should not be translated</comment>
-  </data>
-  <data name="ExceptionHelpersProcessHttpInnerClientCancelled" xml:space="preserve">
-    <value>Operation cancelled by client</value>
-  </data>
-  <data name="ExceptionHelpersProcessHttpInnerDownloadNullResponse" xml:space="preserve">
-    <value>Download httpRequest EndGetResponse threw a WebException without a WebResponse</value>
-    <comment>httpRequest, EndGetResponse, WebException, and WebResponse should not be translated</comment>
-  </data>
-  <data name="ExceptionHelpersProcessHttpInnerDownloadRequestStream" xml:space="preserve">
-    <value>Error getting request stream for a download</value>
-  </data>
-  <data name="ExceptionHelpersProcessHttpInnerGeneralNullResponse" xml:space="preserve">
-    <value>httpResponse GetResponse at URL {0}, MethodPath {1} threw a WebException without a WebResponse</value>
-    <comment>httpResponse, GetResponse, WebException, and WebResponse should not be translated</comment>
-  </data>
-  <data name="ExceptionHelpersProcessHttpInnerGeneralNullResponseNullServerMethodPath" xml:space="preserve">
-    <value>{missing serverMethodPath}</value>
-    <comment>serverMethodPath should not be translated</comment>
-  </data>
-  <data name="ExceptionHelpersProcessHttpInnerGeneralNullResponseNullServerUrl" xml:space="preserve">
-    <value>{missing serverUrl}</value>
-    <comment>serverUrl should not be translated</comment>
-  </data>
-  <data name="ExceptionHelpersProcessHttpInnerGeneralRequestStream" xml:space="preserve">
-    <value>Error getting request stream for a post operation</value>
-  </data>
-  <data name="ExceptionHelpersProcessHttpInnerHttpMethod" xml:space="preserve">
-    <value>Unknown method: {0}</value>
-  </data>
-  <data name="ExceptionHelpersProcessHttpInnerInvalidResponseStatus" xml:space="preserve">
-    <value>Invalid HTTP response status code at URL {0}, MethodPath {1}</value>
-  </data>
-  <data name="ExceptionHelpersProcessHttpInnerInvalidStatusStreamRead" xml:space="preserve">
-    <value>Unable to read the response stream</value>
-  </data>
-  <data name="ExceptionHelpersProcessHttpInnerMissingAuthenticationErrorResponse" xml:space="preserve">
-    <value>Unable to find serializer for JsonContracts.AuthenticationErrorResponse in SerializableResponseTypes</value>
-    <comment>JsonContracts.AuthenticationErrorResponse and SerializableResponseTypes should not be translated</comment>
-  </data>
-  <data name="ExceptionHelpersProcessHttpInnerNullHttpRequest" xml:space="preserve">
-    <value>httpRequest cannot be null</value>
-    <comment>httpRequest should not be translated</comment>
-  </data>
-  <data name="ExceptionHelpersProcessHttpInnerRequestContentType" xml:space="preserve">
-    <value>Unknown requestContent Type: {0}</value>
-    <comment>requestContent and Type should not be translated</comment>
-  </data>
-  <data name="ExceptionHelpersProcessHttpInnerRequestStringJsonObject" xml:space="preserve">
-    <value>Deserialized JsonObject null from requestString</value>
-    <comment>JsonObject and requestString should not be translated</comment>
-  </data>
-  <data name="ExceptionHelpersProcessHttpInnerResponseDeserializeMissedEarlierCheck" xml:space="preserve">
-    <value>Unable to deserialize response stream and missed an earlier check for this condition</value>
-  </data>
-  <data name="ExceptionHelpersProcessHttpInnerResponseStringJsonObject" xml:space="preserve">
-    <value>Deserialized JsonObject null from responseString</value>
-    <comment>JsonObject and responseString should not be translated</comment>
-  </data>
-  <data name="ExceptionHelpersProcessHttpInnerTempDownloadFolderPath" xml:space="preserve">
-    <value>uploadDownload TempDownloadFolderPath cannot be null</value>
-    <comment>uploadDownload and TempDownloadFolderPath should not be translated</comment>
-  </data>
-  <data name="ExceptionHelpersProcessHttpInnerUploadDownloadType" xml:space="preserve">
-    <value>uploadDownload must be either upload or download</value>
-    <comment>uploadDownload should not be translated</comment>
-  </data>
-  <data name="ExceptionHelpersProcessHttpInnerUploadRequestStream" xml:space="preserve">
-    <value>Error getting request stream for an upload</value>
-  </data>
-  <data name="ExceptionHelpersProcessHttpNullGetCurrentCredentialsCallback" xml:space="preserve">
-    <value>RequestNewCredentialsInfo GetCurrentCredentialsCallback must not be null</value>
-    <comment>RequestNewCredentialsInfo and GetCurrentCredentialsCallback should not be translated</comment>
-  </data>
-  <data name="ExceptionHelpersProcessHttpNullProcessingStateByThreadId" xml:space="preserve">
-    <value>RequestNewCredentialsInfo ProcessingStateByThreadId must not be null</value>
-    <comment>RequestNewCredentialsInfo and ProcessingStateByThreadId should not be translated</comment>
-  </data>
-  <data name="ExceptionHelpersProcessHttpNullRequestNewCredentialsInfo" xml:space="preserve">
-    <value>RequestNewCredentialsInfo must not be null</value>
-    <comment>RequestNewCredentialsInfo should not be translated</comment>
-  </data>
-  <data name="ExceptionHelpersProcessHttpNullSetNewCredentialsCallback" xml:space="preserve">
-    <value>RequestNewCredentialsInfo SetNewCredentialsCallback must not be null</value>
-    <comment>RequestNewCredentialsInfo and SetNewCredentialsCallback should not be translated</comment>
-  </data>
-  <data name="ExceptionHelpersRunActionWithRetriesFailedRetries" xml:space="preserve">
-    <value>Operation failed all retries with a numRetries of {0}</value>
-    <comment>numRetries should not be translated</comment>
   </data>
   <data name="ExceptionHelpersRunActionWithRetriesNullToRun" xml:space="preserve">
     <value>toRun cannot be null</value>
@@ -454,42 +588,9 @@
     <value>Reset not supported</value>
     <comment>Reset should not be translated</comment>
   </data>
-  <data name="ExceptionLoggingInWithCode" xml:space="preserve">
-    <value>Oops. We're sorry, it seems like something went wrong while logging into your account.  The error code is {0}.</value>
-  </data>
-  <data name="ExceptionUnlinking" xml:space="preserve">
-    <value>Oops. We're sorry, it seems like something went wrong while removing this device from your account.</value>
-  </data>
-  <data name="ExceptionUnlinkingWithCode" xml:space="preserve">
-    <value>Oops. We're sorry, it seems like something went wrong while removing this device from your account.  The error code is {0}.</value>
-  </data>
-  <data name="IncompleteFileDownload" xml:space="preserve">
-    <value>---Incomplete file download---</value>
-    <comment>Must end with three hypen characters</comment>
-  </data>
-  <data name="LocalAppDataFolderNameVista" xml:space="preserve">
-    <value>AppData\Local</value>
-    <comment>Vista and up; defined translations must perfectly match Microsoft documentation</comment>
-  </data>
   <data name="LocalAppDataFolderNameXP" xml:space="preserve">
     <value>Local Settings\Application Data</value>
     <comment>XP only; defined translations must perfectly match Microsoft documentation</comment>
-  </data>
-  <data name="LogCloudExceptionType" xml:space="preserve">
-    <value>Cloud exception type: {0}</value>
-  </data>
-  <data name="LogHttpResponse" xml:space="preserve">
-    <value>Http response:{0}{1}</value>
-  </data>
-  <data name="LogHttpStatus" xml:space="preserve">
-    <value>Http status code: {0}</value>
-  </data>
-  <data name="LogStacktrace" xml:space="preserve">
-    <value>StackTrace:{0}{1}</value>
-  </data>
-  <data name="MusicFolderNameVista" xml:space="preserve">
-    <value>Music</value>
-    <comment>Vista and up; defined translations must perfectly match Microsoft documentation</comment>
   </data>
   <data name="MusicFolderNameXP" xml:space="preserve">
     <value>My Music</value>
@@ -501,147 +602,123 @@
   </data>
   <data name="NotTranslatedAppDataFolderNameVistaName" xml:space="preserve">
     <value>AppDataFolderNameVista</value>
-    <comment>Do not translate</comment>
+    <comment>Do Not Translate</comment>
   </data>
   <data name="NotTranslatedCheckLogFileExistanceSearchStart" xml:space="preserve">
     <value>Trace-????-??-??-</value>
-    <comment>Do not translate</comment>
+    <comment>Do Not Translate</comment>
   </data>
   <data name="NotTranslatedCheckLogFileExistanceStarDot" xml:space="preserve">
     <value>*.</value>
-    <comment>Do not translate</comment>
+    <comment>Do Not Translate</comment>
   </data>
   <data name="NotTranslatedCheckLogFileExistanceTrace" xml:space="preserve">
     <value>Trace-</value>
-    <comment>Do not translate</comment>
+    <comment>Do Not Translate</comment>
   </data>
   <data name="NotTranslatedCheckLogFileExistanceYearMonthDay" xml:space="preserve">
     <value>yyyy-MM-dd-</value>
-    <comment>Do not translate</comment>
+    <comment>Do Not Translate</comment>
   </data>
   <data name="NotTranslatedCommonStartMenuParentFolderNameVistaName" xml:space="preserve">
     <value>CommonStartMenuParentFolderNameVista</value>
-    <comment>Do not translate</comment>
+    <comment>Do Not Translate</comment>
   </data>
   <data name="NotTranslatedCommonStartMenuParentFolderNameXPName" xml:space="preserve">
     <value>CommonStartMenuParentFolderNameXP</value>
-    <comment>Do not translate</comment>
+    <comment>Do Not Translate</comment>
   </data>
   <data name="NotTranslatedDocumentsAndSettingsVistaName" xml:space="preserve">
     <value>DocumentsAndSettingsVista</value>
-    <comment>Do not translate</comment>
+    <comment>Do Not Translate</comment>
   </data>
   <data name="NotTranslatedDocumentsAndSettingsXPName" xml:space="preserve">
     <value>DocumentsAndSettingsXP</value>
-    <comment>Do not translate</comment>
+    <comment>Do Not Translate</comment>
   </data>
   <data name="NotTranslatedDocumentsFolderNameVistaName" xml:space="preserve">
     <value>DocumentsFolderNameVista</value>
-    <comment>Do not translate</comment>
+    <comment>Do Not Translate</comment>
   </data>
   <data name="NotTranslatedDocumentsFolderNameXPName" xml:space="preserve">
     <value>DocumentsFolderNameXP</value>
-    <comment>Do not translate</comment>
+    <comment>Do Not Translate</comment>
   </data>
   <data name="NotTranslatedExplicitOperator" xml:space="preserve">
     <value>op_Explicit</value>
-    <comment>Do not translate</comment>
+    <comment>Do Not Translate</comment>
   </data>
   <data name="NotTranslatedHelpersCheckForBadPathDriveLetterRegex" xml:space="preserve">
     <value>^[a-z]:\\$</value>
-    <comment>Do not translate</comment>
+    <comment>Do Not Translate</comment>
   </data>
   <data name="NotTranslatedHelpersFormatBytesString" xml:space="preserve">
     <value>{0:##.##} {1}</value>
-    <comment>Do not translate</comment>
+    <comment>Do Not Translate</comment>
   </data>
   <data name="NotTranslatedHelpersMethodInfoConvertTo" xml:space="preserve">
     <value>ConvertTo</value>
-    <comment>Do not translate</comment>
+    <comment>Do Not Translate</comment>
   </data>
   <data name="NotTranslatedHelpersMethodInfoDefaultForType" xml:space="preserve">
     <value>DefaultForType</value>
-    <comment>Do not translate</comment>
-  </data>
-  <data name="NotTranslatedHttpClose" xml:space="preserve">
-    <value>Close</value>
-    <comment>Do not translate</comment>
-  </data>
-  <data name="NotTranslatedHttpContinue" xml:space="preserve">
-    <value>100-continue</value>
-    <comment>Do not translate</comment>
-  </data>
-  <data name="NotTranslatedHttpKeepAlive" xml:space="preserve">
-    <value>Keep-Alive</value>
-    <comment>Do not translate</comment>
-  </data>
-  <data name="NotTranslatedImplicitOperator" xml:space="preserve">
-    <value>op_Implicit</value>
-    <comment>Do not translate</comment>
+    <comment>Do Not Translate</comment>
   </data>
   <data name="NotTranslatedLocalAppDataFolderNameVistaName" xml:space="preserve">
     <value>LocalAppDataFolderNameVista</value>
-    <comment>Do not translate</comment>
+    <comment>Do Not Translate</comment>
   </data>
   <data name="NotTranslatedLocalAppDataFolderNameXPName" xml:space="preserve">
     <value>LocalAppDataFolderNameXP</value>
-    <comment>Do not translate</comment>
+    <comment>Do Not Translate</comment>
   </data>
   <data name="NotTranslatedMusicFolderNameVistaName" xml:space="preserve">
     <value>MusicFolderNameVista</value>
-    <comment>Do not translate</comment>
+    <comment>Do Not Translate</comment>
   </data>
   <data name="NotTranslatedMusicFolderNameXPName" xml:space="preserve">
     <value>MusicFolderNameXP</value>
-    <comment>Do not translate</comment>
+    <comment>Do Not Translate</comment>
   </data>
   <data name="NotTranslatedPicturesFolderNameVistaName" xml:space="preserve">
     <value>PicturesFolderNameVista</value>
-    <comment>Do not translate</comment>
+    <comment>Do Not Translate</comment>
   </data>
   <data name="NotTranslatedPicturesFolderNameXPName" xml:space="preserve">
     <value>PicturesFolderNameXP</value>
-    <comment>Do not translate</comment>
+    <comment>Do Not Translate</comment>
   </data>
   <data name="NotTranslatedPublicUserNameVistaName" xml:space="preserve">
     <value>PublicUserNameVista</value>
-    <comment>Do not translate</comment>
+    <comment>Do Not Translate</comment>
   </data>
   <data name="NotTranslatedPublicUserNameXPName" xml:space="preserve">
     <value>PublicUserNameXP</value>
-    <comment>Do not translate</comment>
+    <comment>Do Not Translate</comment>
   </data>
   <data name="NotTranslatedRoamingAppDataFolderNameVistaName" xml:space="preserve">
     <value>RoamingAppDataFolderNameVista</value>
-    <comment>Do not translate</comment>
+    <comment>Do Not Translate</comment>
   </data>
   <data name="NotTranslatedRoamingAppDataFolderNameXPName" xml:space="preserve">
     <value>RoamingAppDataFolderNameXP</value>
-    <comment>Do not translate</comment>
+    <comment>Do Not Translate</comment>
   </data>
   <data name="NotTranslatedStartMenuFolderNameVistaName" xml:space="preserve">
     <value>StartMenuFolderNameVista</value>
-    <comment>Do not translate</comment>
+    <comment>Do Not Translate</comment>
   </data>
   <data name="NotTranslatedStartMenuFolderNameXPName" xml:space="preserve">
     <value>StartMenuFolderNameXP</value>
-    <comment>Do not translate</comment>
+    <comment>Do Not Translate</comment>
   </data>
   <data name="NotTranslatedSystemDrive" xml:space="preserve">
     <value>SystemDrive</value>
-    <comment>Do not translate</comment>
+    <comment>Do Not Translate</comment>
   </data>
   <data name="NotTranslatedZeroedVersion" xml:space="preserve">
     <value>0.0.0.0</value>
-    <comment>Do not translate</comment>
-  </data>
-  <data name="NullHttpResponseBody" xml:space="preserve">
-    <value>---responseBody set to null---</value>
-    <comment>responseBody should not be translated; Must end with three hyphen characters</comment>
-  </data>
-  <data name="OsBits" xml:space="preserve">
-    <value>bits</value>
-    <comment>e.g., "32 bits" or "64 bits"</comment>
+    <comment>Do Not Translate</comment>
   </data>
   <data name="PicturesFolderNameVista" xml:space="preserve">
     <value>Pictures</value>
@@ -667,774 +744,1989 @@
     <value>Application Data</value>
     <comment>XP only; defined translations must perfectly match Microsoft documentation</comment>
   </data>
-  <data name="StartedFileUpload" xml:space="preserve">
-    <value>---File upload started---</value>
-  </data>
-  <data name="StartMenuFolderNameVista" xml:space="preserve">
-    <value>AppData\Roaming\Microsoft\Windows\Start Menu</value>
-    <comment>Vista and up; defined translations must perfectly match Microsoft documentation</comment>
-  </data>
   <data name="StartMenuFolderNameXP" xml:space="preserve">
     <value>Start Menu</value>
     <comment>XP only; defined translations must perfectly match Microsoft documentation</comment>
   </data>
-  <data name="CLCredentialaResultInternalTypeMismatch" xml:space="preserve">
-    <value>aResult does not match expected internal type</value>
+  <data name="CLAsyncResultInternalTypeMismatch" xml:space="preserve">
+    <value>asyncResult does not match expected internal type</value>
+    <comment>"asyncResult" is a variable name. Do Not Translate</comment>
   </data>
-  <data name="CLCredentialCannotCastStateAs" xml:space="preserve">
+  <data name="CLCannotCastStateAs" xml:space="preserve">
     <value>Cannot cast state as</value>
+    <comment>Translate</comment>
   </data>
   <data name="CLCredentialHelpersAllHaltedOnUnrecoverableErrorIsSet" xml:space="preserve">
     <value>Cannot do anything with the Cloud SDK if Helpers.AllHaltedOnUnrecoverableError is set</value>
+    <comment>"Helpers.AllHaltedOnUnrecoverableError" should not be translated</comment>
   </data>
   <data name="CLCredentialKeyCannotBeNull" xml:space="preserve">
     <value>Key cannot be null</value>
+    <comment>Translate</comment>
   </data>
-  <data name="CLCredentialMSTimeoutMustBeGreaterThanZero" xml:space="preserve">
+  <data name="CLMSTimeoutMustBeGreaterThanZero" xml:space="preserve">
     <value>timeoutMilliseconds must be greater than zero</value>
+    <comment>"timeoutMilliseconds" should not be translated</comment>
   </data>
   <data name="CLCredentialPushRequestCannotBeNull" xml:space="preserve">
     <value>pushRequest must not be null</value>
+    <comment>"pushRequest" should not be translated</comment>
   </data>
   <data name="CLCredentialSecretCannotBeNull" xml:space="preserve">
     <value>Secret cannot be null</value>
+    <comment>"Secret" should not be translated</comment>
   </data>
   <data name="CLCredentialSettingsToCopyNotBeNull" xml:space="preserve">
     <value>toCopy must not be null</value>
+    <comment>"toCopy" should not be translated</comment>
   </data>
-  <data name="NotTranslatedCLCredentialStringSettingsN" xml:space="preserve">
+  <data name="CLCredentialStringSettingsN" xml:space="preserve">
     <value>N</value>
-    <comment>Do not translate</comment>
+    <comment>Resources.CLCredentialStringSettingsN should not be translated</comment>
   </data>
   <data name="CLEngineSyncboxCannotBeNull" xml:space="preserve">
     <value>syncbox cannot be null</value>
+    <comment>"Syncbox" should not be translated</comment>
   </data>
-  <data name="CLSyncboxAllHaltedOnUnrecoverableErrorIsSet" xml:space="preserve">
+  <data name="CLSyncBoxAllHaltedOnUnrecoverableErrorIsSet" xml:space="preserve">
     <value>Cannot do anything with the Cloud SDK if Helpers.AllHaltedOnUnrecoverableError is set</value>
+    <comment>"Helpers.AllHaltedOnUnrecoverableError" should not be translated.</comment>
   </data>
   <data name="CLSyncboxConstructing" xml:space="preserve">
     <value>CLSyncbox: Constructing...</value>
+    <comment>"CLSyncbox" should not be translated.</comment>
   </data>
   <data name="CLSyncboxConstructionErrorMsg0" xml:space="preserve">
-    <value>CLSyncbox: Construction: ERROR: Msg: {0}.</value>
+    <value>CLSyncbox: Construction: ERROR: {0}.</value>
+    <comment>"CLSyncbox" should not be translated.</comment>
   </data>
   <data name="CLSyncboxConstructionErrorMsg0Code1" xml:space="preserve">
     <value>CLSyncbox: Construction: ERROR: Msg: {0}. Code: {1}.</value>
+    <comment>"CLSyncbox" should not be translated.</comment>
   </data>
   <data name="CLSyncboxErrorCreatingRestHTTPClient" xml:space="preserve">
     <value>Error creating REST HTTP client</value>
+    <comment>"REST HTTP" should not be translated. </comment>
   </data>
   <data name="CLSyncboxErrorUnknownErrorCreatingRestClient" xml:space="preserve">
     <value>Unknown error creating HTTP REST client</value>
+    <comment>"HTTP REST" should not be translated.</comment>
   </data>
   <data name="CLSyncboxStartCreateRestClient" xml:space="preserve">
     <value>CLSyncbox: Start: Create rest client.</value>
+    <comment>"CLSyncbox" should not be translated.</comment>
   </data>
   <data name="CLSyncEngineOnNotificationPerformManualSyncFrom" xml:space="preserve">
     <value>CLSyncEngine: OnNotificationPerformManualSyncFrom: Send a Perform Manual SyncFrom to monitor.</value>
+    <comment>"CLSyncEngine" should not be translated.</comment>
   </data>
   <data name="CLSyncEngineAlreadyStarted" xml:space="preserve">
     <value>Already started</value>
+    <comment>Translate</comment>
   </data>
   <data name="CLSyncEngineSyncboxPathRepresentsAPathThatCannotBeQueried" xml:space="preserve">
     <value>Syncbox path in settings represents a path which cannot be queried, check it first via Helpers.DirectoryMatchesCaseWithDisk</value>
+    <comment>"Syncbox" and "Helpers.DirectoryMatchesCaseWithDisk" should not be translated. </comment>
   </data>
   <data name="CLSyncEngineSyncboxPathRepsBadPath" xml:space="preserve">
     <value>Syncbox path in settings represents a bad path, check it first via Helpers.CheckForBadPath</value>
+    <comment>"Syncbox" and "Helpers.CheckForBadPath" should not be translated. </comment>
   </data>
   <data name="CLSyncEngineSyncboxPathSettingsTooLong" xml:space="preserve">
-    <value>Syncbox path in settings is too long, check it first via Helpers.CheckSyncboxPathLength</value>
+    <value>Syncbox path in settings is too long, check it first via Helpers.CheckSyncRootLength</value>
+    <comment>"Syncbox" and "Helpers.CheckSyncRootLength" should not be translated.</comment>
   </data>
   <data name="CLSyncEngineError0" xml:space="preserve">
     <value>CLSyncEngine: ERROR: {0}.</value>
+    <comment>"CLSyncEngine" should not be translated.</comment>
   </data>
   <data name="CLSyncEngineErrorBadCase" xml:space="preserve">
     <value>CLSyncEngine: ERROR: BadCase (1). {0}.</value>
+    <comment>"CLSyncEngine" should not be translated.</comment>
   </data>
   <data name="CLSyncEngineErrorException2Msg0Code1" xml:space="preserve">
     <value>CLSyncEngine: Start: ERROR: Exception(2). Msg: {0}. Code: {1}.</value>
+    <comment>"CLSyncEngine" should not be translated.</comment>
   </data>
   <data name="CLSyncEngineErrorOccurredStartingNotification" xml:space="preserve">
     <value>An error occurred starting push notification</value>
+    <comment>Translate</comment>
   </data>
   <data name="CLSyncEngineErrorStartingInitialIndexingMsg0Code1" xml:space="preserve">
     <value>CLSyncEngine: Start: ERROR: Starting the initial indexing.  Msg: &lt;{0}&gt;. Code: {1}.</value>
+    <comment>"CLSyncEngine" should not be translated.</comment>
   </data>
   <data name="CLSyncEngineErrorStartingMonitorAgentMsg0Code1" xml:space="preserve">
     <value>CLSyncEngine: Start: ERROR: Starting the MonitorAgent.  Msg: &lt;{0}&gt;. Code: {1}.</value>
+    <comment>"CLSyncEngine" should not be translated.</comment>
   </data>
   <data name="CLSyncEngineErrorStartingNotification" xml:space="preserve">
     <value>Error starting push notification</value>
+    <comment>Translate</comment>
   </data>
   <data name="CLSyncEngineException5Msg0" xml:space="preserve">
     <value>CLSyncEngine: Start: ERROR: Exception(5).  Msg: &lt;{0}&gt;.</value>
+    <comment>"CLSyncEngine" should not be translated.</comment>
   </data>
   <data name="CLSyncEngineException6Msg0" xml:space="preserve">
     <value>CLSyncEngine: Start: ERROR: Exception(6).  Msg: &lt;{0}&gt;.</value>
+    <comment>"CLSyncEngine" should not be translated.</comment>
   </data>
   <data name="CLSyncEngineFileMonitorStopped" xml:space="preserve">
     <value>CLSyncEngine: ReleaseResources: File monitor stopped.</value>
+    <comment>"CLSyncEngine" and "ReleaseResources" should not be translated.</comment>
   </data>
   <data name="CLSyncEngineHelpersAllHaltedOnUnrecoverableErrorIsSet" xml:space="preserve">
     <value>Cannot do anything with the Cloud SDK if Helpers.AllHaltedOnUnrecoverableError is set</value>
+    <comment>"Helpers.AllHaltedOnUnrecoverableError" should not be translated.</comment>
   </data>
   <data name="CLSyncEngineIndexerCannotBeNull" xml:space="preserve">
     <value>Indexer cannot be null</value>
+    <comment>Translate</comment>
   </data>
   <data name="CLSyncEngineMonitorCannotBeNull" xml:space="preserve">
     <value>Monitor cannot be null</value>
+    <comment>Translate</comment>
+  </data>
+  <data name="CLSyncEngineOnConnectionErrorEntryErrorManualPollErrorWebSocketError" xml:space="preserve">
+    <value>CLSyncEngine: OnConnectionError: Entry. ERROR: Manual poll error: &lt;{0}&gt;. Web socket error: &lt;{1}&gt;.</value>
+    <comment>"CLSyncEngine" should not be translated. </comment>
+  </data>
+  <data name="CLSyncEngineOnConnectionErrorNotifyApplication" xml:space="preserve">
+    <value>CLSyncEngine: OnConnectionError: Notify the application.</value>
+    <comment>"CLSyncEngine" and "OnConnectionError" should not be translated.</comment>
   </data>
   <data name="CLSyncEngineReleaseResourcesDisconnectPushNotificationServer" xml:space="preserve">
     <value>CLSyncEngine: ReleaseResources: Disconnect PushNotificationServer.</value>
+    <comment>"CLSyncEngine", "ReleaseResources", and "PushNotificationServer" should not be translated.</comment>
   </data>
   <data name="CLSyncEngineReleaseResourcesIconOverlayStopped" xml:space="preserve">
     <value>CLSyncEngine: ReleaseResources: IconOverlay stopped.</value>
+    <comment>"CLSyncEngine", "ReleaseResources", and "IconOverlay" should not be translated.</comment>
   </data>
   <data name="CLSyncEngineReleaseResourcesIndexerStopped" xml:space="preserve">
     <value>CLSyncEngine: ReleaseResources: Indexer stopped.</value>
+    <comment>"CLSyncEngine" and "ReleaseResources" should not be translated.</comment>
   </data>
   <data name="CLSyncEngineReleaseResourcesPushNotificationServerDisconnected" xml:space="preserve">
     <value>CLSyncEngine: ReleaseResources: PushNotificationServer disconnected.</value>
+    <comment>"CLSyncEngine", "ReleaseResources", and "PushNotificationServer" should not be translated.</comment>
   </data>
   <data name="CLSyncEngineReleaseResourcesStopFileMonitor" xml:space="preserve">
     <value>CLSyncEngine: ReleaseResources: Stop the file monitor.</value>
+    <comment>"CLSyncEngine" and "ReleaseResources" should not be translated.</comment>
   </data>
   <data name="CLSyncEngineReleaseResourcesStoppingIconOverlay" xml:space="preserve">
     <value>CLSyncEngine: ReleaseResources: Stop IconOverlay.</value>
+    <comment>"CLSyncEngine" and "ReleaseResources" should not be translated.</comment>
   </data>
   <data name="CLsyncEngineReleaseResourcesStopTheIndexer" xml:space="preserve">
     <value>CLSyncEngine: ReleaseResources: Stop the Indexer.</value>
+    <comment>"CLSyncEngine" and "ReleaseResources" should not be translated.</comment>
   </data>
   <data name="CLSyncEngineResetError0" xml:space="preserve">
     <value>CLSyncEngine: SyncReset: ERROR: {0}.</value>
+    <comment>"CLSyncEngine" and "SyncReset" should not be translated.</comment>
   </data>
   <data name="CLSyncEngineSendAPerformPushNotificationToMonitor" xml:space="preserve">
     <value>CLSyncEngine: OnNotificationReceived: Send a Perform PushNotification to monitor.</value>
+    <comment>"CLSyncEngine", "OnNotificationReceived", and "PushNotification" should not be translated. </comment>
   </data>
   <data name="CLSyncEngineStartEntry" xml:space="preserve">
     <value>CLSyncEngine: Start: Entry.</value>
+    <comment>"CLSyncEngine" should not be translated.</comment>
   </data>
   <data name="CLSyncEngineStartError" xml:space="preserve">
     <value>CLSyncEngine: Start: ERROR: {0}.</value>
+    <comment>"CLSyncEngine" should not be translated.</comment>
   </data>
   <data name="CLSyncEngineStartError2" xml:space="preserve">
     <value>CLSyncEngine: Start: ERROR(2): {0}.</value>
+    <comment>"CLSyncEngine" should not be translated.</comment>
   </data>
   <data name="CLSyncEngineStartError4Msg0Code1" xml:space="preserve">
     <value>CLSyncEngine: Start: ERROR(4): Msg: {0}. Code: {1}.</value>
+    <comment>"CLSyncEngine" should not be translated.</comment>
   </data>
   <data name="CLSyncEngineStartErrorExceptionMsg1Code1" xml:space="preserve">
     <value>CLSyncEngine: Start: ERROR: Exception. Msg: {0}. Code: {1}.</value>
+    <comment>"CLSyncEngine" should not be translated.</comment>
   </data>
   <data name="CLSyncEngineStartHookupEvents" xml:space="preserve">
     <value>CLSyncEngine: Start: Hook up events.</value>
+    <comment>"CLSyncEngine" should not be translated.</comment>
   </data>
   <data name="CLSyncEngineStartIndexer" xml:space="preserve">
     <value>CLSyncEngine: Start: Start the indexer.</value>
+    <comment>"CLSyncEngine" should not be translated.</comment>
   </data>
   <data name="CLSyncEngineStarting" xml:space="preserve">
     <value>CLSyncEngine: Starting...</value>
+    <comment>"CLSyncEngine" should not be translated.</comment>
   </data>
   <data name="CLSyncEngineStartNotifier" xml:space="preserve">
     <value>CLSyncEngine: Start: Start the notifier.</value>
+    <comment>"CLSyncEngine" should not be translated.</comment>
   </data>
   <data name="CLSyncEngineStopEntry" xml:space="preserve">
     <value>CLSyncEngine: Stop: Entry.</value>
+    <comment>"CLSyncEngine" should not be translated.</comment>
   </data>
   <data name="CLSyncEngineStopTheSyncEngine" xml:space="preserve">
     <value>CLSyncEngine: ReleaseResources: Stop the sync engine.</value>
+    <comment>"CLSyncEngine" and "ReleaseResources" should not be translated.</comment>
   </data>
   <data name="CLSyncEngineSyncEngineStopped" xml:space="preserve">
     <value>CLSyncEngine: ReleaseResources: Sync engine stopped.</value>
+    <comment>"CLSyncEngine" and "ReleaseResources" should not be translated. </comment>
   </data>
   <data name="CLSyncEngineSyncResetDeleteEverythingInDirMessage0" xml:space="preserve">
     <value>CLSyncEngine: SyncReset: ERROR: From DeleteEverythingInDirectory.  Message: {0}.</value>
+    <comment>"CLSyncEngine", "SyncReset", and "DeleteEverythingInDirectory" should not be translated. </comment>
   </data>
   <data name="CLSyncEngineSyncResetEntry" xml:space="preserve">
     <value>CLSyncEngine: SyncReset: Entry.</value>
+    <comment>"CLSyncEngine" and "SyncReset" should not be translated. </comment>
   </data>
   <data name="CLSyncEngineSyncResetERRORExceptionMsg0" xml:space="preserve">
     <value>CLSyncEngine: SyncReset: ERROR: Exception.  Msg: &lt;{0}&gt;.</value>
+    <comment>"CLSyncEngine" and "SyncReset" should not be translated.</comment>
   </data>
   <data name="CLSyncSettingsClientDescriptionCannotContainCommas" xml:space="preserve">
     <value>ClientDescription must not contain commas</value>
+    <comment>"ClientDescription" should not be translated. </comment>
   </data>
   <data name="CLSyncSettingsClientDescriptionTooLong" xml:space="preserve">
     <value>ClientDescription must have 32 or fewer characters</value>
+    <comment>"ClientDescription" should not be translated.</comment>
   </data>
   <data name="CLSyncSettingsMustNotBeNull" xml:space="preserve">
     <value>syncSettings must not be null</value>
+    <comment>"sycSettings" should not be translated.</comment>
+  </data>
+  <data name="CLSyncSettingsSyncRootCannotBeNull" xml:space="preserve">
+    <value>syncRoot must not be null</value>
+    <comment>"syncRoot" should not be translated.</comment>
   </data>
   <data name="CLSyncSettingstoCopyMustNotBeNull" xml:space="preserve">
     <value>toCopy must not be null</value>
+    <comment>"toCopy" should not be translated.</comment>
   </data>
   <data name="MonitorAgentCannotApplyAModificationToAFolder" xml:space="preserve">
     <value>Cannot apply a modification to a folder</value>
+    <comment>Translate</comment>
   </data>
   <data name="MonitorAgentCannotApplySyncToFileChangeLocally" xml:space="preserve">
     <value>Cannot apply a Sync To FileChange locally</value>
+    <comment>"FileChange" should not be translated. </comment>
   </data>
   <data name="MonitorAgentCannotDownloadAFileInMonitorAgentMustBeDownloadedThroughSync" xml:space="preserve">
     <value>Cannot download a file in MonitorAgent, it needs to be downloaded through Sync</value>
+    <comment>"MonitorAgent" should not be translated.</comment>
   </data>
   <data name="MonitorAgentcheckDisposedCannotBeNull" xml:space="preserve">
     <value>checkDisposed cannot be null</value>
+    <comment>"checkDisposed" should not be translated.</comment>
   </data>
   <data name="MonitorAgentErrorApplyingSyncfromDirectoryMoveandAnErrorCheckingIfDirectoryExistsAtNewPath" xml:space="preserve">
     <value>Error on applying sync from directory move and an error checking if directory exists at new path</value>
+    <comment>Translate</comment>
   </data>
   <data name="MonitorAgentErrorGettingUploadTransferProgress" xml:space="preserve">
     <value>Error in GetUploadDownloadTransfersInProgress</value>
+    <comment>"GetUploadDownloadTransfersInProgress" should not be translated. </comment>
   </data>
   <data name="MonitorAgentErrorGrabbingHierarchyFromupDowsForDeleted" xml:space="preserve">
     <value>Error grabbing hierarchy from upDownsForDeleted</value>
+    <comment>"upDownsForDeleted" should not be translated. </comment>
   </data>
   <data name="MonitorAgentErrorGrabbingHierarchyFromupDowsForRenamed" xml:space="preserve">
     <value>Error grabbing hierarchy from upDownsForRenamed</value>
+    <comment>"upDownsForRenamed" should not be translated. </comment>
   </data>
   <data name="MonitorAgentErrorInCreationModifactionDependencyCheck" xml:space="preserve">
     <value>Error in CreationModificationDependencyCheck</value>
+    <comment>"CreationModificationDependencyCheck" should not be translated. </comment>
   </data>
   <data name="MonitorAgentErrorInDeleteDependencyCheck" xml:space="preserve">
     <value>Error in DeleteDependencyCheck</value>
+    <comment>"DeleteDependencyCheck" should not be translated.</comment>
   </data>
   <data name="MonitorAgentErrorInRenameDependencyCheck" xml:space="preserve">
     <value>Error in RenameDependencyCheck</value>
+    <comment>"RenameDependencyCheck" should not be translated. </comment>
   </data>
   <data name="MonitorAgentErrorUpdatingCreationTimeForFolderToEventDatabase" xml:space="preserve">
     <value>Error updating creation time for folder to event in database</value>
+    <comment>Translate</comment>
   </data>
   <data name="MonitorAgentExceptionOnMainApplySyncFromFileChangeSwitchandExceptionononBeforeAllPathsUnlock" xml:space="preserve">
     <value>Exception on main ApplySyncFromFileChange switch and exception on onBeforeAllPathsUnlock</value>
+    <comment>"ApplySyncFromFileChange" and "onBeforeAllPathsUnlock" should not translated.</comment>
   </data>
   <data name="MonitorAgentFileChangesNewPathDoesNotFallWithinTheRootDirectory" xml:space="preserve">
     <value>FileChange's NewPath does not fall within the root directory</value>
+    <comment>"FileChange" and "NewPath"  should not be translated.  </comment>
   </data>
   <data name="MonitorAgentFolderNotFoundAtProvidedPath" xml:space="preserve">
     <value>Folder not found at provided folder path</value>
+    <comment>Translate</comment>
   </data>
   <data name="MonitorAgentFolderPathCannotBeNullOrEmpty" xml:space="preserve">
     <value>Folder path cannot be null or empty</value>
+    <comment>Translate</comment>
   </data>
   <data name="MonitorAgentGetUploadTranfersInProgressReturnCannotHaveNullKey" xml:space="preserve">
     <value>GetUploadDownloadTransfersInProgress return cannot have a null Key</value>
+    <comment>"GetUploadDownloadTransfersInProgress" </comment>
   </data>
   <data name="MonitorAgentInstanceNotAvailableAfterInitializeIsCalled" xml:space="preserve">
     <value>Instance not available until after Initialize is called</value>
+    <comment>"Initialize" should not be translated. </comment>
   </data>
   <data name="MonitorAgentToAddCannotBeNull" xml:space="preserve">
     <value>toAdd cannot be null</value>
+    <comment>"toAdd" should not be translated</comment>
   </data>
   <data name="MonitorAgentUnknownFileChangeTypeforInnerFileChange" xml:space="preserve">
     <value>Unknown FileChangeType for InnerFileChange:</value>
+    <comment>"FileChangeType" should not be translated; "InnerFileChange" should not be translated</comment>
   </data>
   <data name="CLNotificationManualPollingEngineAlreadyInitialized" xml:space="preserve">
     <value>Already initialized</value>
+    <comment>Translate</comment>
   </data>
   <data name="CLNotificationManualPollingEngineAlreadyStarted" xml:space="preserve">
     <value>Already started</value>
+    <comment>Translate</comment>
   </data>
   <data name="CLNotificationManualPollingEngineDefaultConstructorNotSupported" xml:space="preserve">
     <value>Default constructor not supported</value>
+    <comment>Translate</comment>
   </data>
   <data name="CLNotificationManualPollingEngineDelegateSendManualPollMustNotBeNull" xml:space="preserve">
     <value>delegateSendManualPoll must not be null</value>
+    <comment>"delegateSendManual" should not be translated</comment>
   </data>
   <data name="CLNotificationManualPollingEngineInitializeFirst" xml:space="preserve">
     <value>Initialize first</value>
+    <comment>Translate</comment>
   </data>
   <data name="CLNotificationManualPollingEngineStartErrorExceptionMsg0" xml:space="preserve">
     <value>CLNotificationManualPollingEngine: Start: ERROR: Exception: Msg: {0}.</value>
+    <comment>"CLNotificationManualPollingEngine" should not be translated</comment>
   </data>
   <data name="CLNotificationManualPollingEngineSyncBoxMustNotBeNull" xml:space="preserve">
     <value>syncbox must not be null</value>
+    <comment>"Syncbox" should not be translated</comment>
   </data>
   <data name="CLNotificationServiceAlreadyStarted" xml:space="preserve">
     <value>Already started</value>
+    <comment>Translate</comment>
   </data>
   <data name="CLNotificationServiceCancelEngineTimeoutCallbackErrorExceptionMsg0" xml:space="preserve">
     <value>CLNotificationService: CancelEngineTimeoutCallback: ERROR: Exception: Msg: {0}.</value>
+    <comment>"CLNotificationService" and "CancelEngineTimeoutCallback" should not be translated. </comment>
   </data>
   <data name="CLNotificationServiceCreateEngineTimer" xml:space="preserve">
     <value>CLNotificationService: CreateEngineTimer: ERROR: Exception: Msg: {0}.</value>
+    <comment>"CLNotificationService" and " CreateEngineTimer" should not be translated.</comment>
   </data>
-  <data name="CLNotificationServiceDisconnectNotificationServerRemoteClient0" xml:space="preserve">
+  <data name="CLNotificationServiceDisconnectNotificationServerRemoveClient0" xml:space="preserve">
     <value>CLNotificationService: DisconnectPushNotificationServer: Remove client: {0}.</value>
+    <comment>"CLNotificationService", "DisconnectPushNotificationServer" should not be translated.</comment>
   </data>
   <data name="CLNotificationServiceDisconnectPushNotificationServerDisposeEngineWatcher" xml:space="preserve">
     <value>CLNotificationService: DisconnectPushNotificationServer: Dispose the engine watcher.</value>
+    <comment>"CLNotificationService", "DisconnectPushNotificationServer" should not be translated.</comment>
   </data>
   <data name="CLNotificationServiceDisconnectPushNotificationServerEntry" xml:space="preserve">
     <value>CLNotificationService: DisconnectPushNotificationServer: Entry.</value>
+    <comment>"CLNotificationService", "DisconnectPushNotificationServer" should not be translated.</comment>
   </data>
   <data name="CLNotificationServiceDisconnectPushNotificationServerErrorExceptionMsg0" xml:space="preserve">
     <value>CLNotificationService: DisconnectPushNotificationServer: ERROR: Exception: Msg: {0}.</value>
+    <comment>"CLNotificationService", "DisconnectPushNotificationServer" should not be translated.</comment>
   </data>
   <data name="CLNotificationServiceDisconnectPushNotificationServerExit" xml:space="preserve">
     <value>CLNotificationService: DisconnectPushNotificationServer: Exit.</value>
+    <comment>"CLNotificationService", "DisconnectPushNotificationServer" should not be translated.</comment>
   </data>
   <data name="CLNotificationServiceDisconnectPushNotificationServerStopEngine" xml:space="preserve">
     <value>CLNotificationService: DisconnectPushNotificationServer: Stop the engine.</value>
+    <comment>"CLNotificationService", "DisconnectPushNotificationServer" should not be translated.</comment>
   </data>
   <data name="CLNotificationServiceDisconnectPushNotificationServerStopServiceManagerThread" xml:space="preserve">
     <value>CLNotificationService: DisconnectPushNotificationServer: StopServiceMangagerThread.</value>
+    <comment>"CLNotificationService", "DisconnectPushNotificationServer" should not be translated.</comment>
   </data>
   <data name="CLNotificationServiceDisposeEngineTimerBackFromDispose" xml:space="preserve">
     <value>CLNotificationService: DisposeEngineTimer: Back from dispose.</value>
+    <comment>"CLNotificationService", "DisposeEngineTimer" should not be translated.</comment>
   </data>
   <data name="CLNotificationServiceDisposeEngineTimerDisposeTimer" xml:space="preserve">
     <value>CLNotificationService: DisposeEngineTimer: Dispose the timer.</value>
+    <comment>"CLNotificationService", "DisposeEngineTimer" should not be translated.</comment>
   </data>
   <data name="CLNotificationServiceDisposeEngineTimerErrorExceptionMsg0" xml:space="preserve">
     <value>CLNotificationService: DisposeEngineTimer: ERROR: Exception: Msg: {0}.</value>
+    <comment>"CLNotificationService", "DisposeEngineTimer" should not be translated.</comment>
   </data>
   <data name="CLNotificationServiceEntry" xml:space="preserve">
     <value>CLNotificationService: CLNotificationService: Entry</value>
+    <comment>"CLNotificationService" should not be translated.</comment>
   </data>
   <data name="CLNotificationServiceErrorExceptionMsg0" xml:space="preserve">
     <value>CLNotificationService: CLNotificationService: ERROR: Exception: Msg: {0}.</value>
+    <comment>"CLNotificationService" should not be translated.</comment>
   </data>
   <data name="CLNotificationServiceHasFailed" xml:space="preserve">
     <value>Notification service has failed</value>
+    <comment>Translate</comment>
   </data>
   <data name="CLNotificationServiceObjectMustBeACLNotificationService" xml:space="preserve">
     <value>obj must be a CLNotificationService</value>
+    <comment>"CLNotificationService" should not be translated.</comment>
   </data>
   <data name="CLNotificationServicePerformMannualSyncFromFireEvent" xml:space="preserve">
     <value>CLNotificationService: PerformManualSyncFrom: Fire event to request the application to send a Sync_From request.</value>
+    <comment>"CLNotificationService" and "PerformManualSyncFrom" should not be translated.</comment>
   </data>
   <data name="CLNotificationServicePerformManualSyncFromFireEventToNotifyApp" xml:space="preserve">
     <value>CLNotificationService: PerformManualSyncFrom: Fire event to notify the application  Msg: {0}.</value>
+    <comment>"CLNotificationService" and "PerformManualSyncFrom" should not be translated.</comment>
   </data>
   <data name="CLNotificationServiceSendNotificationEventCallbackErrorException2Msg0" xml:space="preserve">
     <value>CLNotificationService: SendNotificationEventCallback: ERROR: Exception (2): Msg: {0}.</value>
+    <comment>"CLNotificationService" and "SendNotificationEventCallback" should not be translated.</comment>
   </data>
   <data name="CLNotificationServiceSendNotificationEventCallbackErrorExceptionMsg0" xml:space="preserve">
     <value>CLNotificationService: SendNotificationEventCallback: ERROR: Exception.  Msg: &lt;{0}&gt;.</value>
+    <comment>"CLNotificationService" and "SendNotificationEventCallback" should not be translated.</comment>
   </data>
   <data name="CLNotificationServiceSendNotificationEventCallbackSendDidReceicePushNotificationFromServer" xml:space="preserve">
     <value>CLNotificationService: SendNotificationEventCallback: Send DidReceivePushNotificationFromServer.</value>
+    <comment>"CLNotificationService" and "SendNotificationEventCallback" should not be translated.</comment>
   </data>
   <data name="CLNotificationServiceSendNotificationEventCallbackSendNotificationMessage" xml:space="preserve">
     <value>CLNotificationService: SendNotificationEventCallback: Send notification msg: &lt;{0}&gt;.</value>
+    <comment>"CLNotificationService" and "SendNotificationEventCallback" should not be translated.</comment>
   </data>
   <data name="CLNotificationServiceServiceManagerThreadProcbackFromEngineStart" xml:space="preserve">
     <value>CLNotificationService: ServiceManagerThreadProc: Back from engine Start.</value>
+    <comment>"CLNotificationService" and "ServiceManagerThreadProc" should not be translated.</comment>
   </data>
   <data name="CLNotificationServiceServiceManagerThreadProcBreakToGoToTopOfList" xml:space="preserve">
     <value>CLNotificationService: ServiceManagerThreadProc: Break to go to top of list.</value>
+    <comment>"CLNotificationService" and "ServiceManagerThreadProc" should not be translated.</comment>
   </data>
   <data name="CLNotificationServiceServiceManagerThreadProcEngine0ReturnedSuccess" xml:space="preserve">
     <value>CLNotificationService: ServiceManagerThreadProc: Engine {0} returned success.</value>
+    <comment>"CLNotificationService" and "ServiceManagerThreadProc" should not be translated.</comment>
   </data>
   <data name="CLNotificationServiceServiceManagerThreadProcEngineReturnedFailure" xml:space="preserve">
     <value>CLNotificationService: ServiceManagerThreadProc: Engine {0} returned failure.</value>
+    <comment>"CLNotificationService" and "ServiceManagerThreadProc" should not be translated.</comment>
   </data>
   <data name="CLNotificationServiceServiceManagerThreadProcEntry" xml:space="preserve">
     <value>CLNotificationService: ServiceManagerThreadProc: Entry.</value>
+    <comment>"CLNotificationService" and "ServiceManagerThreadProc" should not be translated.</comment>
   </data>
   <data name="CLNotificationServiceServiceManagerThreadProcErrorAllEnginesFailed" xml:space="preserve">
     <value>CLNotificationService: ServiceManagerThreadProc: ERROR: All engines failed.</value>
+    <comment>"CLNotificationService" and "ServiceManagerThreadProc" should not be translated.</comment>
   </data>
   <data name="CLNotificationServiceServiceManagerThreadProcErrorExceptionMsg0" xml:space="preserve">
     <value>CLNotificationService: ServiceManagerThreadProc: ERROR: Exception: Msg: {0}.</value>
+    <comment>"CLNotificationService" and "ServiceManagerThreadProc" should not be translated.</comment>
   </data>
   <data name="CLNotificationServiceServiceManagerThreadProcInstantiateManualPolling" xml:space="preserve">
     <value>CLNotificationService: ServiceManagerThreadProc: Instantiate manual polling engine.</value>
+    <comment>"CLNotificationService" and "ServiceManagerThreadProc" should not be translated.</comment>
   </data>
   <data name="CLNotificationServiceServiceManagerThreadProcInstantiateSSEEngine" xml:space="preserve">
     <value>CLNotificationService: ServiceManagerThreadProc: Instantiate SSE engine.</value>
+    <comment>"CLNotificationService" and "ServiceManagerThreadProc" should not be translated.</comment>
   </data>
   <data name="CLNotificationServiceServiceManagerThreadProcRestartAtTopOfList" xml:space="preserve">
     <value>CLNotificationService: ServiceManagerThreadProc: Restart at top of list.</value>
+    <comment>"CLNotificationService" and "ServiceManagerThreadProc" should not be translated.</comment>
   </data>
   <data name="CLNotificationServiceServiceManagerThreadProcSelectBackToTopOfList" xml:space="preserve">
     <value>CLNotificationService: ServiceManagerThreadProc: Select back to top of list.</value>
+    <comment>"CLNotificationService" and "ServiceManagerThreadProc" should not be translated.</comment>
   </data>
   <data name="CLNotificationServiceServiceManagerThreadProcSelectNextInList" xml:space="preserve">
     <value>CLNotificationService: ServiceManagerThreadProc: Select next in list.</value>
+    <comment>"CLNotificationService" and "ServiceManagerThreadProc" should not be translated.</comment>
   </data>
   <data name="CLNotificationServiceServiceManagerThreadProcSelectNextInList2" xml:space="preserve">
     <value>CLNotificationService: ServiceManagerThreadProc: Select next in list (2).</value>
+    <comment>"CLNotificationService" and "ServiceManagerThreadProc" should not be translated.</comment>
   </data>
   <data name="CLNotificationServiceServiceManagerThreadProcServiceRequestedToStopExitThread" xml:space="preserve">
     <value>CLNotificationService: ServiceManagerThreadProc: Service requested to stop.  Exit thread.</value>
+    <comment>"CLNotificationService" and "ServiceManagerThreadProc" should not be translated.</comment>
   </data>
   <data name="CLNotificationServiceServiceManagerThreadProcStartEngine" xml:space="preserve">
     <value>CLNotificationService: ServiceManagerThreadProc: Start the engine.</value>
+    <comment>"CLNotificationService" and "ServiceManagerThreadProc" should not be translated.</comment>
   </data>
   <data name="CLNotificationServiceServiceManagerThreadProcTopOfLoopRunningEngine0" xml:space="preserve">
     <value>CLNotificationService: ServiceManagerThreadProc: Top of loop running engine {0}.</value>
+    <comment>"CLNotificationService" and "ServiceManagerThreadProc" should not be translated.</comment>
   </data>
   <data name="CLNotificationServiceStartEngineTimeoutCallbackError0ExMsg0" xml:space="preserve">
     <value>CLNotificationService: StartEngineTimeoutCallback: ERROR: Exception: Msg: {0}.</value>
+    <comment>"CLNotificationService" and "StartEngineTimeoutCallback" should not be translated.</comment>
   </data>
   <data name="CLNotificationServiceStartServiceManagerThreadEntry" xml:space="preserve">
     <value>CLNotificationService: StartServiceManagerThread: Entry.</value>
+    <comment>"CLNotificationService" and "StartServiceManagerThread" should not be translated.</comment>
   </data>
   <data name="CLNotificationServiceStartServiceManagerThreadErrorExceptionMsg0" xml:space="preserve">
     <value>CLNotificationService: StartServiceManagerThread: ERROR: Exception: Msg: {0}.</value>
+    <comment>"CLNotificationService" and "StartServiceManagerThread" should not be translated.</comment>
   </data>
   <data name="CLNotificationServiceStartServiceManagerThreadStartTheManagerThread" xml:space="preserve">
     <value>CLNotificationService: StartServiceManagerThread: Start the service manager thread.</value>
+    <comment>"CLNotificationService" and "StartServiceManagerThread" should not be translated.</comment>
   </data>
   <data name="CLNotificationServiceStopEngineThreadErrorExceptionMsg0" xml:space="preserve">
     <value>CLNotificationService: StopEngineThread: ERROR: Exception: Msg: {0}.</value>
+    <comment>"CLNotificationService" and "StopEngineThread" should not be translated.</comment>
   </data>
   <data name="CLNotificationServiceStopManagerThreadAbortTheServiceManagerThread" xml:space="preserve">
     <value>CLNotificationService: StopServiceManagerThread: Abort the service manager thread.</value>
+    <comment>"CLNotificationService" and "StopServiceManagerThread" should not be translated.</comment>
   </data>
   <data name="CLNotificationServiceStopManagerThreadEntry" xml:space="preserve">
     <value>CLNotificationService: StopServiceManagerThread: Entry.</value>
+    <comment>"CLNotificationService" and "StopServiceManagerThread" should not be translated.</comment>
   </data>
   <data name="CLNotificationServiceSyncBoxCannotBeNull" xml:space="preserve">
-    <value>syncbox cannot be null</value>
+    <value>Syncbox cannot be null</value>
+    <comment>"Syncbox" should not be translated.</comment>
   </data>
   <data name="CLNotificationServiceSyncBoxCopiedSettingsCannotBeNull" xml:space="preserve">
-    <value>syncbox CopiedSettings DeviceId cannot be null</value>
+    <value>Syncbox CopiedSettings DeviceId cannot be null</value>
+    <comment>"Syncbox", "CopiedSettings", and "DeviceId" should not be translated.</comment>
   </data>
   <data name="CLNotificationServiceTimerCallbackErrorExceptionMsg0" xml:space="preserve">
     <value>CLNotificationService: TimerCallback: ERROR: Exception: Msg: {0}.</value>
+    <comment>"CLNotificationService" and "TimerCallback" should not be translated.</comment>
   </data>
   <data name="CLNotificationUnknownEngineIndex" xml:space="preserve">
     <value>Unknown engine index</value>
+    <comment>Translate</comment>
   </data>
   <data name="FileChangeWithDependenciesBaseChangeCannotBeNull" xml:space="preserve">
     <value>baseChange cannot be null</value>
+    <comment>"baseChange" should not be translated.</comment>
   </data>
   <data name="FileChangeWithDependenciesErrorSettingMD5FromBaseChangeToNewFileChangeWithDependencies" xml:space="preserve">
     <value>Error setting MD5 from baseChange to new FileChangeWithDependencies</value>
+    <comment>"baseChange" and "FileChangeWithDependencies" should not be translated. </comment>
   </data>
   <data name="HashedStreamReaderAdapterFinalHashDoesNotMatchFileWasEdited" xml:space="preserve">
     <value>final hash does not match; file has been edited;</value>
+    <comment>Translate</comment>
   </data>
   <data name="HashedStreamReaderAdapterIntermediateHashDoesNotMatchFileWasEdited" xml:space="preserve">
     <value>intermediate hash does not match; file has been edited;</value>
+    <comment>Translate</comment>
   </data>
   <data name="MoniterAgentOriginalQueuedChangesIndexesByInMemoryIds" xml:space="preserve">
     <value>originalQueuedChangesIndexesByInMemoryIds cannot be null, perhaps AssignDependencies private helper was called through from the internal AssignDependencies</value>
+    <comment>"originalQueuedChangesIndexesByInMemoryIds" and "AssignDependencies" should not be translated. </comment>
   </data>
   <data name="MonitorAgentAnErrorOccurredAddingAFileSystemEventToTheDatabase" xml:space="preserve">
     <value>An error occurred adding a file system event to the database:</value>
+    <comment>Translate</comment>
   </data>
   <data name="MonitorAgentAssignDependenciesCurrentDisposalDirection0Type1OldPath2NewPath3" xml:space="preserve">
     <value>MonitorAgent: AssignDependencies: CurrentDisposal: Direction: {0}. Type: {1}. OldPath: {2}. NewPath: {3}.</value>
+    <comment>Do Not Translate</comment>
   </data>
   <data name="MonitorAgentAssignDependenciesCurrentOriginalMappingAddCurrentDisposaltoRemoveFromSQL" xml:space="preserve">
     <value>MonitorAgent: AssignDependencies: CurrentOriginalMapping: Add CurrentDisposal to removeFromSql.</value>
+    <comment>"MonitorAgent", "AssignDependencies", "CurrentOriginalMapping", "CurrentDisposal",  and "removeFromSql" should not be translated.</comment>
   </data>
   <data name="MonitorAgentAssignDependenciesCurrentOriginalMappingDirection0Type1OldPath2NewPath3" xml:space="preserve">
     <value>MonitorAgent: AssignDependencies: CurrentOriginalMapping: Direction: {0}. Type: {1}. OldPath: {2}. NewPath: {3}.</value>
+    <comment>Do Not Translate</comment>
   </data>
   <data name="MonitorAgentAssignDependenciesCurrentOriginalMappingRemovethisCurrentOriginalMappingFromOriginalQueuedChangesIndexesByInMemoryIds" xml:space="preserve">
     <value>MonitorAgent: AssignDependencies: CurrentOriginalMapping: Remove this CurrentOriginalMapping from originalQueuedChangesIndexesByInMemoryIds.</value>
+    <comment>"MonitorAgent", "AssignDependencies", "CurrentOriginalMapping", and "originalQueuedChangesIndexesByInMemoryIds" should not be translated.</comment>
   </data>
   <data name="MonitorAgentAssignDependenciesErrorCurrentOriginalMappingNotFound" xml:space="preserve">
     <value>MonitorAgent: AssignDependencies: ERROR: CurrentOriginalMapping not found.</value>
+    <comment>"MonitorAgent", "AssignDependencies", and "CurrentOriginalMapping" should not be translated. </comment>
   </data>
   <data name="MonitorAgentCannotCommunicateFileChangeWithoutEventIDFileChangeSource" xml:space="preserve">
     <value>Cannot communicate FileChange without EventId; FileChangeSource:</value>
+    <comment>"FileChange", "EventId", and "FileChangeSource" should not be translated.</comment>
   </data>
   <data name="MonitorAgentCannotCommunicateFileChangeWithoutEventIDFileChangeSourceQueuedChanges" xml:space="preserve">
     <value>Cannot communicate FileChange without EventId; FileChangeSource: QueuedChanges</value>
+    <comment>"FileChange", "EventId", "FileChangeSource", "QueuedChanges" should not be translated. </comment>
   </data>
   <data name="MonitorAgentCannotStartMonitorAfterItHasBeenDisposed" xml:space="preserve">
     <value>Cannot start monitor after it has been disposed</value>
+    <comment>Translate</comment>
   </data>
   <data name="MonitorAgentCheckMetadataAgainstFileAllPathsContainsItem0" xml:space="preserve">
     <value>MonitorAgent: CheckMetadataAgainstFile: AllPaths contains this item: {0}.</value>
+    <comment>"MonitorAgent" and "CheckMetadataAgainstFile" should not be translated.</comment>
   </data>
   <data name="MonitorAgentCheckMetaDataAgainstFileMetadataDifferent" xml:space="preserve">
     <value>MonitorAgent: CheckMetadataAgainstFile: Metadata different.</value>
+    <comment>"MonitorAgent" and "CheckMetadataAgainstFile" should not be translated.</comment>
   </data>
   <data name="MonitorAgentCheckMetadataAgainstFileNotFolderAndNotIgnoringFolderModifiesCallReplacementMetadataIfDifferent" xml:space="preserve">
     <value>MonitorAgent: CheckMetadataAgainstFile: Not folder, and not ignoring folder modifies. Call ReplacementMetadataIfDifferent.</value>
+    <comment>"MonitorAgent", "CheckMetadataAgainstFile", and " ReplacementMetadataIfDifferent" should not be translated.</comment>
   </data>
   <data name="MonitorAgentCheckMetedataAgainstFileChangedOrCreatedEvent" xml:space="preserve">
     <value>MonitorAgent: CheckMetadataAgainstFile: Changed or Created event.</value>
+    <comment>"MonitorAgent" and "CheckMetadataAgainstFile" should not be translated.</comment>
   </data>
   <data name="MonitorAgentCheckMetedataAgainstFileFileExists" xml:space="preserve">
     <value>MonitorAgent: CheckMetadataAgainstFile: File exists.</value>
+    <comment>"MonitorAgent" and "CheckMetadataAgainstFile" should not be translated.</comment>
   </data>
   <data name="MonitorAgentCheckMetedataAgainstFileFileorFolderDoesNotExist" xml:space="preserve">
     <value>MonitorAgent: CheckMetadataAgainstFile: File or folder does not exist.</value>
+    <comment>"MonitorAgent" and "CheckMetadataAgainstFile" should not be translated.</comment>
   </data>
   <data name="MonitorAgentCheckMetedataAgainstFileFileorFolderExists" xml:space="preserve">
     <value>MonitorAgent: CheckMetadataAgainstFile: File or folder exists: {0}.</value>
+    <comment>"MonitorAgent" and "CheckMetadataAgainstFile" should not be translated. </comment>
   </data>
   <data name="MonitorAgentCreatingSelectedWithDependenciesReturnedAnError" xml:space="preserve">
     <value>Creating selectedWithDependencies returned an error</value>
+    <comment>"selectedWithDependencies" should not be translated. </comment>
   </data>
   <data name="MonitorAgentDependencyFileChangeMD5" xml:space="preserve">
     <value>Error setting DependencyFileChange MD5</value>
+    <comment>"DependencyFileChange MD5" should not be translated. </comment>
   </data>
   <data name="MonitorAgentErrorAddingQueuedChangesWithinProcessingFailedChangesDependencyTreeToSQL" xml:space="preserve">
     <value>Error adding QueuedChanges within processing/failed changes dependency tree to SQL</value>
+    <comment>"QueuedChanges" should not be translated. </comment>
   </data>
   <data name="MonitorAgentErrorCreatingFileChangeToFileChangeWithDependencies" xml:space="preserve">
     <value>Error converting FileChange to FileChangeWithDependencies</value>
+    <comment>"FileChange" to "FileChangeWithDependencies" should not be translated. </comment>
   </data>
   <data name="MonitorAgentErrorGrabbingHeirarchyForoldPathFromAllPaths" xml:space="preserve">
     <value>Error grabbing hierarchy for oldPath from AllPaths</value>
+    <comment>"oldPath" and "AllPaths" should not be translated. </comment>
   </data>
   <data name="MonitorAgentErrorGrabbingHierarchyFromUploadsAndDownloadsInProgressBeforeMergingNewEventsToTheDataBase" xml:space="preserve">
     <value>Error grabbing hierarchy from uploads and downloads in progress before merging new events to the database:</value>
+    <comment>Translate</comment>
   </data>
   <data name="MonitorAgentErrorOccurredChackingUploadsAgainstsDownloadsInProgressBeforeMergingNewEvents" xml:space="preserve">
     <value>An error occurred checking against uploads or downloads in progress before merging new events into the database: </value>
+    <comment>Translate</comment>
   </data>
   <data name="MonitorAgentErrorReplacingAPortionOfThePathOfCurrentEarlierChange" xml:space="preserve">
     <value>Error replacing a portion of the path of CurrentEarlierChange</value>
+    <comment>"CurrentEarlierChange" should not be translated. </comment>
   </data>
   <data name="MonitorAgentErrorStartingCloudProcessWatcher_ChangedQueueIsNotOfTypeKeyValuePair" xml:space="preserve">
     <value>Error starting Cloud, ProcessWatcher_ChangedQueue sender is not of type KeyValuePair&lt;MonitorAgent, KeyValuePair&lt;FileSystemEventArgs, bool&gt;&gt;</value>
+    <comment>"ProcessWatcher_ChangedQueue" and "KeyValuePair&lt;MonitorAgent, KeyValuePair&lt;FileSystemEventArgs, bool&gt;&gt;" should not be translated. </comment>
   </data>
   <data name="MonitorAgentErrorUpdatingSQLAfterReplacingNewPath" xml:space="preserve">
     <value>Error updating SQL after replacing NewPath</value>
+    <comment>"NewPath" should not be translated. </comment>
   </data>
   <data name="MonitorAgentEventIDWasZeroOnAFileChangeToQueueToProcessingChanges" xml:space="preserve">
     <value>EventId was zero on a FileChange to queue to ProcessingChanges:</value>
+    <comment>"EventId", "FileChange", and "ProcessingChanges" should not be translated. </comment>
   </data>
   <data name="MonitorAgentFilesBiggerThan0AreNotYetSupportedFile1Size2" xml:space="preserve">
     <value>Files bigger than {0} are not yet supported; File: {1}, Size: {2}</value>
+    <comment>Translate</comment>
   </data>
   <data name="MonitorAgentLaterChangeInCreationModificationDependencyChecktoCreatedType" xml:space="preserve">
     <value>Error updating LaterChange in CreationModificationDependencyCheck to Created Type</value>
+    <comment>"LaterChange", "CreationModificationDependencyCheck", and "Created Type" should not be translated.</comment>
   </data>
   <data name="MonitorAgentRenameDependencyCheckAddLaterChangeToChangesToDispose" xml:space="preserve">
     <value>MonitorAgent: RenameDependencyCheck: Add later change to changes to dispose.</value>
+    <comment>"MonitorAgent"and "RenameDepencencyCheck" should not be translated</comment>
   </data>
   <data name="MonitorAgentRenameDependencyCheckBreakOutOfEnumeration" xml:space="preserve">
     <value>MonitorAgent: RenameDependencyCheck: Break out of enumeration.</value>
+    <comment>"MonitorAgent"and "RenameDepencencyCheck" should not be translated</comment>
   </data>
   <data name="MonitorAgentRenameDependencyCheckCallCheckFileChangeDependenciesForDuplicatesOnInnerRename" xml:space="preserve">
     <value>MonitorAgent: RenameDependencyCheck: Call CheckFileChangeDependenciesForDuplicates on inner rename.</value>
+    <comment>"MonitorAgent", "RenameDepencencyCheck", and "CheckFileChangeDependenciesForDuplicates" should not be translated</comment>
   </data>
   <data name="MonitorAgentRenameDependencyCheckContinueProcessing" xml:space="preserve">
     <value>MonitorAgent: RenameDependencyCheck: Continue processing: {0}.</value>
+    <comment>"MonitorAgent"and "RenameDepencencyCheck" should not be translated</comment>
   </data>
   <data name="MonitorAgentRenameDependencyCheckCurrentEarlierChangeDirection0Type1OldPath2NewPath3" xml:space="preserve">
     <value>MonitorAgent: RenameDependencyCheck: CurrentEarlierChange: Direction: {0}. Type: {1}. OldPath: {2}. NewPath: {3}.</value>
+    <comment>"MonitorAgent", "RenameDepencencyCheck", should not be translated</comment>
   </data>
   <data name="MonitorAgentRenameDependencyCheckCurrentInnerRenameDirection0OldPathNewPath2" xml:space="preserve">
     <value>MonitorAgent: RenameDependencyCheck: CurrentInnerRename: Direction: {0}. OldPath: {1}. NewPath: {2}.</value>
+    <comment>"MonitorAgent", "RenameDepencencyCheck", should not be translated</comment>
   </data>
   <data name="MonitorAgentRenameDependencyCheckEarlierChangeContainsOldPath" xml:space="preserve">
     <value>MonitorAgent: RenameDependencyCheck: Earlier change contains OldPath.</value>
+    <comment>"MonitorAgent", "RenameDepencencyCheck", should not be translated</comment>
   </data>
   <data name="MonitorAgentRenameDependencyCheckEarlierChangeIsCreated" xml:space="preserve">
     <value>MonitorAgent: RenameDependencyCheck: Earlier change is Created.</value>
+    <comment>"MonitorAgent"and "RenameDepencencyCheck" should not be translated</comment>
   </data>
   <data name="MonitorAgentRenameDependencyCheckEarlierChangeIsCreatedOrModified" xml:space="preserve">
     <value>MonitorAgent: RenameDependencyCheck: Earlier change is Created or Modified.</value>
+    <comment>"MonitorAgent"and "RenameDepencencyCheck" should not be translated</comment>
   </data>
   <data name="MonitorAgentRenameDependencyCheckEarlierChangeIsDeleted" xml:space="preserve">
     <value>MonitorAgent: RenameDependencyCheck: Earlier change is Deleted.</value>
+    <comment>"MonitorAgent"and "RenameDepencencyCheck" should not be translated</comment>
   </data>
   <data name="MonitorAgentRenameDependencyCheckEarlierChangeIsRenamed" xml:space="preserve">
     <value>MonitorAgent: RenameDependencyCheck: Earlier change is Renamed</value>
+    <comment>"MonitorAgent"and "RenameDepencencyCheck" should not be translated</comment>
   </data>
   <data name="MonitorAgentRenameDependencyCheckError0" xml:space="preserve">
     <value>MonitorAgent: RenameDependencyCheck: ERROR: {0}.</value>
+    <comment>"MonitorAgent"and "RenameDepencencyCheck" should not be translated</comment>
   </data>
   <data name="MonitorAgentRenameDependencyCheckInnerNewPathContainsLaterChangeOldPathorLAterChangeOldPathContainsInnerNewPath" xml:space="preserve">
     <value>MonitorAgent: RenameDependencyCheck: Inner new path contains laterChange old path, or laterChange old path contains inner new path.</value>
+    <comment>"MonitorAgent", "RenameDepencencyCheck", should not be translated</comment>
   </data>
   <data name="MonitorAgentRenameDependencyCheckLaterChangeDirection0Type1OldPath2NewPath3" xml:space="preserve">
     <value>MonitorAgent: RenameDependencyCheck: LaterChange: Direction: {0}. Type: {1}. OldPath: {2}. NewPath: {3}.</value>
+    <comment>Do Not Translate</comment>
   </data>
   <data name="MonitorAgentRenameDependencyCheckLaterOldPathContainsEarlierNewPath" xml:space="preserve">
     <value>MonitorAgent: RenameDependencyCheck: Later old path contains earlier new path.</value>
+    <comment>"MonitorAgent"and "RenameDepencencyCheck" should not be translated</comment>
   </data>
   <data name="MonitorAgentRenameDependencyCheckLoopThruOnlyRenamePathsFromTop" xml:space="preserve">
     <value>MonitorAgent: RenameDependencyCheck: Loop thru onlyRenamePathsFromTop.</value>
+    <comment>"MonitorAgent", "RenameDepencencyCheck", and "onlyRenamePathsFromTop" should not be translated</comment>
   </data>
   <data name="MonitorAgentRenameDependencyCheckNewPathDoesNotEqualOldPathLoopUntilRecursingParentIsRenamed" xml:space="preserve">
     <value>MonitorAgent: RenameDependencyCheck: NewPath does not equal OldPath. Loop until recursing parent is null. renamedOverlapChild: {0}.</value>
+    <comment>"MonitorAgent", "RenameDepencencyCheck", "NewPath", "OldPath", and "renamedOverlapChild" should not be translated</comment>
   </data>
   <data name="MonitorAgentRenameDependencyCheckNewPathEqualsOldPath" xml:space="preserve">
     <value>MonitorAgent: RenameDependencyCheck: NewPath equals OldPath.</value>
+    <comment>"MonitorAgent", "RenameDepencencyCheck", "NewPath", and "OldPath" should not be translated</comment>
   </data>
   <data name="MonitorAgentRenameDependencyCheckNoDependenciesAddedToLaterChange" xml:space="preserve">
     <value>MonitorAgent: RenameDependencyCheck: No DependenciesAddeedToLaterChange.</value>
+    <comment>"MonitorAgent", "RenameDepencencyCheck", should not be translated</comment>
   </data>
   <data name="MonitorAgentRenameDependencyCheckNoDependenciesAddedToLaterChange2" xml:space="preserve">
     <value>MonitorAgent: RenameDependencyCheck: No DependenciesAddeedToLaterChange (2).</value>
+    <comment>"MonitorAgent", "RenameDepencencyCheck", "DependenciesAddeedToLaterChange" should not be translated</comment>
   </data>
   <data name="MonitorAgentRenameDependencyCheckProcessRenamedOverlap" xml:space="preserve">
     <value>MonitorAgent: RenameDependencyCheck: Process renamedOverlap: {0}.</value>
+    <comment>"MonitorAgent", "RenameDepencencyCheck", and "renamedOverlap" should not be translated</comment>
   </data>
   <data name="MonitorAgentRenameDependencyCheckRemoveDependencyFromLaterParentLaterChangeDirection0OldPath1NewPath2" xml:space="preserve">
     <value>MonitorAgent: RenameDependencyCheck: Remove dependency from laterParent: LaterChange: Direction: {0}. OldPath: {1}. NewPath: {2}.</value>
+    <comment>"MonitorAgent", "RenameDepencencyCheck", and "laterParent" should not be translated.</comment>
   </data>
   <data name="MonitorAgentRenameDependencyCheckRemoveDependencyToMoveDirection0OldPathNewPath2" xml:space="preserve">
     <value>MonitorAgent: RenameDependencyCheck: Remove dependency dependencyToMove: Direction: {0}. OldPath: {1}. NewPath: {2}.</value>
+    <comment>"MonitorAgent", "RenameDepencencyCheck", and "dependencyToMove" should not be translated.</comment>
   </data>
   <data name="MonitorAgentRenameDependencyCheckRenamedOverlapEqualsLaterChangeOldPath0MergeEarlierChangeToSQL" xml:space="preserve">
     <value>MonitorAgent: RenameDependencyCheck: renamedOverlap equals later change OldPath: {0}. Merge earlier change to SQL.</value>
+    <comment>"MonitorAgent", "RenameDepencencyCheck", and "renamedOverlap" should not be translated.</comment>
   </data>
   <data name="MonitorAgentRenameDependencyCheckRenamePathSearchesNotNullAddThisInnerRenameToRenamePathSearches" xml:space="preserve">
     <value>MonitorAgent: RenameDependencyCheck: RenamePathSearches not null. Add this inner rename to RenamePathSearches.</value>
+    <comment>"MonitorAgent", "RenameDepencencyCheck", and "RenamePathSearches" should not be translated. </comment>
   </data>
   <data name="MonitorAgentRenameDependencyCheckRenamePathSearchsIsFull" xml:space="preserve">
     <value>MonitorAgent: RenameDependencyCheck: RenamePathSearches is null.</value>
+    <comment>"MonitorAgent", "RenameDependencyCheck", "RenamePathSearches" should not be translated. </comment>
   </data>
   <data name="MonitorAgentSQLUpdateError" xml:space="preserve">
     <value>Error updating SQL</value>
+    <comment>Translate</comment>
   </data>
   <data name="MonitorAgentSystemDoesNotSupportShell32FileWillBeAssumedToBeValidShortcut" xml:space="preserve">
     <value>System does not support Shell32, file will be assumed to be a valid shortcut</value>
+    <comment>"Shell32" should not be translated.</comment>
   </data>
   <data name="MonitorAgentUnableToCastThisActionAsAction" xml:space="preserve">
     <value>Unable to cast thisAction as Action&lt;SQLIndexer.Model.FindFileResult, DateTime, FilePathDictionary&lt;FileMetadata&gt;, GenericHolder&lt;SQLIndexer.Model.FindFileResult&gt;, object&gt;</value>
+    <comment>"thisAction" should not be translated</comment>
   </data>
   <data name="MonitorAgentUnableToFireOnProcessEventGroupParameterMismatch" xml:space="preserve">
     <value>Unable to fire OnProcessEventGroupCallback due to parameter mismatch</value>
+    <comment>"OnProcessEventGroupCallback" should not be translated</comment>
   </data>
   <data name="MonitorAgentUnableToRemoveFileChangeFromQueuedChangesAfterMergingToSQL" xml:space="preserve">
     <value>Unable to remove FileChange from QueuedChanges after merging to SQL</value>
+    <comment>"FileChange" should not be translated; "QueuedChanges" should not be translated</comment>
   </data>
   <data name="MonitorAgentUnknownFileChangeTypeForCurrentEarlierChange" xml:space="preserve">
     <value>Unknown FileChangeType for CurrentEarlierChange:</value>
+    <comment>"FileChangeType" should not be translated; "CurrentEarlierChange" should not be translated</comment>
   </data>
   <data name="MonitorAgentWritingUpdatedFileUploadMetadataToSQL" xml:space="preserve">
     <value>Error writing updated file upload metadata to SQL</value>
+    <comment>Translate</comment>
   </data>
   <data name="SetBadgeBadgeTypeIsNotWithinTheAcceptableRange" xml:space="preserve">
     <value>BadgeType is not within the acceptable range</value>
+    <comment>"BadgeType" should not be translated</comment>
   </data>
   <data name="SetBadgeCannotRetrievePropertyValuesOnAnInvalidSetBadge" xml:space="preserve">
     <value>Cannot retrieve property values on an invalid SetBadge</value>
+    <comment>"SetBadge" should not be translated</comment>
   </data>
   <data name="SetBadgePathToBadgeCannotBeNull" xml:space="preserve">
     <value>PathToBadge cannot be null</value>
+    <comment>"PathToBadge" should not be translated</comment>
   </data>
   <data name="UpdatePathArgsPathToBadgeCannotBeNull" xml:space="preserve">
     <value>PathToBadge cannot be null</value>
+    <comment>"PathToBadge" should not be translated</comment>
   </data>
   <data name="CLNotificationSseEngineAlreadyInitialized" xml:space="preserve">
     <value>Already initialized</value>
+    <comment>Translate</comment>
   </data>
   <data name="CLNotificationSseEngineDelegateCancelEngineTimeoutMustNotBeNull" xml:space="preserve">
     <value>delegateCancelEngineTimeout must not be null</value>
+    <comment>"delegateCancelEngineTimeout" should not be translated.</comment>
   </data>
   <data name="CLNotificationSseEngineDelegateCreateEngineTimerMustNotBeNull" xml:space="preserve">
     <value>delegateCreateEngineTimer must not be null</value>
+    <comment>"delegateCreateEngineTimer" should not be translated.</comment>
   </data>
   <data name="CLNotificationSseEngineDelegateDisposeEngineTimerMustNotBeNull" xml:space="preserve">
     <value>delegateDisposeEngineTimer must not be null</value>
+    <comment>"delegateDisposeEngineTimer" should not be translated. </comment>
   </data>
   <data name="CLNotificationSseEngineDelegateSendNotificationEventMustNotBeNull" xml:space="preserve">
     <value>delegateSendNotificationEvent must not be null</value>
+    <comment>"delegateSendNotificationEvent" should not be translated.</comment>
   </data>
   <data name="CLNotificationSseEnginedelegateStartEngineTimeoutMustNotBeNull" xml:space="preserve">
     <value>delegateStartEngineTimeout must not be null</value>
+    <comment>"delegateStartEngineTimeout" should not be translated.</comment>
   </data>
   <data name="CLNotificationSseEngineErrorExceptionMsg0" xml:space="preserve">
     <value>CLNotificationSseEngine: StartThreadProc: ERROR: Exception: Msg: {0}.</value>
+    <comment>"CLNotificationSseEngine" should not be translated.</comment>
   </data>
   <data name="CLNotificationSseEngineObjectMustBeCLNNotificationService" xml:space="preserve">
     <value>obj must be a CLNotificationSseEngine</value>
+    <comment>"CLNotificationSseEngine" should not be translated.</comment>
   </data>
   <data name="CLNotificationSseEngineProcessReceivedCharacterErrorNotExpectingChar0" xml:space="preserve">
     <value>CLNotificationSseEngine: ProcessReceivedCharacter: ERROR. Not expecting char: {0}.</value>
+    <comment>"CLNotificationSseEngine" should not be translated.</comment>
   </data>
   <data name="CLNotificationSseEngineProcessReceivedCharacterValueIsNotAnInt0" xml:space="preserve">
     <value>CLNotificationSseEngine: ProcessReceivedCharacter: Value is not an int: {0}.</value>
+    <comment>"CLNotificationSseEngine" should not be translated.</comment>
   </data>
   <data name="CLNotificationSseEngineReceivedInvalidStatusCode" xml:space="preserve">
     <value>CLNotificationSseEngine: StartThreadProc: Received invalid status code.</value>
+    <comment>"CLNotificationSseEngine" should not be translated.</comment>
   </data>
   <data name="CLNotificationSseEngineReceivedNoContentFromServer" xml:space="preserve">
     <value>CLNotificationSseEngine: StartThreadProc: Received no content from server.</value>
+    <comment>"CLNotificationSseEngine" should not be translated.</comment>
   </data>
   <data name="CLNotificationSseEngineSSEEngine" xml:space="preserve">
     <value>SSE Engine</value>
+    <comment>"SSE Engine" should not be translated.</comment>
   </data>
   <data name="CLNotificationSseEngineStartEngineThreadErrorExceptionMsg0" xml:space="preserve">
     <value>CLNotificationSseEngine: StartEngineThread: ERROR: Exception: Msg: {0}.</value>
+    <comment>"CLNotificationSseEngine" should not be translated.</comment>
   </data>
   <data name="CLNotificationSseEngineStartEngineThreadExit" xml:space="preserve">
     <value>CLNotificationSseEngine: StartEngineThread: Exit.</value>
+    <comment>"CLNotificationSseEngine" should not be translated.</comment>
   </data>
   <data name="CLNotificationSseEngineStartEntry" xml:space="preserve">
     <value>CLNotificationSseEngine: Start: Entry.</value>
+    <comment>"CLNotificationSseEngine" should not be translated.</comment>
   </data>
   <data name="CLNotificationSseEngineStartErrorExceptionMsg0" xml:space="preserve">
     <value>CLNotificationSseEngine: Start: ERROR: Exception: Msg: {0}.</value>
+    <comment>"CLNotificationSseEngine" should not be translated.</comment>
   </data>
   <data name="CLNotificationSseEngineStartExitReturn0" xml:space="preserve">
     <value>CLNotificationSseEngine: Start: Exit.  Return: {0}.</value>
+    <comment>"CLNotificationSseEngine" should not be translated.</comment>
   </data>
   <data name="CLNotificationSseEngineStartThreadProcEntry" xml:space="preserve">
     <value>CLNotificationSseEngine: StartThreadProc: Entry.</value>
+    <comment>"CLNotificationSseEngine" should not be translated.</comment>
   </data>
   <data name="CLNotificationSseEngineStartThreadProcErrorException3Msg0" xml:space="preserve">
     <value>CLNotificationSseEngine: StartThreadProc: ERROR: Exception (3): Msg: {0}.</value>
+    <comment>"CLNotificationSseEngine" should not be translated.</comment>
   </data>
   <data name="CLNotificationSseEngineStartThreadProcErrorException4Msg0" xml:space="preserve">
     <value>CLNotificationSseEngine: StartThreadProc: ERROR: Exception (4): Msg: {0}.</value>
+    <comment>"CLNotificationSseEngine" should not be translated.</comment>
   </data>
   <data name="CLNotificationSseEngineStartThreadProcReceived204NoContent" xml:space="preserve">
     <value>CLNotificationSseEngine: StartThreadProc: Received 204 no content.</value>
+    <comment>"CLNotificationSseEngine" should not be translated.</comment>
   </data>
   <data name="CLNotificationSseEngineStartThreadProcStartReadingDataFromResponseStream" xml:space="preserve">
     <value>CLNotificationSseEngine: StartThreadProc: Start reading data from the response stream.</value>
+    <comment>"CLNotificationSseEngine" should not be translated.</comment>
   </data>
   <data name="CLNotificationSseEngineStopEntry" xml:space="preserve">
     <value>CLNotificationSseEngine: Stop: Entry.</value>
+    <comment>"CLNotificationSseEngine" should not be translated.</comment>
   </data>
   <data name="CLNotificationSseEngineSyncboxCannotBeNull" xml:space="preserve">
     <value>syncbox must not be null</value>
+    <comment>"Syncbox" should not be translated.</comment>
   </data>
   <data name="CLNotificationSseEngineSyncboxHttpRestCannotBeNull" xml:space="preserve">
     <value>_syncbox.HttpRestClient must not be null</value>
+    <comment>"HttpRestClient" should not be translated.</comment>
   </data>
   <data name="CLNotificationSseEngineSyncboxMustNotBeNull" xml:space="preserve">
     <value>_syncbox must not be null</value>
+    <comment>"_syncbox" should not be translated.</comment>
   </data>
   <data name="CLNotificationSseEngineTimerExpiredAbortTheEngineThread" xml:space="preserve">
     <value>CLNotificationSseEngine: TimerExpired: Abort the engine thread.</value>
+    <comment>"CLNotificationSseEngine" and "TimerExpired" should not be translated.</comment>
   </data>
   <data name="CLNotificationSseEngineTimerExpiredCleanUpResource0" xml:space="preserve">
     <value>CLNotificationSseEngine: TimerExpired: Clean up resource: {0}.</value>
+    <comment>"CLNotificationSseEngine" and "TimerExpired" should not be translated.</comment>
   </data>
   <data name="CLNotificationSseEngineTimerExpiredEntry" xml:space="preserve">
     <value>CLNotificationSseEngine: TimerExpired: Entry.</value>
+    <comment>"CLNotificationSseEngine" and "TimerExpired" should not be translated.</comment>
   </data>
   <data name="CLNotificationSseEngineTimerExpiredErrorExceptionMsg0" xml:space="preserve">
     <value>CLNotificationSseEngine: TimerExpired: ERROR: Exception: Msg: {0}.</value>
+    <comment>"CLNotificationSseEngine" and "TimerExpired" should not be translated.</comment>
   </data>
   <data name="CLNotificationSseEngineTimerExpiredErrorImproperUserState" xml:space="preserve">
     <value>CLNotificationSseEngine: TimerExpired: ERROR: Improper user state.</value>
+    <comment>"CLNotificationSseEngine" and "TimerExpired" should not be translated.</comment>
   </data>
   <data name="CLNotificationSseEngineTimerExpiredErrorMsg0" xml:space="preserve">
     <value>CLNotificationSseEngine: TimerExpired: ERROR: Msg: {0}.</value>
+    <comment>"CLNotificationSseEngine" and "TimerExpired" should not be translated.</comment>
   </data>
   <data name="CLNotificationSseEngineTimerExpiredExit" xml:space="preserve">
     <value>CLNotificationSseEngine: TimerExpired: Exit.</value>
+    <comment>"CLNotificationSseEngine" and "TimerExpired" should not be translated.</comment>
   </data>
   <data name="CLNotificationSseEngineWebExceptionThrownWithoutAResponse" xml:space="preserve">
     <value>WebException thrown without a Response</value>
+    <comment>"WebException" should not be translated.</comment>
   </data>
   <data name="CLNotificationsSseEngineDefaultConstructorNotSupported" xml:space="preserve">
     <value>Default constructor not supported</value>
+    <comment>Translate</comment>
   </data>
   <data name="CLNotificationSseEngineDelegateSendNotificationsDelegateSendManualPollMustNotBeNull" xml:space="preserve">
     <value>delegateSendManualPoll must not be null</value>
+    <comment>"delegateSendManualPoll" should not be translated.</comment>
   </data>
-  <data name="CompletedFileDownloadHttpBody" xml:space="preserve">
-    <value>---Completed file download---</value>
-    <comment>must end with three hyphen characters</comment>
+  <data name="IconOverlayAddBadgeForPath0Value1" xml:space="preserve">
+    <value>IconOverlay: Add badge for path {0}, value {1}.</value>
+    <comment>"IconOverlay" should not be translated. </comment>
   </data>
-  <data name="ErrorMovingDownloadedFileHttpBody" xml:space="preserve">
-    <value>---Error moving downloaded file---</value>
-    <comment>must end with three hyphen characters</comment>
+  <data name="IconOverlaybadgeComPubSubEventsOnBadgeComInitializationSubscriptionFailedERRORthreadRestartexceptionMessage0" xml:space="preserve">
+    <value>IconOverlay: _badgeComPubSubEvents_OnBadgeComInitializationSubscriptionFailed: ERROR: threadRestart exception: Msg: &lt;{0}&gt;.</value>
+    <comment>"IconOverlay" , " _badgeComPubSubEvents_OnBadgeComInitializationSubscriptionFailed" and "threadRestart" should not be translated.</comment>
   </data>
-  <data name="ExceptionHelpersProcessHttpInnerDownload" xml:space="preserve">
-    <value>{0}: {1}---</value>
-    <comment>must end with three hyphen characters</comment>
+  <data name="IconOverlaybadgeComPubSubEventsOnBadgeComInitializationSubscriptionFailedERRORWrongThreadingModel" xml:space="preserve">
+    <value>IconOverlay: _badgeComPubSubEvents_OnBadgeComInitializationSubscriptionFailed: ERROR.  Wrong threading model.</value>
+    <comment>"IconOverlay" and " _badgeComPubSubEvents_OnBadgeComInitializationSubscriptionFailed" should not be translated.</comment>
   </data>
+  <data name="IconOverlaybadgeComPubSubEventsOnBadgeComInitializationSubscriptionFailedKillBadgeComPubSubEvents" xml:space="preserve">
+    <value>IconOverlay: _badgeComPubSubEvents_OnBadgeComInitializationSubscriptionFailed: Entry.  Kill BadgeComPubSubEvents.</value>
+    <comment>"IconOverlay", "_badgeComPubSubEvents_OnBadgeComInitializationSubscriptionFailed", and "BadgeComPubSubEvents" should not be translated.</comment>
+  </data>
+  <data name="IconOverlaybadgeComPubSubEventsOnBadgeComInitializationSubscriptionFailedRestartBadgeComPubSubEvents" xml:space="preserve">
+    <value>IconOverlay: _badgeComPubSubEvents_OnBadgeComInitializationSubscriptionFailed: Entry.  Restart BadgeComPubSubEvents.</value>
+    <comment>"IconOverlay" and " _badgeComPubSubEvents_OnBadgeComInitializationSubscriptionFailed" should not be translated.</comment>
+  </data>
+  <data name="IconOverlaybadgeComPubSubEventsOnBadgeComInitializationSubscriptionFailedSendBadingDatabase" xml:space="preserve">
+    <value>IconOverlay: _badgeComPubSubEvents_OnBadgeComInitializationSubscriptionFailed: Send badging database.</value>
+    <comment>"IconOverlay" and " _badgeComPubSubEvents_OnBadgeComInitializationSubscriptionFailed" should not be translated.</comment>
+  </data>
+  <data name="IconOverlaybadgeComPubSubEventsOnBadgeComInitializationSubscriptionFailedSubscribeToBadgeComPubSubEvents" xml:space="preserve">
+    <value>IconOverlay: _badgeComPubSubEvents_OnBadgeComInitializationSubscriptionFailed: Subscribe to BadgeCom init events.</value>
+    <comment>"IconOverlay", " _badgeComPubSubEvents_OnBadgeComInitializationSubscriptionFailed" and "BadgeCom init" should not be translated.</comment>
+  </data>
+  <data name="IconOverlaybadgeComPubSubEventsOnBadgeComInitializationSubscriptionFailedThreadInitEntry" xml:space="preserve">
+    <value>IconOverlay: _badgeComPubSubEvents_OnBadgeComInitializationSubscriptionFailed: threadInit entry.</value>
+    <comment>"IconOverlay", " _badgeComPubSubEvents_OnBadgeComInitializationSubscriptionFailed" and "threadInit" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayBadgeComPubSubEventsOnBadgeComInitializedEntryBadgeType0" xml:space="preserve">
+    <value>IconOverlay: BadgeComPubSubEvents_OnBadgeComInitialized: Entry. BadgeType: {0}.</value>
+    <comment>"IconOverlay", " BadgeComPubSubEvents_OnBadgeComInitialized", and "BadgeType" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayBadgeComPubSubEventsOnBadgeComInitializedERRORExceptionMsg0" xml:space="preserve">
+    <value>IconOverlay: BadgeComPubSubEvents_OnBadgeComInitialized: ERROR: Exception: Msg: &lt;{0}&gt;.</value>
+    <comment>"IconOverlay" and " BadgeComPubSubEvents_OnBadgeComInitialized" should not be translated.</comment>
+  </data>
+  <data name="IconOverlaybadgeComPubSubEventsOnBadgeComWatcherFailedERRORExceptionMessage0" xml:space="preserve">
+    <value>IconOverlay: _badgeComPubSubEvents_OnBadgeComWatcherFailed: ERROR: Exception: Msg: &lt;{0}&gt;.</value>
+    <comment>"IconOverlay" and "_badgeComPubSubEvents_OnBadgeComWatcherFailed" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayErrorCreatingBadgingDictionary" xml:space="preserve">
+    <value>IconOverlay error creating badging dictionary</value>
+    <comment>"IconOverlay" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayErrorFromSettingSyncboxRootBadge" xml:space="preserve">
+    <value>Error from setting Syncbox root badge</value>
+    <comment>"Syncbox" should not be translated. </comment>
+  </data>
+  <data name="IconOverlayExplorerIconBadgingHasFailed" xml:space="preserve">
+    <value>Explorer icon badging has failed</value>
+    <comment>Translate</comment>
+  </data>
+  <data name="IconOverlayInitializeOrReplaceAddThisItemToDictionary" xml:space="preserve">
+    <value>IconOverlay: InitializeOrReplace. Add this item to the dictionary.</value>
+    <comment>"IconOverlay" and "InitializeOrReplace" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayInitializeOrReplaceClearAllBadges" xml:space="preserve">
+    <value>IconOverlay: InitializeOrReplace. Clear all badges.</value>
+    <comment>"IconOverlay" and "InitializeOrReplace" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayInitializeOrReplaceCurrentReplaceItemPath0Type1" xml:space="preserve">
+    <value>IconOverlay: InitializeOrReplace. currentReplaceItem. Path {0}, Type: {1}).</value>
+    <comment>"IconOverlay" and "InitializeOrReplace" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayInitializeOrReplaceEntry" xml:space="preserve">
+    <value>IconOverlay: InitializeOrReplace. Entry.</value>
+    <comment>"IconOverlay" and "InitializeOrReplace" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayInitializeOrReplaceListNotProcessed" xml:space="preserve">
+    <value>IconOverlay: InitializeOrReplace. List not processed.</value>
+    <comment>"IconOverlay" and "InitializeOrReplace" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayInitializeOrReplaceNotInitializedYetInitialize" xml:space="preserve">
+    <value>IconOverlay: InitializeOrReplace. Not initialized yet.  Initialize.</value>
+    <comment>"IconOverlay" and "InitializeOrReplace" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayInstanceAlreadyInitialized" xml:space="preserve">
+    <value>IconOverlay Instance already initialized</value>
+    <comment>"IconOverlay" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayInstanceERRORTHROWAlreadyInitialized" xml:space="preserve">
+    <value>IconOverlay: pInitialize: ERROR: THROW: Instance already initialized.</value>
+    <comment>"IconOverlay" and "pInitialize" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayIsBadgingInitializedERRORExceptionMsg0Code1" xml:space="preserve">
+    <value>IconOverlay: IsBadgingInitialized: ERROR: Exception: Msg: &lt;{0}&gt;, Code: {1}.</value>
+    <comment>"IconOverlay" and "IsBadgingInitialized" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayMessageEventsBadgePathDeletedPath0" xml:space="preserve">
+    <value>IconOverlay: MessageEvents_BadgePathDeleted: Path: {0}.</value>
+    <comment>Do Not Translate </comment>
+  </data>
+  <data name="IconOverlayMessageEventsBadgePathERRORMsg0Code1" xml:space="preserve">
+    <value>IconOverlay: MessageEvents_BadgePathDeleted: ERROR: Msg: &lt;{0}&gt;, Code: {1}.</value>
+    <comment>"IconOverlay" and "MessageEvents_BadgePathDeleted" should not be translated. </comment>
+  </data>
+  <data name="IconOverlayMessageEventsBadgePathRenamedERRORThrowMas0Code1FromPath2ToPath3" xml:space="preserve">
+    <value>IconOverlay: MessageEvents_BadgePathRenamed: ERROR: Throw. Msg: &lt;{0}&gt;, Code: {1}. FromPath: {2}. ToPath: {3}</value>
+    <comment>Do Not Translate </comment>
+  </data>
+  <data name="IconOverlayMessageEventsBadgePathRenamedFromPath0ToPath1" xml:space="preserve">
+    <value>IconOverlay: MessageEvents_BadgePathRenamed: FromPath: {0}. ToPath: {1}.</value>
+    <comment>Do Not Translate</comment>
+  </data>
+  <data name="IconOverlayMessageEventsFileChangeMergeToStateChangedCallQueueNewEventsBadge" xml:space="preserve">
+    <value>IconOverlay: MessageEvents_FileChangeMergeToStateChanged: Call QueueNewEventBadge().</value>
+    <comment>Do Not Translate</comment>
+  </data>
+  <data name="IconOverlayMessageEventsPathStateChangedState0Path1" xml:space="preserve">
+    <value>IconOverlay: MessageEvents_PathStateChanged: State: {0}, Path: {1}.</value>
+    <comment>Do Not Translate</comment>
+  </data>
+  <data name="IconOverlayMessageEventsQueueSetBadgeChangedState0Path1" xml:space="preserve">
+    <value>IconOverlay: MessageEvents_QueueSetBadgeChanged: State: {0}, Path: {1}.</value>
+    <comment>Do Not Translate</comment>
+  </data>
+  <data name="IconOverlaypInitializeERRORExceptionMsg0" xml:space="preserve">
+    <value>IconOverlay: pInitialize: ERROR: Exception: Msg: &lt;{0}&gt;.</value>
+    <comment>"IconOverlay" and "pInitialize" should not be translated.</comment>
+  </data>
+  <data name="IconOverlaypInitializeERRORthreadInitExceptionMsg0" xml:space="preserve">
+    <value>IconOverlay: pInitialize: ERROR: threadInit exception: Msg: &lt;{0}&gt;.</value>
+    <comment>"IconOverlay", "pInitialize", and "threadInit" should not be translated.</comment>
+  </data>
+  <data name="IconOverlaypInitializeERRORThreadInitWasNotStarted" xml:space="preserve">
+    <value>IconOverlay: pInitialize: ERROR: threadInit was not started.</value>
+    <comment>"IconOverlay", "pInitialize", and "threadInit" should not be translated.</comment>
+  </data>
+  <data name="IconOverlaypInitializeERRORTHROWErrorFromCreatingBadgingDictionary" xml:space="preserve">
+    <value>IconOverlay: pInitialize: ERROR: THROW: Error creating badging dictionary.</value>
+    <comment>"IconOverlay" and "pInitialize" should not be translated.</comment>
+  </data>
+  <data name="IconOverlaypInitializeGotInitialList" xml:space="preserve">
+    <value>IconOverlay: pInitialize: Got initial list.</value>
+    <comment>"IconOverlay" and "pInitialize" should not be translated.</comment>
+  </data>
+  <data name="IconOverlaypInitializeReturnSuccess" xml:space="preserve">
+    <value>IconOverlay: pInitialize: Return success.</value>
+    <comment>"IconOverlay" and "pInitialize" should not be translated.</comment>
+  </data>
+  <data name="IconOverlaypInitializeTellUITheBadgingHasFailed" xml:space="preserve">
+    <value>IconOverlay: pInitialize: Tell UI the badging has failed.</value>
+    <comment>"IconOverlay" and "pInitialize" should not be translated.</comment>
+  </data>
+  <data name="IconOverlaypInitializethreadInitCompletedOK" xml:space="preserve">
+    <value>IconOverlay: pInitialize: threadInit completed OK.</value>
+    <comment>"IconOverlay", "pInitialize", and "threadInit" should not be translated.</comment>
+  </data>
+  <data name="IconOverlaySubscriptionFailed" xml:space="preserve">
+    <value>Subscription failed</value>
+    <comment>Translate</comment>
+  </data>
+  <data name="IconOverlaythreadInitEntry" xml:space="preserve">
+    <value>IconOverlay: threadInit: threadInit entry.</value>
+    <comment>"IconOverlay" and "threadInit" should not be translated.</comment>
+  </data>
+  <data name="IconOverlaythreadInitERRORWrongThreadingModel" xml:space="preserve">
+    <value>IconOverlay: threadInit: ERROR. Wrong threading model.</value>
+    <comment>"IconOverlay" and "threadInit" should not be translated. </comment>
+  </data>
+  <data name="IconOverlayThreadInitExitThread" xml:space="preserve">
+    <value>IconOverlay: threadInit: Exit thread.</value>
+    <comment>"IconOverlay" and "threadInit" should not be translated.</comment>
+  </data>
+  <data name="IconOverlaythreadInitExitThread2" xml:space="preserve">
+    <value>IconOverlay: threadInit: Exit thread (2).</value>
+    <comment>"IconOverlay" and "threadInit" should not be translated.</comment>
+  </data>
+  <data name="IconOverlaythreadInitFinishedSendingBadgingDictionary" xml:space="preserve">
+    <value>IconOverlay: threadInit: Finished sending badging dictionary.</value>
+    <comment>"IconOverlay" and "threadInit" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayThreadInitInstantiateBadgeComPubSubEvents" xml:space="preserve">
+    <value>IconOverlay: threadInit: Instantiate BadgeComPubSubEvents.</value>
+    <comment>"IconOverlay", "threadInit", and " BadgeComPubSubEvents" should not be translated.</comment>
+  </data>
+  <data name="IconOverlaythreadInitSendBadgingDictionary" xml:space="preserve">
+    <value>IconOverlay: threadInit: Send badging dictionary.</value>
+    <comment>"IconOverlay" and "threadInit" should not be translated.</comment>
+  </data>
+  <data name="IconOverlaythreadInitSubscribeBadgeComInitEvents" xml:space="preserve">
+    <value>IconOverlay: threadInit: Subscribe to BadgeCom init events.</value>
+    <comment>"IconOverlay", "threadInit", and " BadgeCom" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayThreadInitWasNotStarted" xml:space="preserve">
+    <value>threadInit was not started.</value>
+    <comment>"threadInit" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayUnknownState" xml:space="preserve">
+    <value>Unknown PathState:</value>
+    <comment>"PathState" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayWrongThreadingModel" xml:space="preserve">
+    <value>Wrong threading model</value>
+    <comment>Translate</comment>
+  </data>
+  <data name="IconOverlayBadgeType0Path1" xml:space="preserve">
+    <value>BadgeType: {0}. Path: &lt;{1}.</value>
+    <comment>"BadgeType" and "Path" should not be translated. </comment>
+  </data>
+  <data name="IconOverlayCloseBracket" xml:space="preserve">
+    <value>&gt;.</value>
+    <comment>Cannot Be Translated</comment>
+  </data>
+  <data name="IconOverlayDeleteBadgePathAfter" xml:space="preserve">
+    <value>DeleteBadgePath (after):</value>
+    <comment>"DeleteBadgePath" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayDeleteBadgePathBefore" xml:space="preserve">
+    <value>DeleteBadgePath (before):</value>
+    <comment>"DeleteBadgePath" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayDeleteBadgePathERRORTHROWMustBeInitializedBeforeRenamingBadgePaths" xml:space="preserve">
+    <value>IconOverlay: DeleteBadgePath. ERROR: THROW: Must be initialized before renaming badge paths.</value>
+    <comment>"IconOverlay" and "DeleteBadgePath" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayDeleteBadgePathPassThisDeleteToDictionary" xml:space="preserve">
+    <value>IconOverlay: DeleteBadgePath. Pass this delete to the dictionary.</value>
+    <comment>"IconOverlay" and "DeleteBadgePath" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayERRORGrabbingOldPathHeirarchyTreeIsNull" xml:space="preserve">
+    <value>ERROR: Grabbing oldPath hierarchy: tree is null</value>
+    <comment>"oldPath" should not be translated. </comment>
+  </data>
+  <data name="IconOverlayInitializeOrReplaceERRORExceptionMsg0Code1" xml:space="preserve">
+    <value>IconOverlay: InitializeOrReplace: ERROR: Exception: Msg: &lt;{0}&gt;, Code: {1}.</value>
+    <comment>"IconOverlay" and "InitializeOrReplace" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayMustBeInitializedBeforeRenamingBadgePaths" xml:space="preserve">
+    <value>IconOverlay must be initialized before renaming badge paths</value>
+    <comment>"IconOverlay" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayNewPath" xml:space="preserve">
+    <value>&gt;. newPath: &lt;</value>
+    <comment>"newPath" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayOnAllBadgesRecursiveDeleteERRORExceptionMsg0" xml:space="preserve">
+    <value>IconOverlay: OnAllBadgesRecursiveDelete: ERROR: Exception: Msg: &lt;{0}&gt;.</value>
+    <comment>"IconOverlay" and "OnAllBadgesRecursiveDelete" should not be translated. </comment>
+  </data>
+  <data name="IconOverlayOnAllBadgesRecursiveRenameERRORExceptionMsg0" xml:space="preserve">
+    <value>IconOverlay: OnAllBadgesRecursiveRename: ERROR: Exception: Msg: &lt;{0}&gt;.</value>
+    <comment>"IconOverlay" and "OnAllBadgesRecursiveDelete" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayOnCurrentBadgesSyncedRecursiveDeleteERRORExceptionMsg0" xml:space="preserve">
+    <value>IconOverlay: OnCurrentBadgesSyncedRecursiveDelete: ERROR: Exception Msg: &lt;{0}&gt;.</value>
+    <comment>"IconOverlay" and "OnCurrentBadgesSyncedRecursiveDelete" should not be translated. </comment>
+  </data>
+  <data name="IconOverlayOnCurrentBadgesSyncedRecursiveRenameERRORExceptionMsg0" xml:space="preserve">
+    <value>IconOverlay: OnCurrentBadgesSyncedRecursiveRename: ERROR: Exception Msg: &lt;{0}&gt;.</value>
+    <comment>"IconOverlay" and "OnCurrentBadgesSyncedRecursiveDelete" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayPath0" xml:space="preserve">
+    <value>Path: &lt;{0}&gt;.</value>
+    <comment>Do Not Translate</comment>
+  </data>
+  <data name="IconOverlayRenameBadePathInCurrentBadgesSyncedLocker" xml:space="preserve">
+    <value>IconOverlay: RenameBadgePath. In _currentBadgesSyncedLocker.</value>
+    <comment>Do Not Translate</comment>
+  </data>
+  <data name="IconOverlayRenameBadgePathAddBadgeAtNewPath0Badge1" xml:space="preserve">
+    <value>IconOverlay: RenameBadgePath. Add badge at newPath: {0}. Badge: {1}.</value>
+    <comment>"IconOverlay", "RenameBadgePath", "newPath", and "Badge" should not be translated. </comment>
+  </data>
+  <data name="IconOverlayRenameBadgePathBadgeNewPathWith0" xml:space="preserve">
+    <value>IconOverlay: RenameBadgePath. Badge newPath with {0}.</value>
+    <comment>"IconOverlay", "RenameBadgePath", "newPath", and "Badge" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayRenameBadgePathBeforeOldPath" xml:space="preserve">
+    <value>RenameBadgePath (before): OldPath: &lt;</value>
+    <comment>"RenameBadgePath" and "OldPath" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayRenameBadgePathCallManuallyApplyRenamesInHeirarchyAndUpdateBadgeState" xml:space="preserve">
+    <value>IconOverlay: RenameBadgePath. Call ManuallyApplyRenamesInHierarchyAndUpdateBadgeState.</value>
+    <comment>"IconOverlay", "RenameBadgePath", and "ManuallyApplyRenamesInHierarchyAndUpdateBadgeState" should not be translated. </comment>
+  </data>
+  <data name="IconOverlayRenameBadgePathContainsOldPath" xml:space="preserve">
+    <value>IconOverlay: RenameBadgePath. Contains oldPath.</value>
+    <comment>"IconOverlay", "RenameBadgePath", and "oldPath" should not be translated. </comment>
+  </data>
+  <data name="IconOverlayRenameBadgePathCurrentBadgesSyncedNotNull" xml:space="preserve">
+    <value>IconOverlay: RenameBadgePath. _currentBadgesSynced not null.</value>
+    <comment>"IconOverlay" and "RenameBadgePath. _currentBadgesSynced" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayRenameBadgePathDeleteOldPath" xml:space="preserve">
+    <value>IconOverlay: RenameBadgePath. Delete the oldPath.</value>
+    <comment>"IconOverlay", "RenameBadgePath", and "oldPath" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayRenameBadgePathERRORGrabbingHeirarchyOrNothingGrabbed" xml:space="preserve">
+    <value>IconOverlay: RenameBadgePath. ERROR: grabbing hierarchy or nothing grabbed.</value>
+    <comment>"IconOverlay" and "RenameBadgePath" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayRenameBadgePathERRORGrabbingOldPathHeirarchyMsg0Code1" xml:space="preserve">
+    <value>IconOverlay: RenameBadgePath. ERROR: Grabbing oldPath hierarchy. Msg: &lt;{0}&gt;.  Code: {1}.</value>
+    <comment>"IconOverlay", "RenameBadgePath", and "oldPath" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayRenameBadgePathERRORRenamingInAllBadgesMsg0Code1" xml:space="preserve">
+    <value>IconOverlay: RenameBadgePath. ERROR: Renaming in allBadges. Msg: &lt;{0}&gt;.  Code: {1}.</value>
+    <comment>"IconOverlay", "RenameBadgePath", and "allBadges" should not be translated. </comment>
+  </data>
+  <data name="IconOverlayRenameBadgePathERRORTHROWMustBeInitializedBeforeRenamingBadgePaths" xml:space="preserve">
+    <value>IconOverlay: RenameBadgePath. ERROR: THROW: Must be initialized before renaming badge paths.</value>
+    <comment>"IconOverlay" and "RenameBadgePath" should not be translated. </comment>
+  </data>
+  <data name="IconOverlayRenameBadgePathExistingSynchedHolderIsSynced" xml:space="preserve">
+    <value>IconOverlay: RenameBadgePath. existingSyncedHolder is synced.</value>
+    <comment>"IconOverlay", "RenameBadgePath", and "existingSyncedHolder" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayRenameBadgePathExistingSynchedHolderIsSynced2" xml:space="preserve">
+    <value>IconOverlay: RenameBadgePath. existingSyncedHolder is synced (2).</value>
+    <comment>"IconOverlay", "RenameBadgePath", and "existingSyncedHolder" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayRenameBadgePathGotCurrentBadgesOldPathItemRemoveOldPath" xml:space="preserve">
+    <value>IconOverlay: RenameBadgePath. Got _currentBadges oldPath item. Remove oldPath.</value>
+    <comment>Do Not Translate</comment>
+  </data>
+  <data name="IconOverlayRenameBadgePathGotCurrentBadgeSyncedOldPathItem" xml:space="preserve">
+    <value>IconOverlay: RenameBadgePath. Got _currentBadgesSynced oldPath item.</value>
+    <comment>Do Not Translate</comment>
+  </data>
+  <data name="IconOverlayRenameBadgePathInCurrentBadgesSyncedLocker" xml:space="preserve">
+    <value>IconOverlay: RenameBadgePath. In _currentBadgesSyncedLocker.</value>
+    <comment>Do Not Translate</comment>
+  </data>
+  <data name="IconOverlayRenameBadgePathOldPath0NewPath1" xml:space="preserve">
+    <value>IconOverlay: RenameBadgePath. Old path: {0}, New path: {1}.</value>
+    <comment>Do Not Translate</comment>
+  </data>
+  <data name="IconOverlayRenameBadgePathPassThisRenameToTheDictionary" xml:space="preserve">
+    <value>IconOverlay: RenameBadgePath. Pass this rename to the dictionary.</value>
+    <comment>"IconOverlay" and "RenameBadgePath" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayRenameBadgePathRemoveBadgeNewPath0" xml:space="preserve">
+    <value>IconOverlay: RenameBadgePath. Remove badge at newPath: {0}.</value>
+    <comment>"IconOverlay", "setBadgeType", and "newPath" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayRenameBadgePathRemoveBadgeOldPath0" xml:space="preserve">
+    <value>IconOverlay: RenameBadgePath. Remove badge at oldPath: {0}.</value>
+    <comment>"IconOverlay", "setBadgeType", and "oldPath" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayRenameBadgePathRemoveNewPath" xml:space="preserve">
+    <value>IconOverlay: RenameBadgePath. Remove newPath.</value>
+    <comment>"IconOverlay", "setBadgeType", and "newPath" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayRenameBadgePathRenameOldPathToNewPathInCurrentBadgesSynched" xml:space="preserve">
+    <value>IconOverlay: RenameBadgePath. Rename oldPath to newPath in _currentBadgesSynced.</value>
+    <comment>"IconOverlay", "RenameBadgePath", "oldPath", "newPath", and "_currentBadgesSynced" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayRenameBadgePathSetReturnStatusOK" xml:space="preserve">
+    <value>IconOverlay: RenameBadgePath. Set return status OK.</value>
+    <comment>"IconOverlay" and "RenameBadgePath" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayRenameBadgePathSuccessOnAllBadgesRename" xml:space="preserve">
+    <value>IconOverlay: RenameBadgePath. Success on allBadges rename.</value>
+    <comment>"IconOverlay", "setBadgeType", and "allBadges" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayRenameBadgePathUpdateBadgeStateUpTheTreeFromNewPath" xml:space="preserve">
+    <value>IconOverlay: RenameBadgePath. Update badge state up the tree from newPath.</value>
+    <comment>"IconOverlay", "setBadgeType", and "newPath" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayRenameBadgePathUpdateBadgeStateUpTheTreeFromOldPath" xml:space="preserve">
+    <value>IconOverlay: RenameBadgePath. Update badge state up the tree from oldPath.</value>
+    <comment>"IconOverlay", "setBadgeType", and "oldPath" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayTraceBadgingDictionariesCurrentBadgesCalledFrom0" xml:space="preserve">
+    <value>IconOverlay: TraceBadgingDictionaries: CurrentBadges: Called from: {0}.</value>
+    <comment>"IconOverlay", "TraceBadgingDictionaries", and "CurrentBadges" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayTraceBadgingDictionariesCurrentSyncedBadges" xml:space="preserve">
+    <value>IconOverlay: TraceBadgingDictionaries: CurrentSyncedBadges:</value>
+    <comment>"IconOverlay", "TraceBadgingDictionaries", and "CurrentSyncedBadges" should not be translated.</comment>
+  </data>
+  <data name="CouldNotFindPathToRenameOldPath" xml:space="preserve">
+    <value>Could not find path to rename at oldPath</value>
+    <comment>"oldPath" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayBadgingIsNotEnabledExit" xml:space="preserve">
+    <value>IconOverlay: Badging is not enabled. Exit.</value>
+    <comment>"IconOverlay" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayCallShouldIconBeBadgedAtThisPathCurrentBadge0" xml:space="preserve">
+    <value>IconOverlay: Call ShouldIconBeBadged (at this path). currentBadge: {0}.</value>
+    <comment>"IconOverlay", "ShouldIconBeBadged", and "currentBadge" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayCloud" xml:space="preserve">
+    <value>Cloud</value>
+    <comment>Do Not Translate</comment>
+  </data>
+  <data name="IconOverlayCloudRootMustNotBeNullOrEmpty" xml:space="preserve">
+    <value>cloudRoot must not be null or empty</value>
+    <comment>"cloudRoot" should not be translated. </comment>
+  </data>
+  <data name="IconOverlayDetermineBadgeStatusFromHierarchyOfChildrenOfThisNodeGetTheHierarchyForPath0" xml:space="preserve">
+    <value>IconOverlay: DetermineBadgeStatusFromHierarchyOfChildrenOfThisNode. Get the hierarchy for path: {0}.</value>
+    <comment>"IconOverlay" and "DetermineBadgeStatusFromHierarchyOfChildrenOfThisNode" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayDisposeClearCurrentBadges" xml:space="preserve">
+    <value>IconOverlay: Dispose. Clear current badges.</value>
+    <comment>"IconOverlay" should not be translated. </comment>
+  </data>
+  <data name="IconOverlayDisposeClearCurrentSyncedBadges" xml:space="preserve">
+    <value>IconOverlay: Dispose. Clear current synced badges.</value>
+    <comment>"IconOverlay" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayDisposedERRORExceptionSendingBadgeNetRemoveSyncboxFolderPathEventMsg0" xml:space="preserve">
+    <value>IconOverlay: Dispose. ERROR: Exception sending BadgeNet_RemoveSyncboxFolderPath event. Msg: &lt;{0}&gt;.</value>
+    <comment>"IconOverlay" and "DetermineBadgeStatusFromHierarchyOfChildrenOfThisNode" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayDisposeDisposing" xml:space="preserve">
+    <value>IconOverlay: Dispose. Disposing.</value>
+    <comment>"IconOverlay" should not be translated. </comment>
+  </data>
+  <data name="IconOverlayDisposeERRORExceptionTerminatingTheBadgeComInitializationWatcherMsg0" xml:space="preserve">
+    <value>IconOverlay: Dispose. ERROR: Exception terminating the BadgeCom initialzation watcher. Msg: &lt;{0}&gt;.</value>
+    <comment>"IconOverlay" and "BadgeCom" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayDisposeInitialized" xml:space="preserve">
+    <value>IconOverlay: Dispose. Initialized.</value>
+    <comment>"IconOverlay" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayDisposeLock" xml:space="preserve">
+    <value>IconOverlay: Dispose.  Lock.</value>
+    <comment>"IconOverlay" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayDisposePipeLocker" xml:space="preserve">
+    <value>IconOverlay: Dispose. PipeLocker.</value>
+    <comment>"IconOverlay" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayDisposeSendBadgeNetRemoveSyncbicFolderPathEvent" xml:space="preserve">
+    <value>IconOverlay: Dispose. Send BadgeNet_RemoveSyncboxFolderPath event.</value>
+    <comment>"IconOverlay" and "BadgeNet_RemoveSyncboxFolderPath" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayDisposeSetDisposed" xml:space="preserve">
+    <value>IconOverlay: Dispose.  Set Disposed.</value>
+    <comment>"IconOverlay" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayDisposeUnsubscribeFromBadgeComEvents" xml:space="preserve">
+    <value>IconOverlay: Dispose. Unsubscribe from BadgeCom events.</value>
+    <comment>"IconOverlay" and "BadgeCom" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayERRORGrabbingfilePathHeirarchyTreeIsNull" xml:space="preserve">
+    <value>ERROR: Grabbing filePath hierarchy: tree is null</value>
+    <comment>"filePath" should not be translated. </comment>
+  </data>
+  <data name="IconOverlayGetBadgeTypeForFileAtPathEntryPath0" xml:space="preserve">
+    <value>IconOverlay: getBadgeTypeForFileAtPath: Entry. path: {0}.</value>
+    <comment>"IconOverlay"and "getBadgeTypeForFileAtPath" should not be translated.</comment>
+  </data>
+  <data name="IconOverlaygetBadgeTypeForFileAtPathERRORExceptionMsg0Code1" xml:space="preserve">
+    <value>IconOverlay: getBadgeTypeForFileAtPath: ERROR: Exception: Msg: &lt;{0}&gt;, Code: {1}.</value>
+    <comment>"IconOverlay"and "getBadgeTypeForFileAtPath" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayGetBadgeTypeForFileAtPathInCurrentBadgesLocker" xml:space="preserve">
+    <value>IconOverlay: getBadgeTypeForFileAtPath: In _currentBadgesLocker.</value>
+    <comment>"IconOverlay", "getBadgeTypeForFileAtPath",  and "_currentBadgesLocker" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayGUIDForThisPublisher" xml:space="preserve">
+    <value>IconOverlay: IconOverlay: GUID for this publisher: {0}.</value>
+    <comment>"IconOverlay" and "GUID" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayInitializeEntry" xml:space="preserve">
+    <value>IconOverlay: Initialize: Entry.</value>
+    <comment>"IconOverlay" and "Initialize" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayIntializeERRORExceptionMsg0Code1" xml:space="preserve">
+    <value>IconOverlay: Initialize: ERROR: Exception: Msg: &lt;{0}&gt;, Code: {1}.</value>
+    <comment>"IconOverlay" and "Initialize" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayLog" xml:space="preserve">
+    <value>log</value>
+    <comment>Translate</comment>
+  </data>
+  <data name="IconOverlayMustBeInitializedBeforeSettingBadges" xml:space="preserve">
+    <value>IconOverlay must be initialized before setting badges</value>
+    <comment>"IconOverlay" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayMustInitializedBeforeSettingsBadges" xml:space="preserve">
+    <value>IconOverlay must be initialized before setting badges</value>
+    <comment>"IconOverlay" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayNewPathMustNotNotBeNull" xml:space="preserve">
+    <value>newPath must not be null</value>
+    <comment>"newPath" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayNodeMustNotBeNull" xml:space="preserve">
+    <value>node must not be null</value>
+    <comment>Translate</comment>
+  </data>
+  <data name="IconOverlayOldPathMustNotBeNull" xml:space="preserve">
+    <value>oldPath must not be null</value>
+    <comment>"oldPath" should not be translated.</comment>
+  </data>
+  <data name="IconOverlaypInitializeERRORTHROWErrorfromCreateAndInitializeAllBadges" xml:space="preserve">
+    <value>IconOverlay: pInitialize: ERROR: THROW: Error from CreateAndInitialize allBadges.</value>
+    <comment>"IconOverlay", "pInitialize", "CreateAndInitialize", and "allBadges" should not be translated.</comment>
+  </data>
+  <data name="IconOverlaypInitializeERRORTHROWErrorfromCreateAndInitializeCurrentBadgesSynced" xml:space="preserve">
+    <value>IconOverlay: pInitialize: ERROR: THROW: Error from CreateAndInitialize _currentBadgesSynced.</value>
+    <comment>"IconOverlay", "pInitialize", and "CreateAndInitialize _currentBadgesSynced" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayPShutdownERRORExceptionMsg0Code1" xml:space="preserve">
+    <value>IconOverlay: pShutdown: ERROR: Exception: Msg: &lt;{0}&gt;, Code: {1}.</value>
+    <comment>"IconOverlay" and "pShutdown" should not be translated. </comment>
+  </data>
+  <data name="IconOverlayRenameBadgePathAfterOldPath" xml:space="preserve">
+    <value>RenameBadgePath (after): OldPath: &lt;</value>
+    <comment>"RenameBadgePath" and "OldPath" should not be translated. </comment>
+  </data>
+  <data name="IconOverlayRenameBadgePathERRORExceptionMessage0Code1" xml:space="preserve">
+    <value>IconOverlay: RenameBadgePath: ERROR: Exception: Msg: &lt;{0}&gt;, Code: {1}.</value>
+    <comment>"IconOverlay" and "RenameBadgePath" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayRenameBadgePathOldPathFoundInCurrentBadgesSynedRename" xml:space="preserve">
+    <value>IconOverlay: RenameBadgePath. oldPath found in _currentBadgesSynced.  Rename.</value>
+    <comment>"IconOverlay", "RenameBadgePath", "oldPath", and " in _currentBadgesSynced" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayRenameBadgePathSetERRORCouldNotFindPathToRenameAtOldPath" xml:space="preserve">
+    <value>IconOverlay: RenameBadgePath. Set ERROR: Could not find path to rename at oldPath.</value>
+    <comment>"IconOverlay", "RenameBadgePath", and "oldPath" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayRenameBadgePathSetNewPathToCurrentBadgesSyncedValue0" xml:space="preserve">
+    <value>IconOverlay: RenameBadgePath. Set newPath to _currentBadgesSynced. Value: {0}.</value>
+    <comment>"IconOverlay", "RenameBadgePath", and "newPath to _currentBadgesSynced" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayRenameBadgePathSetReturnStatusOK2" xml:space="preserve">
+    <value>IconOverlay: RenameBadgePath. Set return status OK (2).</value>
+    <comment>"IconOverlay" and "RenameBadgePath" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayReturnNullNoBadgeType" xml:space="preserve">
+    <value>IconOverlay: Return null (no badge type).</value>
+    <comment>"IconOverlay" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayReturnThisBadgeType" xml:space="preserve">
+    <value>IconOverlay: Return this badge type.</value>
+    <comment>"IconOverlay" should not be translated.</comment>
+  </data>
+  <data name="IconOverlaySetBadgeTypeBackFromUpdateBadgeStateUpTreeStartingWithParentOfNode" xml:space="preserve">
+    <value>IconOverlay: setBadgeType. Back from UpdateBadgeStateUpTreeStartingWithParentOfNode.</value>
+    <comment>"IconOverlay", "setBadgeType", and " UpdateBadgeStateUpTreeStartingWithParentOfNode" should not be translated.</comment>
+  </data>
+  <data name="IconOverlaySetBadgeTypeCallUpdateBadgeStateAtPath" xml:space="preserve">
+    <value>IconOverlay: setBadgeType. Call UpdateBadgeStateAtPath.</value>
+    <comment>"IconOverlay", "setBadgeType", and "UpdateBadgeStateAtPath" should not be translated.</comment>
+  </data>
+  <data name="IconOverlaySetBadgeTypeCallUpdateBadgeStateUpTreeStartingWithParentOfNode" xml:space="preserve">
+    <value>IconOverlay: setBadgeType. Call UpdateBadgeStateUpTreeStartingWithParentOfNode.</value>
+    <comment>"IconOverlay", "setBadgeType", and "UpdateBadgeStateUpTreeStartingWithParentOfNode" should not be translated.</comment>
+  </data>
+  <data name="IconOverlaySetBadgeTypeEntryNewType0FilePath1" xml:space="preserve">
+    <value>IconOverlay: setBadgeType: Entry. newType: {0}. filePath: {1}.</value>
+    <comment>"IconOverlay", "setBadgeType", "newType", and "filePath" should not be translated.</comment>
+  </data>
+  <data name="IconOverlaySetBadgeTypeERRORExceptionMsg0Code1" xml:space="preserve">
+    <value>IconOverlay: setBadgeType: ERROR: Exception: Msg: &lt;{0}&gt;, Code: {1}.</value>
+    <comment>"IconOverlay" and "setBadgeType" should not be translated.</comment>
+  </data>
+  <data name="IconOverlaySetBadgeTypeERRORGrabbingFilePathHeirarchyMsg0Code1" xml:space="preserve">
+    <value>IconOverlay: setBadgeType. ERROR: Grabbing filePath hierarchy. Msg: &lt;{0}&gt;.  Code: {1}.</value>
+    <comment>"IconOverlay", "setBadgeType", and "filePath" should not be translated.</comment>
+  </data>
+  <data name="IconOverlaySetBadgeTypeGotSelectiveTree" xml:space="preserve">
+    <value>IconOverlay: setBadgeType. Got selective tree.</value>
+    <comment>"IconOverlay" and "setBadgeType" should not be translated.</comment>
+  </data>
+  <data name="IconOverlaySetBadgeTypeInCurrentBadgesLocker" xml:space="preserve">
+    <value>IconOverlay: setBadgeType: In _currentBadgesLocker.</value>
+    <comment>"IconOverlay", "setBadgeType", and "In _currentBadgesLocker"should not be translated.</comment>
+  </data>
+  <data name="IconOverlaySetBadgeTypeNewIsSelective" xml:space="preserve">
+    <value>IconOverlay: setBadgeType: New is selective.</value>
+    <comment>"IconOverlay" and "setBadgeType" should not be translated.</comment>
+  </data>
+  <data name="IconOverlaySetBadgeTypeNewTypeIs0" xml:space="preserve">
+    <value>IconOverlay: setBadgeType. newType is {0}.</value>
+    <comment>"IconOverlay", "setBadgeType", and "newType" should not be translated.</comment>
+  </data>
+  <data name="IconOverlaySetBadgeTypeNewTypeIsSynced" xml:space="preserve">
+    <value>IconOverlay: setBadgeType. newType is synced.</value>
+    <comment>"IconOverlay", "setBadgeType", and "newType" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayShouldIconBeBadgedBreakToDeterminBadgeStatusFromChildrenOfNode" xml:space="preserve">
+    <value>IconOverlay: ShouldIconBeBadged. Break to determine the badge status from the children of this node.</value>
+    <comment>"IconOverlay" and "ShouldIconBeBadged" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayShouldIconBeBadgedChainUp" xml:space="preserve">
+    <value>IconOverlay: ShouldIconBeBadged. Chain up.</value>
+    <comment>"IconOverlay" and "ShouldIconBeBadged" should not be translated. </comment>
+  </data>
+  <data name="IconOverlayShouldIconBeBadgedContainsCloudRoot" xml:space="preserve">
+    <value>IconOverlay: ShouldIconBeBadged. Contains Cloud root.</value>
+    <comment>"IconOverlay" and "ShouldIconBeBadged" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayShouldIconBeBadgedEntrybadgeType0FilePath1" xml:space="preserve">
+    <value>IconOverlay: ShouldIconBeBadged. Entry. badgeType: {0}. filePath: {1}.</value>
+    <comment>"IconOverlay", "ShouldIconBeBadged", "badgeType" and "filePath" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayShouldIconBeBadgedERRORExceptionReturn40" xml:space="preserve">
+    <value>IconOverlay: ShouldIconBeBadged. ERROR: Exception. Return(4): {0}.</value>
+    <comment>"IconOverlay" and "ShouldIconBeBadged" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayShouldIconBeBadgedExceptionNormalMsg0Code1" xml:space="preserve">
+    <value>IconOverlay: ShouldIconBeBadged. Exception.  Normal? Msg: {0}, Code: (1).</value>
+    <comment>"IconOverlay" and "ShouldIconBeBadged" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayShouldIconBeBadgedGetTheTypeForPath0" xml:space="preserve">
+    <value>IconOverlay: ShouldIconBeBadged. Get the type for path: {0}.</value>
+    <comment>"IconOverlay" and "ShouldIconBeBadged" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayShouldIconBeBadgedGotType0" xml:space="preserve">
+    <value>IconOverlay: ShouldIconBeBadged. Got type {0}.</value>
+    <comment>"IconOverlay" and "ShouldIconBeBadged" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayShouldIconBeBadgedGotValueFromAllBadgesReturn0" xml:space="preserve">
+    <value>IconOverlay: ShouldIconBeBadged. Got value from allBadges. Return: {0}.</value>
+    <comment>"IconOverlay", "ShouldIconBeBadged", and "allBadges" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayShouldIconBeBadgedHaveWeReachedCloudRoot" xml:space="preserve">
+    <value>IconOverlay: ShouldIconBeBadged. Have we reached the Cloud root?</value>
+    <comment>"IconOverlay" and "ShouldIconBeBadged" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayShouldIconBeBadgedLocked" xml:space="preserve">
+    <value>IconOverlay: ShouldIconBeBadged. Locked.</value>
+    <comment>"IconOverlay" and "ShouldIconBeBadged" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayShouldIconBeBadgedNotInTheCloudFolderReturnDontBadge" xml:space="preserve">
+    <value>IconOverlay: ShouldIconBeBadged. Not in the cloud folder. Return: Don't badge.</value>
+    <comment>"IconOverlay" and "ShouldIconBeBadged" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayShouldIconBeBadgedRecurseThruParents" xml:space="preserve">
+    <value>IconOverlay: ShouldIconBeBadged. Recurse thru parents.</value>
+    <comment>"IconOverlay" and "ShouldIconBeBadged" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayShouldIconBeBadgedReturn20" xml:space="preserve">
+    <value>IconOverlay: ShouldIconBeBadged. Return (2): {0}.</value>
+    <comment>"IconOverlay" and "ShouldIconBeBadged" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayShouldIconBeBadgedReturn30" xml:space="preserve">
+    <value>IconOverlay: ShouldIconBeBadged. Return(3): {0}.</value>
+    <comment>"IconOverlay" and "ShouldIconBeBadged" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayShouldIconBeBadgedReturnFalse" xml:space="preserve">
+    <value>IconOverlay: ShouldIconBeBadged. Return false.</value>
+    <comment>"IconOverlay" and "ShouldIconBeBadged" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayShouldIconBeBadgedSuccessfulGettingTheHeirarchyCallGetDesiredBadgeTypeViaRecursivePostorderTraversal" xml:space="preserve">
+    <value>IconOverlay: ShouldIconBeBadged. Successful getting the hierarcy.  Call GetDesiredBadgeTypeViaRecursivePostorderTraversal.</value>
+    <comment>"IconOverlay", "ShouldIconBeBadged", "badgeType" and "GetDesiredBadgeTypeViaRecursivePostorderTraversal" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayShouldIconBeBadgedTryGetValueNotSuccessful" xml:space="preserve">
+    <value>IconOverlay: ShouldIconBeBadged. TryGetValue not successful.</value>
+    <comment>"IconOverlay", "ShouldIconBeBadged", and "TryGetValue" should not be translated.</comment>
+  </data>
+  <data name="IconOverlaySyncSettingsCannotBeNull" xml:space="preserve">
+    <value>SyncSettings cannot be null</value>
+    <comment>"SyncSettings" should not be translated. </comment>
+  </data>
+  <data name="IndexingAgentUpdateServerUIDMigratedForwardsServerUIDID0" xml:space="preserve">
+    <value>IndexingAgent: UpdateServerUid: Migrated forwards: serverUidId: {0}.</value>
+    <comment>"IndexingAgent", "UpdateServerUid", and "serverUidId" should not be translated.  </comment>
+  </data>
+  <data name="IconOverlayGetDesiredBadgeTypeViaRecursivePostorderTraversalEntryNodePath0NodeBadgeType1" xml:space="preserve">
+    <value>IconOverlay: GetDesiredBadgeTypeViaRecursivePostorderTraversal. Entry. node.path: {0}. node.badgeType: {1}.</value>
+    <comment>"IconOverlay" and "GetDesiredBadgeTypeViaRecursivePostorderTraversal" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayGetDesiredBadgeTypeViaRecursivePostorderTraversalReturnSynced3" xml:space="preserve">
+    <value>IconOverlay: GetDesiredBadgeTypeViaRecursivePostorderTraversal. Return synced (3).</value>
+    <comment>"IconOverlay" and "GetDesiredBadgeTypeViaRecursivePostorderTraversal" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayGetDesiredBadgeTypeViaRecursivePostorderTraversalReturnSynced4" xml:space="preserve">
+    <value>IconOverlay: GetDesiredBadgeTypeViaRecursivePostorderTraversal. Return synced (4).</value>
+    <comment>"IconOverlay" and "GetDesiredBadgeTypeViaRecursivePostorderTraversal" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayUpdateBadgeStateUpTreeStartingWithParentOfNodeEntryNodePath0" xml:space="preserve">
+    <value>IconOverlay: UpdateBadgeStateUpTreeStartingWithParentOfNode. Entry.  nodePath: {0}.</value>
+    <comment>"IconOverlay", "UpdateBadgeStateUpTreeStartingWithParentOfNode", and "nodePath" should not be translated. </comment>
+  </data>
+  <data name="IconOVerlayRootPathCannotBeNull" xml:space="preserve">
+    <value>rootPath cannot be null</value>
+    <comment>"rootPath" cannot be translated.</comment>
+  </data>
+  <data name="IconOverlayUpdateBadgeStateUpTreeStartingWithParentOfNodeCallUpdateBadgeStateAtPath" xml:space="preserve">
+    <value>IconOverlay: UpdateBadgeStateUpTreeStartingWithParentOfNode. Call UpdateBadgeStateAtPath.</value>
+    <comment>"IconOverlay", "UpdateBadgeStateUpTreeStartingWithParentOfNode", and "UpdateBadgeStateAtPath" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayUpdateBadgeStateAtPathEntryNodePath0" xml:space="preserve">
+    <value>IconOverlay: UpdateBadgeStateAtPath. Entry. nodePath: {0}.</value>
+    <comment>"IconOverlay", "UpdateBadgeStateAtPath", and "nodePath" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayUpdateBadgeStateAtPathGetBadgeTypeForFileAtPathReturned0" xml:space="preserve">
+    <value>IconOverlay: UpdateBadgeStateAtPath. getBadgeTypeForFileAtPath returned: {0}.</value>
+    <comment>"IconOverlay", "UpdateBadgeStateAtPath", and "getBadgeTypeForFileAtPath" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayHeirarchicalBadgeTypeNull" xml:space="preserve">
+    <value>hierarchicalBadgeType null</value>
+    <comment>"hierarchicalBadgeType" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayUpdateBadgeStateAtPathCurrentBadgesReturned0" xml:space="preserve">
+    <value>IconOverlay: UpdateBadgeStateAtPath. _currentBadges returned {0}.</value>
+    <comment>"IconOverlay", "UpdateBadgeStateAtPath", and " _currentBadges" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayFlatBadgeTypeNull" xml:space="preserve">
+    <value>flatBadgeType null</value>
+    <comment>"flatBadgeType" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayGetDesiredBadgeTypeViaRecursivePostorderTraversalNodeIsNullReturnSynced" xml:space="preserve">
+    <value>IconOverlay: GetDesiredBadgeTypeViaRecursivePostorderTraversal. Node is null.  Return synced..</value>
+    <comment>"IconOverlay" and "GetDesiredBadgeTypeViaRecursivePostorderTraversal" should not be translated. </comment>
+  </data>
+  <data name="IconOverlayGetDesiredBadgeTypeViaRecursivePostorderTraversalGotReturnBadgeType0" xml:space="preserve">
+    <value>IconOverlay: GetDesiredBadgeTypeViaRecursivePostorderTraversal. Got returnBadgeType: {0}.</value>
+    <comment>"IconOverlay" and "GetDesiredBadgeTypeViaRecursivePostorderTraversal" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayGetDesiredBadgeTypeViaRecursivePostorderTraversalreturnThatBadgeType" xml:space="preserve">
+    <value>IconOverlay: GetDesiredBadgeTypeViaRecursivePostorderTraversal. Return that badge type.</value>
+    <comment>"IconOverlay" and "GetDesiredBadgeTypeViaRecursivePostorderTraversal" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayGetDesiredBadgeTypeViaRecursivePostorderTraversalHasValue" xml:space="preserve">
+    <value>IconOverlay: GetDesiredBadgeTypeViaRecursivePostorderTraversal. Has value.</value>
+    <comment>"IconOverlay" and "GetDesiredBadgeTypeViaRecursivePostorderTraversal" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayGetDesiredBadgeTypeViaRecursivePostorderTraversalReturnSynced" xml:space="preserve">
+    <value>IconOverlay: GetDesiredBadgeTypeViaRecursivePostorderTraversal. Return synced.</value>
+    <comment>"IconOverlay" and "GetDesiredBadgeTypeViaRecursivePostorderTraversal" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayGetDesiredBadgeTypeViaRecursivePostorderTraversalReturnSyncing" xml:space="preserve">
+    <value>IconOverlay: GetDesiredBadgeTypeViaRecursivePostorderTraversal. Return syncing.</value>
+    <comment>"IconOverlay" and "GetDesiredBadgeTypeViaRecursivePostorderTraversal" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayGetDesiredBadgeTypeViaRecursivePostorderTraversalReturnSyncing2" xml:space="preserve">
+    <value>IconOverlay: GetDesiredBadgeTypeViaRecursivePostorderTraversal. Return syncing (2).</value>
+    <comment>"IconOverlay" and "GetDesiredBadgeTypeViaRecursivePostorderTraversal" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayGetDesiredBadgeTypeViaRecursivePostorderTraversalReturnSynced2" xml:space="preserve">
+    <value>IconOverlay: GetDesiredBadgeTypeViaRecursivePostorderTraversal. Return synced (2).</value>
+    <comment>"IconOverlay" and "GetDesiredBadgeTypeViaRecursivePostorderTraversal" should not be translated.</comment>
+  </data>
+  <data name="HaveNotHandledBadgingWhenTwoEventsMergedTogether" xml:space="preserve">
+    <value>Have not handled badging when two events are merged together</value>
+    <comment>Translate</comment>
+  </data>
+  <data name="IconOverlayGenericSetterbadgeType0Path1" xml:space="preserve">
+    <value>IconOverlay: genericSetter: badgeType: {0}. Path: {1}.</value>
+    <comment>"IconOverlay", "genericSetter", and "badgeType" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayGenericSetterStackTrace0" xml:space="preserve">
+    <value>IconOverlay: genericSetter: StackTrace: {0}.</value>
+    <comment>"IconOverlay", "genericSetter", and "StackTrace" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayGenricSetterProcessAfterBadgeType" xml:space="preserve">
+    <value>genericSetter.Process (after): badgeType:</value>
+    <comment>"genericSetter.Process" and "badgeType" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayMergedEventType" xml:space="preserve">
+    <value>Unknown mergedEvent.Type:</value>
+    <comment>"mergedEvent.Type" should not be translated. </comment>
+  </data>
+  <data name="IconOverlayNewEventEventToRemoveType0Old1New2" xml:space="preserve">
+    <value>IconOverlay: newEvent: eventToRemove: Type: {0}. Old: {1}. New: {2}.</value>
+    <comment>Do Not Translate</comment>
+  </data>
+  <data name="IconOverlayNewEventMergedEventType0Old1New2" xml:space="preserve">
+    <value>IconOverlay: newEvent: mergedEvent: Type: {0}. Old: {1}. New: {2}.</value>
+    <comment>Do Not Translate</comment>
+  </data>
+  <data name="IconOverlayNewEventProcessAfterBadgeType" xml:space="preserve">
+    <value>newEvent.Process (after): badgeType:</value>
+    <comment>"newEvent.Process" and "badgeType" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayNewEventProcessBeforeBadgeType" xml:space="preserve">
+    <value>newEvent.Process (before): badgeType:</value>
+    <comment>"newEvent.Process" and "badgeType" should not be translated. </comment>
+  </data>
+  <data name="IconOverlayNewEventStackTrace0" xml:space="preserve">
+    <value>IconOverlay: newEvent: StackTrace: {0}.</value>
+    <comment>Do Not Translate </comment>
+  </data>
+  <data name="IconOverlayNodeNull" xml:space="preserve">
+    <value>NodeNull</value>
+    <comment>Do Not Translate</comment>
+  </data>
+  <data name="IconOverlayNodeNull2" xml:space="preserve">
+    <value>NodeNull2</value>
+    <comment>Do Not Translate</comment>
+  </data>
+  <data name="IconOverlayNoNodeValue" xml:space="preserve">
+    <value>NoNodeValue</value>
+    <comment>Do Not Translate</comment>
+  </data>
+  <data name="IconOverlayNoNodeValue2" xml:space="preserve">
+    <value>NoNodeValue2</value>
+    <comment>Do Not Translate</comment>
+  </data>
+  <data name="IconOverlayPath" xml:space="preserve">
+    <value>. Path: &lt;</value>
+    <comment>Do Not Translate</comment>
+  </data>
+  <data name="IconOverlayProcessCreatedModifiedSetBadgeSyncingAtNewPath" xml:space="preserve">
+    <value>IconOverlay: Process: Created/Modified: setBadge syncing at NewPath.</value>
+    <comment>"IconOverlay: Process: Created/Modified: setBadge" and "NewPath" should not be translated. </comment>
+  </data>
+  <data name="IconOverlayProcessDeletedDirFromSetNewPathToSyncing" xml:space="preserve">
+    <value>IconOverlay: Process: Deleted: Dir: From. Set NewPath to syncing.</value>
+    <comment>"IconOverlay", "Process", "Deleted", "Dir", and "NewPath" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayProcessDeletedDirToDeleteBadgePathAtNewPathIsDeleted0" xml:space="preserve">
+    <value>IconOverlay: Process: Deleted: Dir: To. DeleteBadgePath at NewPath. isDeleted: {0}.</value>
+    <comment>"IconOverlay", "Process", "Deleted", "Dir", "DeleteBadgePath", "NewPath", and "isDeleted" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayProcessMergedEventType0MergedEventDirection1mergedEventOldPath2MergedEventNewPath3" xml:space="preserve">
+    <value>IconOverlay: Process: mergedEvent.Type: {0}. mergedEvent.Direction: {1}.  mergedEvent.OldPath: {2}, mergedEvent.NewPath: {3}.</value>
+    <comment>Do No Translate. </comment>
+  </data>
+  <data name="IconOverlayProcessRenamedDirFromSetBadgeSyncingAtOldPath" xml:space="preserve">
+    <value>IconOverlay: Process: Renamed. Dir: From. SetBadge syncing at OldPath.</value>
+    <comment>"IconOverlay", "Process","Renamed", "Dir", "SetBadge" and "OldPath" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayProcessRenamedDirToCallRenameBadgePath" xml:space="preserve">
+    <value>IconOverlay: Process: Renamed. Dir: To. Call RenameBadgePath.</value>
+    <comment>"IconOverlay", "Process","Renamed", "Dir", and "RenameBadgePath" should not be translated. </comment>
+  </data>
+  <data name="IconOverlayProcessRenamedDirTosetBadgeSyncingAtOldPath" xml:space="preserve">
+    <value>IconOverlay: Process: Renamed. Dir: To. setBadge syncing at oldPath.</value>
+    <comment>"IconOverlay", "Process","Renamed", "Dir", "setBadge", and "oldPath" should not be translated.</comment>
+  </data>
+  <data name="IconOverlaySendAddBadgePathEventEntryPath0" xml:space="preserve">
+    <value>IconOverlay: SendAddBadgePathEvent. Entry.  Path: {0}.</value>
+    <comment>"IconOverlay" and "SendAddBadgePathEvent" should not be translated.</comment>
+  </data>
+  <data name="IconOverlaySendAddBadgePathEventExceptionMsg0" xml:space="preserve">
+    <value>IconOverlay: SendAddBadgePathEvent. Exception.  Msg: {0}.</value>
+    <comment>"IconOverlay" and "SendAddBadgePathEvent" should not be translated.</comment>
+  </data>
+  <data name="IconOverlaySendRemoveBadgePathEventEntryPath0" xml:space="preserve">
+    <value>IconOverlay: SendRemoveBadgePathEvent. Entry.  Path: {0}.</value>
+    <comment>"IconOverlay" and "SendAddBadgePathEvent" should not be translated.</comment>
+  </data>
+  <data name="IconOverlaySendRemoveBadgePathEventExceptionMsg0" xml:space="preserve">
+    <value>IconOverlay: SendRemoveBadgePathEvent. Exception.  Msg: {0}.</value>
+    <comment>"IconOverlay" and "SendAddBadgePathEvent" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayUknownMergedEventDirection" xml:space="preserve">
+    <value>Unknown mergedEvent.Direction:</value>
+    <comment>"mergedEvent.Direction" should not be translated. </comment>
+  </data>
+  <data name="IconOverlayUnknownMergedEventDirection" xml:space="preserve">
+    <value>Unknown mergedEvent.Direction:</value>
+    <comment>"mergedEvent.Direction" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayUpdateBadgeStateAtPathAddSyncedBadgeAtThisPath" xml:space="preserve">
+    <value>IconOverlay: UpdateBadgeStateAtPath. Add synced badge at this path.</value>
+    <comment>"IconOverlay" and "UpdateBadgeStateAtPath" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayUpdateBadgeStateAtPathDifferent" xml:space="preserve">
+    <value>IconOverlay: UpdateBadgeStateAtPath. Different.</value>
+    <comment>"IconOverlay" and "UpdateBadgeStateAtPath" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayUpdateBadgeStateAtPathDifferentAndNoFlatAdd" xml:space="preserve">
+    <value>IconOverlay: UpdateBadgeStateAtPath. Different and no flat.  Add.</value>
+    <comment>"IconOverlay" and "UpdateBadgeStateAtPath" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayUpdateBadgeStateAtPathDifferentAndNoHeirarchicalBadgeRemove" xml:space="preserve">
+    <value>IconOverlay: UpdateBadgeStateAtPath. Different and no hierarchical badge.  Remove.</value>
+    <comment>"IconOverlay" and "UpdateBadgeStateAtPath" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayUpdateBadgeStateAtPathHaveFlatBadgeType" xml:space="preserve">
+    <value>IconOverlay: UpdateBadgeStateAtPath. Have flatBadgeType.</value>
+    <comment>"IconOverlay", "UpdateBadgeStateAtPath", and " flatBadgeType" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayUpdateBadgeStateAtPathHaveHeirarchicalBadgeType" xml:space="preserve">
+    <value>IconOverlay: UpdateBadgeStateAtPath. Have hierarchicalBadgeType.</value>
+    <comment>"IconOverlay", " UpdateBadgeStateAtPath", and "hierarchicalBadgeType" should not be translated. </comment>
+  </data>
+  <data name="IconOverlayUpdateBadgeStateAtPathInCurrentBadgeSyncedLocker" xml:space="preserve">
+    <value>IconOverlay: UpdateBadgeStateAtPath. In _currentBadgesSyncedLocker.</value>
+    <comment>"IconOverlay", "UpdateBadgeStateAtPath", and " _currentBadgesSyncedLocker" should not be translated. </comment>
+  </data>
+  <data name="IconOverlayUpdateBadgeStateAtPathRemoveSyncedBadgeAtPathThisPath" xml:space="preserve">
+    <value>IconOverlay: UpdateBadgeStateAtPath. Remove synced badge at this path.</value>
+    <comment>"IconOverlay" and "UpdateBadgeStateAtPath" should not be translated. </comment>
+  </data>
+  <data name="IconOverlayUpdateBadgeStateAtPathResetCurrentBadgesSyncedForThisPath" xml:space="preserve">
+    <value>IconOverlay: UpdateBadgeStateAtPath. Reset _currentBadgesSynced for this path.</value>
+    <comment>"IconOverlay", "UpdateBadgeStateAtPath" and "Reset _currentBadgesSynced" should not be translated. </comment>
+  </data>
+  <data name="IconOverlayUpdateBadgeStateAtPathReturn" xml:space="preserve">
+    <value>IconOverlay: UpdateBadgeStateAtPath. Return.</value>
+    <comment>"IconOverlay" and "UpdateBadgeStateAtPath" should not be translated.</comment>
+  </data>
+  <data name="IconOverlayUpdateBadgeStateAtPathSetCurrentBadgesSyncedForThisPath" xml:space="preserve">
+    <value>IconOverlay: UpdateBadgeStateAtPath. Set _currentBadgesSynced for this path.</value>
+    <comment>"IconOverlay" and "UpdateBadgeStateAtPath" should not be translated.</comment>
+  </data>
+  <data name="IconOverlyGenericSetterProcessBeforeBadgeType" xml:space="preserve">
+    <value>genericSetter.Process (before): badgeType:</value>
+    <comment>"genericSetter.Process" and "badgeType" should not be translated. </comment>
+  </data>
+  <data name="ExceptionCLSyncboxBeginSyncExistingEngine" xml:space="preserve">
+    <value>Not marked as already started, but still has an existing CLSyncEngine</value>
+    <comment>CLSyncEngine should not be translated</comment>
+  </data>
+  <data name="ExceptionCLSyncboxBeginSyncStartEngine" xml:space="preserve">
+    <value>Error starting active syncing</value>
+  </data>
+  <data name="ExceptionCLSyncboxEngineNotFound" xml:space="preserve">
+    <value>Marked as started, but does not have an existing CLSyncEngine</value>
+    <comment>CLSyncEngine should not be translated</comment>
+  </data>
+  <data name="ExceptionCLSyncboxNotStarted" xml:space="preserve">
+    <value>Start the syncbox first</value>
+  </data>
+  <data name="ExceptionCLSyncboxPathNotSet" xml:space="preserve">
+    <value>path must be set first</value>
+    <comment>path should not be translated</comment>
+  </data>
+  <data name="ExceptionCLSyncboxResetLocalCacheAlreadyStarted" xml:space="preserve">
+    <value>Stop the syncbox before resetting local cache</value>
+  </data>
+  <data name="ExceptionHelpersProcessHttpInnerAsyncTimeout" xml:space="preserve">
+    <value>Asynchronously getting request stream or getting response has timed out</value>
+  </data>
+  <data name="ExceptionCLHttpRestWithoutDeleteResponses" xml:space="preserve">
+    <value>Server responded without an array of delete responses</value>
+  </data>
+  <data name="ExceptionCLHttpRestWithoutRenameResponses" xml:space="preserve">
+    <value>Server responded without an array of rename responses</value>
+  </data>
+  <data name="ExceptionOnDemandFileItemNullAtIndexMsg0" xml:space="preserve">
+    <value>File item must not be null at item index {0}</value>
+    <comment>Do not translate "{0}.</comment>
+  </data>
+  <data name="ExceptionOnDemandFolderItemNullAtIndexMsg0" xml:space="preserve">
+    <value>Folder item must not be null at item index {0}</value>
+    <comment>Do not translate "{0}.</comment>
+  </data>
+  <data name="ExceptionOnDemandItemToRenameMustNotBeNull" xml:space="preserve">
+    <value>itemToRename must not be null</value>
+    <comment>Do not translate "itemToRename".</comment>
+  </data>
+  <data name="ExceptionOnDemandNewNameMustBeSpecified" xml:space="preserve">
+    <value>newName must be specified</value>
+    <comment>Do not translate "newName".</comment>
+  </data>
+  <data name="ExceptionCLHttpRestWithoutDeleteResponses" xml:space="preserve">
+    <value>Server responded without an array of delete responses</value>
+  </data>
+  <data name="ExceptionCLHttpRestWithoutRenameResponses" xml:space="preserve">
+    <value>Server responded without an array of rename responses</value>
+  </data>
+  <data name="ExceptionOnDemandFileItemNullAtIndexMsg0" xml:space="preserve">
+    <value>File item must not be null at item index {0}</value>
+    <comment>Do not translate "{0}.</comment>
+  </data>
+  <data name="ExceptionOnDemandFolderItemNullAtIndexMsg0" xml:space="preserve">
+    <value>Folder item must not be null at item index {0}</value>
+    <comment>Do not translate "{0}.</comment>
+  </data>
+  <data name="ExceptionOnDemandItemToRenameMustNotBeNull" xml:space="preserve">
+    <value>itemToRename must not be null</value>
+    <comment>Do not translate "itemToRename".</comment>
+  </data>
+  <data name="ExceptionOnDemandNewNameMustBeSpecified" xml:space="preserve">
+    <value>newName must be specified</value>
+    <comment>Do not translate "newName".</comment>
+  </data>
+  <data name="ExceptionOnDemandItemToMoveMustNotBeNull" xml:space="preserve">
+    <value>Item to move must not be null</value>
+  </data>
+  <data name="ExceptionOnDemandNewParentFolderMustBeSpecified" xml:space="preserve">
+    <value>New parent folder must be specified</value>
+  </data>
+  <!-- Added -->
   <data name="ExceptionCLSyncEngineMissingSyncFolder" xml:space="preserve">
     <value>The syncbox folder does not exist at the specified path: {0}.</value>
   </data>
@@ -1517,7 +2809,7 @@
   <data name="ExceptionOnDemandCheckPathNotContained" xml:space="preserve">
     <value>pathToCheck does not contain syncbox Path</value>
     <comment>pathToCheck, syncbox, and Path should not be translated</comment>
-  </data>
+   </data>
   <data name="ExceptionOnDemandCheckPathNull" xml:space="preserve">
     <value>pathToCheck cannot be null</value>
     <comment>pathToCheck should not be translated</comment>
