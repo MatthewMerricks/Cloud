@@ -302,7 +302,6 @@ namespace Cloud.REST
                 // build the location of the metadata retrieval method on the server dynamically
                 string serverMethodPath = CLDefinitions.MethodPathGetItemMetadata +
                     Helpers.QueryStringBuilder(new[] // the method grabs its parameters by query string (since this method is an HTTP GET)
-                    Helpers.QueryStringBuilder(new[] // the method grabs its parameters by query string (since this method is an HTTP GET)
                     {
                         // query string parameter for the path to query, built by turning the full path location into a relative path from the cloud root and then escaping the whole thing for a url
                         new KeyValuePair<string, string>(CLDefinitions.CLMetadataCloudPath, Uri.EscapeDataString(relativePath)),
