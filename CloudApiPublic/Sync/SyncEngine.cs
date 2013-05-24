@@ -4332,16 +4332,6 @@ namespace Cloud.Sync
 
                                 SyncStillRunning(commonRunThreadId);
 
-                                if (getIsShutdown.TypedProcess())
-                                {
-                                    //completedChanges = Helpers.DefaultForType<IEnumerable<PossiblyChangedFileChange>>();
-                                    //incompleteChanges = Helpers.DefaultForType<IEnumerable<PossiblyStreamableAndPossiblyChangedFileChange>>();
-                                    //changesInError = Helpers.DefaultForType<IEnumerable<PossiblyStreamableAndPossiblyChangedFileChangeWithError>>();
-                                    //newSyncId = Helpers.DefaultForType<string>();
-                                    //return new Exception("Shut down in the middle of communication");
-                                    return toReturn.Value;
-                                }
-
                                 startAndReturnPostCommunicationAsynchronousChanges.Process();
 
                                 // advanced trace, SyncRunPostCommunicationAsynchronous
