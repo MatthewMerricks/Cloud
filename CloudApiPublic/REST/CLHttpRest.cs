@@ -299,19 +299,20 @@ namespace Cloud.REST
                 FilePath fullPath = new FilePath(path);
                 string relativePath = fullPath.GetRelativePath(_syncbox.Path, true);
 
-                // file move (rename) and folder move (rename) share a json contract object for move (rename)
-                SyncboxGetMetadataForPathRequest requestContent = new SyncboxGetMetadataForPathRequest()
-                {
-                    Id = _syncbox.SyncboxId,
-                    path = relativePath,
-                };
+                // build the location of the metadata retrieval method on the server dynamically
+                string serverMethodPath = CLDefinitions.MethodPathGetItemMetadata +
+                    Helpers.QueryStringBuilder(new[] // the method grabs its parameters by query string (since this method is an HTTP GET)
+                    {
+                        // query string parameter for the path to query, built by turning the full path location into a relative path from the cloud root and then escaping the whole thing for a url
+                        new KeyValuePair<string, string>(CLDefinitions.CLMetadataCloudPath, Uri.EscapeDataString(relativePath)),
 
-                // server method path
-                string serverMethodPath = CLDefinitions.MethodPathGetItemMetadata;
+                        // query string parameter for the current sync box id, should not need escaping since it should be an integer in string format
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringSyncboxId, _syncbox.SyncboxId.ToString())
+                    });
 
                 // Communicate with the server to get the response.
                 JsonContracts.SyncboxMetadataResponse responseFromServer;
-                responseFromServer = Helpers.ProcessHttp<JsonContracts.SyncboxMetadataResponse>(requestContent, // dynamic type of request content based on method path
+                responseFromServer = Helpers.ProcessHttp<JsonContracts.SyncboxMetadataResponse>(null, // no content body for get
                     CLDefinitions.CLMetaDataServerURL, // base domain is the MDS server
                     serverMethodPath, // dynamic path to appropriate one-off method
                     Helpers.requestMethod.get, // one-off methods are all posts
@@ -1267,7 +1268,7 @@ namespace Cloud.REST
                     {
                         throw new CLArgumentException(CLExceptionCode.OnDemand_InvalidExistingPath, String.Format(Resources.ExceptionOnDemandRenameFilesInvalidExistingPathInItemMsg0, paramIdx.ToString()));
                     }
-                    FilePath fullPathExisting = new FilePath(_syncbox.Path + currentParams.ItemToMove.Path.Replace('/', '\\'));
+                    FilePath fullPathExisting = new FilePath(_syncbox.Path + currentParams.ItemToMove.Path.Replace('/', '\\').TrimTrailingSlash());
                     string nameExisting = fullPathExisting.Name;
                     FilePath fullPathNewParentFolder = new FilePath(currentParams.NewParentPath);
                     FilePath fullPathNewMovedFolder = new FilePath(nameExisting, fullPathNewParentFolder);

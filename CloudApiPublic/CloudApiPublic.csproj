@@ -326,6 +326,7 @@
     <Compile Include="SQLProxies\SQLiteExceptionBase.cs" />
     <Compile Include="SQLProxies\WrappedEnums.cs" />
     <Compile Include="Static\ItemsControlHelper.cs" />
+    <Compile Include="Static\StringHelper.cs" />
     <Compile Include="Support\CLCopyFiles.cs" />
     <Compile Include="CLSync\CLSyncEngine.cs" />
     <Compile Include="Static\CLOsVersionInfo.cs" />

@@ -2614,6 +2614,7 @@ namespace Cloud.Static
             { typeof(JsonContracts.FileOrFolderMove), JsonContractHelpers.FileOrFolderMoveSerializer },
             { typeof(JsonContracts.FileOrFolderMoves), JsonContractHelpers.FileOrFolderMovesSerializer },
             { typeof(JsonContracts.FileOrFolderUndelete), JsonContractHelpers.FileOrFolderUndeleteSerializer },
+            { typeof(JsonContracts.SyncboxGetMetadataForPathRequest), JsonContractHelpers.GetMetadataForPathRequestSerializer},
             #endregion
 
             { typeof(JsonContracts.FileCopy), JsonContractHelpers.FileCopySerializer },
