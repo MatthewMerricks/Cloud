@@ -93,5 +93,11 @@ namespace Cloud.JsonContracts
 
         [DataMember(Name = CLDefinitions.QueryStringSyncboxId, IsRequired = false)]
         public Nullable<long> SyncboxId { get; set; }
+
+        [DataMember(Name = CLDefinitions.CLMetadataName, IsRequired = false)]
+        public string Name { get; set; }
+
+        [DataMember(Name = CLDefinitions.CLMetadataParentUid, IsRequired = false)]
+        public string ParentUid { get; set; }
     }
 }

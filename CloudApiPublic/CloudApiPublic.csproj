@@ -133,6 +133,7 @@
     <Compile Include="CLSync\CLCredentialsSettings.cs" />
     <Compile Include="CLSync\CLFileItemCompletion.cs" />
     <Compile Include="CLSync\CLSyncbox.cs" />
+    <Compile Include="CLSync\CLSyncboxParameters\AddItemParams.cs" />
     <Compile Include="CLSync\CLSyncboxParameters\RenameItemParams.cs" />
     <Compile Include="CLSync\CLSyncboxParameters\MoveItemParams.cs" />
     <Compile Include="CLSync\CLSyncboxParameters\RenamePathParams.cs" />
@@ -148,13 +149,12 @@
     <Compile Include="Interfaces\IEventMessageReceiver.cs" />
     <Compile Include="Interfaces\ITransferTaskState.cs" />
     <Compile Include="JsonContracts\Archives.cs" />
-    <Compile Include="JsonContracts\SyncboxGetMetadataForPathRequest.cs" />
     <Compile Include="JsonContracts\SyncboxDeleteFoldersResponse.cs" />
     <Compile Include="JsonContracts\FileAdds.cs" />
     <Compile Include="JsonContracts\FileVersions.cs" />
     <Compile Include="JsonContracts\SyncboxAddFilesResponse.cs" />
     <Compile Include="JsonContracts\SyncboxAddFoldersResponse.cs" />
-    <Compile Include="JsonContracts\FolderAdds.cs" />
+    <Compile Include="JsonContracts\FolderAddsRequest.cs" />
     <Compile Include="JsonContracts\SyncboxDeleteFilesResponse.cs" />
     <Compile Include="JsonContracts\FileOrFolderDeletesRequest.cs" />
     <Compile Include="JsonContracts\FileOrFolderMoves.cs" />
@@ -210,9 +210,9 @@
     <Compile Include="JsonContracts\FileOrFolderMove.cs" />
     <Compile Include="JsonContracts\FileOrFolderUndelete.cs" />
     <Compile Include="JsonContracts\FileVersion.cs" />
-    <Compile Include="JsonContracts\FolderAdd.cs" />
+    <Compile Include="JsonContracts\FolderAddRequest.cs" />
     <Compile Include="JsonContracts\SyncboxFolderContentsResponse.cs" />
-    <Compile Include="JsonContracts\Folders.cs" />
+    <Compile Include="JsonContracts\FoldersResponse.cs" />
     <Compile Include="JsonContracts\ItemCount.cs" />
     <Compile Include="JsonContracts\SyncboxListResponse.cs" />
     <Compile Include="JsonContracts\MetadataDictionary.cs" />

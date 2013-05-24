@@ -16,7 +16,7 @@ using System.Text;
 namespace Cloud.JsonContracts
 {
     [DataContract]
-    internal sealed class FolderAdd
+    internal sealed class FolderAddRequest
     {
         [DataMember(Name = CLDefinitions.QueryStringDeviceId, IsRequired = false)]
         public string DeviceId { get; set; }
@@ -57,5 +57,11 @@ namespace Cloud.JsonContracts
 
         [DataMember(Name = CLDefinitions.QueryStringSyncboxId, IsRequired = false)]
         public Nullable<long> SyncboxId { get; set; }
+
+        [DataMember(Name = CLDefinitions.CLMetadataName, IsRequired = false)]
+        public string Name { get; set; }
+
+        [DataMember(Name = CLDefinitions.CLMetadataParentUid, IsRequired = false)]
+        public string ParentUid { get; set; }
     }
 }

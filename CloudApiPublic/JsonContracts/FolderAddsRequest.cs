@@ -16,9 +16,15 @@ using System.Text;
 namespace Cloud.JsonContracts
 {
     [DataContract]
-    internal sealed class FolderAdds
+    internal sealed class FolderAddsRequest
     {
+        [DataMember(Name = CLDefinitions.QueryStringSyncboxId, IsRequired = false)]
+        public Nullable<long> SyncboxId { get; set; }
+
+        [DataMember(Name = CLDefinitions.QueryStringDeviceId, IsRequired = false)]
+        public string DeviceId { get; set; }
+
         [DataMember(Name = CLDefinitions.RESTRequestFolderAdds, IsRequired = false)]
-        public FolderAdd [] Adds { get; set; }
+        public FolderAddRequest[] Adds { get; set; }
     }
 }

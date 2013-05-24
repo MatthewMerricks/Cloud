@@ -260,7 +260,6 @@ namespace Cloud.Sync
             #endregion
         }
 
-
         // Timer to handle wait callbacks to requeue failures to reprocess
         private ProcessingQueuesTimer FailureTimer
         {
@@ -1789,7 +1788,8 @@ namespace Cloud.Sync
                     verifyUnderFailureTimerLock = verifyUnderFailureTimerLock,
                     commonOutputChanges = commonOutputChanges,
                     commonNullErrorFoundInFailureQueue = commonNullErrorFoundInFailureQueue,
-                    commonRespondingToPushNotification = commonRespondingToPushNotification
+                    commonRespondingToPushNotification = commonRespondingToPushNotification,
+                    firstTimeRunning = new GenericHolder<bool>(false)
                 },
                 (Data, errorToAccumulate) =>
                 {
@@ -1819,6 +1819,7 @@ namespace Cloud.Sync
                                 out outputChangesInError,
                                 out outputChangesInErrorCount,
                                 out nullChangeFoundInFileSystemMonitor,
+                                Data.firstTimeRunning.Value,
                                 Data.commonThisEngine.FailedOutChanges);
 
                             Data.commonOutputChanges.Value = outputChanges;
@@ -4135,6 +4136,8 @@ namespace Cloud.Sync
 
                                 // update last status
                                 disposeErrorStreamsAndLogErrors.TypedData.syncStatus.Value = "Sync Run dequeued initial failures for dependency check";
+
+                                grabFileMonitorChangesAndCombineHierarchyWithErrorsAndReturnWhetherSuccessful.TypedData.firstTimeRunning.Value = !RunLocker.Value;
 
                                 errorGrabbingChanges = !grabFileMonitorChangesAndCombineHierarchyWithErrorsAndReturnWhetherSuccessful.TypedProcess();
                             }

@@ -505,6 +505,7 @@ namespace Cloud.Static
         // Cloud Sync Status
         public const string CLEventTypeAccepted = "ok";
         public const string CLEventTypeAlreadyDeleted = "already_deleted";
+        public const string CLEventTypeParentDeleted = "parent_deleted";
         public const string CLEventTypeNoOperation = "no_op";
         public const string CLEventTypeUpload = "upload";
         public const string CLEventTypeExists = "exists";
@@ -514,6 +515,7 @@ namespace Cloud.Static
         public const string CLEventTypeNotFound = "not_found";
         public const string CLEventTypeDownload = "download";
         public const string CLEventTypeToParentNotFound = "to_parent_not_found";
+        public const string CLEventTypeParentNotFound = "parent_not_found";
 
         // Cloud Metadata Protocol
         public const string CLMetadataFileObject = "file_object";

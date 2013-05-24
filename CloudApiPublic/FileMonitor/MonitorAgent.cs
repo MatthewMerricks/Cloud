@@ -863,11 +863,27 @@ namespace Cloud.FileMonitor
         /// </summary>
         public void PushNotification(JsonContracts.NotificationResponse notification)
         {
-            lock (QueuesTimer.TimerRunningLocker)
+            InitialIndexLocker.EnterReadLock();
+            try
             {
-                QueuesTimer.StartTimerIfNotRunning();
+                if (IsInitialIndex)
+                {
+                    initialPushNotificationQueued = true;
+                }
+                else
+                {
+                    lock (QueuesTimer.TimerRunningLocker)
+                    {
+                        QueuesTimer.StartTimerIfNotRunning();
+                    }
+                }
+            }
+            finally
+            {
+                InitialIndexLocker.ExitReadLock();
             }
         }
+        private bool initialPushNotificationQueued = false;
 
         /// <summary>
         /// Applies a Sync From FileChange to the local file system i.e. a folder creation would cause the local FileSystem to create a folder locally;
@@ -1556,6 +1572,8 @@ namespace Cloud.FileMonitor
         /// <param name="newChanges">FileChanges that need to be immediately processed as new changes</param>
         public void BeginProcessing(IEnumerable<KeyValuePair<FilePath, FileMetadata>> initialList, IEnumerable<FileChange> newChanges = null)
         {
+            bool storeNotificationQueued;
+
             // Locks all new file system events from being processed until the initial index is processed,
             // afterwhich they will no longer queue up and instead process normally going forward
             InitialIndexLocker.EnterWriteLock();
@@ -1577,20 +1595,12 @@ namespace Cloud.FileMonitor
                     // lock to prevent the queue of changes to process from being seperately read/modified
                     lock (QueuedChanges)
                     {
-                        // Store a boolean whether to trigger an initial sync operation in case
-                        // no changes occurred that would otherwise trigger sync
-                        // bool triggerSyncWithNoChanges = true;  RKS: Removed.  Push notification will trigger the initial sync from.
-                        bool triggerSyncWithNoChanges = false;
-
                         // only need to process new changes if the list exists
                         if (newChanges != null)
                         {
                             // loop through new changes to process
                             foreach (FileChange currentChange in newChanges)
                             {
-                                // A file change will be processed which will trigger an initial sync later
-                                triggerSyncWithNoChanges = false;
-
                                 // take the new change to process and update the current, in-memory index;
                                 // also queue it for processing
 
@@ -1655,13 +1665,6 @@ namespace Cloud.FileMonitor
                                 }
                             }
                         }
-
-                        // If there were no file changes that will trigger a sync later,
-                        // then trigger it now as an initial sync with an empty dictionary
-                        if (triggerSyncWithNoChanges)
-                        {
-                            PushNotification(null);
-                        }
                     }
                 }
 
@@ -1697,10 +1700,19 @@ namespace Cloud.FileMonitor
                         ((KeyValuePair<Action<DisposeCheckingHolder>, DisposeCheckingHolder>)startProcessing.Value).Key(((KeyValuePair<Action<DisposeCheckingHolder>, DisposeCheckingHolder>)startProcessing.Value).Value);
                     }
                 }
+
+                storeNotificationQueued = initialPushNotificationQueued;
             }
             finally
             {
                 InitialIndexLocker.ExitWriteLock();
+            }
+
+            // the initial manual notification for the initial sync from could have come in before intial indexing completed,
+            // if so then it marked a boolean to notify that the first sync must be started now
+            if (storeNotificationQueued)
+            {
+                PushNotification(null);
             }
         }
 
@@ -2467,7 +2479,8 @@ namespace Cloud.FileMonitor
         /// <param name="outputChanges">Output array of FileChanges to process</param>
         /// <param name="outputChangesInError">Output array of FileChanges with observed errors for requeueing, may be empty but never null</param>
         /// <param name="nullChangeFound">(output) Whether a null FileChange was found in the processing queue (which does not get output)</param>
-        /// <param name="failedOutChanges">The possibly null queue containing failed out changes which should be locked if it exists by the method caller</param>
+        /// <param name="firstTimeRunning">Whether this is the first time the engine was ran</param>
+        /// <param name="failedOutChanges">The possibly null queue containing failed out changes which should be locked if it exists by the method callerl</param>
         /// <returns>Returns error(s) that occurred finalizing the FileChange array, if any</returns>
         internal CLError GrabPreprocessedChanges(IEnumerable<PossiblyPreexistingFileChangeInError> initialFailures,
             out IEnumerable<PossiblyStreamableFileChange> outputChanges,
@@ -2475,12 +2488,43 @@ namespace Cloud.FileMonitor
             out IEnumerable<PossiblyPreexistingFileChangeInError> outputChangesInError,
             out int outputChangesInErrorCount,
             out bool nullChangeFound,
+            bool firstTimeRunning,
             List<FileChange> failedOutChanges)
         {
             CLError toReturn = null;
             List<KeyValuePair<FileChangeMerge, FileChange>> queuedChangesNeedMergeToSql = new List<KeyValuePair<FileChangeMerge, FileChange>>();
             try
             {
+                // to accumulate all initially-indexed changes, make sure the QueuedChanges list is cleared before continuing, waiting a maximum of 60 extra seconds
+
+                int repeatCount = 0;
+                const int repeatMax = 30; // max delay of 30 times 2 seconds = 60 seconds
+                const int repeatDelayMilliseconds = 2000; // 2 seconds
+                do
+                {
+                    bool waitAndRepeat = false;
+
+                    if (firstTimeRunning)
+                    {
+                        lock (QueuedChanges)
+                        {
+                            waitAndRepeat = (QueuedChanges.Count + QueuedChangesForceProcessing.Count) > 0;
+                        }
+                    }
+
+                    if (waitAndRepeat)
+                    {
+                        repeatCount++;
+
+                        Thread.Sleep(repeatDelayMilliseconds);
+                    }
+                    else
+                    {
+                        repeatCount = repeatMax;
+                    }
+                }
+                while (repeatCount < repeatMax);
+
                 lock (QueuedChanges)
                 {
                     lock (QueuesTimer.TimerRunningLocker)

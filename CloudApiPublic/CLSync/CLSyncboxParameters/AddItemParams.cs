@@ -1,5 +1,5 @@
 ﻿//
-// RenameItemParams.cs
+// AddItemParams.cs
 // Cloud Windows
 //
 // Created By BobS.
@@ -17,50 +17,50 @@ namespace Cloud.CLSync.CLSyncboxParameters
     /// <summary>
     /// Contains the old path and new path for renaming a single item
     /// </summary>
-    public sealed class RenameItemParams
+    public sealed class AddItemParams
     {
         /// <summary>
         /// Returns the item (file or folder) to rename in place.
         /// </summary>
-        public CLFileItem ItemToRename
+        public CLFileItem Item
         {
             get
             {
-                return _itemToRename;
+                return _item;
             }
         }
-        private readonly CLFileItem _itemToRename;
+        private readonly CLFileItem _item;
 
         /// <summary>
         /// Returns the new name of the item.
         /// </summary>
-        public string NewName
+        public string Name
         {
             get
             {
-                return _newName;
+                return _name;
             }
         }
-        private readonly string _newName;
+        private readonly string _name;
 
         /// <summary>
         /// Construct parameters for renaming an item in place.
         /// </summary>
         /// <param name="itemToRename">The item (file or folder) to rename in place.</param>
-        /// <param name="newName">New name of the item</param>
-        public RenameItemParams(CLFileItem itemToRename, string newName)
+        /// <param name="name">New name of the item</param>
+        public AddItemParams(CLFileItem item, string name)
         {
-            if (itemToRename == null)
+            if (item == null)
             {
-                throw new CLArgumentNullException(Static.CLExceptionCode.OnDemand_MissingParameters, Resources.ExceptionOnDemandItemToRenameMustNotBeNull);
+                throw new CLArgumentNullException(Static.CLExceptionCode.OnDemand_MissingParameters, Resources.ExceptionOnDemandAddItemItemMustNotBeNull);
             }
-            if (String.IsNullOrEmpty(newName))
+            if (String.IsNullOrEmpty(name))
             {
-                throw new CLArgumentNullException(Static.CLExceptionCode.OnDemand_MissingParameters, Resources.ExceptionOnDemandNewNameMustBeSpecified);
+                throw new CLArgumentNullException(Static.CLExceptionCode.OnDemand_MissingParameters, Resources.ExceptionOnDemandAddItemNameMustBeSpecified);
             }
 
-            this._itemToRename = itemToRename;
-            this._newName = newName;
+            this._item = item;
+            this._name = name;
         }
     }
 }

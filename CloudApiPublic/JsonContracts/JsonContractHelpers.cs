@@ -72,20 +72,6 @@ namespace Cloud.JsonContracts
         private static DataContractJsonSerializer _getMetadataResponseSerializer = null;
         private static readonly object GetMetadataResponseSerializerLocker = new object();
 
-        public static DataContractJsonSerializer GetMetadataForPathRequestSerializer
-        {
-            get
-            {
-                lock (GetMetadataForPathRequestSerializerLocker)
-                {
-                    return _getMetadataForPathRequestSerializer
-                        ?? (_getMetadataForPathRequestSerializer = new DataContractJsonSerializer(typeof(JsonContracts.SyncboxGetMetadataForPathRequest)));
-                }
-            }
-        }
-        private static DataContractJsonSerializer _getMetadataForPathRequestSerializer = null;
-        private static readonly object GetMetadataForPathRequestSerializerLocker = new object();
-
         public static DataContractJsonSerializer GetStatusResponseSerializer
         {
             get
@@ -268,7 +254,7 @@ namespace Cloud.JsonContracts
                 lock (FolderAddSerializerLocker)
                 {
                     return _folderAddSerializer
-                        ?? (_folderAddSerializer = new DataContractJsonSerializer(typeof(JsonContracts.FolderAdd)));
+                        ?? (_folderAddSerializer = new DataContractJsonSerializer(typeof(JsonContracts.FolderAddRequest)));
                 }
             }
         }
@@ -622,7 +608,7 @@ namespace Cloud.JsonContracts
                 lock (FoldersSerializerLocker)
                 {
                     return _foldersSerializer
-                        ?? (_foldersSerializer = new DataContractJsonSerializer(typeof(JsonContracts.Folders)));
+                        ?? (_foldersSerializer = new DataContractJsonSerializer(typeof(JsonContracts.FoldersResponse)));
                 }
             }
         }

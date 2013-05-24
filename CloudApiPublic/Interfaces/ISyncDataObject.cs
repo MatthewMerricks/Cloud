@@ -42,6 +42,7 @@ namespace Cloud.Interfaces
         /// <param name="outputChanges">(output) Highest level FileChanges and necessary Streams to process (without dependencies)</param>
         /// <param name="outputChangesInError">(output) Highest level FileChanges to be queued for error processing</param>
         /// <param name="nullChangeFound">(output) Whether a null FileChange was found in the processing queue (which does not get output)</param>
+        /// <param name="firstTimeRunning">Whether this is the first time the engine was ran</param>
         /// <param name="failedOutChanges">(optional) The list containing failed out changes which should be locked if it exists by the method caller</param>
         /// <returns>Should return any error that occured while grabbing events, should not throw the exception</returns>
         CLError grabChangesFromFileSystemMonitor(IEnumerable<PossiblyPreexistingFileChangeInError> initialFailures,
@@ -50,6 +51,7 @@ namespace Cloud.Interfaces
             out IEnumerable<PossiblyPreexistingFileChangeInError> outputChangesInError,
             out int outputChangesInErrorCount,
             out bool nullChangeFound,
+            bool firstTimeRunning,
             List<FileChange> failedOutChanges = null);
 
         CLError CreateNewServerUid(string serverUid, string revision, out long serverUidId, SQLTransactionalBase existingTransaction = null);

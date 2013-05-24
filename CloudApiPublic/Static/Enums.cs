@@ -465,6 +465,16 @@ namespace Cloud.Static
         /// </summary>
         OnDemand_MissingParameters = (((ulong)CLExceptionDomain.OnDemand) << 32) | 24, // 5_24
 
+        /// <summary>
+        /// Cloud On Demand API.  The item already exists.
+        /// </summary>
+        OnDemand_AlreadyExists = (((ulong)CLExceptionDomain.OnDemand) << 32) | 25, // 5_25
+
+        /// <summary>
+        /// Cloud On Demand API.  Error in AddFolders.
+        /// </summary>
+        OnDemand_AddFolders = (((ulong)CLExceptionDomain.OnDemand) << 32) | 26, // 5_26
+
 
 
         #endregion
