@@ -450,6 +450,18 @@ namespace Cloud.Static
         /// </summary>
         OnDemand_FolderAddBadPath = (((ulong)CLExceptionDomain.OnDemand) << 32) | 33, // 5_33
 
+        /// <summary>
+        /// Cloud syncbox move parameters missing properties
+        /// </summary>
+        OnDemand_MoveItemParamsMissingProperties = (((ulong)CLExceptionDomain.OnDemand) << 32) | 34, // 5_34
+
+        /// <summary>
+        /// Cloud syncbox moves. The new full path of the renamed item must be valid within the syncbox path.
+        /// </summary>
+        OnDemand_MovedItemBadPath = (((ulong)CLExceptionDomain.OnDemand) << 32) | 23, // 5_23
+
+
+
         #endregion
 
         #region FileItem

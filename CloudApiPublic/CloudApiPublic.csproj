@@ -134,6 +134,7 @@
     <Compile Include="CLSync\CLFileItemCompletion.cs" />
     <Compile Include="CLSync\CLSyncbox.cs" />
     <Compile Include="CLSync\CLSyncboxParameters\RenameItemParams.cs" />
+    <Compile Include="CLSync\CLSyncboxParameters\MoveItemParams.cs" />
     <Compile Include="CLSync\CLSyncboxParameters\RenamePathParams.cs" />
     <Compile Include="CLSync\CLSyncCurrentStatus.cs" />
     <Compile Include="CLSync\CLSyncTransferringFile.cs" />
