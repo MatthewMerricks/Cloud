@@ -2691,6 +2691,24 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to itemsPerPage must be greater than zero..
+        /// </summary>
+        internal static string ExceptionOnDemandAllImageItemsInvalidItemsPerPage {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandAllImageItemsInvalidItemsPerPage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to pageNumber must be greater than zero..
+        /// </summary>
+        internal static string ExceptionOnDemandAllImageItemsInvalidPageNumber {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandAllImageItemsInvalidPageNumber", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Item has already been deleted.
         /// </summary>
         internal static string ExceptionOnDemandAlreadyDeleted {

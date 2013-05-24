@@ -2166,199 +2166,6 @@ namespace Cloud.REST
             return null;
         }
 
-        ///// <summary>
-        ///// Asynchronously starts adding folders in the syncbox.
-        ///// </summary>
-        ///// <param name="callback">Callback method to fire when operation completes</param>
-        ///// <param name="callbackUserState">Userstate to pass when firing async callback</param>
-        ///// <param name="paths">An array of full paths to where the folders would exist locally on disk</param>
-        ///// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        //public IAsyncResult BeginAddFolders(AsyncCallback callback, object callbackUserState, string[] paths)
-        //{
-        //    var asyncThread = DelegateAndDataHolderBase.Create(
-        //        // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
-        //        new
-        //        {
-        //            // create the asynchronous result to return
-        //            toReturn = new GenericAsyncResult<SyncboxAddFoldersResult>(
-        //                callback,
-        //                callbackUserState),
-        //            paths
-        //        },
-        //        (Data, errorToAccumulate) =>
-        //        {
-        //            // The ThreadProc.
-        //            // try/catch to process with the input parameters, on catch set the exception in the asyncronous result
-        //            try
-        //            {
-        //                // declare the output status for communication
-        //                // declare the specific type of result for this operation
-        //                CLFileItem[] responses;
-        //                CLError[] errors;
-        //                // alloc and init the syncbox with the passed parameters, storing any error that occurs
-        //                CLError overallError = AddFolders(
-        //                    Data.paths,
-        //                    out responses,
-        //                    out errors);
-
-        //                Data.toReturn.Complete(
-        //                    new SyncboxAddFoldersResult(
-        //                        overallError, // any overall error that may have occurred during processing
-        //                        errors,     // any item erros that may have occurred during processing
-        //                        responses), // the specific type of result for this operation
-        //                    sCompleted: false); // processing did not complete synchronously
-        //            }
-        //            catch (Exception ex)
-        //            {
-        //                Data.toReturn.HandleException(
-        //                    ex, // the exception which was not handled correctly by the CLError wrapping
-        //                    sCompleted: false); // processing did not complete synchronously
-        //            }
-        //        },
-        //        null);
-
-        //    // create the thread from a void (object) parameterized start which wraps the synchronous method call
-        //    (new Thread(new ThreadStart(asyncThread.VoidProcess))).Start(); // start the asynchronous processing thread which is attached to its data
-
-        //    // return the asynchronous result
-        //    return asyncThread.TypedData.toReturn;
-        //}
-
-        ///// <summary>
-        ///// Finishes adding folders in the syncbox, if it has not already finished via its asynchronous result, and outputs the result,
-        ///// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
-        ///// </summary>
-        ///// <param name="aResult">The asynchronous result provided upon starting the request</param>
-        ///// <param name="result">(output) The result from the request</param>
-        ///// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        //public CLError EndAddFolders(IAsyncResult aResult, out SyncboxAddFoldersResult result)
-        //{
-        //    return Helpers.EndAsyncOperation<SyncboxAddFoldersResult>(aResult, out result);
-        //}
-
-        ///// <summary>
-        ///// Add folders in the syncbox.
-        ///// </summary>
-        ///// <param name="paths">An array of full paths to where the folders would exist locally on disk</param>
-        ///// <param name="responses">(output) An array of response objects from communication</param>
-        ///// <param name="errors">(output) An array of errors from communication.</param>
-        ///// <returns>Returns any error that occurred during communication, if any</returns>
-        //public CLError AddFolders(string[] paths, out CLFileItem[] responses, out CLError[] errors)
-        //{
-        //    // try/catch to process the request,  On catch return the error
-        //    try
-        //    {
-        //        // check input parameters.
-        //        for (int i = 0; i < paths.Length; ++i)
-        //        {
-                    
-        //            CheckPath(paths[i], CLExceptionCode.OnDemand_FolderAddBadPath);
-        //        }
-
-        //        if (!(_copiedSettings.HttpTimeoutMilliseconds > 0))
-        //        {
-        //            throw new ArgumentException(Resources.CLMSTimeoutMustBeGreaterThanZero);
-        //        }
-
-        //        // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
-        //        Helpers.RequestNewCredentialsInfo requestNewCredentialsInfo = new Helpers.RequestNewCredentialsInfo()
-        //        {
-        //            ProcessingStateByThreadId = _processingStateByThreadId,
-        //            GetNewCredentialsCallback = _getNewCredentialsCallback,
-        //            GetNewCredentialsCallbackUserState = _getNewCredentialsCallbackUserState,
-        //            GetCurrentCredentialsCallback = GetCurrentCredentialsCallback,
-        //            SetCurrentCredentialsCallback = SetCurrentCredentialCallback,
-        //        };
-
-        //        // Build the REST content dynamically.
-        //        // Folder move (rename) and folder move (rename) share a json contract object for move (rename).
-        //        // This will be an array of contracts.
-        //        int numberOfFolders = paths.Length;
-        //        List<FolderAdd> listAddContract = new List<FolderAdd>();
-        //        for (int i = 0; i < numberOfFolders; ++i)
-        //        {
-        //            FilePath folderPath = new FilePath(paths[i]);
-
-        //            FolderAdd thisAdd = new FolderAdd()
-        //            {
-        //                DeviceId = _copiedSettings.DeviceId,
-        //                RelativePath = folderPath.GetRelativePath(_syncbox.Path, true),
-        //                SyncboxId = _syncbox.SyncboxId
-        //            };
-
-        //            listAddContract.Add(thisAdd);
-        //        }
-
-        //        // Now make the REST request content.
-        //        object requestContent = new JsonContracts.FolderAdds()
-        //        {
-        //            Adds = listAddContract.ToArray()
-        //        };
-
-        //        // server method path switched on whether change is a folder or not
-        //        string serverMethodPath = CLDefinitions.MethodPathOneOffFolderAdds;
-
-        //        // Communicate with the server to get the response.
-        //        JsonContracts.SyncboxAddFoldersResponse responseFromServer;
-        //        responseFromServer = Helpers.ProcessHttp<JsonContracts.SyncboxAddFoldersResponse>(requestContent, // dynamic type of request content based on method path
-        //            CLDefinitions.CLMetaDataServerURL, // base domain is the MDS server
-        //            serverMethodPath, // dynamic path to appropriate one-off method
-        //            Helpers.requestMethod.post, // one-off methods are all posts
-        //            _copiedSettings.HttpTimeoutMilliseconds, // time before communication timeout
-        //            null, // not an upload or download
-        //            Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
-        //            _copiedSettings, // pass the copied settings
-        //            _syncbox.SyncboxId, // pass the unique id of the sync box on the server
-        //            requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
-        //            true);
-
-        //        // Convert these items to the output array.
-        //        if (responseFromServer != null && responseFromServer.AddResponses != null)
-        //        {
-        //            List<CLFileItem> listFileItems = new List<CLFileItem>();
-        //            List<CLError> listErrors = new List<CLError>();
-        //            foreach (FileChangeResponse fileChangeResponse in responseFromServer.AddResponses)
-        //            {
-        //                if (fileChangeResponse != null && fileChangeResponse.Metadata != null)
-        //                {
-        //                    try
-        //                    {
-        //                        listFileItems.Add(new CLFileItem(fileChangeResponse.Metadata, fileChangeResponse.Header.Action, fileChangeResponse.Action, _syncbox));
-        //                    }
-        //                    catch (Exception ex)
-        //                    {
-        //                        CLException exInner = new CLException(CLExceptionCode.OnDemand_FolderAddInvalidMetadata, ex.Message, ex);
-        //                        listErrors.Add(new CLError(exInner));
-        //                    }
-        //                }
-        //                else
-        //                {
-        //                    string msg = "<Unknown>";
-        //                    if (fileChangeResponse.Header.Status != null)
-        //                    {
-        //                        msg = fileChangeResponse.Header.Status;
-        //                    }
-
-        //                    CLException ex = new CLException(CLExceptionCode.OnDemand_FolderAdd, msg);
-        //                    listErrors.Add(new CLError(ex));
-        //                }
-        //            }
-        //            responses = listFileItems.ToArray();
-        //            errors = listErrors.ToArray();
-        //        }
-        //        else
-        //        {
-        //            throw new NullReferenceException(Resources.ExceptionCLHttpRestWithoutMoveResponses);
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        responses = Helpers.DefaultForType<CLFileItem[]>();
-        //        errors = Helpers.DefaultForType<CLError[]>();
-        //        return ex;
-        //    }
-        //    return null;
-        //}
         #endregion  // end AddFolders (Adds folders in the syncbox.)
 
         #region AddFiles (Add files in the syncbox.)
@@ -3087,24 +2894,29 @@ namespace Cloud.REST
         }
         #endregion
 
-        #region GetAllImageItems (Get all the pictures from the server for this syncbox)
+        #region AllImageItems (Get image items from this syncbox)
         /// <summary>
-        /// Asynchronously starts querying the server for all image items.
+        /// Asynchronously starts querying image items from the syncbox.  
         /// </summary>
-        /// <param name="callback">Callback method to fire when operation completes</param>
-        /// <param name="callbackUserState">Userstate to pass when firing async callback</param>
-        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
+        /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
+        /// <param name="completionCallback">Callback method to fire when a page of items is complete.</param>
+        /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion callback above is fired.</param>
+        /// <param name="pageNumber">Beginning page number.  The first page is page 1.</param>
+        /// <param name="itemsPerPage">Items per page.</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginGetAllImageItems(AsyncCallback callback, object callbackUserState)
+        internal IAsyncResult BeginAllImageItems(AsyncCallback asyncCallback, object asyncCallbackUserState, CLAllItemsCompletion completionCallback, object completionCallbackUserState, long pageNumber, long itemsPerPage)
         {
             var asyncThread = DelegateAndDataHolderBase.Create(
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
                 new
                 {
                     // create the asynchronous result to return
-                    toReturn = new GenericAsyncResult<SyncboxGetAllImageItemsResult>(
-                        callback,
-                        callbackUserState)
+                    toReturn = new GenericAsyncResult<CLError>(
+                        asyncCallback,
+                        asyncCallbackUserState),
+                        pageNumber = pageNumber,
+                        itemsPerPage = itemsPerPage,
                 },
                 (Data, errorToAccumulate) =>
                 {
@@ -3112,16 +2924,14 @@ namespace Cloud.REST
                     // try/catch to process with the input parameters, on catch set the exception in the asyncronous result
                     try
                     {
-                        // declare the specific type of result for this operation
-                        CLFileItem[] response;
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
-                        CLError processError = GetAllImageItems(
-                            out response);
+                        CLError overallError = AllImageItems(
+                            completionCallback,
+                            completionCallbackUserState,
+                            pageNumber,
+                            itemsPerPage);
 
-                        Data.toReturn.Complete(
-                            new SyncboxGetAllImageItemsResult(
-                                processError, // any error that may have occurred during processing
-                                response), // the specific type of result for this operation
+                        Data.toReturn.Complete(overallError, // any overall error that may have occurred during processing
                             sCompleted: false); // processing did not complete synchronously
                     }
                     catch (Exception ex)
@@ -3141,41 +2951,58 @@ namespace Cloud.REST
         }
 
         /// <summary>
-        /// Finishes querying for pictures if it has not already finished via its asynchronous result and outputs the result,
+        /// Finishes querying image items from the syncbox, if it has not already finished via its asynchronous result, and outputs the result,
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
         /// </summary>
-        /// <param name="aResult">The asynchronous result provided upon starting the pictures query</param>
-        /// <param name="result">(output) The result from the query</param>
+        /// <param name="asyncResult">The asynchronous result provided upon starting the request</param>
+        /// <param name="result">(output) An overall error which occurred during processing, if any</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndGetAllImageItems(IAsyncResult aResult, out SyncboxGetAllImageItemsResult result)
+        internal CLError EndAllImageItems(IAsyncResult asyncResult, out SyncboxGetAllImageItemsResult result)
         {
-            return Helpers.EndAsyncOperation<SyncboxGetAllImageItemsResult>(aResult, out result);
+            return Helpers.EndAsyncOperation<SyncboxGetAllImageItemsResult>(asyncResult, out result);
         }
 
         /// <summary>
-        /// Queries the server for all image items.
+        /// Query image items from the syncbox.
         /// </summary>
-        /// <param name="response">(output) response object from communication</param>
+        /// <param name="completionCallback">Callback method to fire when a page of items is complete.</param>
+        /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion callback above is fired.</param>
+        /// <param name="pageNumber">Beginning page number.  The first page is page 1.</param>
+        /// <param name="itemsPerPage">Items per page.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError GetAllImageItems(out CLFileItem[] response)
+        internal CLError AllImageItems(CLAllItemsCompletion completionCallback, object completionCallbackUserState, long pageNumber, long itemsPerPage)
         {
-            // try/catch to process the pictures query, on catch return the error
+            // try/catch to process the request,  On catch return the error
             try
             {
-                // check input parameters
-
-                if (!(_copiedSettings.HttpTimeoutMilliseconds > 0))
+                // check input parameters.
+                if (pageNumber < 1)
                 {
-                    throw new ArgumentException(Resources.CLHttpRestTimeoutMustBeGreaterThanZero);
+                    throw new CLArgumentException(CLExceptionCode.OnDemand_InvalidParameters, Resources.ExceptionOnDemandAllImageItemsInvalidPageNumber);
+                }
+                if (itemsPerPage < 1)
+                {
+                    throw new CLArgumentException(CLExceptionCode.OnDemand_InvalidParameters, Resources.ExceptionOnDemandAllImageItemsInvalidItemsPerPage);
                 }
 
                 // build the location of the pictures retrieval method on the server dynamically
                 string serverMethodPath =
                     CLDefinitions.MethodPathGetPictures + // path for getting pictures
-                    Helpers.QueryStringBuilder(Helpers.EnumerateSingleItem(
+                    Helpers.QueryStringBuilder(new[]
+                    {
                         // query string parameter for the current sync box id, should not need escaping since it should be an integer in string format
-                        new KeyValuePair<string, string>(CLDefinitions.QueryStringSyncboxId, _syncbox.SyncboxId.ToString())
-                    ));
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringSyncboxId, _syncbox.SyncboxId.ToString()),
+                        // pageNumber should not need escaping since it is an integer
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringPageNumber, pageNumber.ToString()),
+                        // itemsPerPage should not need escaping since it is an integer
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringPerPage, itemsPerPage.ToString()),
+                    });
+
+
+                if (!(_copiedSettings.HttpTimeoutMilliseconds > 0))
+                {
+                    throw new CLArgumentException(CLExceptionCode.OnDemand_TimeoutMilliseconds, Resources.CLMSTimeoutMustBeGreaterThanZero);
+                }
 
                 // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
                 Helpers.RequestNewCredentialsInfo requestNewCredentialsInfo = new Helpers.RequestNewCredentialsInfo()
@@ -3187,23 +3014,22 @@ namespace Cloud.REST
                     SetCurrentCredentialsCallback = SetCurrentCredentialCallback,
                 };
 
-                // run the HTTP communication and store the response object to the output parameter
+                // Communicate with the server to get the response.
                 JsonContracts.SyncboxGetAllImageItemsResponse responseFromServer;
-                responseFromServer = Helpers.ProcessHttp<JsonContracts.SyncboxGetAllImageItemsResponse>(
-                    null, // HTTP Get method does not have content
+                responseFromServer = Helpers.ProcessHttp<JsonContracts.SyncboxGetAllImageItemsResponse>(null, // no request body for get
                     CLDefinitions.CLMetaDataServerURL, // base domain is the MDS server
-                    serverMethodPath, // path to query pictures (dynamic adding query string)
-                    Helpers.requestMethod.get, // query pictures is a get
+                    serverMethodPath, // dynamic path to appropriate one-off method
+                    Helpers.requestMethod.get, // one-off methods are all posts
                     _copiedSettings.HttpTimeoutMilliseconds, // time before communication timeout
                     null, // not an upload or download
-                    Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
+                    Helpers.HttpStatusesOkAccepted, //use the hashset for ok/accepted as successful HttpStatusCodes
                     _copiedSettings, // pass the copied settings
                     _syncbox.SyncboxId, // pass the unique id of the sync box on the server
                     requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
                     true);
 
                 // Convert these items to the output array.
-                if (responseFromServer != null && responseFromServer.Metadata != null)
+                if (responseFromServer != null && responseFromServer.Metadata != null && responseFromServer.TotalCount != null)
                 {
                     List<CLFileItem> listFileItems = new List<CLFileItem>();
                     foreach (SyncboxMetadataResponse metadata in responseFromServer.Metadata)
@@ -3217,7 +3043,12 @@ namespace Cloud.REST
                             listFileItems.Add(null);
                         }
                     }
-                    response = listFileItems.ToArray();
+
+                    // No error.  Pass back the data via the completion callback.
+                    if (completionCallback != null)
+                    {
+                        completionCallback(listFileItems.ToArray(), (long)responseFromServer.TotalCount, completionCallbackUserState);
+                    }
                 }
                 else
                 {
@@ -3226,12 +3057,156 @@ namespace Cloud.REST
             }
             catch (Exception ex)
             {
-                response = Helpers.DefaultForType<CLFileItem[]>();
                 return ex;
             }
+
             return null;
         }
-        #endregion  // end GetAllImageItems (Get all the pictures from the server for this syncbox)
+
+        ///// <summary>
+        ///// Asynchronously starts querying the server for all image items.
+        ///// </summary>
+        ///// <param name="callback">Callback method to fire when operation completes</param>
+        ///// <param name="callbackUserState">Userstate to pass when firing async callback</param>
+        ///// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        ///// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        //public IAsyncResult BeginGetAllImageItems(AsyncCallback callback, object callbackUserState)
+        //{
+        //    var asyncThread = DelegateAndDataHolderBase.Create(
+        //        // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
+        //        new
+        //        {
+        //            // create the asynchronous result to return
+        //            toReturn = new GenericAsyncResult<SyncboxGetAllImageItemsResult>(
+        //                callback,
+        //                callbackUserState)
+        //        },
+        //        (Data, errorToAccumulate) =>
+        //        {
+        //            // The ThreadProc.
+        //            // try/catch to process with the input parameters, on catch set the exception in the asyncronous result
+        //            try
+        //            {
+        //                // declare the specific type of result for this operation
+        //                CLFileItem[] response;
+        //                // alloc and init the syncbox with the passed parameters, storing any error that occurs
+        //                CLError processError = GetAllImageItems(
+        //                    out response);
+
+        //                Data.toReturn.Complete(
+        //                    new SyncboxGetAllImageItemsResult(
+        //                        processError, // any error that may have occurred during processing
+        //                        response), // the specific type of result for this operation
+        //                    sCompleted: false); // processing did not complete synchronously
+        //            }
+        //            catch (Exception ex)
+        //            {
+        //                Data.toReturn.HandleException(
+        //                    ex, // the exception which was not handled correctly by the CLError wrapping
+        //                    sCompleted: false); // processing did not complete synchronously
+        //            }
+        //        },
+        //        null);
+
+        //    // create the thread from a void (object) parameterized start which wraps the synchronous method call
+        //    (new Thread(new ThreadStart(asyncThread.VoidProcess))).Start(); // start the asynchronous processing thread which is attached to its data
+
+        //    // return the asynchronous result
+        //    return asyncThread.TypedData.toReturn;
+        //}
+
+        ///// <summary>
+        ///// Finishes querying for pictures if it has not already finished via its asynchronous result and outputs the result,
+        ///// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
+        ///// </summary>
+        ///// <param name="aResult">The asynchronous result provided upon starting the pictures query</param>
+        ///// <param name="result">(output) The result from the query</param>
+        ///// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
+        //public CLError EndGetAllImageItems(IAsyncResult aResult, out SyncboxGetAllImageItemsResult result)
+        //{
+        //    return Helpers.EndAsyncOperation<SyncboxGetAllImageItemsResult>(aResult, out result);
+        //}
+
+        ///// <summary>
+        ///// Queries the server for all image items.
+        ///// </summary>
+        ///// <param name="response">(output) response object from communication</param>
+        ///// <returns>Returns any error that occurred during communication, if any</returns>
+        //public CLError GetAllImageItems(out CLFileItem[] response)
+        //{
+        //    // try/catch to process the pictures query, on catch return the error
+        //    try
+        //    {
+        //        // check input parameters
+
+        //        if (!(_copiedSettings.HttpTimeoutMilliseconds > 0))
+        //        {
+        //            throw new ArgumentException(Resources.CLHttpRestTimeoutMustBeGreaterThanZero);
+        //        }
+
+        //        // build the location of the pictures retrieval method on the server dynamically
+        //        string serverMethodPath =
+        //            CLDefinitions.MethodPathGetPictures + // path for getting pictures
+        //            Helpers.QueryStringBuilder(Helpers.EnumerateSingleItem(
+        //                // query string parameter for the current sync box id, should not need escaping since it should be an integer in string format
+        //                new KeyValuePair<string, string>(CLDefinitions.QueryStringSyncboxId, _syncbox.SyncboxId.ToString())
+        //            ));
+
+        //        // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
+        //        Helpers.RequestNewCredentialsInfo requestNewCredentialsInfo = new Helpers.RequestNewCredentialsInfo()
+        //        {
+        //            ProcessingStateByThreadId = _processingStateByThreadId,
+        //            GetNewCredentialsCallback = _getNewCredentialsCallback,
+        //            GetNewCredentialsCallbackUserState = _getNewCredentialsCallbackUserState,
+        //            GetCurrentCredentialsCallback = GetCurrentCredentialsCallback,
+        //            SetCurrentCredentialsCallback = SetCurrentCredentialCallback,
+        //        };
+
+        //        // run the HTTP communication and store the response object to the output parameter
+        //        JsonContracts.SyncboxGetAllImageItemsResponse responseFromServer;
+        //        responseFromServer = Helpers.ProcessHttp<JsonContracts.SyncboxGetAllImageItemsResponse>(
+        //            null, // HTTP Get method does not have content
+        //            CLDefinitions.CLMetaDataServerURL, // base domain is the MDS server
+        //            serverMethodPath, // path to query pictures (dynamic adding query string)
+        //            Helpers.requestMethod.get, // query pictures is a get
+        //            _copiedSettings.HttpTimeoutMilliseconds, // time before communication timeout
+        //            null, // not an upload or download
+        //            Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
+        //            _copiedSettings, // pass the copied settings
+        //            _syncbox.SyncboxId, // pass the unique id of the sync box on the server
+        //            requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
+        //            true);
+
+        //        // Convert these items to the output array.
+        //        if (responseFromServer != null && responseFromServer.Metadata != null)
+        //        {
+        //            List<CLFileItem> listFileItems = new List<CLFileItem>();
+        //            foreach (SyncboxMetadataResponse metadata in responseFromServer.Metadata)
+        //            {
+        //                if (metadata != null)
+        //                {
+        //                    listFileItems.Add(new CLFileItem(metadata, _syncbox));
+        //                }
+        //                else
+        //                {
+        //                    listFileItems.Add(null);
+        //                }
+        //            }
+        //            response = listFileItems.ToArray();
+        //        }
+        //        else
+        //        {
+        //            throw new NullReferenceException(Resources.ExceptionCLHttpRestWithoutMetadata);
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        response = Helpers.DefaultForType<CLFileItem[]>();
+        //        return ex;
+        //    }
+        //    return null;
+        //}
+        #endregion  // end AllImageItems (Get image items from this syncbox)
 
         #region GetAllVideoItems (Get all of the video files from the server for this syncbox)
         /// <summary>

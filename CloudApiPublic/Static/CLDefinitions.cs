@@ -347,6 +347,8 @@ namespace Cloud.Static
         public const string QueryStringDepth = "depth";
         public const string QueryStringIncludeCount = "include_count";
         public const string QueryStringSender = "sender";
+        public const string QueryStringPageNumber = "page";
+        public const string QueryStringPerPage = "per_page";
 
         // HttpWebRequest Header Key
         public const string HeaderKeyAuthorization = "Authorization";
