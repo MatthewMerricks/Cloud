@@ -196,15 +196,6 @@ namespace Cloud.Static {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to syncbox cannot be null.
-        /// </summary>
-        internal static string CLEngineSyncboxCannotBeNull {
-            get {
-                return ResourceManager.GetString("CLEngineSyncboxCannotBeNull", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to deletionChange Direction is not To the server.
         /// </summary>
         internal static string CLHttpRestChangeDirectionIsNotToServer {
@@ -466,15 +457,6 @@ namespace Cloud.Static {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to timeoutMilliseconds must be greater than zero.
-        /// </summary>
-        internal static string CLHttpRestTimeoutMustBeGreaterThanZero {
-            get {
-                return ResourceManager.GetString("CLHttpRestTimeoutMustBeGreaterThanZero", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to toCommunicate cannot be both a folder and of type Modified.
         /// </summary>
         internal static string CLHttpRestToCommunicateCannotBeFolderandModified {
@@ -547,15 +529,6 @@ namespace Cloud.Static {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Already started.
-        /// </summary>
-        internal static string CLNotificationManualPollingEngineAlreadyStarted {
-            get {
-                return ResourceManager.GetString("CLNotificationManualPollingEngineAlreadyStarted", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Default constructor not supported.
         /// </summary>
         internal static string CLNotificationManualPollingEngineDefaultConstructorNotSupported {
@@ -588,24 +561,6 @@ namespace Cloud.Static {
         internal static string CLNotificationManualPollingEngineStartErrorExceptionMsg0 {
             get {
                 return ResourceManager.GetString("CLNotificationManualPollingEngineStartErrorExceptionMsg0", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to syncbox must not be null.
-        /// </summary>
-        internal static string CLNotificationManualPollingEngineSyncBoxMustNotBeNull {
-            get {
-                return ResourceManager.GetString("CLNotificationManualPollingEngineSyncBoxMustNotBeNull", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Already started.
-        /// </summary>
-        internal static string CLNotificationServiceAlreadyStarted {
-            get {
-                return ResourceManager.GetString("CLNotificationServiceAlreadyStarted", resourceCulture);
             }
         }
         
@@ -1265,15 +1220,6 @@ namespace Cloud.Static {
         internal static string CLNotificationSseEngineStopEntry {
             get {
                 return ResourceManager.GetString("CLNotificationSseEngineStopEntry", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to syncbox must not be null.
-        /// </summary>
-        internal static string CLNotificationSseEngineSyncboxCannotBeNull {
-            get {
-                return ResourceManager.GetString("CLNotificationSseEngineSyncboxCannotBeNull", resourceCulture);
             }
         }
         
@@ -2025,15 +1971,6 @@ namespace Cloud.Static {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to syncbox cannot be null.
-        /// </summary>
-        internal static string ExceptionCLHttpRestNullSyncbox {
-            get {
-                return ResourceManager.GetString("ExceptionCLHttpRestNullSyncbox", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Server responded without an array of delete responses.
         /// </summary>
         internal static string ExceptionCLHttpRestWithoutDeleteResponses {
@@ -2201,15 +2138,6 @@ namespace Cloud.Static {
         internal static string ExceptionFileItemNullResponse {
             get {
                 return ResourceManager.GetString("ExceptionFileItemNullResponse", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to syncbox must not be null.
-        /// </summary>
-        internal static string ExceptionFileItemNullSyncbox {
-            get {
-                return ResourceManager.GetString("ExceptionFileItemNullSyncbox", resourceCulture);
             }
         }
         
@@ -6268,7 +6196,7 @@ namespace Cloud.Static {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to syncbox must not be null.
+        ///   Looks up a localized string similar to Syncbox must not be null.
         /// </summary>
         internal static string SyncboxMustNotBeNull {
             get {

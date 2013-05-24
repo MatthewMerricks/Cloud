@@ -194,7 +194,7 @@ namespace Cloud.CLSync
         {
             if (syncbox == null)
             {
-                throw new CLArgumentNullException(CLExceptionCode.FileItem_NullSyncbox, Resources.ExceptionFileItemNullSyncbox);
+                throw new CLArgumentNullException(CLExceptionCode.FileItem_NullSyncbox, Resources.SyncboxMustNotBeNull);
             }
 
             this._name = name;
@@ -236,7 +236,7 @@ namespace Cloud.CLSync
             }
             if (syncbox == null)
             {
-                throw new CLArgumentNullException(CLExceptionCode.FileItem_NullSyncbox, Resources.ExceptionFileItemNullSyncbox);
+                throw new CLArgumentNullException(CLExceptionCode.FileItem_NullSyncbox, Resources.SyncboxMustNotBeNull);
             }
 
             if (response.IsFolder == null)

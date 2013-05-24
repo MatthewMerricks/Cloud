@@ -106,7 +106,7 @@ namespace Cloud.PushNotification
         {
             if (syncbox == null)
             {
-                throw new ArgumentNullException(Resources.CLNotificationSseEngineSyncboxCannotBeNull);
+                throw new ArgumentNullException(Resources.SyncboxMustNotBeNull);
             }
             if (delegateCreateEngineTimer == null)
             {

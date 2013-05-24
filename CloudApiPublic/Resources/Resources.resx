@@ -454,7 +454,7 @@
     <comment>syncbox field must be filled</comment>
   </data>
   <data name="SyncboxMustNotBeNull" xml:space="preserve">
-    <value>syncbox must not be null</value>
+    <value>Syncbox must not be null</value>
     <comment>"Syncbox" should not be translated</comment>
   </data>
   <data name="CLHttpRestSyncboxBadPath" xml:space="preserve">
@@ -472,10 +472,6 @@
   <data name="CLHttpRestThecustomDownloadFolderFullPathIsBad" xml:space="preserve">
     <value>The customDownloadFolderFullPath is bad</value>
     <comment>"customDownloadFolderPath" should not be translated</comment>
-  </data>
-  <data name="CLHttpRestTimeoutMustBeGreaterThanZero" xml:space="preserve">
-    <value>timeoutMilliseconds must be greater than zero</value>
-    <comment>"timeoutMilliseconds" should not be translated</comment>
   </data>
   <data name="CLHttpRestToCommunicateCannotBeFolderandModified" xml:space="preserve">
     <value>toCommunicate cannot be both a folder and of type Modified</value>
@@ -785,10 +781,6 @@
     <value>N</value>
     <comment>Resources.CLCredentialStringSettingsN should not be translated</comment>
   </data>
-  <data name="CLEngineSyncboxCannotBeNull" xml:space="preserve">
-    <value>syncbox cannot be null</value>
-    <comment>"Syncbox" should not be translated</comment>
-  </data>
   <data name="CLSyncBoxAllHaltedOnUnrecoverableErrorIsSet" xml:space="preserve">
     <value>Cannot do anything with the Cloud SDK if Helpers.AllHaltedOnUnrecoverableError is set</value>
     <comment>"Helpers.AllHaltedOnUnrecoverableError" should not be translated.</comment>
@@ -1097,10 +1089,6 @@
     <value>Already initialized</value>
     <comment>Translate</comment>
   </data>
-  <data name="CLNotificationManualPollingEngineAlreadyStarted" xml:space="preserve">
-    <value>Already started</value>
-    <comment>Translate</comment>
-  </data>
   <data name="CLNotificationManualPollingEngineDefaultConstructorNotSupported" xml:space="preserve">
     <value>Default constructor not supported</value>
     <comment>Translate</comment>
@@ -1116,14 +1104,6 @@
   <data name="CLNotificationManualPollingEngineStartErrorExceptionMsg0" xml:space="preserve">
     <value>CLNotificationManualPollingEngine: Start: ERROR: Exception: Msg: {0}.</value>
     <comment>"CLNotificationManualPollingEngine" should not be translated</comment>
-  </data>
-  <data name="CLNotificationManualPollingEngineSyncBoxMustNotBeNull" xml:space="preserve">
-    <value>syncbox must not be null</value>
-    <comment>"Syncbox" should not be translated</comment>
-  </data>
-  <data name="CLNotificationServiceAlreadyStarted" xml:space="preserve">
-    <value>Already started</value>
-    <comment>Translate</comment>
   </data>
   <data name="CLNotificationServiceCancelEngineTimeoutCallbackErrorExceptionMsg0" xml:space="preserve">
     <value>CLNotificationService: CancelEngineTimeoutCallback: ERROR: Exception: Msg: {0}.</value>
@@ -1700,10 +1680,6 @@
   <data name="CLNotificationSseEngineStopEntry" xml:space="preserve">
     <value>CLNotificationSseEngine: Stop: Entry.</value>
     <comment>"CLNotificationSseEngine" should not be translated.</comment>
-  </data>
-  <data name="CLNotificationSseEngineSyncboxCannotBeNull" xml:space="preserve">
-    <value>syncbox must not be null</value>
-    <comment>"Syncbox" should not be translated.</comment>
   </data>
   <data name="CLNotificationSseEngineSyncboxHttpRestCannotBeNull" xml:space="preserve">
     <value>_syncbox.HttpRestClient must not be null</value>
@@ -2725,10 +2701,6 @@
     <value>serverUid cannot be null</value>
     <comment>serverUid should not be translated</comment>
   </data>
-  <data name="ExceptionCLHttpRestNullSyncbox" xml:space="preserve">
-    <value>syncbox cannot be null</value>
-    <comment>syncbox should not be translated</comment>
-  </data>
   <data name="ExceptionCLHttpRestWithoutMetadata" xml:space="preserve">
     <value>Server responded without an array of Metadata</value>
     <comment>Translate</comment>
@@ -2784,10 +2756,6 @@
   <data name="ExceptionFileItemNullResponse" xml:space="preserve">
     <value>response must not be null</value>
     <comment>response should not be translated</comment>
-  </data>
-  <data name="ExceptionFileItemNullSyncbox" xml:space="preserve">
-    <value>syncbox must not be null</value>
-    <comment>syncbox should not be translated</comment>
   </data>
   <data name="ExceptionFileItemUnknownAction" xml:space="preserve">
     <value>Unable to determine if action represents a file or a folder. action: {0}</value>

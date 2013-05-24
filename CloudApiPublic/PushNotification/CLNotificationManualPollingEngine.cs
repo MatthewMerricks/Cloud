@@ -65,7 +65,7 @@ namespace Cloud.PushNotification
         {
             if (syncbox == null)
             {
-                throw new ArgumentNullException(Resources.CLNotificationManualPollingEngineSyncBoxMustNotBeNull);
+                throw new ArgumentNullException(Resources.SyncboxMustNotBeNull);
             }
             if (delegateSendManualPoll == null)
             {
@@ -115,7 +115,7 @@ namespace Cloud.PushNotification
 
                     if (_isStarted)
                     {
-                        throw new InvalidOperationException(Resources.CLNotificationManualPollingEngineAlreadyStarted);
+                        throw new InvalidOperationException(Resources.CLSyncEngineAlreadyStarted);
                     }
                     _isStarted = true;
                 }

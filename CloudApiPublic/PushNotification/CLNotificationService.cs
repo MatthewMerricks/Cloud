@@ -258,7 +258,7 @@ namespace Cloud.PushNotification
                     // We should not already be started
                     if (_isServiceStarted)
                     {
-                        throw new InvalidOperationException(Resources.CLNotificationServiceAlreadyStarted);
+                        throw new InvalidOperationException(Resources.CLSyncEngineAlreadyStarted);
                     }
 
                     // sync settings are copied so that changes require stopping and starting notification services

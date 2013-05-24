@@ -54,7 +54,7 @@ namespace Cloud
         {
             if (syncbox == null)
             {
-                const string settingsError = "syncbox cannot be null";
+                const string settingsError = "syncbox must not be null";
                 _trace.writeToLog(1, Resources.CLSyncEngineError0, settingsError);
                 throw new CLNullReferenceException(CLExceptionCode.General_Arguments, settingsError);
             }
@@ -122,7 +122,7 @@ namespace Cloud
 
                 if (syncbox == null)
                 {
-                    throw new NullReferenceException(Resources.CLEngineSyncboxCannotBeNull);
+                    throw new NullReferenceException(Resources.SyncboxMustNotBeNull);
                 }
 
                 // Initialize trace in case it is not already initialized.
