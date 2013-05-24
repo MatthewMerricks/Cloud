@@ -72,6 +72,20 @@ namespace Cloud.JsonContracts
         private static DataContractJsonSerializer _getMetadataResponseSerializer = null;
         private static readonly object GetMetadataResponseSerializerLocker = new object();
 
+        public static DataContractJsonSerializer GetMetadataForPathRequestSerializer
+        {
+            get
+            {
+                lock (GetMetadataForPathRequestSerializerLocker)
+                {
+                    return _getMetadataForPathRequestSerializer
+                        ?? (_getMetadataForPathRequestSerializer = new DataContractJsonSerializer(typeof(JsonContracts.SyncboxGetMetadataForPathRequest)));
+                }
+            }
+        }
+        private static DataContractJsonSerializer _getMetadataForPathRequestSerializer = null;
+        private static readonly object GetMetadataForPathRequestSerializerLocker = new object();
+
         public static DataContractJsonSerializer GetStatusResponseSerializer
         {
             get

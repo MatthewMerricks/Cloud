@@ -1627,6 +1627,7 @@ namespace Cloud
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
             return httpRestClient.EndItemForPath(asyncResult, out result);
+
         }
 
         /// <summary>
@@ -1673,14 +1674,14 @@ namespace Cloud
         /// <param name="asyncResult">The asynchronous result provided upon starting the metadata query</param>
         /// <param name="result">(output) The result from the metadata query</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndItemForPath(IAsyncResult asyncResult, out SyncboxGetItemAtPathResult result)
-        {
-            CheckDisposed();
+        //public CLError EndItemForPath(IAsyncResult asyncResult, out SyncboxGetItemAtPathResult result)
+        //{
+        //    CheckDisposed();
 
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.EndItemForPath(asyncResult, out result);
-        }
+        //    CLHttpRest httpRestClient;
+        //    GetInstanceRestClient(out httpRestClient);
+        //    return httpRestClient.EndItemForPath(asyncResult, out result);
+        //}
 
         /// <summary>
         /// Queries the syncbox at a given file or folder path (must be specified) for existing item metadata at that path.
