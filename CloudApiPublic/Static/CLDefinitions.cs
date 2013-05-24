@@ -607,6 +607,7 @@ namespace Cloud.Static
         public const string RESTRequestFileOrFolderDeletes = "uids";
         public const string RESTRequestFolderAdds = "folders";
         public const string RESTRequestFileAdds = "files";
+        public const string RESTRequestPath = "path";
 
         // REST Response Status "status"
         public const string RESTResponseStatus = "status";

@@ -2772,6 +2772,15 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to path must not be null.
+        /// </summary>
+        internal static string ExceptionOnDemandPathMustNotBeNull {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandPathMustNotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Invalid existing Path in input item {0}.
         /// </summary>
         internal static string ExceptionOnDemandRenameFilesInvalidExistingPathInItemMsg0 {
@@ -6277,7 +6286,7 @@ namespace Cloud.Static {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to PathToBadge cannot be null.
+        ///   Looks up a localized string similar to PathToBadge must not be null.
         /// </summary>
         internal static string UpdatePathArgsPathToBadgeCannotBeNull {
             get {

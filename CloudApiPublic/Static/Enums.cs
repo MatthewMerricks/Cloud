@@ -460,6 +460,11 @@ namespace Cloud.Static
         /// </summary>
         OnDemand_MovedItemBadPath = (((ulong)CLExceptionDomain.OnDemand) << 32) | 23, // 5_23
 
+        /// <summary>
+        /// Cloud On Demand API.  Missing parameters.
+        /// </summary>
+        OnDemand_MissingParameters = (((ulong)CLExceptionDomain.OnDemand) << 32) | 24, // 5_24
+
 
 
         #endregion
