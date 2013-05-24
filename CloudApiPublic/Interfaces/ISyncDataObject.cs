@@ -72,7 +72,7 @@ namespace Cloud.Interfaces
         /// </summary>
         /// <param name="mergeToFroms">Enumerable of FileChanges to merge into database</param>
         /// <returns>Should return any error that occurred while updating the database, should not throw the exception</returns>
-        CLError mergeToSql(IEnumerable<FileChangeMerge> mergeToFroms, SQLTransactionalBase existingTransaction = null);
+        CLError mergeToSql(IEnumerable<FileChangeMerge> mergeToFroms, SQLTransactionalBase existingTransaction = null, bool addCreateAtOldPathIfNotFound = false);
 
         /// <summary>
         /// Callback from SyncEngine for adding reprocessing failures or previously dependent FileChanges to queue for next SyncEngine Run

@@ -2907,6 +2907,15 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Attempting to complete an upload change after communication should not be synchronously successful.
+        /// </summary>
+        internal static string ExceptionSyncEnginePostCommunicationPrematureUploadSuccess {
+            get {
+                return ResourceManager.GetString("ExceptionSyncEnginePostCommunicationPrematureUploadSuccess", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Oops. We&apos;re sorry, it seems like something went wrong while removing this device from your account..
         /// </summary>
         internal static string ExceptionUnlinking {
@@ -6282,6 +6291,15 @@ namespace Cloud.Static {
         internal static string SyncboxMustNotBeNull {
             get {
                 return ResourceManager.GetString("SyncboxMustNotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Finished communicating sync changes.
+        /// </summary>
+        internal static string SyncEngineFinishedCommunicating {
+            get {
+                return ResourceManager.GetString("SyncEngineFinishedCommunicating", resourceCulture);
             }
         }
         

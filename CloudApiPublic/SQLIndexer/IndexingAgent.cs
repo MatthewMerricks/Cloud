@@ -1285,7 +1285,7 @@ namespace Cloud.SQLIndexer
 
             return AddEvents(null, newEvents, existingTransaction);
         }
-        private CLError AddEvents(Nullable<long> syncCounter, IEnumerable<FileChange> newEvents, SQLTransactionalBase existingTransaction)
+        private CLError AddEvents(Nullable<long> syncCounter, IEnumerable<FileChange> newEvents, SQLTransactionalBase existingTransaction, bool addCreateAtOldPathIfNotFound = false)
         {
             SQLTransactionalImplementation castTransaction = existingTransaction as SQLTransactionalImplementation;
             bool inputTransactionSet = castTransaction != null;
@@ -1560,7 +1560,36 @@ namespace Cloud.SQLIndexer
                                     castTransaction.sqlTransaction,
                                     selectParameters: Helpers.EnumerateSingleItem(currentObjectToBatch.OldPath.ToString())))
                                 {
-                                    throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, missingPreviousErrorMessage);
+                                    if (addCreateAtOldPathIfNotFound) // added condition when the first event on a file is a sync to conflict and the file has to be renamed to the conflict path without another existing event
+                                    {
+                                        long oldPathParentId;
+                                        if (!SqlAccessor<object>.TrySelectScalar(
+                                            castTransaction.sqlConnection,
+                                            objectIdByPathSelectPart1 + changeEnumsBackward[FileChangeType.Renamed].ToString() + objectIdByPathSelectPart2,
+                                            out oldPathParentId,
+                                            castTransaction.sqlTransaction,
+                                            selectParameters: Helpers.EnumerateSingleItem(currentObjectToBatch.NewPath.Parent.ToString())))
+                                        {
+                                            throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, missingParentErrorMessage);
+                                        }
+
+                                        previousId = SqlAccessor<FileSystemObject>.InsertRow<long>(
+                                            castTransaction.sqlConnection,
+                                            new FileSystemObject()
+                                            {
+                                                IsFolder = currentObjectToBatch.Metadata.HashableProperties.IsFolder,
+                                                Name = currentObjectToBatch.OldPath.Name,
+                                                ParentFolderId = oldPathParentId,
+                                                Pending = false,
+                                                ServerUidId = currentObjectToBatch.Metadata.ServerUidId,
+                                                Size = (currentObjectToBatch.Metadata.HashableProperties.IsFolder ? (Nullable<long>)null : 0)
+                                            },
+                                            transaction: castTransaction.sqlTransaction);
+                                    }
+                                    else
+                                    {
+                                        throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, missingPreviousErrorMessage);
+                                    }
                                 }
                                 else
                                 {
@@ -2319,7 +2348,7 @@ namespace Cloud.SQLIndexer
         /// used when events are modified or replaced with new events
         /// </summary>
         /// <returns>Returns an error from merging the events, if any</returns>
-        public CLError MergeEventsIntoDatabase(IEnumerable<FileChangeMerge> mergeToFroms, SQLTransactionalBase existingTransaction = null)
+        public CLError MergeEventsIntoDatabase(IEnumerable<FileChangeMerge> mergeToFroms, SQLTransactionalBase existingTransaction = null, bool addCreateAtOldPathIfNotFound = false)
         {
             if (disposed)
             {
@@ -2376,9 +2405,9 @@ namespace Cloud.SQLIndexer
                 }
             }
 
-            return MergeEventsIntoDatabase(null, mergeToFroms, existingTransaction);
+            return MergeEventsIntoDatabase(null, mergeToFroms, existingTransaction, addCreateAtOldPathIfNotFound);
         }
-        private CLError MergeEventsIntoDatabase(Nullable<long> syncCounter, IEnumerable<FileChangeMerge> mergeToFroms, SQLTransactionalBase existingTransaction)
+        private CLError MergeEventsIntoDatabase(Nullable<long> syncCounter, IEnumerable<FileChangeMerge> mergeToFroms, SQLTransactionalBase existingTransaction, bool addCreateAtOldPathIfNotFound = false)
         {
             SQLTransactionalImplementation castTransaction = existingTransaction as SQLTransactionalImplementation;
             bool inputTransactionSet = castTransaction != null;
@@ -2719,7 +2748,7 @@ namespace Cloud.SQLIndexer
 
                                                 // action is add
                                                 case (byte)1:
-                                                    CLError addBatchError = AddEvents(syncCounter, toAddList, castTransaction);
+                                                    CLError addBatchError = AddEvents(syncCounter, toAddList, castTransaction, addCreateAtOldPathIfNotFound);
 
                                                     if (addBatchError != null)
                                                     {

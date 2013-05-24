@@ -132,9 +132,9 @@ namespace Cloud.FileMonitor.SyncImplementation
         /// <param name="mergeToFroms">The file change events to merge.</param>
         /// <param name="alreadyObtainedLock">true: The indexer lock has already been obtainte.  Default: false.</param>
         /// <returns>An error or null.</returns>
-        public CLError mergeToSql(IEnumerable<FileChangeMerge> mergeToFroms, SQLTransactionalBase existingTransaction = null)
+        public CLError mergeToSql(IEnumerable<FileChangeMerge> mergeToFroms, SQLTransactionalBase existingTransaction = null, bool addCreateAtOldPathIfNotFound = false)
         {
-            return Indexer.MergeEventsIntoDatabase(mergeToFroms, existingTransaction);
+            return Indexer.MergeEventsIntoDatabase(mergeToFroms, existingTransaction, addCreateAtOldPathIfNotFound);
         }
 
         /// <summary>
