@@ -147,14 +147,14 @@
     <Compile Include="Interfaces\IEventMessageReceiver.cs" />
     <Compile Include="Interfaces\ITransferTaskState.cs" />
     <Compile Include="JsonContracts\Archives.cs" />
+    <Compile Include="JsonContracts\SyncboxDeleteFoldersResponse.cs" />
     <Compile Include="JsonContracts\FileAdds.cs" />
-    <Compile Include="JsonContracts\FileDeleteRequest.cs" />
     <Compile Include="JsonContracts\FileVersions.cs" />
     <Compile Include="JsonContracts\SyncboxAddFilesResponse.cs" />
     <Compile Include="JsonContracts\SyncboxAddFoldersResponse.cs" />
     <Compile Include="JsonContracts\FolderAdds.cs" />
     <Compile Include="JsonContracts\SyncboxDeleteFilesResponse.cs" />
-    <Compile Include="JsonContracts\FileOrFolderDeletes.cs" />
+    <Compile Include="JsonContracts\FileOrFolderDeletesRequest.cs" />
     <Compile Include="JsonContracts\FileOrFolderMoves.cs" />
     <Compile Include="JsonContracts\SyncboxMoveFilesOrFoldersResponse.cs" />
     <Compile Include="JsonContracts\SyncboxGetAllArchiveItemsResponse.cs" />
@@ -203,7 +203,7 @@
     <Compile Include="JsonContracts\StoragePlanResponse.cs" />
     <Compile Include="JsonContracts\FileAdd.cs" />
     <Compile Include="JsonContracts\FileCopy.cs" />
-    <Compile Include="JsonContracts\FileOrFolderDelete.cs" />
+    <Compile Include="JsonContracts\FileOrFolderDeleteRequest.cs" />
     <Compile Include="JsonContracts\FileModify.cs" />
     <Compile Include="JsonContracts\FileOrFolderMove.cs" />
     <Compile Include="JsonContracts\FileOrFolderUndelete.cs" />
@@ -263,6 +263,11 @@
     <Compile Include="Model\Sync\PossiblyStreamableFileChangeWithSyncData.cs" />
     <Compile Include="Model\Sync\PossiblyStreamableFileChangeWithUploadDownloadTask.cs" />
     <Compile Include="PushNotification\CLNotificationManualPollingEngine.cs" />
+    <Compile Include="Resources\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
     <Compile Include="REST\AsyncResults.cs" />
     <Compile Include="PushNotification\CLNotificationSseEngine.cs" />
     <Compile Include="PushNotification\ICLNotificationEngine.cs" />
@@ -365,11 +370,6 @@
     <Compile Include="Model\PossiblyStreamableFileChange.cs" />
     <Compile Include="Model\UpdatePathArgs.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Resources\Resources.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Resources.resx</DependentUpon>
-    </Compile>
     <Compile Include="SQLIndexer\IndexingAgent.cs" />
     <Compile Include="SQLIndexer\Migrations\MigrationList.cs" />
     <Compile Include="SQLIndexer\Model\FileResultRoot.cs" />
@@ -402,9 +402,9 @@
   <ItemGroup>
     <EmbeddedResource Include="Resources\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
       <CustomToolNamespace>Cloud.Static</CustomToolNamespace>
       <SubType>Designer</SubType>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
     <EmbeddedResource Include="SQLIndexer\IndexDBScripts\4Enums.table.sql" />
     <EmbeddedResource Include="SQLIndexer\IndexDBScripts\7Events.table.sql" />

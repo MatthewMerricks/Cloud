@@ -75,7 +75,7 @@ namespace Cloud.Model
         /// </summary>
         public CLStoragePlan()
         {
-            throw new NotSupportedException("Default constructor not supported");
+            throw new NotSupportedException(Resources.CLNotificationManualPollingEngineDefaultConstructorNotSupported);
         }
 
         /// <summary>
@@ -143,8 +143,8 @@ namespace Cloud.Model
             Name = response.Name;
             Tier = response.Tier;
             ClientApplicationId = (long)response.ClientApplicationId;
-            BandwidthQuota = (long)response.BandwidthQuota;
-            StorageQuota = (long)response.StorageQuota;
+            BandwidthQuota = response.BandwidthQuota;
+            StorageQuota = response.StorageQuota;
             IsDefaultPlan = response.IsDefaultPlan ?? false;
             PlanCreatedAt = response.PlanCreatedAt;
             PlanUpdatedAt = response.PlanUpdatedAt;
@@ -261,7 +261,7 @@ namespace Cloud.Model
 
                 if (!(copiedSettings.HttpTimeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException("timeoutMilliseconds must be greater than zero");
+                    throw new ArgumentException(Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
 
                 // Query the server and get the response.

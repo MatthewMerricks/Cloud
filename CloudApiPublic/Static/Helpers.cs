@@ -2203,7 +2203,7 @@ namespace Cloud.Static
                 }
                 if (string.IsNullOrEmpty(settings.DeviceId))
                 {
-                    throw new NullReferenceException("settings DeviceId cannot be null");
+                    throw new NullReferenceException(Resources.CLHttpRestDeviceIDCannotBeNull);
                 }
 
                 // Gather the path info
@@ -2609,9 +2609,8 @@ namespace Cloud.Static
             { typeof(JsonContracts.FileAdd), JsonContractHelpers.FileAddSerializer },
             { typeof(JsonContracts.FileModify), JsonContractHelpers.FileModifySerializer },
 
-            { typeof(JsonContracts.FileOrFolderDelete), JsonContractHelpers.FileOrFolderDeleteSerializer },
-            { typeof(JsonContracts.FileOrFolderDeletes), JsonContractHelpers.FileOrFolderDeletesSerializer },
-            { typeof(JsonContracts.FileDeleteRequest), JsonContractHelpers.FileDeleteRequestSerializer },
+            { typeof(JsonContracts.FileOrFolderDeleteRequest), JsonContractHelpers.FileOrFolderDeleteSerializer },
+            { typeof(JsonContracts.FileOrFolderDeletesRequest), JsonContractHelpers.FileOrFolderDeletesSerializer },
             { typeof(JsonContracts.FileOrFolderMove), JsonContractHelpers.FileOrFolderMoveSerializer },
             { typeof(JsonContracts.FileOrFolderMoves), JsonContractHelpers.FileOrFolderMovesSerializer },
             { typeof(JsonContracts.FileOrFolderUndelete), JsonContractHelpers.FileOrFolderUndeleteSerializer },
@@ -2680,6 +2679,7 @@ namespace Cloud.Static
             { typeof(JsonContracts.SyncboxAuthResponse), JsonContractHelpers.SyncboxAuthResponseSerializer},
             { typeof(JsonContracts.LinkDeviceResponse), JsonContractHelpers.LinkDeviceResponseSerializer},
             { typeof(JsonContracts.UnlinkDeviceResponse), JsonContractHelpers.UnlinkDeviceResponseSerializer},
+            { typeof(JsonContracts.SyncboxDeleteFoldersResponse), JsonContractHelpers.SyncboxDeleteFoldersResponseSerializer},
             #endregion
         };
         #endregion
@@ -3780,7 +3780,7 @@ namespace Cloud.Static
                             }
 
                             // calculate location for downloading the file
-                            string newTempFileString = ((downloadParams)uploadDownload).TempDownloadFolderPath + (/* '\\' */ (char)0x005c) + ((Guid)newTempFile).ToString("N");
+                            string newTempFileString = ((downloadParams)uploadDownload).TempDownloadFolderPath + (/* '\\' */ (char)0x005c) + ((Guid)newTempFile).ToString(Resources.CLCredentialStringSettingsN);
 
                             if (uploadDownload.ProgressHolder != null)
                             {
@@ -5082,7 +5082,7 @@ namespace Cloud.Static
                 // if trying to cast the asynchronous result failed, then throw an error
                 if (castAResult == null)
                 {
-                    throw new CLInvalidOperationException(CLExceptionCode.General_Invalid, Resources.CLHttpRestaResultInternalTypeMismatch);
+                    throw new CLInvalidOperationException(CLExceptionCode.General_Invalid, Resources.CLAsyncResultInternalTypeMismatch);
                 }
 
                 // pull the result for output (may not yet be complete)
@@ -5129,7 +5129,7 @@ namespace Cloud.Static
         {
             if (AllHaltedOnUnrecoverableError)
             {
-                throw new InvalidOperationException("Cannot do anything with the Cloud SDK if Helpers.AllHaltedOnUnrecoverableError is set");
+                throw new InvalidOperationException(Resources.CLCredentialHelpersAllHaltedOnUnrecoverableErrorIsSet);
             }
         }
 

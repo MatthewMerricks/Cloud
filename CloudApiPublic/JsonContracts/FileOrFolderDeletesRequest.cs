@@ -1,8 +1,8 @@
 ﻿//
-// FileOrFolderDelete.cs
+// FileOrFolderDeletes.cs
 // Cloud Windows
 //
-// Created By DavidBruck.
+// Created By BobS.
 // Copyright (c) Cloud.com. All rights reserved.
 
 using Cloud.Model;
@@ -16,16 +16,13 @@ using System.Text;
 namespace Cloud.JsonContracts
 {
     [DataContract]
-    internal sealed class FileOrFolderDelete
+    internal sealed class FileOrFolderDeletesRequest
     {
         [DataMember(Name = CLDefinitions.QueryStringDeviceId, IsRequired = false)]
         public string DeviceId { get; set; }
 
-        [DataMember(Name = CLDefinitions.CLMetadataServerId, IsRequired = false)]
-        public string ServerUid { get; set; }
-
-        [DataMember(Name = CLDefinitions.CLMetadataCloudPath, IsRequired = false)]
-        public string RelativePath { get; set; }
+        [DataMember(Name = CLDefinitions.RESTRequestFileOrFolderDeletes, IsRequired = false)]
+        public string[] Deletes { get; set; }
 
         [DataMember(Name = CLDefinitions.QueryStringSyncboxId, IsRequired = false)]
         public Nullable<long> SyncboxId { get; set; }

@@ -304,7 +304,7 @@ namespace Cloud.REST
                 }
                 if (!(_copiedSettings.HttpTimeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException("timeoutMilliseconds must be greater than zero");
+                    throw new ArgumentException(Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
 
                 // build the location of the metadata retrieval method on the server dynamically
@@ -363,17 +363,17 @@ namespace Cloud.REST
         }
         #endregion  // end GetItemAtPath (Gets the metedata at a particular server syncbox path)
 
-        #region RenameFiles (Rename files in the cloud.)
+        #region RenameFiles (Rename files in the syncbox.)
         /// <summary>
-        /// Asynchronously starts renaming files in the cloud.
+        /// Asynchronously starts renaming files in the syncbox.
         /// </summary>
-        /// <param name="callback">Callback method to fire when operation completes</param>
-        /// <param name="callbackUserState">Userstate to pass when firing async callback</param>
-        /// <param name="itemParams">An array of parameter pairs (item to rename and new name) to be used to rename each item in place.</param>
-        /// <param name="completionCallback">Delegate which will be fired upon successful communication for every response item</param>
-        /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion delegate is fired</param>
+        /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
+        /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
+        /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
+        /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the item completion callback above is fired.</param>
+        /// <param name="itemParams">One or more parameter pairs (item to rename and new name) to be used to rename each item in place.</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        internal IAsyncResult BeginRenameFiles(AsyncCallback callback, object callbackUserState, RenameItemParams[] itemParams, CLFileItemCompletion completionCallback, object completionCallbackUserState)
+        internal IAsyncResult BeginRenameFiles(AsyncCallback asyncCallback, object asyncCallbackUserState, CLFileItemCompletion itemCompletionCallback, object itemCompletionCallbackUserState, params RenameItemParams[] itemParams)
         {
             var asyncThread = DelegateAndDataHolderBase.Create(
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
@@ -381,8 +381,8 @@ namespace Cloud.REST
                 {
                     // create the asynchronous result to return
                     toReturn = new GenericAsyncResult<CLError>(
-                        callback,
-                        callbackUserState),
+                        asyncCallback,
+                        asyncCallbackUserState),
                     itemParams = itemParams
                 },
                 (Data, errorToAccumulate) =>
@@ -393,9 +393,9 @@ namespace Cloud.REST
                     {
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
                         CLError overallError = RenameFiles(
-                            Data.itemParams,
-                            completionCallback,
-                            completionCallbackUserState);
+                            itemCompletionCallback,
+                            itemCompletionCallbackUserState,
+                            Data.itemParams);
 
                         Data.toReturn.Complete(overallError, // any overall error that may have occurred during processing
                             sCompleted: false); // processing did not complete synchronously
@@ -417,25 +417,25 @@ namespace Cloud.REST
         }
 
         /// <summary>
-        /// Finishes renaming files in the cloud, if it has not already finished via its asynchronous result, and outputs the result,
+        /// Finishes renaming files in the syncbox, if it has not already finished via its asynchronous result, and outputs the result,
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
         /// </summary>
-        /// <param name="aResult">The asynchronous result provided upon starting the request</param>
+        /// <param name="asyncResult">The asynchronous result provided upon starting the request</param>
         /// <param name="result">(output) An overall error which occurred during processing, if any</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        internal CLError EndRenameFiles(IAsyncResult aResult, out SyncboxRenameFilesResult result)
+        internal CLError EndRenameFiles(IAsyncResult asyncResult, out SyncboxRenameFilesResult result)
         {
-            return Helpers.EndAsyncOperation<SyncboxRenameFilesResult>(aResult, out result);
+            return Helpers.EndAsyncOperation<SyncboxRenameFilesResult>(asyncResult, out result);
         }
 
         /// <summary>
-        /// Rename files in the cloud.
+        /// Rename files in the syncbox.
         /// </summary>
-        /// <param name="itemParams">An array of parameter pairs (item to rename and new name) to be used to rename each item in place.</param>
-        /// <param name="completionCallback">Delegate which will be fired upon successful communication for every response item.</param>
-        /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion delegate is fired.</param>
+        /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
+        /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the item completion callback above is fired.</param>
+        /// <param name="itemParams">One or more parameter pairs (item to rename and new name) to be used to rename each item in place.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        internal CLError RenameFiles(RenameItemParams[] itemParams, CLFileItemCompletion completionCallback, object completionCallbackUserState)
+        internal CLError RenameFiles(CLFileItemCompletion itemCompletionCallback, object itemCompletionCallbackUserState, params RenameItemParams[] itemParams)
         {
             // try/catch to process the request,  On catch return the error
             try
@@ -456,6 +456,10 @@ namespace Cloud.REST
                 for (int paramIdx = 0; paramIdx < itemParams.Length; paramIdx++)
                 {
                     RenameItemParams currentParams = itemParams[paramIdx];
+                    if (currentParams == null)
+                    {
+                        throw new CLArgumentException(CLExceptionCode.OnDemand_FileRename, String.Format(Resources.ExceptionOnDemandFileItemNullAtIndexMsg0, paramIdx.ToString()));
+                    }
 
                     // The CLFileItem represents an existing file or folder, and should be valid because we created it.  The new full path must
                     // fit the specs for the Windows client.  Form the new full path and check its validity.
@@ -480,7 +484,7 @@ namespace Cloud.REST
 
                 if (!(_copiedSettings.HttpTimeoutMilliseconds > 0))
                 {
-                    throw new CLArgumentException(CLExceptionCode.OnDemand_TimeoutMilliseconds, Resources.CLCredentialMSTimeoutMustBeGreaterThanZero);
+                    throw new CLArgumentException(CLExceptionCode.OnDemand_TimeoutMilliseconds, Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
 
                 // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
@@ -553,11 +557,11 @@ namespace Cloud.REST
                                 case CLDefinitions.CLEventTypeNoOperation:
                                 case CLDefinitions.CLEventTypeAccepted:
                                     CLFileItem resultItem = new CLFileItem(currentMoveResponse.Metadata, currentMoveResponse.Header.Action, currentMoveResponse.Action, _syncbox);
-                                    if (completionCallback != null)
+                                    if (itemCompletionCallback != null)
                                     {
                                         try
                                         {
-                                            completionCallback(responseIdx, resultItem, error: null, userState: completionCallbackUserState);
+                                            itemCompletionCallback(responseIdx, resultItem, error: null, userState: itemCompletionCallbackUserState);
                                         }
                                         catch
                                         {
@@ -598,11 +602,11 @@ namespace Cloud.REST
                         }
                         catch (Exception ex)
                         {
-                            if (completionCallback != null)
+                            if (itemCompletionCallback != null)
                             {
                                 try
                                 {
-                                    completionCallback(responseIdx, completedItem: null, error: ex, userState: completionCallbackUserState);
+                                    itemCompletionCallback(responseIdx, completedItem: null, error: ex, userState: itemCompletionCallbackUserState);
                                 }
                                 catch
                                 {
@@ -613,7 +617,7 @@ namespace Cloud.REST
                 }
                 else
                 {
-                    throw new CLNullReferenceException(CLExceptionCode.OnDemand_FileRename, Resources.ExceptionCLHttpRestWithoutMoveResponses);
+                    throw new CLNullReferenceException(CLExceptionCode.OnDemand_FileRename, Resources.ExceptionCLHttpRestWithoutRenameResponses);
                 }
             }
             catch (Exception ex)
@@ -624,230 +628,19 @@ namespace Cloud.REST
             return null;
         }
 
-        ///// <summary>
-        ///// Rename files in the cloud.
-        ///// </summary>
-        ///// <param name="pathParams">An array of old paths to new paths for renaming each item</param>
-        ///// <param name="completion">Delegate which will be fired upon successful communication for every response item</param>
-        ///// <param name="completionState">Userstate to be passed whenever the completion delegate is fired</param>
-        ///// <returns>Returns any error that occurred during communication, if any</returns>
-        //internal CLError RenameFiles(RenamePathParams[] pathParams, CLFileItemCompletion completion, object completionState)
-        //{
-        //    // try/catch to process the request,  On catch return the error
-        //    try
-        //    {
-        //        // check input parameters.
+        #endregion  // end RenameFiles (Renames files in the syncbox.)
 
-        //        if (pathParams == null
-        //            || pathParams.Length == 0)
-        //        {
-        //            throw new CLArgumentNullException(
-        //                CLExceptionCode.OnDemand_RenameMissingParameters,
-        //                Resources.ExceptionOnDemandRenameMissingParameters);
-        //        }
-
-        //        FileOrFolderMove[] jsonContractMoves = new FileOrFolderMove[pathParams.Length];
-        //        FilePath syncboxPathObject = _syncbox.Path;
-
-        //        for (int paramIdx = 0; paramIdx < pathParams.Length; paramIdx++)
-        //        {
-        //            RenamePathParams currentParams = pathParams[paramIdx];
-
-        //            FilePath currentOldPath = currentParams.OldPath;
-        //            CheckPath(currentOldPath, CLExceptionCode.OnDemand_RenameOldPath);
-
-        //            FilePath currentNewPath = currentParams.NewPath;
-        //            CheckPath(currentNewPath, CLExceptionCode.OnDemand_RenameNewPath);
-
-        //            jsonContractMoves[paramIdx] = new FileOrFolderMove()
-        //            {
-        //                RelativeFromPath = currentOldPath.GetRelativePath(syncboxPathObject, replaceWithForwardSlashes: true),
-        //                RelativeToPath = currentNewPath.GetRelativePath(syncboxPathObject, replaceWithForwardSlashes: true)
-        //            };
-        //        }
-
-        //        if (!(_copiedSettings.HttpTimeoutMilliseconds > 0))
-        //        {
-        //            throw new CLArgumentException(CLExceptionCode.OnDemand_TimeoutMilliseconds, Resources.CLCredentialMSTimeoutMustBeGreaterThanZero);
-        //        }
-
-        //        // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
-        //        Helpers.RequestNewCredentialsInfo requestNewCredentialsInfo = new Helpers.RequestNewCredentialsInfo()
-        //        {
-        //            ProcessingStateByThreadId = _processingStateByThreadId,
-        //            GetNewCredentialsCallback = _getNewCredentialsCallback,
-        //            GetNewCredentialsCallbackUserState = _getNewCredentialsCallbackUserState,
-        //            GetCurrentCredentialsCallback = GetCurrentCredentialsCallback,
-        //            SetCurrentCredentialsCallback = SetCurrentCredentialCallback,
-        //        };
-
-        //        // Build the REST content dynamically.
-        //        // File move (rename) and folder move (rename) share a json contract object for move (rename).
-        //        // This will be an array of contracts.
-
-        //        //// Old code:
-        //        //
-        //        //List<FileOrFolderMove> listMoveContract = new List<FileOrFolderMove>();
-        //        //for (int i = 0; i < numberOfFiles; ++i)
-        //        //{
-        //        //    FilePath filePath = new FilePath(paths[i]);
-        //        //    FilePath newFilePath = new FilePath(newPaths[i]);
-
-        //        //    FileOrFolderMove thisMove = new FileOrFolderMove()
-        //        //    {
-        //        //        //DeviceId = _copiedSettings.DeviceId,
-        //        //        RelativeFromPath = filePath.GetRelativePath(_syncbox.Path, true),
-        //        //        RelativeToPath = newFilePath.GetRelativePath(_syncbox.Path, true),
-        //        //        //SyncboxId = _syncbox.SyncboxId
-        //        //    };
-
-        //        //    listMoveContract.Add(thisMove);
-        //        //}
-
-        //        // Now make the REST request content.
-        //        object requestContent = new JsonContracts.FileOrFolderMoves()
-        //        {
-        //            SyncboxId = _syncbox.SyncboxId,
-        //            Moves = jsonContractMoves,
-        //            //listMoveContract.ToArray(),
-        //            DeviceId = _copiedSettings.DeviceId
-        //        };
-
-        //        // server method path switched on whether change is a folder or not
-        //        string serverMethodPath = CLDefinitions.MethodPathOneOffFileMoves;
-
-        //        // Communicate with the server to get the response.
-        //        JsonContracts.SyncboxMoveFilesOrFoldersResponse responseFromServer;
-        //        responseFromServer = Helpers.ProcessHttp<JsonContracts.SyncboxMoveFilesOrFoldersResponse>(requestContent, // dynamic type of request content based on method path
-        //            CLDefinitions.CLMetaDataServerURL, // base domain is the MDS server
-        //            serverMethodPath, // dynamic path to appropriate one-off method
-        //            Helpers.requestMethod.post, // one-off methods are all posts
-        //            _copiedSettings.HttpTimeoutMilliseconds, // time before communication timeout
-        //            null, // not an upload or download
-        //            Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
-        //            _copiedSettings, // pass the copied settings
-        //            _syncbox.SyncboxId, // pass the unique id of the sync box on the server
-        //            requestNewCredentialsInfo);   // pass the optional parameters to support temporary token reallocation.
-
-        //        // Convert these items to the output array.
-        //        if (responseFromServer != null && responseFromServer.MoveResponses != null)
-        //        {
-        //            if (responseFromServer.MoveResponses.Length != pathParams.Length)
-        //            {
-        //                throw new CLException(CLExceptionCode.OnDemand_FileRename, Resources.ExceptionOnDemandResponseArrayLength);
-        //            }
-
-        //            List<CLFileItem> listFileItems = new List<CLFileItem>();
-        //            List<CLError> listErrors = new List<CLError>();
-
-        //            for (int responseIdx = 0; responseIdx < responseFromServer.MoveResponses.Length; responseIdx++)
-        //            {
-        //                try
-        //                {
-        //                    FileChangeResponse currentMoveResponse = responseFromServer.MoveResponses[responseIdx];
-
-        //                    if (currentMoveResponse == null)
-        //                    {
-        //                        throw new CLNullReferenceException(CLExceptionCode.OnDemand_MissingResponseField, Resources.ExceptionOnDemandNullItem);
-        //                    }
-        //                    if (currentMoveResponse.Header == null || string.IsNullOrEmpty(currentMoveResponse.Header.Status))
-        //                    {
-        //                        throw new CLNullReferenceException(CLExceptionCode.OnDemand_MissingResponseField, Resources.ExceptionOnDemandNullStatus);
-        //                    }
-        //                    if (currentMoveResponse.Metadata == null)
-        //                    {
-        //                        throw new CLNullReferenceException(CLExceptionCode.OnDemand_MissingResponseField, Resources.ExceptionOnDemandNullMetadata);
-        //                    }
-
-        //                    switch (currentMoveResponse.Header.Status)
-        //                    {
-        //                        case CLDefinitions.CLEventTypeNoOperation:
-        //                        case CLDefinitions.CLEventTypeAccepted:
-        //                            CLFileItem resultItem = new CLFileItem(currentMoveResponse.Metadata, currentMoveResponse.Header.Action, currentMoveResponse.Action, _syncbox);
-        //                            if (completion != null)
-        //                            {
-        //                                try
-        //                                {
-        //                                    completion(responseIdx, resultItem, error: null, userState: completionState);
-        //                                }
-        //                                catch
-        //                                {
-        //                                }
-        //                            }
-        //                            break;
-
-        //                        case CLDefinitions.CLEventTypeAlreadyDeleted:
-        //                            throw new CLException(CLExceptionCode.OnDemand_AlreadyDeleted, Resources.ExceptionOnDemandAlreadyDeleted);
-
-        //                        //// to_parent_uid not an input parameter, we do not expect to see it in the status so it is commented out:
-        //                        //case CLDefinitions.CLEventTypeToParentNotFound:
-        //                        case CLDefinitions.CLEventTypeNotFound:
-        //                            throw new CLException(CLExceptionCode.OnDemand_NotFound, Resources.ExceptionOnDemandNotFound);
-
-        //                        case CLDefinitions.CLEventTypeConflict:
-        //                            throw new CLException(CLExceptionCode.OnDemand_Conflict, Resources.ExceptionOnDemandConflict);
-
-        //                        case CLDefinitions.RESTResponseStatusFailed:
-        //                            Exception innerEx;
-        //                            string errorMessageString;
-        //                            try
-        //                            {
-        //                                errorMessageString = string.Join(Environment.NewLine, currentMoveResponse.Metadata.ErrorMessage);
-        //                                innerEx = null;
-        //                            }
-        //                            catch (Exception ex)
-        //                            {
-        //                                errorMessageString = Resources.ExceptionOnDemandDeserializeErrorMessage;
-        //                                innerEx = ex;
-        //                            }
-
-        //                            throw new CLException(CLExceptionCode.OnDemand_ItemError, Resources.ExceptionOnDemandItemError, new Exception(errorMessageString, innerEx));
-
-        //                        default:
-        //                            throw new CLException(CLExceptionCode.OnDemand_UnknownItemStatus, string.Format(Resources.ExceptionOnDemandUnknownItemStatus, currentMoveResponse.Header.Status));
-        //                    }
-        //                }
-        //                catch (Exception ex)
-        //                {
-        //                    if (completion != null)
-        //                    {
-        //                        try
-        //                        {
-        //                            completion(responseIdx, completedItem: null, error: ex, userState: completionState);
-        //                        }
-        //                        catch
-        //                        {
-        //                        }
-        //                    }
-        //                }
-        //            }
-        //        }
-        //        else
-        //        {
-        //            throw new CLNullReferenceException(CLExceptionCode.OnDemand_FileRename, Resources.ExceptionCLHttpRestWithoutMoveResponses);
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return ex;
-        //    }
-
-        //    return null;
-        //}
-
-        #endregion  // end RenameFiles (Renames files in the cloud.)
-
-        #region RenameFolders (Rename folders in the cloud.)
+        #region RenameFolders (Rename folders in the syncbox.)
         /// <summary>
-        /// Asynchronously starts renaming folders in the cloud.
+        /// Asynchronously starts renaming folders in the syncbox.
         /// </summary>
-        /// <param name="callback">Callback method to fire when operation completes</param>
-        /// <param name="callbackUserState">Userstate to pass when firing async callback</param>
-        /// <param name="itemParams">An array of parameter pairs (item to rename and new name) to be used to rename each item in place.</param>
-        /// <param name="completionCallback">Delegate which will be fired upon successful communication for every response item</param>
-        /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion delegate is fired</param>
+        /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
+        /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
+        /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
+        /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the item completion callback above is fired.</param>
+        /// <param name="itemParams">One or more parameter pairs (item to rename and new name) to be used to rename each item in place.</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        internal IAsyncResult BeginRenameFolders(AsyncCallback callback, object callbackUserState, RenameItemParams[] itemParams, CLFileItemCompletion completionCallback, object completionCallbackUserState)
+        internal IAsyncResult BeginRenameFolders(AsyncCallback asyncCallback, object asyncCallbackUserState, CLFileItemCompletion itemCompletionCallback, object itemCompletionCallbackUserState, params RenameItemParams[] itemParams)
         {
             var asyncThread = DelegateAndDataHolderBase.Create(
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
@@ -855,8 +648,8 @@ namespace Cloud.REST
                 {
                     // create the asynchronous result to return
                     toReturn = new GenericAsyncResult<CLError>(
-                        callback,
-                        callbackUserState),
+                        asyncCallback,
+                        asyncCallbackUserState),
                     itemParams = itemParams
                 },
                 (Data, errorToAccumulate) =>
@@ -867,9 +660,9 @@ namespace Cloud.REST
                     {
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
                         CLError overallError = RenameFolders(
-                            Data.itemParams,
-                            completionCallback,
-                            completionCallbackUserState);
+                            itemCompletionCallback,
+                            itemCompletionCallbackUserState,
+                            Data.itemParams);
 
                         Data.toReturn.Complete(overallError, // any overall error that may have occurred during processing
                             sCompleted: false); // processing did not complete synchronously
@@ -891,25 +684,25 @@ namespace Cloud.REST
         }
 
         /// <summary>
-        /// Finishes renaming folders in the cloud, if it has not already finished via its asynchronous result, and outputs the result,
+        /// Finishes renaming folders in the syncbox, if it has not already finished via its asynchronous result, and outputs the result,
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
         /// </summary>
-        /// <param name="aResult">The asynchronous result provided upon starting the request</param>
+        /// <param name="asyncResult">The asynchronous result provided upon starting the request</param>
         /// <param name="result">(output) An overall error which occurred during processing, if any</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        internal CLError EndRenameFolders(IAsyncResult aResult, out SyncboxRenameFoldersResult result)
+        internal CLError EndRenameFolders(IAsyncResult asyncResult, out SyncboxRenameFoldersResult result)
         {
-            return Helpers.EndAsyncOperation<SyncboxRenameFoldersResult>(aResult, out result);
+            return Helpers.EndAsyncOperation<SyncboxRenameFoldersResult>(asyncResult, out result);
         }
 
         /// <summary>
-        /// Rename folders in the cloud.
+        /// Rename folders in the syncbox.
         /// </summary>
-        /// <param name="itemParams">An array of parameter pairs (item to rename and new name) to be used to rename each item in place.</param>
-        /// <param name="completionCallback">Delegate which will be fired upon successful communication for every response item.</param>
-        /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion delegate is fired.</param>
+        /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
+        /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the item completion callback above is fired.</param>
+        /// <param name="itemParams">One or more parameter pairs (item to rename and new name) to be used to rename each item in place.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        internal CLError RenameFolders(RenameItemParams[] itemParams, CLFileItemCompletion completionCallback, object completionCallbackUserState)
+        internal CLError RenameFolders(CLFileItemCompletion itemCompletionCallback, object itemCompletionCallbackUserState, params RenameItemParams[] itemParams)
         {
             // try/catch to process the request,  On catch return the error
             try
@@ -930,6 +723,10 @@ namespace Cloud.REST
                 for (int paramIdx = 0; paramIdx < itemParams.Length; paramIdx++)
                 {
                     RenameItemParams currentParams = itemParams[paramIdx];
+                    if (currentParams == null)
+                    {
+                        throw new CLArgumentException(CLExceptionCode.OnDemand_FileRename, String.Format(Resources.ExceptionOnDemandFolderItemNullAtIndexMsg0, paramIdx.ToString()));
+                    }
 
                     // The CLFileItem represents an existing file or folder, and should be valid because we created it.  The new full path must
                     // fit the specs for the Windows client.  Form the new full path and check its validity.
@@ -954,7 +751,7 @@ namespace Cloud.REST
 
                 if (!(_copiedSettings.HttpTimeoutMilliseconds > 0))
                 {
-                    throw new CLArgumentException(CLExceptionCode.OnDemand_TimeoutMilliseconds, Resources.CLCredentialMSTimeoutMustBeGreaterThanZero);
+                    throw new CLArgumentException(CLExceptionCode.OnDemand_TimeoutMilliseconds, Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
 
                 // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
@@ -1027,11 +824,11 @@ namespace Cloud.REST
                                 case CLDefinitions.CLEventTypeNoOperation:
                                 case CLDefinitions.CLEventTypeAccepted:
                                     CLFileItem resultItem = new CLFileItem(currentMoveResponse.Metadata, currentMoveResponse.Header.Action, currentMoveResponse.Action, _syncbox);
-                                    if (completionCallback != null)
+                                    if (itemCompletionCallback != null)
                                     {
                                         try
                                         {
-                                            completionCallback(responseIdx, resultItem, error: null, userState: completionCallbackUserState);
+                                            itemCompletionCallback(responseIdx, resultItem, error: null, userState: itemCompletionCallbackUserState);
                                         }
                                         catch
                                         {
@@ -1072,11 +869,11 @@ namespace Cloud.REST
                         }
                         catch (Exception ex)
                         {
-                            if (completionCallback != null)
+                            if (itemCompletionCallback != null)
                             {
                                 try
                                 {
-                                    completionCallback(responseIdx, completedItem: null, error: ex, userState: completionCallbackUserState);
+                                    itemCompletionCallback(responseIdx, completedItem: null, error: ex, userState: itemCompletionCallbackUserState);
                                 }
                                 catch
                                 {
@@ -1098,231 +895,29 @@ namespace Cloud.REST
             return null;
         }
 
-        ///// <summary>
-        ///// Asynchronously starts renaming folders in the cloud.
-        ///// </summary>
-        ///// <param name="callback">Callback method to fire when operation completes</param>
-        ///// <param name="callbackUserState">Userstate to pass when firing async callback</param>
-        ///// <param name="paths">An array of full paths to where the folders would exist locally on disk</param>
-        ///// <param name="newPaths">Array of new full paths corresponding to the paths array</param>
-        ///// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        //public IAsyncResult BeginRenameFolders(AsyncCallback callback, object callbackUserState, string[] paths, string[] newPaths)
-        //{
-        //    var asyncThread = DelegateAndDataHolderBase.Create(
-        //        // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
-        //        new
-        //        {
-        //            // create the asynchronous result to return
-        //            toReturn = new GenericAsyncResult<SyncboxRenameFoldersResult>(
-        //                callback,
-        //                callbackUserState),
-        //            paths,
-        //            newPaths
-        //        },
-        //        (Data, errorToAccumulate) =>
-        //        {
-        //            // The ThreadProc.
-        //            // try/catch to process with the input parameters, on catch set the exception in the asyncronous result
-        //            try
-        //            {
-        //                // declare the output status for communication
-        //                // declare the specific type of result for this operation
-        //                CLFileItem[] responses;
-        //                CLError[] errors;
-        //                // alloc and init the syncbox with the passed parameters, storing any error that occurs
-        //                CLError overallError = RenameFolders(
-        //                    Data.paths,
-        //                    Data.newPaths,
-        //                    out responses,
-        //                    out errors);
+        #endregion  // end RenameFolders (Renames folders in the syncbox.)
 
-        //                Data.toReturn.Complete(
-        //                    new SyncboxRenameFoldersResult(
-        //                        overallError, // any overall error that may have occurred during processing
-        //                        errors,     // any item erros that may have occurred during processing
-        //                        responses), // the specific type of result for this operation
-        //                    sCompleted: false); // processing did not complete synchronously
-        //            }
-        //            catch (Exception ex)
-        //            {
-        //                Data.toReturn.HandleException(
-        //                    ex, // the exception which was not handled correctly by the CLError wrapping
-        //                    sCompleted: false); // processing did not complete synchronously
-        //            }
-        //        },
-        //        null);
-
-        //    // create the thread from a void (object) parameterized start which wraps the synchronous method call
-        //    (new Thread(new ThreadStart(asyncThread.VoidProcess))).Start(); // start the asynchronous processing thread which is attached to its data
-
-        //    // return the asynchronous result
-        //    return asyncThread.TypedData.toReturn;
-        //}
-
-        ///// <summary>
-        ///// Finishes renaming folders in the cloud, if it has not already finished via its asynchronous result, and outputs the result,
-        ///// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
-        ///// </summary>
-        ///// <param name="aResult">The asynchronous result provided upon starting the request</param>
-        ///// <param name="result">(output) The result from the request</param>
-        ///// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        //public CLError EndRenameFolders(IAsyncResult aResult, out SyncboxRenameFoldersResult result)
-        //{
-        //    return Helpers.EndAsyncOperation<SyncboxRenameFoldersResult>(aResult, out result);
-        //}
-
-        ///// <summary>
-        ///// Rename folders in the cloud.
-        ///// </summary>
-        ///// <param name="paths">An array of full paths to where the folders would exist locally on disk</param>
-        ///// <param name="newPaths">Array of new full paths corresponding to the paths array</param>
-        ///// <param name="responses">(output) An array of response objects from communication</param>
-        ///// <param name="errors">(output) An array of errors from communication.</param>
-        ///// <returns>Returns any error that occurred during communication, if any</returns>
-        //public CLError RenameFolders(string[] paths, string[] newPaths, out CLFileItem[] responses, out CLError[] errors)
-        //{
-        //    // try/catch to process the request,  On catch return the error
-        //    try
-        //    {
-        //        // check input parameters.
-        //        if (paths.Length != newPaths.Length)
-        //        {
-        //            throw new ArgumentException("The paths and newPaths arrays must have the same number of elements");
-        //        }
-        //        for (int i = 0; i < paths.Length; ++i)
-        //        {
-        //            CheckPath(paths[i], CLExceptionCode.OnDemand_InvalidExistingPath);
-        //            CheckPath(newPaths[i], CLExceptionCode.OnDemand_RenameNewName);
-        //        }
-
-        //        if (!(_copiedSettings.HttpTimeoutMilliseconds > 0))
-        //        {
-        //            throw new ArgumentException("timeoutMilliseconds must be greater than zero");
-        //        }
-
-        //        // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
-        //        Helpers.RequestNewCredentialsInfo requestNewCredentialsInfo = new Helpers.RequestNewCredentialsInfo()
-        //        {
-        //            ProcessingStateByThreadId = _processingStateByThreadId,
-        //            GetNewCredentialsCallback = _getNewCredentialsCallback,
-        //            GetNewCredentialsCallbackUserState = _getNewCredentialsCallbackUserState,
-        //            GetCurrentCredentialsCallback = GetCurrentCredentialsCallback,
-        //            SetCurrentCredentialsCallback = SetCurrentCredentialCallback,
-        //        };
-
-        //        // Build the REST content dynamically.
-        //        // Folder move (rename) and folder move (rename) share a json contract object for move (rename).
-        //        // This will be an array of contracts.
-        //        int numberOfFolders = paths.Length;
-        //        List<FileOrFolderMove> listMoveContract = new List<FileOrFolderMove>();
-        //        for (int i = 0; i < numberOfFolders; ++i)
-        //        {
-        //            FilePath folderPath = new FilePath(paths[i]);
-        //            FilePath newFolderPath = new FilePath(newPaths[i]);
-
-        //            FileOrFolderMove thisMove = new FileOrFolderMove()
-        //            {
-        //                //DeviceId = _copiedSettings.DeviceId,
-        //                RelativeFromPath = folderPath.GetRelativePath(_syncbox.Path, true),
-        //                RelativeToPath = newFolderPath.GetRelativePath(_syncbox.Path, true),
-        //                //SyncboxId = _syncbox.SyncboxId
-        //            };
-
-        //            listMoveContract.Add(thisMove);
-        //        }
-
-        //        // Now make the REST request content.
-        //        object requestContent = new JsonContracts.FileOrFolderMoves()
-        //        {
-        //            SyncboxId = _syncbox.SyncboxId,
-        //            DeviceId = _copiedSettings.DeviceId,
-        //            Moves = listMoveContract.ToArray()
-        //        };
-
-        //        // server method path switched on whether change is a folder or not
-        //        string serverMethodPath = CLDefinitions.MethodPathOneOffFolderMoves;
-
-        //        // Communicate with the server to get the response.
-        //        JsonContracts.SyncboxMoveFilesOrFoldersResponse responseFromServer;
-        //        responseFromServer = Helpers.ProcessHttp<JsonContracts.SyncboxMoveFilesOrFoldersResponse>(requestContent, // dynamic type of request content based on method path
-        //            CLDefinitions.CLMetaDataServerURL, // base domain is the MDS server
-        //            serverMethodPath, // dynamic path to appropriate one-off method
-        //            Helpers.requestMethod.post, // one-off methods are all posts
-        //            _copiedSettings.HttpTimeoutMilliseconds, // time before communication timeout
-        //            null, // not an upload or download
-        //            Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
-        //            _copiedSettings, // pass the copied settings
-        //            _syncbox.SyncboxId, // pass the unique id of the sync box on the server
-        //            requestNewCredentialsInfo);   // pass the optional parameters to support temporary token reallocation.
-
-        //        // Convert these items to the output array.
-        //        if (responseFromServer != null && responseFromServer.MoveResponses != null)
-        //        {
-        //            List<CLFileItem> listFileItems = new List<CLFileItem>();
-        //            List<CLError> listErrors = new List<CLError>();
-        //            foreach (FileChangeResponse fileChangeResponse in responseFromServer.MoveResponses)
-        //            {
-        //                if (fileChangeResponse != null && fileChangeResponse.Metadata != null)
-        //                {
-        //                    try
-        //                    {
-        //                        listFileItems.Add(new CLFileItem(fileChangeResponse.Metadata, fileChangeResponse.Header.Action, fileChangeResponse.Action, _syncbox));
-        //                    }
-        //                    catch (Exception ex)
-        //                    {
-        //                        CLException exInner = new CLException(CLExceptionCode.OnDemand_FolderRenameInvalidMetadata, ex.Message, ex);
-        //                        listErrors.Add(new CLError(exInner));
-        //                    }
-        //                }
-        //                else
-        //                {
-        //                    string msg = "<Unknown>";
-        //                    if (fileChangeResponse.Header.Status != null)
-        //                    {
-        //                        msg = fileChangeResponse.Header.Status;
-        //                    }
-
-        //                    CLException ex = new CLException(CLExceptionCode.OnDemand_FolderRename, msg);
-        //                    listErrors.Add(new CLError(ex));
-        //                }
-        //            }
-        //            responses = listFileItems.ToArray();
-        //            errors = listErrors.ToArray();
-        //        }
-        //        else
-        //        {
-        //            throw new NullReferenceException(Resources.ExceptionCLHttpRestWithoutMoveResponses);
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        responses = Helpers.DefaultForType<CLFileItem[]>();
-        //        errors = Helpers.DefaultForType<CLError[]>();
-        //        return ex;
-        //    }
-        //    return null;
-        //}
-        #endregion  // end RenameFolders (Renames folders in the cloud.)
-
-        #region DeleteFiles (Delete files in the cloud.)
+        #region DeleteFiles (Delete files in the syncbox.)
         /// <summary>
-        /// Asynchronously starts deleting files in the cloud.
+        /// Asynchronously starts deleting files in the syncbox.
         /// </summary>
-        /// <param name="callback">Callback method to fire when operation completes</param>
-        /// <param name="callbackUserState">Userstate to pass when firing async callback</param>
-        /// <param name="paths">An array of full paths to where the files would exist locally on disk</param>
+        /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
+        /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
+        /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
+        /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the item completion callback above is fired.</param>
+        /// <param name="itemsToDelete">One or more file items to delete.</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginDeleteFiles(AsyncCallback callback, object callbackUserState, string[] paths)
+        internal IAsyncResult BeginDeleteFiles(AsyncCallback asyncCallback, object asyncCallbackUserState, CLFileItemCompletion itemCompletionCallback, object itemCompletionCallbackUserState, params CLFileItem[] itemsToDelete)
         {
             var asyncThread = DelegateAndDataHolderBase.Create(
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
                 new
                 {
                     // create the asynchronous result to return
-                    toReturn = new GenericAsyncResult<SyncboxDeleteFilesResult>(
-                        callback,
-                        callbackUserState),
-                    paths
+                    toReturn = new GenericAsyncResult<CLError>(
+                        asyncCallback,
+                        asyncCallbackUserState),
+                    itemsToDelete = itemsToDelete
                 },
                 (Data, errorToAccumulate) =>
                 {
@@ -1330,21 +925,13 @@ namespace Cloud.REST
                     // try/catch to process with the input parameters, on catch set the exception in the asyncronous result
                     try
                     {
-                        // declare the output status for communication
-                        // declare the specific type of result for this operation
-                        CLFileItem[] responses;
-                        CLError[] errors;
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
                         CLError overallError = DeleteFiles(
-                            Data.paths,
-                            out responses,
-                            out errors);
+                            itemCompletionCallback,
+                            itemCompletionCallbackUserState,
+                            Data.itemsToDelete);
 
-                        Data.toReturn.Complete(
-                            new SyncboxDeleteFilesResult(
-                                overallError, // any overall error that may have occurred during processing
-                                errors,     // any item erros that may have occurred during processing
-                                responses), // the specific type of result for this operation
+                        Data.toReturn.Complete(overallError, // any overall error that may have occurred during processing
                             sCompleted: false); // processing did not complete synchronously
                     }
                     catch (Exception ex)
@@ -1364,38 +951,55 @@ namespace Cloud.REST
         }
 
         /// <summary>
-        /// Finishes deleting files in the cloud, if it has not already finished via its asynchronous result, and outputs the result,
+        /// Finishes deleting files in the syncbox, if it has not already finished via its asynchronous result, and outputs the result,
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
         /// </summary>
-        /// <param name="aResult">The asynchronous result provided upon starting the request</param>
-        /// <param name="result">(output) The result from the request</param>
+        /// <param name="asyncResult">The asynchronous result provided upon starting the request</param>
+        /// <param name="result">(output) An overall error which occurred during processing, if any</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndDeleteFiles(IAsyncResult aResult, out SyncboxDeleteFilesResult result)
+        internal CLError EndDeleteFiles(IAsyncResult asyncResult, out SyncboxDeleteFilesResult result)
         {
-            return Helpers.EndAsyncOperation<SyncboxDeleteFilesResult>(aResult, out result);
+            return Helpers.EndAsyncOperation<SyncboxDeleteFilesResult>(asyncResult, out result);
         }
 
         /// <summary>
-        /// Delete files in the cloud.
+        /// Delete files in the syncbox.
         /// </summary>
-        /// <param name="paths">An array of full paths to where the files would exist locally on disk</param>
-        /// <param name="responses">(output) An array of response objects from communication</param>
-        /// <param name="errors">(output) An array of errors from communication.</param>
+        /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
+        /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the item completion callback above is fired.</param>
+        /// <param name="itemsToDelete">One or more file items to delete.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError DeleteFiles(string[] paths, out CLFileItem[] responses, out CLError[] errors)
+        internal CLError DeleteFiles(CLFileItemCompletion itemCompletionCallback, object itemCompletionCallbackUserState, params CLFileItem[] itemsToDelete)
         {
             // try/catch to process the request,  On catch return the error
             try
             {
-                // Check the input parameters
-                for (int i = 0; i < paths.Length; ++i)
+                // check input parameters.
+
+                if (itemsToDelete == null
+                    || itemsToDelete.Length == 0)
                 {
-                    CheckPath(paths[i], CLExceptionCode.OnDemand_FileDeleteBadPath);
+                    throw new CLArgumentNullException(
+                        CLExceptionCode.OnDemand_RenameMissingParameters,
+                        Resources.ExceptionOnDemandRenameMissingParameters);
+                }
+
+                string[] jsonContractDeletes = new string[itemsToDelete.Length];
+
+                for (int paramIdx = 0; paramIdx < itemsToDelete.Length; paramIdx++)
+                {
+                    CLFileItem currentFileItem = itemsToDelete[paramIdx];
+                    if (currentFileItem == null)
+                    {
+                        throw new CLArgumentException(CLExceptionCode.OnDemand_FileRename, String.Format(Resources.ExceptionOnDemandFileItemNullAtIndexMsg0, paramIdx.ToString()));
+                    }
+
+                    jsonContractDeletes[paramIdx] = currentFileItem.Uid;
                 }
 
                 if (!(_copiedSettings.HttpTimeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException("timeoutMilliseconds must be greater than zero");
+                    throw new CLArgumentException(CLExceptionCode.OnDemand_TimeoutMilliseconds, Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
 
                 // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
@@ -1408,34 +1012,15 @@ namespace Cloud.REST
                     SetCurrentCredentialsCallback = SetCurrentCredentialCallback,
                 };
 
-                // Build the REST content dynamically.
-                // File move (rename) and folder move (rename) share a json contract object for move (rename).
-                // This will be an array of contracts.
-                int numberOfFiles = paths.Length;
-                List<string> listDeleteContract = new List<string>();
-                for (int i = 0; i < numberOfFiles; ++i)
-                {
-                    FilePath filePath = new FilePath(paths[i]);
-
-                    //FileDeleteRequest thisDelete = new FileOrFolderDelete()
-                    //{
-                    //    //DeviceId = _copiedSettings.DeviceId,
-                    //    RelativePath = filePath.GetRelativePath(_syncbox.Path, true),
-                    //    //SyncboxId = _syncbox.SyncboxId
-                    //};
-
-                    listDeleteContract.Add(filePath.GetRelativePath(_syncbox.Path, true));
-                }
-
                 // Now make the REST request content.
-                object requestContent = new JsonContracts.FileDeleteRequest()
+                object requestContent = new JsonContracts.FileOrFolderDeletesRequest()
                 {
-                    DeviceId = _copiedSettings.DeviceId,
                     SyncboxId = _syncbox.SyncboxId,
-                    Deletes = listDeleteContract.ToArray()
+                    Deletes = jsonContractDeletes,
+                    DeviceId = _copiedSettings.DeviceId
                 };
 
-                // server method path switched on whether change is a folder or not
+                // server method path
                 string serverMethodPath = CLDefinitions.MethodPathOneOffFileDeletes;
 
                 // Communicate with the server to get the response.
@@ -1455,71 +1040,124 @@ namespace Cloud.REST
                 // Convert these items to the output array.
                 if (responseFromServer != null && responseFromServer.DeleteResponses != null)
                 {
+                    if (responseFromServer.DeleteResponses.Length != itemsToDelete.Length)
+                    {
+                        throw new CLException(CLExceptionCode.OnDemand_FileRename, Resources.ExceptionOnDemandResponseArrayLength);
+                    }
+
                     List<CLFileItem> listFileItems = new List<CLFileItem>();
                     List<CLError> listErrors = new List<CLError>();
-                    foreach (FileChangeResponse fileChangeResponse in responseFromServer.DeleteResponses)
+
+                    for (int responseIdx = 0; responseIdx < responseFromServer.DeleteResponses.Length; responseIdx++)
                     {
-                        if (fileChangeResponse != null && fileChangeResponse.Metadata != null)
+                        try
                         {
-                            try
+                            FileChangeResponse currentDeleteResponse = responseFromServer.DeleteResponses[responseIdx];
+
+                            if (currentDeleteResponse == null)
                             {
-                                listFileItems.Add(new CLFileItem(fileChangeResponse.Metadata, fileChangeResponse.Header.Action, fileChangeResponse.Action, _syncbox));
+                                throw new CLNullReferenceException(CLExceptionCode.OnDemand_MissingResponseField, Resources.ExceptionOnDemandNullItem);
                             }
-                            catch (Exception ex)
+                            if (currentDeleteResponse.Header == null || string.IsNullOrEmpty(currentDeleteResponse.Header.Status))
                             {
-                                CLException exInner = new CLException(CLExceptionCode.OnDemand_FileDeleteInvalidMetadata, ex.Message, ex);
-                                listErrors.Add(new CLError(exInner));
+                                throw new CLNullReferenceException(CLExceptionCode.OnDemand_MissingResponseField, Resources.ExceptionOnDemandNullStatus);
                             }
-                        }
-                        else
-                        {
-                            string msg = "<Unknown>";
-                            if (fileChangeResponse.Header.Status != null)
+                            if (currentDeleteResponse.Metadata == null)
                             {
-                                msg = fileChangeResponse.Header.Status;
+                                throw new CLNullReferenceException(CLExceptionCode.OnDemand_MissingResponseField, Resources.ExceptionOnDemandNullMetadata);
                             }
 
-                            CLException ex = new CLException(CLExceptionCode.OnDemand_FileDelete, msg);
-                            listErrors.Add(new CLError(ex));
+                            switch (currentDeleteResponse.Header.Status)
+                            {
+                                case CLDefinitions.CLEventTypeAccepted:
+                                case CLDefinitions.CLEventTypeAlreadyDeleted:   // user said delete, and it is deleted.  
+                                    CLFileItem resultItem = new CLFileItem(currentDeleteResponse.Metadata, currentDeleteResponse.Header.Action, currentDeleteResponse.Action, _syncbox);
+                                    if (itemCompletionCallback != null)
+                                    {
+                                        try
+                                        {
+                                            itemCompletionCallback(responseIdx, resultItem, error: null, userState: itemCompletionCallbackUserState);
+                                        }
+                                        catch
+                                        {
+                                        }
+                                    }
+                                    break;
+
+                                case CLDefinitions.CLEventTypeNotFound:
+                                    throw new CLException(CLExceptionCode.OnDemand_NotFound, Resources.ExceptionOnDemandNotFound);
+
+                                case CLDefinitions.RESTResponseStatusFailed:
+                                    Exception innerEx;
+                                    string errorMessageString;
+                                    try
+                                    {
+                                        errorMessageString = string.Join(Environment.NewLine, currentDeleteResponse.Metadata.ErrorMessage);
+                                        innerEx = null;
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        errorMessageString = Resources.ExceptionOnDemandDeserializeErrorMessage;
+                                        innerEx = ex;
+                                    }
+
+                                    throw new CLException(CLExceptionCode.OnDemand_ItemError, Resources.ExceptionOnDemandItemError, new Exception(errorMessageString, innerEx));
+
+                                default:
+                                    throw new CLException(CLExceptionCode.OnDemand_UnknownItemStatus, string.Format(Resources.ExceptionOnDemandUnknownItemStatus, currentDeleteResponse.Header.Status));
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            if (itemCompletionCallback != null)
+                            {
+                                try
+                                {
+                                    itemCompletionCallback(responseIdx, completedItem: null, error: ex, userState: itemCompletionCallbackUserState);
+                                }
+                                catch
+                                {
+                                }
+                            }
                         }
                     }
-                    responses = listFileItems.ToArray();
-                    errors = listErrors.ToArray();
                 }
                 else
                 {
-                    throw new NullReferenceException(Resources.ExceptionCLHttpRestWithoutMoveResponses);
+                    throw new CLNullReferenceException(CLExceptionCode.OnDemand_FileDelete, Resources.ExceptionCLHttpRestWithoutDeleteResponses);
                 }
             }
             catch (Exception ex)
             {
-                responses = Helpers.DefaultForType<CLFileItem[]>();
-                errors = Helpers.DefaultForType<CLError[]>();
                 return ex;
             }
+
             return null;
         }
-        #endregion  // end DeleteFiles (Deletes files in the cloud.)
 
-        #region DeleteFolders (Delete folders in the cloud.)
+        #endregion  // end DeleteFiles (Deletes files in the syncbox.)
+
+        #region DeleteFolders (Delete folders in the syncbox.)
         /// <summary>
-        /// Asynchronously starts deleting folders in the cloud.
+        /// Asynchronously starts deleting folders in the syncbox.  
         /// </summary>
-        /// <param name="callback">Callback method to fire when operation completes</param>
-        /// <param name="callbackUserState">Userstate to pass when firing async callback</param>
-        /// <param name="paths">An array of full paths to where the folders would exist locally on disk</param>
+        /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
+        /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
+        /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
+        /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the item completion callback above is fired.</param>
+        /// <param name="itemsToDelete">One or more folder items to delete.</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginDeleteFolders(AsyncCallback callback, object callbackUserState, string[] paths)
+        internal IAsyncResult BeginDeleteFolders(AsyncCallback asyncCallback, object asyncCallbackUserState, CLFileItemCompletion itemCompletionCallback, object itemCompletionCallbackUserState, params CLFileItem[] itemsToDelete)
         {
             var asyncThread = DelegateAndDataHolderBase.Create(
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
                 new
                 {
                     // create the asynchronous result to return
-                    toReturn = new GenericAsyncResult<SyncboxDeleteFoldersResult>(
-                        callback,
-                        callbackUserState),
-                    paths
+                    toReturn = new GenericAsyncResult<CLError>(
+                        asyncCallback,
+                        asyncCallbackUserState),
+                    itemsToDelete = itemsToDelete
                 },
                 (Data, errorToAccumulate) =>
                 {
@@ -1527,21 +1165,13 @@ namespace Cloud.REST
                     // try/catch to process with the input parameters, on catch set the exception in the asyncronous result
                     try
                     {
-                        // declare the output status for communication
-                        // declare the specific type of result for this operation
-                        CLFileItem[] responses;
-                        CLError[] errors;
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
                         CLError overallError = DeleteFolders(
-                            Data.paths,
-                            out responses,
-                            out errors);
+                            itemCompletionCallback,
+                            itemCompletionCallbackUserState,
+                            Data.itemsToDelete);
 
-                        Data.toReturn.Complete(
-                            new SyncboxDeleteFoldersResult(
-                                overallError, // any overall error that may have occurred during processing
-                                errors,     // any item erros that may have occurred during processing
-                                responses), // the specific type of result for this operation
+                        Data.toReturn.Complete(overallError, // any overall error that may have occurred during processing
                             sCompleted: false); // processing did not complete synchronously
                     }
                     catch (Exception ex)
@@ -1561,38 +1191,60 @@ namespace Cloud.REST
         }
 
         /// <summary>
-        /// Finishes deleting folders in the cloud, if it has not already finished via its asynchronous result, and outputs the result,
+        /// Finishes deleting folders in the syncbox, if it has not already finished via its asynchronous result, and outputs the result,
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
         /// </summary>
-        /// <param name="aResult">The asynchronous result provided upon starting the request</param>
-        /// <param name="result">(output) The result from the request</param>
+        /// <param name="asyncResult">The asynchronous result provided upon starting the request</param>
+        /// <param name="result">(output) An overall error which occurred during processing, if any</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndDeleteFolders(IAsyncResult aResult, out SyncboxDeleteFoldersResult result)
+        internal CLError EndDeleteFolders(IAsyncResult asyncResult, out SyncboxDeleteFoldersResult result)
         {
-            return Helpers.EndAsyncOperation<SyncboxDeleteFoldersResult>(aResult, out result);
+            return Helpers.EndAsyncOperation<SyncboxDeleteFoldersResult>(asyncResult, out result);
         }
 
         /// <summary>
-        /// Delete folders in the cloud.
+        /// Delete folders in the syncbox.
         /// </summary>
-        /// <param name="paths">An array of full paths to where the folders would exist locally on disk</param>
-        /// <param name="responses">(output) An array of response objects from communication</param>
-        /// <param name="errors">(output) An array of errors from communication.</param>
+        /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
+        /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the item completion callback above is fired.</param>
+        /// <param name="itemsToDelete">One or more folder items to delete.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError DeleteFolders(string[] paths, out CLFileItem[] responses, out CLError[] errors)
+        internal CLError DeleteFolders(CLFileItemCompletion itemCompletionCallback, object itemCompletionCallbackUserState, params CLFileItem[] itemsToDelete)
         {
             // try/catch to process the request,  On catch return the error
             try
             {
                 // check input parameters.
-                for (int i = 0; i < paths.Length; ++i)
+
+                if (itemsToDelete == null
+                    || itemsToDelete.Length == 0)
                 {
-                    CheckPath(paths[i], CLExceptionCode.OnDemand_FolderDeleteBadPath);
+                    throw new CLArgumentNullException(
+                        CLExceptionCode.OnDemand_RenameMissingParameters,
+                        Resources.ExceptionOnDemandRenameMissingParameters);
+                }
+
+                string[] jsonContractDeletes = new string[itemsToDelete.Length];
+
+                for (int paramIdx = 0; paramIdx < itemsToDelete.Length; paramIdx++)
+                {
+                    CLFileItem currentFileItem = itemsToDelete[paramIdx];
+                    if (currentFileItem == null)
+                    {
+                        throw new CLArgumentException(CLExceptionCode.OnDemand_FileRename, String.Format(Resources.ExceptionOnDemandFileItemNullAtIndexMsg0, paramIdx.ToString()));
+                    }
+
+                    jsonContractDeletes[paramIdx] = currentFileItem.Uid;
+                    //{
+                        //DeviceId = _copiedSettings.DeviceId,
+                        
+                        //SyncboxId = _syncbox.SyncboxId
+                    //};
                 }
 
                 if (!(_copiedSettings.HttpTimeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException("timeoutMilliseconds must be greater than zero");
+                    throw new CLArgumentException(CLExceptionCode.OnDemand_TimeoutMilliseconds, Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
 
                 // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
@@ -1605,37 +1257,20 @@ namespace Cloud.REST
                     SetCurrentCredentialsCallback = SetCurrentCredentialCallback,
                 };
 
-                // Build the REST content dynamically.
-                // Folder move (rename) and folder move (rename) share a json contract object for move (rename).
-                // This will be an array of contracts.
-                int numberOfFolders = paths.Length;
-                List<FileOrFolderDelete> listDeleteContract = new List<FileOrFolderDelete>();
-                for (int i = 0; i < numberOfFolders; ++i)
-                {
-                    FilePath folderPath = new FilePath(paths[i]);
-
-                    FileOrFolderDelete thisDelete = new FileOrFolderDelete()
-                    {
-                        DeviceId = _copiedSettings.DeviceId,
-                        RelativePath = folderPath.GetRelativePath(_syncbox.Path, true),
-                        SyncboxId = _syncbox.SyncboxId
-                    };
-
-                    listDeleteContract.Add(thisDelete);
-                }
-
                 // Now make the REST request content.
-                object requestContent = new JsonContracts.FileOrFolderDeletes()
+                object requestContent = new JsonContracts.FileOrFolderDeletesRequest()
                 {
-                    Deletes = listDeleteContract.ToArray()
+                    SyncboxId = _syncbox.SyncboxId,
+                    Deletes = jsonContractDeletes,
+                    DeviceId = _copiedSettings.DeviceId
                 };
 
-                // server method path switched on whether change is a folder or not
+                // server method path
                 string serverMethodPath = CLDefinitions.MethodPathOneOffFolderDeletes;
 
                 // Communicate with the server to get the response.
-                JsonContracts.SyncboxDeleteFilesResponse responseFromServer;
-                responseFromServer = Helpers.ProcessHttp<JsonContracts.SyncboxDeleteFilesResponse>(requestContent, // dynamic type of request content based on method path
+                JsonContracts.SyncboxDeleteFoldersResponse responseFromServer;
+                responseFromServer = Helpers.ProcessHttp<JsonContracts.SyncboxDeleteFoldersResponse>(requestContent, // dynamic type of request content based on method path
                     CLDefinitions.CLMetaDataServerURL, // base domain is the MDS server
                     serverMethodPath, // dynamic path to appropriate one-off method
                     Helpers.requestMethod.post, // one-off methods are all posts
@@ -1650,55 +1285,106 @@ namespace Cloud.REST
                 // Convert these items to the output array.
                 if (responseFromServer != null && responseFromServer.DeleteResponses != null)
                 {
+                    if (responseFromServer.DeleteResponses.Length != itemsToDelete.Length)
+                    {
+                        throw new CLException(CLExceptionCode.OnDemand_FileRename, Resources.ExceptionOnDemandResponseArrayLength);
+                    }
+
                     List<CLFileItem> listFileItems = new List<CLFileItem>();
                     List<CLError> listErrors = new List<CLError>();
-                    foreach (FileChangeResponse fileChangeResponse in responseFromServer.DeleteResponses)
+
+                    for (int responseIdx = 0; responseIdx < responseFromServer.DeleteResponses.Length; responseIdx++)
                     {
-                        if (fileChangeResponse != null && fileChangeResponse.Metadata != null)
+                        try
                         {
-                            try
+                            FileChangeResponse currentDeleteResponse = responseFromServer.DeleteResponses[responseIdx];
+
+                            if (currentDeleteResponse == null)
                             {
-                                listFileItems.Add(new CLFileItem(fileChangeResponse.Metadata, fileChangeResponse.Header.Action, fileChangeResponse.Action, _syncbox));
+                                throw new CLNullReferenceException(CLExceptionCode.OnDemand_MissingResponseField, Resources.ExceptionOnDemandNullItem);
                             }
-                            catch (Exception ex)
+                            if (currentDeleteResponse.Header == null || string.IsNullOrEmpty(currentDeleteResponse.Header.Status))
                             {
-                                CLException exInner = new CLException(CLExceptionCode.OnDemand_FolderDeleteInvalidMetadata, ex.Message, ex);
-                                listErrors.Add(new CLError(exInner));
+                                throw new CLNullReferenceException(CLExceptionCode.OnDemand_MissingResponseField, Resources.ExceptionOnDemandNullStatus);
                             }
-                        }
-                        else
-                        {
-                            string msg = "<Unknown>";
-                            if (fileChangeResponse.Header.Status != null)
+                            if (currentDeleteResponse.Metadata == null)
                             {
-                                msg = fileChangeResponse.Header.Status;
+                                throw new CLNullReferenceException(CLExceptionCode.OnDemand_MissingResponseField, Resources.ExceptionOnDemandNullMetadata);
                             }
 
-                            CLException ex = new CLException(CLExceptionCode.OnDemand_FolderDelete, msg);
-                            listErrors.Add(new CLError(ex));
+                            switch (currentDeleteResponse.Header.Status)
+                            {
+                                case CLDefinitions.CLEventTypeAccepted:
+                                case CLDefinitions.CLEventTypeAlreadyDeleted:   // user said delete, and it is deleted.  
+                                    CLFileItem resultItem = new CLFileItem(currentDeleteResponse.Metadata, currentDeleteResponse.Header.Action, currentDeleteResponse.Action, _syncbox);
+                                    if (itemCompletionCallback != null)
+                                    {
+                                        try
+                                        {
+                                            itemCompletionCallback(responseIdx, resultItem, error: null, userState: itemCompletionCallbackUserState);
+                                        }
+                                        catch
+                                        {
+                                        }
+                                    }
+                                    break;
+
+                                case CLDefinitions.CLEventTypeNotFound:
+                                    throw new CLException(CLExceptionCode.OnDemand_NotFound, Resources.ExceptionOnDemandNotFound);
+
+                                case CLDefinitions.RESTResponseStatusFailed:
+                                    Exception innerEx;
+                                    string errorMessageString;
+                                    try
+                                    {
+                                        errorMessageString = string.Join(Environment.NewLine, currentDeleteResponse.Metadata.ErrorMessage);
+                                        innerEx = null;
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        errorMessageString = Resources.ExceptionOnDemandDeserializeErrorMessage;
+                                        innerEx = ex;
+                                    }
+
+                                    throw new CLException(CLExceptionCode.OnDemand_ItemError, Resources.ExceptionOnDemandItemError, new Exception(errorMessageString, innerEx));
+
+                                default:
+                                    throw new CLException(CLExceptionCode.OnDemand_UnknownItemStatus, string.Format(Resources.ExceptionOnDemandUnknownItemStatus, currentDeleteResponse.Header.Status));
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            if (itemCompletionCallback != null)
+                            {
+                                try
+                                {
+                                    itemCompletionCallback(responseIdx, completedItem: null, error: ex, userState: itemCompletionCallbackUserState);
+                                }
+                                catch
+                                {
+                                }
+                            }
                         }
                     }
-                    responses = listFileItems.ToArray();
-                    errors = listErrors.ToArray();
                 }
                 else
                 {
-                    throw new NullReferenceException(Resources.ExceptionCLHttpRestWithoutMoveResponses);
+                    throw new CLNullReferenceException(CLExceptionCode.OnDemand_FolderDelete, Resources.ExceptionCLHttpRestWithoutDeleteResponses);
                 }
             }
             catch (Exception ex)
             {
-                responses = Helpers.DefaultForType<CLFileItem[]>();
-                errors = Helpers.DefaultForType<CLError[]>();
                 return ex;
             }
+
             return null;
         }
-        #endregion  // end DeleteFolders (Deletes folders in the cloud.)
 
-        #region AddFolders (Add folders in the cloud.)
+        #endregion  // end DeleteFolders (Delete folders in the syncbox.)
+
+        #region AddFolders (Add folders in the syncbox.)
         /// <summary>
-        /// Asynchronously starts adding folders in the cloud.
+        /// Asynchronously starts adding folders in the syncbox.
         /// </summary>
         /// <param name="callback">Callback method to fire when operation completes</param>
         /// <param name="callbackUserState">Userstate to pass when firing async callback</param>
@@ -1756,7 +1442,7 @@ namespace Cloud.REST
         }
 
         /// <summary>
-        /// Finishes adding folders in the cloud, if it has not already finished via its asynchronous result, and outputs the result,
+        /// Finishes adding folders in the syncbox, if it has not already finished via its asynchronous result, and outputs the result,
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
         /// </summary>
         /// <param name="aResult">The asynchronous result provided upon starting the request</param>
@@ -1768,7 +1454,7 @@ namespace Cloud.REST
         }
 
         /// <summary>
-        /// Add folders in the cloud.
+        /// Add folders in the syncbox.
         /// </summary>
         /// <param name="paths">An array of full paths to where the folders would exist locally on disk</param>
         /// <param name="responses">(output) An array of response objects from communication</param>
@@ -1788,7 +1474,7 @@ namespace Cloud.REST
 
                 if (!(_copiedSettings.HttpTimeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException("timeoutMilliseconds must be greater than zero");
+                    throw new ArgumentException(Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
 
                 // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
@@ -1890,11 +1576,11 @@ namespace Cloud.REST
             }
             return null;
         }
-        #endregion  // end AddFolders (Adds folders in the cloud.)
+        #endregion  // end AddFolders (Adds folders in the syncbox.)
 
-        #region AddFiles (Add files in the cloud.)
+        #region AddFiles (Add files in the syncbox.)
         /// <summary>
-        /// Asynchronously starts adding files in the cloud.
+        /// Asynchronously starts adding files in the syncbox.
         /// </summary>
         /// <param name="callback">Callback method to fire when operation completes</param>
         /// <param name="callbackUserState">Userstate to pass when firing async callback</param>
@@ -1952,7 +1638,7 @@ namespace Cloud.REST
         }
 
         /// <summary>
-        /// Finishes adding files in the cloud, if it has not already finished via its asynchronous result, and outputs the result,
+        /// Finishes adding files in the syncbox, if it has not already finished via its asynchronous result, and outputs the result,
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
         /// </summary>
         /// <param name="aResult">The asynchronous result provided upon starting the request</param>
@@ -1964,7 +1650,7 @@ namespace Cloud.REST
         }
 
         /// <summary>
-        /// Add files in the cloud.
+        /// Add files in the syncbox.
         /// </summary>
         /// <param name="paths">An array of full paths to where the files would exist locally on disk</param>
         /// <param name="responses">(output) An array of response objects from communication</param>
@@ -1983,7 +1669,7 @@ namespace Cloud.REST
 
                 if (!(_copiedSettings.HttpTimeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException("timeoutMilliseconds must be greater than zero");
+                    throw new ArgumentException(Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
 
                 // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
@@ -2085,7 +1771,7 @@ namespace Cloud.REST
             }
             return null;
         }
-        #endregion  // end AddFiles (Adds files in the cloud.)
+        #endregion  // end AddFiles (Adds files in the syncbox.)
 
         #region UndoDeletionFileChange
         /// <summary>
@@ -2125,7 +1811,7 @@ namespace Cloud.REST
                 if (castState == null)
                 {
                     MessageEvents.FireNewEventMessage(
-                        Resources.CLHttpRestCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
+                        Resources.CLCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
                         EventMessageLevel.Important,
                         new HaltAllOfCloudSDKErrorInfo());
                 }
@@ -2192,7 +1878,7 @@ namespace Cloud.REST
                 // if trying to cast the asynchronous result failed, then throw an error
                 if (castAResult == null)
                 {
-                    throw new NullReferenceException(Resources.CLHttpRestaResultInternalTypeMismatch);
+                    throw new NullReferenceException(Resources.CLAsyncResultInternalTypeMismatch);
                 }
 
                 // pull the result for output (may not yet be complete)
@@ -2473,7 +2159,7 @@ namespace Cloud.REST
                 // if trying to cast the asynchronous result failed, then throw an error
                 if (castAResult == null)
                 {
-                    throw new NullReferenceException(Resources.CLHttpRestaResultInternalTypeMismatch);
+                    throw new NullReferenceException(Resources.CLAsyncResultInternalTypeMismatch);
                 }
 
                 // pull the result for output (may not yet be complete)
@@ -3825,7 +3511,7 @@ namespace Cloud.REST
                 if (castState == null)
                 {
                     MessageEvents.FireNewEventMessage(
-                        Resources.CLHttpRestCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
+                        Resources.CLCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
                         EventMessageLevel.Important,
                         new HaltAllOfCloudSDKErrorInfo());
                 }
@@ -3890,7 +3576,7 @@ namespace Cloud.REST
                 // if trying to cast the asynchronous result failed, then throw an error
                 if (castAResult == null)
                 {
-                    throw new NullReferenceException(Resources.CLHttpRestaResultInternalTypeMismatch);
+                    throw new NullReferenceException(Resources.CLAsyncResultInternalTypeMismatch);
                 }
 
                 // pull the result for output (may not yet be complete)
@@ -4024,7 +3710,7 @@ namespace Cloud.REST
                 if (castState == null)
                 {
                     MessageEvents.FireNewEventMessage(
-                        Resources.CLHttpRestCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
+                        Resources.CLCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
                         EventMessageLevel.Important,
                         new HaltAllOfCloudSDKErrorInfo());
                 }
@@ -4090,7 +3776,7 @@ namespace Cloud.REST
                 // if trying to cast the asynchronous result failed, then throw an error
                 if (castAResult == null)
                 {
-                    throw new NullReferenceException(Resources.CLHttpRestaResultInternalTypeMismatch);
+                    throw new NullReferenceException(Resources.CLAsyncResultInternalTypeMismatch);
                 }
 
                 // pull the result for output (may not yet be complete)
@@ -4424,7 +4110,7 @@ namespace Cloud.REST
                 if (castState == null)
                 {
                     MessageEvents.FireNewEventMessage(
-                        Resources.CLHttpRestCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
+                        Resources.CLCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
                         EventMessageLevel.Important,
                         new HaltAllOfCloudSDKErrorInfo());
                 }
@@ -4503,7 +4189,7 @@ namespace Cloud.REST
                 if (castState == null)
                 {
                     MessageEvents.FireNewEventMessage(
-                        Resources.CLHttpRestCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
+                        Resources.CLCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
                         EventMessageLevel.Important,
                         new HaltAllOfCloudSDKErrorInfo());
                 }
@@ -4569,7 +4255,7 @@ namespace Cloud.REST
                 // if trying to cast the asynchronous result failed, then throw an error
                 if (castAResult == null)
                 {
-                    throw new NullReferenceException(Resources.CLHttpRestaResultInternalTypeMismatch);
+                    throw new NullReferenceException(Resources.CLAsyncResultInternalTypeMismatch);
                 }
 
                 // pull the result for output (may not yet be complete)
@@ -4750,7 +4436,7 @@ namespace Cloud.REST
                     if (castState == null)
                     {
                         MessageEvents.FireNewEventMessage(
-                            Resources.CLHttpRestCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
+                            Resources.CLCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
                             EventMessageLevel.Important,
                             new HaltAllOfCloudSDKErrorInfo());
                     }
@@ -4820,7 +4506,7 @@ namespace Cloud.REST
                 // if trying to cast the asynchronous result failed, then throw an error
                 if (castAResult == null)
                 {
-                    throw new NullReferenceException(Resources.CLHttpRestaResultInternalTypeMismatch);
+                    throw new NullReferenceException(Resources.CLAsyncResultInternalTypeMismatch);
                 }
 
                 // pull the result for output (may not yet be complete)
@@ -5020,7 +4706,7 @@ namespace Cloud.REST
                     if (castState == null)
                     {
                         MessageEvents.FireNewEventMessage(
-                            Resources.CLHttpRestCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
+                            Resources.CLCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
                             EventMessageLevel.Important,
                             new HaltAllOfCloudSDKErrorInfo());
                     }
@@ -5087,7 +4773,7 @@ namespace Cloud.REST
                 // if trying to cast the asynchronous result failed, then throw an error
                 if (castAResult == null)
                 {
-                    throw new NullReferenceException(Resources.CLHttpRestaResultInternalTypeMismatch);
+                    throw new NullReferenceException(Resources.CLAsyncResultInternalTypeMismatch);
                 }
 
                 // pull the result for output (may not yet be complete)
@@ -5276,7 +4962,7 @@ namespace Cloud.REST
                     if (castState == null)
                     {
                         MessageEvents.FireNewEventMessage(
-                            Resources.CLHttpRestCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
+                            Resources.CLCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
                             EventMessageLevel.Important,
                             new HaltAllOfCloudSDKErrorInfo());
                     }
@@ -5343,7 +5029,7 @@ namespace Cloud.REST
                 // if trying to cast the asynchronous result failed, then throw an error
                 if (castAResult == null)
                 {
-                    throw new NullReferenceException(Resources.CLHttpRestaResultInternalTypeMismatch);
+                    throw new NullReferenceException(Resources.CLAsyncResultInternalTypeMismatch);
                 }
 
                 // pull the result for output (may not yet be complete)
@@ -5488,7 +5174,7 @@ namespace Cloud.REST
                 if (castState == null)
                 {
                     MessageEvents.FireNewEventMessage(
-                        Resources.CLHttpRestCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
+                        Resources.CLCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
                         EventMessageLevel.Important,
                         new HaltAllOfCloudSDKErrorInfo());
                 }
@@ -5555,7 +5241,7 @@ namespace Cloud.REST
                 // if trying to cast the asynchronous result failed, then throw an error
                 if (castAResult == null)
                 {
-                    throw new NullReferenceException(Resources.CLHttpRestaResultInternalTypeMismatch);
+                    throw new NullReferenceException(Resources.CLAsyncResultInternalTypeMismatch);
                 }
 
                 // pull the result for output (may not yet be complete)
@@ -5918,7 +5604,7 @@ namespace Cloud.REST
                 if (castState == null)
                 {
                     MessageEvents.FireNewEventMessage(
-                        Resources.CLHttpRestCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
+                        Resources.CLCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
                         EventMessageLevel.Important,
                         new HaltAllOfCloudSDKErrorInfo());
                 }
@@ -5986,7 +5672,7 @@ namespace Cloud.REST
                 // if trying to cast the asynchronous result failed, then throw an error
                 if (castAResult == null)
                 {
-                    throw new NullReferenceException(Resources.CLHttpRestaResultInternalTypeMismatch);
+                    throw new NullReferenceException(Resources.CLAsyncResultInternalTypeMismatch);
                 }
 
                 // pull the result for output (may not yet be complete)
@@ -6213,7 +5899,7 @@ namespace Cloud.REST
                 if (castState == null)
                 {
                     MessageEvents.FireNewEventMessage(
-                        Resources.CLHttpRestCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
+                        Resources.CLCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
                         EventMessageLevel.Important,
                         new HaltAllOfCloudSDKErrorInfo());
                 }
@@ -6297,7 +5983,7 @@ namespace Cloud.REST
                 // if try casting the asynchronous result failed, throw an error
                 if (castAResult == null)
                 {
-                    throw new NullReferenceException(Resources.CLHttpRestaResultInternalTypeMismatch);
+                    throw new NullReferenceException(Resources.CLAsyncResultInternalTypeMismatch);
                 }
 
                 // try to cast the asynchronous result internal state as the holder for the progress
@@ -6306,7 +5992,7 @@ namespace Cloud.REST
                 // if trying to cast the internal state as the holder for progress failed, then throw an error (non-descriptive since it's our error)
                 if (iState == null)
                 {
-                    throw new Exception(Resources.CLHttpRestInternalPRogressRetrievalFailure1);
+                    throw new Exception(Resources.CLHttpRestInternalProgressRetrievalFailure1);
                 }
 
                 // lock on the holder and retrieve the progress for output
@@ -6344,7 +6030,7 @@ namespace Cloud.REST
                 // if trying to cast the asynchronous result failed, then throw an error
                 if (castAResult == null)
                 {
-                    throw new NullReferenceException(Resources.CLHttpRestaResultInternalTypeMismatch);
+                    throw new NullReferenceException(Resources.CLAsyncResultInternalTypeMismatch);
                 }
 
                 // pull the result for output (may not yet be complete)
@@ -6491,7 +6177,7 @@ namespace Cloud.REST
 
                 if (revision == null)
                 {
-                    throw new ArgumentNullException(Resources.CLHttpRestRevisionCannotBeNull);
+                    throw new ArgumentNullException(Resources.CLHttpRestMetaDataRevisionCannotBeNull);
                 }
 
                 // declare the path for the folder which will store temp download files
@@ -6523,7 +6209,7 @@ namespace Cloud.REST
                 }
 
                 // if the folder path for downloads is too long, then throw an exception
-                if (currentDownloadFolder.Length > 222) // 222 calculated by 259 max path length minus 1 character for a folder slash seperator plus 36 characters for (Guid).ToString("N")
+                if (currentDownloadFolder.Length > 222) // 222 calculated by 259 max path length minus 1 character for a folder slash seperator plus 36 characters for (Guid).ToString(Resources.CLCredentialStringSettingsN)
                 {
                     throw new ArgumentException(Resources.CLHttpRestFolderPathTooLong + (currentDownloadFolder.Length - 222).ToString());
                 }
@@ -6636,7 +6322,7 @@ namespace Cloud.REST
                 if (castState == null)
                 {
                     MessageEvents.FireNewEventMessage(
-                        Resources.CLHttpRestCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
+                        Resources.CLCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
                         EventMessageLevel.Important,
                         new HaltAllOfCloudSDKErrorInfo());
                 }
@@ -6719,7 +6405,7 @@ namespace Cloud.REST
                 // if try casting the asynchronous result failed, throw an error
                 if (castAResult == null)
                 {
-                    throw new NullReferenceException(Resources.CLHttpRestaResultInternalTypeMismatch);
+                    throw new NullReferenceException(Resources.CLAsyncResultInternalTypeMismatch);
                 }
 
                 // try to cast the asynchronous result internal state as the holder for the progress
@@ -6728,7 +6414,7 @@ namespace Cloud.REST
                 // if trying to cast the internal state as the holder for progress failed, then throw an error (non-descriptive since it's our error)
                 if (iState == null)
                 {
-                    throw new Exception("There was an internal error attempting to retrieve the progress, Error 2");
+                    throw new Exception(Resources.CLHttpRestInternalPRogressRetreivalFailure2);
                 }
 
                 // lock on the holder and retrieve the progress for output
@@ -6766,7 +6452,7 @@ namespace Cloud.REST
                 // if trying to cast the asynchronous result failed, then throw an error
                 if (castAResult == null)
                 {
-                    throw new NullReferenceException(Resources.CLHttpRestaResultInternalTypeMismatch);
+                    throw new NullReferenceException(Resources.CLAsyncResultInternalTypeMismatch);
                 }
 
                 // pull the result for output (may not yet be complete)
@@ -6972,7 +6658,7 @@ namespace Cloud.REST
                 if (castState == null)
                 {
                     MessageEvents.FireNewEventMessage(
-                        Resources.CLHttpRestCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
+                        Resources.CLCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
                         EventMessageLevel.Important,
                         new HaltAllOfCloudSDKErrorInfo());
                 }
@@ -7037,7 +6723,7 @@ namespace Cloud.REST
                 // if trying to cast the asynchronous result failed, then throw an error
                 if (castAResult == null)
                 {
-                    throw new NullReferenceException(Resources.CLHttpRestaResultInternalTypeMismatch);
+                    throw new NullReferenceException(Resources.CLAsyncResultInternalTypeMismatch);
                 }
 
                 // pull the result for output (may not yet be complete)
@@ -7172,7 +6858,7 @@ namespace Cloud.REST
                 if (castState == null)
                 {
                     MessageEvents.FireNewEventMessage(
-                        Resources.CLHttpRestCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
+                        Resources.CLCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
                         EventMessageLevel.Important,
                         new HaltAllOfCloudSDKErrorInfo());
                 }
@@ -7240,7 +6926,7 @@ namespace Cloud.REST
                 // if trying to cast the asynchronous result failed, then throw an error
                 if (castAResult == null)
                 {
-                    throw new NullReferenceException(Resources.CLHttpRestaResultInternalTypeMismatch);
+                    throw new NullReferenceException(Resources.CLAsyncResultInternalTypeMismatch);
                 }
 
                 // pull the result for output (may not yet be complete)
@@ -7281,7 +6967,7 @@ namespace Cloud.REST
         }
 
         /// <summary>
-        /// Posts a single FileChange to the server to update the sync box in the cloud.
+        /// Posts a single FileChange to the server to update the sync box in the syncbox.
         /// May still require uploading a file with a returned storage key if the Header.Status property in response is "upload" or "uploading".
         /// Check Header.Status property in response for errors or conflict.
         /// </summary>
@@ -7391,15 +7077,11 @@ namespace Cloud.REST
                         }
 
                         // file deletion and folder deletion share a json contract object for deletion
-                        requestContent = new JsonContracts.FileOrFolderDelete()
+                        requestContent = new JsonContracts.FileOrFolderDeleteRequest()
                         {
-                            DeviceId = _copiedSettings.DeviceId,
-                            RelativePath = (toCommunicate.NewPath == null
-                                ? null
-                                : toCommunicate.NewPath.GetRelativePath(_syncbox.Path, true) +
-                                    (toCommunicate.Metadata.HashableProperties.IsFolder ? "/" : string.Empty)),
+                            //DeviceId = _copiedSettings.DeviceId,
                             ServerUid = serverUid,
-                            SyncboxId = _syncbox.SyncboxId
+                            //SyncboxId = _syncbox.SyncboxId
                         };
 
                         // server method path switched from whether change is a folder or not
@@ -7431,7 +7113,7 @@ namespace Cloud.REST
                         }
                         if (string.IsNullOrEmpty(revision))
                         {
-                            throw new NullReferenceException(Resources.CLHttpRestRevisionCannotBeNull);
+                            throw new NullReferenceException(Resources.CLHttpRestMetaDataRevisionCannotBeNull);
                         }
 
                         // there is no folder modify, so json contract object and server method path for modify are only for files
@@ -7612,7 +7294,7 @@ namespace Cloud.REST
                 if (castState == null)
                 {
                     MessageEvents.FireNewEventMessage(
-                        Resources.CLHttpRestCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
+                        Resources.CLCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
                         EventMessageLevel.Important,
                         new HaltAllOfCloudSDKErrorInfo());
                 }
@@ -7679,7 +7361,7 @@ namespace Cloud.REST
                 // if trying to cast the asynchronous result failed, then throw an error
                 if (castAResult == null)
                 {
-                    throw new NullReferenceException(Resources.CLHttpRestaResultInternalTypeMismatch);
+                    throw new NullReferenceException(Resources.CLAsyncResultInternalTypeMismatch);
                 }
 
                 // pull the result for output (may not yet be complete)
@@ -7862,7 +7544,7 @@ namespace Cloud.REST
                 if (castState == null)
                 {
                     MessageEvents.FireNewEventMessage(
-                        Resources.CLHttpRestCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
+                        Resources.CLCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
                         EventMessageLevel.Important,
                         new HaltAllOfCloudSDKErrorInfo());
                 }
@@ -7927,7 +7609,7 @@ namespace Cloud.REST
                 // if trying to cast the asynchronous result failed, then throw an error
                 if (castAResult == null)
                 {
-                    throw new NullReferenceException(Resources.CLHttpRestaResultInternalTypeMismatch);
+                    throw new NullReferenceException(Resources.CLAsyncResultInternalTypeMismatch);
                 }
 
                 // pull the result for output (may not yet be complete)

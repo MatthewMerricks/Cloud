@@ -3583,11 +3583,11 @@ namespace Cloud.SQLIndexer
         {
             if (syncbox == null)
             {
-                throw new NullReferenceException("syncbox cannot be null");
+                throw new NullReferenceException(Resources.CLEngineSyncboxCannotBeNull);
             }
             if (string.IsNullOrEmpty(syncbox.CopiedSettings.DeviceId))
             {
-                throw new NullReferenceException("settings DeviceId cannot be null");
+                throw new NullReferenceException(Resources.CLHttpRestDeviceIDCannotBeNull);
             }
 
             this.indexDBLocation = Helpers.CalculateDatabasePath(syncbox);

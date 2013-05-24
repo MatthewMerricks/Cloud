@@ -8,8 +8,8 @@
 // Back end definitions
 // @@@@@@@@@ AUTO-BUILD SECTION.  DON'T CHANGE THE FORMAT @@@@@@@@@@@@@@@@@
 //#define PRODUCTION_BACKEND    // cloud.com
-#define DEVELOPMENT_BACKEND     // cliff.cloudburrito.com
-//#define STAGING_BACKEND       // cloudstaging.us
+//#define DEVELOPMENT_BACKEND     // cliff.cloudburrito.com
+#define STAGING_BACKEND       // cloudstaging.us
 // @@@@@@@@@ END AUTO-BUILD SECTION.  DON'T CHANGE THE FORMAT @@@@@@@@@@@@@@@@@
 
 // URL definitions
@@ -604,7 +604,7 @@ namespace Cloud.Static
 
         // REST Request fields
         public const string RESTRequestFileOrFolderMoves = "moves";
-        public const string RESTRequestFileOrFolderDeletes = "paths";
+        public const string RESTRequestFileOrFolderDeletes = "uids";
         public const string RESTRequestFolderAdds = "folders";
         public const string RESTRequestFileAdds = "files";
 
