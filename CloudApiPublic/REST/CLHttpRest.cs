@@ -203,23 +203,25 @@ namespace Cloud.REST
         #region public API calls
         #region GetItemAtPath (Gets the metedata at a particular server syncbox path)
         /// <summary>
-        /// Asynchronously starts querying the server at a given path for existing metadata at that path.
+        /// Asynchronously starts getting an item at a particular path in the syncbox.
         /// </summary>
-        /// <param name="callback">Callback method to fire when operation completes</param>
-        /// <param name="callbackUserState">Userstate to pass when firing async callback</param>
-        /// <param name="path">Full path to where file or folder would exist locally on disk</param>
+        /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
+        /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
+        /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
+        /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the item completion callback above is fired.</param>
+        /// <param name="path">The full path of the item in the local disk syncbox.</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginGetItemAtPath(AsyncCallback callback, object callbackUserState, string path)
+        internal IAsyncResult BeginItemForPath(AsyncCallback asyncCallback, object asyncCallbackUserState, CLFileItemCompletion itemCompletionCallback, object itemCompletionCallbackUserState, string path)
         {
             var asyncThread = DelegateAndDataHolderBase.Create(
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
                 new
                 {
                     // create the asynchronous result to return
-                    toReturn = new GenericAsyncResult<SyncboxGetItemAtPathResult>(
-                        callback,
-                        callbackUserState),
-                    path
+                    toReturn = new GenericAsyncResult<CLError>(
+                        asyncCallback,
+                        asyncCallbackUserState),
+                    path = path
                 },
                 (Data, errorToAccumulate) =>
                 {
@@ -227,18 +229,13 @@ namespace Cloud.REST
                     // try/catch to process with the input parameters, on catch set the exception in the asyncronous result
                     try
                     {
-                        // declare the specific type of result for this operation
-                        CLFileItem response;
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
-                        CLError processError = GetItemAtPath(
-                            Data.path,
-                            out response, 
-                            true);
+                        CLError overallError = ItemForPath(
+                            itemCompletionCallback,
+                            itemCompletionCallbackUserState,
+                            Data.path);
 
-                        Data.toReturn.Complete(
-                            new SyncboxGetItemAtPathResult(
-                                processError, // any error that may have occurred during processing
-                                response), // the specific type of result for this operation
+                        Data.toReturn.Complete(overallError, // any overall error that may have occurred during processing
                             sCompleted: false); // processing did not complete synchronously
                     }
                     catch (Exception ex)
@@ -258,66 +255,35 @@ namespace Cloud.REST
         }
 
         /// <summary>
-        /// Finishes getting the item at the input path, if it has not already finished via its asynchronous result, and outputs the result,
+        /// Finishes getting an item in the syncbox, if it has not already finished via its asynchronous result, and outputs the result,
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
         /// </summary>
-        /// <param name="aResult">The asynchronous result provided upon starting the request</param>
-        /// <param name="result">(output) The result from the request</param>
+        /// <param name="asyncResult">The asynchronous result provided upon starting the request</param>
+        /// <param name="result">(output) An overall error which occurred during processing, if any</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndGetItemAtPath(IAsyncResult aResult, out SyncboxGetItemAtPathResult result)
+        internal CLError EndItemForPath(IAsyncResult asyncResult, out SyncboxGetItemAtPathResult result)
         {
-            return Helpers.EndAsyncOperation<SyncboxGetItemAtPathResult>(aResult, out result);
+            return Helpers.EndAsyncOperation<SyncboxGetItemAtPathResult>(asyncResult, out result);
         }
 
         /// <summary>
-        /// Query the server at a given path for existing metadata at that path.
+        /// Get an item at a particular path in the syncbox.
         /// </summary>
-        /// <param name="path">Full path to where file or folder would exist locally on disk</param>
-        /// <param name="response">(output) response object from communication</param>
+        /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
+        /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the item completion callback above is fired.</param>
+        /// <param name="path">The full path of the item in the local disk syncbox.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError GetItemAtPath(string path, out CLFileItem response, bool isOneOff)
+        internal CLError ItemForPath(CLFileItemCompletion itemCompletionCallback, object itemCompletionCallbackUserState, string path)
         {
-            // try/catch to process the request. On catch return the error
+            // try/catch to process the request,  On catch return the error
             try
             {
-                // check input parameters
+                // check input parameters.
 
                 if (path == null)
                 {
-                    throw new NullReferenceException("path must not be null");
+                    throw new CLArgumentNullException(CLExceptionCode.OnDemand_MissingParameters, Resources.ExceptionOnDemandPathMustNotBeNull);
                 }
-
-                CLError pathError = Helpers.CheckForBadPath(path);
-                if (pathError != null)
-                {
-                    throw new AggregateException("path is not in the proper format", pathError.Exceptions);
-                }
-
-                if (string.IsNullOrEmpty(_syncbox.Path))
-                {
-                    throw new NullReferenceException("the syncbox path cannot be null");
-                }
-
-                if (!path.Contains(_syncbox.Path))
-                {
-                    throw new ArgumentException("path does not contain the syncbox path");
-                }
-                if (!(_copiedSettings.HttpTimeoutMilliseconds > 0))
-                {
-                    throw new ArgumentException(Resources.CLMSTimeoutMustBeGreaterThanZero);
-                }
-
-                // build the location of the metadata retrieval method on the server dynamically
-                FilePath filePath = new FilePath(path);
-                string serverMethodPath = CLDefinitions.MethodPathGetItemMetadata + 
-                    Helpers.QueryStringBuilder(new[] // the method grabs its parameters by query string (since this method is an HTTP GET)
-                    {
-                        // query string parameter for the path to query, built by turning the full path location into a relative path from the cloud root and then escaping the whole thing for a url
-                        new KeyValuePair<string, string>(CLDefinitions.CLMetadataCloudPath, Uri.EscapeDataString(filePath.GetRelativePath((_syncbox.Path ?? string.Empty), true))),
-
-                        // query string parameter for the current sync box id, should not need escaping since it should be an integer in string format
-                        new KeyValuePair<string, string>(CLDefinitions.QueryStringSyncboxId, _syncbox.SyncboxId.ToString())
-                    });
 
                 // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
                 Helpers.RequestNewCredentialsInfo requestNewCredentialsInfo = new Helpers.RequestNewCredentialsInfo()
@@ -329,38 +295,75 @@ namespace Cloud.REST
                     SetCurrentCredentialsCallback = SetCurrentCredentialCallback,
                 };
 
+                // Get the relative path
+                FilePath fullPath = new FilePath(path);
+                string relativePath = fullPath.GetRelativePath(_syncbox.Path, true);
+
+                // file move (rename) and folder move (rename) share a json contract object for move (rename)
+                SyncboxGetMetadataForPathRequest requestContent = new SyncboxGetMetadataForPathRequest()
+                {
+                    Id = _syncbox.SyncboxId,
+                    path = relativePath,
+                };
+
+                // server method path
+                string serverMethodPath = CLDefinitions.MethodPathGetItemMetadata;
+
                 // Communicate with the server to get the response.
                 JsonContracts.SyncboxMetadataResponse responseFromServer;
-                responseFromServer = Helpers.ProcessHttp<JsonContracts.SyncboxMetadataResponse>(
-                    null, // HTTP Get method does not have content
+                responseFromServer = Helpers.ProcessHttp<JsonContracts.SyncboxMetadataResponse>(requestContent, // dynamic type of request content based on method path
                     CLDefinitions.CLMetaDataServerURL, // base domain is the MDS server
-                    serverMethodPath, // path to query metadata (dynamic based on file or folder)
-                    Helpers.requestMethod.get, // query metadata is a get
+                    serverMethodPath, // dynamic path to appropriate one-off method
+                    Helpers.requestMethod.get, // one-off methods are all posts
                     _copiedSettings.HttpTimeoutMilliseconds, // time before communication timeout
                     null, // not an upload or download
                     Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
                     _copiedSettings, // pass the copied settings
                     _syncbox.SyncboxId, // pass the unique id of the sync box on the server
                     requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
-                    isOneOff);
+                    true);
 
-                // Convert the response to the expected output object.
+                // Convert the metadata to the output item.
                 if (responseFromServer != null)
                 {
-                    response = new CLFileItem(responseFromServer,  _syncbox);
-                }
-                else
-                {
-                    throw new NullReferenceException("response from server was null");
+                    try
+                    {
+                        // Pass back the response as a CLFileItem.
+                        CLFileItem resultItem = new CLFileItem(responseFromServer, _syncbox);
+                        if (itemCompletionCallback != null)
+                        {
+                            try
+                            {
+                                itemCompletionCallback(0, resultItem, error: null, userState: itemCompletionCallbackUserState);
+                            }
+                            catch
+                            {
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        if (itemCompletionCallback != null)
+                        {
+                            try
+                            {
+                                itemCompletionCallback(0, completedItem: null, error: ex, userState: itemCompletionCallbackUserState);
+                            }
+                            catch
+                            {
+                            }
+                        }
+                    }
                 }
             }
             catch (Exception ex)
             {
-                response = Helpers.DefaultForType<CLFileItem>();
                 return ex;
             }
+
             return null;
         }
+
         #endregion  // end GetItemAtPath (Gets the metedata at a particular server syncbox path)
 
         #region RenameFiles (Rename files in-place in the syncbox.)
@@ -467,7 +470,7 @@ namespace Cloud.REST
                     {
                         throw new CLArgumentException(CLExceptionCode.OnDemand_InvalidExistingPath, String.Format(Resources.ExceptionOnDemandRenameFilesInvalidExistingPathInItemMsg0, paramIdx.ToString()));
                     }
-                    FilePath fullPathExisting = new FilePath(currentParams.ItemToRename.Path, _syncbox.Path);
+                    FilePath fullPathExisting = new FilePath(_syncbox.Path + currentParams.ItemToRename.Path.Replace('/', '\\'));
                     FilePath fullPathNew = new FilePath(currentParams.NewName, fullPathExisting.Parent);
                     CheckPath(fullPathNew, CLExceptionCode.OnDemand_RenameNewName);
 
@@ -732,7 +735,7 @@ namespace Cloud.REST
                     {
                         throw new CLArgumentException(CLExceptionCode.OnDemand_InvalidExistingPath, String.Format(Resources.ExceptionOnDemandRenameFilesInvalidExistingPathInItemMsg0, paramIdx.ToString()));
                     }
-                    FilePath fullPathExisting = new FilePath(currentParams.ItemToRename.Path, _syncbox.Path);
+                    FilePath fullPathExisting = new FilePath(_syncbox.Path + currentParams.ItemToRename.Path.Replace('/', '\\'));
                     FilePath fullPathNew = new FilePath(currentParams.NewName, fullPathExisting.Parent);
                     CheckPath(fullPathNew, CLExceptionCode.OnDemand_RenameNewName);
 
@@ -997,7 +1000,7 @@ namespace Cloud.REST
                     {
                         throw new CLArgumentException(CLExceptionCode.OnDemand_InvalidExistingPath, String.Format(Resources.ExceptionOnDemandRenameFilesInvalidExistingPathInItemMsg0, paramIdx.ToString()));
                     }
-                    FilePath fullPathExisting = new FilePath(currentParams.ItemToMove.Path, _syncbox.Path);
+                    FilePath fullPathExisting = new FilePath(_syncbox.Path + currentParams.ItemToMove.Path.Replace('/', '\\'));
                     string nameExisting = fullPathExisting.Name;
                     FilePath fullPathNewParentFolder = new FilePath(currentParams.NewParentPath);
                     FilePath fullPathNewMovedFile = new FilePath(nameExisting, fullPathNewParentFolder);
@@ -1264,7 +1267,7 @@ namespace Cloud.REST
                     {
                         throw new CLArgumentException(CLExceptionCode.OnDemand_InvalidExistingPath, String.Format(Resources.ExceptionOnDemandRenameFilesInvalidExistingPathInItemMsg0, paramIdx.ToString()));
                     }
-                    FilePath fullPathExisting = new FilePath(currentParams.ItemToMove.Path, _syncbox.Path);
+                    FilePath fullPathExisting = new FilePath(_syncbox.Path + currentParams.ItemToMove.Path.Replace('/', '\\'));
                     string nameExisting = fullPathExisting.Name;
                     FilePath fullPathNewParentFolder = new FilePath(currentParams.NewParentPath);
                     FilePath fullPathNewMovedFolder = new FilePath(nameExisting, fullPathNewParentFolder);
