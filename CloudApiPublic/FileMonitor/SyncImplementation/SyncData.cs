@@ -104,6 +104,7 @@ namespace Cloud.FileMonitor.SyncImplementation
         /// <param name="outputChanges">(output) The set of new file change events.</param>
         /// <param name="outputChangesInError">(output) The adjusted set of file change events in error.</param>
         /// <param name="nullChangeFound">(output) Whether a null FileChange was found in the processing queue (which does not get output)</param>
+        /// <param name="firstTimeRunning">Whether this is the first time the engine was ran</param>
         /// <param name="failedOutChanges">(optional) The list containing failed out changes which should be locked if it exists by the method caller</param>
         /// <returns>An error or null.</returns>
         public CLError grabChangesFromFileSystemMonitor(IEnumerable<PossiblyPreexistingFileChangeInError> initialFailures,
@@ -112,6 +113,7 @@ namespace Cloud.FileMonitor.SyncImplementation
             out IEnumerable<PossiblyPreexistingFileChangeInError> outputChangesInError,
             out int outputChangesInErrorCount,
             out bool nullChangeFound,
+            bool firstTimeRunning,
             List<FileChange> failedOutChanges = null)
         {
             return Monitor.GrabPreprocessedChanges(initialFailures,
@@ -120,6 +122,7 @@ namespace Cloud.FileMonitor.SyncImplementation
                 out outputChangesInError,
                 out outputChangesInErrorCount,
                 out nullChangeFound,
+                firstTimeRunning,
                 failedOutChanges);
         }
 
