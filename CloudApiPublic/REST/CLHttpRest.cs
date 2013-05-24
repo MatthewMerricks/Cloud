@@ -2005,7 +2005,7 @@ namespace Cloud.REST
 
                 for (int paramIdx = 0; paramIdx < folderItemsToAdd.Length; paramIdx++)
                 {
-                    CLFileItem currentFolderItem = folderItemsToAdd[paramIdx].Item;
+                    CLFileItem currentFolderItem = folderItemsToAdd[paramIdx].Parent;
                     string currentFolderName = folderItemsToAdd[paramIdx].Name;
                     if (currentFolderItem == null)
                     {
@@ -2047,7 +2047,7 @@ namespace Cloud.REST
                 };
 
                 // server method path
-                string serverMethodPath = CLDefinitions.MethodPathOneOffFolderDeletes;
+                string serverMethodPath = CLDefinitions.MethodPathOneOffFolderAdds;
 
                 // Communicate with the server to get the response.
                 JsonContracts.SyncboxAddFoldersResponse responseFromServer;

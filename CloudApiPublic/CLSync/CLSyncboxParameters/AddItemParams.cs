@@ -22,14 +22,14 @@ namespace Cloud.CLSync.CLSyncboxParameters
         /// <summary>
         /// Returns the item (file or folder) to rename in place.
         /// </summary>
-        public CLFileItem Item
+        public CLFileItem Parent
         {
             get
             {
-                return _item;
+                return _parent;
             }
         }
-        private readonly CLFileItem _item;
+        private readonly CLFileItem _parent;
 
         /// <summary>
         /// Returns the new name of the item.
@@ -46,11 +46,11 @@ namespace Cloud.CLSync.CLSyncboxParameters
         /// <summary>
         /// Construct parameters for renaming an item in place.
         /// </summary>
-        /// <param name="itemToRename">The item (file or folder) to rename in place.</param>
+        /// <param name="parent">Parent folder of the item we wish to create.</param>
         /// <param name="name">New name of the item</param>
-        public AddItemParams(CLFileItem item, string name)
+        public AddItemParams(CLFileItem parent, string name)
         {
-            if (item == null)
+            if (parent == null)
             {
                 throw new CLArgumentNullException(Static.CLExceptionCode.OnDemand_MissingParameters, Resources.ExceptionOnDemandAddItemItemMustNotBeNull);
             }
@@ -59,7 +59,7 @@ namespace Cloud.CLSync.CLSyncboxParameters
                 throw new CLArgumentNullException(Static.CLExceptionCode.OnDemand_MissingParameters, Resources.ExceptionOnDemandAddItemNameMustBeSpecified);
             }
 
-            this._item = item;
+            this._parent = parent;
             this._name = name;
         }
     }

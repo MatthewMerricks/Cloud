@@ -2046,7 +2046,7 @@ namespace Cloud
         /// <param name="asyncResult">The asynchronous result provided upon starting the metadata query</param>
         /// <param name="result">(output) An overall error which occurred during processing, if any</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndDeleteFiles(IAsyncResult asyncResult, out SyncboxAddFoldersResult result)
+        public CLError EndAddFolders(IAsyncResult asyncResult, out SyncboxAddFoldersResult result)
         {
             CheckDisposed(true);
 
@@ -2062,7 +2062,7 @@ namespace Cloud
         /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the item completion callback above is fired.</param>
         /// <param name="itemsToDelete">One or more file items to delete.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError DeleteFiles(CLFileItemCompletion itemCompletionCallback, object itemCompletionCallbackUserState, params AddItemParams[] folderItemsToAdd)
+        public CLError AddFolders(CLFileItemCompletion itemCompletionCallback, object itemCompletionCallbackUserState, params AddItemParams[] folderItemsToAdd)
         {
             CheckDisposed(true);
 

@@ -246,6 +246,20 @@ namespace Cloud.JsonContracts
         private static DataContractJsonSerializer _syncboxCreateRequestSerializer = null;
         private static readonly object SyncboxCreateRequestSerializerLocker = new object();
 
+        public static DataContractJsonSerializer SyncboxAddFoldersResponseSerializer
+        {
+            get
+            {
+                lock (SyncboxAddFoldersResponseSerializerLocker)
+                {
+                    return _syncboxAddFoldersResponseSerializer
+                        ?? (_syncboxAddFoldersResponseSerializer = new DataContractJsonSerializer(typeof(JsonContracts.SyncboxAddFoldersResponse)));
+                }
+            }
+        }
+        private static DataContractJsonSerializer _syncboxAddFoldersResponseSerializer = null;
+        private static readonly object SyncboxAddFoldersResponseSerializerLocker = new object();
+
         #region one-off contract serializers
         public static DataContractJsonSerializer FolderAddSerializer
         {
@@ -260,6 +274,20 @@ namespace Cloud.JsonContracts
         }
         private static DataContractJsonSerializer _folderAddSerializer = null;
         private static readonly object FolderAddSerializerLocker = new object();
+
+        public static DataContractJsonSerializer FolderAddsSerializer
+        {
+            get
+            {
+                lock (FolderAddsSerializerLocker)
+                {
+                    return _folderAddsSerializer
+                        ?? (_folderAddsSerializer = new DataContractJsonSerializer(typeof(JsonContracts.FolderAddsRequest)));
+                }
+            }
+        }
+        private static DataContractJsonSerializer _folderAddsSerializer = null;
+        private static readonly object FolderAddsSerializerLocker = new object();
 
         public static DataContractJsonSerializer FileAddSerializer
         {

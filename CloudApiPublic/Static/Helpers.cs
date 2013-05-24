@@ -2605,7 +2605,7 @@ namespace Cloud.Static
             
             #region one-offs
             { typeof(JsonContracts.FolderAddRequest), JsonContractHelpers.FolderAddSerializer },
-
+            { typeof(JsonContracts.FolderAddsRequest), JsonContractHelpers.FolderAddsSerializer },
             { typeof(JsonContracts.FileAdd), JsonContractHelpers.FileAddSerializer },
             { typeof(JsonContracts.FileModify), JsonContractHelpers.FileModifySerializer },
 
@@ -2656,6 +2656,7 @@ namespace Cloud.Static
             { typeof(JsonContracts.Archives), JsonContractHelpers.ArchivesSerializer },
             { typeof(JsonContracts.SyncboxGetRecentsResponse), JsonContractHelpers.RecentsSerializer },
             { typeof(JsonContracts.SyncboxUsageResponse), JsonContractHelpers.SyncboxUsageSerializer },
+            { typeof(JsonContracts.SyncboxAddFoldersResponse), JsonContractHelpers.SyncboxAddFoldersResponseSerializer},
             { typeof(JsonContracts.FoldersResponse), JsonContractHelpers.FoldersSerializer },
             { typeof(JsonContracts.SyncboxFolderContentsResponse), JsonContractHelpers.FolderContentsSerializer },
             { typeof(JsonContracts.AuthenticationErrorResponse), JsonContractHelpers.AuthenticationErrorResponseSerializer },
