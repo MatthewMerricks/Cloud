@@ -2660,6 +2660,7 @@
   <data name="ExceptionCLHttpRestWithoutRenameResponses" xml:space="preserve">
     <value>Server responded without an array of rename responses</value>
     <comment>Translate</comment>
+    </data>
   <data name="ExceptionOnDemandItemToMoveMustNotBeNull" xml:space="preserve">
     <value>Item to move must not be null</value>
     <comment>Translate</comment>
@@ -2868,9 +2869,24 @@
     <value>Name must be specified</value>
     <comment>"Name" should not be translated</comment>
       </data>
-
   <data name="CLNotificationSseEngineInvalidStatusCodeOnStartingSSEEngine0" xml:space="preserve">
     <value>Invalid status code on starting SSE engine: {0}</value>
     <comment>"SSE engine" should not be translated</comment>
+  </data>
+  <data name="ExceptionOnDemandFileItemNullAtIndexMsg0" xml:space="preserve">
+    <value>File item must not be null at item index {0}</value>
+    <comment>Do not translate "{0}.</comment>
+  </data>
+  <data name="ExceptionOnDemandFolderItemNullAtIndexMsg0" xml:space="preserve">
+    <value>Folder item must not be null at item index {0}</value>
+    <comment>Do not translate "{0}.</comment>
+  </data>
+  <data name="ExceptionOnDemandItemToRenameMustNotBeNull" xml:space="preserve">
+    <value>itemToRename must not be null</value>
+    <comment>Do not translate "itemToRename".</comment>
+  </data>
+  <data name="ExceptionOnDemandNewNameMustBeSpecified" xml:space="preserve">
+    <value>newName must be specified</value>
+    <comment>Do not translate "newName".</comment>
   </data>
 </root>
