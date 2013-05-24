@@ -5082,7 +5082,7 @@ namespace Cloud.Static
                 // if trying to cast the asynchronous result failed, then throw an error
                 if (castAResult == null)
                 {
-                    throw new CLInvalidOperationException(CLExceptionCode.General_Invalid, Resources.CLaResultInternalTypeMismatch);
+                    throw new CLInvalidOperationException(CLExceptionCode.General_Invalid, Resources.CLAsyncResultInternalTypeMismatch);
                 }
 
                 // pull the result for output (may not yet be complete)

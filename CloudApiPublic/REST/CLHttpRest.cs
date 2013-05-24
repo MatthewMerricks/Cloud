@@ -484,7 +484,7 @@ namespace Cloud.REST
 
                 if (!(_copiedSettings.HttpTimeoutMilliseconds > 0))
                 {
-                    throw new CLArgumentException(CLExceptionCode.OnDemand_TimeoutMilliseconds, Resources.CLCredentialMSTimeoutMustBeGreaterThanZero);
+                    throw new CLArgumentException(CLExceptionCode.OnDemand_TimeoutMilliseconds, Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
 
                 // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
@@ -751,7 +751,7 @@ namespace Cloud.REST
 
                 if (!(_copiedSettings.HttpTimeoutMilliseconds > 0))
                 {
-                    throw new CLArgumentException(CLExceptionCode.OnDemand_TimeoutMilliseconds, Resources.CLCredentialMSTimeoutMustBeGreaterThanZero);
+                    throw new CLArgumentException(CLExceptionCode.OnDemand_TimeoutMilliseconds, Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
 
                 // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
@@ -1004,7 +1004,7 @@ namespace Cloud.REST
 
                 if (!(_copiedSettings.HttpTimeoutMilliseconds > 0))
                 {
-                    throw new CLArgumentException(CLExceptionCode.OnDemand_TimeoutMilliseconds, Resources.CLCredentialMSTimeoutMustBeGreaterThanZero);
+                    throw new CLArgumentException(CLExceptionCode.OnDemand_TimeoutMilliseconds, Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
 
                 // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
@@ -1249,7 +1249,7 @@ namespace Cloud.REST
 
                 if (!(_copiedSettings.HttpTimeoutMilliseconds > 0))
                 {
-                    throw new CLArgumentException(CLExceptionCode.OnDemand_TimeoutMilliseconds, Resources.CLCredentialMSTimeoutMustBeGreaterThanZero);
+                    throw new CLArgumentException(CLExceptionCode.OnDemand_TimeoutMilliseconds, Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
 
                 // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
@@ -1816,7 +1816,7 @@ namespace Cloud.REST
                 if (castState == null)
                 {
                     MessageEvents.FireNewEventMessage(
-                        Resources.CLHttpRestCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
+                        Resources.CLCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
                         EventMessageLevel.Important,
                         new HaltAllOfCloudSDKErrorInfo());
                 }
@@ -1883,7 +1883,7 @@ namespace Cloud.REST
                 // if trying to cast the asynchronous result failed, then throw an error
                 if (castAResult == null)
                 {
-                    throw new NullReferenceException(Resources.CLHttpRestaResultInternalTypeMismatch);
+                    throw new NullReferenceException(Resources.CLAsyncResultInternalTypeMismatch);
                 }
 
                 // pull the result for output (may not yet be complete)
@@ -2164,7 +2164,7 @@ namespace Cloud.REST
                 // if trying to cast the asynchronous result failed, then throw an error
                 if (castAResult == null)
                 {
-                    throw new NullReferenceException(Resources.CLHttpRestaResultInternalTypeMismatch);
+                    throw new NullReferenceException(Resources.CLAsyncResultInternalTypeMismatch);
                 }
 
                 // pull the result for output (may not yet be complete)
@@ -3516,7 +3516,7 @@ namespace Cloud.REST
                 if (castState == null)
                 {
                     MessageEvents.FireNewEventMessage(
-                        Resources.CLHttpRestCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
+                        Resources.CLCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
                         EventMessageLevel.Important,
                         new HaltAllOfCloudSDKErrorInfo());
                 }
@@ -3581,7 +3581,7 @@ namespace Cloud.REST
                 // if trying to cast the asynchronous result failed, then throw an error
                 if (castAResult == null)
                 {
-                    throw new NullReferenceException(Resources.CLHttpRestaResultInternalTypeMismatch);
+                    throw new NullReferenceException(Resources.CLAsyncResultInternalTypeMismatch);
                 }
 
                 // pull the result for output (may not yet be complete)
@@ -3715,7 +3715,7 @@ namespace Cloud.REST
                 if (castState == null)
                 {
                     MessageEvents.FireNewEventMessage(
-                        Resources.CLHttpRestCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
+                        Resources.CLCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
                         EventMessageLevel.Important,
                         new HaltAllOfCloudSDKErrorInfo());
                 }
@@ -3781,7 +3781,7 @@ namespace Cloud.REST
                 // if trying to cast the asynchronous result failed, then throw an error
                 if (castAResult == null)
                 {
-                    throw new NullReferenceException(Resources.CLHttpRestaResultInternalTypeMismatch);
+                    throw new NullReferenceException(Resources.CLAsyncResultInternalTypeMismatch);
                 }
 
                 // pull the result for output (may not yet be complete)
@@ -4115,7 +4115,7 @@ namespace Cloud.REST
                 if (castState == null)
                 {
                     MessageEvents.FireNewEventMessage(
-                        Resources.CLHttpRestCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
+                        Resources.CLCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
                         EventMessageLevel.Important,
                         new HaltAllOfCloudSDKErrorInfo());
                 }
@@ -4194,7 +4194,7 @@ namespace Cloud.REST
                 if (castState == null)
                 {
                     MessageEvents.FireNewEventMessage(
-                        Resources.CLHttpRestCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
+                        Resources.CLCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
                         EventMessageLevel.Important,
                         new HaltAllOfCloudSDKErrorInfo());
                 }
@@ -4260,7 +4260,7 @@ namespace Cloud.REST
                 // if trying to cast the asynchronous result failed, then throw an error
                 if (castAResult == null)
                 {
-                    throw new NullReferenceException(Resources.CLHttpRestaResultInternalTypeMismatch);
+                    throw new NullReferenceException(Resources.CLAsyncResultInternalTypeMismatch);
                 }
 
                 // pull the result for output (may not yet be complete)
@@ -4441,7 +4441,7 @@ namespace Cloud.REST
                     if (castState == null)
                     {
                         MessageEvents.FireNewEventMessage(
-                            Resources.CLHttpRestCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
+                            Resources.CLCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
                             EventMessageLevel.Important,
                             new HaltAllOfCloudSDKErrorInfo());
                     }
@@ -4511,7 +4511,7 @@ namespace Cloud.REST
                 // if trying to cast the asynchronous result failed, then throw an error
                 if (castAResult == null)
                 {
-                    throw new NullReferenceException(Resources.CLHttpRestaResultInternalTypeMismatch);
+                    throw new NullReferenceException(Resources.CLAsyncResultInternalTypeMismatch);
                 }
 
                 // pull the result for output (may not yet be complete)
@@ -4711,7 +4711,7 @@ namespace Cloud.REST
                     if (castState == null)
                     {
                         MessageEvents.FireNewEventMessage(
-                            Resources.CLHttpRestCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
+                            Resources.CLCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
                             EventMessageLevel.Important,
                             new HaltAllOfCloudSDKErrorInfo());
                     }
@@ -4778,7 +4778,7 @@ namespace Cloud.REST
                 // if trying to cast the asynchronous result failed, then throw an error
                 if (castAResult == null)
                 {
-                    throw new NullReferenceException(Resources.CLHttpRestaResultInternalTypeMismatch);
+                    throw new NullReferenceException(Resources.CLAsyncResultInternalTypeMismatch);
                 }
 
                 // pull the result for output (may not yet be complete)
@@ -4967,7 +4967,7 @@ namespace Cloud.REST
                     if (castState == null)
                     {
                         MessageEvents.FireNewEventMessage(
-                            Resources.CLHttpRestCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
+                            Resources.CLCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
                             EventMessageLevel.Important,
                             new HaltAllOfCloudSDKErrorInfo());
                     }
@@ -5034,7 +5034,7 @@ namespace Cloud.REST
                 // if trying to cast the asynchronous result failed, then throw an error
                 if (castAResult == null)
                 {
-                    throw new NullReferenceException(Resources.CLHttpRestaResultInternalTypeMismatch);
+                    throw new NullReferenceException(Resources.CLAsyncResultInternalTypeMismatch);
                 }
 
                 // pull the result for output (may not yet be complete)
@@ -5179,7 +5179,7 @@ namespace Cloud.REST
                 if (castState == null)
                 {
                     MessageEvents.FireNewEventMessage(
-                        Resources.CLHttpRestCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
+                        Resources.CLCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
                         EventMessageLevel.Important,
                         new HaltAllOfCloudSDKErrorInfo());
                 }
@@ -5246,7 +5246,7 @@ namespace Cloud.REST
                 // if trying to cast the asynchronous result failed, then throw an error
                 if (castAResult == null)
                 {
-                    throw new NullReferenceException(Resources.CLHttpRestaResultInternalTypeMismatch);
+                    throw new NullReferenceException(Resources.CLAsyncResultInternalTypeMismatch);
                 }
 
                 // pull the result for output (may not yet be complete)
@@ -5609,7 +5609,7 @@ namespace Cloud.REST
                 if (castState == null)
                 {
                     MessageEvents.FireNewEventMessage(
-                        Resources.CLHttpRestCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
+                        Resources.CLCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
                         EventMessageLevel.Important,
                         new HaltAllOfCloudSDKErrorInfo());
                 }
@@ -5677,7 +5677,7 @@ namespace Cloud.REST
                 // if trying to cast the asynchronous result failed, then throw an error
                 if (castAResult == null)
                 {
-                    throw new NullReferenceException(Resources.CLHttpRestaResultInternalTypeMismatch);
+                    throw new NullReferenceException(Resources.CLAsyncResultInternalTypeMismatch);
                 }
 
                 // pull the result for output (may not yet be complete)
@@ -5904,7 +5904,7 @@ namespace Cloud.REST
                 if (castState == null)
                 {
                     MessageEvents.FireNewEventMessage(
-                        Resources.CLHttpRestCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
+                        Resources.CLCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
                         EventMessageLevel.Important,
                         new HaltAllOfCloudSDKErrorInfo());
                 }
@@ -5988,7 +5988,7 @@ namespace Cloud.REST
                 // if try casting the asynchronous result failed, throw an error
                 if (castAResult == null)
                 {
-                    throw new NullReferenceException(Resources.CLHttpRestaResultInternalTypeMismatch);
+                    throw new NullReferenceException(Resources.CLAsyncResultInternalTypeMismatch);
                 }
 
                 // try to cast the asynchronous result internal state as the holder for the progress
@@ -5997,7 +5997,7 @@ namespace Cloud.REST
                 // if trying to cast the internal state as the holder for progress failed, then throw an error (non-descriptive since it's our error)
                 if (iState == null)
                 {
-                    throw new Exception(Resources.CLHttpRestInternalPRogressRetrievalFailure1);
+                    throw new Exception(Resources.CLHttpRestInternalProgressRetrievalFailure1);
                 }
 
                 // lock on the holder and retrieve the progress for output
@@ -6035,7 +6035,7 @@ namespace Cloud.REST
                 // if trying to cast the asynchronous result failed, then throw an error
                 if (castAResult == null)
                 {
-                    throw new NullReferenceException(Resources.CLHttpRestaResultInternalTypeMismatch);
+                    throw new NullReferenceException(Resources.CLAsyncResultInternalTypeMismatch);
                 }
 
                 // pull the result for output (may not yet be complete)
@@ -6182,7 +6182,7 @@ namespace Cloud.REST
 
                 if (revision == null)
                 {
-                    throw new ArgumentNullException(Resources.CLHttpRestRevisionCannotBeNull);
+                    throw new ArgumentNullException(Resources.CLHttpRestMetaDataRevisionCannotBeNull);
                 }
 
                 // declare the path for the folder which will store temp download files
@@ -6327,7 +6327,7 @@ namespace Cloud.REST
                 if (castState == null)
                 {
                     MessageEvents.FireNewEventMessage(
-                        Resources.CLHttpRestCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
+                        Resources.CLCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
                         EventMessageLevel.Important,
                         new HaltAllOfCloudSDKErrorInfo());
                 }
@@ -6410,7 +6410,7 @@ namespace Cloud.REST
                 // if try casting the asynchronous result failed, throw an error
                 if (castAResult == null)
                 {
-                    throw new NullReferenceException(Resources.CLHttpRestaResultInternalTypeMismatch);
+                    throw new NullReferenceException(Resources.CLAsyncResultInternalTypeMismatch);
                 }
 
                 // try to cast the asynchronous result internal state as the holder for the progress
@@ -6457,7 +6457,7 @@ namespace Cloud.REST
                 // if trying to cast the asynchronous result failed, then throw an error
                 if (castAResult == null)
                 {
-                    throw new NullReferenceException(Resources.CLHttpRestaResultInternalTypeMismatch);
+                    throw new NullReferenceException(Resources.CLAsyncResultInternalTypeMismatch);
                 }
 
                 // pull the result for output (may not yet be complete)
@@ -6663,7 +6663,7 @@ namespace Cloud.REST
                 if (castState == null)
                 {
                     MessageEvents.FireNewEventMessage(
-                        Resources.CLHttpRestCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
+                        Resources.CLCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
                         EventMessageLevel.Important,
                         new HaltAllOfCloudSDKErrorInfo());
                 }
@@ -6728,7 +6728,7 @@ namespace Cloud.REST
                 // if trying to cast the asynchronous result failed, then throw an error
                 if (castAResult == null)
                 {
-                    throw new NullReferenceException(Resources.CLHttpRestaResultInternalTypeMismatch);
+                    throw new NullReferenceException(Resources.CLAsyncResultInternalTypeMismatch);
                 }
 
                 // pull the result for output (may not yet be complete)
@@ -6863,7 +6863,7 @@ namespace Cloud.REST
                 if (castState == null)
                 {
                     MessageEvents.FireNewEventMessage(
-                        Resources.CLHttpRestCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
+                        Resources.CLCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
                         EventMessageLevel.Important,
                         new HaltAllOfCloudSDKErrorInfo());
                 }
@@ -6931,7 +6931,7 @@ namespace Cloud.REST
                 // if trying to cast the asynchronous result failed, then throw an error
                 if (castAResult == null)
                 {
-                    throw new NullReferenceException(Resources.CLHttpRestaResultInternalTypeMismatch);
+                    throw new NullReferenceException(Resources.CLAsyncResultInternalTypeMismatch);
                 }
 
                 // pull the result for output (may not yet be complete)
@@ -7118,7 +7118,7 @@ namespace Cloud.REST
                         }
                         if (string.IsNullOrEmpty(revision))
                         {
-                            throw new NullReferenceException(Resources.CLHttpRestRevisionCannotBeNull);
+                            throw new NullReferenceException(Resources.CLHttpRestMetaDataRevisionCannotBeNull);
                         }
 
                         // there is no folder modify, so json contract object and server method path for modify are only for files
@@ -7299,7 +7299,7 @@ namespace Cloud.REST
                 if (castState == null)
                 {
                     MessageEvents.FireNewEventMessage(
-                        Resources.CLHttpRestCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
+                        Resources.CLCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
                         EventMessageLevel.Important,
                         new HaltAllOfCloudSDKErrorInfo());
                 }
@@ -7366,7 +7366,7 @@ namespace Cloud.REST
                 // if trying to cast the asynchronous result failed, then throw an error
                 if (castAResult == null)
                 {
-                    throw new NullReferenceException(Resources.CLHttpRestaResultInternalTypeMismatch);
+                    throw new NullReferenceException(Resources.CLAsyncResultInternalTypeMismatch);
                 }
 
                 // pull the result for output (may not yet be complete)
@@ -7549,7 +7549,7 @@ namespace Cloud.REST
                 if (castState == null)
                 {
                     MessageEvents.FireNewEventMessage(
-                        Resources.CLHttpRestCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
+                        Resources.CLCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
                         EventMessageLevel.Important,
                         new HaltAllOfCloudSDKErrorInfo());
                 }
@@ -7614,7 +7614,7 @@ namespace Cloud.REST
                 // if trying to cast the asynchronous result failed, then throw an error
                 if (castAResult == null)
                 {
-                    throw new NullReferenceException(Resources.CLHttpRestaResultInternalTypeMismatch);
+                    throw new NullReferenceException(Resources.CLAsyncResultInternalTypeMismatch);
                 }
 
                 // pull the result for output (may not yet be complete)
