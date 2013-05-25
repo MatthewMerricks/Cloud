@@ -2660,7 +2660,7 @@
   <data name="ExceptionCLHttpRestWithoutRenameResponses" xml:space="preserve">
     <value>Server responded without an array of rename responses</value>
     <comment>Translate</comment>
-    </data>
+  </data>
   <data name="ExceptionOnDemandItemToMoveMustNotBeNull" xml:space="preserve">
     <value>Item to move must not be null</value>
     <comment>Translate</comment>
@@ -2820,39 +2820,35 @@
   <data name="ExceptionOnDemandPathMustNotBeNull" xml:space="preserve">
     <value>path must not be null</value>
     <comment>"path" should not be translated</comment>
-      </data>
+  </data>
   <data name="CLFileItemCastStateCopiedSettingsMustNotBeNull" xml:space="preserve">
     <value>castState _copiedSettings must not be null</value>
     <comment>"castState_copiedSettings" should not be translated</comment>
-      </data>
+  </data>
   <data name="ExceptionOnDemandAddFoldersNoFoldersToAdd" xml:space="preserve">
     <value>foldersToAdd must be specified, and must have at least one element</value>
     <comment>"foldersToAdd" should not be translated</comment>
-      </data>
+  </data>
   <data name="CLHttpRestXORNewPathParentFolderServerUidCannotBeNull" xml:space="preserve">
     <value>Either toCommunicate NewPath must not be null or toCommunicate Metadata ParentFolderServerUid must not be null or both must not be null</value>
     <comment>"toCommunicate", "NewPath", "Metadata", and "ParentFolderServerUid" should not be translated</comment>
-      </data>
+  </data>
   <data name="CLHttpRestXOROldPathServerUidCannotBeNull" xml:space="preserve">
     <value>Either toCommunicate OldPath must not be null or toCommunicate Metadata ServerUid must not be null or both must not be null</value>
     <comment>"toCommunicate", "OldPath", "Metadata", and "ServerUid" should not be translated</comment>
-     </data>
-
+  </data>
   <data name="ExceptionCLHttpRestWithoutAddFolderResponses" xml:space="preserve">
     <value>The server responded without an array of add folder responses</value>
     <comment>Translate</comment>
-     </data>
-
+  </data>
   <data name="ExceptionOnDemandAddFoldersParentFolderDeleted" xml:space="preserve">
     <value>The parent folder was found, but it has been deleted</value>
     <comment>Translate</comment>
   </data>
-
   <data name="ExceptionOnDemandAddFoldersParentFolderNotFound" xml:space="preserve">
     <value>The parent folder was not found</value>
     <comment>Translate</comment>
-      </data>
-
+  </data>
   <data name="ExceptionOnDemandAddFoldersTargetFolderAlreadyExists" xml:space="preserve">
     <value>The target folder already exists</value>
     <comment>Translate</comment>
@@ -2860,7 +2856,7 @@
   <data name="ExceptionOnDemandAddItemItemMustNotBeNull" xml:space="preserve">
     <value>Item must not be null</value>
     <comment>"Item" shoud not be translated</comment>
-      </data>
+  </data>
   <data name="CLFileItemCastStateMustBeACLFileItem" xml:space="preserve">
     <value>castState must be a CLFileItem</value>
     <comment>"castState" and "CLFileItem" should not be translated</comment>
@@ -2868,7 +2864,7 @@
   <data name="ExceptionOnDemandAddItemNameMustBeSpecified" xml:space="preserve">
     <value>Name must be specified</value>
     <comment>"Name" should not be translated</comment>
-      </data>
+  </data>
   <data name="CLNotificationSseEngineInvalidStatusCodeOnStartingSSEEngine0" xml:space="preserve">
     <value>Invalid status code on starting SSE engine: {0}</value>
     <comment>"SSE engine" should not be translated</comment>
@@ -2889,11 +2885,11 @@
     <value>newName must be specified</value>
     <comment>Do not translate "newName".</comment>
   </data>
-  <data name="ExceptionOnDemandAllImageItemsInvalidItemsPerPage" xml:space="preserve">
+  <data name="ExceptionOnDemandInvalidItemsPerPage" xml:space="preserve">
     <value>itemsPerPage must be greater than zero.</value>
     <comment>"itemsPerPage" should not be translated</comment>
   </data>
-  <data name="ExceptionOnDemandAllImageItemsInvalidPageNumber" xml:space="preserve">
+  <data name="ExceptionOnDemandInvalidPageNumber" xml:space="preserve">
     <value>pageNumber must be greater than zero.</value>
     <comment>"pageNumber" should not be translated</comment>
   </data>

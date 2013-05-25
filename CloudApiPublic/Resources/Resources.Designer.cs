@@ -2646,24 +2646,6 @@ namespace Cloud.Static {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to itemsPerPage must be greater than zero..
-        /// </summary>
-        internal static string ExceptionOnDemandAllImageItemsInvalidItemsPerPage {
-            get {
-                return ResourceManager.GetString("ExceptionOnDemandAllImageItemsInvalidItemsPerPage", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to pageNumber must be greater than zero..
-        /// </summary>
-        internal static string ExceptionOnDemandAllImageItemsInvalidPageNumber {
-            get {
-                return ResourceManager.GetString("ExceptionOnDemandAllImageItemsInvalidPageNumber", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Item has already been deleted.
         /// </summary>
         internal static string ExceptionOnDemandAlreadyDeleted {
@@ -2741,6 +2723,24 @@ namespace Cloud.Static {
         internal static string ExceptionOnDemandFolderItemNullAtIndexMsg0 {
             get {
                 return ResourceManager.GetString("ExceptionOnDemandFolderItemNullAtIndexMsg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to itemsPerPage must be greater than zero..
+        /// </summary>
+        internal static string ExceptionOnDemandInvalidItemsPerPage {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandInvalidItemsPerPage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to pageNumber must be greater than zero..
+        /// </summary>
+        internal static string ExceptionOnDemandInvalidPageNumber {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandInvalidPageNumber", resourceCulture);
             }
         }
         
