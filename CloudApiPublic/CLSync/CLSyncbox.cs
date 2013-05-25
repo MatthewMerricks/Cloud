@@ -2751,54 +2751,64 @@ namespace Cloud
             return httpRestClient.AllAudioItems(completionCallback, completionCallbackUserState, pageNumber, itemsPerPage);
         }
 
-        #endregion  // end AllAudioItems (Gets video items from this syncbox)
+        #endregion  // end AllAudioItems (Gets audio items from this syncbox)
 
-        #region GetAllDocumentItems  (Gets all of the document items from the cloud for this syncbox)
+        #region AllDocumentItems (Gets document items from this syncbox)
+
         /// <summary>
-        /// Asynchronously starts querying the server for document items.
+        /// Asynchronously starts querying document items from the syncbox.  The resulting set of items is returned
+        /// via the completion callback.
         /// </summary>
-        /// <param name="asyncCallback">Callback method to fire when operation completes</param>
-        /// <param name="asyncCallbackUserState">Userstate to pass when firing async callback</param>
+        /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
+        /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
+        /// <param name="completionCallback">Callback method to fire when a page of items is complete.  Returns the result.</param>
+        /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion callback above is fired.</param>
+        /// <param name="pageNumber">Beginning page number.  The first page is page 1.</param>
+        /// <param name="itemsPerPage">Items per page.</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginGetAllDocumentItems(AsyncCallback asyncCallback, object asyncCallbackUserState)
+        public IAsyncResult BeginAllDocumentItems(AsyncCallback asyncCallback, object asyncCallbackUserState, CLAllItemsCompletion completionCallback, object completionCallbackUserState, long pageNumber, long itemsPerPage)
         {
             CheckDisposed(true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.BeginGetAllDocumentItems(asyncCallback, asyncCallbackUserState);
+            return httpRestClient.BeginAllDocumentItems(asyncCallback, asyncCallbackUserState, completionCallback, completionCallbackUserState, pageNumber, itemsPerPage);
         }
 
         /// <summary>
-        /// Finishes querying for document items, if it has not already finished via its asynchronous result, and outputs the result,
+        /// Finishes getting document items from the syncbox, if it has not already finished via its asynchronous result, and outputs the result,
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
         /// </summary>
-        /// <param name="aResult">The asynchronous result provided upon starting the audios query</param>
-        /// <param name="result">(output) The result from the audios query</param>
+        /// <param name="asyncResult">The asynchronous result provided upon starting the request</param>
+        /// <param name="result">(output) An overall error which occurred during processing, if any</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndGetAllDocumentItems(IAsyncResult aResult, out SyncboxGetAllDocumentItemsResult result)
+        public CLError EndAllDocumentItems(IAsyncResult asyncResult, out SyncboxGetAllDocumentItemsResult result)
         {
             CheckDisposed(true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.EndGetAllDocumentItems(aResult, out result);
+            return httpRestClient.EndAllDocumentItems(asyncResult, out result);
         }
 
         /// <summary>
-        /// Queries the server for document items.
+        /// Query document items from the syncbox.
         /// </summary>
-        /// <param name="response">(output) response object from communication</param>
+        /// <param name="completionCallback">Callback method to fire when a page of items is complete.  Returns the result.</param>
+        /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion callback above is fired.</param>
+        /// <param name="pageNumber">Beginning page number.  The first page is page 1.</param>
+        /// <param name="itemsPerPage">Items per page.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError GetAllDocumentItems(out CLFileItem[] response)
+        public CLError AllDocumentItems(CLAllItemsCompletion completionCallback, object completionCallbackUserState, long pageNumber, long itemsPerPage)
         {
             CheckDisposed(true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.GetAllDocumentItems(out response);
+            return httpRestClient.AllDocumentItems(completionCallback, completionCallbackUserState, pageNumber, itemsPerPage);
         }
-        #endregion  // end GetAllDocumentItems  (Gets all of the document items from the cloud for this syncbox)
+
+        #endregion  // end AllDocumentItems (Gets document items from this syncbox)
 
         #region GetAllPresentationItems  (Gets all of the presentation items from the cloud for this syncbox)
         /// <summary>
