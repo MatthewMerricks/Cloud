@@ -2218,17 +2218,17 @@ namespace Cloud
         /// Finishes adding files in the syncbox, if it has not already finished via its asynchronous result, and outputs the result,
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
         /// </summary>
-        /// <param name="aResult">The asynchronous result provided upon starting the metadata query</param>
+        /// <param name="asyncResult">The asynchronous result provided upon starting the metadata query</param>
         /// <param name="result">(output) The result from the metadata query</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndAddFiles(IAsyncResult aResult, out SyncboxAddFilesResult result)
+        public CLError EndAddFiles(IAsyncResult asyncResult, out SyncboxAddFilesResult result)
         {
             CheckDisposed(true);
             SyncboxAddFilesResult deleteResult;
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            CLError error = httpRestClient.EndAddFiles(aResult, out deleteResult);
+            CLError error = httpRestClient.EndAddFiles(asyncResult, out deleteResult);
 
             if (error != null)
             {
@@ -2585,61 +2585,56 @@ namespace Cloud
         #region AllImageItems (Gets image items from this syncbox)
 
         /// <summary>
-        /// Asynchronously starts getting image items from the syncbox; outputs an array of  CLFileItem objects.
+        /// Asynchronously starts querying image items from the syncbox.  The resulting set of image items is returned
+        /// via the completion callback.
         /// </summary>
-        /// <param name="callback">Callback method to fire when operation completes</param>
-        /// <param name="callbackUserState">Userstate to pass when firing async callback</param>
-        /// <param name="paths">An array of full paths to where the files would exist locally on disk.</param>
+        /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
+        /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
+        /// <param name="completionCallback">Callback method to fire when a page of items is complete.</param>
+        /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion callback above is fired.</param>
+        /// <param name="pageNumber">Beginning page number.  The first page is page 1.</param>
+        /// <param name="itemsPerPage">Items per page.</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginAddFiles(AsyncCallback asyncCallback, object asyncCallbackUserState, string[] paths)
+        public IAsyncResult BeginAllImageItems(AsyncCallback asyncCallback, object asyncCallbackUserState, CLAllItemsCompletion completionCallback, object completionCallbackUserState, long pageNumber, long itemsPerPage)
         {
             CheckDisposed(true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.BeginAddFiles(callback, callbackUserState, paths);
+            return httpRestClient.BeginAllImageItems(asyncCallback, asyncCallbackUserState, completionCallback, completionCallbackUserState, pageNumber, itemsPerPage);
         }
 
         /// <summary>
-        /// Finishes adding files in the syncbox, if it has not already finished via its asynchronous result, and outputs the result,
+        /// Finishes getting image items from the syncbox, if it has not already finished via its asynchronous result, and outputs the result,
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
         /// </summary>
-        /// <param name="aResult">The asynchronous result provided upon starting the metadata query</param>
-        /// <param name="result">(output) The result from the metadata query</param>
+        /// <param name="asyncResult">The asynchronous result provided upon starting the request</param>
+        /// <param name="result">(output) An overall error which occurred during processing, if any</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndAddFiles(IAsyncResult aResult, out SyncboxAddFilesResult result)
+        public CLError EndAllImageItems(IAsyncResult asyncResult, out SyncboxGetAllImageItemsResult result)
         {
             CheckDisposed(true);
-            SyncboxAddFilesResult deleteResult;
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            CLError error = httpRestClient.EndAddFiles(aResult, out deleteResult);
-
-            if (error != null)
-            {
-                result = null;
-                return error;
-            }
-
-            result = new SyncboxAddFilesResult(deleteResult.OverallError, deleteResult.Errors, deleteResult.FileItems);
-            return error;
+            return httpRestClient.EndAllImageItems(asyncResult, out result);
         }
 
         /// <summary>
-        /// Adds files in the syncbox.
+        /// Query image items from the syncbox.
         /// </summary>
-        /// <param name="paths">An array of full paths to where the files would exist locally on disk.</param>
-        /// <param name="fileItems">(output) response object from communication</param>
-        /// <param name="errors">(output) Any returned errors, or null.</param>
+        /// <param name="completionCallback">Callback method to fire when a page of items is complete.</param>
+        /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion callback above is fired.</param>
+        /// <param name="pageNumber">Beginning page number.  The first page is page 1.</param>
+        /// <param name="itemsPerPage">Items per page.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError AddFiles(string[] paths, out CLFileItem[] fileItems, out CLError[] errors)
+        public CLError AllImageItems(CLAllItemsCompletion completionCallback, object completionCallbackUserState, long pageNumber, long itemsPerPage)
         {
             CheckDisposed(true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.AddFiles(paths, out fileItems, out errors);
+            return httpRestClient.AllImageItems(completionCallback, completionCallbackUserState, pageNumber, itemsPerPage);
         }
 
         #endregion  // end AllImageItems (Gets image items from this syncbox)
@@ -3277,7 +3272,7 @@ namespace Cloud
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
             return httpRestClient.BeginSyncboxUpdateStoragePlan(
-                callback, 
+                asyncCallback, 
                 asyncCallbackUserState, 
                 storagePlan.Id, 
                 _copiedSettings.HttpTimeoutMilliseconds, 
@@ -3370,7 +3365,7 @@ namespace Cloud
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.BeginGetSyncboxStatus(asyncCallback, callbackUserState, _copiedSettings.HttpTimeoutMilliseconds, new Action<JsonContracts.SyncboxStatusResponse, object>(OnStatusCompletion), null);
+            return httpRestClient.BeginGetSyncboxStatus(asyncCallback, asyncCallbackUserState, _copiedSettings.HttpTimeoutMilliseconds, new Action<JsonContracts.SyncboxStatusResponse, object>(OnStatusCompletion), null);
         }
         
         /// <summary>
