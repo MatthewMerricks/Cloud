@@ -475,6 +475,11 @@ namespace Cloud.Static
         /// </summary>
         OnDemand_AddFolders = (((ulong)CLExceptionDomain.OnDemand) << 32) | 26, // 5_26
 
+        /// <summary>
+        /// Cloud On Demand API. Invalid parameter or parameters.
+        /// </summary>
+        OnDemand_InvalidParameters = (((ulong)CLExceptionDomain.OnDemand) << 32) | 27, // 5_27
+
 
 
         #endregion

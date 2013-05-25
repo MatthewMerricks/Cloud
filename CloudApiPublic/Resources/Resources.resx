@@ -2889,4 +2889,12 @@
     <value>newName must be specified</value>
     <comment>Do not translate "newName".</comment>
   </data>
+  <data name="ExceptionOnDemandAllImageItemsInvalidItemsPerPage" xml:space="preserve">
+    <value>itemsPerPage must be greater than zero.</value>
+    <comment>"itemsPerPage" should not be translated</comment>
+  </data>
+  <data name="ExceptionOnDemandAllImageItemsInvalidPageNumber" xml:space="preserve">
+    <value>pageNumber must be greater than zero.</value>
+    <comment>"pageNumber" should not be translated</comment>
+  </data>
 </root>

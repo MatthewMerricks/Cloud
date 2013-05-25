@@ -599,8 +599,8 @@ namespace Cloud
         /// <summary>
         /// Asynchronously begins the factory process to construct an instance of CLSyncbox, initialize it and fill in its properties from the cloud, and associates the cloud syncbox with a folder on the local disk.
         /// </summary>
-        /// <param name="callback">Callback method to fire when operation completes.  Can be null.</param>
-        /// <param name="callbackUserState">Userstate to pass to the callback when it is fired.  Can be null.</param>
+        /// <param name="asyncCallback">Callback method to fire when operation completes.  Can be null.</param>
+        /// <param name="asyncCallbackUserState">Userstate to pass to the callback when it is fired.  Can be null.</param>
         /// <param name="syncboxId">The cloud syncbox ID to use.</param>
         /// <param name="credentials">The credentials to use with this request.</param>
         /// <param name="path">The full path of the folder on disk to associate with this syncbox. If this parameter is null, the syncbox local disk directory will be %USEERPROFILE%\Cloud. </param>
@@ -609,8 +609,8 @@ namespace Cloud
         /// <param name="getNewCredentialsCallbackUserState">(optional) The user state to pass as a parameter to the delegate above.</param>
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public static IAsyncResult BeginAllocAndInit(
-            AsyncCallback callback,
-            object callbackUserState,
+            AsyncCallback asyncCallback,
+            object asyncCallbackUserState,
             long syncboxId,
             CLCredentials credentials,
             string path,
@@ -626,8 +626,8 @@ namespace Cloud
                 {
                     // create the asynchronous result to return
                     toReturn = new GenericAsyncResult<SyncboxAllocAndInitResult>(
-                        callback,
-                        callbackUserState),
+                        asyncCallback,
+                        asyncCallbackUserState),
                     syncboxId = syncboxId,
                     credentials = credentials,
                     path = path,
@@ -1088,8 +1088,8 @@ namespace Cloud
         /// <summary>
         /// Asynchronously starts creating a new Syncbox in the syncbox.
         /// </summary>
-        /// <param name="callback">Callback method to fire when operation completes.  Can be null.</param>
-        /// <param name="callbackUserState">Userstate to pass to the callback when it is fired.  Can be null.</param>
+        /// <param name="asyncCallback">Callback method to fire when operation completes.  Can be null.</param>
+        /// <param name="asyncCallbackUserState">Userstate to pass to the callback when it is fired.  Can be null.</param>
         /// <param name="plan">The storage plan to use with this Syncbox.</param>
         /// <param name="credentials">The credentials to use with this request.</param>
         /// <param name="path">The path on the local disk to associate with this syncbox.</param>
@@ -1099,8 +1099,8 @@ namespace Cloud
         /// <param name="getNewCredentialsCallbackUserState">(optional) The user state that will be passed as a parameter to the callback function above.</param>
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public static IAsyncResult BeginCreateSyncbox(
-                    AsyncCallback callback,
-                    object callbackUserState,
+                    AsyncCallback asyncCallback,
+                    object asyncCallbackUserState,
                     CLStoragePlan plan,
                     CLCredentials credentials,
                     string path,
@@ -1127,8 +1127,8 @@ namespace Cloud
                 {
                     // create the asynchronous result to return
                     toReturn = new GenericAsyncResult<SyncboxCreateResult>(
-                        callback,
-                        callbackUserState),
+                        asyncCallback,
+                        asyncCallbackUserState),
                     plan = plan,
                     friendlyName = friendlyName,
                     credentials = credentials,
@@ -1294,15 +1294,15 @@ namespace Cloud
         /// <summary>
         /// Asynchronously starts deleting a new Syncbox in the syncbox.
         /// </summary>
-        /// <param name="callback">Callback method to fire when operation completes.  Can be null.</param>
-        /// <param name="callbackUserState">Userstate to pass as a parameter to the callback when it is fired.  Can be null.</param>
+        /// <param name="asyncCallback">Callback method to fire when operation completes.  Can be null.</param>
+        /// <param name="asyncCallbackUserState">Userstate to pass as a parameter to the callback when it is fired.  Can be null.</param>
         /// <param name="syncboxId">The ID of syncbox to delete.</param>
         /// <param name="credentials">The credentials to use with this request.</param>
         /// <param name="settings">(optional) settings to use with this method.</param>
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public static IAsyncResult BeginDeleteSyncbox(
-            AsyncCallback callback,
-            object callbackUserState,
+            AsyncCallback asyncCallback,
+            object asyncCallbackUserState,
             long syncboxId,
             CLCredentials credentials,
             ICLCredentialsSettings settings = null)
@@ -1315,8 +1315,8 @@ namespace Cloud
                 {
                     // create the asynchronous result to return
                     toReturn = new GenericAsyncResult<SyncboxDeleteResult>(
-                        callback,
-                        callbackUserState),
+                        asyncCallback,
+                        asyncCallbackUserState),
                     syncboxId = syncboxId,
                     credentials = credentials,
                     settings = settings
@@ -1428,14 +1428,14 @@ namespace Cloud
         /// <summary>
         /// Asynchronously starts listing syncboxes in the syncbox.
         /// </summary>
-        /// <param name="callback">Callback method to fire when operation completes.  Can be null.</param>
-        /// <param name="callbackUserState">Userstate to pass as a parameter to the callback when it is fired.  Can be null.</param>
+        /// <param name="asyncCallback">Callback method to fire when operation completes.  Can be null.</param>
+        /// <param name="asyncCallbackUserState">Userstate to pass as a parameter to the callback when it is fired.  Can be null.</param>
         /// <param name="credentials">The credentials to use with this request.</param>
         /// <param name="settings">(optional) settings to use with this method.</param>
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public static IAsyncResult BeginListAllSyncboxesWithCredentials(
-            AsyncCallback callback,
-            object callbackUserState,
+            AsyncCallback asyncCallback,
+            object asyncCallbackUserState,
             CLCredentials credentials,
             ICLCredentialsSettings settings = null)
         {
@@ -1447,8 +1447,8 @@ namespace Cloud
                 {
                     // create the asynchronous result to return
                     toReturn = new GenericAsyncResult<SyncboxListResult>(
-                        callback,
-                        callbackUserState),
+                        asyncCallback,
+                        asyncCallbackUserState),
                     credentials = credentials,
                     settings = settings
                 },
@@ -2077,18 +2077,18 @@ namespace Cloud
         /// <summary>
         /// Asynchronously starts adding a file in the syncbox; outputs a CLFileItem object.
         /// </summary>
-        /// <param name="callback">Callback method to fire when operation completes</param>
-        /// <param name="callbackUserState">Userstate to pass when firing async callback</param>
+        /// <param name="asyncCallback">Callback method to fire when operation completes</param>
+        /// <param name="asyncCallbackUserState">Userstate to pass when firing async callback</param>
         /// <param name="path">Full path to where the file would exist locally on disk.</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginAddFile(AsyncCallback callback, object callbackUserState, string path)
+        public IAsyncResult BeginAddFile(AsyncCallback asyncCallback, object asyncCallbackUserState, string path)
         {
             CheckDisposed(true);
             string[] paths = new string[1] { path };
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.BeginAddFiles(callback, callbackUserState, paths);
+            return httpRestClient.BeginAddFiles(asyncCallback, asyncCallbackUserState, paths);
         }
 
         /// <summary>
@@ -2201,34 +2201,34 @@ namespace Cloud
         /// <summary>
         /// Asynchronously starts adding files in the syncbox; outputs an array of  CLFileItem objects, and possibly an array of CLError objects.
         /// </summary>
-        /// <param name="callback">Callback method to fire when operation completes</param>
-        /// <param name="callbackUserState">Userstate to pass when firing async callback</param>
+        /// <param name="asyncCallback">Callback method to fire when operation completes</param>
+        /// <param name="asyncCallbackUserState">Userstate to pass when firing async callback</param>
         /// <param name="paths">An array of full paths to where the files would exist locally on disk.</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginAddFiles(AsyncCallback callback, object callbackUserState, string[] paths)
+        public IAsyncResult BeginAddFiles(AsyncCallback asyncCallback, object asyncCallbackUserState, string[] paths)
         {
             CheckDisposed(true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.BeginAddFiles(callback, callbackUserState, paths);
+            return httpRestClient.BeginAddFiles(asyncCallback, asyncCallbackUserState, paths);
         }
 
         /// <summary>
         /// Finishes adding files in the syncbox, if it has not already finished via its asynchronous result, and outputs the result,
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
         /// </summary>
-        /// <param name="aResult">The asynchronous result provided upon starting the metadata query</param>
+        /// <param name="asyncResult">The asynchronous result provided upon starting the metadata query</param>
         /// <param name="result">(output) The result from the metadata query</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndAddFiles(IAsyncResult aResult, out SyncboxAddFilesResult result)
+        public CLError EndAddFiles(IAsyncResult asyncResult, out SyncboxAddFilesResult result)
         {
             CheckDisposed(true);
             SyncboxAddFilesResult deleteResult;
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            CLError error = httpRestClient.EndAddFiles(aResult, out deleteResult);
+            CLError error = httpRestClient.EndAddFiles(asyncResult, out deleteResult);
 
             if (error != null)
             {
@@ -2267,15 +2267,15 @@ namespace Cloud
         /// <param name="aState">Userstate to pass when firing async callback</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginGetAllPending(AsyncCallback aCallback,
-            object aState,
+        public IAsyncResult BeginGetAllPending(AsyncCallback asyncCallback,
+            object asyncCallbackState,
             int timeoutMilliseconds)
         {
             CheckDisposed(true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.BeginGetAllPending(aCallback, aState, timeoutMilliseconds);
+            return httpRestClient.BeginGetAllPending(asyncCallback, asyncCallbackState, timeoutMilliseconds);
         }
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
@@ -2321,8 +2321,8 @@ namespace Cloud
         /// <param name="fileServerId">Unique id to the file on the server</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginGetFileVersions(AsyncCallback aCallback,
-            object aState,
+        public IAsyncResult BeginGetFileVersions(AsyncCallback asyncCallback,
+            object asyncCallbackState,
             string fileServerId,
             int timeoutMilliseconds)
         {
@@ -2330,8 +2330,8 @@ namespace Cloud
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.BeginGetFileVersions(aCallback,
-                aState,
+            return httpRestClient.BeginGetFileVersions(asyncCallback,
+                asyncCallbackState,
                 fileServerId,
                 timeoutMilliseconds);
         }
@@ -2346,8 +2346,8 @@ namespace Cloud
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <param name="includeDeletedVersions">(optional) whether to include file versions which are deleted</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginGetFileVersions(AsyncCallback aCallback,
-            object aState,
+        public IAsyncResult BeginGetFileVersions(AsyncCallback asyncCallback,
+            object asyncCallbackState,
             string fileServerId,
             int timeoutMilliseconds,
             bool includeDeletedVersions)
@@ -2356,8 +2356,8 @@ namespace Cloud
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.BeginGetFileVersions(aCallback,
-                aState,
+            return httpRestClient.BeginGetFileVersions(asyncCallback,
+                asyncCallbackState,
                 fileServerId,
                 timeoutMilliseconds,
                 includeDeletedVersions);
@@ -2373,8 +2373,8 @@ namespace Cloud
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <param name="pathToFile">Full path to the file where it would be placed locally within the sync root</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginGetFileVersions(AsyncCallback aCallback,
-            object aState,
+        public IAsyncResult BeginGetFileVersions(AsyncCallback asyncCallback,
+            object asyncCallbackState,
             int timeoutMilliseconds,
             FilePath pathToFile)
         {
@@ -2382,7 +2382,7 @@ namespace Cloud
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.BeginGetFileVersions(aCallback, aState, timeoutMilliseconds, pathToFile);
+            return httpRestClient.BeginGetFileVersions(asyncCallback, asyncCallbackState, timeoutMilliseconds, pathToFile);
         }
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
@@ -2396,8 +2396,8 @@ namespace Cloud
         /// <param name="pathToFile">Full path to the file where it would be placed locally within the sync root</param>
         /// <param name="includeDeletedVersions">(optional) whether to include file versions which are deleted</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginGetFileVersions(AsyncCallback aCallback,
-            object aState,
+        public IAsyncResult BeginGetFileVersions(AsyncCallback asyncCallback,
+            object asyncCallbackState,
             int timeoutMilliseconds,
             FilePath pathToFile,
             bool includeDeletedVersions)
@@ -2406,7 +2406,7 @@ namespace Cloud
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.BeginGetFileVersions(aCallback, aState, timeoutMilliseconds, pathToFile, includeDeletedVersions);
+            return httpRestClient.BeginGetFileVersions(asyncCallback, asyncCallbackState, timeoutMilliseconds, pathToFile, includeDeletedVersions);
         }
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
@@ -2419,8 +2419,8 @@ namespace Cloud
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <param name="pathToFile">Full path to the file where it would be placed locally within the sync root</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginGetFileVersions(AsyncCallback aCallback,
-            object aState,
+        public IAsyncResult BeginGetFileVersions(AsyncCallback asyncCallback,
+            object asyncCallbackState,
             string fileServerId,
             int timeoutMilliseconds,
             FilePath pathToFile)
@@ -2429,7 +2429,7 @@ namespace Cloud
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.BeginGetFileVersions(aCallback, aState, fileServerId, timeoutMilliseconds, pathToFile);
+            return httpRestClient.BeginGetFileVersions(asyncCallback, asyncCallbackState, fileServerId, timeoutMilliseconds, pathToFile);
         }
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
@@ -2443,8 +2443,8 @@ namespace Cloud
         /// <param name="pathToFile">Full path to the file where it would be placed locally within the sync root</param>
         /// <param name="includeDeletedVersions">(optional) whether to include file versions which are deleted</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginGetFileVersions(AsyncCallback aCallback,
-            object aState,
+        public IAsyncResult BeginGetFileVersions(AsyncCallback asyncCallback,
+            object asyncCallbackState,
             string fileServerId,
             int timeoutMilliseconds,
             FilePath pathToFile,
@@ -2454,7 +2454,7 @@ namespace Cloud
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.BeginGetFileVersions(aCallback, aState, fileServerId, timeoutMilliseconds, pathToFile, includeDeletedVersions);
+            return httpRestClient.BeginGetFileVersions(asyncCallback, asyncCallbackState, fileServerId, timeoutMilliseconds, pathToFile, includeDeletedVersions);
         }
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
@@ -2582,67 +2582,77 @@ namespace Cloud
         }
         #endregion
 
-        #region GetAllImageItems (Gets all of the image items from the cloud for this syncbox)
+        #region AllImageItems (Gets image items from this syncbox)
+
         /// <summary>
-        /// Asynchronously starts querying the server for image items.
+        /// Asynchronously starts querying image items from the syncbox.  The resulting set of image items is returned
+        /// via the completion callback.
         /// </summary>
-        /// <param name="callback">Callback method to fire when operation completes</param>
-        /// <param name="callbackUserState">Userstate to pass when firing async callback</param>
+        /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
+        /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
+        /// <param name="completionCallback">Callback method to fire when a page of items is complete.</param>
+        /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion callback above is fired.</param>
+        /// <param name="pageNumber">Beginning page number.  The first page is page 1.</param>
+        /// <param name="itemsPerPage">Items per page.</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginGetAllImageItems(AsyncCallback callback, object callbackUserState)
+        public IAsyncResult BeginAllImageItems(AsyncCallback asyncCallback, object asyncCallbackUserState, CLAllItemsCompletion completionCallback, object completionCallbackUserState, long pageNumber, long itemsPerPage)
         {
             CheckDisposed(true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.BeginGetAllImageItems(callback, callbackUserState);
+            return httpRestClient.BeginAllImageItems(asyncCallback, asyncCallbackUserState, completionCallback, completionCallbackUserState, pageNumber, itemsPerPage);
         }
 
         /// <summary>
-        /// Finishes querying the server for image items, if it has not already finished via its asynchronous result, and outputs the result,
+        /// Finishes getting image items from the syncbox, if it has not already finished via its asynchronous result, and outputs the result,
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
         /// </summary>
-        /// <param name="aResult">The asynchronous result provided upon starting the pictures query</param>
-        /// <param name="result">(output) The result from the pictures query</param>
+        /// <param name="asyncResult">The asynchronous result provided upon starting the request</param>
+        /// <param name="result">(output) An overall error which occurred during processing, if any</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndGetAllImageItems(IAsyncResult aResult, out SyncboxGetAllImageItemsResult result)
+        public CLError EndAllImageItems(IAsyncResult asyncResult, out SyncboxGetAllImageItemsResult result)
         {
             CheckDisposed(true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.EndGetAllImageItems(aResult, out result);
+            return httpRestClient.EndAllImageItems(asyncResult, out result);
         }
 
         /// <summary>
-        /// Queries the server for pictures
+        /// Query image items from the syncbox.
         /// </summary>
-        /// <param name="response">(output) response object from communication</param>
+        /// <param name="completionCallback">Callback method to fire when a page of items is complete.</param>
+        /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion callback above is fired.</param>
+        /// <param name="pageNumber">Beginning page number.  The first page is page 1.</param>
+        /// <param name="itemsPerPage">Items per page.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError GetAllImageItems(out CLFileItem[] response)
+        public CLError AllImageItems(CLAllItemsCompletion completionCallback, object completionCallbackUserState, long pageNumber, long itemsPerPage)
         {
             CheckDisposed(true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.GetAllImageItems(out response);
+            return httpRestClient.AllImageItems(completionCallback, completionCallbackUserState, pageNumber, itemsPerPage);
         }
-        #endregion  // end GetAllImageItems (Gets all of the image items from the cloud for this syncbox)
+
+        #endregion  // end AllImageItems (Gets image items from this syncbox)
 
         #region GetAllVideoItems  (Gets all of the video items from the cloud for this syncbox)
         /// <summary>
         /// Asynchronously starts querying the server for video file items.
         /// </summary>
-        /// <param name="callback">Callback method to fire when operation completes</param>
-        /// <param name="callbackUserState">Userstate to pass when firing async callback</param>
+        /// <param name="asyncCallback">Callback method to fire when operation completes</param>
+        /// <param name="asyncCallbackUserState">Userstate to pass when firing async callback</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginGetAllVideoItems(AsyncCallback callback, object callbackUserState)
+        public IAsyncResult BeginGetAllVideoItems(AsyncCallback asyncCallback, object asyncCallbackUserState)
         {
             CheckDisposed(true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.BeginGetAllVideoItems(callback, callbackUserState);
+            return httpRestClient.BeginGetAllVideoItems(asyncCallback, asyncCallbackUserState);
         }
 
         /// <summary>
@@ -2680,16 +2690,16 @@ namespace Cloud
         /// <summary>
         /// Asynchronously starts querying the server for audio items.
         /// </summary>
-        /// <param name="callback">Callback method to fire when operation completes</param>
-        /// <param name="callbackUserState">Userstate to pass when firing async callback</param>
+        /// <param name="asyncCallback">Callback method to fire when operation completes</param>
+        /// <param name="asyncCallbackUserState">Userstate to pass when firing async callback</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginGetAllAudioItems(AsyncCallback callback, object callbackUserState)
+        public IAsyncResult BeginGetAllAudioItems(AsyncCallback asyncCallback, object asyncCallbackUserState)
         {
             CheckDisposed(true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.BeginGetAllAudioItems(callback, callbackUserState);
+            return httpRestClient.BeginGetAllAudioItems(asyncCallback, asyncCallbackUserState);
         }
 
         /// <summary>
@@ -2727,16 +2737,16 @@ namespace Cloud
         /// <summary>
         /// Asynchronously starts querying the server for document items.
         /// </summary>
-        /// <param name="callback">Callback method to fire when operation completes</param>
-        /// <param name="callbackUserState">Userstate to pass when firing async callback</param>
+        /// <param name="asyncCallback">Callback method to fire when operation completes</param>
+        /// <param name="asyncCallbackUserState">Userstate to pass when firing async callback</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginGetAllDocumentItems(AsyncCallback callback, object callbackUserState)
+        public IAsyncResult BeginGetAllDocumentItems(AsyncCallback asyncCallback, object asyncCallbackUserState)
         {
             CheckDisposed(true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.BeginGetAllDocumentItems(callback, callbackUserState);
+            return httpRestClient.BeginGetAllDocumentItems(asyncCallback, asyncCallbackUserState);
         }
 
         /// <summary>
@@ -2774,16 +2784,16 @@ namespace Cloud
         /// <summary>
         /// Asynchronously starts querying the server for presentation items.
         /// </summary>
-        /// <param name="callback">Callback method to fire when operation completes</param>
-        /// <param name="callbackUserState">Userstate to pass when firing async callback</param>
+        /// <param name="asyncCallback">Callback method to fire when operation completes</param>
+        /// <param name="asyncCallbackUserState">Userstate to pass when firing async callback</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginGetAllPresentationItems(AsyncCallback callback, object callbackUserState)
+        public IAsyncResult BeginGetAllPresentationItems(AsyncCallback asyncCallback, object asyncCallbackUserState)
         {
             CheckDisposed(true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.BeginGetAllPresentationItems(callback, callbackUserState);
+            return httpRestClient.BeginGetAllPresentationItems(asyncCallback, asyncCallbackUserState);
         }
 
         /// <summary>
@@ -2821,16 +2831,16 @@ namespace Cloud
         /// <summary>
         /// Asynchronously starts querying the server for text items.
         /// </summary>
-        /// <param name="callback">Callback method to fire when operation completes</param>
-        /// <param name="callbackUserState">Userstate to pass when firing async callback</param>
+        /// <param name="asyncCallback">Callback method to fire when operation completes</param>
+        /// <param name="asyncCallbackUserState">Userstate to pass when firing async callback</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginGetAllTextItems(AsyncCallback callback, object callbackUserState)
+        public IAsyncResult BeginGetAllTextItems(AsyncCallback asyncCallback, object asyncCallbackUserState)
         {
             CheckDisposed(true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.BeginGetAllTextItems(callback, callbackUserState);
+            return httpRestClient.BeginGetAllTextItems(asyncCallback, asyncCallbackUserState);
         }
 
         /// <summary>
@@ -2868,16 +2878,16 @@ namespace Cloud
         /// <summary>
         /// Asynchronously starts querying the server for archive items.
         /// </summary>
-        /// <param name="callback">Callback method to fire when operation completes</param>
-        /// <param name="callbackUserState">Userstate to pass when firing async callback</param>
+        /// <param name="asyncCallback">Callback method to fire when operation completes</param>
+        /// <param name="asyncCallbackUserState">Userstate to pass when firing async callback</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginGetAllArchiveItems(AsyncCallback callback, object callbackUserState)
+        public IAsyncResult BeginGetAllArchiveItems(AsyncCallback asyncCallback, object asyncCallbackUserState)
         {
             CheckDisposed(true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.BeginGetAllArchiveItems(callback, callbackUserState);
+            return httpRestClient.BeginGetAllArchiveItems(asyncCallback, asyncCallbackUserState);
         }
 
         /// <summary>
@@ -2915,14 +2925,14 @@ namespace Cloud
         /// <summary>
         /// Asynchronously starts querying the server for recents
         /// </summary>
-        /// <param name="callback">Callback method to fire when operation completes</param>
-        /// <param name="callbackUserState">Userstate to pass when firing async callback</param>
+        /// <param name="asyncCallback">Callback method to fire when operation completes</param>
+        /// <param name="asyncCallbackUserState">Userstate to pass when firing async callback</param>
         /// <param name="sinceDate">null to retrieve all of the recents, or specify a date to retrieve items since that date.</param>
         /// <param name="returnLimit">null to retrieve all of the recents, or specify a limit for the number of items to be returned.</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
         public IAsyncResult BeginGetRecentFilesSinceDateWithLimit(
-            AsyncCallback callback,
-            object callbackUserState,
+            AsyncCallback asyncCallback,
+            object asyncCallbackUserState,
             Nullable<DateTime> sinceDate,
             Nullable<int> returnLimit)
 
@@ -2931,7 +2941,7 @@ namespace Cloud
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.BeginGetRecents(callback, callbackUserState, sinceDate, returnLimit);
+            return httpRestClient.BeginGetRecents(asyncCallback, asyncCallbackUserState, sinceDate, returnLimit);
         }
 
         /// <summary>
@@ -2974,17 +2984,17 @@ namespace Cloud
         /// <summary>
         /// Asynchronously starts querying folder contents from the cloud at a particular path.
         /// </summary>
-        /// <param name="callback">Callback method to fire when operation completes</param>
-        /// <param name="callbackUserState">Userstate to pass when firing async callback</param>
+        /// <param name="asyncCallback">Callback method to fire when operation completes</param>
+        /// <param name="asyncCallbackUserState">Userstate to pass when firing async callback</param>
         /// <param name="path">Full path of the folder that would be on disk in the syncbox.</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginGetFolderContents(AsyncCallback callback, object callbackUserState, string path)
+        public IAsyncResult BeginGetFolderContents(AsyncCallback asyncCallback, object asyncCallbackUserState, string path)
         {
             CheckDisposed(true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.BeginGetFolderContentsAtPath(callback, callbackUserState, path);
+            return httpRestClient.BeginGetFolderContentsAtPath(asyncCallback, asyncCallbackUserState, path);
         }
 
         /// <summary>
@@ -3026,31 +3036,31 @@ namespace Cloud
         /// <summary>
         /// Asynchronously starts querying folder hierarchy with optional path
         /// </summary>
-        /// <param name="aCallback">Callback method to fire when operation completes</param>
-        /// <param name="aState">Userstate to pass when firing async callback</param>
+        /// <param name="asyncCallback">Callback method to fire when operation completes</param>
+        /// <param name="asyncCallbackState">Userstate to pass when firing async callback</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginGetFolderHierarchy(AsyncCallback aCallback,
-            object aState,
+        public IAsyncResult BeginGetFolderHierarchy(AsyncCallback asyncCallback,
+            object asyncCallbackState,
             int timeoutMilliseconds)
         {
             CheckDisposed(true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.BeginGetFolderHierarchy(aCallback, aState, timeoutMilliseconds);
+            return httpRestClient.BeginGetFolderHierarchy(asyncCallback, asyncCallbackState, timeoutMilliseconds);
         }
 
         /// <summary>
         /// Asynchronously starts querying folder hierarchy with optional path
         /// </summary>
-        /// <param name="aCallback">Callback method to fire when operation completes</param>
-        /// <param name="aState">Userstate to pass when firing async callback</param>
+        /// <param name="asyncCallback">Callback method to fire when operation completes</param>
+        /// <param name="asyncCallbackState">Userstate to pass when firing async callback</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <param name="hierarchyRoot">(optional) root path of hierarchy query</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginGetFolderHierarchy(AsyncCallback aCallback,
-            object aState,
+        public IAsyncResult BeginGetFolderHierarchy(AsyncCallback asyncCallback,
+            object asyncCallbackState,
             int timeoutMilliseconds,
             FilePath hierarchyRoot)
         {
@@ -3058,7 +3068,7 @@ namespace Cloud
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.BeginGetFolderHierarchy(aCallback, aState, timeoutMilliseconds, hierarchyRoot);
+            return httpRestClient.BeginGetFolderHierarchy(asyncCallback, asyncCallbackState, timeoutMilliseconds, hierarchyRoot);
         }
         
         /// <summary>
@@ -3113,16 +3123,16 @@ namespace Cloud
         /// <summary>
         /// Asynchronously starts getting the usage information for this syncbox from the cloud.
         /// </summary>
-        /// <param name="callback">Callback method to fire when operation completes</param>
-        /// <param name="callbackUserState">Userstate to pass as a parameter when firing async callback</param>
+        /// <param name="asyncCallback">Callback method to fire when operation completes</param>
+        /// <param name="asyncCallbackUserState">Userstate to pass as a parameter when firing async callback</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginGetDataUsage(AsyncCallback callback, object callbackUserState)
+        public IAsyncResult BeginGetDataUsage(AsyncCallback asyncCallback, object asyncCallbackUserState)
         {
             CheckDisposed(true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.BeginGetSyncboxUsage(callback, callbackUserState, _copiedSettings.HttpTimeoutMilliseconds);
+            return httpRestClient.BeginGetSyncboxUsage(asyncCallback, asyncCallbackUserState, _copiedSettings.HttpTimeoutMilliseconds);
         }
 
         /// <summary>
@@ -3160,13 +3170,13 @@ namespace Cloud
         /// <summary>
         /// Asynchronously updates the extended metadata on a sync box
         /// </summary>
-        /// <param name="aCallback">Callback method to fire when operation completes</param>
-        /// <param name="aState">Userstate to pass when firing async callback</param>
+        /// <param name="asyncCallback">Callback method to fire when operation completes</param>
+        /// <param name="asyncCallbackState">Userstate to pass when firing async callback</param>
         /// <param name="metadata">string keys to serializable object values to store as extra metadata to the sync box</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginUpdateSyncboxExtendedMetadata<T>(AsyncCallback aCallback,
-            object aState,
+        public IAsyncResult BeginUpdateSyncboxExtendedMetadata<T>(AsyncCallback asyncCallback,
+            object asyncCallbackState,
             IDictionary<string, T> metadata,
             int timeoutMilliseconds)
         {
@@ -3174,19 +3184,19 @@ namespace Cloud
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.BeginUpdateSyncboxExtendedMetadata(aCallback, aState, metadata, timeoutMilliseconds);
+            return httpRestClient.BeginUpdateSyncboxExtendedMetadata(asyncCallback, asyncCallbackState, metadata, timeoutMilliseconds);
         }
 
         /// <summary>
         /// Asynchronously updates the extended metadata on a sync box
         /// </summary>
-        /// <param name="aCallback">Callback method to fire when operation completes</param>
-        /// <param name="aState">Userstate to pass when firing async callback</param>
+        /// <param name="asyncCallback">Callback method to fire when operation completes</param>
+        /// <param name="asyncCallbackState">Userstate to pass when firing async callback</param>
         /// <param name="metadata">string keys to serializable object values to store as extra metadata to the sync box</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginUpdateSyncboxExtendedMetadata(AsyncCallback aCallback,
-            object aState,
+        public IAsyncResult BeginUpdateSyncboxExtendedMetadata(AsyncCallback asyncCallback,
+            object asyncCallbackState,
             JsonContracts.MetadataDictionary metadata,
             int timeoutMilliseconds)
         {
@@ -3194,7 +3204,7 @@ namespace Cloud
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.BeginUpdateSyncboxExtendedMetadata(aCallback, aState, metadata, timeoutMilliseconds);
+            return httpRestClient.BeginUpdateSyncboxExtendedMetadata(asyncCallback, asyncCallbackState, metadata, timeoutMilliseconds);
         }
 
         /// <summary>
@@ -3252,18 +3262,18 @@ namespace Cloud
         /// Updates this object's StoragePlanId property.
         /// </summary>
         /// <param name="callback">Callback method to fire when operation completes</param>
-        /// <param name="callbackUserState">Userstate to pass as a parameter when firing async callback</param>
+        /// <param name="asyncCallbackUserState">Userstate to pass as a parameter when firing async callback</param>
         /// <param name="storagePlan">The new storage plan to use for this syncbox)</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginUpdateStoragePlan(AsyncCallback callback, object callbackUserState, CLStoragePlan storagePlan)
+        public IAsyncResult BeginUpdateStoragePlan(AsyncCallback asyncCallback, object asyncCallbackUserState, CLStoragePlan storagePlan)
         {
             CheckDisposed(true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
             return httpRestClient.BeginSyncboxUpdateStoragePlan(
-                callback, 
-                callbackUserState, 
+                asyncCallback, 
+                asyncCallbackUserState, 
                 storagePlan.Id, 
                 _copiedSettings.HttpTimeoutMilliseconds, 
                 ReservedForActiveSync,
@@ -3346,16 +3356,16 @@ namespace Cloud
         /// <summary>
         /// Asynchronously gets the status of this Syncbox.
         /// </summary>
-        /// <param name="callback">Callback method to fire when operation completes</param>
+        /// <param name="asyncCallback">Callback method to fire when operation completes</param>
         /// <param name="callbackUserState">Userstate to pass when firing async callback</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginGetCurrentSyncboxStatus(AsyncCallback callback, object callbackUserState)
+        public IAsyncResult BeginGetCurrentSyncboxStatus(AsyncCallback asyncCallback, object asyncCallbackUserState)
         {
             CheckDisposed(true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.BeginGetSyncboxStatus(callback, callbackUserState, _copiedSettings.HttpTimeoutMilliseconds, new Action<JsonContracts.SyncboxStatusResponse, object>(OnStatusCompletion), null);
+            return httpRestClient.BeginGetSyncboxStatus(asyncCallback, asyncCallbackUserState, _copiedSettings.HttpTimeoutMilliseconds, new Action<JsonContracts.SyncboxStatusResponse, object>(OnStatusCompletion), null);
         }
         
         /// <summary>
