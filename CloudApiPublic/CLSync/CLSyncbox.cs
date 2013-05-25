@@ -2590,7 +2590,7 @@ namespace Cloud
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
         /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
-        /// <param name="completionCallback">Callback method to fire when a page of items is complete.</param>
+        /// <param name="completionCallback">Callback method to fire when a page of items is complete.  Returns the result.</param>
         /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion callback above is fired.</param>
         /// <param name="pageNumber">Beginning page number.  The first page is page 1.</param>
         /// <param name="itemsPerPage">Items per page.</param>
@@ -2623,7 +2623,7 @@ namespace Cloud
         /// <summary>
         /// Query image items from the syncbox.
         /// </summary>
-        /// <param name="completionCallback">Callback method to fire when a page of items is complete.</param>
+        /// <param name="completionCallback">Callback method to fire when a page of items is complete.  Returns the result.</param>
         /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion callback above is fired.</param>
         /// <param name="pageNumber">Beginning page number.  The first page is page 1.</param>
         /// <param name="itemsPerPage">Items per page.</param>
@@ -2639,52 +2639,62 @@ namespace Cloud
 
         #endregion  // end AllImageItems (Gets image items from this syncbox)
 
-        #region GetAllVideoItems  (Gets all of the video items from the cloud for this syncbox)
+        #region AllVideoItems (Gets video items from this syncbox)
+
         /// <summary>
-        /// Asynchronously starts querying the server for video file items.
+        /// Asynchronously starts querying video items from the syncbox.  The resulting set of items is returned
+        /// via the completion callback.
         /// </summary>
-        /// <param name="asyncCallback">Callback method to fire when operation completes</param>
-        /// <param name="asyncCallbackUserState">Userstate to pass when firing async callback</param>
+        /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
+        /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
+        /// <param name="completionCallback">Callback method to fire when a page of items is complete.  Returns the result.</param>
+        /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion callback above is fired.</param>
+        /// <param name="pageNumber">Beginning page number.  The first page is page 1.</param>
+        /// <param name="itemsPerPage">Items per page.</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginGetAllVideoItems(AsyncCallback asyncCallback, object asyncCallbackUserState)
+        public IAsyncResult BeginAllVideoItems(AsyncCallback asyncCallback, object asyncCallbackUserState, CLAllItemsCompletion completionCallback, object completionCallbackUserState, long pageNumber, long itemsPerPage)
         {
             CheckDisposed(true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.BeginGetAllVideoItems(asyncCallback, asyncCallbackUserState);
+            return httpRestClient.BeginAllVideoItems(asyncCallback, asyncCallbackUserState, completionCallback, completionCallbackUserState, pageNumber, itemsPerPage);
         }
 
         /// <summary>
-        /// Finishes querying the server for video file items, if it has not already finished via its asynchronous result, and outputs the result,
+        /// Finishes getting video items from the syncbox, if it has not already finished via its asynchronous result, and outputs the result,
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
         /// </summary>
-        /// <param name="aResult">The asynchronous result provided upon starting the videos query</param>
-        /// <param name="result">(output) The result from the videos query</param>
+        /// <param name="asyncResult">The asynchronous result provided upon starting the request</param>
+        /// <param name="result">(output) An overall error which occurred during processing, if any</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndGetAllVideoItems(IAsyncResult aResult, out SyncboxGetAllVideoItemsResult result)
+        public CLError EndAllVideoItems(IAsyncResult asyncResult, out SyncboxGetAllVideoItemsResult result)
         {
             CheckDisposed(true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.EndGetAllVideoItems(aResult, out result);
+            return httpRestClient.EndAllVideoItems(asyncResult, out result);
         }
 
         /// <summary>
-        /// Queries the server for videos
+        /// Query video items from the syncbox.
         /// </summary>
-        /// <param name="response">(output) response object from communication</param>
+        /// <param name="completionCallback">Callback method to fire when a page of items is complete.  Returns the result.</param>
+        /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion callback above is fired.</param>
+        /// <param name="pageNumber">Beginning page number.  The first page is page 1.</param>
+        /// <param name="itemsPerPage">Items per page.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError GetGetAllVideoItems(out CLFileItem[] response)
+        public CLError AllVideoItems(CLAllItemsCompletion completionCallback, object completionCallbackUserState, long pageNumber, long itemsPerPage)
         {
             CheckDisposed(true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.GetAllVideoItems(out response);
+            return httpRestClient.AllVideoItems(completionCallback, completionCallbackUserState, pageNumber, itemsPerPage);
         }
-        #endregion  // end GetAllVideoItems  (Gets all of the video items from the cloud for this syncbox)
+
+        #endregion  // end AllVideoItems (Gets video items from this syncbox)
 
         #region GetAllAudioItems (Gets all of the audio items from the cloud for this syncbox)
         /// <summary>
