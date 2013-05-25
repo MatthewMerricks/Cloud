@@ -2867,52 +2867,62 @@ namespace Cloud
 
         #endregion  // end AllPresentationItems (Gets presentation items from this syncbox)
 
-        #region GetAllTextItems  (Gets all of the text items from the cloud for this syncbox)
+        #region AllTextItems (Gets text items from this syncbox)
+
         /// <summary>
-        /// Asynchronously starts querying the server for text items.
+        /// Asynchronously starts querying text items from the syncbox.  The resulting set of items is returned
+        /// via the completion callback.
         /// </summary>
-        /// <param name="asyncCallback">Callback method to fire when operation completes</param>
-        /// <param name="asyncCallbackUserState">Userstate to pass when firing async callback</param>
+        /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
+        /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
+        /// <param name="completionCallback">Callback method to fire when a page of items is complete.  Returns the result.</param>
+        /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion callback above is fired.</param>
+        /// <param name="pageNumber">Beginning page number.  The first page is page 1.</param>
+        /// <param name="itemsPerPage">Items per page.</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginGetAllTextItems(AsyncCallback asyncCallback, object asyncCallbackUserState)
+        public IAsyncResult BeginAllTextItems(AsyncCallback asyncCallback, object asyncCallbackUserState, CLAllItemsCompletion completionCallback, object completionCallbackUserState, long pageNumber, long itemsPerPage)
         {
             CheckDisposed(true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.BeginGetAllTextItems(asyncCallback, asyncCallbackUserState);
+            return httpRestClient.BeginAllTextItems(asyncCallback, asyncCallbackUserState, completionCallback, completionCallbackUserState, pageNumber, itemsPerPage);
         }
 
         /// <summary>
-        /// Finishes querying for text items, if it has not already finished via its asynchronous result, and outputs the result,
+        /// Finishes getting text items from the syncbox, if it has not already finished via its asynchronous result, and outputs the result,
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
         /// </summary>
-        /// <param name="aResult">The asynchronous result provided upon starting the audios query</param>
-        /// <param name="result">(output) The result from the audios query</param>
+        /// <param name="asyncResult">The asynchronous result provided upon starting the request</param>
+        /// <param name="result">(output) An overall error which occurred during processing, if any</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndGetAllTextItems(IAsyncResult aResult, out SyncboxGetAllTextItemsResult result)
+        public CLError EndAllPresentationItems(IAsyncResult asyncResult, out SyncboxGetAllTextItemsResult result)
         {
             CheckDisposed(true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.EndGetAllTextItems(aResult, out result);
+            return httpRestClient.EndAllTextItems(asyncResult, out result);
         }
 
         /// <summary>
-        /// Queries the server for text items.
+        /// Query text items from the syncbox.
         /// </summary>
-        /// <param name="response">(output) response object from communication</param>
+        /// <param name="completionCallback">Callback method to fire when a page of items is complete.  Returns the result.</param>
+        /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion callback above is fired.</param>
+        /// <param name="pageNumber">Beginning page number.  The first page is page 1.</param>
+        /// <param name="itemsPerPage">Items per page.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError GetAllTextItems(out CLFileItem[] response)
+        public CLError AllTextItems(CLAllItemsCompletion completionCallback, object completionCallbackUserState, long pageNumber, long itemsPerPage)
         {
             CheckDisposed(true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.GetAllTextItems(out response);
+            return httpRestClient.AllTextItems(completionCallback, completionCallbackUserState, pageNumber, itemsPerPage);
         }
-        #endregion  // end GetAllTextItems  (Gets all of the text items from the cloud for this syncbox)
+
+        #endregion  // end AllTextItems (Gets text items from this syncbox)
 
         #region GetAllArchiveItems  (Gets all of the archive items from the cloud for this syncbox)
         /// <summary>
