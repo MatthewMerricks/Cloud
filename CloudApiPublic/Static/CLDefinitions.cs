@@ -155,6 +155,7 @@ namespace Cloud.Static
         public const string MethodPathGetPresentations = VersionPrefix + "/sync/file/presentations";                    // GET
         public const string MethodPathGetTexts = VersionPrefix + "/sync/file/texts";                                    // GET
         public const string MethodPathGetArchives = VersionPrefix + "/sync/file/archives";                              // GET
+        public const string MethodPathGetExtensions = VersionPrefix + "/sync/file/extensions";                          // GET
         public const string MethodPathGetRecents = VersionPrefix + "/sync/file/recents";                                // GET
         #endregion
 
@@ -350,6 +351,7 @@ namespace Cloud.Static
         public const string QueryStringSender = "sender";
         public const string QueryStringPageNumber = "page";
         public const string QueryStringPerPage = "per_page";
+        public const string QueryStringExtensions = "extensions";
 
         // HttpWebRequest Header Key
         public const string HeaderKeyAuthorization = "Authorization";

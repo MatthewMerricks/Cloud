@@ -2611,7 +2611,7 @@ namespace Cloud
         /// <param name="asyncResult">The asynchronous result provided upon starting the request</param>
         /// <param name="result">(output) An overall error which occurred during processing, if any</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndAllImageItems(IAsyncResult asyncResult, out SyncboxGetAllImageItemsResult result)
+        public CLError EndAllImageItems(IAsyncResult asyncResult, out SyncboxAllImageItemsResult result)
         {
             CheckDisposed(true);
 
@@ -2668,7 +2668,7 @@ namespace Cloud
         /// <param name="asyncResult">The asynchronous result provided upon starting the request</param>
         /// <param name="result">(output) An overall error which occurred during processing, if any</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndAllVideoItems(IAsyncResult asyncResult, out SyncboxGetAllVideoItemsResult result)
+        public CLError EndAllVideoItems(IAsyncResult asyncResult, out SyncboxAllVideoItemsResult result)
         {
             CheckDisposed(true);
 
@@ -2725,7 +2725,7 @@ namespace Cloud
         /// <param name="asyncResult">The asynchronous result provided upon starting the request</param>
         /// <param name="result">(output) An overall error which occurred during processing, if any</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndAllAudioItems(IAsyncResult asyncResult, out SyncboxGetAllAudioItemsResult result)
+        public CLError EndAllAudioItems(IAsyncResult asyncResult, out SyncboxAllAudioItemsResult result)
         {
             CheckDisposed(true);
 
@@ -2782,7 +2782,7 @@ namespace Cloud
         /// <param name="asyncResult">The asynchronous result provided upon starting the request</param>
         /// <param name="result">(output) An overall error which occurred during processing, if any</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndAllDocumentItems(IAsyncResult asyncResult, out SyncboxGetAllDocumentItemsResult result)
+        public CLError EndAllDocumentItems(IAsyncResult asyncResult, out SyncboxAllDocumentItemsResult result)
         {
             CheckDisposed(true);
 
@@ -2839,7 +2839,7 @@ namespace Cloud
         /// <param name="asyncResult">The asynchronous result provided upon starting the request</param>
         /// <param name="result">(output) An overall error which occurred during processing, if any</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndAllPresentationItems(IAsyncResult asyncResult, out SyncboxGetAllPresentationItemsResult result)
+        public CLError EndAllPresentationItems(IAsyncResult asyncResult, out SyncboxAllPresentationItemsResult result)
         {
             CheckDisposed(true);
 
@@ -2896,7 +2896,7 @@ namespace Cloud
         /// <param name="asyncResult">The asynchronous result provided upon starting the request</param>
         /// <param name="result">(output) An overall error which occurred during processing, if any</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndAllPlainTextItems(IAsyncResult asyncResult, out SyncboxGetAllTextItemsResult result)
+        public CLError EndAllPlainTextItems(IAsyncResult asyncResult, out SyncboxAllTextItemsResult result)
         {
             CheckDisposed(true);
 
@@ -2953,7 +2953,7 @@ namespace Cloud
         /// <param name="asyncResult">The asynchronous result provided upon starting the request</param>
         /// <param name="result">(output) An overall error which occurred during processing, if any</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndAllArchiveItems(IAsyncResult asyncResult, out SyncboxGetAllArchiveItemsResult result)
+        public CLError EndAllArchiveItems(IAsyncResult asyncResult, out SyncboxAllArchiveItemsResult result)
         {
             CheckDisposed(true);
 
@@ -2980,6 +2980,72 @@ namespace Cloud
         }
 
         #endregion  // end AllArchiveItems (Gets archive items from this syncbox)
+
+        #region AllItemsOfTypes (Get file items with various extensions from this syncbox)
+
+        /// <summary>
+        /// Asynchronously starts retrieving the <CLFileItems>s of all of the file items contained in the syncbox that have the specified file extensions.
+        /// </summary>
+        /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
+        /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
+        /// <param name="completionCallback">Callback method to fire when a page of items is complete.  Return the result.</param>
+        /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion callback above is fired.</param>
+        /// <param name="pageNumber">Beginning page number.  The first page is page 1.</param>
+        /// <param name="itemsPerPage">Items per page.</param>
+        /// <param name="extensions">The array of file extensions the item type should belong to. I.E txt, jpg, pdf, etc.</param>
+        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        public IAsyncResult BeginAllItemsOfTypes(
+            AsyncCallback asyncCallback,
+            object asyncCallbackUserState,
+            CLAllItemsCompletion completionCallback,
+            object completionCallbackUserState,
+            long pageNumber,
+            long itemsPerPage,
+            params string[] extensions)
+        {
+            CheckDisposed(true);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.BeginAllItemsOfTypes(asyncCallback, asyncCallbackUserState, completionCallback, completionCallbackUserState, pageNumber, itemsPerPage, extensions);
+        }
+
+        /// <summary>
+        /// Finishes retrieving the <CLFileItems>s of all of the file items contained in the syncbox that have the specified file extensions, 
+        /// if it has not already finished via its asynchronous result, and outputs the result,
+        /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
+        /// </summary>
+        /// <param name="asyncResult">The asynchronous result provided upon starting the request</param>
+        /// <param name="result">(output) An overall error which occurred during processing, if any</param>
+        /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
+        public CLError EndAllItemsOfTypes(IAsyncResult asyncResult, out SyncboxAllItemsOfTypesResult result)
+        {
+            CheckDisposed(true);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.EndAllItemsOfTypes(asyncResult, out result);
+        }
+
+        /// <summary>
+        /// Retrieves the <CLFileItems>s of all of the file items contained in the syncbox that have the specified file extensions.
+        /// </summary>
+        /// <param name="completionCallback">Callback method to fire when a page of items is complete.</param>
+        /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion callback above is fired.  Returns the result.</param>
+        /// <param name="pageNumber">Beginning page number.  The first page is page 1.</param>
+        /// <param name="itemsPerPage">Items per page.</param>
+        /// <param name="extensions">The array of file extensions the item type should belong to. I.E txt, jpg, pdf, etc.</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        public CLError AllItemsOfTypes(CLAllItemsCompletion completionCallback, object completionCallbackUserState, long pageNumber, long itemsPerPage, params string[] extensions)
+        {
+            CheckDisposed(true);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.AllItemsOfTypes(completionCallback, completionCallbackUserState, pageNumber, itemsPerPage, extensions);
+        }
+
+        #endregion  // end AllItemsOfTypes (Get file items with various extensions from this syncbox)
 
         #region GetRecentFilesSinceDateWithLimit (get a list of the recent files starting at a particular time)
         /// <summary>

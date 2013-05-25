@@ -2727,6 +2727,24 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to extensions must not be null.
+        /// </summary>
+        internal static string ExceptionOnDemandInvalidExtension {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandInvalidExtension", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to extensions must specify at least one file extension to search for.  e.g., &quot;pdf&quot;..
+        /// </summary>
+        internal static string ExceptionOnDemandInvalidExtensions {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandInvalidExtensions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to itemsPerPage must be greater than zero..
         /// </summary>
         internal static string ExceptionOnDemandInvalidItemsPerPage {

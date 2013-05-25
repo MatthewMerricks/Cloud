@@ -2650,19 +2650,17 @@ namespace Cloud.Static
             { typeof(JsonContracts.FileChangeResponse), JsonContractHelpers.EventSerializer },
             { typeof(JsonContracts.FileVersions), JsonContractHelpers.FileVersionsSerializer },
             //{ typeof(JsonContracts.UsedBytes), JsonContractHelpers.UsedBytesSerializer }, // deprecated
-            { typeof(JsonContracts.SyncboxGetAllImageItemsResponse), JsonContractHelpers.PicturesSerializer },
-            { typeof(JsonContracts.SyncboxGetAllVideoItemsResponse), JsonContractHelpers.VideosSerializer },
-            { typeof(JsonContracts.SyncboxGetAllAudioItemsResponse), JsonContractHelpers.AudiosSerializer },
-            { typeof(JsonContracts.Archives), JsonContractHelpers.ArchivesSerializer },
-            { typeof(JsonContracts.SyncboxGetRecentsResponse), JsonContractHelpers.RecentsSerializer },
+            { typeof(JsonContracts.SyncboxGetAllImageItemsResponse), JsonContractHelpers.SyncboxGetAllImageItemsResponseSerializer },
+            { typeof(JsonContracts.SyncboxGetAllVideoItemsResponse), JsonContractHelpers.SyncboxGetAllVideoItemsResponseSerializer },
+            { typeof(JsonContracts.SyncboxGetAllAudioItemsResponse), JsonContractHelpers.SyncboxGetAllAudioItemsResponseSerializer },
+            { typeof(JsonContracts.SyncboxGetAllArchiveItemsResponse), JsonContractHelpers.SyncboxGetAllArchiveItemsResponseSerializer },
+            { typeof(JsonContracts.SyncboxGetRecentsResponse), JsonContractHelpers.SynboxGetRecentItemsResponseSerializer },
             { typeof(JsonContracts.SyncboxUsageResponse), JsonContractHelpers.SyncboxUsageSerializer },
             { typeof(JsonContracts.SyncboxAddFoldersResponse), JsonContractHelpers.SyncboxAddFoldersResponseSerializer},
             { typeof(JsonContracts.FoldersResponse), JsonContractHelpers.FoldersSerializer },
             { typeof(JsonContracts.SyncboxFolderContentsResponse), JsonContractHelpers.FolderContentsSerializer },
             { typeof(JsonContracts.AuthenticationErrorResponse), JsonContractHelpers.AuthenticationErrorResponseSerializer },
             //{ typeof(JsonContracts.AuthenticationErrorMessage), JsonContractHelpers.AuthenticationErrorMessageSerializer }, // deprecated
-
-            #region platform management
             { typeof(JsonContracts.SyncboxResponse), JsonContractHelpers.CreateSyncboxSerializer },
             { typeof(JsonContracts.SyncboxMoveFilesOrFoldersResponse), JsonContractHelpers.SyncboxMoveFilesOrFoldersResponseSerializer },
             { typeof(JsonContracts.SyncboxDeleteFilesResponse), JsonContractHelpers.SyncboxDeleteFilesResponseSerializer },
@@ -2681,7 +2679,10 @@ namespace Cloud.Static
             { typeof(JsonContracts.LinkDeviceResponse), JsonContractHelpers.LinkDeviceResponseSerializer},
             { typeof(JsonContracts.UnlinkDeviceResponse), JsonContractHelpers.UnlinkDeviceResponseSerializer},
             { typeof(JsonContracts.SyncboxDeleteFoldersResponse), JsonContractHelpers.SyncboxDeleteFoldersResponseSerializer},
-            #endregion
+            { typeof(JsonContracts.SyncboxGetAllItemsForTypesResponse), JsonContractHelpers.SyncboxGetAllItemsForTypesResponseSerializer},
+            { typeof(JsonContracts.SyncboxGetAllDocumentItemsResponse), JsonContractHelpers.SyncboxGetAllDocumentItemsResponseSerializer},
+            { typeof(JsonContracts.SyncboxGetAllPresentationItemsResponse), JsonContractHelpers.SyncboxGetAllPresentationItemsResponseSerializer},
+            { typeof(JsonContracts.SyncboxGetAllTextItemsResponse), JsonContractHelpers.SyncboxGetAllTextItemsResponseSerializer},
         };
         #endregion
 
