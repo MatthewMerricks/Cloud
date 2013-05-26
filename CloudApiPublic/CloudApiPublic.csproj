@@ -134,6 +134,7 @@
     <Compile Include="CLSync\CLSyncboxCallbacks\CLFileItemCompletionCallback.cs" />
     <Compile Include="CLSync\CLSyncbox.cs" />
     <Compile Include="CLSync\CLSyncboxCallbacks\CLCreateSyncboxCompletionCallback.cs" />
+    <Compile Include="CLSync\CLSyncboxCallbacks\CLListSyncboxesCompletionCallback.cs" />
     <Compile Include="CLSync\CLSyncboxParameters\AddItemParams.cs" />
     <Compile Include="CLSync\CLSyncboxParameters\RenameItemParams.cs" />
     <Compile Include="CLSync\CLSyncboxParameters\MoveItemParams.cs" />
