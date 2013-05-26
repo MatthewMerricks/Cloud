@@ -475,6 +475,50 @@ namespace Cloud.JsonContracts
         private static DataContractJsonSerializer _audiosSerializer = null;
         private static readonly object AudiosSerializerLocker = new object();
 
+        public static DataContractJsonSerializer PlainTextsSerializer
+        {
+            get
+            {
+                lock (PlainTextsSerializerLocker)
+                {
+                    return _plainTextsSerializer
+                        ?? (_plainTextsSerializer = new DataContractJsonSerializer(typeof(JsonContracts.SyncboxGetAllTextItemsResponse)));
+                }
+            }
+        }
+        private static DataContractJsonSerializer _plainTextsSerializer = null;
+        private static readonly object PlainTextsSerializerLocker = new object();
+
+        public static DataContractJsonSerializer DocumentsSerializer
+        {
+            get
+            {
+                lock (DocumentsSerializerLocker)
+                {
+                    return _documentsSerializer
+                        ?? (_documentsSerializer = new DataContractJsonSerializer(typeof(JsonContracts.SyncboxGetAllDocumentItemsResponse)));
+                }
+            }
+        }
+        private static DataContractJsonSerializer _documentsSerializer = null;
+        private static readonly object DocumentsSerializerLocker = new object();
+
+        public static DataContractJsonSerializer PresentationsSerializer
+        {
+            get
+            {
+                lock (PresentationsSerializerLocker)
+                {
+                    return _presentationsSerializer
+                        ?? (_presentationsSerializer = new DataContractJsonSerializer(typeof(JsonContracts.SyncboxGetAllPresentationItemsResponse)));
+                }
+            }
+        }
+        private static DataContractJsonSerializer _presentationsSerializer = null;
+        private static readonly object PresentationsSerializerLocker = new object();
+
+
+
         public static DataContractJsonSerializer ArchivesSerializer
         {
             get
@@ -482,7 +526,7 @@ namespace Cloud.JsonContracts
                 lock (ArchivesSerializerLocker)
                 {
                     return _archivesSerializer
-                        ?? (_archivesSerializer = new DataContractJsonSerializer(typeof(JsonContracts.Archives)));
+                        ?? (_archivesSerializer = new DataContractJsonSerializer(typeof(JsonContracts.SyncboxGetAllArchiveItemsResponse)));
                 }
             }
         }

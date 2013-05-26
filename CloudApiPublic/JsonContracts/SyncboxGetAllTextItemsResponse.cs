@@ -16,7 +16,7 @@ using System.Text;
 namespace Cloud.JsonContracts
 {
     /// <summary>
-    /// Result from <see cref="Cloud.CLSyncbox.GetAllAudioItems"/>
+    /// Result from <see cref="Cloud.CLSyncbox.GetAllTextItems"/>
     /// </summary>
     [DataContract]
     public sealed class SyncboxGetAllTextItemsResponse
