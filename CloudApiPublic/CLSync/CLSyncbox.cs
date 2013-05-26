@@ -3047,63 +3047,118 @@ namespace Cloud
 
         #endregion  // end AllItemsOfTypes (Get file items with various extensions from this syncbox)
 
-        #region GetRecentFilesSinceDateWithLimit (get a list of the recent files starting at a particular time)
+        #region RecentFiles (Retrieves the specified number of recently modified <CLFileItems>s.)
         /// <summary>
-        /// Asynchronously starts querying the server for recents
+        /// Asynchronously starts retrieving the specified number of recently modified files (<CLFileItems>s).
         /// </summary>
-        /// <param name="asyncCallback">Callback method to fire when operation completes</param>
-        /// <param name="asyncCallbackUserState">Userstate to pass when firing async callback</param>
-        /// <param name="sinceDate">null to retrieve all of the recents, or specify a date to retrieve items since that date.</param>
-        /// <param name="returnLimit">null to retrieve all of the recents, or specify a limit for the number of items to be returned.</param>
+        /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
+        /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
+        /// <param name="completionCallback">Callback method to fire when a page of items is complete.  Return the result.</param>
+        /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion callback above is fired.</param>
+        /// <param name="pageNumber">Beginning page number.  The first page is page 1.</param>
+        /// <param name="itemsPerPage">Items per page.</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginGetRecentFilesSinceDateWithLimit(
-            AsyncCallback asyncCallback,
-            object asyncCallbackUserState,
-            Nullable<DateTime> sinceDate,
-            Nullable<int> returnLimit)
-
+        public IAsyncResult BeginRecentFiles(AsyncCallback asyncCallback, object asyncCallbackUserState, CLAllItemsCompletion completionCallback, object completionCallbackUserState, long pageNumber, long itemsPerPage)
         {
             CheckDisposed(true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.BeginGetRecents(asyncCallback, asyncCallbackUserState, sinceDate, returnLimit);
+            return httpRestClient.BeginRecentFiles(asyncCallback, asyncCallbackUserState, completionCallback, completionCallbackUserState, pageNumber, itemsPerPage);
         }
 
         /// <summary>
-        /// Finishes querying for recents if it has not already finished via its asynchronous result and outputs the result,
+        /// Finishes retrieving recent file items from the syncbox, if it has not already finished via its asynchronous result, and outputs the result,
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
         /// </summary>
-        /// <param name="aResult">The asynchronous result provided upon starting the recents query</param>
-        /// <param name="result">(output) The result from the recents query</param>
+        /// <param name="asyncResult">The asynchronous result provided upon starting the request</param>
+        /// <param name="result">(output) An overall error which occurred during processing, if any</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndGetRecentFilesSinceDateWithLimit(IAsyncResult aResult, out SyncboxGetRecentsResult result)
+        public CLError EndRecentFiles(IAsyncResult asyncResult, out SyncboxRecentFilesResult result)
         {
             CheckDisposed(true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.EndGetRecents(aResult, out result);
+            return httpRestClient.EndRecentFiles(asyncResult, out result);
         }
 
         /// <summary>
-        /// Queries the server for recents
+        /// Retrieve the specified number of recently modified files (<CLFileItems>s).
         /// </summary>
-        /// <param name="sinceDate">null to retrieve all of the recents, or specify a date to retrieve items since that date.</param>
-        /// <param name="returnLimit">null to retrieve all of the recents, or specify a limit for the number of items to be returned.</param>
-        /// <param name="response">(output) response object from communication</param>
+        /// <param name="completionCallback">Callback method to fire when a page of items is complete.</param>
+        /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion callback above is fired.  Returns the result.</param>
+        /// <param name="pageNumber">Beginning page number.  The first page is page 1.</param>
+        /// <param name="itemsPerPage">Items per page.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError GetRecentFilesSinceDateWithLimit(
-            Nullable<DateTime> sinceDate,
-            Nullable<int> returnLimit,
-            out CLFileItem[] response)
+        public CLError RecentFiles(CLAllItemsCompletion completionCallback, object completionCallbackUserState, long pageNumber, long itemsPerPage)
         {
             CheckDisposed(true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.GetRecents(sinceDate, returnLimit, out response);
+            return httpRestClient.RecentFiles(completionCallback, completionCallbackUserState, pageNumber, itemsPerPage);
         }
+
+        #endregion  // end RecentFiles (Retrieves the specified number of recently modified <CLFileItems>s.)
+
+        #region GetRecentFilesSinceDateWithLimit (get a list of the recent files starting at a particular time)
+        ///// <summary>
+        ///// Asynchronously starts querying the server for recents
+        ///// </summary>
+        ///// <param name="asyncCallback">Callback method to fire when operation completes</param>
+        ///// <param name="asyncCallbackUserState">Userstate to pass when firing async callback</param>
+        ///// <param name="sinceDate">null to retrieve all of the recents, or specify a date to retrieve items since that date.</param>
+        ///// <param name="returnLimit">null to retrieve all of the recents, or specify a limit for the number of items to be returned.</param>
+        ///// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        //public IAsyncResult BeginGetRecentFilesSinceDateWithLimit(
+        //    AsyncCallback asyncCallback,
+        //    object asyncCallbackUserState,
+        //    Nullable<DateTime> sinceDate,
+        //    Nullable<int> returnLimit)
+
+        //{
+        //    CheckDisposed(true);
+
+        //    CLHttpRest httpRestClient;
+        //    GetInstanceRestClient(out httpRestClient);
+        //    return httpRestClient.BeginGetRecents(asyncCallback, asyncCallbackUserState, sinceDate, returnLimit);
+        //}
+
+        ///// <summary>
+        ///// Finishes querying for recents if it has not already finished via its asynchronous result and outputs the result,
+        ///// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
+        ///// </summary>
+        ///// <param name="aResult">The asynchronous result provided upon starting the recents query</param>
+        ///// <param name="result">(output) The result from the recents query</param>
+        ///// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
+        //public CLError EndGetRecentFilesSinceDateWithLimit(IAsyncResult aResult, out SyncboxGetRecentsResult result)
+        //{
+        //    CheckDisposed(true);
+
+        //    CLHttpRest httpRestClient;
+        //    GetInstanceRestClient(out httpRestClient);
+        //    return httpRestClient.EndGetRecents(aResult, out result);
+        //}
+
+        ///// <summary>
+        ///// Queries the server for recents
+        ///// </summary>
+        ///// <param name="sinceDate">null to retrieve all of the recents, or specify a date to retrieve items since that date.</param>
+        ///// <param name="returnLimit">null to retrieve all of the recents, or specify a limit for the number of items to be returned.</param>
+        ///// <param name="response">(output) response object from communication</param>
+        ///// <returns>Returns any error that occurred during communication, if any</returns>
+        //public CLError GetRecentFilesSinceDateWithLimit(
+        //    Nullable<DateTime> sinceDate,
+        //    Nullable<int> returnLimit,
+        //    out CLFileItem[] response)
+        //{
+        //    CheckDisposed(true);
+
+        //    CLHttpRest httpRestClient;
+        //    GetInstanceRestClient(out httpRestClient);
+        //    return httpRestClient.GetRecents(sinceDate, returnLimit, out response);
+        //}
         #endregion  // end GetRecentFilesSinceDateWithLimit (get a list of the recent files starting at a particular time)
 
         #region GetFolderContentsAtPath (Query the cloud for the contents of a syncbox folder at a path)

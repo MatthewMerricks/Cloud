@@ -467,43 +467,6 @@ namespace Cloud.REST
     /// <summary>
     /// Holds result properties
     /// </summary>
-    public sealed class SyncboxGetRecentsResult
-    {
-        /// <summary>
-        /// The result returned from the server
-        /// </summary>
-        public CLFileItem[] FileItems
-        {
-            get
-            {
-                return _fileItems;
-            }
-        }
-        private readonly CLFileItem[] _fileItems;
-
-        /// <summary>
-        /// Any error which may have occurred during communication
-        /// </summary>
-        public CLError Error
-        {
-            get
-            {
-                return _error;
-            }
-        }
-        private readonly CLError _error;
-
-        // construct with all readonly properties
-        internal SyncboxGetRecentsResult(CLError error, CLFileItem[] fileItems)
-        {
-            this._error = error;
-            this._fileItems = fileItems;
-        }
-    }
-
-    /// <summary>
-    /// Holds result properties
-    /// </summary>
     public sealed class SyncboxListResult
     {
         /// <summary>
@@ -921,6 +884,30 @@ namespace Cloud.REST
 
         // construct with all readonly properties
         internal SyncboxAllArchiveItemsResult(CLError overallError)
+        {
+            this._overallError = overallError;
+        }
+    }
+
+    /// <summary>
+    /// Holds result properties
+    /// </summary>
+    public sealed class SyncboxRecentFilesResult
+    {
+        /// <summary>
+        /// Any overall error which may have occurred during communication
+        /// </summary>
+        public CLError OverallError
+        {
+            get
+            {
+                return _overallError;
+            }
+        }
+        private readonly CLError _overallError;
+
+        // construct with all readonly properties
+        internal SyncboxRecentFilesResult(CLError overallError)
         {
             this._overallError = overallError;
         }

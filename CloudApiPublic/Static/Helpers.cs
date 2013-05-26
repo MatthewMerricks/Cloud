@@ -2654,7 +2654,7 @@ namespace Cloud.Static
             { typeof(JsonContracts.SyncboxGetAllVideoItemsResponse), JsonContractHelpers.SyncboxGetAllVideoItemsResponseSerializer },
             { typeof(JsonContracts.SyncboxGetAllAudioItemsResponse), JsonContractHelpers.SyncboxGetAllAudioItemsResponseSerializer },
             { typeof(JsonContracts.SyncboxGetAllArchiveItemsResponse), JsonContractHelpers.SyncboxGetAllArchiveItemsResponseSerializer },
-            { typeof(JsonContracts.SyncboxGetRecentsResponse), JsonContractHelpers.SynboxGetRecentItemsResponseSerializer },
+            { typeof(JsonContracts.SyncboxGetRecentsResponse), JsonContractHelpers.SynboxGetRecentsResponseSerializer },
             { typeof(JsonContracts.SyncboxUsageResponse), JsonContractHelpers.SyncboxUsageSerializer },
             { typeof(JsonContracts.SyncboxAddFoldersResponse), JsonContractHelpers.SyncboxAddFoldersResponseSerializer},
             { typeof(JsonContracts.FoldersResponse), JsonContractHelpers.FoldersSerializer },

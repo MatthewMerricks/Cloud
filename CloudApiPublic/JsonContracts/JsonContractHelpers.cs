@@ -489,19 +489,19 @@ namespace Cloud.JsonContracts
         private static DataContractJsonSerializer _syncboxGetAllArchiveItemsResponseSerializer = null;
         private static readonly object SyncboxGetAllArchiveItemsResponseSerializerLocker = new object();
 
-        public static DataContractJsonSerializer SynboxGetRecentItemsResponseSerializer
+        public static DataContractJsonSerializer SynboxGetRecentsResponseSerializer
         {
             get
             {
-                lock (SynboxGetRecentItemsResponseSerializerLocker)
+                lock (SynboxGetRecentsResponseSerializerLocker)
                 {
-                    return _synboxGetRecentItemsResponseSerializer
-                        ?? (_synboxGetRecentItemsResponseSerializer = new DataContractJsonSerializer(typeof(JsonContracts.SyncboxGetRecentsResponse)));
+                    return _synboxGetRecentsResponseSerializer
+                        ?? (_synboxGetRecentsResponseSerializer = new DataContractJsonSerializer(typeof(JsonContracts.SyncboxGetRecentsResponse)));
                 }
             }
         }
-        private static DataContractJsonSerializer _synboxGetRecentItemsResponseSerializer = null;
-        private static readonly object SynboxGetRecentItemsResponseSerializerLocker = new object();
+        private static DataContractJsonSerializer _synboxGetRecentsResponseSerializer = null;
+        private static readonly object SynboxGetRecentsResponseSerializerLocker = new object();
 
         public static DataContractJsonSerializer SyncboxUsageSerializer
         {
