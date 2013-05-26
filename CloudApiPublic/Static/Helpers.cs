@@ -2653,19 +2653,14 @@ namespace Cloud.Static
             { typeof(JsonContracts.SyncboxGetAllImageItemsResponse), JsonContractHelpers.SyncboxGetAllImageItemsResponseSerializer },
             { typeof(JsonContracts.SyncboxGetAllVideoItemsResponse), JsonContractHelpers.SyncboxGetAllVideoItemsResponseSerializer },
             { typeof(JsonContracts.SyncboxGetAllAudioItemsResponse), JsonContractHelpers.SyncboxGetAllAudioItemsResponseSerializer },
-            { typeof(JsonContracts.SyncboxGetAllTextItemsResponse), JsonContractHelpers.PlainTextsSerializer},
-            { typeof(JsonContracts.SyncboxGetAllDocumentItemsResponse), JsonContractHelpers.DocumentsSerializer},
-            { typeof(JsonContracts.SyncboxGetAllPresentationItemsResponse), JsonContractHelpers.PresentationsSerializer},
-            { typeof(JsonContracts.SyncboxGetAllArchiveItemsResponse), JsonContractHelpers.ArchivesSerializer },
-            { typeof(JsonContracts.SyncboxGetRecentsResponse), JsonContractHelpers.RecentsSerializer },
+            { typeof(JsonContracts.SyncboxGetAllArchiveItemsResponse), JsonContractHelpers.SyncboxGetAllArchiveItemsResponseSerializer },
+            { typeof(JsonContracts.SyncboxGetRecentsResponse), JsonContractHelpers.SynboxGetRecentsResponseSerializer },
             { typeof(JsonContracts.SyncboxUsageResponse), JsonContractHelpers.SyncboxUsageSerializer },
             { typeof(JsonContracts.SyncboxAddFoldersResponse), JsonContractHelpers.SyncboxAddFoldersResponseSerializer},
             { typeof(JsonContracts.FoldersResponse), JsonContractHelpers.FoldersSerializer },
             { typeof(JsonContracts.SyncboxFolderContentsResponse), JsonContractHelpers.FolderContentsSerializer },
             { typeof(JsonContracts.AuthenticationErrorResponse), JsonContractHelpers.AuthenticationErrorResponseSerializer },
             //{ typeof(JsonContracts.AuthenticationErrorMessage), JsonContractHelpers.AuthenticationErrorMessageSerializer }, // deprecated
-
-            #region platform management
             { typeof(JsonContracts.SyncboxResponse), JsonContractHelpers.CreateSyncboxSerializer },
             { typeof(JsonContracts.SyncboxMoveFilesOrFoldersResponse), JsonContractHelpers.SyncboxMoveFilesOrFoldersResponseSerializer },
             { typeof(JsonContracts.SyncboxDeleteFilesResponse), JsonContractHelpers.SyncboxDeleteFilesResponseSerializer },

@@ -475,6 +475,20 @@ namespace Cloud.JsonContracts
         private static DataContractJsonSerializer _syncboxGetAllAudioItemsResponseSerializer = null;
         private static readonly object SyncboxGetAllAudioItemsResponseSerializerLocker = new object();
 
+        public static DataContractJsonSerializer SyncboxGetAllArchiveItemsResponseSerializer
+        {
+            get
+            {
+                lock (SyncboxGetAllArchiveItemsResponseSerializerLocker)
+                {
+                    return _syncboxGetAllArchiveItemsResponseSerializer
+                        ?? (_syncboxGetAllArchiveItemsResponseSerializer = new DataContractJsonSerializer(typeof(JsonContracts.SyncboxGetAllArchiveItemsResponse)));
+                }
+            }
+        }
+        private static DataContractJsonSerializer _syncboxGetAllArchiveItemsResponseSerializer = null;
+        private static readonly object SyncboxGetAllArchiveItemsResponseSerializerLocker = new object();
+
         public static DataContractJsonSerializer PlainTextsSerializer
         {
             get
@@ -523,15 +537,17 @@ namespace Cloud.JsonContracts
         {
             get
             {
-                lock (SyncboxGetAllArchiveItemsResponseSerializerLocker)
+                lock (ArchivesSerializerLocker)
                 {
-                    return _syncboxGetAllArchiveItemsResponseSerializer
+                    return _archivesSerializer
                         ?? (_archivesSerializer = new DataContractJsonSerializer(typeof(JsonContracts.SyncboxGetAllArchiveItemsResponse)));
                 }
             }
         }
-        private static DataContractJsonSerializer _syncboxGetAllArchiveItemsResponseSerializer = null;
-        private static readonly object SyncboxGetAllArchiveItemsResponseSerializerLocker = new object();
+        private static DataContractJsonSerializer _archivesSerializer = null;
+        private static readonly object ArchivesSerializerLocker = new object();
+
+
 
         public static DataContractJsonSerializer SynboxGetRecentsResponseSerializer
         {

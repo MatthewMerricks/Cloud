@@ -4452,13 +4452,13 @@ namespace Cloud.REST
                 // Add the UTC date if specified.
                 if (sinceDate != null && sinceDate.HasValue)
                 {
-                    serverMethodPath +=
-                    Helpers.QueryStringBuilder(new[]
+                    string updatedAfter = Helpers.QueryStringBuilder(new[] 
                     {
                         // query string parameter for the current sync box id, should not need escaping since it should be an integer in string format
                         new KeyValuePair<string, string>(CLDefinitions.CLSyncboxUpdatedAfter, 
                             sinceDate.Value.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")),
                     });
+                    serverMethodPath += "&" + updatedAfter.Substring(1);  // skip the leading "?" from QueryStringBuilder. 
                 }
 
                 if (!(_copiedSettings.HttpTimeoutMilliseconds > 0))
