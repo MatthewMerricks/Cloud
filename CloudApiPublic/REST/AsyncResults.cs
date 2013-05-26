@@ -927,37 +927,24 @@ namespace Cloud.REST
     /// <summary>
     /// Holds result properties
     /// </summary>
-    public sealed class SyncboxMoveFolderResult
+    public sealed class SyncboxDeleteResult
     {
         /// <summary>
-        /// The result returned from the server
+        /// Any overall error which may have occurred during communication
         /// </summary>
-        public CLFileItem FolderItem
+        public CLError OverallError
         {
             get
             {
-                return _folderItem;
+                return _overallError;
             }
         }
-        private readonly CLFileItem _folderItem;
-
-        /// <summary>
-        /// Any error which may have occurred during communication
-        /// </summary>
-        public CLError Error
-        {
-            get
-            {
-                return _error;
-            }
-        }
-        private readonly CLError _error;
+        private readonly CLError _overallError;
 
         // construct with all readonly properties
-        internal SyncboxMoveFolderResult(CLError error, CLFileItem folderItem)
+        internal SyncboxDeleteResult(CLError overallError)
         {
-            this._error = error;
-            this._folderItem = folderItem;
+            this._overallError = overallError;
         }
     }
 
@@ -1162,69 +1149,8 @@ namespace Cloud.REST
     /// <summary>
     /// Holds result properties
     /// </summary>
-    public sealed class SyncboxAddFolderResult
-    {
-        /// <summary>
-        /// The result returned from the server
-        /// </summary>
-        public CLFileItem FolderItem
-        {
-            get
-            {
-                return _folderItem;
-            }
-        }
-        private readonly CLFileItem _folderItem;
-
-        /// <summary>
-        /// Any error which may have occurred during communication
-        /// </summary>
-        public CLError Error
-        {
-            get
-            {
-                return _error;
-            }
-        }
-        private readonly CLError _error;
-
-        // construct with all readonly properties
-        internal SyncboxAddFolderResult(CLError error, CLFileItem folderItem)
-        {
-            this._error = error;
-            this._folderItem = folderItem;
-        }
-    }
-
-    /// <summary>
-    /// Holds result properties
-    /// </summary>
     public sealed class SyncboxAddFoldersResult
     {
-        /// <summary>
-        /// The result returned from the server
-        /// </summary>
-        public CLFileItem[] FolderItems
-        {
-            get
-            {
-                return _folderItems;
-            }
-        }
-        private readonly CLFileItem[] _folderItems;
-
-        /// <summary>
-        /// Any item errors which may have occurred during communication
-        /// </summary>
-        public CLError[] Errors
-        {
-            get
-            {
-                return _errors;
-            }
-        }
-        private readonly CLError[] _errors;
-
         /// <summary>
         /// Any overall error which may have occurred during communication
         /// </summary>
@@ -1238,11 +1164,9 @@ namespace Cloud.REST
         private readonly CLError _overallError;
 
         // construct with all readonly properties
-        internal SyncboxAddFoldersResult(CLError overallError, CLError[] errors, CLFileItem[] folderItems)
+        internal SyncboxAddFoldersResult(CLError overallError)
         {
             this._overallError = overallError;
-            this._errors = errors;
-            this._folderItems = folderItems;
         }
     }
 
@@ -1424,16 +1348,6 @@ namespace Cloud.REST
     {
         // construct with all readonly properties
         internal SyncboxUpdateStoragePlanResult(CLError Error, JsonContracts.SyncboxUpdateStoragePlanResponse Response)
-            : base(Error, Response) { }
-    }
-
-    /// <summary>
-    /// Holds result properties
-    /// </summary>
-    public sealed class SyncboxDeleteResult : BaseCLHttpRestResult<JsonContracts.SyncboxDeleteResponse>
-    {
-        // construct with all readonly properties
-        internal SyncboxDeleteResult(CLError Error, JsonContracts.SyncboxDeleteResponse Response)
             : base(Error, Response) { }
     }
 

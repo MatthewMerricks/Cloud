@@ -1383,19 +1383,15 @@ namespace Cloud
                     // try/catch to process with the input parameters, on catch set the exception in the asyncronous result
                     try
                     {
-                        // declare the specific type of result for this operation
-                        JsonContracts.SyncboxDeleteResponse response;
                         // Call the synchronous version of this method.
                         CLError processError = DeleteSyncbox(
                             Data.syncboxId,
                             Data.credentials,
-                            out response,
                             Data.settings);
 
                         Data.toReturn.Complete(
                             new SyncboxDeleteResult(
-                                processError, // any error that may have occurred during processing
-                                response), // the specific type of result for this operation
+                                processError), // any error that may have occurred during processing
                             sCompleted: false); // processing did not complete synchronously
                     }
                     catch (Exception ex)
@@ -1431,13 +1427,11 @@ namespace Cloud
         /// </summary>
         /// <param name="syncboxId">the ID of the syncbox to delete.
         /// <param name="credentials">The credentials to use for this request.</param>
-        /// <param name="response">(output) response object from communication</param>
         /// <param name="settings">(optional) the settings to use with this method</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public static CLError DeleteSyncbox(
                     long syncboxId,
                     CLCredentials credentials,
-                    out JsonContracts.SyncboxDeleteResponse response,
                     ICLCredentialsSettings settings = null)
         {
             Helpers.CheckHalted();
@@ -1456,7 +1450,8 @@ namespace Cloud
                         Id = syncboxId
                     };
 
-                response = Helpers.ProcessHttp<JsonContracts.SyncboxDeleteResponse>(
+                JsonContracts.SyncboxDeleteResponse responseFromServer;
+                responseFromServer = Helpers.ProcessHttp<JsonContracts.SyncboxDeleteResponse>(
                     requestContent: inputBox,
                     serverUrl: CLDefinitions.CLPlatformAuthServerURL,
                     serverMethodPath: CLDefinitions.MethodPathAuthDeleteSyncbox,
@@ -1469,10 +1464,24 @@ namespace Cloud
                     SyncboxId: null, 
                     isOneOff: false);
 
+                // Check the server response.
+                if (responseFromServer == null)
+                {
+                    throw new NullReferenceException("Response from server must not be null");  //&&&& fix
+                }
+                if (String.IsNullOrEmpty(responseFromServer.Status))
+                {
+                    throw new NullReferenceException("Server response status must not be null or empty");  //&&&& fix
+                }
+
+                // Convert the response object to a CLSyncbox and return that.
+                if (responseFromServer.Status != CLDefinitions.RESTResponseStatusSuccess)
+                {
+                    throw new CLException(CLExceptionCode.OnDemand_DeleteSyncbox, Resources.ExceptionOnDemandDeleteSyncboxErrorMsg0);
+                }
             }
             catch (Exception ex)
             {
-                response = Helpers.DefaultForType<JsonContracts.SyncboxDeleteResponse>();
                 return ex;
             }
             return null;

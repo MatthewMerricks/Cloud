@@ -2700,6 +2700,15 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Error deleting syncbox: {0}.
+        /// </summary>
+        internal static string ExceptionOnDemandDeleteSyncboxErrorMsg0 {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandDeleteSyncboxErrorMsg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to An error occurred deserializing the error message for current item in error.
         /// </summary>
         internal static string ExceptionOnDemandDeserializeErrorMessage {
