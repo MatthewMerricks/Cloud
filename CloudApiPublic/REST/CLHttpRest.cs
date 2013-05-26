@@ -201,17 +201,17 @@ namespace Cloud.REST
         #endregion  // end Constructors and Factories
 
         #region public API calls
-        #region ItemFortPath (Gets the metedata at a particular server syncbox path)
+        #region ItemForPath (Gets the metedata at a particular server syncbox path)
         /// <summary>
         /// Asynchronously starts getting an item at a particular path in the syncbox.
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
         /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
-        /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
-        /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the item completion callback above is fired.</param>
+        /// <param name="completionCallback">Callback method to fire for each item completion.</param>
+        /// <param name="completionCallbackUserState">Userstate to be passed whenever the item completion callback above is fired.</param>
         /// <param name="path">The full path of the item in the local disk syncbox.</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        internal IAsyncResult BeginItemForPath(AsyncCallback asyncCallback, object asyncCallbackUserState, CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, string path)
+        internal IAsyncResult BeginItemForPath(AsyncCallback asyncCallback, object asyncCallbackUserState, CLSingleFileItemCompletionCallback completionCallback, object completionCallbackUserState, string path)
         {
             var asyncThread = DelegateAndDataHolderBase.Create(
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
@@ -221,8 +221,8 @@ namespace Cloud.REST
                     toReturn = new GenericAsyncResult<CLError>(
                         asyncCallback,
                         asyncCallbackUserState),
-                    itemCompletionCallback = itemCompletionCallback,
-                    itemCompletionCallbackUserState = itemCompletionCallbackUserState,
+                    itemCompletionCallback = completionCallback,
+                    itemCompletionCallbackUserState = completionCallbackUserState,
                     path = path,
                 },
                 (Data, errorToAccumulate) =>
@@ -233,8 +233,8 @@ namespace Cloud.REST
                     {
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
                         CLError overallError = ItemForPath(
-                            itemCompletionCallback,
-                            itemCompletionCallbackUserState,
+                            completionCallback,
+                            completionCallbackUserState,
                             Data.path);
 
                         Data.toReturn.Complete(overallError, // any overall error that may have occurred during processing
@@ -271,11 +271,11 @@ namespace Cloud.REST
         /// <summary>
         /// Get an item at a particular path in the syncbox.
         /// </summary>
-        /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
-        /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the item completion callback above is fired.</param>
+        /// <param name="completionCallback">Callback method to fire for each item completion.</param>
+        /// <param name="completionCallbackUserState">Userstate to be passed whenever the item completion callback above is fired.</param>
         /// <param name="path">The full path of the item in the local disk syncbox.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        internal CLError ItemForPath(CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, string path)
+        internal CLError ItemForPath(CLSingleFileItemCompletionCallback completionCallback, object completionCallbackUserState, string path)
         {
             // try/catch to process the request,  On catch return the error
             try
@@ -329,32 +329,16 @@ namespace Cloud.REST
                 // Convert the metadata to the output item.
                 if (responseFromServer != null)
                 {
-                    try
+                    // Pass back the response as a CLFileItem.
+                    CLFileItem resultItem = new CLFileItem(responseFromServer, _syncbox);
+                    if (completionCallback != null)
                     {
-                        // Pass back the response as a CLFileItem.
-                        CLFileItem resultItem = new CLFileItem(responseFromServer, _syncbox);
-                        if (itemCompletionCallback != null)
+                        try
                         {
-                            try
-                            {
-                                itemCompletionCallback(0, resultItem, error: null, userState: itemCompletionCallbackUserState);
-                            }
-                            catch
-                            {
-                            }
+                            completionCallback(resultItem, userState: completionCallbackUserState);
                         }
-                    }
-                    catch (Exception ex)
-                    {
-                        if (itemCompletionCallback != null)
+                        catch
                         {
-                            try
-                            {
-                                itemCompletionCallback(0, completedItem: null, error: ex, userState: itemCompletionCallbackUserState);
-                            }
-                            catch
-                            {
-                            }
                         }
                     }
                 }
@@ -4452,13 +4436,13 @@ namespace Cloud.REST
                 // Add the UTC date if specified.
                 if (sinceDate != null && sinceDate.HasValue)
                 {
-                    serverMethodPath +=
-                    Helpers.QueryStringBuilder(new[]
+                    string updatedAfter = Helpers.QueryStringBuilder(new[]
                     {
                         // query string parameter for the current sync box id, should not need escaping since it should be an integer in string format
                         new KeyValuePair<string, string>(CLDefinitions.CLSyncboxUpdatedAfter, 
                             sinceDate.Value.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")),
                     });
+                    serverMethodPath += "&" + updatedAfter.Substring(1);  // skip the leading "?" from QueryStringBuilder.
                 }
 
                 if (!(_copiedSettings.HttpTimeoutMilliseconds > 0))
@@ -5947,7 +5931,7 @@ namespace Cloud.REST
         }
         #endregion
 
-        #region GetSyncboxStatus
+        #region GetCurrentStatus (Get the current status of this syncbox)
 
         /// <summary>
         /// Asynchronously gets the status of this Syncbox
@@ -5958,7 +5942,7 @@ namespace Cloud.REST
         /// <param name="completionCallback">Delegate to call with the response.  May be null.</param>
         /// <param name="completionCallbackUserState">User state to pass to the completionCallback delegate.</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        internal IAsyncResult BeginGetSyncboxStatus<T>(
+        internal IAsyncResult BeginGetCurrentStatus<T>(
             AsyncCallback aCallback,
             object aState,
             int timeoutMilliseconds,
@@ -6000,7 +5984,7 @@ namespace Cloud.REST
                         // declare the specific type of result for this operation
                         JsonContracts.SyncboxStatusResponse response;
                         // purge pending files with the passed parameters, storing any error that occurs
-                        CLError processError = GetSyncboxStatus(
+                        CLError processError = GetCurrentStatus(
                             castState.Item2,
                             out response,
                             castState.Item3,
@@ -6040,7 +6024,7 @@ namespace Cloud.REST
         /// <param name="aResult">The asynchronous result provided upon starting getting sync box status</param>
         /// <param name="result">(output) The result from getting sync box status</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndGetSyncboxStatus(IAsyncResult aResult, out SyncboxStatusResult result)
+        public CLError EndGetCurrentStatus(IAsyncResult aResult, out SyncboxStatusResult result)
         {
             // declare the specific type of asynchronous result for sync box status
             GenericAsyncResult<SyncboxStatusResult> castAResult;
@@ -6102,10 +6086,10 @@ namespace Cloud.REST
         /// <param name="completionCallback">Delegate to call with the response.  May be null.</param>
         /// <param name="completionCallbackUserState">User state to pass to the completionCallback delegate.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        internal CLError GetSyncboxStatus<T>(
-            int timeoutMilliseconds, 
+        internal CLError GetCurrentStatus<T>(
+            int timeoutMilliseconds,
             out JsonContracts.SyncboxStatusResponse response,
-            Action<JsonContracts.SyncboxStatusResponse, T> completionRoutine, 
+            Action<JsonContracts.SyncboxStatusResponse, T> completionRoutine,
             T completionState)
         {
             // try/catch to process purging pending, on catch return the error

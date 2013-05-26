@@ -14,9 +14,9 @@ using System.Text;
 namespace Cloud.CLSync
 {
     /// <summary>
-    /// Completion routine for the CLSyncbox.CreateSyncbox method.
+    /// Completion routine for the CLSyncbox.ListSyncboxes method.
     /// </summary>
-    /// <param name="syncbox">The created syncbox returned.</param>
+    /// <param name="syncbox">The syncboxes returned.</param>
     /// <param name="userState">The state provided by the user.</param>
     public delegate void CLListSyncboxesCompletionCallback(CLSyncbox[] syncboxes, object userState);
 }

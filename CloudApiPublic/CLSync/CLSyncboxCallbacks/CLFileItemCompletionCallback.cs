@@ -14,7 +14,7 @@ using System.Text;
 namespace Cloud.CLSync
 {
     /// <summary>
-    /// Completion routine for an individual CLFileItem operation. Either completedItem will be null or error will be null.
+    /// Completion routine for an individual CLFileItem operation (as a member of a collection). Either completedItem will be null or error will be null.
     /// </summary>
     /// <param name="itemIndex">Zero-based index of the current item in its original input set</param>
     /// <param name="completedItem">Completed item or null if there was an error</param>

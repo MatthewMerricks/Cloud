@@ -1013,7 +1013,7 @@ namespace Cloud
         /// Output the current status of syncing
         /// </summary>
         /// <returns>Returns any error which occurred in retrieving the sync status, if any</returns>
-        public CLError GetSyncboxCurrentStatus(out CLSyncCurrentStatus status)
+        public CLError GetSyncCurrentStatus(out CLSyncCurrentStatus status)
         {
             CheckDisposed();
 
@@ -1444,7 +1444,7 @@ namespace Cloud
                     ? AdvancedSyncSettings.CreateDefaultSettings()
                     : settings.CopySettings());
 
-                // check input parameters
+                // Body of the post
                 JsonContracts.SyncboxIdOnly inputBox = new JsonContracts.SyncboxIdOnly()
                     {
                         Id = syncboxId
@@ -1680,7 +1680,7 @@ namespace Cloud
         /// <param name="itemCompletionCallback">Delegate which will be fired upon successful communication for every response item.</param>
         /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the completion delegate is fired.</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginRootFolder(AsyncCallback asyncCallback, object asyncCallbackUserState, CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState)
+        public IAsyncResult BeginRootFolder(AsyncCallback asyncCallback, object asyncCallbackUserState, CLSingleFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState)
         {
             CheckDisposed();
 
@@ -1712,7 +1712,7 @@ namespace Cloud
         /// <param name="itemCompletionCallback">Delegate which will be fired upon successful communication for every response item.</param>
         /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the completion delegate is fired.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError RootFolder(CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState)
+        public CLError RootFolder(CLSingleFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState)
         {
             CheckDisposed(isOneOff: true);
 
@@ -1734,7 +1734,7 @@ namespace Cloud
         /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the completion delegate is fired.</param>
         /// <param name="path">Full path to where file or folder would exist in the syncbox locally on disk.</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginItemForPath(AsyncCallback asyncCallback, object asyncCallbackUserState, CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, string path)
+        public IAsyncResult BeginItemForPath(AsyncCallback asyncCallback, object asyncCallbackUserState, CLSingleFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, string path)
         {
             CheckDisposed();
 
@@ -1750,14 +1750,14 @@ namespace Cloud
         /// <param name="asyncResult">The asynchronous result provided upon starting the metadata query</param>
         /// <param name="result">(output) The result from the metadata query</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        //public CLError EndItemForPath(IAsyncResult asyncResult, out SyncboxGetItemAtPathResult result)
-        //{
-        //    CheckDisposed();
+        public CLError EndItemForPath(IAsyncResult asyncResult, out SyncboxGetItemAtPathResult result)
+        {
+            CheckDisposed();
 
-        //    CLHttpRest httpRestClient;
-        //    GetInstanceRestClient(out httpRestClient);
-        //    return httpRestClient.EndItemForPath(asyncResult, out result);
-        //}
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.EndItemForPath(asyncResult, out result);
+        }
 
         /// <summary>
         /// Queries the syncbox at a given file or folder path (must be specified) for existing item metadata at that path.
@@ -1767,7 +1767,7 @@ namespace Cloud
         /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the completion delegate is fired.</param>
         /// <param name="path">Full path to where file or folder would exist in the syncbox locally on disk.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError ItemForPath(CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, string path)
+        public CLError ItemForPath(CLSingleFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, string path)
         {
             CheckDisposed(isOneOff: true);
 
@@ -3576,13 +3576,13 @@ namespace Cloud
         /// <param name="asyncCallback">Callback method to fire when operation completes</param>
         /// <param name="callbackUserState">Userstate to pass when firing async callback</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginGetCurrentSyncboxStatus(AsyncCallback asyncCallback, object asyncCallbackUserState)
+        public IAsyncResult BeginGetCurrentStatus(AsyncCallback asyncCallback, object asyncCallbackUserState)
         {
             CheckDisposed(true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.BeginGetSyncboxStatus(asyncCallback, asyncCallbackUserState, _copiedSettings.HttpTimeoutMilliseconds, new Action<JsonContracts.SyncboxStatusResponse, object>(OnStatusCompletion), null);
+            return httpRestClient.BeginGetCurrentStatus(asyncCallback, asyncCallbackUserState, _copiedSettings.HttpTimeoutMilliseconds, new Action<JsonContracts.SyncboxStatusResponse, object>(OnStatusCompletion), null);
         }
         
         /// <summary>
@@ -3593,13 +3593,13 @@ namespace Cloud
         /// <param name="asyncResult">The asynchronous result provided upon starting the request</param>
         /// <param name="result">(output) The result from the request</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndGetCurrentSyncboxStatus(IAsyncResult asyncResult, out SyncboxStatusResult result)
+        public CLError EndGetCurrentStatus(IAsyncResult asyncResult, out SyncboxStatusResult result)
         {
             CheckDisposed(true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.EndGetSyncboxStatus(asyncResult, out result);
+            return httpRestClient.EndGetCurrentStatus(asyncResult, out result);
         }
 
         /// <summary>
@@ -3607,14 +3607,14 @@ namespace Cloud
         /// The local object status is updated with the server results.
         /// </summary>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError GetCurrentSyncboxStatus()
+        public CLError GetCurrentStatus()
         {
             CheckDisposed(true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
             JsonContracts.SyncboxStatusResponse response;
-            return httpRestClient.GetSyncboxStatus(_copiedSettings.HttpTimeoutMilliseconds, out response, new Action<JsonContracts.SyncboxStatusResponse, object>(OnStatusCompletion), null);
+            return httpRestClient.GetCurrentStatus(_copiedSettings.HttpTimeoutMilliseconds, out response, new Action<JsonContracts.SyncboxStatusResponse, object>(OnStatusCompletion), null);
         }
 
 
@@ -3637,12 +3637,24 @@ namespace Cloud
             {
                 throw new NullReferenceException("response Syncbox PlanId cannot be null");  //&&&& fix
             }
+            if (response.Syncbox.CreatedAt == null)
+            {
+                throw new NullReferenceException("response Syncbox CreatedAt cannot be null");  //&&&& fix
+            }
+            if (response.Syncbox.StorageQuota == null
+                || !response.Syncbox.StorageQuota.HasValue
+                || response.Syncbox.StorageQuota.Value == null)
+            {
+                throw new NullReferenceException("response Syncbox StorageQuota cannot be null");  //&&&& fix
+            }
 
             this._propertyChangeLocker.EnterWriteLock();
             try
             {
                 this._friendlyName = response.Syncbox.FriendlyName;
                 this._storagePlanId = (long)response.Syncbox.PlanId;
+                this._createdDate = (DateTime)response.Syncbox.CreatedAt;
+                this._storageQuota = (long)response.Syncbox.StorageQuota.Value;
             }
             finally
             {
@@ -3834,7 +3846,7 @@ namespace Cloud
 
                     // We need to validate the syncbox ID with the server with these credentials.  We will also retrieve the other syncbox
                     // properties from the server and set them into this local object's properties.
-                    CLError errorFromStatus = GetCurrentSyncboxStatus();
+                    CLError errorFromStatus = GetCurrentStatus();
                     if (errorFromStatus != null)
                     {
                         throw new CLException(CLExceptionCode.Syncbox_InitialStatus, Resources.ExceptionSyncboxStartStatus, errorFromStatus.Exceptions);

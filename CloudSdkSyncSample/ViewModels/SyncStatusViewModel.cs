@@ -195,7 +195,7 @@ namespace SampleLiveSync.ViewModels
             {
                 // Set the overall sync status
                 CLSyncCurrentStatus currentStatus;
-                CLError errorFromGetEngineCurrentStatus = syncbox.GetSyncboxCurrentStatus(out currentStatus);
+                CLError errorFromGetEngineCurrentStatus = syncbox.GetSyncCurrentStatus(out currentStatus);
                 if (errorFromGetEngineCurrentStatus != null || currentStatus == null)
                 {
                     return;

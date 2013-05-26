@@ -16,7 +16,7 @@ using System.Text;
 namespace Cloud.JsonContracts
 {
     /// <summary>
-    /// Result from <see cref="Cloud.CLSyncbox.BeginGetCurrentSyncboxStatus"/>
+    /// Result from <see cref="Cloud.CLSyncbox.BeginGetCurrentStatus"/>
     /// </summary>
     [DataContract]
     [ContainsMetadataDictionary] // within Syncbox Syncbox
