@@ -480,6 +480,11 @@ namespace Cloud.Static
         /// </summary>
         OnDemand_InvalidParameters = (((ulong)CLExceptionDomain.OnDemand) << 32) | 27, // 5_27
 
+        /// <summary>
+        /// Cloud On Demand API. Delete syncbox.
+        /// </summary>
+        OnDemand_DeleteSyncbox = (((ulong)CLExceptionDomain.OnDemand) << 32) | 28, // 5_28
+
 
 
         #endregion

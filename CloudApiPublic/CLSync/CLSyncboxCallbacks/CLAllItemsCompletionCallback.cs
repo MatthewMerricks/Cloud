@@ -1,5 +1,5 @@
 ﻿//
-// CLAllItemsCompletion.cs
+// CLAllItemsCompletionCallback.cs
 // Cloud Windows
 //
 // Created By DavidBruck.
@@ -19,5 +19,5 @@ namespace Cloud.CLSync
     /// <param name="itemsx">All items returned.</param>
     /// <param name="totalItemCount">The number of items returned.</param>
     /// <param name="userState">The state provided by the user.</param>
-    public delegate void CLAllItemsCompletion(CLFileItem[] items, long totalItemCount, object userState);
+    public delegate void CLAllItemsCompletionCallback(CLFileItem[] items, long totalItemCount, object userState);
 }

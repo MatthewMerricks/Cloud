@@ -2893,4 +2893,16 @@
     <value>pageNumber must be greater than zero.</value>
     <comment>"pageNumber" should not be translated</comment>
   </data>
+  <data name="ExceptionOnDemandInvalidExtension" xml:space="preserve">
+    <value>extensions must not be null</value>
+    <comment>"extensions" should not be translated</comment>
+  </data>
+  <data name="ExceptionOnDemandInvalidExtensions" xml:space="preserve">
+    <value>extensions must specify at least one file extension to search for.  e.g., "pdf".</value>
+    <comment>"extensions" and "pdf" should not be translated</comment>
+  </data>
+  <data name="ExceptionOnDemandDeleteSyncboxErrorMsg0" xml:space="preserve">
+    <value>Error deleting syncbox: {0}</value>
+    <comment>"{0}" shoud not be translated</comment>
+  </data>
 </root>

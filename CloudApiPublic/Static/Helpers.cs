@@ -2650,9 +2650,9 @@ namespace Cloud.Static
             { typeof(JsonContracts.FileChangeResponse), JsonContractHelpers.EventSerializer },
             { typeof(JsonContracts.FileVersions), JsonContractHelpers.FileVersionsSerializer },
             //{ typeof(JsonContracts.UsedBytes), JsonContractHelpers.UsedBytesSerializer }, // deprecated
-            { typeof(JsonContracts.SyncboxGetAllImageItemsResponse), JsonContractHelpers.PicturesSerializer },
-            { typeof(JsonContracts.SyncboxGetAllVideoItemsResponse), JsonContractHelpers.VideosSerializer },
-            { typeof(JsonContracts.SyncboxGetAllAudioItemsResponse), JsonContractHelpers.AudiosSerializer },
+            { typeof(JsonContracts.SyncboxGetAllImageItemsResponse), JsonContractHelpers.SyncboxGetAllImageItemsResponseSerializer },
+            { typeof(JsonContracts.SyncboxGetAllVideoItemsResponse), JsonContractHelpers.SyncboxGetAllVideoItemsResponseSerializer },
+            { typeof(JsonContracts.SyncboxGetAllAudioItemsResponse), JsonContractHelpers.SyncboxGetAllAudioItemsResponseSerializer },
             { typeof(JsonContracts.SyncboxGetAllTextItemsResponse), JsonContractHelpers.PlainTextsSerializer},
             { typeof(JsonContracts.SyncboxGetAllDocumentItemsResponse), JsonContractHelpers.DocumentsSerializer},
             { typeof(JsonContracts.SyncboxGetAllPresentationItemsResponse), JsonContractHelpers.PresentationsSerializer},
@@ -2684,7 +2684,10 @@ namespace Cloud.Static
             { typeof(JsonContracts.LinkDeviceResponse), JsonContractHelpers.LinkDeviceResponseSerializer},
             { typeof(JsonContracts.UnlinkDeviceResponse), JsonContractHelpers.UnlinkDeviceResponseSerializer},
             { typeof(JsonContracts.SyncboxDeleteFoldersResponse), JsonContractHelpers.SyncboxDeleteFoldersResponseSerializer},
-            #endregion
+            { typeof(JsonContracts.SyncboxGetAllItemsForTypesResponse), JsonContractHelpers.SyncboxGetAllItemsForTypesResponseSerializer},
+            { typeof(JsonContracts.SyncboxGetAllDocumentItemsResponse), JsonContractHelpers.SyncboxGetAllDocumentItemsResponseSerializer},
+            { typeof(JsonContracts.SyncboxGetAllPresentationItemsResponse), JsonContractHelpers.SyncboxGetAllPresentationItemsResponseSerializer},
+            { typeof(JsonContracts.SyncboxGetAllTextItemsResponse), JsonContractHelpers.SyncboxGetAllTextItemsResponseSerializer},
         };
         #endregion
 

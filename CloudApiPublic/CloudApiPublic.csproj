@@ -131,15 +131,16 @@
     <Compile Include="BadgeNET\IconOverlay.cs" />
     <Compile Include="CLSync\CLCredentials.cs" />
     <Compile Include="CLSync\CLCredentialsSettings.cs" />
-    <Compile Include="CLSync\CLFileItemCompletion.cs" />
+    <Compile Include="CLSync\CLSyncboxCallbacks\CLFileItemCompletionCallback.cs" />
     <Compile Include="CLSync\CLSyncbox.cs" />
+    <Compile Include="CLSync\CLSyncboxCallbacks\CLCreateSyncboxCompletionCallback.cs" />
     <Compile Include="CLSync\CLSyncboxParameters\AddItemParams.cs" />
     <Compile Include="CLSync\CLSyncboxParameters\RenameItemParams.cs" />
     <Compile Include="CLSync\CLSyncboxParameters\MoveItemParams.cs" />
     <Compile Include="CLSync\CLSyncboxParameters\RenamePathParams.cs" />
     <Compile Include="CLSync\CLSyncCurrentStatus.cs" />
     <Compile Include="CLSync\CLSyncTransferringFile.cs" />
-    <Compile Include="CLSync\CLAllItemsCompletion.cs" />
+    <Compile Include="CLSync\CLSyncboxCallbacks\CLAllItemsCompletionCallback.cs" />
     <Compile Include="CompilerServices.cs" />
     <Compile Include="FileMonitor\FileMonitorMemory.cs">
       <DependentUpon>FileMonitorMemory.xsd</DependentUpon>
@@ -150,6 +151,7 @@
     <Compile Include="Interfaces\IEventMessageReceiver.cs" />
     <Compile Include="Interfaces\ITransferTaskState.cs" />
     <Compile Include="JsonContracts\Archives.cs" />
+    <Compile Include="JsonContracts\SyncboxGetAllItemsForTypesResponse.cs" />
     <Compile Include="JsonContracts\SyncboxDeleteFoldersResponse.cs" />
     <Compile Include="JsonContracts\FileAdds.cs" />
     <Compile Include="JsonContracts\FileVersions.cs" />

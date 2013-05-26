@@ -433,47 +433,47 @@ namespace Cloud.JsonContracts
         //private static DataContractJsonSerializer _usedBytesSerializer = null;
         //private static readonly object UsedBytesSerializerLocker = new object();
 
-        public static DataContractJsonSerializer PicturesSerializer
+        public static DataContractJsonSerializer SyncboxGetAllImageItemsResponseSerializer
         {
             get
             {
-                lock (PicturesSerializerLocker)
+                lock (SyncboxGetAllImageItemsResponseSerializerLocker)
                 {
-                    return _picturesSerializer
-                        ?? (_picturesSerializer = new DataContractJsonSerializer(typeof(JsonContracts.SyncboxGetAllImageItemsResponse)));
+                    return _syncboxGetAllImageItemsResponseSerializer
+                        ?? (_syncboxGetAllImageItemsResponseSerializer = new DataContractJsonSerializer(typeof(JsonContracts.SyncboxGetAllImageItemsResponse)));
                 }
             }
         }
-        private static DataContractJsonSerializer _picturesSerializer = null;
-        private static readonly object PicturesSerializerLocker = new object();
+        private static DataContractJsonSerializer _syncboxGetAllImageItemsResponseSerializer = null;
+        private static readonly object SyncboxGetAllImageItemsResponseSerializerLocker = new object();
 
-        public static DataContractJsonSerializer VideosSerializer
+        public static DataContractJsonSerializer SyncboxGetAllVideoItemsResponseSerializer
         {
             get
             {
-                lock (VideosSerializerLocker)
+                lock (SyncboxGetAllVideoItemsResponseSerializerLocker)
                 {
-                    return _videosSerializer
-                        ?? (_videosSerializer = new DataContractJsonSerializer(typeof(JsonContracts.SyncboxGetAllVideoItemsResponse)));
+                    return _syncboxGetAllVideoItemsResponseSerializer
+                        ?? (_syncboxGetAllVideoItemsResponseSerializer = new DataContractJsonSerializer(typeof(JsonContracts.SyncboxGetAllVideoItemsResponse)));
                 }
             }
         }
-        private static DataContractJsonSerializer _videosSerializer = null;
-        private static readonly object VideosSerializerLocker = new object();
+        private static DataContractJsonSerializer _syncboxGetAllVideoItemsResponseSerializer = null;
+        private static readonly object SyncboxGetAllVideoItemsResponseSerializerLocker = new object();
 
-        public static DataContractJsonSerializer AudiosSerializer
+        public static DataContractJsonSerializer SyncboxGetAllAudioItemsResponseSerializer
         {
             get
             {
-                lock (AudiosSerializerLocker)
+                lock (SyncboxGetAllAudioItemsResponseSerializerLocker)
                 {
-                    return _audiosSerializer
-                        ?? (_audiosSerializer = new DataContractJsonSerializer(typeof(JsonContracts.SyncboxGetAllAudioItemsResponse)));
+                    return _syncboxGetAllAudioItemsResponseSerializer
+                        ?? (_syncboxGetAllAudioItemsResponseSerializer = new DataContractJsonSerializer(typeof(JsonContracts.SyncboxGetAllAudioItemsResponse)));
                 }
             }
         }
-        private static DataContractJsonSerializer _audiosSerializer = null;
-        private static readonly object AudiosSerializerLocker = new object();
+        private static DataContractJsonSerializer _syncboxGetAllAudioItemsResponseSerializer = null;
+        private static readonly object SyncboxGetAllAudioItemsResponseSerializerLocker = new object();
 
         public static DataContractJsonSerializer PlainTextsSerializer
         {
@@ -523,29 +523,29 @@ namespace Cloud.JsonContracts
         {
             get
             {
-                lock (ArchivesSerializerLocker)
+                lock (SyncboxGetAllArchiveItemsResponseSerializerLocker)
                 {
-                    return _archivesSerializer
+                    return _syncboxGetAllArchiveItemsResponseSerializer
                         ?? (_archivesSerializer = new DataContractJsonSerializer(typeof(JsonContracts.SyncboxGetAllArchiveItemsResponse)));
                 }
             }
         }
-        private static DataContractJsonSerializer _archivesSerializer = null;
-        private static readonly object ArchivesSerializerLocker = new object();
+        private static DataContractJsonSerializer _syncboxGetAllArchiveItemsResponseSerializer = null;
+        private static readonly object SyncboxGetAllArchiveItemsResponseSerializerLocker = new object();
 
-        public static DataContractJsonSerializer RecentsSerializer
+        public static DataContractJsonSerializer SynboxGetRecentsResponseSerializer
         {
             get
             {
-                lock (RecentsSerializerLocker)
+                lock (SynboxGetRecentsResponseSerializerLocker)
                 {
-                    return _recentsSerializer
-                        ?? (_recentsSerializer = new DataContractJsonSerializer(typeof(JsonContracts.SyncboxGetRecentsResponse)));
+                    return _synboxGetRecentsResponseSerializer
+                        ?? (_synboxGetRecentsResponseSerializer = new DataContractJsonSerializer(typeof(JsonContracts.SyncboxGetRecentsResponse)));
                 }
             }
         }
-        private static DataContractJsonSerializer _recentsSerializer = null;
-        private static readonly object RecentsSerializerLocker = new object();
+        private static DataContractJsonSerializer _synboxGetRecentsResponseSerializer = null;
+        private static readonly object SynboxGetRecentsResponseSerializerLocker = new object();
 
         public static DataContractJsonSerializer SyncboxUsageSerializer
         {
@@ -1054,6 +1054,62 @@ namespace Cloud.JsonContracts
         }
         private static DataContractJsonSerializer _syncboxDeleteFoldersResponseSerializer = null;
         private static readonly object SyncboxDeleteFoldersResponseSerializerLocker = new object();
+
+        public static DataContractJsonSerializer SyncboxGetAllItemsForTypesResponseSerializer
+        {
+            get
+            {
+                lock (SyncboxGetAllItemsForTypesResponseSerializerLocker)
+                {
+                    return _syncboxGetAllItemsForTypesResponseSerializer
+                        ?? (_syncboxGetAllItemsForTypesResponseSerializer = new DataContractJsonSerializer(typeof(JsonContracts.SyncboxGetAllItemsForTypesResponse)));
+                }
+            }
+        }
+        private static DataContractJsonSerializer _syncboxGetAllItemsForTypesResponseSerializer = null;
+        private static readonly object SyncboxGetAllItemsForTypesResponseSerializerLocker = new object();
+
+        public static DataContractJsonSerializer SyncboxGetAllDocumentItemsResponseSerializer
+        {
+            get
+            {
+                lock (SyncboxGetAllDocumentItemsResponseSerializerLocker)
+                {
+                    return _syncboxGetAllDocumentItemsResponseSerializer
+                        ?? (_syncboxGetAllDocumentItemsResponseSerializer = new DataContractJsonSerializer(typeof(JsonContracts.SyncboxGetAllDocumentItemsResponse)));
+                }
+            }
+        }
+        private static DataContractJsonSerializer _syncboxGetAllDocumentItemsResponseSerializer = null;
+        private static readonly object SyncboxGetAllDocumentItemsResponseSerializerLocker = new object();
+
+        public static DataContractJsonSerializer SyncboxGetAllPresentationItemsResponseSerializer
+        {
+            get
+            {
+                lock (SyncboxGetAllPresentationItemsResponseSerializerLocker)
+                {
+                    return _syncboxGetAllPresentationItemsResponseSerializer
+                        ?? (_syncboxGetAllPresentationItemsResponseSerializer = new DataContractJsonSerializer(typeof(JsonContracts.SyncboxGetAllPresentationItemsResponse)));
+                }
+            }
+        }
+        private static DataContractJsonSerializer _syncboxGetAllPresentationItemsResponseSerializer = null;
+        private static readonly object SyncboxGetAllPresentationItemsResponseSerializerLocker = new object();
+
+        public static DataContractJsonSerializer SyncboxGetAllTextItemsResponseSerializer
+        {
+            get
+            {
+                lock (SyncboxGetAllTextItemsResponseSerializerLocker)
+                {
+                    return _syncboxGetAllTextItemsResponseSerializer
+                        ?? (_syncboxGetAllTextItemsResponseSerializer = new DataContractJsonSerializer(typeof(JsonContracts.SyncboxGetAllTextItemsResponse)));
+                }
+            }
+        }
+        private static DataContractJsonSerializer _syncboxGetAllTextItemsResponseSerializer = null;
+        private static readonly object SyncboxGetAllTextItemsResponseSerializerLocker = new object();
         #endregion
     }
 }

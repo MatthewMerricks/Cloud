@@ -1,5 +1,5 @@
 ﻿//
-// CLFileItemCompletion.cs
+// CLFileItemCompletionCallback.cs
 // Cloud Windows
 //
 // Created By DavidBruck.
@@ -20,5 +20,5 @@ namespace Cloud.CLSync
     /// <param name="completedItem">Completed item or null if there was an error</param>
     /// <param name="error">An error which occurred for the current item, if any</param>
     /// <param name="userState">The state provided by the user</param>
-    public delegate void CLFileItemCompletion(int itemIndex, CLFileItem completedItem, CLError error, object userState);
+    public delegate void CLFileItemCompletionCallback(int itemIndex, CLFileItem completedItem, CLError error, object userState);
 }

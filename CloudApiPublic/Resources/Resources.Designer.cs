@@ -2700,6 +2700,15 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Error deleting syncbox: {0}.
+        /// </summary>
+        internal static string ExceptionOnDemandDeleteSyncboxErrorMsg0 {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandDeleteSyncboxErrorMsg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to An error occurred deserializing the error message for current item in error.
         /// </summary>
         internal static string ExceptionOnDemandDeserializeErrorMessage {
@@ -2723,6 +2732,24 @@ namespace Cloud.Static {
         internal static string ExceptionOnDemandFolderItemNullAtIndexMsg0 {
             get {
                 return ResourceManager.GetString("ExceptionOnDemandFolderItemNullAtIndexMsg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to extensions must not be null.
+        /// </summary>
+        internal static string ExceptionOnDemandInvalidExtension {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandInvalidExtension", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to extensions must specify at least one file extension to search for.  e.g., &quot;pdf&quot;..
+        /// </summary>
+        internal static string ExceptionOnDemandInvalidExtensions {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandInvalidExtensions", resourceCulture);
             }
         }
         
