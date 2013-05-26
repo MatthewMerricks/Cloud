@@ -503,7 +503,7 @@ namespace Cloud.Static
         public const string CLSyncboxCreatedAt = "created_at";
         public const string CLSyncboxId = "id";
         public const string CLSyncboxStorageQuota = "storage_quota";
-        public const string CLSyncboxUpdatedAt = "updated_at";
+        public const string CLSyncboxUpdatedAfter = "updated_after";
         public const string CLSyncboxStoredBytes = "stored_bytes";
         public const string CLSyncboxPendingBytes = "pending_bytes";
 

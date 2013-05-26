@@ -4310,8 +4310,16 @@ namespace Cloud.REST
         /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion callback above is fired.</param>
         /// <param name="pageNumber">Beginning page number.  The first page is page 1.</param>
         /// <param name="itemsPerPage">Items per page.</param>
+        /// <param name="sinceDate">(optional) null to retrieve all of the recents, or specify a date to retrieve items from that date forward.</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        internal IAsyncResult BeginRecentFiles(AsyncCallback asyncCallback, object asyncCallbackUserState, CLAllItemsCompletion completionCallback, object completionCallbackUserState, long pageNumber, long itemsPerPage)
+        internal IAsyncResult BeginRecentFiles(
+            AsyncCallback asyncCallback, 
+            object asyncCallbackUserState, 
+            CLAllItemsCompletion completionCallback, 
+            object completionCallbackUserState, 
+            long pageNumber, 
+            long itemsPerPage,
+            Nullable<DateTime> sinceDate = null)
         {
             var asyncThread = DelegateAndDataHolderBase.Create(
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
@@ -4323,6 +4331,7 @@ namespace Cloud.REST
                         asyncCallbackUserState),
                     pageNumber = pageNumber,
                     itemsPerPage = itemsPerPage,
+                    sinceDate = sinceDate
                 },
                 (Data, errorToAccumulate) =>
                 {
@@ -4335,7 +4344,8 @@ namespace Cloud.REST
                             completionCallback,
                             completionCallbackUserState,
                             pageNumber,
-                            itemsPerPage);
+                            itemsPerPage,
+                            sinceDate);
 
                         Data.toReturn.Complete(overallError, // any overall error that may have occurred during processing
                             sCompleted: false); // processing did not complete synchronously
@@ -4375,8 +4385,9 @@ namespace Cloud.REST
         /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion callback above is fired.  Returns the result.</param>
         /// <param name="pageNumber">Beginning page number.  The first page is page 1.</param>
         /// <param name="itemsPerPage">Items per page.</param>
+        /// <param name="sinceDate">(optional) null to retrieve all of the recents, or specify a date to retrieve items from that date forward.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        internal CLError RecentFiles(CLAllItemsCompletion completionCallback, object completionCallbackUserState, long pageNumber, long itemsPerPage)
+        internal CLError RecentFiles(CLAllItemsCompletion completionCallback, object completionCallbackUserState, long pageNumber, long itemsPerPage, Nullable<DateTime> sinceDate = null)
         {
             // try/catch to process the request,  On catch return the error
             try
@@ -4404,6 +4415,17 @@ namespace Cloud.REST
                         new KeyValuePair<string, string>(CLDefinitions.QueryStringPerPage, itemsPerPage.ToString()),
                     });
 
+                // Add the UTC date if specified.
+                if (sinceDate != null && sinceDate.HasValue)
+                {
+                    serverMethodPath +=
+                    Helpers.QueryStringBuilder(new[]
+                    {
+                        // query string parameter for the current sync box id, should not need escaping since it should be an integer in string format
+                        new KeyValuePair<string, string>(CLDefinitions.CLSyncboxUpdatedAfter, 
+                            sinceDate.Value.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")),
+                    });
+                }
 
                 if (!(_copiedSettings.HttpTimeoutMilliseconds > 0))
                 {

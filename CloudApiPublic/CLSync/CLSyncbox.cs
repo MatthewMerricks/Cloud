@@ -3057,14 +3057,22 @@ namespace Cloud
         /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion callback above is fired.</param>
         /// <param name="pageNumber">Beginning page number.  The first page is page 1.</param>
         /// <param name="itemsPerPage">Items per page.</param>
+        /// <param name="sinceDate">(optional) null to retrieve all of the recents, or specify a date to retrieve items from that date forward.</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginRecentFiles(AsyncCallback asyncCallback, object asyncCallbackUserState, CLAllItemsCompletion completionCallback, object completionCallbackUserState, long pageNumber, long itemsPerPage)
+        public IAsyncResult BeginRecentFiles(
+            AsyncCallback asyncCallback,
+            object asyncCallbackUserState,
+            CLAllItemsCompletion completionCallback,
+            object completionCallbackUserState,
+            long pageNumber,
+            long itemsPerPage,
+            Nullable<DateTime> sinceDate = null)
         {
             CheckDisposed(true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.BeginRecentFiles(asyncCallback, asyncCallbackUserState, completionCallback, completionCallbackUserState, pageNumber, itemsPerPage);
+            return httpRestClient.BeginRecentFiles(asyncCallback, asyncCallbackUserState, completionCallback, completionCallbackUserState, pageNumber, itemsPerPage, sinceDate);
         }
 
         /// <summary>
@@ -3090,14 +3098,15 @@ namespace Cloud
         /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion callback above is fired.  Returns the result.</param>
         /// <param name="pageNumber">Beginning page number.  The first page is page 1.</param>
         /// <param name="itemsPerPage">Items per page.</param>
+        /// <param name="sinceDate">(optional) null to retrieve all of the recents, or specify a date to retrieve items from that date forward.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError RecentFiles(CLAllItemsCompletion completionCallback, object completionCallbackUserState, long pageNumber, long itemsPerPage)
+        public CLError RecentFiles(CLAllItemsCompletion completionCallback, object completionCallbackUserState, long pageNumber, long itemsPerPage, Nullable<DateTime> sinceDate = null)
         {
             CheckDisposed(true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.RecentFiles(completionCallback, completionCallbackUserState, pageNumber, itemsPerPage);
+            return httpRestClient.RecentFiles(completionCallback, completionCallbackUserState, pageNumber, itemsPerPage, sinceDate);
         }
 
         #endregion  // end RecentFiles (Retrieves the specified number of recently modified <CLFileItems>s.)
