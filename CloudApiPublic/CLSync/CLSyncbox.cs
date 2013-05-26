@@ -1488,19 +1488,23 @@ namespace Cloud
         }
         #endregion
 
-        #region ListAllSyncboxesWithCredentials (list syncboxes in the syncbox)
+        #region ListAllSyncboxes (list syncboxes in the syncbox)
 
         /// <summary>
         /// Asynchronously starts listing syncboxes in the syncbox.
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when operation completes.  Can be null.</param>
         /// <param name="asyncCallbackUserState">Userstate to pass as a parameter to the callback when it is fired.  Can be null.</param>
+        /// <param name="completionCallback">Callback method to fire when the operation is complete.  Returns the result.</param>
+        /// <param name="completionCallbackUserState">Userstate to be passed to the completion callback above when it is fired.</param>
         /// <param name="credentials">The credentials to use with this request.</param>
         /// <param name="settings">(optional) settings to use with this method.</param>
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
-        public static IAsyncResult BeginListAllSyncboxesWithCredentials(
+        public static IAsyncResult BeginListAllSyncboxes(
             AsyncCallback asyncCallback,
             object asyncCallbackUserState,
+            CLListSyncboxesCompletionCallback completionCallback,
+            object completionCallbackUserState,
             CLCredentials credentials,
             ICLCredentialsSettings settings = null)
         {
@@ -1514,6 +1518,8 @@ namespace Cloud
                     toReturn = new GenericAsyncResult<SyncboxListResult>(
                         asyncCallback,
                         asyncCallbackUserState),
+                    completionCallback = completionCallback,
+                    completionCallbackUserState = completionCallbackUserState,
                     credentials = credentials,
                     settings = settings
                 },
@@ -1523,18 +1529,16 @@ namespace Cloud
                     // try/catch to process with the input parameters, on catch set the exception in the asyncronous result
                     try
                     {
-                        // declare the specific type of result for this operation
-                        CLSyncbox [] response;
                         // Call the synchronous version of this method.
-                        CLError processError = ListAllSyncboxesWithCredentials(
+                        CLError processError = ListAllSyncboxes(
+                            completionCallback,
+                            completionCallbackUserState,
                             Data.credentials,
-                            out response,
                             Data.settings);
 
                         Data.toReturn.Complete(
                             new SyncboxListResult(
-                                processError, // any error that may have occurred during processing
-                                response), // the specific type of result for this operation
+                                processError), // any error that may have occurred during processing
                             sCompleted: false); // processing did not complete synchronously
                     }
                     catch (Exception ex)
@@ -1560,7 +1564,7 @@ namespace Cloud
         /// <param name="asyncResult">The asynchronous result provided upon starting the asynchronous operation</param>
         /// <param name="result">(output) The result from the asynchronous operation</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public static CLError EndListAllSyncboxesWithCredentials(IAsyncResult asyncResult, out SyncboxListResult result)
+        public static CLError EndListAllSyncboxes(IAsyncResult asyncResult, out SyncboxListResult result)
         {
             Helpers.CheckHalted();
             return Helpers.EndAsyncOperation<SyncboxListResult>(asyncResult, out result);
@@ -1569,6 +1573,8 @@ namespace Cloud
         /// <summary>
         /// List syncboxes in the syncbox for these credentials.  This is a synchronous method.
         /// </summary>
+        /// <param name="completionCallback">Callback method to fire when the operation is complete.  Returns the result.</param>
+        /// <param name="completionCallbackUserState">Userstate to be passed to the completion callback above when it is fired.</param>
         /// <param name="credentials">The credentials to use for this request.</param>
         /// <param name="response">(output) response object from communication</param>
         /// <param name="settings">(optional) the settings to use with this method</param>
@@ -1576,12 +1582,13 @@ namespace Cloud
         /// <param name="getNewCredentialsCallbackUserState">The user state to pass to the delegate above.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
         /// <remarks>The response array may be null, empty, or may contain null items.</remarks>
-        public static CLError ListAllSyncboxesWithCredentials(
-                    CLCredentials credentials,
-                    out CLSyncbox[] response,
-                    ICLCredentialsSettings settings = null,
-                    Helpers.ReplaceExpiredCredentials getNewCredentialsCallback = null,
-                    object getNewCredentialsCallbackUserState = null)
+        public static CLError ListAllSyncboxes(
+            CLListSyncboxesCompletionCallback completionCallback,
+            object completionCallbackUserState,
+            CLCredentials credentials,
+            ICLCredentialsSettings settings = null,
+            Helpers.ReplaceExpiredCredentials getNewCredentialsCallback = null,
+            object getNewCredentialsCallbackUserState = null)
         {
             Helpers.CheckHalted();
 
@@ -1623,7 +1630,12 @@ namespace Cloud
                             listSyncboxes.Add(null);
                         }
                     }
-                    response = listSyncboxes.ToArray();
+
+                    // Drive the completion callback to return the results.
+                    if (completionCallback != null)
+                    {
+                        completionCallback(listSyncboxes.ToArray(), completionCallbackUserState);
+                    }
                 }
                 else
                 {
@@ -1633,7 +1645,6 @@ namespace Cloud
             }
             catch (Exception ex)
             {
-                response = Helpers.DefaultForType<CLSyncbox[]>();
                 return ex;
             }
             return null;
