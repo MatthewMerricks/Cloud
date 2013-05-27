@@ -542,6 +542,30 @@ namespace Cloud.REST
     /// <summary>
     /// Holds result properties
     /// </summary>
+    public sealed class SyncboxUpdateFriendlyNameResult
+    {
+        /// <summary>
+        /// Any overall error which may have occurred during communication
+        /// </summary>
+        public CLError OverallError
+        {
+            get
+            {
+                return _overallError;
+            }
+        }
+        private readonly CLError _overallError;
+
+        // construct with all readonly properties
+        internal SyncboxUpdateFriendlyNameResult(CLError overallError)
+        {
+            this._overallError = overallError;
+        }
+    }
+
+    /// <summary>
+    /// Holds result properties
+    /// </summary>
     public sealed class SyncboxStatusResult
     {
         /// <summary>
@@ -1388,18 +1412,6 @@ namespace Cloud.REST
     //    internal UpdateSyncboxQuotaResult(CLError Error, JsonContracts.SyncboxHolder Response)
     //        : base(Error, Response) { }
     //}
-    #endregion
-
-    #region SyncboxUpdate
-    /// <summary>
-    /// Holds result properties
-    /// </summary>
-    public sealed class SyncboxUpdateFriendlyNameResult : BaseCLHttpRestResult<JsonContracts.SyncboxResponse>
-    {
-        // construct with all readonly properties
-        internal SyncboxUpdateFriendlyNameResult(CLError Error, JsonContracts.SyncboxResponse Response)
-            : base(Error, Response) { }
-    }
     #endregion
 
 }
