@@ -203,15 +203,21 @@ namespace Cloud.REST
         #region public API calls
         #region ItemForPath (Gets the metedata at a particular server syncbox path)
         /// <summary>
-        /// Asynchronously starts getting an item at a particular path in the syncbox.
+        /// Asynchronously starts querying the syncbox for an item at a given path (must be specified) for existing metadata at that path; outputs a CLFileItem object.
+        /// Check for Deleted flag being true in case the metadata represents a deleted item.
         /// </summary>
-        /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
-        /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
-        /// <param name="completionCallback">Callback method to fire for each item completion.</param>
-        /// <param name="completionCallbackUserState">Userstate to be passed whenever the item completion callback above is fired.</param>
-        /// <param name="path">The full path of the item in the local disk syncbox.</param>
+        /// <param name="asyncCallback">Callback method to fire when operation completes</param>
+        /// <param name="asyncCallbackUserState">Userstate to pass when firing async callback</param>
+        /// <param name="completionCallback">Delegate which will be fired upon successful communication for every response item.</param>
+        /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion delegate is fired.</param>
+        /// <param name="relativePath">Relative path in the syncbox to where file or folder would exist in the syncbox locally on disk.</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        internal IAsyncResult BeginItemForPath(AsyncCallback asyncCallback, object asyncCallbackUserState, CLSingleFileItemCompletionCallback completionCallback, object completionCallbackUserState, string path)
+        internal IAsyncResult BeginItemForPath(
+            AsyncCallback asyncCallback,
+            object asyncCallbackUserState,
+            CLSingleFileItemCompletionCallback completionCallback,
+            object completionCallbackUserState,
+            string relativePath)
         {
             var asyncThread = DelegateAndDataHolderBase.Create(
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
@@ -223,7 +229,7 @@ namespace Cloud.REST
                         asyncCallbackUserState),
                     itemCompletionCallback = completionCallback,
                     itemCompletionCallbackUserState = completionCallbackUserState,
-                    path = path,
+                    relativePath = relativePath,
                 },
                 (Data, errorToAccumulate) =>
                 {
@@ -235,7 +241,7 @@ namespace Cloud.REST
                         CLError overallError = ItemForPath(
                             completionCallback,
                             completionCallbackUserState,
-                            Data.path);
+                            Data.relativePath);
 
                         Data.toReturn.Complete(overallError, // any overall error that may have occurred during processing
                             sCompleted: false); // processing did not complete synchronously
@@ -273,16 +279,16 @@ namespace Cloud.REST
         /// </summary>
         /// <param name="completionCallback">Callback method to fire for each item completion.</param>
         /// <param name="completionCallbackUserState">Userstate to be passed whenever the item completion callback above is fired.</param>
-        /// <param name="path">The full path of the item in the local disk syncbox.</param>
+        /// <param name="relativePath">Relative path in the syncbox to where file or folder would exist in the syncbox locally on disk.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        internal CLError ItemForPath(CLSingleFileItemCompletionCallback completionCallback, object completionCallbackUserState, string path)
+        internal CLError ItemForPath(CLSingleFileItemCompletionCallback completionCallback, object completionCallbackUserState, string relativePath)
         {
             // try/catch to process the request,  On catch return the error
             try
             {
                 // check input parameters.
 
-                if (path == null)
+                if (relativePath == null)
                 {
                     throw new CLArgumentNullException(CLExceptionCode.OnDemand_MissingParameters, Resources.ExceptionOnDemandPathMustNotBeNull);
                 }
@@ -298,15 +304,15 @@ namespace Cloud.REST
                 };
 
                 // Get the relative path
-                FilePath fullPath = new FilePath(path);
-                string relativePath = fullPath.GetRelativePath(_syncbox.Path, true);
+                FilePath fullPath = new FilePath(relativePath, _syncbox.Path);
+                string fixedRelativePath = fullPath.GetRelativePath(_syncbox.Path, true);
 
                 // build the location of the metadata retrieval method on the server dynamically
                 string serverMethodPath = CLDefinitions.MethodPathGetItemMetadata +
                     Helpers.QueryStringBuilder(new[] // the method grabs its parameters by query string (since this method is an HTTP GET)
                     {
                         // query string parameter for the path to query, built by turning the full path location into a relative path from the cloud root and then escaping the whole thing for a url
-                        new KeyValuePair<string, string>(CLDefinitions.CLMetadataCloudPath, Uri.EscapeDataString(relativePath)),
+                        new KeyValuePair<string, string>(CLDefinitions.CLMetadataCloudPath, Uri.EscapeDataString(fixedRelativePath)),
 
                         // query string parameter for the current sync box id, should not need escaping since it should be an integer in string format
                         new KeyValuePair<string, string>(CLDefinitions.QueryStringSyncboxId, _syncbox.SyncboxId.ToString())
@@ -895,9 +901,14 @@ namespace Cloud.REST
         /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
         /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
         /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the item completion callback above is fired.</param>
-        /// <param name="itemParams">One or more parameter pairs (item to rename and new name) to be used to move each item.</param>
+        /// <param name="itemsToMove">One or more pairs of item to move and a folder item representing the new parent of the item being moved.</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        internal IAsyncResult BeginMoveFiles(AsyncCallback asyncCallback, object asyncCallbackUserState, CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, params MoveItemParams[] itemParams)
+        internal IAsyncResult BeginMoveFiles(
+            AsyncCallback asyncCallback, 
+            object asyncCallbackUserState, 
+            CLFileItemCompletionCallback itemCompletionCallback, 
+            object itemCompletionCallbackUserState, 
+            params MoveItemParams[] itemParams)
         {
             var asyncThread = DelegateAndDataHolderBase.Create(
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
@@ -959,7 +970,7 @@ namespace Cloud.REST
         /// </summary>
         /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
         /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the item completion callback above is fired.</param>
-        /// <param name="itemParams">One or more parameter pairs (item to rename and new name) to be used to move each item.</param>
+        /// <param name="itemsToMove">One or more pairs of item to move and a folder item representing the new parent of the item being moved.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
         internal CLError MoveFiles(CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, params MoveItemParams[] itemParams)
         {
@@ -987,23 +998,10 @@ namespace Cloud.REST
                         throw new CLArgumentException(CLExceptionCode.OnDemand_FileRename, String.Format(Resources.ExceptionOnDemandFileItemNullAtIndexMsg0, paramIdx.ToString()));
                     }
 
-                    // The CLFileItem represents an existing file, and should be valid because we created it.  The new full path must
-                    // fit the specs for the Windows client.  Determine the new full path of the renamed file path and check its validity.
-                    if (String.IsNullOrWhiteSpace(currentParams.ItemToMove.Path))
-                    {
-                        throw new CLArgumentException(CLExceptionCode.OnDemand_InvalidExistingPath, String.Format(Resources.ExceptionOnDemandRenameFilesInvalidExistingPathInItemMsg0, paramIdx.ToString()));
-                    }
-                    FilePath fullPathExisting = new FilePath(_syncbox.Path + currentParams.ItemToMove.Path.Replace('/', '\\'));
-                    string nameExisting = fullPathExisting.Name;
-                    FilePath fullPathNewParentFolder = new FilePath(currentParams.NewParentPath);
-                    FilePath fullPathNewMovedFile = new FilePath(nameExisting, fullPathNewParentFolder);
-
-                    CheckPath(fullPathNewMovedFile, CLExceptionCode.OnDemand_MovedItemBadPath);
-
                     // file move (rename) and folder move (rename) share a json contract object for move (rename)
                     jsonContractMoves[paramIdx] = new FileOrFolderMove()
                     {
-                        RelativeToPath = fullPathNewMovedFile.GetRelativePath(_syncbox.Path, true),
+                        ToParentUid = currentParams.NewParentFolderItem.Uid,
                         ServerUid = currentParams.ItemToMove.Uid,
                     };
                 }
@@ -1164,7 +1162,7 @@ namespace Cloud.REST
         /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
         /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
         /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the item completion callback above is fired.</param>
-        /// <param name="itemParams">One or more parameter pairs (item to rename and new name) to be used to move each item.</param>
+        /// <param name="itemsToMove">One or more pairs of item to move and a folder item representing the new parent of the item being moved.</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
         internal IAsyncResult BeginMoveFolders(AsyncCallback asyncCallback, object asyncCallbackUserState, CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, params MoveItemParams[] itemParams)
         {
@@ -1228,7 +1226,7 @@ namespace Cloud.REST
         /// </summary>
         /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
         /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the item completion callback above is fired.</param>
-        /// <param name="itemParams">One or more parameter pairs (item to rename and new name) to be used to rename each item in place.</param>
+        /// <param name="itemsToMove">One or more pairs of item to move and a folder item representing the new parent of the item being moved.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
         internal CLError MoveFolders(CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, params MoveItemParams[] itemParams)
         {
@@ -1256,23 +1254,10 @@ namespace Cloud.REST
                         throw new CLArgumentException(CLExceptionCode.OnDemand_FileRename, String.Format(Resources.ExceptionOnDemandFolderItemNullAtIndexMsg0, paramIdx.ToString()));
                     }
 
-                    // The CLFileItem represents an existing folder, and should be valid because we created it.  The new full path must
-                    // fit the specs for the Windows client.  Form the new full path and check its validity.
-                    if (String.IsNullOrWhiteSpace(currentParams.ItemToMove.Path))
-                    {
-                        throw new CLArgumentException(CLExceptionCode.OnDemand_InvalidExistingPath, String.Format(Resources.ExceptionOnDemandRenameFilesInvalidExistingPathInItemMsg0, paramIdx.ToString()));
-                    }
-                    FilePath fullPathExisting = new FilePath(_syncbox.Path + currentParams.ItemToMove.Path.Replace('/', '\\').TrimTrailingSlash());
-                    string nameExisting = fullPathExisting.Name;
-                    FilePath fullPathNewParentFolder = new FilePath(currentParams.NewParentPath);
-                    FilePath fullPathNewMovedFolder = new FilePath(nameExisting, fullPathNewParentFolder);
-
-                    CheckPath(fullPathNewMovedFolder, CLExceptionCode.OnDemand_MovedItemBadPath);
-
                     // file move (rename) and folder move (rename) share a json contract object for move (rename)
                     jsonContractMoves[paramIdx] = new FileOrFolderMove()
                     {
-                        RelativeToPath = fullPathNewMovedFolder.GetRelativePath(_syncbox.Path, true),
+                        ToParentUid = currentParams.NewParentFolderItem.Uid,
                         ServerUid = currentParams.ItemToMove.Uid,
                     };
                 }
