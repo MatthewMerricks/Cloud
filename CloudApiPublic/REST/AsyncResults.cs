@@ -168,16 +168,6 @@ namespace Cloud.REST
     /// <summary>
     /// Holds result properties
     /// </summary>
-    public sealed class SyncboxUsageResult : BaseCLHttpRestResult<JsonContracts.SyncboxUsageResponse>
-    {
-        // construct with all readonly properties
-        internal SyncboxUsageResult(CLError Error, JsonContracts.SyncboxUsageResponse Response)
-            : base(Error, Response) { }
-    }
-
-    /// <summary>
-    /// Holds result properties
-    /// </summary>
     public sealed class GetFolderHierarchyResult : BaseCLHttpRestResult<JsonContracts.FoldersResponse>
     {
         // construct with all readonly properties
@@ -548,6 +538,79 @@ namespace Cloud.REST
             this._overallError = overallError;
         }
     }
+
+    /// <summary>
+    /// Holds result properties
+    /// </summary>
+    public sealed class SyncboxStatusResult
+    {
+        /// <summary>
+        /// Any overall error which may have occurred during communication
+        /// </summary>
+        public CLError OverallError
+        {
+            get
+            {
+                return _overallError;
+            }
+        }
+        private readonly CLError _overallError;
+
+        // construct with all readonly properties
+        internal SyncboxStatusResult(CLError overallError)
+        {
+            this._overallError = overallError;
+        }
+    }
+
+    /// <summary>
+    /// Holds result properties
+    /// </summary>
+    public sealed class SyncboxUsageResult
+    {
+        /// <summary>
+        /// Any overall error which may have occurred during communication
+        /// </summary>
+        public CLError OverallError
+        {
+            get
+            {
+                return _overallError;
+            }
+        }
+        private readonly CLError _overallError;
+
+        // construct with all readonly properties
+        internal SyncboxUsageResult(CLError overallError)
+        {
+            this._overallError = overallError;
+        }
+    }
+
+    /// <summary>
+    /// Holds result properties
+    /// </summary>
+    public sealed class SyncboxUpdateStoragePlanResult
+    {
+        /// <summary>
+        /// Any overall error which may have occurred during communication
+        /// </summary>
+        public CLError OverallError
+        {
+            get
+            {
+                return _overallError;
+            }
+        }
+        private readonly CLError _overallError;
+
+        // construct with all readonly properties
+        internal SyncboxUpdateStoragePlanResult(CLError overallError)
+        {
+            this._overallError = overallError;
+        }
+    }
+
 
     /// <summary>
     /// Holds result properties
@@ -1339,23 +1402,4 @@ namespace Cloud.REST
     }
     #endregion
 
-    /// <summary>
-    /// Holds result properties
-    /// </summary>
-    public sealed class SyncboxUpdateStoragePlanResult : BaseCLHttpRestResult<JsonContracts.SyncboxUpdateStoragePlanResponse>
-    {
-        // construct with all readonly properties
-        internal SyncboxUpdateStoragePlanResult(CLError Error, JsonContracts.SyncboxUpdateStoragePlanResponse Response)
-            : base(Error, Response) { }
-    }
-
-    /// <summary>
-    /// Holds result properties
-    /// </summary>
-    public sealed class SyncboxStatusResult : BaseCLHttpRestResult<JsonContracts.SyncboxStatusResponse>
-    {
-        // construct with all readonly properties
-        internal SyncboxStatusResult(CLError Error, JsonContracts.SyncboxStatusResponse Response)
-            : base(Error, Response) { }
-    }
 }
