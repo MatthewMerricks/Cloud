@@ -3586,6 +3586,94 @@ namespace Cloud
         }
         #endregion  // end (changes the storage plan associated with this syncbox in the syncbox)
 
+        #region UpdateFriendlyName (change the friendly name of this syncbox)
+        /// <summary>
+        /// Asynchronously starts changing the friendly name of this syncbox.  Updates the information in this syncbox object.
+        /// </summary>
+        /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
+        /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
+        /// <param name="completionCallback">Callback method to fire when a page of items is complete.  Return the result.</param>
+        /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion callback above is fired.</param>
+        /// <param name="friendlyName">The new friendly name of this syncbox)</param>
+        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        public IAsyncResult BeginUpdateFriendlyName<T>(
+            AsyncCallback asyncCallback,
+            object asyncCallbackUserState,
+            Action<JsonContracts.SyncboxResponse, T> completionCallback,
+            T completionCallbackUserState,
+            string friendlyName)
+        {
+            CheckDisposed(true);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.BeginUpdateFriendlyName(
+                asyncCallback,
+                asyncCallbackUserState,
+                new Action<JsonContracts.SyncboxResponse, object>(OnUpdateFriendlyNameCompletion),
+                this,
+                friendlyName);
+        }
+
+        /// <summary>
+        /// Finishes changing the friendly name of this syncbox, if it has not already finished via its asynchronous result, and outputs the result,
+        /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
+        /// </summary>
+        /// <param name="asyncResult">The asynchronous result provided upon starting the request</param>
+        /// <param name="result">(output) An overall error which occurred during processing, if any</param>
+        /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
+        public CLError EndUpdateFriendlyName(IAsyncResult asyncResult, out SyncboxUpdateFriendlyNameResult result)
+        {
+            CheckDisposed(true);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.EndUpdateFriendlyName(asyncResult, out result);
+        }
+
+        /// <summary>
+        /// Changes the friendly name of this syncbox.  Updates the information in this syncbox object.
+        /// </summary>
+        /// <param name="completionCallback">Callback method to fire when a page of items is complete.  Return the result.</param>
+        /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion callback above is fired.</param>
+        /// <param name="reservedForActiveSync">true: Live sync is active.  User calls are not allowed.</param>
+        /// <param name="friendlyName">The new friendly name of this syncbox)</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        public CLError UpdateFriendlyName<T>(
+            Action<JsonContracts.SyncboxResponse, T> completionCallback,
+            T completionCallbackUserState,
+            string friendlyName)
+        {
+            CheckDisposed(true);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.UpdateFriendlyName(
+                new Action<JsonContracts.SyncboxResponse, object>(OnUpdateFriendlyNameCompletion),
+                this,
+                friendlyName);
+        }
+
+        /// <summary>
+        /// Called back when the HTTP request completes.
+        /// </summary>
+        /// <param name="response"></param>
+        /// <param name="userState"></param>
+        private void OnUpdateFriendlyNameCompletion(JsonContracts.SyncboxResponse response, object userState)
+        {
+            // Update this object's properties atomically.
+            this._propertyChangeLocker.EnterWriteLock();
+            try
+            {
+                this._friendlyName = response.Syncbox.FriendlyName;
+            }
+            finally
+            {
+                this._propertyChangeLocker.ExitWriteLock();
+            }
+        }
+        #endregion  // end UpdateFriendlyName (change the friendly name of this syncbox)
+
         #region GetCurrentStatus (update the status of this syncbox from the cloud)
         /// <summary>
         /// Asynchronously gets the status of this Syncbox.
