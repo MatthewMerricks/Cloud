@@ -563,7 +563,7 @@ namespace Cloud
                 else
                 {
                     setPathLocker = null;
-                    CLError setPathError = UpdatePathInternal(path, shouldUupdateSyncboxStatusFromServer: true);
+                    CLError setPathError = UpdatePathInternal(path, shouldUpdateSyncboxStatusFromServer: true);
                     if (setPathError != null)
                     {
                         throw new CLException(CLExceptionCode.Syncbox_Initializing, "Error initializing the syncbox", setPathError.Exceptions);
@@ -642,7 +642,7 @@ namespace Cloud
                 else
                 {
                     setPathLocker = null;
-                    CLError setPathError = UpdatePathInternal(path, shouldUupdateSyncboxStatusFromServer: false);  // the information in the server response filled in the current syncbox status.
+                    CLError setPathError = UpdatePathInternal(path, shouldUpdateSyncboxStatusFromServer: false);  // the information in the server response filled in the current syncbox status.
                     if (setPathError != null)
                     {
                         //&&&& Put all strings in resources.
@@ -1697,16 +1697,16 @@ namespace Cloud
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when operation completes</param>
         /// <param name="asyncCallbackUserState">Userstate to pass when firing async callback</param>
-        /// <param name="itemCompletionCallback">Delegate which will be fired upon successful communication for every response item.</param>
-        /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the completion delegate is fired.</param>
+        /// <param name="completionCallback">Delegate which will be fired upon successful communication for every response item.</param>
+        /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion delegate is fired.</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginRootFolder(AsyncCallback asyncCallback, object asyncCallbackUserState, CLSingleFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState)
+        public IAsyncResult BeginRootFolder(AsyncCallback asyncCallback, object asyncCallbackUserState, CLSingleFileItemCompletionCallback completionCallback, object completionCallbackUserState)
         {
             CheckDisposed();
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.BeginItemForPath(asyncCallback, asyncCallbackUserState, itemCompletionCallback, itemCompletionCallbackUserState, this.Path);
+            return httpRestClient.BeginItemForPath(asyncCallback, asyncCallbackUserState, completionCallback, completionCallbackUserState, Resources.Backslash);
         }
 
         /// <summary>
@@ -1729,16 +1729,16 @@ namespace Cloud
         /// <summary>
         /// Queries the syncbox for an item at the syncbox root path.
         /// </summary>
-        /// <param name="itemCompletionCallback">Delegate which will be fired upon successful communication for every response item.</param>
-        /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the completion delegate is fired.</param>
+        /// <param name="completionCallback">Delegate which will be fired upon successful communication for every response item.</param>
+        /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion delegate is fired.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError RootFolder(CLSingleFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState)
+        public CLError RootFolder(CLSingleFileItemCompletionCallback completionCallback, object completionCallbackUserState)
         {
             CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.ItemForPath(itemCompletionCallback, itemCompletionCallbackUserState, this.Path);
+            return httpRestClient.ItemForPath(completionCallback, completionCallbackUserState, Resources.Backslash);
         }
 
         #endregion  // end GetItemAtPath (Queries the cloud for the item at a particular path)
@@ -1750,17 +1750,22 @@ namespace Cloud
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when operation completes</param>
         /// <param name="asyncCallbackUserState">Userstate to pass when firing async callback</param>
-        /// <param name="itemCompletionCallback">Delegate which will be fired upon successful communication for every response item.</param>
-        /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the completion delegate is fired.</param>
-        /// <param name="path">Full path to where file or folder would exist in the syncbox locally on disk.</param>
+        /// <param name="completionCallback">Delegate which will be fired upon successful communication for every response item.</param>
+        /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion delegate is fired.</param>
+        /// <param name="relativePath">Relative path in the syncbox to where file or folder would exist in the syncbox locally on disk.</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginItemForPath(AsyncCallback asyncCallback, object asyncCallbackUserState, CLSingleFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, string path)
+        public IAsyncResult BeginItemForPath(
+            AsyncCallback asyncCallback, 
+            object asyncCallbackUserState, 
+            CLSingleFileItemCompletionCallback completionCallback, 
+            object completionCallbackUserState, 
+            string relativePath)
         {
             CheckDisposed();
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.BeginItemForPath(asyncCallback, asyncCallbackUserState, itemCompletionCallback, itemCompletionCallbackUserState, path);
+            return httpRestClient.BeginItemForPath(asyncCallback, asyncCallbackUserState, completionCallback, completionCallbackUserState, relativePath);
         }
 
         /// <summary>
@@ -1785,15 +1790,15 @@ namespace Cloud
         /// </summary>
         /// <param name="itemCompletionCallback">Delegate which will be fired upon successful communication for every response item.</param>
         /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the completion delegate is fired.</param>
-        /// <param name="path">Full path to where file or folder would exist in the syncbox locally on disk.</param>
+        /// <param name="relativePath">Relative path in the syncbox to where file or folder would exist in the syncbox locally on disk.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError ItemForPath(CLSingleFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, string path)
+        public CLError ItemForPath(CLSingleFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, string relativePath)
         {
             CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.ItemForPath(itemCompletionCallback, itemCompletionCallbackUserState, path);
+            return httpRestClient.ItemForPath(itemCompletionCallback, itemCompletionCallbackUserState, relativePath);
         }
 
         #endregion  // end GetItemAtPath (Queries the cloud for the item at a particular path)
@@ -1912,9 +1917,14 @@ namespace Cloud
         /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
         /// <param name="itemCompletionCallback">Delegate which will be fired upon successful communication for every response item.</param>
         /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the completion delegate is fired.</param>
-        /// <param name="itemsToMove">One or more pairs of items to move and the new full path of each item.</param>
+        /// <param name="itemsToMove">One or more pairs of item to move and a folder item representing the new parent of the item being moved.</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginMoveFiles(AsyncCallback asyncCallback, object asyncCallbackUserState, CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, params MoveItemParams[] itemsToMove)
+        public IAsyncResult BeginMoveFiles(
+            AsyncCallback asyncCallback, 
+            object asyncCallbackUserState, 
+            CLFileItemCompletionCallback itemCompletionCallback, 
+            object itemCompletionCallbackUserState, 
+            params MoveItemParams[] itemsToMove)
         {
             CheckDisposed(true);
 
@@ -1944,7 +1954,7 @@ namespace Cloud
         /// </summary>
         /// <param name="itemCompletionCallback">Delegate which will be fired upon successful communication for every response item.</param>
         /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the completion delegate is fired.</param>
-        /// <param name="itemsToMove">One or more pairs of items to move and the new full path of each item.</param>
+        /// <param name="itemsToMove">One or more pairs of item to move and a folder item representing the new parent of the item being moved.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError MoveFiles(CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, params MoveItemParams[] itemsToMove)
         {
@@ -1965,7 +1975,7 @@ namespace Cloud
         /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
         /// <param name="itemCompletionCallback">Delegate which will be fired upon successful communication for every response item.</param>
         /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the completion delegate is fired.</param>
-        /// <param name="itemsToMove">One or more pairs of items to move and the new full path each item.</param>
+        /// <param name="itemsToMove">One or more pairs of item to move and a folder item representing the new parent of the item being moved.</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
         public IAsyncResult BeginMoveFolders(AsyncCallback asyncCallback, object asyncCallbackUserState, CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, params MoveItemParams[] itemsToMove)
         {
@@ -1997,7 +2007,7 @@ namespace Cloud
         /// </summary>
         /// <param name="itemCompletionCallback">Delegate which will be fired upon successful communication for every response item.</param>
         /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the completion delegate is fired.</param>
-        /// <param name="itemsToMove">An array of pairs of items to rename and the new name of each item (just the last token in the path).</param>
+        /// <param name="itemsToMove">One or more pairs of item to move and a folder item representing the new parent of the item being moved.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError MoveFolders(CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, params MoveItemParams[] itemsToMove)
         {
@@ -2248,7 +2258,7 @@ namespace Cloud
         /// <param name="path">Full path to where the file would exist locally on disk</param>
         /// <param name="fileItem">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError AddFile(string path, out CLFileItem fileItem)
+        public CLError AddFile(string /* TODO: Change this to a relative path */ path, out CLFileItem fileItem)
         {
             CheckDisposed(true);
             string[] paths = new string[1] { path };
@@ -3752,7 +3762,7 @@ namespace Cloud
         /// <remarks>The path may be set only once.</remarks>
         public CLError UpdatePath(string path)
         {
-            CLError errorFromSet = UpdatePathInternal(path, shouldUupdateSyncboxStatusFromServer: true);
+            CLError errorFromSet = UpdatePathInternal(path, shouldUpdateSyncboxStatusFromServer: false);
             return errorFromSet;
         }
 
@@ -3841,9 +3851,9 @@ namespace Cloud
         /// be used by this syncbox instance.
         /// </summary>
         /// <param name="path"></param>
-        /// <param name="shouldUupdateSyncboxStatusFromServer"></param>
+        /// <param name="shouldUpdateSyncboxStatusFromServer"></param>
         /// <returns></returns>
-        private CLError UpdatePathInternal(string path, bool shouldUupdateSyncboxStatusFromServer)
+        private CLError UpdatePathInternal(string path, bool shouldUpdateSyncboxStatusFromServer)
         {
             if (path == null)
             {
@@ -3918,14 +3928,8 @@ namespace Cloud
                 // after removing CLSyncEngine from SetPathProperties, can now set the final setPathHolder here
                 setPathHolder = new SetPathProperties(path, localRestClient);
 
-                if (shouldUupdateSyncboxStatusFromServer)
+                if (shouldUpdateSyncboxStatusFromServer)
                 {
-                    //// removed CLSyncEngine from SetPathProperties, so can completely set setPathHolder before this statement
-                    //
-                    //// OLD CODE:
-                    //// Set the rest client early too because GetCurrentSyncboxStatus neeeds it.
-                    //setPathHolder = new SetPathProperties(path, localRestClient, null);
-
                     // We need to validate the syncbox ID with the server with these credentials.  We will also retrieve the other syncbox
                     // properties from the server and set them into this local object's properties.
                     CLError errorFromStatus = this.GetCurrentStatus();
