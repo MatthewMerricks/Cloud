@@ -426,7 +426,27 @@ namespace Cloud
         private DateTime _createdDate;
 
         /// <summary>
-        /// The storage quota in bytes of the storage plan used with this syncbox.
+        /// The number of bytes currently used within this syncbox's storage quota.
+        /// </summary>
+        public long QuotaUsage
+        {
+            get
+            {
+                _propertyChangeLocker.EnterReadLock();
+                try
+                {
+                    return _quotaUsage;
+                }
+                finally
+                {
+                    _propertyChangeLocker.ExitReadLock();
+                }
+            }
+        }
+        private long _quotaUsage;
+
+        /// <summary>
+        /// The maximum storage bytes supported by the storage plan associated with this syncbox.
         /// </summary>
         public long StorageQuota
         {
@@ -3339,7 +3359,11 @@ namespace Cloud
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.BeginGetSyncboxUsage(asyncCallback, asyncCallbackUserState, _copiedSettings.HttpTimeoutMilliseconds);
+            return httpRestClient.BeginGetDataUsage(
+                asyncCallback, 
+                asyncCallbackUserState,
+                new Action<JsonContracts.SyncboxUsageResponse, object>(OnGetDataUsageCompletion),
+                this);
         }
 
         /// <summary>
@@ -3355,21 +3379,40 @@ namespace Cloud
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.EndGetSyncboxUsage(asyncResult, out result);
+            return httpRestClient.EndGetDataUsage(asyncResult, out result);
         }
 
         /// <summary>
-        /// Queries the cloud for syncbox usage information.  This method is synchronous.
+        /// Queries the cloud for syncbox usage information.  The current syncbox properties are updated with the result.  This method is synchronous.
         /// </summary>
-        /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError GetDataUsage(out JsonContracts.SyncboxUsageResponse response)
+        public CLError GetDataUsage()
         {
             CheckDisposed(true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.GetSyncboxUsage(_copiedSettings.HttpTimeoutMilliseconds, out response);
+            return httpRestClient.GetDataUsage(new Action<JsonContracts.SyncboxUsageResponse, object>(OnGetDataUsageCompletion), this);
+        }
+
+        /// <summary>
+        /// Called back when the HTTP request completes.
+        /// </summary>
+        /// <param name="response"></param>
+        /// <param name="userState"></param>
+        private void OnGetDataUsageCompletion(JsonContracts.SyncboxUsageResponse response, object userState)
+        {
+            // Update this object's properties atomically.
+            this._propertyChangeLocker.EnterWriteLock();
+            try
+            {
+                this._storageQuota = (long)response.Limit;
+                this._quotaUsage = (long)response.Local;
+            }
+            finally
+            {
+                this._propertyChangeLocker.ExitWriteLock();
+            }
         }
         #endregion  // end GetDataUsage (get the usage information for this syncbox from the cloud)
 
@@ -3478,14 +3521,13 @@ namespace Cloud
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.BeginSyncboxUpdateStoragePlan(
+            return httpRestClient.BeginUpdateStoragePlan(
                 asyncCallback, 
                 asyncCallbackUserState, 
-                storagePlan.Id, 
-                _copiedSettings.HttpTimeoutMilliseconds, 
-                ReservedForActiveSync,
                 new Action<JsonContracts.SyncboxUpdateStoragePlanResponse, object>(OnUpdateStoragePlanCompletion), 
-                null);
+                this,
+                ReservedForActiveSync,
+                storagePlan);
         }
 
         /// <summary>
@@ -3501,7 +3543,7 @@ namespace Cloud
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.EndSyncboxUpdateStoragePlan(asyncResult, out result);
+            return httpRestClient.EndUpdateStoragePlan(asyncResult, out result);
         }
 
         /// <summary>
@@ -3509,21 +3551,18 @@ namespace Cloud
         /// Updates this object's StoragePlanId property.
         /// </summary>
         /// <param name="storagePlan">The storage plan to set (new storage plan to use for this syncbox)</param>
-        /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError UpdateStoragePlan(CLStoragePlan storagePlan, out JsonContracts.SyncboxUpdateStoragePlanResponse response)
+        public CLError UpdateStoragePlan(CLStoragePlan storagePlan)
         {
             CheckDisposed(true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.UpdateSyncboxStoragePlan(
-                storagePlan.Id, 
-                _copiedSettings.HttpTimeoutMilliseconds, 
-                out response, 
-                ReservedForActiveSync,
+            return httpRestClient.UpdateStoragePlan(
                 new Action<JsonContracts.SyncboxUpdateStoragePlanResponse, object>(OnUpdateStoragePlanCompletion), 
-                null);
+                this,
+                ReservedForActiveSync,
+                storagePlan);
         }
 
         /// <summary>
@@ -3533,34 +3572,12 @@ namespace Cloud
         /// <param name="userState"></param>
         private void OnUpdateStoragePlanCompletion(JsonContracts.SyncboxUpdateStoragePlanResponse response, object userState)
         {
-            if (response == null)
-            {
-                throw new NullReferenceException("response must not be null");  //&&&& fix
-            }
-            if (response.Syncbox == null)
-            {
-                throw new NullReferenceException("response Syncbox must not be null");  //&&&& fix
-            }
-            if (response.Syncbox.PlanId == null)
-            {
-                throw new NullReferenceException("response Syncbox PlanId must not be null");  //&&&& fix
-            }
-            if (response.Syncbox.StorageQuota == null)
-            {
-                throw new NullReferenceException("response Syncbox StorageQuota must not be null");  //&&&& fix
-            }
-            if (response.Syncbox.CreatedAt == null)
-            {
-                throw new NullReferenceException("response Syncbox CreatedAt must not be null");  //&&&& fix
-            }
-
             // Update this object's properties atomically.
             this._propertyChangeLocker.EnterWriteLock();
             try
             {
                 this._storagePlanId = (long)response.Syncbox.PlanId;
                 this._storageQuota = response.Syncbox.StorageQuota.HasValue ? response.Syncbox.StorageQuota.Value : (long)Helpers.DefaultForType<long>();
-                this._createdDate = response.Syncbox.CreatedAt.HasValue ? response.Syncbox.CreatedAt.Value : (DateTime)Helpers.DefaultForType<DateTime>();
             }
             finally
             {
@@ -3582,7 +3599,7 @@ namespace Cloud
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.BeginGetCurrentStatus(asyncCallback, asyncCallbackUserState, _copiedSettings.HttpTimeoutMilliseconds, new Action<JsonContracts.SyncboxStatusResponse, object>(OnStatusCompletion), null);
+            return httpRestClient.BeginGetCurrentStatus(asyncCallback, asyncCallbackUserState, new Action<JsonContracts.SyncboxStatusResponse, object>(OnStatusCompletion), this);
         }
         
         /// <summary>
@@ -3614,7 +3631,7 @@ namespace Cloud
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
             JsonContracts.SyncboxStatusResponse response;
-            return httpRestClient.GetCurrentStatus(_copiedSettings.HttpTimeoutMilliseconds, out response, new Action<JsonContracts.SyncboxStatusResponse, object>(OnStatusCompletion), null);
+            return httpRestClient.GetCurrentStatus(new Action<JsonContracts.SyncboxStatusResponse, object>(OnStatusCompletion), null);
         }
 
 
@@ -3625,29 +3642,6 @@ namespace Cloud
         /// <param name="userState"></param>
         private void OnStatusCompletion(JsonContracts.SyncboxStatusResponse response, object userState)
         {
-            if (response == null)
-            {
-                throw new NullReferenceException("response cannot be null");  //&&&& fix
-            }
-            if (response.Syncbox == null)
-            {
-                throw new NullReferenceException("response Syncbox cannot be null");  //&&&& fix
-            }
-            if (response.Syncbox.PlanId == null)
-            {
-                throw new NullReferenceException("response Syncbox PlanId cannot be null");  //&&&& fix
-            }
-            if (response.Syncbox.CreatedAt == null)
-            {
-                throw new NullReferenceException("response Syncbox CreatedAt cannot be null");  //&&&& fix
-            }
-            if (response.Syncbox.StorageQuota == null
-                || !response.Syncbox.StorageQuota.HasValue
-                || response.Syncbox.StorageQuota.Value == null)
-            {
-                throw new NullReferenceException("response Syncbox StorageQuota cannot be null");  //&&&& fix
-            }
-
             this._propertyChangeLocker.EnterWriteLock();
             try
             {
@@ -3846,7 +3840,7 @@ namespace Cloud
 
                     // We need to validate the syncbox ID with the server with these credentials.  We will also retrieve the other syncbox
                     // properties from the server and set them into this local object's properties.
-                    CLError errorFromStatus = GetCurrentStatus();
+                    CLError errorFromStatus = this.GetCurrentStatus();
                     if (errorFromStatus != null)
                     {
                         throw new CLException(CLExceptionCode.Syncbox_InitialStatus, Resources.ExceptionSyncboxStartStatus, errorFromStatus.Exceptions);
