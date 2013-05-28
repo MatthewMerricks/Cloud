@@ -3822,7 +3822,7 @@ namespace Cloud
         /// <remarks>The path may be set only once.</remarks>
         public CLError UpdatePath(string path)
         {
-            CLError errorFromSet = UpdatePathInternal(path, shouldUpdateSyncboxStatusFromServer: false);
+            CLError errorFromSet = UpdatePathInternal(path, shouldUpdateSyncboxStatusFromServer: true);
             return errorFromSet;
         }
 
