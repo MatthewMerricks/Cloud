@@ -1685,7 +1685,7 @@ namespace Cloud.FileMonitor
                         currentChange.oldPath,
                         currentChange.changeType,
                         currentChange.folderOnly,
-                        true,
+                        /* alreadyHoldingIndexLock: */ true,
                         newProcessingAction);
                 }
 
@@ -4096,7 +4096,7 @@ namespace Cloud.FileMonitor
                                             }
 
                                             // recurse once on this current function to process the previous path as a file system modified event
-                                            CheckMetadataAgainstFile(oldPath, null, WatcherChangeTypes.Changed, false);
+                                            CheckMetadataAgainstFile(oldPath, null, WatcherChangeTypes.Changed, folderOnly: false, alreadyHoldingIndexLock: true);
                                         }
                                         // if no file nor folder exists at the previous path and a file or folder does exist at the current path
                                         else if (exists)
@@ -4561,10 +4561,10 @@ namespace Cloud.FileMonitor
                                 foreach (DirectoryInfo subDirectory in folder.EnumerateDirectories())
                                 {
                                     CheckMetadataAgainstFile(subDirectory.FullName,
-                                        null,
+                                        /* oldPath: */ null,
                                         WatcherChangeTypes.Created,
-                                        true,
-                                        true);
+                                        folderOnly: true,
+                                        alreadyHoldingIndexLock: true);
                                 }
                             }
                             catch
@@ -4577,10 +4577,10 @@ namespace Cloud.FileMonitor
                                 foreach (FileInfo innerFile in folder.EnumerateFiles())
                                 {
                                     CheckMetadataAgainstFile(innerFile.FullName,
-                                        null,
+                                        /* oldPath: */ null,
                                         WatcherChangeTypes.Created,
-                                        false,
-                                        true);
+                                        folderOnly: false,
+                                        alreadyHoldingIndexLock: true);
                                 }
                             }
                             catch
