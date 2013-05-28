@@ -4391,7 +4391,7 @@ namespace Cloud.Sync
 
                                                 return true;
                                             })
-                                        .Select(incompleteChange => incompleteChange.FileChange));
+                                        .Select(incompleteChange => incompleteChange.FileChange)).ToArray();   // do not allow delayed execution because we need the data from the execution immediately
 
                                 if (uploadsToFire != null)
                                 {
