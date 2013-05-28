@@ -5530,7 +5530,8 @@ namespace Cloud.REST
                 {
                     throw new NullReferenceException("server returned null response Syncbox StorageQuota");  //&&&& fix
                 }
-                if (serverResponse.Status != CLDefinitions.CLEventTypeAccepted)
+                if (serverResponse.Status != CLDefinitions.CLEventTypeAccepted 
+                    && serverResponse.Status != CLDefinitions.RESTResponseStatusSuccess)
                 {
                     throw new Exception(String.Format("server returned error status {0}, message {1}.", serverResponse.Status, serverResponse.Message));  //&&&& fix this
                 }
