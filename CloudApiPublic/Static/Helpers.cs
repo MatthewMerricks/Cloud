@@ -1548,7 +1548,7 @@ namespace Cloud.Static
         /// <param name="TraceLocation">The full path of the directory to contain the trace files.</param>
         /// <param name="UserDeviceId">The relevant device ID, or null.</param>
         /// <param name="TraceCategory">The trace category.  This will appear in the trace file name.</param>
-        /// <param name="FileExtensionWithoutPeriod">The file extension to use.  e.g., "log" or "xml".</param>
+        /// <param name="FileExtensionWithoutPeriod">The file extension to use.  e.g., Resources.IconOverlayLog or "xml".</param>
         /// <param name="OnNewTraceFile">An action that will be driven when a new trace file is created.</param>
         /// <param name="OnPreviousCompletion">An action that will be driven on the old trace file when a trace file rolls over.</param>
         /// <param name="SyncboxId">The relevant sync box id, or null</param>

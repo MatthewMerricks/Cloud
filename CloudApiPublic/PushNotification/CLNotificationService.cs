@@ -252,7 +252,7 @@ namespace Cloud.PushNotification
                 lock (this)
                 {
                     // Initialize trace in case it is not already initialized.
-                    CLTrace.Initialize(syncbox.CopiedSettings.TraceLocation, "Cloud", "log", syncbox.CopiedSettings.TraceLevel, syncbox.CopiedSettings.LogErrors);
+                    CLTrace.Initialize(syncbox.CopiedSettings.TraceLocation, "Cloud", Resources.IconOverlayLog, syncbox.CopiedSettings.TraceLevel, syncbox.CopiedSettings.LogErrors);
                     _trace.writeToLog(9, Resources.CLNotificationServiceEntry);
 
                     // We should not already be started

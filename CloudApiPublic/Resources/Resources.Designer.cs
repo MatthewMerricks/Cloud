@@ -3719,7 +3719,7 @@ namespace Cloud.Static {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Unknown mergedEvent.Type:.
+        ///   Looks up a localized string similar to Unknown mergedEvent.Type: .
         /// </summary>
         internal static string IconOverlayMergedEventType {
             get {
@@ -3746,7 +3746,7 @@ namespace Cloud.Static {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to IconOverlay: MessageEvents_BadgePathRenamed: ERROR: Throw. Msg: &lt;{0}&gt;, Code: {1}. FromPath: {2}. ToPath: {3}.
+        ///   Looks up a localized string similar to IconOverlay: MessageEvents_BadgePathRenamed: ERROR: Throw. Msg: &lt;{0}&gt;, Code: {1}. FromPath: {2}. ToPath: {3}..
         /// </summary>
         internal static string IconOverlayMessageEventsBadgePathRenamedERRORThrowMas0Code1FromPath2ToPath3 {
             get {
@@ -3805,15 +3805,6 @@ namespace Cloud.Static {
         internal static string IconOverlayMustBeInitializedBeforeSettingBadges {
             get {
                 return ResourceManager.GetString("IconOverlayMustBeInitializedBeforeSettingBadges", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to IconOverlay must be initialized before setting badges.
-        /// </summary>
-        internal static string IconOverlayMustInitializedBeforeSettingsBadges {
-            get {
-                return ResourceManager.GetString("IconOverlayMustInitializedBeforeSettingsBadges", resourceCulture);
             }
         }
         
@@ -4314,15 +4305,6 @@ namespace Cloud.Static {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to IconOverlay: RenameBadgePath. In _currentBadgesSyncedLocker..
-        /// </summary>
-        internal static string IconOverlayRenameBadgePathInCurrentBadgesSyncedLocker {
-            get {
-                return ResourceManager.GetString("IconOverlayRenameBadgePathInCurrentBadgesSyncedLocker", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to IconOverlay: RenameBadgePath. Old path: {0}, New path: {1}..
         /// </summary>
         internal static string IconOverlayRenameBadgePathOldPath0NewPath1 {
@@ -4469,9 +4451,9 @@ namespace Cloud.Static {
         /// <summary>
         ///   Looks up a localized string similar to rootPath cannot be null.
         /// </summary>
-        internal static string IconOVerlayRootPathCannotBeNull {
+        internal static string IconOverlayRootPathCannotBeNull {
             get {
-                return ResourceManager.GetString("IconOVerlayRootPathCannotBeNull", resourceCulture);
+                return ResourceManager.GetString("IconOverlayRootPathCannotBeNull", resourceCulture);
             }
         }
         
@@ -4728,7 +4710,7 @@ namespace Cloud.Static {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to IconOverlay: ShouldIconBeBadged. Return (2): {0}..
+        ///   Looks up a localized string similar to IconOverlay: ShouldIconBeBadged. Return(2): {0}..
         /// </summary>
         internal static string IconOverlayShouldIconBeBadgedReturn20 {
             get {

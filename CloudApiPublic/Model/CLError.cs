@@ -230,7 +230,7 @@ namespace Cloud.Model
                 {
                     // Determine the full path of the trace file to use and manage the number of old trace files.
                     string logFilePath = Helpers.CheckLogFileExistance(TraceLocation: logLocation, SyncboxId: null, UserDeviceId: null, TraceCategory: "CloudError",
-                        FileExtensionWithoutPeriod: "log", OnNewTraceFile: null, OnPreviousCompletion: null);
+                        FileExtensionWithoutPeriod: Resources.IconOverlayLog, OnNewTraceFile: null, OnPreviousCompletion: null);
 
                     // Write the info to the trace file
                     try

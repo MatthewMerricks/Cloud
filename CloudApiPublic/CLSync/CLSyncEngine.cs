@@ -126,7 +126,7 @@ namespace Cloud
                 }
 
                 // Initialize trace in case it is not already initialized.
-                CLTrace.Initialize(syncbox.CopiedSettings.TraceLocation, "Cloud", "log", syncbox.CopiedSettings.TraceLevel, syncbox.CopiedSettings.LogErrors);
+                CLTrace.Initialize(syncbox.CopiedSettings.TraceLocation, "Cloud", Resources.IconOverlayLog, syncbox.CopiedSettings.TraceLevel, syncbox.CopiedSettings.LogErrors);
                 _trace.writeToLog(1, Resources.CLSyncEngineSyncResetEntry);
 
                 CLError checkBadPath = Helpers.CheckForBadPath(syncbox.Path);
@@ -302,7 +302,7 @@ namespace Cloud
 
                 //// DO NOT MOVE THIS EARLIER EVEN THOUGH EARLIER STATEMENTS HAVE TRACE
                 // Initialize trace in case it is not already initialized.
-                CLTrace.Initialize(this._syncbox.CopiedSettings.TraceLocation, "Cloud", "log", this._syncbox.CopiedSettings.TraceLevel, this._syncbox.CopiedSettings.LogErrors);
+                CLTrace.Initialize(this._syncbox.CopiedSettings.TraceLocation, "Cloud", Resources.IconOverlayLog, this._syncbox.CopiedSettings.TraceLevel, this._syncbox.CopiedSettings.LogErrors);
                 _trace.writeToLog(1, Resources.CLSyncEngineStarting);
 
                 if (!String.IsNullOrWhiteSpace(this._syncbox.CopiedSettings.DatabaseFolder))
