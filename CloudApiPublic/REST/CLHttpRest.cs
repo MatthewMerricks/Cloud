@@ -143,13 +143,20 @@ namespace Cloud.REST
             }
 
             this._syncbox = syncbox;
+
             if (settings == null)
             {
-                this._copiedSettings = AdvancedSyncSettings.CreateDefaultSettings();
+                throw new NullReferenceException(Resources.CLSyncSettingsMustNotBeNull);
+            }
+
+            AdvancedSyncSettings alreadyReadonlySettings = settings as AdvancedSyncSettings;
+            if (alreadyReadonlySettings == null)
+            {
+                this._copiedSettings = settings.CopySettings();
             }
             else
             {
-                this._copiedSettings = settings.CopySettings();
+                this._copiedSettings = alreadyReadonlySettings;
             }
 
             if (!string.IsNullOrEmpty(this._syncbox.Path))
@@ -6788,11 +6795,18 @@ namespace Cloud.REST
 
                 // run the actual communication
                 Helpers.ProcessHttp<object>(
-                    new Download() // JSON contract to serialize
-                    {
-                        Uid = serverUid,
-                        Revision = revision
-                    },
+
+                     // JSON contract to serialize
+                    (string.IsNullOrEmpty(changeToDownload.Metadata.StorageKey)
+                        ? new Download()
+                            {
+                                Uid = serverUid,
+                                Revision = revision
+                            }
+                        : new Download()
+                            {
+                                StorageKey = changeToDownload.Metadata.StorageKey
+                            }),
                     CLDefinitions.CLUploadDownloadServerURL, // server for download
                     serverMethodPath, // dynamic method path to incorporate query string parameters
                     Helpers.requestMethod.post, // download is a post
