@@ -1218,27 +1218,22 @@ namespace SampleLiveSync.ViewModels
                         {
                             // create credentials
                             CLCredentials syncCredentials;
-                            CLCredentialsCreationStatus syncCredentialsStatus;
                             CLError errorCreateSyncCredentials = CLCredentials.AllocAndInit(
                                 key: SettingsAdvancedImpl.Instance.Key,
                                 secret: SettingsAdvancedImpl.Instance.Secret,
                                 credentials: out syncCredentials,
-                                status: out syncCredentialsStatus,
                                 token: SettingsAdvancedImpl.Instance.Token,
                                 settings: SettingsAdvancedImpl.Instance);
 
                             if (errorCreateSyncCredentials != null)
                             {
-                                _trace.writeToLog(1, "MainViewModel: StartSyncing: ERROR: From CLCredential.CreateAndInitialize: Msg: <{0}>.", errorCreateSyncCredentials.PrimaryException.Message);
-                            }
-                            if (syncCredentialsStatus != CLCredentialsCreationStatus.Success)
-                            {
+                                _trace.writeToLog(1, "MainViewModel: StartSyncing: ERROR: From CLCredential.CreateAndInitialize: Code: {0}. Msg: <{1}>.", errorCreateSyncCredentials.PrimaryException.Code,  errorCreateSyncCredentials.PrimaryException.Message);
                                 if (NotifyException != null)
                                 {
                                     NotifyException(this, new NotificationEventArgs<CLError>()
                                     {
                                         Data = errorCreateSyncCredentials,
-                                        Message = "syncCredentialsStatus: " + syncCredentialsStatus.ToString() + ":" + Environment.NewLine +
+                                        Message = "syncCredentialsStatus: " + errorCreateSyncCredentials.PrimaryException.Code + ":" + Environment.NewLine +
                                             errorCreateSyncCredentials.PrimaryException.Message
                                     });
                                 }
@@ -1452,9 +1447,8 @@ namespace SampleLiveSync.ViewModels
                 {
                     // User supplied credentials.  Create one.
                     CLCredentials credentials = null;
-                    CLCredentialsCreationStatus credentialsStatus;
-                    CLError errorCredentials = CLCredentials.AllocAndInit(viewModel.Key, viewModel.Secret, out credentials, out credentialsStatus, viewModel.Token);
-                    if (credentialsStatus == CLCredentialsCreationStatus.Success)
+                    CLError errorCredentials = CLCredentials.AllocAndInit(viewModel.Key, viewModel.Secret, out credentials, viewModel.Token);
+                    if (errorCredentials == null)
                     {
                         _trace.writeToLog(1, "MainViewModel: ReplaceExpiredCredentialsCallback: Got credentials to return.");
                         toReturn = credentials;
@@ -1463,7 +1457,7 @@ namespace SampleLiveSync.ViewModels
                     {
                         errorCredentials.Log(_trace.TraceLocation, _trace.LogErrors);
                         _trace.writeToLog(1, "MainViewModel: ReplaceExpiredCredentialsCallback: ERROR: Exception: Msg: <{0}>.", errorCredentials.PrimaryException.Message);
-                        NotifyException(this, new NotificationEventArgs<CLError>() { Data = errorCredentials, Message = String.Format("Error: {0}.", errorCredentials.PrimaryException.Message) });
+                        NotifyException(this, new NotificationEventArgs<CLError>() { Data = errorCredentials, Message = String.Format("Code: {0}. Error: {1}.", errorCredentials.PrimaryException.Code, errorCredentials.PrimaryException.Message) });
                     }
 
                 }
