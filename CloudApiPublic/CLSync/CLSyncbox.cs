@@ -509,7 +509,7 @@ namespace Cloud
         /// <param name="syncboxId">The syncbox ID.</param>
         /// <param name="credentials">The credentials to use to create this syncbox.</param>
         /// <param name="path">(optional) The full path on disk of the folder to associate with this syncbox.</param>
-        /// <param name="settings">(optional) The settings to use.</param>
+        /// <param name="settings">The settings to use. DeviceId required.</param>
         /// <param name="getNewCredentialsCallback">(optional) The delegate to call for getting new temporary credentials.</param>
         /// <param name="getNewCredentialsCallbackUserState">(optional) The user state to pass to the delegate above.</param>
         private CLSyncbox(
@@ -533,13 +533,13 @@ namespace Cloud
             }
 
             // Copy the settings so the user can't change them.
-            if (settings == null)
+            if (settings == null
+
+                || string.IsNullOrEmpty(
+                    (this._copiedSettings = settings.CopySettings())
+                        .DeviceId)) // also, make sure device id is not null since it is required for CLHttpRest client
             {
-                this._copiedSettings = AdvancedSyncSettings.CreateDefaultSettings();
-            }
-            else
-            {
-                this._copiedSettings = settings.CopySettings();
+                throw new CLArgumentNullException(CLExceptionCode.Syncbox_DeviceId, Resources.CLHttpRestDeviceIDCannotBeNull);
             }
 
             // Initialize trace in case it is not already initialized.
@@ -755,7 +755,7 @@ namespace Cloud
         /// <param name="credentials">Credentials to use with this request.</param>
         /// <param name="syncbox">(output) Created local object representation of the Syncbox</param>
         /// <param name="path">The full path of the folder on disk to associate with this syncbox. If this parameter is null, the syncbox local disk directory will be %USEERPROFILE%\Cloud. </param>
-        /// <param name="settings">(optional) Settings to use with this request</param>
+        /// <param name="settings">Settings to use with this request. DeviceId is required.</param>
         /// <param name="getNewCredentialsCallback">(optional) A delegate that will be called to provide new credentials when the current credentials token expires.</param>
         /// <param name="getNewCredentialsCallbackUserState">(optional) The user state that will be passed back to the getNewCredentialsCallback delegate.</param>
         /// <returns>Returns any error which occurred during object allocation or initialization, if any, or null.</returns>
@@ -764,7 +764,7 @@ namespace Cloud
             CLCredentials credentials,
             out CLSyncbox syncbox,
             string path,
-            ICLSyncSettings settings = null,
+            ICLSyncSettings settings,
             Helpers.ReplaceExpiredCredentials getNewCredentialsCallback = null,
             object getNewCredentialsCallbackUserState = null)
         {
