@@ -292,7 +292,7 @@ namespace Cloud.Model
 
             if (replaceWithForwardSlashes)
             {
-                return relativePath.Replace('\\', '/');
+                return relativePath.Replace('\\', '/').Replace("//", "/");
             }
             
             return relativePath;
