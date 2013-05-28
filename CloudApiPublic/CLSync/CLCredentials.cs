@@ -85,19 +85,15 @@ namespace Cloud
         /// <param name="key">The public key that identifies this application or session.</param>
         /// <param name="secret">The application or session private secret.</param>
         /// <param name="credentials">(output) Created credentials object</param>
-        /// <param name="status">(output) Status of creation, check this for Success</param>
         /// <param name="token">(optional) The temporary token to use.  Default: null.</param>
         /// <returns>Returns any error that occurred in construction, if any, or null.</returns>
         public static CLError AllocAndInit(
             string key,
             string secret,
             out CLCredentials credentials,
-            out CLCredentialsCreationStatus status,
             string token = null,
             ICLCredentialsSettings settings = null)
         {
-            status = CLCredentialsCreationStatus.ErrorUnknown;
-
             try
             {
                 Helpers.CheckHalted();
@@ -106,7 +102,6 @@ namespace Cloud
                     key,
                     secret,
                     token,
-                    ref status,
                     settings);
             }
             catch (Exception ex)
@@ -115,7 +110,6 @@ namespace Cloud
                 return ex;
             }
 
-            status = CLCredentialsCreationStatus.Success;
             return null;
         }
 
@@ -130,7 +124,6 @@ namespace Cloud
             string key,
             string secret,
             string token, 
-            ref CLCredentialsCreationStatus status,
             ICLCredentialsSettings settings = null)
         {
             Helpers.CheckHalted();
@@ -138,13 +131,11 @@ namespace Cloud
             // check input parameters
             if (string.IsNullOrEmpty(key))
             {
-                status = CLCredentialsCreationStatus.ErrorNullKey;
-                throw new NullReferenceException(Resources.CLCredentialKeyCannotBeNull);
+                throw new CLArgumentNullException(CLExceptionCode.Credentials_NullKey, Resources.CLCredentialKeyCannotBeNull);
             }
             if (string.IsNullOrEmpty(secret))
             {
-                status = CLCredentialsCreationStatus.ErrorNullSecret;
-                throw new NullReferenceException(Resources.CLCredentialSecretCannotBeNull);
+                throw new CLArgumentNullException(CLExceptionCode.Credentials_NullSecret, Resources.CLCredentialSecretCannotBeNull);
             }
 
             // Since we allow null then reverse-null coalesce from empty string
@@ -1351,19 +1342,4 @@ namespace Cloud
 
         #endregion  // end Public, But Hidden HTTP API calls for CloudApp
     }
-
-    #region Public Enums
-
-    /// <summary>
-    /// Status of creation of <see cref="CLCredentials"/>
-    /// </summary>
-    public enum CLCredentialsCreationStatus : byte
-    {
-        Success = 0,
-        ErrorNullKey = 1,
-        ErrorNullSecret = 2,
-        ErrorUnknown = 3,
-    }
-
-    #endregion  // end Public Enums
 }

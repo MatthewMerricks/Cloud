@@ -29,38 +29,33 @@
 ///         static void Main(string[] args)
 ///         {
 ///             CLCredentials credentials; // declare credentials object
-///             CLCredentialsCreationStatus credentialsStatus; // declare status enumeration
-///             CLCredential.AllocAndInit( // creation returns a CLError which can be checked
+///             CLError errorFromCredentialAllocAndInit = CLCredential.AllocAndInit( // creation returns a CLError which can be checked
 ///                     key: "My key from the Cloud developer Dashboard",
 ///                     secret: "My secret from the Cloud developer Dashboard",
 ///                     credentials: out credentials, // output the created credentials object here
-///                     status: out credentialsStatus,  // output the status from creating credentials
 ///                     token: "My session token from the Cloud developer Dashboard", // (optional)
 ///                     settings);   // (optional settings)
 ///
-///             // optionally check credentialsStatus/returned CLError here before continuing
+///             // optionally returned CLError here before continuing
 ///            
 ///             // create the minimal settings using just the path to the folder
 ///             CLSyncSettings syncSettings = new CLSyncSettings(deviceId: "<device name unique in the Syncbox>");
 ///
 ///             CLSyncbox syncbox; // declare sync box
-///             CLSyncboxCreationStatus syncboxStatus; // declare status enumeration
-///             CLSyncbox.AllocAndInit( // run the creation method for an existing sync box id (also returns CLError)
+///             CLError errorFromAllocAndInit = CLSyncbox.AllocAndInit( // run the creation method for an existing sync box id (also returns CLError)
 ///                 Credentials: credentials, // created above
 ///                 SyncboxId: <id of Syncbox>, //The ID created for this Syncbox on the Cloud developer Dashboard
 ///                 syncbox: out syncbox, // output the created sync box here
-///                 status: out syncboxStatus, // output the status from creating sync box
 ///                 path: "<full path of the syncbox folder on disk>",
 ///                 Settings: syncSettings); // live syncing requires an implemented settings interface (created above)
 ///
-///             // optionally check syncboxStatus/returned CLError here before continuing
+///             // optionally check returned CLError here before continuing
 ///
 ///             // start the syncbox
-///             CLSyncStartStatus startStatus; // declare status enumeration
-///             syncbox.BeginSync( // starting sync returns a CLError which can be checked
+///             CLError errorFromStart = syncbox.StartLiveSync( // starting sync returns a CLError which can be checked
 ///                 CLSyncMode.CLSyncModeLive);  // start live syncing
 ///
-///             // optionally check startStatus/returned CLError here to see if it worked
+///             // optionally check the returned CLError here to see if it worked
 ///
 ///             // ...
 ///

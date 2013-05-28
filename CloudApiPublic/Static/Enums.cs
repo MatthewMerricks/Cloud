@@ -23,7 +23,8 @@ namespace Cloud.Static
         ShellExt = 3,
         Syncing = 4,
         OnDemand = 5,
-        FileItem = 6
+        FileItem = 6,
+        Credentials = 7,
     }
 
     /// <summary>
@@ -509,7 +510,21 @@ namespace Cloud.Static
         /// <summary>
         /// (internal constructor) Unable to determine whether item is a file or a folder from action
         /// </summary>
-        FileItem_UnknownAction = (((ulong)CLExceptionDomain.FileItem) << 32) | 3 // 6_3
+        FileItem_UnknownAction = (((ulong)CLExceptionDomain.FileItem) << 32) | 3, // 6_3
+
+        #endregion
+
+        #region Credentials
+
+        /// <summary>
+        /// Credentials: Key is null.
+        /// </summary
+        Credentials_NullKey = (((ulong)CLExceptionDomain.Credentials) << 32) | 1, // 7_0
+
+        /// <summary>
+        /// Credentials: Secret is null.
+        /// </summary
+        Credentials_NullSecret = (((ulong)CLExceptionDomain.Credentials) << 32) | 1, // 7_1
 
         #endregion
 
