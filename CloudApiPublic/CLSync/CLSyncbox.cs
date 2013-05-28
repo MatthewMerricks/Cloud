@@ -543,7 +543,7 @@ namespace Cloud
                 else
                 {
                     setPathLocker = null;
-                    CLError setPathError = UpdatePathInternal(path, shouldUupdateSyncboxStatusFromServer: true);
+                    CLError setPathError = UpdatePathInternal(path, shouldUpdateSyncboxStatusFromServer: true);
                     if (setPathError != null)
                     {
                         throw new CLException(CLExceptionCode.Syncbox_Initializing, "Error initializing the syncbox", setPathError.Exceptions);
@@ -622,7 +622,7 @@ namespace Cloud
                 else
                 {
                     setPathLocker = null;
-                    CLError setPathError = UpdatePathInternal(path, shouldUupdateSyncboxStatusFromServer: false);  // the information in the server response filled in the current syncbox status.
+                    CLError setPathError = UpdatePathInternal(path, shouldUpdateSyncboxStatusFromServer: false);  // the information in the server response filled in the current syncbox status.
                     if (setPathError != null)
                     {
                         //&&&& Put all strings in resources.
@@ -3670,7 +3670,7 @@ namespace Cloud
         /// <remarks>The path may be set only once.</remarks>
         public CLError UpdatePath(string path)
         {
-            CLError errorFromSet = UpdatePathInternal(path, shouldUupdateSyncboxStatusFromServer: true);
+            CLError errorFromSet = UpdatePathInternal(path, shouldUpdateSyncboxStatusFromServer: true);
             return errorFromSet;
         }
 
@@ -3759,9 +3759,9 @@ namespace Cloud
         /// be used by this syncbox instance.
         /// </summary>
         /// <param name="path"></param>
-        /// <param name="shouldUupdateSyncboxStatusFromServer"></param>
+        /// <param name="shouldUpdateSyncboxStatusFromServer"></param>
         /// <returns></returns>
-        private CLError UpdatePathInternal(string path, bool shouldUupdateSyncboxStatusFromServer)
+        private CLError UpdatePathInternal(string path, bool shouldUpdateSyncboxStatusFromServer)
         {
             if (path == null)
             {
@@ -3836,7 +3836,7 @@ namespace Cloud
                 // after removing CLSyncEngine from SetPathProperties, can now set the final setPathHolder here
                 setPathHolder = new SetPathProperties(path, localRestClient);
 
-                if (shouldUupdateSyncboxStatusFromServer)
+                if (shouldUpdateSyncboxStatusFromServer)
                 {
                     //// removed CLSyncEngine from SetPathProperties, so can completely set setPathHolder before this statement
                     //
