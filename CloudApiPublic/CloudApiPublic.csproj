@@ -64,7 +64,6 @@
     <!-- AUTO-BUILD TAG FOR BadgeComLib -->
     <Reference Include="BadgeCOMLib, Version=0.2.6.0, Culture=neutral, PublicKeyToken=840eb90fa4503c3c, processorArchitecture=MSIL">
       <HintPath>..\3rdParty\bin\Release\BadgeCOMLib.dll</HintPath>
-      <SpecificVersion>False</SpecificVersion>
     </Reference>
     <Reference Include="Interop.Shell32, Version=1.0.0.0, Culture=neutral, PublicKeyToken=840eb90fa4503c3c, processorArchitecture=MSIL">
       <HintPath>..\3rdParty\bin\Release\Interop.Shell32.dll</HintPath>
