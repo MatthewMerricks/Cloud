@@ -94,7 +94,7 @@ namespace Cloud.Support
         /// </summary>
         /// <param name="TraceLocation">The full path of the trace directory.</param>
         /// <param name="TraceCategory">The name of the trace category.</param>
-        /// <param name="FileExtensionWithoutPeriod">e.g.: "log".</param>
+        /// <param name="FileExtensionWithoutPeriod">e.g.: "log"</param>
         /// <param name="TraceLevel">0: No trace.  Enter 1 for most important traces.  Higher numbers for greater detail.</param>
         /// <param name="LogErrors">The Settings LogErrors setting.</param>
         /// <param name="willForceReset">true: Change the trace settings with these parameters.</param>

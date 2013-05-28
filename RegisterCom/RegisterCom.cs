@@ -152,7 +152,7 @@ namespace RegisterCom
                 {
                     // Initialize the Cloud tracing.
                     CLTrace.Initialize(TraceLocation: Settings.Instance.TraceLocation, 
-                        TraceCategory: "RegisterCOM", FileExtensionWithoutPeriod: "log", TraceLevel: Settings.Instance.TraceLevel, LogErrors: Settings.Instance.LogErrors);
+                        TraceCategory: "RegisterCOM", FileExtensionWithoutPeriod: Resources.IconOverlayLog, TraceLevel: Settings.Instance.TraceLevel, LogErrors: Settings.Instance.LogErrors);
                 }
                 catch
                 {

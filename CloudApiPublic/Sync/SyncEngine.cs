@@ -242,7 +242,7 @@ namespace Cloud.Sync
             this.httpRestClient = httpRestClient;
 
             // Initialize trace in case it is not already initialized.
-            CLTrace.Initialize(this.syncbox.CopiedSettings.TraceLocation, "Cloud", "log", this.syncbox.CopiedSettings.TraceLevel, this.syncbox.CopiedSettings.LogErrors);
+            CLTrace.Initialize(this.syncbox.CopiedSettings.TraceLocation, "Cloud", Resources.IconOverlayLog, this.syncbox.CopiedSettings.TraceLevel, this.syncbox.CopiedSettings.LogErrors);
             CLTrace.Instance.writeToLog(9, "SyncEngine: SyncEngine: Entry.");
 
             this.DefaultTempDownloadsPath = Helpers.GetTempFileDownloadPath(this.syncbox.CopiedSettings, this.syncbox.SyncboxId);

@@ -8,8 +8,8 @@
 // Back end definitions
 // @@@@@@@@@ AUTO-BUILD SECTION.  DON'T CHANGE THE FORMAT @@@@@@@@@@@@@@@@@
 //#define PRODUCTION_BACKEND    // cloud.com
-//#define DEVELOPMENT_BACKEND     // cliff.cloudburrito.com
-#define STAGING_BACKEND       // cloudstaging.us
+#define DEVELOPMENT_BACKEND     // cliff.cloudburrito.com
+//#define STAGING_BACKEND       // cloudstaging.us
 // @@@@@@@@@ END AUTO-BUILD SECTION.  DON'T CHANGE THE FORMAT @@@@@@@@@@@@@@@@@
 
 // URL definitions
@@ -48,8 +48,7 @@ namespace Cloud.Static
 #if PRODUCTION_BACKEND
         public const string Domain = "cloud.com";
 #elif STAGING_BACKEND
-        public const string Domain = "cliff.cloudburrito.com";
-        //public const string Domain = "cloudstaging.us";
+        public const string Domain = "cloudstaging.us";
 #else
         public const string Domain = "cliff.cloudburrito.com";
 #endif

@@ -543,7 +543,7 @@ namespace Cloud
             }
 
             // Initialize trace in case it is not already initialized.
-            CLTrace.Initialize(this._copiedSettings.TraceLocation, "Cloud", "log", this._copiedSettings.TraceLevel, this._copiedSettings.LogErrors);
+            CLTrace.Initialize(this._copiedSettings.TraceLocation, "Cloud", Resources.IconOverlayLog, this._copiedSettings.TraceLevel, this._copiedSettings.LogErrors);
             _trace.writeToLog(1, Resources.CLSyncboxConstructing);
 
             // Set up the syncbox
@@ -621,7 +621,7 @@ namespace Cloud
             }
 
             // Initialize trace in case it is not already initialized.
-            CLTrace.Initialize(this._copiedSettings.TraceLocation, "Cloud", "log", this._copiedSettings.TraceLevel, this._copiedSettings.LogErrors);
+            CLTrace.Initialize(this._copiedSettings.TraceLocation, "Cloud", Resources.IconOverlayLog, this._copiedSettings.TraceLevel, this._copiedSettings.LogErrors);
             _trace.writeToLog(1, "CLSyncbox: Constructing from contract...");
 
             // Set up the syncbox

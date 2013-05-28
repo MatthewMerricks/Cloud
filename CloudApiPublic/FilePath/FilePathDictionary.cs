@@ -99,7 +99,7 @@ namespace Cloud.Model
                 // Dictionary requires a root path for normal usage
                 if (rootPath == null)
                 {
-                    throw new ArgumentException("rootPath cannot be null");
+                    throw new ArgumentException(Resources.IconOverlayRootPathCannotBeNull);
                 }
                 // Current path of the dictionary is the root used to create it
                 pathDictionary.CurrentFilePath = rootPath;

@@ -1830,7 +1830,7 @@
     <comment>"IconOverlay" and "MessageEvents_BadgePathDeleted" should not be translated. </comment>
   </data>
   <data name="IconOverlayMessageEventsBadgePathRenamedERRORThrowMas0Code1FromPath2ToPath3" xml:space="preserve">
-    <value>IconOverlay: MessageEvents_BadgePathRenamed: ERROR: Throw. Msg: &lt;{0}&gt;, Code: {1}. FromPath: {2}. ToPath: {3}</value>
+    <value>IconOverlay: MessageEvents_BadgePathRenamed: ERROR: Throw. Msg: &lt;{0}&gt;, Code: {1}. FromPath: {2}. ToPath: {3}.</value>
     <comment>Do Not Translate </comment>
   </data>
   <data name="IconOverlayMessageEventsBadgePathRenamedFromPath0ToPath1" xml:space="preserve">
@@ -2053,10 +2053,6 @@
     <value>IconOverlay: RenameBadgePath. Got _currentBadgesSynced oldPath item.</value>
     <comment>Do Not Translate</comment>
   </data>
-  <data name="IconOverlayRenameBadgePathInCurrentBadgesSyncedLocker" xml:space="preserve">
-    <value>IconOverlay: RenameBadgePath. In _currentBadgesSyncedLocker.</value>
-    <comment>Do Not Translate</comment>
-  </data>
   <data name="IconOverlayRenameBadgePathOldPath0NewPath1" xml:space="preserve">
     <value>IconOverlay: RenameBadgePath. Old path: {0}, New path: {1}.</value>
     <comment>Do Not Translate</comment>
@@ -2067,11 +2063,7 @@
   </data>
   <data name="IconOverlayRenameBadgePathRemoveBadgeNewPath0" xml:space="preserve">
     <value>IconOverlay: RenameBadgePath. Remove badge at newPath: {0}.</value>
-    <comment>"IconOverlay", "setBadgeType", and "newPath" should not be translated.</comment>
-  </data>
-  <data name="IconOverlayRenameBadgePathRemoveBadgeOldPath0" xml:space="preserve">
-    <value>IconOverlay: RenameBadgePath. Remove badge at oldPath: {0}.</value>
-    <comment>"IconOverlay", "setBadgeType", and "oldPath" should not be translated.</comment>
+    <comment>"IconOverlay" and "newPath" should not be translated.</comment>
   </data>
   <data name="IconOverlayRenameBadgePathRemoveNewPath" xml:space="preserve">
     <value>IconOverlay: RenameBadgePath. Remove newPath.</value>
@@ -2206,10 +2198,6 @@
     <comment>Translate</comment>
   </data>
   <data name="IconOverlayMustBeInitializedBeforeSettingBadges" xml:space="preserve">
-    <value>IconOverlay must be initialized before setting badges</value>
-    <comment>"IconOverlay" should not be translated.</comment>
-  </data>
-  <data name="IconOverlayMustInitializedBeforeSettingsBadges" xml:space="preserve">
     <value>IconOverlay must be initialized before setting badges</value>
     <comment>"IconOverlay" should not be translated.</comment>
   </data>
@@ -2366,7 +2354,7 @@
     <comment>"IconOverlay" and "ShouldIconBeBadged" should not be translated.</comment>
   </data>
   <data name="IconOverlayShouldIconBeBadgedReturn20" xml:space="preserve">
-    <value>IconOverlay: ShouldIconBeBadged. Return (2): {0}.</value>
+    <value>IconOverlay: ShouldIconBeBadged. Return(2): {0}.</value>
     <comment>"IconOverlay" and "ShouldIconBeBadged" should not be translated.</comment>
   </data>
   <data name="IconOverlayShouldIconBeBadgedReturn30" xml:space="preserve">
@@ -2409,7 +2397,7 @@
     <value>IconOverlay: UpdateBadgeStateUpTreeStartingWithParentOfNode. Entry.  nodePath: {0}.</value>
     <comment>"IconOverlay", "UpdateBadgeStateUpTreeStartingWithParentOfNode", and "nodePath" should not be translated. </comment>
   </data>
-  <data name="IconOVerlayRootPathCannotBeNull" xml:space="preserve">
+  <data name="IconOverlayRootPathCannotBeNull" xml:space="preserve">
     <value>rootPath cannot be null</value>
     <comment>"rootPath" cannot be translated.</comment>
   </data>
@@ -2486,7 +2474,7 @@
     <comment>"genericSetter.Process" and "badgeType" should not be translated.</comment>
   </data>
   <data name="IconOverlayMergedEventType" xml:space="preserve">
-    <value>Unknown mergedEvent.Type:</value>
+    <value>Unknown mergedEvent.Type: </value>
     <comment>"mergedEvent.Type" should not be translated. </comment>
   </data>
   <data name="IconOverlayNewEventEventToRemoveType0Old1New2" xml:space="preserve">
@@ -2908,5 +2896,9 @@
   <data name="Backslash" xml:space="preserve">
     <value>\</value>
     <comment>"\" should not be translated</comment>
+  </data>
+  <data name="IconOverlayRenameBadgePathRemoveBadgeOldPath0" xml:space="preserve">
+    <value>IconOverlay: RenameBadgePath. Remove badge at oldPath: {0}.</value>
+    <comment>"IconOverlay" and "oldPath" should not be translated.</comment>
   </data>
 </root>
