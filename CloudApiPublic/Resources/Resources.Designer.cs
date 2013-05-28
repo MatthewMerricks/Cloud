@@ -97,6 +97,15 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to \.
+        /// </summary>
+        internal static string Backslash {
+            get {
+                return ResourceManager.GetString("Backslash", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Bytes.
         /// </summary>
         internal static string BytesPlural {
@@ -2808,11 +2817,11 @@ namespace Cloud.Static {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to New parent folder must be specified.
+        ///   Looks up a localized string similar to New parent folder item must be specified.
         /// </summary>
-        internal static string ExceptionOnDemandNewParentFolderMustBeSpecified {
+        internal static string ExceptionOnDemandNewParentFolderItemMustBeSpecified {
             get {
-                return ResourceManager.GetString("ExceptionOnDemandNewParentFolderMustBeSpecified", resourceCulture);
+                return ResourceManager.GetString("ExceptionOnDemandNewParentFolderItemMustBeSpecified", resourceCulture);
             }
         }
         

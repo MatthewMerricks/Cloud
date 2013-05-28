@@ -32,35 +32,34 @@ namespace Cloud.CLSync.CLSyncboxParameters
         private readonly CLFileItem _itemToMove;
 
         /// <summary>
-        /// Returns the full path of the new parent of the item.
+        /// Returns the folder item representing the new parent of the item.
         /// </summary>
-        public string NewParentPath
+        public CLFileItem NewParentFolderItem
         {
             get
             {
-                return _newParentPath;
+                return _newParentFolderItem;
             }
         }
-        private readonly string _newParentPath;
+        private readonly CLFileItem _newParentFolderItem;
 
         /// <summary>
         /// Construct parameters for moving an item.
         /// </summary>
         /// <param name="itemToMove">The item (file or folder) to move.</param>
-        /// <param name="newParentPath">Full path of the new parent folder.</param>
-        public MoveItemParams(CLFileItem itemToMove, string newParentPath)
+        /// <param name="newParentFolderItem">The item representing the new parent folder.</param>
+        public MoveItemParams(CLFileItem itemToMove, CLFileItem newParentFolderItem)
         {
             if (itemToMove == null)
             {
                 throw new CLArgumentNullException(Static.CLExceptionCode.OnDemand_MoveItemParamsMissingProperties, Resources.ExceptionOnDemandItemToMoveMustNotBeNull);
             }
-            if (String.IsNullOrEmpty(newParentPath))
+            if (newParentFolderItem == null)
             {
-                throw new CLArgumentNullException(Static.CLExceptionCode.OnDemand_MoveItemParamsMissingProperties, Resources.ExceptionOnDemandNewParentFolderMustBeSpecified);
+                throw new CLArgumentNullException(Static.CLExceptionCode.OnDemand_MoveItemParamsMissingProperties, Resources.ExceptionOnDemandNewParentFolderItemMustBeSpecified);
             }
 
             this._itemToMove = itemToMove;
-            this._newParentPath = newParentPath;
         }
     }
 }

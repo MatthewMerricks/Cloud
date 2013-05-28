@@ -2665,8 +2665,8 @@
     <value>Item to move must not be null</value>
     <comment>Translate</comment>
   </data>
-  <data name="ExceptionOnDemandNewParentFolderMustBeSpecified" xml:space="preserve">
-    <value>New parent folder must be specified</value>
+  <data name="ExceptionOnDemandNewParentFolderItemMustBeSpecified" xml:space="preserve">
+    <value>New parent folder item must be specified</value>
     <comment>Translate</comment>
   </data>
   <data name="ExceptionCLSyncEngineMissingSyncFolder" xml:space="preserve">
@@ -2904,5 +2904,9 @@
   <data name="ExceptionOnDemandDeleteSyncboxErrorMsg0" xml:space="preserve">
     <value>Error deleting syncbox: {0}</value>
     <comment>"{0}" shoud not be translated</comment>
+  </data>
+  <data name="Backslash" xml:space="preserve">
+    <value>\</value>
+    <comment>"\" should not be translated</comment>
   </data>
 </root>

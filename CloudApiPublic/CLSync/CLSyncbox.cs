@@ -426,7 +426,27 @@ namespace Cloud
         private DateTime _createdDate;
 
         /// <summary>
-        /// The storage quota in bytes of the storage plan used with this syncbox.
+        /// The number of bytes currently used within this syncbox's storage quota.
+        /// </summary>
+        public long QuotaUsage
+        {
+            get
+            {
+                _propertyChangeLocker.EnterReadLock();
+                try
+                {
+                    return _quotaUsage;
+                }
+                finally
+                {
+                    _propertyChangeLocker.ExitReadLock();
+                }
+            }
+        }
+        private long _quotaUsage;
+
+        /// <summary>
+        /// The maximum storage bytes supported by the storage plan associated with this syncbox.
         /// </summary>
         public long StorageQuota
         {
@@ -1677,16 +1697,16 @@ namespace Cloud
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when operation completes</param>
         /// <param name="asyncCallbackUserState">Userstate to pass when firing async callback</param>
-        /// <param name="itemCompletionCallback">Delegate which will be fired upon successful communication for every response item.</param>
-        /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the completion delegate is fired.</param>
+        /// <param name="completionCallback">Delegate which will be fired upon successful communication for every response item.</param>
+        /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion delegate is fired.</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginRootFolder(AsyncCallback asyncCallback, object asyncCallbackUserState, CLSingleFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState)
+        public IAsyncResult BeginRootFolder(AsyncCallback asyncCallback, object asyncCallbackUserState, CLSingleFileItemCompletionCallback completionCallback, object completionCallbackUserState)
         {
             CheckDisposed();
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.BeginItemForPath(asyncCallback, asyncCallbackUserState, itemCompletionCallback, itemCompletionCallbackUserState, this.Path);
+            return httpRestClient.BeginItemForPath(asyncCallback, asyncCallbackUserState, completionCallback, completionCallbackUserState, Resources.Backslash);
         }
 
         /// <summary>
@@ -1709,16 +1729,16 @@ namespace Cloud
         /// <summary>
         /// Queries the syncbox for an item at the syncbox root path.
         /// </summary>
-        /// <param name="itemCompletionCallback">Delegate which will be fired upon successful communication for every response item.</param>
-        /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the completion delegate is fired.</param>
+        /// <param name="completionCallback">Delegate which will be fired upon successful communication for every response item.</param>
+        /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion delegate is fired.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError RootFolder(CLSingleFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState)
+        public CLError RootFolder(CLSingleFileItemCompletionCallback completionCallback, object completionCallbackUserState)
         {
             CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.ItemForPath(itemCompletionCallback, itemCompletionCallbackUserState, this.Path);
+            return httpRestClient.ItemForPath(completionCallback, completionCallbackUserState, Resources.Backslash);
         }
 
         #endregion  // end GetItemAtPath (Queries the cloud for the item at a particular path)
@@ -1730,17 +1750,22 @@ namespace Cloud
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when operation completes</param>
         /// <param name="asyncCallbackUserState">Userstate to pass when firing async callback</param>
-        /// <param name="itemCompletionCallback">Delegate which will be fired upon successful communication for every response item.</param>
-        /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the completion delegate is fired.</param>
-        /// <param name="path">Full path to where file or folder would exist in the syncbox locally on disk.</param>
+        /// <param name="completionCallback">Delegate which will be fired upon successful communication for every response item.</param>
+        /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion delegate is fired.</param>
+        /// <param name="relativePath">Relative path in the syncbox to where file or folder would exist in the syncbox locally on disk.</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginItemForPath(AsyncCallback asyncCallback, object asyncCallbackUserState, CLSingleFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, string path)
+        public IAsyncResult BeginItemForPath(
+            AsyncCallback asyncCallback, 
+            object asyncCallbackUserState, 
+            CLSingleFileItemCompletionCallback completionCallback, 
+            object completionCallbackUserState, 
+            string relativePath)
         {
             CheckDisposed();
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.BeginItemForPath(asyncCallback, asyncCallbackUserState, itemCompletionCallback, itemCompletionCallbackUserState, path);
+            return httpRestClient.BeginItemForPath(asyncCallback, asyncCallbackUserState, completionCallback, completionCallbackUserState, relativePath);
         }
 
         /// <summary>
@@ -1765,15 +1790,15 @@ namespace Cloud
         /// </summary>
         /// <param name="itemCompletionCallback">Delegate which will be fired upon successful communication for every response item.</param>
         /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the completion delegate is fired.</param>
-        /// <param name="path">Full path to where file or folder would exist in the syncbox locally on disk.</param>
+        /// <param name="relativePath">Relative path in the syncbox to where file or folder would exist in the syncbox locally on disk.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError ItemForPath(CLSingleFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, string path)
+        public CLError ItemForPath(CLSingleFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, string relativePath)
         {
             CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.ItemForPath(itemCompletionCallback, itemCompletionCallbackUserState, path);
+            return httpRestClient.ItemForPath(itemCompletionCallback, itemCompletionCallbackUserState, relativePath);
         }
 
         #endregion  // end GetItemAtPath (Queries the cloud for the item at a particular path)
@@ -1892,9 +1917,14 @@ namespace Cloud
         /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
         /// <param name="itemCompletionCallback">Delegate which will be fired upon successful communication for every response item.</param>
         /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the completion delegate is fired.</param>
-        /// <param name="itemsToMove">One or more pairs of items to move and the new full path of each item.</param>
+        /// <param name="itemsToMove">One or more pairs of item to move and a folder item representing the new parent of the item being moved.</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginMoveFiles(AsyncCallback asyncCallback, object asyncCallbackUserState, CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, params MoveItemParams[] itemsToMove)
+        public IAsyncResult BeginMoveFiles(
+            AsyncCallback asyncCallback, 
+            object asyncCallbackUserState, 
+            CLFileItemCompletionCallback itemCompletionCallback, 
+            object itemCompletionCallbackUserState, 
+            params MoveItemParams[] itemsToMove)
         {
             CheckDisposed(true);
 
@@ -1924,7 +1954,7 @@ namespace Cloud
         /// </summary>
         /// <param name="itemCompletionCallback">Delegate which will be fired upon successful communication for every response item.</param>
         /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the completion delegate is fired.</param>
-        /// <param name="itemsToMove">One or more pairs of items to move and the new full path of each item.</param>
+        /// <param name="itemsToMove">One or more pairs of item to move and a folder item representing the new parent of the item being moved.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError MoveFiles(CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, params MoveItemParams[] itemsToMove)
         {
@@ -1945,7 +1975,7 @@ namespace Cloud
         /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
         /// <param name="itemCompletionCallback">Delegate which will be fired upon successful communication for every response item.</param>
         /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the completion delegate is fired.</param>
-        /// <param name="itemsToMove">One or more pairs of items to move and the new full path each item.</param>
+        /// <param name="itemsToMove">One or more pairs of item to move and a folder item representing the new parent of the item being moved.</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
         public IAsyncResult BeginMoveFolders(AsyncCallback asyncCallback, object asyncCallbackUserState, CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, params MoveItemParams[] itemsToMove)
         {
@@ -1977,7 +2007,7 @@ namespace Cloud
         /// </summary>
         /// <param name="itemCompletionCallback">Delegate which will be fired upon successful communication for every response item.</param>
         /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the completion delegate is fired.</param>
-        /// <param name="itemsToMove">An array of pairs of items to rename and the new name of each item (just the last token in the path).</param>
+        /// <param name="itemsToMove">One or more pairs of item to move and a folder item representing the new parent of the item being moved.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError MoveFolders(CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, params MoveItemParams[] itemsToMove)
         {
@@ -2106,7 +2136,7 @@ namespace Cloud
         /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the item completion callback above is fired.</param>
         /// <param name="folderItemsToAdd">One or more pairs of folder parent item and name of the new folder to add.</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginAddFolders(AsyncCallback asyncCallback, object asyncCallbackUserState, CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, params AddItemParams[] folderItemsToAdd)
+        public IAsyncResult BeginAddFolders(AsyncCallback asyncCallback, object asyncCallbackUserState, CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, params AddFolderItemParams[] folderItemsToAdd)
         {
             CheckDisposed(true);
 
@@ -2138,7 +2168,7 @@ namespace Cloud
         /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the item completion callback above is fired.</param>
         /// <param name="itemsToDelete">One or more file items to delete.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError AddFolders(CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, params AddItemParams[] folderItemsToAdd)
+        public CLError AddFolders(CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, params AddFolderItemParams[] folderItemsToAdd)
         {
             CheckDisposed(true);
 
@@ -2151,186 +2181,246 @@ namespace Cloud
 
         #region AddFile (Adds a file in the syncbox)
         /// <summary>
-        /// Asynchronously starts adding a file in the syncbox; outputs a CLFileItem object.
+        /// Asynchronously starts adding files in the syncbox.
         /// </summary>
-        /// <param name="asyncCallback">Callback method to fire when operation completes</param>
-        /// <param name="asyncCallbackUserState">Userstate to pass when firing async callback</param>
-        /// <param name="path">Full path to where the file would exist locally on disk.</param>
+        /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
+        /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
+        /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
+        /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the item completion callback above is fired.</param>
+        /// <param name="filesToAdd">(params) An array of pairs of relative path in the syncbox of the file to add, and the parent folder item that will hold the added file.</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginAddFile(AsyncCallback asyncCallback, object asyncCallbackUserState, string path)
-        {
-            CheckDisposed(true);
-            string[] paths = new string[1] { path };
-
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.BeginAddFiles(asyncCallback, asyncCallbackUserState, paths);
-        }
-
-        /// <summary>
-        /// Finishes adding a file in the syncbox, if it has not already finished via its asynchronous result, and outputs the result,
-        /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
-        /// </summary>
-        /// <param name="asyncResult">The asynchronous result provided upon starting the metadata query</param>
-        /// <param name="result">(output) The result from the metadata query</param>
-        /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndAddFile(IAsyncResult asyncResult, out SyncboxAddFileResult result)
-        {
-            CheckDisposed(true);
-
-            // Complete the async operation.
-            SyncboxAddFilesResult results;
-
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            CLError error = httpRestClient.EndAddFiles(asyncResult, out results);
-
-            // Return resulting error or item
-            if (error != null)
-            {
-                // We got an overall error.  Return it.
-                result = null;
-                return error;
-            }
-            // error == null  (no overall error)
-            else if (results == null)
-            {
-                // No overall error, but also no results.  Return an error.
-                result = null;
-                return new CLError(new CLException(CLExceptionCode.OnDemand_FileAddNoServerResponsesOrErrors, "No error or responses from server results null"));
-            }
-            // error == null && results != null  (no overall error, and we got a results object)
-            else if (results.Errors != null && results.Errors.Length >= 1)
-            {
-                // No overall error, got a results object, and it has an error.  Return that error.
-                result = null;
-                return results.Errors[0];
-            }
-            // (error == null && results != null) && (results.Errors == null || results.Errors.Length == 0)  (no overall error, we got a results object, and there are no errors in results)
-            else if (results.FileItems != null && results.FileItems.Length >= 1)
-            {
-                // No overall error, got a results object, is has no errors, and it has a delete response.  This is the normal case.  Return that delete response as the result.
-                result = new SyncboxAddFileResult(error: null, fileItem: results.FileItems[0]);
-                return null;        // normal condition
-            }
-            // ((error == null && results != null) && (results.Errors == null || results.Errors.Length == 0)) && (results.Responses == null || results.Responses.Length == 0)
-            else
-            {
-                // No error, got a results object, but there were no errors and no delete responses inside.  Return an error.
-                result = null;
-                return new CLError(new CLException(CLExceptionCode.OnDemand_FileAddNoServerResponsesOrErrors, "No error or responses from server"));
-            }
-        }
-
-        /// <summary>
-        /// Adds a file in the syncbox.
-        /// </summary>
-        /// <param name="path">Full path to where the file would exist locally on disk</param>
-        /// <param name="fileItem">(output) response object from communication</param>
-        /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError AddFile(string path, out CLFileItem fileItem)
-        {
-            CheckDisposed(true);
-            string[] paths = new string[1] { path };
-
-            // Communicate and get the results.
-            CLError[] outErrors;
-            CLFileItem[] outItems;
-
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            CLError error = httpRestClient.AddFiles(paths, out outItems, out outErrors);
-
-            // Return resulting error or item
-            if (error != null)
-            {
-                // There was an overall error.  Return it
-                fileItem = null;
-                return error;
-            }
-            // error == null
-            else if (outErrors != null && outErrors.Length >= 1)
-            {
-                // No overall error, but there was an item error.  Return it.
-                fileItem = null;
-                return outErrors[0];
-            }
-            // error == null && (outErrors == null || outErrors.Length == 0)
-            else if (outItems != null && outItems.Length >= 1)
-            {
-                // No overall error, no item errors, and we have an item.  Return it.  This is the normal condition
-                fileItem = outItems[0];
-                return null;
-            }
-            // (error == null && (outErrors == null || outErrors.Length == 0)) && (outItems == null || outItems.Length == 0)
-            else
-            {
-                // No overall error, no item errors, and no items.  No responses from server.  Return error.
-                fileItem = null;
-                return new CLError(new CLException(CLExceptionCode.OnDemand_FileAddNoServerResponsesOrErrors, "No responses or status from serer"));
-            }
-        }
-
-        #endregion  // end AddFile (Adds a file in the syncbox)
-
-        #region AddFiles (Add files in the syncbox)
-        /// <summary>
-        /// Asynchronously starts adding files in the syncbox; outputs an array of  CLFileItem objects, and possibly an array of CLError objects.
-        /// </summary>
-        /// <param name="asyncCallback">Callback method to fire when operation completes</param>
-        /// <param name="asyncCallbackUserState">Userstate to pass when firing async callback</param>
-        /// <param name="paths">An array of full paths to where the files would exist locally on disk.</param>
-        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginAddFiles(AsyncCallback asyncCallback, object asyncCallbackUserState, string[] paths)
+        public IAsyncResult BeginAddFiles(
+            AsyncCallback asyncCallback,
+            object asyncCallbackUserState,
+            CLFileItemCompletionCallback itemCompletionCallback,
+            object itemCompletionCallbackUserState,
+            params AddFileItemParams[] filesToAdd)
         {
             CheckDisposed(true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.BeginAddFiles(asyncCallback, asyncCallbackUserState, paths);
+            return httpRestClient.BeginAddFiles(asyncCallback, asyncCallbackUserState, itemCompletionCallback, itemCompletionCallbackUserState, filesToAdd);
         }
 
         /// <summary>
         /// Finishes adding files in the syncbox, if it has not already finished via its asynchronous result, and outputs the result,
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
         /// </summary>
-        /// <param name="asyncResult">The asynchronous result provided upon starting the metadata query</param>
-        /// <param name="result">(output) The result from the metadata query</param>
+        /// <param name="aResult">The asynchronous result provided upon starting the request</param>
+        /// <param name="result">(output) The result from the request</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndAddFiles(IAsyncResult asyncResult, out SyncboxAddFilesResult result)
         {
             CheckDisposed(true);
-            SyncboxAddFilesResult deleteResult;
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            CLError error = httpRestClient.EndAddFiles(asyncResult, out deleteResult);
-
-            if (error != null)
-            {
-                result = null;
-                return error;
-            }
-
-            result = new SyncboxAddFilesResult(deleteResult.OverallError, deleteResult.Errors, deleteResult.FileItems);
-            return error;
+            return httpRestClient.EndAddFiles(asyncResult, out result);
         }
 
         /// <summary>
-        /// Adds files in the syncbox.
+        /// Add files in the syncbox.
         /// </summary>
-        /// <param name="paths">An array of full paths to where the files would exist locally on disk.</param>
-        /// <param name="fileItems">(output) response object from communication</param>
-        /// <param name="errors">(output) Any returned errors, or null.</param>
+        /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
+        /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
+        /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
+        /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the item completion callback above is fired.</param>
+        /// <param name="filesToAdd">(params) An array of pairs of relative path in the syncbox of the file to add, and the parent folder item that will hold the added file.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError AddFiles(string[] paths, out CLFileItem[] fileItems, out CLError[] errors)
+        public CLError AddFiles(
+            CLFileItemCompletionCallback itemCompletionCallback,
+            object itemCompletionCallbackUserState,
+            params AddFileItemParams[] filesToAdd)
         {
             CheckDisposed(true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.AddFiles(paths, out fileItems, out errors);
+            return httpRestClient.AddFiles(itemCompletionCallback, itemCompletionCallbackUserState, filesToAdd);
         }
+
+        ///// <summary>
+        ///// Asynchronously starts adding a file in the syncbox; outputs a CLFileItem object.
+        ///// </summary>
+        ///// <param name="asyncCallback">Callback method to fire when operation completes</param>
+        ///// <param name="asyncCallbackUserState">Userstate to pass when firing async callback</param>
+        ///// <param name="path">Full path to where the file would exist locally on disk.</param>
+        ///// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        //public IAsyncResult BeginAddFile(AsyncCallback asyncCallback, object asyncCallbackUserState, string path)
+        //{
+        //    CheckDisposed(true);
+        //    string[] paths = new string[1] { path };
+
+        //    CLHttpRest httpRestClient;
+        //    GetInstanceRestClient(out httpRestClient);
+        //    return httpRestClient.BeginAddFiles(asyncCallback, asyncCallbackUserState, paths);
+        //}
+
+        ///// <summary>
+        ///// Finishes adding a file in the syncbox, if it has not already finished via its asynchronous result, and outputs the result,
+        ///// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
+        ///// </summary>
+        ///// <param name="asyncResult">The asynchronous result provided upon starting the metadata query</param>
+        ///// <param name="result">(output) The result from the metadata query</param>
+        ///// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
+        //public CLError EndAddFile(IAsyncResult asyncResult, out SyncboxAddFileResult result)
+        //{
+        //    CheckDisposed(true);
+
+        //    // Complete the async operation.
+        //    SyncboxAddFilesResult results;
+
+        //    CLHttpRest httpRestClient;
+        //    GetInstanceRestClient(out httpRestClient);
+        //    CLError error = httpRestClient.EndAddFiles(asyncResult, out results);
+
+        //    // Return resulting error or item
+        //    if (error != null)
+        //    {
+        //        // We got an overall error.  Return it.
+        //        result = null;
+        //        return error;
+        //    }
+        //    // error == null  (no overall error)
+        //    else if (results == null)
+        //    {
+        //        // No overall error, but also no results.  Return an error.
+        //        result = null;
+        //        return new CLError(new CLException(CLExceptionCode.OnDemand_FileAddNoServerResponsesOrErrors, "No error or responses from server results null"));
+        //    }
+        //    // error == null && results != null  (no overall error, and we got a results object)
+        //    else if (results.Errors != null && results.Errors.Length >= 1)
+        //    {
+        //        // No overall error, got a results object, and it has an error.  Return that error.
+        //        result = null;
+        //        return results.Errors[0];
+        //    }
+        //    // (error == null && results != null) && (results.Errors == null || results.Errors.Length == 0)  (no overall error, we got a results object, and there are no errors in results)
+        //    else if (results.FileItems != null && results.FileItems.Length >= 1)
+        //    {
+        //        // No overall error, got a results object, is has no errors, and it has a delete response.  This is the normal case.  Return that delete response as the result.
+        //        result = new SyncboxAddFileResult(error: null, fileItem: results.FileItems[0]);
+        //        return null;        // normal condition
+        //    }
+        //    // ((error == null && results != null) && (results.Errors == null || results.Errors.Length == 0)) && (results.Responses == null || results.Responses.Length == 0)
+        //    else
+        //    {
+        //        // No error, got a results object, but there were no errors and no delete responses inside.  Return an error.
+        //        result = null;
+        //        return new CLError(new CLException(CLExceptionCode.OnDemand_FileAddNoServerResponsesOrErrors, "No error or responses from server"));
+        //    }
+        //}
+
+        ///// <summary>
+        ///// Adds a file in the syncbox.
+        ///// </summary>
+        ///// <param name="path">Full path to where the file would exist locally on disk</param>
+        ///// <param name="fileItem">(output) response object from communication</param>
+        ///// <returns>Returns any error that occurred during communication, if any</returns>
+        //public CLError AddFile(string /* TODO: Change this to a relative path */ path, out CLFileItem fileItem)
+        //{
+        //    CheckDisposed(true);
+        //    string[] paths = new string[1] { path };
+
+        //    // Communicate and get the results.
+        //    CLError[] outErrors;
+        //    CLFileItem[] outItems;
+
+        //    CLHttpRest httpRestClient;
+        //    GetInstanceRestClient(out httpRestClient);
+        //    CLError error = httpRestClient.AddFiles(paths, out outItems, out outErrors);
+
+        //    // Return resulting error or item
+        //    if (error != null)
+        //    {
+        //        // There was an overall error.  Return it
+        //        fileItem = null;
+        //        return error;
+        //    }
+        //    // error == null
+        //    else if (outErrors != null && outErrors.Length >= 1)
+        //    {
+        //        // No overall error, but there was an item error.  Return it.
+        //        fileItem = null;
+        //        return outErrors[0];
+        //    }
+        //    // error == null && (outErrors == null || outErrors.Length == 0)
+        //    else if (outItems != null && outItems.Length >= 1)
+        //    {
+        //        // No overall error, no item errors, and we have an item.  Return it.  This is the normal condition
+        //        fileItem = outItems[0];
+        //        return null;
+        //    }
+        //    // (error == null && (outErrors == null || outErrors.Length == 0)) && (outItems == null || outItems.Length == 0)
+        //    else
+        //    {
+        //        // No overall error, no item errors, and no items.  No responses from server.  Return error.
+        //        fileItem = null;
+        //        return new CLError(new CLException(CLExceptionCode.OnDemand_FileAddNoServerResponsesOrErrors, "No responses or status from serer"));
+        //    }
+        //}
+
+        #endregion  // end AddFile (Adds a file in the syncbox)
+
+        #region AddFiles (Add files in the syncbox)
+        ///// <summary>
+        ///// Asynchronously starts adding files in the syncbox; outputs an array of  CLFileItem objects, and possibly an array of CLError objects.
+        ///// </summary>
+        ///// <param name="asyncCallback">Callback method to fire when operation completes</param>
+        ///// <param name="asyncCallbackUserState">Userstate to pass when firing async callback</param>
+        ///// <param name="paths">An array of full paths to where the files would exist locally on disk.</param>
+        ///// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        //public IAsyncResult BeginAddFiles(AsyncCallback asyncCallback, object asyncCallbackUserState, string[] paths)
+        //{
+        //    CheckDisposed(true);
+
+        //    CLHttpRest httpRestClient;
+        //    GetInstanceRestClient(out httpRestClient);
+        //    return httpRestClient.BeginAddFiles(asyncCallback, asyncCallbackUserState, paths);
+        //}
+
+        ///// <summary>
+        ///// Finishes adding files in the syncbox, if it has not already finished via its asynchronous result, and outputs the result,
+        ///// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
+        ///// </summary>
+        ///// <param name="asyncResult">The asynchronous result provided upon starting the metadata query</param>
+        ///// <param name="result">(output) The result from the metadata query</param>
+        ///// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
+        //public CLError EndAddFiles(IAsyncResult asyncResult, out SyncboxAddFilesResult result)
+        //{
+        //    CheckDisposed(true);
+        //    SyncboxAddFilesResult deleteResult;
+
+        //    CLHttpRest httpRestClient;
+        //    GetInstanceRestClient(out httpRestClient);
+        //    CLError error = httpRestClient.EndAddFiles(asyncResult, out deleteResult);
+
+        //    if (error != null)
+        //    {
+        //        result = null;
+        //        return error;
+        //    }
+
+        //    result = new SyncboxAddFilesResult(deleteResult.OverallError, deleteResult.Errors, deleteResult.FileItems);
+        //    return error;
+        //}
+
+        ///// <summary>
+        ///// Adds files in the syncbox.
+        ///// </summary>
+        ///// <param name="paths">An array of full paths to where the files would exist locally on disk.</param>
+        ///// <param name="fileItems">(output) response object from communication</param>
+        ///// <param name="errors">(output) Any returned errors, or null.</param>
+        ///// <returns>Returns any error that occurred during communication, if any</returns>
+        //public CLError AddFiles(string[] paths, out CLFileItem[] fileItems, out CLError[] errors)
+        //{
+        //    CheckDisposed(true);
+
+        //    CLHttpRest httpRestClient;
+        //    GetInstanceRestClient(out httpRestClient);
+        //    return httpRestClient.AddFiles(paths, out fileItems, out errors);
+        //}
 
         #endregion  // end AddFiles (Add files in the syncbox)
 
@@ -3339,7 +3429,11 @@ namespace Cloud
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.BeginGetSyncboxUsage(asyncCallback, asyncCallbackUserState, _copiedSettings.HttpTimeoutMilliseconds);
+            return httpRestClient.BeginGetDataUsage(
+                asyncCallback, 
+                asyncCallbackUserState,
+                new Action<JsonContracts.SyncboxUsageResponse, object>(OnGetDataUsageCompletion),
+                this);
         }
 
         /// <summary>
@@ -3355,21 +3449,40 @@ namespace Cloud
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.EndGetSyncboxUsage(asyncResult, out result);
+            return httpRestClient.EndGetDataUsage(asyncResult, out result);
         }
 
         /// <summary>
-        /// Queries the cloud for syncbox usage information.  This method is synchronous.
+        /// Queries the cloud for syncbox usage information.  The current syncbox properties are updated with the result.  This method is synchronous.
         /// </summary>
-        /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError GetDataUsage(out JsonContracts.SyncboxUsageResponse response)
+        public CLError GetDataUsage()
         {
             CheckDisposed(true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.GetSyncboxUsage(_copiedSettings.HttpTimeoutMilliseconds, out response);
+            return httpRestClient.GetDataUsage(new Action<JsonContracts.SyncboxUsageResponse, object>(OnGetDataUsageCompletion), this);
+        }
+
+        /// <summary>
+        /// Called back when the HTTP request completes.
+        /// </summary>
+        /// <param name="response"></param>
+        /// <param name="userState"></param>
+        private void OnGetDataUsageCompletion(JsonContracts.SyncboxUsageResponse response, object userState)
+        {
+            // Update this object's properties atomically.
+            this._propertyChangeLocker.EnterWriteLock();
+            try
+            {
+                this._storageQuota = (long)response.Limit;
+                this._quotaUsage = (long)response.Local;
+            }
+            finally
+            {
+                this._propertyChangeLocker.ExitWriteLock();
+            }
         }
         #endregion  // end GetDataUsage (get the usage information for this syncbox from the cloud)
 
@@ -3478,14 +3591,13 @@ namespace Cloud
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.BeginSyncboxUpdateStoragePlan(
+            return httpRestClient.BeginUpdateStoragePlan(
                 asyncCallback, 
                 asyncCallbackUserState, 
-                storagePlan.Id, 
-                _copiedSettings.HttpTimeoutMilliseconds, 
-                ReservedForActiveSync,
                 new Action<JsonContracts.SyncboxUpdateStoragePlanResponse, object>(OnUpdateStoragePlanCompletion), 
-                null);
+                this,
+                ReservedForActiveSync,
+                storagePlan);
         }
 
         /// <summary>
@@ -3501,7 +3613,7 @@ namespace Cloud
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.EndSyncboxUpdateStoragePlan(asyncResult, out result);
+            return httpRestClient.EndUpdateStoragePlan(asyncResult, out result);
         }
 
         /// <summary>
@@ -3509,21 +3621,18 @@ namespace Cloud
         /// Updates this object's StoragePlanId property.
         /// </summary>
         /// <param name="storagePlan">The storage plan to set (new storage plan to use for this syncbox)</param>
-        /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError UpdateStoragePlan(CLStoragePlan storagePlan, out JsonContracts.SyncboxUpdateStoragePlanResponse response)
+        public CLError UpdateStoragePlan(CLStoragePlan storagePlan)
         {
             CheckDisposed(true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.UpdateSyncboxStoragePlan(
-                storagePlan.Id, 
-                _copiedSettings.HttpTimeoutMilliseconds, 
-                out response, 
-                ReservedForActiveSync,
+            return httpRestClient.UpdateStoragePlan(
                 new Action<JsonContracts.SyncboxUpdateStoragePlanResponse, object>(OnUpdateStoragePlanCompletion), 
-                null);
+                this,
+                ReservedForActiveSync,
+                storagePlan);
         }
 
         /// <summary>
@@ -3533,34 +3642,12 @@ namespace Cloud
         /// <param name="userState"></param>
         private void OnUpdateStoragePlanCompletion(JsonContracts.SyncboxUpdateStoragePlanResponse response, object userState)
         {
-            if (response == null)
-            {
-                throw new NullReferenceException("response must not be null");  //&&&& fix
-            }
-            if (response.Syncbox == null)
-            {
-                throw new NullReferenceException("response Syncbox must not be null");  //&&&& fix
-            }
-            if (response.Syncbox.PlanId == null)
-            {
-                throw new NullReferenceException("response Syncbox PlanId must not be null");  //&&&& fix
-            }
-            if (response.Syncbox.StorageQuota == null)
-            {
-                throw new NullReferenceException("response Syncbox StorageQuota must not be null");  //&&&& fix
-            }
-            if (response.Syncbox.CreatedAt == null)
-            {
-                throw new NullReferenceException("response Syncbox CreatedAt must not be null");  //&&&& fix
-            }
-
             // Update this object's properties atomically.
             this._propertyChangeLocker.EnterWriteLock();
             try
             {
                 this._storagePlanId = (long)response.Syncbox.PlanId;
                 this._storageQuota = response.Syncbox.StorageQuota.HasValue ? response.Syncbox.StorageQuota.Value : (long)Helpers.DefaultForType<long>();
-                this._createdDate = response.Syncbox.CreatedAt.HasValue ? response.Syncbox.CreatedAt.Value : (DateTime)Helpers.DefaultForType<DateTime>();
             }
             finally
             {
@@ -3568,6 +3655,94 @@ namespace Cloud
             }
         }
         #endregion  // end (changes the storage plan associated with this syncbox in the syncbox)
+
+        #region UpdateFriendlyName (change the friendly name of this syncbox)
+        /// <summary>
+        /// Asynchronously starts changing the friendly name of this syncbox.  Updates the information in this syncbox object.
+        /// </summary>
+        /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
+        /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
+        /// <param name="completionCallback">Callback method to fire when a page of items is complete.  Return the result.</param>
+        /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion callback above is fired.</param>
+        /// <param name="friendlyName">The new friendly name of this syncbox)</param>
+        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        public IAsyncResult BeginUpdateFriendlyName<T>(
+            AsyncCallback asyncCallback,
+            object asyncCallbackUserState,
+            Action<JsonContracts.SyncboxResponse, T> completionCallback,
+            T completionCallbackUserState,
+            string friendlyName)
+        {
+            CheckDisposed(true);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.BeginUpdateFriendlyName(
+                asyncCallback,
+                asyncCallbackUserState,
+                new Action<JsonContracts.SyncboxResponse, object>(OnUpdateFriendlyNameCompletion),
+                this,
+                friendlyName);
+        }
+
+        /// <summary>
+        /// Finishes changing the friendly name of this syncbox, if it has not already finished via its asynchronous result, and outputs the result,
+        /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
+        /// </summary>
+        /// <param name="asyncResult">The asynchronous result provided upon starting the request</param>
+        /// <param name="result">(output) An overall error which occurred during processing, if any</param>
+        /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
+        public CLError EndUpdateFriendlyName(IAsyncResult asyncResult, out SyncboxUpdateFriendlyNameResult result)
+        {
+            CheckDisposed(true);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.EndUpdateFriendlyName(asyncResult, out result);
+        }
+
+        /// <summary>
+        /// Changes the friendly name of this syncbox.  Updates the information in this syncbox object.
+        /// </summary>
+        /// <param name="completionCallback">Callback method to fire when a page of items is complete.  Return the result.</param>
+        /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion callback above is fired.</param>
+        /// <param name="reservedForActiveSync">true: Live sync is active.  User calls are not allowed.</param>
+        /// <param name="friendlyName">The new friendly name of this syncbox)</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        public CLError UpdateFriendlyName<T>(
+            Action<JsonContracts.SyncboxResponse, T> completionCallback,
+            T completionCallbackUserState,
+            string friendlyName)
+        {
+            CheckDisposed(true);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.UpdateFriendlyName(
+                new Action<JsonContracts.SyncboxResponse, object>(OnUpdateFriendlyNameCompletion),
+                this,
+                friendlyName);
+        }
+
+        /// <summary>
+        /// Called back when the HTTP request completes.
+        /// </summary>
+        /// <param name="response"></param>
+        /// <param name="userState"></param>
+        private void OnUpdateFriendlyNameCompletion(JsonContracts.SyncboxResponse response, object userState)
+        {
+            // Update this object's properties atomically.
+            this._propertyChangeLocker.EnterWriteLock();
+            try
+            {
+                this._friendlyName = response.Syncbox.FriendlyName;
+            }
+            finally
+            {
+                this._propertyChangeLocker.ExitWriteLock();
+            }
+        }
+        #endregion  // end UpdateFriendlyName (change the friendly name of this syncbox)
 
         #region GetCurrentStatus (update the status of this syncbox from the cloud)
         /// <summary>
@@ -3582,7 +3757,7 @@ namespace Cloud
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.BeginGetCurrentStatus(asyncCallback, asyncCallbackUserState, _copiedSettings.HttpTimeoutMilliseconds, new Action<JsonContracts.SyncboxStatusResponse, object>(OnStatusCompletion), null);
+            return httpRestClient.BeginGetCurrentStatus(asyncCallback, asyncCallbackUserState, new Action<JsonContracts.SyncboxStatusResponse, object>(OnStatusCompletion), this);
         }
         
         /// <summary>
@@ -3614,7 +3789,7 @@ namespace Cloud
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
             JsonContracts.SyncboxStatusResponse response;
-            return httpRestClient.GetCurrentStatus(_copiedSettings.HttpTimeoutMilliseconds, out response, new Action<JsonContracts.SyncboxStatusResponse, object>(OnStatusCompletion), null);
+            return httpRestClient.GetCurrentStatus(new Action<JsonContracts.SyncboxStatusResponse, object>(OnStatusCompletion), null);
         }
 
 
@@ -3625,29 +3800,6 @@ namespace Cloud
         /// <param name="userState"></param>
         private void OnStatusCompletion(JsonContracts.SyncboxStatusResponse response, object userState)
         {
-            if (response == null)
-            {
-                throw new NullReferenceException("response cannot be null");  //&&&& fix
-            }
-            if (response.Syncbox == null)
-            {
-                throw new NullReferenceException("response Syncbox cannot be null");  //&&&& fix
-            }
-            if (response.Syncbox.PlanId == null)
-            {
-                throw new NullReferenceException("response Syncbox PlanId cannot be null");  //&&&& fix
-            }
-            if (response.Syncbox.CreatedAt == null)
-            {
-                throw new NullReferenceException("response Syncbox CreatedAt cannot be null");  //&&&& fix
-            }
-            if (response.Syncbox.StorageQuota == null
-                || !response.Syncbox.StorageQuota.HasValue
-                || response.Syncbox.StorageQuota.Value == null)
-            {
-                throw new NullReferenceException("response Syncbox StorageQuota cannot be null");  //&&&& fix
-            }
-
             this._propertyChangeLocker.EnterWriteLock();
             try
             {
@@ -3838,15 +3990,9 @@ namespace Cloud
 
                 if (shouldUpdateSyncboxStatusFromServer)
                 {
-                    //// removed CLSyncEngine from SetPathProperties, so can completely set setPathHolder before this statement
-                    //
-                    //// OLD CODE:
-                    //// Set the rest client early too because GetCurrentSyncboxStatus neeeds it.
-                    //setPathHolder = new SetPathProperties(path, localRestClient, null);
-
                     // We need to validate the syncbox ID with the server with these credentials.  We will also retrieve the other syncbox
                     // properties from the server and set them into this local object's properties.
-                    CLError errorFromStatus = GetCurrentStatus();
+                    CLError errorFromStatus = this.GetCurrentStatus();
                     if (errorFromStatus != null)
                     {
                         throw new CLException(CLExceptionCode.Syncbox_InitialStatus, Resources.ExceptionSyncboxStartStatus, errorFromStatus.Exceptions);
