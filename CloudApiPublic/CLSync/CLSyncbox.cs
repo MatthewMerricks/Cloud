@@ -428,7 +428,7 @@ namespace Cloud
         /// <summary>
         /// The number of bytes currently used within this syncbox's storage quota.
         /// </summary>
-        public long QuotaUsage
+        public Nullable<long> QuotaUsage
         {
             get
             {
@@ -443,12 +443,12 @@ namespace Cloud
                 }
             }
         }
-        private long _quotaUsage;
+        private Nullable<long> _quotaUsage;
 
         /// <summary>
         /// The maximum storage bytes supported by the storage plan associated with this syncbox.
         /// </summary>
-        public long StorageQuota
+        public Nullable<long> StorageQuota
         {
             get
             {
@@ -463,7 +463,7 @@ namespace Cloud
                 }
             }
         }
-        private long _storageQuota;
+        private Nullable<long> _storageQuota;
 
         /// <summary>
         /// The sync mode used with this syncbox.
@@ -3476,8 +3476,8 @@ namespace Cloud
             this._propertyChangeLocker.EnterWriteLock();
             try
             {
-                this._storageQuota = (long)response.Limit;
-                this._quotaUsage = (long)response.Local;
+                this._storageQuota = response.Limit;
+                this._quotaUsage = response.Local;
             }
             finally
             {
@@ -3647,7 +3647,7 @@ namespace Cloud
             try
             {
                 this._storagePlanId = (long)response.Syncbox.PlanId;
-                this._storageQuota = response.Syncbox.StorageQuota.HasValue ? response.Syncbox.StorageQuota.Value : (long)Helpers.DefaultForType<long>();
+                this._storageQuota = response.Syncbox.StorageQuota;
             }
             finally
             {
@@ -3806,7 +3806,7 @@ namespace Cloud
                 this._friendlyName = response.Syncbox.FriendlyName;
                 this._storagePlanId = (long)response.Syncbox.PlanId;
                 this._createdDate = (DateTime)response.Syncbox.CreatedAt;
-                this._storageQuota = (long)response.Syncbox.StorageQuota.Value;
+                this._storageQuota = response.Syncbox.StorageQuota;
             }
             finally
             {

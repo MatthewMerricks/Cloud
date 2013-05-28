@@ -230,7 +230,7 @@ namespace win_client.ViewModels
                                                         {
                                                             // Do nothing here when the user clicks the OK button.
                                                             _trace.writeToLog(9, "FramePreferencesAdvancedViewModel: Move cloud folder: Entry.");
-                                                            if (_dialog.DialogResult.HasValue && _dialog.DialogResult.Value)
+                                                            if (_dialog.DialogResult == true)
                                                             {
                                                                 // The user said yes.  Tell the view to put up the folder browser so the user can select the new location.
                                                                 _trace.writeToLog(9, "FramePreferencesAdvancedViewModel: Move cloud folder: User said yes.");
@@ -421,7 +421,7 @@ namespace win_client.ViewModels
                         {
                             // Do nothing here when the user clicks the OK button.
                             _trace.writeToLog(9, "FramePreferencesAdvancedViewModel: OK to move cloud folder?: Entry.");
-                            if (_dialog.DialogResult.HasValue && _dialog.DialogResult.Value)
+                            if (_dialog.DialogResult == true)
                             {
                                 // The user said yes.  Tell the view to put up the folder browser so the user can select the new location.
                                 _trace.writeToLog(9, "FramePreferencesAdvancedViewModel: OK to move cloud folder: User said yes.");

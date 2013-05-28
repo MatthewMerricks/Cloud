@@ -523,7 +523,7 @@ namespace win_client.ViewModels
             CLModalMessageBoxDialogs.Instance.DisplayModalShutdownPrompt(container: ViewGridContainer, dialog: out _dialog, actionResultHandler: returnedViewModelInstance =>
                     {
                         _trace.writeToLog(9, "PageHomeViewModel: Prompt exit application: Entry.");
-                        if (_dialog.DialogResult.HasValue && _dialog.DialogResult.Value)
+                        if (_dialog.DialogResult == true)
                         {
                             // The user said yes.
                             _trace.writeToLog(9, "PageHomeViewModel: Prompt exit application: User said yes.");

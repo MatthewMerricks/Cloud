@@ -91,7 +91,19 @@ namespace SampleLiveSync.Views
         private void OnNotifyException(object sender, Support.NotificationEventArgs<Cloud.Model.CLError> e)
         {
             Application.Current.Dispatcher.BeginInvoke(new Action(() =>
-                MessageBox.Show(System.Windows.Application.Current.MainWindow, String.Format("{0}.", e.Message), "Error", MessageBoxButton.OK, MessageBoxImage.Error)));
+                {
+                    try
+                    {
+                        Window currentWindow = System.Windows.Application.Current.MainWindow;
+                        if (currentWindow != null)
+                        {
+                            MessageBox.Show(currentWindow, String.Format("{0}.", e.Message), "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                        }
+                    }
+                    catch
+                    {
+                    }
+                }));
         }
 
         #endregion

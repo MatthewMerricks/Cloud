@@ -76,14 +76,14 @@ namespace Cloud.Model
         }
         private bool _isValid;
 
-        public PossiblyStreamableAndPossiblyPreexistingErrorFileChange(bool IsPreexisting, FileChange FileChange, StreamContext streamContext)
+        public PossiblyStreamableAndPossiblyPreexistingErrorFileChange(bool IsPreexisting, FileChange fileChange, StreamContext streamContext)
         {
-            if (FileChange == null)
+            if (fileChange == null)
             {
                 throw new NullReferenceException("FileChange cannot be null");
             }
 
-            this._fileChange = FileChange;
+            this._fileChange = fileChange;
             this._isPreexisting = IsPreexisting;
             this._streamContext = streamContext;
             this._isValid = true;

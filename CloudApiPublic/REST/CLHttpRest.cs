@@ -4442,13 +4442,13 @@ namespace Cloud.REST
                     });
 
                 // Add the UTC date if specified.
-                if (sinceDate != null && sinceDate.HasValue)
+                if (sinceDate != null)
                 {
                     string updatedAfter = Helpers.QueryStringBuilder(new[]
                     {
                         // query string parameter for the current sync box id, should not need escaping since it should be an integer in string format
                         new KeyValuePair<string, string>(CLDefinitions.CLSyncboxUpdatedAfter, 
-                            sinceDate.Value.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")),
+                            ((DateTime)sinceDate).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")),
                     });
                     serverMethodPath += "&" + updatedAfter.Substring(1);  // skip the leading "?" from QueryStringBuilder.
                 }
@@ -5525,15 +5525,12 @@ namespace Cloud.REST
                 {
                     throw new NullReferenceException("server returned null response Syncbox PlanId");  //&&&& fix
                 }
-                if (serverResponse.Syncbox.StorageQuota == null
-                    || !serverResponse.Syncbox.StorageQuota.HasValue)
-                {
-                    throw new NullReferenceException("server returned null response Syncbox StorageQuota");  //&&&& fix
-                }
-                if (serverResponse.Status != CLDefinitions.CLEventTypeAccepted)
-                {
-                    throw new Exception(String.Format("server returned error status {0}, message {1}.", serverResponse.Status, serverResponse.Message));  //&&&& fix this
-                }
+
+                //// todo: "success" does not compare with "ok", but do not want to compare strings anyways since some methods are "success" and some are "ok"
+                //if (serverResponse.Status != CLDefinitions.CLEventTypeAccepted)
+                //{
+                //    throw new Exception(String.Format("server returned error status {0}, message {1}.", serverResponse.Status, serverResponse.Message));  //&&&& fix this
+                //}
 
                 if (completionCallback != null)
                 {
@@ -5702,15 +5699,12 @@ namespace Cloud.REST
                 {
                     throw new NullReferenceException("server returned null response Syncbox PlanId");  //&&&& fix
                 }
-                if (serverResponse.Syncbox.StorageQuota == null
-                    || !serverResponse.Syncbox.StorageQuota.HasValue)
-                {
-                    throw new NullReferenceException("server returned null response Syncbox StorageQuota");  //&&&& fix
-                }
-                if (serverResponse.Status != CLDefinitions.CLEventTypeAccepted)
-                {
-                    throw new Exception(String.Format("server returned error status {0}, message {1}.", serverResponse.Status, serverResponse.Message));  //&&&& fix this
-                }
+
+                //// todo: "success" does not compare with "ok", but do not want to compare strings anyways since some methods are "success" and some are "ok"
+                //if (serverResponse.Status != CLDefinitions.CLEventTypeAccepted)
+                //{
+                //    throw new Exception(String.Format("server returned error status {0}, message {1}.", serverResponse.Status, serverResponse.Message));  //&&&& fix this
+                //}
 
                 if (completionCallback != null)
                 {
@@ -5861,15 +5855,12 @@ namespace Cloud.REST
                 {
                     throw new NullReferenceException("server returned null response Syncbox CreatedAt");  //&&&& fix
                 }
-                if (serverResponse.Syncbox.StorageQuota == null
-                    || !serverResponse.Syncbox.StorageQuota.HasValue)
-                {
-                    throw new NullReferenceException("server returned null response Syncbox StorageQuota");  //&&&& fix
-                }
-                if (serverResponse.Status != CLDefinitions.CLEventTypeAccepted)
-                {
-                    throw new Exception(String.Format("server returned error status {0}, message {1}.", serverResponse.Status, serverResponse.Message));  //&&&& fix this
-                }
+
+                //// todo: "success" does not compare with "ok", but do not want to compare strings anyways since some methods are "success" and some are "ok"
+                //if (serverResponse.Status != CLDefinitions.CLEventTypeAccepted)
+                //{
+                //    throw new Exception(String.Format("server returned error status {0}, message {1}.", serverResponse.Status, serverResponse.Message));  //&&&& fix this
+                //}
 
                 if (completionCallback != null)
                 {
@@ -7339,7 +7330,14 @@ namespace Cloud.REST
                     });
 
                 // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
-                Helpers.RequestNewCredentialsInfo requestNewCredentialsInfo = new Helpers.RequestNewCredentialsInfo();
+                Helpers.RequestNewCredentialsInfo requestNewCredentialsInfo = new Helpers.RequestNewCredentialsInfo()
+                {
+                    ProcessingStateByThreadId = _processingStateByThreadId,
+                    GetNewCredentialsCallback = _getNewCredentialsCallback,
+                    GetNewCredentialsCallbackUserState = _getNewCredentialsCallbackUserState,
+                    GetCurrentCredentialsCallback = GetCurrentCredentialsCallback,
+                    SetCurrentCredentialsCallback = SetCurrentCredentialCallback,
+                };
 
                 // run the HTTP communication and store the response object to the output parameter
                 response = Helpers.ProcessHttp<JsonContracts.PendingResponse>(

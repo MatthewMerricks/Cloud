@@ -525,7 +525,7 @@ namespace win_client.ViewModels
                         {
                             // Do nothing here when the user clicks the OK button.
                             _trace.writeToLog(9, "PagePreferencesViewModel: Unlink device: Entry.");
-                            if (_dialog.DialogResult.HasValue && _dialog.DialogResult.Value)
+                            if (_dialog.DialogResult == true)
                             {
                                 // The user said yes.  Unlink this device.
                                 _trace.writeToLog(9, "FramePreferencesAccount: Unlink device: User said yes.");
@@ -642,7 +642,7 @@ namespace win_client.ViewModels
                 CLModalMessageBoxDialogs.Instance.DisplayModalSaveChangesPrompt(container: ViewGridContainer, dialog: out _dialog, actionResultHandler: returnedViewModelInstance =>
                 {
                     _trace.writeToLog(9, "PagePreferencesViewModel: Prompt save changes: Entry.");
-                    if (_dialog.DialogResult.HasValue && _dialog.DialogResult.Value)
+                    if (_dialog.DialogResult == true)
                     {
                         // The user said yes.
                         _trace.writeToLog(9, "PagePreferencesViewModel: Prompt save changes: User said yes.");

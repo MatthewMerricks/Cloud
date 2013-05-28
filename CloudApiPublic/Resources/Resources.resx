@@ -2821,6 +2821,12 @@
     <value>path must not be null</value>
     <comment>"path" should not be translated</comment>
   </data>
+  <data name="ExceptionSyncEnginePostCommunicationPrematureUploadSuccess" xml:space="preserve">
+    <value>Attempting to complete an upload change after communication should not be synchronously successful</value>
+  </data>
+  <data name="SyncEngineFinishedCommunicating" xml:space="preserve">
+    <value>Finished communicating sync changes</value>
+  </data>
   <data name="CLFileItemCastStateCopiedSettingsMustNotBeNull" xml:space="preserve">
     <value>castState _copiedSettings must not be null</value>
     <comment>"castState_copiedSettings" should not be translated</comment>

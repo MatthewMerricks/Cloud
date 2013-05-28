@@ -105,7 +105,7 @@ namespace win_client.Views
             folderBrowser.RootFolder = Environment.SpecialFolder.MyDocuments;  // no way to get to the user's home directory.  RootFolder is a SpecialFolder.
             folderBrowser.ShowNewFolderButton = true;
             bool? wasOkButtonClicked = folderBrowser.ShowDialog(Window.GetWindow(this));
-            if (wasOkButtonClicked.HasValue && wasOkButtonClicked.Value)
+            if (wasOkButtonClicked == true)
             {
                 // The user selected a folder.  Deliver the path to the ViewModel to process.
                 PageSetupSelectorViewModel vm = (PageSetupSelectorViewModel)DataContext;

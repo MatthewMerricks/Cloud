@@ -1098,7 +1098,7 @@ namespace win_client.ViewModels
                 CLModalMessageBoxDialogs.Instance.DisplayModalSaveChangesPrompt(container: ViewLayoutRoot, dialog: out _dialog, actionResultHandler: returnedViewModelInstance =>
                 {
                     _trace.writeToLog(9, "DialogPreferencesNetworkBandwidth: Prompt save changes: Entry.");
-                    if (_dialog.DialogResult.HasValue && _dialog.DialogResult.Value)
+                    if (_dialog.DialogResult == true)
                     {
                         // The user said yes.
                         _trace.writeToLog(9, "DialogPreferencesNetworkBandwidth: Prompt save changes: User said yes.");

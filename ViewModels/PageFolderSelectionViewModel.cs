@@ -447,7 +447,7 @@ namespace win_client.ViewModels
                                                         {
                                                             // Do nothing here when the user clicks the OK button.
                                                             _trace.writeToLog(9, "PageFolderSelection: Move cloud folder: Entry.");
-                                                            if (_dialog.DialogResult.HasValue && _dialog.DialogResult.Value)
+                                                            if (_dialog.DialogResult == true)
                                                             {
                                                                 // The user said yes.  Tell the view to put up the folder browser so the user can select the new location.
                                                                 _trace.writeToLog(9, "PageFolderSelection: Move cloud folder: User said yes.");
@@ -744,7 +744,7 @@ namespace win_client.ViewModels
                         returnedViewModelInstance =>
                         {
                             _trace.writeToLog(9, "goForward: returnedViewModelInstance: Entry.");
-                            if (_dialog.DialogResult.HasValue && _dialog.DialogResult.Value)
+                            if (_dialog.DialogResult == true)
                             {
                                 // The user selected Merge.  The standard Cloud folder will be used, with the user's existing files in it.
                                 _trace.writeToLog(9, "goForward: User selected Merge.");
@@ -806,7 +806,7 @@ namespace win_client.ViewModels
                             actionOkButtonHandler:
                                 returnedViewModelInstance =>
                                 {
-                                    if (_dialog.DialogResult.HasValue && _dialog.DialogResult.Value)
+                                    if (_dialog.DialogResult == true)
                                     {
                                         // The user selected Try Again.  Redrive this function on the main thread, but not recursively.
                                         var dispatcher = CLAppDelegate.Instance.MainDispatcher;
@@ -868,7 +868,7 @@ namespace win_client.ViewModels
             CLModalMessageBoxDialogs.Instance.DisplayModalShutdownPrompt(container: ViewGridContainer, dialog: out _dialog, actionResultHandler: returnedViewModelInstance =>
             {
                 _trace.writeToLog(9, "PageFolderSelectionViewModel: Prompt exit application: Entry.");
-                if (_dialog.DialogResult.HasValue && _dialog.DialogResult.Value)
+                if (_dialog.DialogResult == true)
                 {
                     // The user said yes.
                     _trace.writeToLog(9, "PageFolderSelectionViewModel: Prompt exit application: User said yes.");

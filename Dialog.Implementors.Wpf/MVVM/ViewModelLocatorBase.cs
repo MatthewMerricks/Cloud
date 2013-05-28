@@ -18,7 +18,7 @@ namespace Dialog.Implementors.Wpf.MVVM
     {
       get
       {
-        if (!isInDesignMode.HasValue)
+        if (isInDesignMode == false)
         {
             //isInDesignMode = DesignerProperties.IsInDesignTool;
             isInDesignMode = ViewModelBase.IsInDesignModeStatic;

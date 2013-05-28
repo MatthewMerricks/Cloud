@@ -182,7 +182,7 @@ namespace win_client.ViewModels
                                                             this.ViewGridContainer,
                                                             returnedViewModelInstance =>
                                                             {
-                                                                if (_dialog.DialogResult.HasValue && _dialog.DialogResult.Value)
+                                                                if (_dialog.DialogResult == true)
                                                                 {
                                                                     // The user said yes.
                                                                 }
@@ -234,7 +234,7 @@ namespace win_client.ViewModels
                                                             this.ViewGridContainer,
                                                             returnedViewModelInstance =>
                                                             {
-                                                                if (_dialog.DialogResult.HasValue && _dialog.DialogResult.Value)
+                                                                if (_dialog.DialogResult == true)
                                                                 {
                                                                     // The user said yes.
                                                                 }
