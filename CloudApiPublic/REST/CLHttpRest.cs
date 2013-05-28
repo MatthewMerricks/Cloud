@@ -2161,14 +2161,14 @@ namespace Cloud.REST
         /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
         /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
         /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the item completion callback above is fired.</param>
-        /// <param name="filesToAdd">An array of pairs of relative path in the syncbox of the file to add, and the parent folder item that will hold the added file.</param>
+        /// <param name="filesToAdd">(params) An array of pairs of relative path in the syncbox of the file to add, and the parent folder item that will hold the added file.</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
         internal IAsyncResult BeginAddFiles(
             AsyncCallback asyncCallback,
             object asyncCallbackUserState,
             CLFileItemCompletionCallback itemCompletionCallback, 
             object itemCompletionCallbackUserState, 
-            AddFileItemParams[] filesToAdd)
+            params AddFileItemParams[] filesToAdd)
         {
             var asyncThread = DelegateAndDataHolderBase.Create(
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
@@ -2188,10 +2188,6 @@ namespace Cloud.REST
                     // try/catch to process with the input parameters, on catch set the exception in the asyncronous result
                     try
                     {
-                        // declare the output status for communication
-                        // declare the specific type of result for this operation
-                        CLFileItem[] responses;
-                        CLError[] errors;
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
                         CLError overallError = AddFiles(
                             Data.itemCompletionCallback,
@@ -2222,12 +2218,12 @@ namespace Cloud.REST
         /// Finishes adding files in the syncbox, if it has not already finished via its asynchronous result, and outputs the result,
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
         /// </summary>
-        /// <param name="aResult">The asynchronous result provided upon starting the request</param>
+        /// <param name="asyncResult">The asynchronous result provided upon starting the request</param>
         /// <param name="result">(output) The result from the request</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        internal CLError EndAddFiles(IAsyncResult aResult, out SyncboxAddFilesResult result)
+        internal CLError EndAddFiles(IAsyncResult asyncResult, out SyncboxAddFilesResult result)
         {
-            return Helpers.EndAsyncOperation<SyncboxAddFilesResult>(aResult, out result);
+            return Helpers.EndAsyncOperation<SyncboxAddFilesResult>(asyncResult, out result);
         }
 
         /// <summary>
@@ -2237,12 +2233,13 @@ namespace Cloud.REST
         /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
         /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
         /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the item completion callback above is fired.</param>
-        /// <param name="filesToAdd">An array of pairs of relative path in the syncbox of the file to add, and the parent folder item that will hold the added file.</param>
+        /// <param name="filesToAdd">(params) An array of pairs of relative path in the syncbox of the file to add, and the parent folder item that will hold the added file.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
+        /// &&&& TODO: Fix this.  Doesn't work yet.
         internal CLError AddFiles(
             CLFileItemCompletionCallback itemCompletionCallback, 
             object itemCompletionCallbackUserState, 
-            AddFileItemParams[] filesToAdd)
+            params AddFileItemParams[] filesToAdd)
         {
             // try/catch to process the request,  On catch return the error
             try
@@ -2258,11 +2255,11 @@ namespace Cloud.REST
                     AddFileItemParams item = filesToAdd[i];
                     if (item.Parent == null)
                     {
-                        throw new ArgumentNullException(String.Format("filesToAdd item {0} Parent must not be null", i);  //&&&& fix this
+                        throw new ArgumentNullException(String.Format("filesToAdd item {0} Parent must not be null", i));  //&&&& fix this
                     }
                     if (String.IsNullOrEmpty(item.RelativePath))
                     {
-                        throw new ArgumentNullException(String.Format("filesToAdd item {0} RelativePath must be specified", i);  //&&&& fix this
+                        throw new ArgumentNullException(String.Format("filesToAdd item {0} RelativePath must be specified", i));  //&&&& fix this
                     }
 
                     FilePath fullPath = new FilePath(item.RelativePath, _syncbox.Path);
@@ -2358,8 +2355,8 @@ namespace Cloud.REST
                             listErrors.Add(new CLError(ex));
                         }
                     }
-                    responses = listFileItems.ToArray();
-                    errors = listErrors.ToArray();
+                    //responses = listFileItems.ToArray();
+                    //errors = listErrors.ToArray();
                 }
                 else
                 {
@@ -2368,8 +2365,6 @@ namespace Cloud.REST
             }
             catch (Exception ex)
             {
-                responses = Helpers.DefaultForType<CLFileItem[]>();
-                errors = Helpers.DefaultForType<CLError[]>();
                 return ex;
             }
             return null;

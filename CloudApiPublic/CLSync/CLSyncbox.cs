@@ -2181,186 +2181,246 @@ namespace Cloud
 
         #region AddFile (Adds a file in the syncbox)
         /// <summary>
-        /// Asynchronously starts adding a file in the syncbox; outputs a CLFileItem object.
+        /// Asynchronously starts adding files in the syncbox.
         /// </summary>
-        /// <param name="asyncCallback">Callback method to fire when operation completes</param>
-        /// <param name="asyncCallbackUserState">Userstate to pass when firing async callback</param>
-        /// <param name="path">Full path to where the file would exist locally on disk.</param>
+        /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
+        /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
+        /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
+        /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the item completion callback above is fired.</param>
+        /// <param name="filesToAdd">(params) An array of pairs of relative path in the syncbox of the file to add, and the parent folder item that will hold the added file.</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginAddFile(AsyncCallback asyncCallback, object asyncCallbackUserState, string path)
-        {
-            CheckDisposed(true);
-            string[] paths = new string[1] { path };
-
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.BeginAddFiles(asyncCallback, asyncCallbackUserState, paths);
-        }
-
-        /// <summary>
-        /// Finishes adding a file in the syncbox, if it has not already finished via its asynchronous result, and outputs the result,
-        /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
-        /// </summary>
-        /// <param name="asyncResult">The asynchronous result provided upon starting the metadata query</param>
-        /// <param name="result">(output) The result from the metadata query</param>
-        /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndAddFile(IAsyncResult asyncResult, out SyncboxAddFileResult result)
-        {
-            CheckDisposed(true);
-
-            // Complete the async operation.
-            SyncboxAddFilesResult results;
-
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            CLError error = httpRestClient.EndAddFiles(asyncResult, out results);
-
-            // Return resulting error or item
-            if (error != null)
-            {
-                // We got an overall error.  Return it.
-                result = null;
-                return error;
-            }
-            // error == null  (no overall error)
-            else if (results == null)
-            {
-                // No overall error, but also no results.  Return an error.
-                result = null;
-                return new CLError(new CLException(CLExceptionCode.OnDemand_FileAddNoServerResponsesOrErrors, "No error or responses from server results null"));
-            }
-            // error == null && results != null  (no overall error, and we got a results object)
-            else if (results.Errors != null && results.Errors.Length >= 1)
-            {
-                // No overall error, got a results object, and it has an error.  Return that error.
-                result = null;
-                return results.Errors[0];
-            }
-            // (error == null && results != null) && (results.Errors == null || results.Errors.Length == 0)  (no overall error, we got a results object, and there are no errors in results)
-            else if (results.FileItems != null && results.FileItems.Length >= 1)
-            {
-                // No overall error, got a results object, is has no errors, and it has a delete response.  This is the normal case.  Return that delete response as the result.
-                result = new SyncboxAddFileResult(error: null, fileItem: results.FileItems[0]);
-                return null;        // normal condition
-            }
-            // ((error == null && results != null) && (results.Errors == null || results.Errors.Length == 0)) && (results.Responses == null || results.Responses.Length == 0)
-            else
-            {
-                // No error, got a results object, but there were no errors and no delete responses inside.  Return an error.
-                result = null;
-                return new CLError(new CLException(CLExceptionCode.OnDemand_FileAddNoServerResponsesOrErrors, "No error or responses from server"));
-            }
-        }
-
-        /// <summary>
-        /// Adds a file in the syncbox.
-        /// </summary>
-        /// <param name="path">Full path to where the file would exist locally on disk</param>
-        /// <param name="fileItem">(output) response object from communication</param>
-        /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError AddFile(string /* TODO: Change this to a relative path */ path, out CLFileItem fileItem)
-        {
-            CheckDisposed(true);
-            string[] paths = new string[1] { path };
-
-            // Communicate and get the results.
-            CLError[] outErrors;
-            CLFileItem[] outItems;
-
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            CLError error = httpRestClient.AddFiles(paths, out outItems, out outErrors);
-
-            // Return resulting error or item
-            if (error != null)
-            {
-                // There was an overall error.  Return it
-                fileItem = null;
-                return error;
-            }
-            // error == null
-            else if (outErrors != null && outErrors.Length >= 1)
-            {
-                // No overall error, but there was an item error.  Return it.
-                fileItem = null;
-                return outErrors[0];
-            }
-            // error == null && (outErrors == null || outErrors.Length == 0)
-            else if (outItems != null && outItems.Length >= 1)
-            {
-                // No overall error, no item errors, and we have an item.  Return it.  This is the normal condition
-                fileItem = outItems[0];
-                return null;
-            }
-            // (error == null && (outErrors == null || outErrors.Length == 0)) && (outItems == null || outItems.Length == 0)
-            else
-            {
-                // No overall error, no item errors, and no items.  No responses from server.  Return error.
-                fileItem = null;
-                return new CLError(new CLException(CLExceptionCode.OnDemand_FileAddNoServerResponsesOrErrors, "No responses or status from serer"));
-            }
-        }
-
-        #endregion  // end AddFile (Adds a file in the syncbox)
-
-        #region AddFiles (Add files in the syncbox)
-        /// <summary>
-        /// Asynchronously starts adding files in the syncbox; outputs an array of  CLFileItem objects, and possibly an array of CLError objects.
-        /// </summary>
-        /// <param name="asyncCallback">Callback method to fire when operation completes</param>
-        /// <param name="asyncCallbackUserState">Userstate to pass when firing async callback</param>
-        /// <param name="paths">An array of full paths to where the files would exist locally on disk.</param>
-        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginAddFiles(AsyncCallback asyncCallback, object asyncCallbackUserState, string[] paths)
+        public IAsyncResult BeginAddFiles(
+            AsyncCallback asyncCallback,
+            object asyncCallbackUserState,
+            CLFileItemCompletionCallback itemCompletionCallback,
+            object itemCompletionCallbackUserState,
+            params AddFileItemParams[] filesToAdd)
         {
             CheckDisposed(true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.BeginAddFiles(asyncCallback, asyncCallbackUserState, paths);
+            return httpRestClient.BeginAddFiles(asyncCallback, asyncCallbackUserState, itemCompletionCallback, itemCompletionCallbackUserState, filesToAdd);
         }
 
         /// <summary>
         /// Finishes adding files in the syncbox, if it has not already finished via its asynchronous result, and outputs the result,
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
         /// </summary>
-        /// <param name="asyncResult">The asynchronous result provided upon starting the metadata query</param>
-        /// <param name="result">(output) The result from the metadata query</param>
+        /// <param name="aResult">The asynchronous result provided upon starting the request</param>
+        /// <param name="result">(output) The result from the request</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndAddFiles(IAsyncResult asyncResult, out SyncboxAddFilesResult result)
         {
             CheckDisposed(true);
-            SyncboxAddFilesResult deleteResult;
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            CLError error = httpRestClient.EndAddFiles(asyncResult, out deleteResult);
-
-            if (error != null)
-            {
-                result = null;
-                return error;
-            }
-
-            result = new SyncboxAddFilesResult(deleteResult.OverallError, deleteResult.Errors, deleteResult.FileItems);
-            return error;
+            return httpRestClient.EndAddFiles(asyncResult, out result);
         }
 
         /// <summary>
-        /// Adds files in the syncbox.
+        /// Add files in the syncbox.
         /// </summary>
-        /// <param name="paths">An array of full paths to where the files would exist locally on disk.</param>
-        /// <param name="fileItems">(output) response object from communication</param>
-        /// <param name="errors">(output) Any returned errors, or null.</param>
+        /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
+        /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
+        /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
+        /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the item completion callback above is fired.</param>
+        /// <param name="filesToAdd">(params) An array of pairs of relative path in the syncbox of the file to add, and the parent folder item that will hold the added file.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError AddFiles(string[] paths, out CLFileItem[] fileItems, out CLError[] errors)
+        public CLError AddFiles(
+            CLFileItemCompletionCallback itemCompletionCallback,
+            object itemCompletionCallbackUserState,
+            params AddFileItemParams[] filesToAdd)
         {
             CheckDisposed(true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.AddFiles(paths, out fileItems, out errors);
+            return httpRestClient.AddFiles(itemCompletionCallback, itemCompletionCallbackUserState, filesToAdd);
         }
+
+        ///// <summary>
+        ///// Asynchronously starts adding a file in the syncbox; outputs a CLFileItem object.
+        ///// </summary>
+        ///// <param name="asyncCallback">Callback method to fire when operation completes</param>
+        ///// <param name="asyncCallbackUserState">Userstate to pass when firing async callback</param>
+        ///// <param name="path">Full path to where the file would exist locally on disk.</param>
+        ///// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        //public IAsyncResult BeginAddFile(AsyncCallback asyncCallback, object asyncCallbackUserState, string path)
+        //{
+        //    CheckDisposed(true);
+        //    string[] paths = new string[1] { path };
+
+        //    CLHttpRest httpRestClient;
+        //    GetInstanceRestClient(out httpRestClient);
+        //    return httpRestClient.BeginAddFiles(asyncCallback, asyncCallbackUserState, paths);
+        //}
+
+        ///// <summary>
+        ///// Finishes adding a file in the syncbox, if it has not already finished via its asynchronous result, and outputs the result,
+        ///// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
+        ///// </summary>
+        ///// <param name="asyncResult">The asynchronous result provided upon starting the metadata query</param>
+        ///// <param name="result">(output) The result from the metadata query</param>
+        ///// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
+        //public CLError EndAddFile(IAsyncResult asyncResult, out SyncboxAddFileResult result)
+        //{
+        //    CheckDisposed(true);
+
+        //    // Complete the async operation.
+        //    SyncboxAddFilesResult results;
+
+        //    CLHttpRest httpRestClient;
+        //    GetInstanceRestClient(out httpRestClient);
+        //    CLError error = httpRestClient.EndAddFiles(asyncResult, out results);
+
+        //    // Return resulting error or item
+        //    if (error != null)
+        //    {
+        //        // We got an overall error.  Return it.
+        //        result = null;
+        //        return error;
+        //    }
+        //    // error == null  (no overall error)
+        //    else if (results == null)
+        //    {
+        //        // No overall error, but also no results.  Return an error.
+        //        result = null;
+        //        return new CLError(new CLException(CLExceptionCode.OnDemand_FileAddNoServerResponsesOrErrors, "No error or responses from server results null"));
+        //    }
+        //    // error == null && results != null  (no overall error, and we got a results object)
+        //    else if (results.Errors != null && results.Errors.Length >= 1)
+        //    {
+        //        // No overall error, got a results object, and it has an error.  Return that error.
+        //        result = null;
+        //        return results.Errors[0];
+        //    }
+        //    // (error == null && results != null) && (results.Errors == null || results.Errors.Length == 0)  (no overall error, we got a results object, and there are no errors in results)
+        //    else if (results.FileItems != null && results.FileItems.Length >= 1)
+        //    {
+        //        // No overall error, got a results object, is has no errors, and it has a delete response.  This is the normal case.  Return that delete response as the result.
+        //        result = new SyncboxAddFileResult(error: null, fileItem: results.FileItems[0]);
+        //        return null;        // normal condition
+        //    }
+        //    // ((error == null && results != null) && (results.Errors == null || results.Errors.Length == 0)) && (results.Responses == null || results.Responses.Length == 0)
+        //    else
+        //    {
+        //        // No error, got a results object, but there were no errors and no delete responses inside.  Return an error.
+        //        result = null;
+        //        return new CLError(new CLException(CLExceptionCode.OnDemand_FileAddNoServerResponsesOrErrors, "No error or responses from server"));
+        //    }
+        //}
+
+        ///// <summary>
+        ///// Adds a file in the syncbox.
+        ///// </summary>
+        ///// <param name="path">Full path to where the file would exist locally on disk</param>
+        ///// <param name="fileItem">(output) response object from communication</param>
+        ///// <returns>Returns any error that occurred during communication, if any</returns>
+        //public CLError AddFile(string /* TODO: Change this to a relative path */ path, out CLFileItem fileItem)
+        //{
+        //    CheckDisposed(true);
+        //    string[] paths = new string[1] { path };
+
+        //    // Communicate and get the results.
+        //    CLError[] outErrors;
+        //    CLFileItem[] outItems;
+
+        //    CLHttpRest httpRestClient;
+        //    GetInstanceRestClient(out httpRestClient);
+        //    CLError error = httpRestClient.AddFiles(paths, out outItems, out outErrors);
+
+        //    // Return resulting error or item
+        //    if (error != null)
+        //    {
+        //        // There was an overall error.  Return it
+        //        fileItem = null;
+        //        return error;
+        //    }
+        //    // error == null
+        //    else if (outErrors != null && outErrors.Length >= 1)
+        //    {
+        //        // No overall error, but there was an item error.  Return it.
+        //        fileItem = null;
+        //        return outErrors[0];
+        //    }
+        //    // error == null && (outErrors == null || outErrors.Length == 0)
+        //    else if (outItems != null && outItems.Length >= 1)
+        //    {
+        //        // No overall error, no item errors, and we have an item.  Return it.  This is the normal condition
+        //        fileItem = outItems[0];
+        //        return null;
+        //    }
+        //    // (error == null && (outErrors == null || outErrors.Length == 0)) && (outItems == null || outItems.Length == 0)
+        //    else
+        //    {
+        //        // No overall error, no item errors, and no items.  No responses from server.  Return error.
+        //        fileItem = null;
+        //        return new CLError(new CLException(CLExceptionCode.OnDemand_FileAddNoServerResponsesOrErrors, "No responses or status from serer"));
+        //    }
+        //}
+
+        #endregion  // end AddFile (Adds a file in the syncbox)
+
+        #region AddFiles (Add files in the syncbox)
+        ///// <summary>
+        ///// Asynchronously starts adding files in the syncbox; outputs an array of  CLFileItem objects, and possibly an array of CLError objects.
+        ///// </summary>
+        ///// <param name="asyncCallback">Callback method to fire when operation completes</param>
+        ///// <param name="asyncCallbackUserState">Userstate to pass when firing async callback</param>
+        ///// <param name="paths">An array of full paths to where the files would exist locally on disk.</param>
+        ///// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        //public IAsyncResult BeginAddFiles(AsyncCallback asyncCallback, object asyncCallbackUserState, string[] paths)
+        //{
+        //    CheckDisposed(true);
+
+        //    CLHttpRest httpRestClient;
+        //    GetInstanceRestClient(out httpRestClient);
+        //    return httpRestClient.BeginAddFiles(asyncCallback, asyncCallbackUserState, paths);
+        //}
+
+        ///// <summary>
+        ///// Finishes adding files in the syncbox, if it has not already finished via its asynchronous result, and outputs the result,
+        ///// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
+        ///// </summary>
+        ///// <param name="asyncResult">The asynchronous result provided upon starting the metadata query</param>
+        ///// <param name="result">(output) The result from the metadata query</param>
+        ///// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
+        //public CLError EndAddFiles(IAsyncResult asyncResult, out SyncboxAddFilesResult result)
+        //{
+        //    CheckDisposed(true);
+        //    SyncboxAddFilesResult deleteResult;
+
+        //    CLHttpRest httpRestClient;
+        //    GetInstanceRestClient(out httpRestClient);
+        //    CLError error = httpRestClient.EndAddFiles(asyncResult, out deleteResult);
+
+        //    if (error != null)
+        //    {
+        //        result = null;
+        //        return error;
+        //    }
+
+        //    result = new SyncboxAddFilesResult(deleteResult.OverallError, deleteResult.Errors, deleteResult.FileItems);
+        //    return error;
+        //}
+
+        ///// <summary>
+        ///// Adds files in the syncbox.
+        ///// </summary>
+        ///// <param name="paths">An array of full paths to where the files would exist locally on disk.</param>
+        ///// <param name="fileItems">(output) response object from communication</param>
+        ///// <param name="errors">(output) Any returned errors, or null.</param>
+        ///// <returns>Returns any error that occurred during communication, if any</returns>
+        //public CLError AddFiles(string[] paths, out CLFileItem[] fileItems, out CLError[] errors)
+        //{
+        //    CheckDisposed(true);
+
+        //    CLHttpRest httpRestClient;
+        //    GetInstanceRestClient(out httpRestClient);
+        //    return httpRestClient.AddFiles(paths, out fileItems, out errors);
+        //}
 
         #endregion  // end AddFiles (Add files in the syncbox)
 
