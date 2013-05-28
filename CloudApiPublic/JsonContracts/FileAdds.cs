@@ -18,6 +18,12 @@ namespace Cloud.JsonContracts
     [DataContract]
     internal sealed class FileAdds
     {
+        [DataMember(Name = CLDefinitions.QueryStringDeviceId, IsRequired = false)]
+        public string DeviceId { get; set; }
+
+        [DataMember(Name = CLDefinitions.QueryStringSyncboxId, IsRequired = false)]
+        public Nullable<long> SyncboxId { get; set; }
+
         [DataMember(Name = CLDefinitions.RESTRequestFileAdds, IsRequired = false)]
         public FileAdd [] Adds { get; set; }
     }

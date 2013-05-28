@@ -1,5 +1,5 @@
 ﻿//
-// AddItemParams.cs
+// AddFileItemParams.cs
 // Cloud Windows
 //
 // Created By BobS.
@@ -15,12 +15,12 @@ using System.Text;
 namespace Cloud.CLSync.CLSyncboxParameters
 {
     /// <summary>
-    /// Contains the old path and new path for renaming a single item
+    /// Contains the name of of new folder, and the parent folder item that will contain the new folder.
     /// </summary>
-    public sealed class AddItemParams
+    public sealed class AddFileItemParams
     {
         /// <summary>
-        /// Returns the item (file or folder) to rename in place.
+        /// Returns the parent folder item of the file being added.
         /// </summary>
         public CLFileItem Parent
         {
@@ -32,35 +32,35 @@ namespace Cloud.CLSync.CLSyncboxParameters
         private readonly CLFileItem _parent;
 
         /// <summary>
-        /// Returns the new name of the item.
+        /// Returns the relative path in the syncbox of the file item being added.
         /// </summary>
-        public string Name
+        public string RelativePath
         {
             get
             {
-                return _name;
+                return _relativePath;
             }
         }
-        private readonly string _name;
+        private readonly string _relativePath;
 
         /// <summary>
-        /// Construct parameters for renaming an item in place.
+        /// Construct parameters for adding a file item.
         /// </summary>
-        /// <param name="parent">Parent folder of the item we wish to create.</param>
-        /// <param name="name">New name of the item</param>
-        public AddItemParams(CLFileItem parent, string name)
+        /// <param name="parent">Parent folder of the item we wish to add.</param>
+        /// <param name="relativePath">Relative path in the syncbox of the file being added.</param>
+        public AddFileItemParams(CLFileItem parent, string relativePath)
         {
             if (parent == null)
             {
                 throw new CLArgumentNullException(Static.CLExceptionCode.OnDemand_MissingParameters, Resources.ExceptionOnDemandAddItemItemMustNotBeNull);
             }
-            if (String.IsNullOrEmpty(name))
+            if (String.IsNullOrEmpty(relativePath))
             {
                 throw new CLArgumentNullException(Static.CLExceptionCode.OnDemand_MissingParameters, Resources.ExceptionOnDemandAddItemNameMustBeSpecified);
             }
 
             this._parent = parent;
-            this._name = name;
+            this._relativePath = relativePath;
         }
     }
 }

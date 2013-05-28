@@ -1909,7 +1909,7 @@ namespace Cloud.REST
         /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the item completion callback above is fired.</param>
         /// <param name="folderItemsToAdd">One or more pairs of parent folder item and folder name to add.</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        internal IAsyncResult BeginAddFolders(AsyncCallback asyncCallback, object asyncCallbackUserState, CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, params AddItemParams[] folderItemsToAdd)
+        internal IAsyncResult BeginAddFolders(AsyncCallback asyncCallback, object asyncCallbackUserState, CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, params AddFolderItemParams[] folderItemsToAdd)
         {
             var asyncThread = DelegateAndDataHolderBase.Create(
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
@@ -1973,7 +1973,7 @@ namespace Cloud.REST
         /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the item completion callback above is fired.</param>
         /// <param name="folderItemsToAdd">One or more pairs of parent folder item and folder name to add.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        internal CLError AddFolders(CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, params AddItemParams[] folderItemsToAdd)
+        internal CLError AddFolders(CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, params AddFolderItemParams[] folderItemsToAdd)
         {
             // try/catch to process the request,  On catch return the error
             try
@@ -2157,11 +2157,18 @@ namespace Cloud.REST
         /// <summary>
         /// Asynchronously starts adding files in the syncbox.
         /// </summary>
-        /// <param name="callback">Callback method to fire when operation completes</param>
-        /// <param name="callbackUserState">Userstate to pass when firing async callback</param>
-        /// <param name="paths">An array of full paths to where the files would exist locally on disk</param>
+        /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
+        /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
+        /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
+        /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the item completion callback above is fired.</param>
+        /// <param name="filesToAdd">An array of pairs of relative path in the syncbox of the file to add, and the parent folder item that will hold the added file.</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginAddFiles(AsyncCallback callback, object callbackUserState, string[] paths)
+        internal IAsyncResult BeginAddFiles(
+            AsyncCallback asyncCallback,
+            object asyncCallbackUserState,
+            CLFileItemCompletionCallback itemCompletionCallback, 
+            object itemCompletionCallbackUserState, 
+            AddFileItemParams[] filesToAdd)
         {
             var asyncThread = DelegateAndDataHolderBase.Create(
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
@@ -2169,9 +2176,11 @@ namespace Cloud.REST
                 {
                     // create the asynchronous result to return
                     toReturn = new GenericAsyncResult<SyncboxAddFilesResult>(
-                        callback,
-                        callbackUserState),
-                    paths
+                        asyncCallback,
+                        asyncCallbackUserState),
+                    itemCompletionCallback = itemCompletionCallback,
+                    itemCompletionCallbackUserState = itemCompletionCallbackUserState,
+                    filesToAdd = filesToAdd
                 },
                 (Data, errorToAccumulate) =>
                 {
@@ -2185,15 +2194,12 @@ namespace Cloud.REST
                         CLError[] errors;
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
                         CLError overallError = AddFiles(
-                            Data.paths,
-                            out responses,
-                            out errors);
+                            Data.itemCompletionCallback,
+                            Data.itemCompletionCallbackUserState,
+                            Data.filesToAdd);
 
                         Data.toReturn.Complete(
-                            new SyncboxAddFilesResult(
-                                overallError, // any overall error that may have occurred during processing
-                                errors,     // any item erros that may have occurred during processing
-                                responses), // the specific type of result for this operation
+                            new SyncboxAddFilesResult(overallError), // any overall error that may have occurred during processing
                             sCompleted: false); // processing did not complete synchronously
                     }
                     catch (Exception ex)
@@ -2219,7 +2225,7 @@ namespace Cloud.REST
         /// <param name="aResult">The asynchronous result provided upon starting the request</param>
         /// <param name="result">(output) The result from the request</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndAddFiles(IAsyncResult aResult, out SyncboxAddFilesResult result)
+        internal CLError EndAddFiles(IAsyncResult aResult, out SyncboxAddFilesResult result)
         {
             return Helpers.EndAsyncOperation<SyncboxAddFilesResult>(aResult, out result);
         }
@@ -2227,19 +2233,40 @@ namespace Cloud.REST
         /// <summary>
         /// Add files in the syncbox.
         /// </summary>
-        /// <param name="paths">An array of full paths to where the files would exist locally on disk</param>
-        /// <param name="responses">(output) An array of response objects from communication</param>
-        /// <param name="errors">(output) An array of errors from communication.</param>
+        /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
+        /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
+        /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
+        /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the item completion callback above is fired.</param>
+        /// <param name="filesToAdd">An array of pairs of relative path in the syncbox of the file to add, and the parent folder item that will hold the added file.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError AddFiles(string[] paths, out CLFileItem[] responses, out CLError[] errors)
+        internal CLError AddFiles(
+            CLFileItemCompletionCallback itemCompletionCallback, 
+            object itemCompletionCallbackUserState, 
+            AddFileItemParams[] filesToAdd)
         {
             // try/catch to process the request,  On catch return the error
             try
             {
-                // check input parameters.
-                for (int i = 0; i < paths.Length; ++i)
+                // check input parameters.{
+                if (filesToAdd == null)
                 {
-                    CheckPath(paths[i], CLExceptionCode.OnDemand_FileAddBadPath);
+                    throw new ArgumentNullException("filesToAdd must not be null");  //&&&& fix this
+                }
+
+                for (int i=0; i < filesToAdd.Length; i++)
+                {
+                    AddFileItemParams item = filesToAdd[i];
+                    if (item.Parent == null)
+                    {
+                        throw new ArgumentNullException(String.Format("filesToAdd item {0} Parent must not be null", i);  //&&&& fix this
+                    }
+                    if (String.IsNullOrEmpty(item.RelativePath))
+                    {
+                        throw new ArgumentNullException(String.Format("filesToAdd item {0} RelativePath must be specified", i);  //&&&& fix this
+                    }
+
+                    FilePath fullPath = new FilePath(item.RelativePath, _syncbox.Path);
+                    CheckPath(fullPath, CLExceptionCode.OnDemand_FileAddBadPath);
                 }
 
                 if (!(_copiedSettings.HttpTimeoutMilliseconds > 0))
@@ -2258,19 +2285,20 @@ namespace Cloud.REST
                 };
 
                 // Build the REST content dynamically.
-                // File move (rename) and file move (rename) share a json contract object for move (rename).
                 // This will be an array of contracts.
-                int numberOfFiles = paths.Length;
+                int numberOfFiles = filesToAdd.Length;
                 List<FileAdd> listAddContract = new List<FileAdd>();
                 for (int i = 0; i < numberOfFiles; ++i)
                 {
-                    FilePath filePath = new FilePath(paths[i]);
+                    AddFileItemParams itemParams = filesToAdd[i];
+                    FilePath filePath = new FilePath(itemParams.RelativePath, _syncbox.Path);
 
                     FileAdd thisAdd = new FileAdd()
                     {
-                        DeviceId = _copiedSettings.DeviceId,
+                        DeviceId = null,
+                        SyncboxId = null,
                         RelativePath = filePath.GetRelativePath(_syncbox.Path, true),
-                        SyncboxId = _syncbox.SyncboxId
+                        ParentUid = itemParams.Parent.Uid,
                     };
 
                     listAddContract.Add(thisAdd);
