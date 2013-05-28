@@ -4351,6 +4351,12 @@ namespace Cloud.Sync
                                 //// since post-processing was commented out above, need to specifically take out uploads to process and requeue the rest of the top-level incomplete changes back to FileMonitor
                                 //
                                 #region alternative to post-processing
+
+                                commonOutputChanges.Value =
+                                    // first pass the enumerable of processing changes from the incomplete changes and the changes which cannot be processed due to a lack of Stream
+                                    (commonIncompleteChanges.Value ?? Enumerable.Empty<PossiblyStreamableAndPossiblyChangedFileChange>())
+                                        .Select(currentIncompleteChange => new PossiblyStreamableFileChange(currentIncompleteChange.FileChange, currentIncompleteChange.StreamContext));
+
                                 List<PossiblyStreamableAndPossiblyChangedFileChange> uploadsToFire = null;
                                 commonThingsThatWereDependenciesToQueue.Value = (commonThingsThatWereDependenciesToQueue.Value == null
                                         ? Enumerable.Empty<FileChange>()
@@ -4392,6 +4398,13 @@ namespace Cloud.Sync
                                                 return true;
                                             })
                                         .Select(incompleteChange => incompleteChange.FileChange)).ToArray();   // do not allow delayed execution because we need the data from the execution immediately
+
+                                commonOutputChanges.Value = commonOutputChanges.Value.Where(outputChange => !commonThingsThatWereDependenciesToQueue.Value.Contains(outputChange.FileChange));
+
+                                commonErrorsToQueue.Value = new List<PossiblyStreamableAndPossiblyPreexistingErrorFileChange>((commonOutputChanges.Value ?? Enumerable.Empty<PossiblyStreamableFileChange>())
+                                    .Select(currentOutputChange => new PossiblyStreamableAndPossiblyPreexistingErrorFileChange(/* IsPreexisting: */ false, currentOutputChange.FileChange, currentOutputChange.StreamContext))
+                                    .Concat((commonChangesInError.Value ?? Enumerable.Empty<PossiblyStreamableAndPossiblyChangedFileChangeWithError>())
+                                        .Select(commonChangeInError => new PossiblyStreamableAndPossiblyPreexistingErrorFileChange(/* IsPreexisting: */ false, commonChangeInError.FileChange, commonChangeInError.StreamContext))));
 
                                 if (uploadsToFire != null)
                                 {
