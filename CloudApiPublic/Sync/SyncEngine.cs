@@ -1420,7 +1420,7 @@ namespace Cloud.Sync
             GenericHolder<string> commonNewSyncId = new GenericHolder<string>(null);
             GenericHolder<string> commonRootFolderServerUid = new GenericHolder<string>(null);
 
-            GenericHolder<Nullable<CredentialsErrorType>> commonCredentialsError = new GenericHolder<Nullable<CredentialsErrorType>>(null);
+            GenericHolder<CredentialsErrorType> commonCredentialsError = new GenericHolder<CredentialsErrorType>(CredentialsErrorType.NoError);
             CredentialsErrorType communicationOutputCredentialsError;
 
             GenericHolder<IEnumerable<FileChange>> commonTopLevelErrors = new GenericHolder<IEnumerable<FileChange>>(null);
@@ -3341,18 +3341,17 @@ namespace Cloud.Sync
                 },
                 (Data, errorToAccumulate) =>
                 {
-                    if (Data.commonCredentialsError.Value == null
-                        || ((CredentialsErrorType)Data.commonCredentialsError.Value) != CredentialsErrorType.NoError)
+                    if (Data.commonCredentialsError.Value != CredentialsErrorType.NoError)
                     {
                         lock (Data.commonThisEngine.CredentialsErrorDetected)
                         {
-                            Data.commonThisEngine.CredentialsErrorDetected.Value = Data.commonCredentialsError.Value ?? CredentialsErrorType.OtherError;
+                            Data.commonThisEngine.CredentialsErrorDetected.Value = Data.commonCredentialsError.Value;
                         }
 
                         try
                         {
                             string errorMessage;
-                            switch (Data.commonCredentialsError.Value ?? CredentialsErrorType.OtherError)
+                            switch (Data.commonCredentialsError.Value)
                             {
                                 case CredentialsErrorType.ExpiredCredentials:
                                     errorMessage = "SyncEngine halted after credentials expired";
@@ -3364,7 +3363,7 @@ namespace Cloud.Sync
 
                                 //case CredentialErrorType.NoError: // should not happen since we already checked for no error
                                 default:
-                                    errorMessage = "SyncEngine halted after unknown credentials error: " + ((CredentialsErrorType)Data.commonCredentialsError.Value).ToString();
+                                    errorMessage = "SyncEngine halted after unknown credentials error: " + Data.commonCredentialsError.Value.ToString();
                                     break;
                             }
 
@@ -3372,7 +3371,7 @@ namespace Cloud.Sync
                                 errorMessage,
                                 EventMessageLevel.Important,
                                 /*Error*/new HaltSyncboxOnAuthenticationFailureErrorInfo(TokenExpired:
-                                    Data.commonCredentialsError.Value != null && ((CredentialsErrorType)Data.commonCredentialsError.Value) == CredentialsErrorType.ExpiredCredentials),
+                                    Data.commonCredentialsError.Value == CredentialsErrorType.ExpiredCredentials),
                                 Data.commonThisEngine.syncbox.SyncboxId,
                                 Data.commonThisEngine.syncbox.CopiedSettings.DeviceId);
                         }
