@@ -1182,6 +1182,7 @@ namespace Cloud.SQLIndexer.SqlModel
     /// <summary>
     /// Attribute parent namespace for decorating classes and properties to signify POCO objects/properties that match SQL CE tables/columns
     /// </summary>
+    [Obfuscation(Feature = "preserve-name-binding")]
     internal static class SqlAccess
     {
         [AttributeUsage(AttributeTargets.Property)]

@@ -9,12 +9,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Reflection;
 
 namespace Cloud.SQLProxies
 {
     /// <summary>
     /// SQLite implementation of DbDataReader.
     /// </summary>
+    [Obfuscation(Feature = "preserve-name-binding")]
     internal interface ISQLiteDataReader : IDisposable
     {
         /// <summary>

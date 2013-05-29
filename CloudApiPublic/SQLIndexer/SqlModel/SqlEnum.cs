@@ -10,9 +10,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Cloud.Static;
+using System.Reflection;
 
 namespace Cloud.SQLIndexer.SqlModel
 {
+    [Obfuscation(Feature = "preserve-name-binding")]
     [SqlAccess.Class(CLDefinitions.SqlEnum_Events)]
     internal sealed class SqlEnum
     {
