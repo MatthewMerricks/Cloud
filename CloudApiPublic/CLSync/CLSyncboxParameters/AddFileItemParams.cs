@@ -34,33 +34,24 @@ namespace Cloud.CLSync.CLSyncboxParameters
         /// <summary>
         /// Returns the relative path in the syncbox of the file item being added.
         /// </summary>
-        public string RelativePath
+        public string Name
         {
             get
             {
-                return _relativePath;
+                return _name;
             }
         }
-        private readonly string _relativePath;
+        private readonly string _name;
 
         /// <summary>
         /// Construct parameters for adding a file item.
         /// </summary>
         /// <param name="parent">Parent folder of the item we wish to add.</param>
-        /// <param name="relativePath">Relative path in the syncbox of the file being added.</param>
-        public AddFileItemParams(CLFileItem parent, string relativePath)
+        /// <param name="name">Filename including extension within the parent folder.</param>
+        public AddFileItemParams(CLFileItem parent, string name)
         {
-            if (parent == null)
-            {
-                throw new CLArgumentNullException(Static.CLExceptionCode.OnDemand_MissingParameters, Resources.ExceptionOnDemandAddItemItemMustNotBeNull);
-            }
-            if (String.IsNullOrEmpty(relativePath))
-            {
-                throw new CLArgumentNullException(Static.CLExceptionCode.OnDemand_MissingParameters, Resources.ExceptionOnDemandAddItemNameMustBeSpecified);
-            }
-
             this._parent = parent;
-            this._relativePath = relativePath;
+            this._name = name;
         }
     }
 }

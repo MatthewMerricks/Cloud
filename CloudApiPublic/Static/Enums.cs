@@ -486,7 +486,25 @@ namespace Cloud.Static
         /// </summary>
         OnDemand_DeleteSyncbox = (((ulong)CLExceptionDomain.OnDemand) << 32) | 28, // 5_28
 
+        /// <summary>
+        /// File not found on disk in order to upload.
+        /// </summary>
+        OnDemand_FileAddNotFound = (((ulong)CLExceptionDomain.OnDemand) << 32) | 29, // 5_29
 
+        /// <summary>
+        /// A newer version of the file already exists and is available for download.
+        /// </summary>
+        OnDemand_NewerVersionAvailableForDownload = (((ulong)CLExceptionDomain.OnDemand) << 32) | 30, // 5_30
+
+        /// <summary>
+        /// The parent folder was not found
+        /// </summary>
+        OnDemand_ParentNotFound = (((ulong)CLExceptionDomain.OnDemand) << 32) | 31, // 5_31
+
+        /// <summary>
+        /// An error occurred uploading a file.
+        /// </summary>
+        OnDemand_Upload = (((ulong)CLExceptionDomain.OnDemand) << 32) | 32, // 5_32
 
         #endregion
 

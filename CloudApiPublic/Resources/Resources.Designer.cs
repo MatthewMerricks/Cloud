@@ -2007,6 +2007,24 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to An error occurred uploading a file in CLHttpRest AddFiles.
+        /// </summary>
+        internal static string ExceptionCLHttpRestAddFilesUploadError {
+            get {
+                return ResourceManager.GetString("ExceptionCLHttpRestAddFilesUploadError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A newer version of the file already exists and is available for download.
+        /// </summary>
+        internal static string ExceptionCLHttpRestDownloadNewerVersion {
+            get {
+                return ResourceManager.GetString("ExceptionCLHttpRestDownloadNewerVersion", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Path cannot be null.
         /// </summary>
         internal static string ExceptionCLHttpRestNullPath {
@@ -2021,6 +2039,15 @@ namespace Cloud.Static {
         internal static string ExceptionCLHttpRestNullServerUid {
             get {
                 return ResourceManager.GetString("ExceptionCLHttpRestNullServerUid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The server responded without an array of add file responses.
+        /// </summary>
+        internal static string ExceptionCLHttpRestWithoutAddFilesResponses {
+            get {
+                return ResourceManager.GetString("ExceptionCLHttpRestWithoutAddFilesResponses", resourceCulture);
             }
         }
         
@@ -2313,6 +2340,24 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to dependencyFileChange cannot be null.
+        /// </summary>
+        internal static string ExceptionHelpersOpenFileStreamAndCalculateHashesNullDependencyFileChange {
+            get {
+                return ResourceManager.GetString("ExceptionHelpersOpenFileStreamAndCalculateHashesNullDependencyFileChange", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to dependencyFileChange Metadata cannot be null.
+        /// </summary>
+        internal static string ExceptionHelpersOpenFileStreamAndCalculateHashesNullDependencyFileChangeMetadata {
+            get {
+                return ResourceManager.GetString("ExceptionHelpersOpenFileStreamAndCalculateHashesNullDependencyFileChangeMetadata", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to hashString must be in a hexadecimal string format with no seperator characters and two characters per byte.
         /// </summary>
         internal static string ExceptionHelpersParseHexadecimalStringToByteArrayHashStringFormat {
@@ -2601,6 +2646,15 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Unable to cast innerState as IndexingAgent.
+        /// </summary>
+        internal static string ExceptionMonitorAgentGrabPreprocessedChangesCastInnerState {
+            get {
+                return ResourceManager.GetString("ExceptionMonitorAgentGrabPreprocessedChangesCastInnerState", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to foldersToAdd must be specified, and must have at least one element.
         /// </summary>
         internal static string ExceptionOnDemandAddFoldersNoFoldersToAdd {
@@ -2615,15 +2669,6 @@ namespace Cloud.Static {
         internal static string ExceptionOnDemandAddFoldersParentFolderDeleted {
             get {
                 return ResourceManager.GetString("ExceptionOnDemandAddFoldersParentFolderDeleted", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The parent folder was not found.
-        /// </summary>
-        internal static string ExceptionOnDemandAddFoldersParentFolderNotFound {
-            get {
-                return ResourceManager.GetString("ExceptionOnDemandAddFoldersParentFolderNotFound", resourceCulture);
             }
         }
         
@@ -2651,6 +2696,15 @@ namespace Cloud.Static {
         internal static string ExceptionOnDemandAddItemNameMustBeSpecified {
             get {
                 return ResourceManager.GetString("ExceptionOnDemandAddItemNameMustBeSpecified", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The parent folder was not found.
+        /// </summary>
+        internal static string ExceptionOnDemandAddParentFolderNotFound {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandAddParentFolderNotFound", resourceCulture);
             }
         }
         

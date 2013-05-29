@@ -150,6 +150,132 @@ namespace Cloud.Static
                 : settingsDatabaseFolder + "\\" + CLDefinitions.kSyncDatabaseFileName);
         }
 
+        internal static void OpenFileStreamAndCalculateHashes(out FileStream OutputStream, out byte[][] intermediateHashes, out byte[] newMD5Bytes, out Nullable<long> finalFileSize, FileChange dependencyFileChange, out bool dependencyFileChangeNotFound, Action<FileChange, object> onDependencyFileChangeDifferenceDetected = null, object onDependencyFileChangeDifferenceDetectedState = null)
+        {
+            if (dependencyFileChange == null)
+            {
+                throw new CLArgumentNullException(CLExceptionCode.General_Arguments, Resources.ExceptionHelpersOpenFileStreamAndCalculateHashesNullDependencyFileChange);
+            }
+            if (dependencyFileChange.Metadata == null)
+            {
+                throw new CLArgumentNullException(CLExceptionCode.General_Arguments, Resources.ExceptionHelpersOpenFileStreamAndCalculateHashesNullDependencyFileChangeMetadata);
+            }
+
+            // had to extend try to outside of the max size calculation because it uses a FileInfo on the possibly non-existing file
+            try
+            {
+                if (FileConstants.MaxUploadFileSize != -1) // there is a max upload file size threshold
+                {
+                    // Note: file size can change during hashing since the file is open with share write
+                    long initialFileSize = new FileInfo(dependencyFileChange.NewPath.ToString()).Length;
+
+                    if (FileConstants.MaxUploadFileSize < initialFileSize)
+                    {
+                        String MaxUploadFileSizeText = (FileConstants.MaxUploadFileSize > (1024 * 1024)
+                            ? String.Format("{0}M", FileConstants.MaxUploadFileSize / (1024 * 1024))
+                            : (FileConstants.MaxUploadFileSize > 1024
+                                ? String.Format("{0}K", FileConstants.MaxUploadFileSize / 1024)
+                                : String.Format("{0} bytes", FileConstants.MaxUploadFileSize)));
+
+                        throw new AggregateException(String.Format(Resources.MonitorAgentFilesBiggerThan0AreNotYetSupportedFile1Size2,
+                            FileConstants.MaxUploadFileSize, dependencyFileChange.NewPath.ToString(), initialFileSize));
+                    }
+                }
+
+                OutputStream = new FileStream(dependencyFileChange.NewPath.ToString(), FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Write | FileShare.Delete);
+
+                dependencyFileChangeNotFound = false;
+            }
+            catch (FileNotFoundException)
+            {
+                dependencyFileChangeNotFound = true;
+                throw;
+            }
+
+            try
+            {
+                byte[] previousMD5Bytes = dependencyFileChange.MD5;
+
+                Model.Md5Hasher hasher = new Model.Md5Hasher(FileConstants.MaxUploadIntermediateHashBytesSize);
+
+                try
+                {
+                    byte[] fileBuffer = new byte[FileConstants.BufferSize];
+                    int fileReadBytes;
+                    long countFileSize = 0;
+
+                    while ((fileReadBytes = OutputStream.Read(fileBuffer, 0, FileConstants.BufferSize)) > 0)
+                    {
+                        countFileSize += fileReadBytes;
+
+                        hasher.Update(fileBuffer, fileReadBytes);
+                    }
+
+                    hasher.FinalizeHashes();
+                    newMD5Bytes = hasher.Hash;
+                    intermediateHashes = hasher.IntermediateHashes;
+                    finalFileSize = countFileSize; // file size as counted through a successfull hashing
+
+                    string pathString = dependencyFileChange.NewPath.ToString();
+                    FileInfo uploadInfo = new FileInfo(pathString);
+                    DateTime newCreationTime = uploadInfo.CreationTimeUtc.DropSubSeconds();
+                    DateTime newWriteTime = uploadInfo.LastWriteTimeUtc.DropSubSeconds();
+
+                    if (newCreationTime.CompareTo(dependencyFileChange.Metadata.HashableProperties.CreationTime) != 0 // creation time changed
+                        || newWriteTime.CompareTo(dependencyFileChange.Metadata.HashableProperties.LastTime) != 0 // or last write time changed
+                        || dependencyFileChange.Metadata.HashableProperties.Size == null // or previous size was not set
+                        || ((long)dependencyFileChange.Metadata.HashableProperties.Size) == countFileSize // or size changed
+                        || !Helpers.IsEqualHashes(previousMD5Bytes, newMD5Bytes))
+                    {
+                        CLError setMD5Error = dependencyFileChange.SetMD5(newMD5Bytes);
+                        if (setMD5Error != null)
+                        {
+                            throw new AggregateException(Resources.MonitorAgentDependencyFileChangeMD5, setMD5Error.Exceptions);
+                        }
+
+                        dependencyFileChange.Metadata.HashableProperties = new FileMetadataHashableProperties(false,
+                            newWriteTime,
+                            newCreationTime,
+                            countFileSize);
+
+                        if (onDependencyFileChangeDifferenceDetected != null)
+                        {
+                            onDependencyFileChangeDifferenceDetected(dependencyFileChange, onDependencyFileChangeDifferenceDetectedState);
+                        }
+                    }
+                }
+                finally
+                {
+                    try
+                    {
+                        if (OutputStream != null)
+                        {
+                            OutputStream.Seek(0, SeekOrigin.Begin);
+                        }
+                    }
+                    catch
+                    {
+                    }
+
+                    hasher.Dispose();
+                }
+            }
+            catch
+            {
+                if (OutputStream != null)
+                {
+                    try
+                    {
+                        OutputStream.Dispose();
+                    }
+                    catch
+                    {
+                    }
+                }
+                throw;
+            }
+        }
+
         /// <summary>
         /// Creates a default instance of a provided type for use with populating out parameters when exceptions are thrown
         /// </summary>
@@ -2730,7 +2856,7 @@ namespace Cloud.Static
             ICLSyncSettingsAdvanced CopiedSettings, // used for device id, trace settings, and client version
             CLCredentials Credentials, // contains key/secret for authorization
             Nullable<long> SyncboxId, // unique id for the sync box on the server
-            bool isOneOff)
+            bool isOneOff) // one-offs bypass the halt all check
             where T : class // restrict T to an object type to allow default null return
         {
             return ProcessHttpInner<T>(requestContent,
@@ -2760,7 +2886,7 @@ namespace Cloud.Static
             ICLSyncSettingsAdvanced CopiedSettings, // used for device id, trace settings, and client version
             Nullable<long> SyncboxId,  // unique id for the sync box on the server
             RequestNewCredentialsInfo RequestNewCredentialsInfo, // gets the credentials and renews the credentials if needed
-            bool isOneOff)
+            bool isOneOff) // one-offs bypass the halt all check
             where T : class // restrict T to an object type to allow default null return
         {
             // Part 1 of the "request new credentials" processing.  This processing is invoked when temporary token credentials time out.
@@ -2959,7 +3085,7 @@ namespace Cloud.Static
             ICLSyncSettingsAdvanced CopiedSettings, // used for device id, trace settings, and client version
             CLCredentials Credentials, // contains key/secret for authorization
             Nullable<long> SyncboxId, // unique id for the sync box on the server
-            bool isOneOff)
+            bool isOneOff) // one-offs bypass the halt all check
             where T : class // restrict T to an object type to allow default null return
         {
             if (AllHaltedOnUnrecoverableError && !isOneOff)

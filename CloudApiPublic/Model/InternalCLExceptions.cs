@@ -38,6 +38,30 @@ namespace Cloud.Model
     }
 
     /// <summary>
+    /// Use in place of FileNotFoundException
+    /// </summary>
+    internal class CLFileNotFoundException : CLIOException
+    {
+        /// <summary>
+        /// Internal constructor
+        /// </summary>
+        internal CLFileNotFoundException(
+            CLExceptionCode code,
+            string message,
+            params Exception[] original)
+            : base(code, message, original) { }
+
+        /// <summary>
+        /// Internal constructor
+        /// </summary>
+        internal CLFileNotFoundException(
+            CLExceptionCode code,
+            string message,
+            IEnumerable<Exception> innerExceptions)
+            : base(code, message, innerExceptions) { }
+    }
+
+    /// <summary>
     /// Use in place of ArgumentNullException
     /// </summary>
     internal class CLArgumentNullException : CLArgumentException

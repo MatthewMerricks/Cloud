@@ -5734,7 +5734,6 @@ namespace Cloud.Sync
                     Error: new GeneralErrorInfo(),
                     SyncboxId: exceptionState.Syncbox.SyncboxId,
                     DeviceId: exceptionState.Syncbox.CopiedSettings.DeviceId);
-
             }
             catch (Exception innerEx)
             {

@@ -523,7 +523,6 @@ namespace Cloud.FileMonitor
         /// </summary>
         private bool IsInitialIndex = true;
         private readonly CLSyncbox _syncbox;
-        private readonly long MaxUploadFileSize;
         #endregion
 
         #region memory debug
@@ -715,13 +714,12 @@ namespace Cloud.FileMonitor
             out SyncEngine syncEngine,
             bool debugMemory,
             Action<MonitorAgent, FileChange> onQueueingCallback = null,
-            bool logProcessing = false,
-            long MaxUploadFileSize = FileConstants.MaxUploadFileSize)
+            bool logProcessing = false)
         {
 
             try
             {
-                newAgent = new MonitorAgent(indexer, syncbox, debugMemory, DependencyDebugging, MaxUploadFileSize);
+                newAgent = new MonitorAgent(indexer, syncbox, debugMemory, DependencyDebugging);
             }
             catch (Exception ex)
             {
@@ -824,7 +822,7 @@ namespace Cloud.FileMonitor
             return null;
         }
 
-        private MonitorAgent(IndexingAgent Indexer, CLSyncbox syncbox, bool debugMemory, bool DependencyDebugging, long MaxUploadFileSize) 
+        private MonitorAgent(IndexingAgent Indexer, CLSyncbox syncbox, bool debugMemory, bool DependencyDebugging)
         {
             // check input parameters
 
@@ -841,7 +839,6 @@ namespace Cloud.FileMonitor
             {
                 throw new NullReferenceException("Indexer cannot be null");
             }
-            this.MaxUploadFileSize = MaxUploadFileSize;
             this._syncbox = syncbox;
             this.Indexer = Indexer;
             this._syncData = new SyncData(this, Indexer);
@@ -2919,98 +2916,50 @@ namespace Cloud.FileMonitor
                                             {
                                                 try
                                                 {
-                                                    // had to extend try to outside of the max size calculation because it uses a FileInfo on the possibly non-existing file
-                                                    try
-                                                    {
-                                                        if (MaxUploadFileSize != -1) // there is a max upload file size threshold
+                                                    FileChange dependencyFileChange = CurrentDependencyTree.DependencyFileChange;
+                                                    bool dependencyFileChangeNotFound = false;
+                                                    Action<FileChange, object> onDependencyFileChangeDifferenceDetected = (innerDependencyFileChange, innerState) =>
                                                         {
-                                                            // Note: file size can change during hashing since the file is open with share write
-                                                            long initialFileSize = new FileInfo(CurrentDependencyTree.DependencyFileChange.NewPath.ToString()).Length;
+                                                            IndexingAgent castState = innerState as IndexingAgent;
 
-                                                            CurrentDependencyTree.DependencyFileChange.FileIsTooBig = (MaxUploadFileSize < initialFileSize);
-
-                                                            if (CurrentDependencyTree.DependencyFileChange.FileIsTooBig)
+                                                            if (castState == null)
                                                             {
-                                                                String maxUploadFileSizeText = MaxUploadFileSize > (1024 * 1024) ? String.Format("{0}M", MaxUploadFileSize / (1024 * 1024)) :
-                                                                                                MaxUploadFileSize > 1024 ? String.Format("{0}K", MaxUploadFileSize / 1024) :
-                                                                                                String.Format("{0} bytes", MaxUploadFileSize);
-                                                            	throw new AggregateException(String.Format(Resources.MonitorAgentFilesBiggerThan0AreNotYetSupportedFile1Size2,
-                                                                                                            MaxUploadFileSize, CurrentDependencyTree.DependencyFileChange.NewPath.ToString(), initialFileSize));
+                                                                MessageEvents.FireNewEventMessage(
+                                                                    Resources.ExceptionMonitorAgentGrabPreprocessedChangesCastInnerState,
+                                                                    EventMessageLevel.Important,
+                                                                    new HaltAllOfCloudSDKErrorInfo());
+
+                                                                throw new CLException(CLExceptionCode.General_Miscellaneous, Resources.ExceptionMonitorAgentGrabPreprocessedChangesCastInnerState);
                                                             }
-                                                        }
-
-                                                        OutputStream = new FileStream(CurrentDependencyTree.DependencyFileChange.NewPath.ToString(), FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Write | FileShare.Delete);
-                                                    }
-                                                    catch (FileNotFoundException)
-                                                    {
-                                                        CurrentDependencyTree.DependencyFileChange.NotFoundForStreamCounter++;
-                                                        throw;
-                                                    }
-                                                    byte[] previousMD5Bytes = CurrentDependencyTree.DependencyFileChange.MD5;
-
-                                                    Model.Md5Hasher hasher = new Model.Md5Hasher(FileConstants.MaxUploadIntermediateHashBytesSize);
+                                                            else
+                                                            {
+                                                                CLError writeNewMetadataError = castState.MergeEventsIntoDatabase(Helpers.EnumerateSingleItem(new FileChangeMerge(innerDependencyFileChange)));
+                                                                if (writeNewMetadataError != null)
+                                                                {
+                                                                    throw new AggregateException(Resources.MonitorAgentWritingUpdatedFileUploadMetadataToSQL, writeNewMetadataError.Exceptions);
+                                                                }
+                                                            }
+                                                        };
+                                                    object onDependencyFileChangeDifferenceDetectedState = Indexer;
 
                                                     try
                                                     {
-                                                        byte[] fileBuffer = new byte[FileConstants.BufferSize];
-                                                        int fileReadBytes;
-                                                        long countFileSize = 0;
-
-                                                        while ((fileReadBytes = OutputStream.Read(fileBuffer, 0, FileConstants.BufferSize)) > 0)
-                                                        {
-                                                            countFileSize += fileReadBytes;
-
-                                                            hasher.Update(fileBuffer, fileReadBytes);
-                                                        }
-
-                                                        hasher.FinalizeHashes();
-                                                        newMD5Bytes = hasher.Hash;
-                                                        intermediateHashes = hasher.IntermediateHashes;
-                                                        finalFileSize = countFileSize; // file size as counted through a successfull hashing
-
-                                                        string pathString = CurrentDependencyTree.DependencyFileChange.NewPath.ToString();
-                                                        FileInfo uploadInfo = new FileInfo(pathString);
-                                                        DateTime newCreationTime = uploadInfo.CreationTimeUtc.DropSubSeconds();
-                                                        DateTime newWriteTime = uploadInfo.LastWriteTimeUtc.DropSubSeconds();
-
-                                                        if (newCreationTime.CompareTo(CurrentDependencyTree.DependencyFileChange.Metadata.HashableProperties.CreationTime) != 0 // creation time changed
-                                                            || newWriteTime.CompareTo(CurrentDependencyTree.DependencyFileChange.Metadata.HashableProperties.LastTime) != 0 // or last write time changed
-                                                            || CurrentDependencyTree.DependencyFileChange.Metadata.HashableProperties.Size == null // or previous size was not set
-                                                            || ((long)CurrentDependencyTree.DependencyFileChange.Metadata.HashableProperties.Size) == countFileSize // or size changed
-                                                            || !Helpers.IsEqualHashes(previousMD5Bytes, newMD5Bytes))
-                                                        {
-                                                            CLError setMD5Error = CurrentDependencyTree.DependencyFileChange.SetMD5(newMD5Bytes);
-                                                            if (setMD5Error != null)
-                                                            {
-                                                                throw new AggregateException(Resources.MonitorAgentDependencyFileChangeMD5, setMD5Error.Exceptions);
-                                                            }
-
-                                                            CurrentDependencyTree.DependencyFileChange.Metadata.HashableProperties = new FileMetadataHashableProperties(false,
-                                                                newWriteTime,
-                                                                newCreationTime,
-                                                                countFileSize);
-
-                                                            CLError writeNewMetadataError = Indexer.MergeEventsIntoDatabase(Helpers.EnumerateSingleItem(new FileChangeMerge(CurrentDependencyTree.DependencyFileChange)));
-                                                            if (writeNewMetadataError != null)
-                                                            {
-                                                                throw new AggregateException(Resources.MonitorAgentWritingUpdatedFileUploadMetadataToSQL, writeNewMetadataError.Exceptions);
-                                                            }
-                                                        }
+                                                        Helpers.OpenFileStreamAndCalculateHashes(
+                                                            out OutputStream,
+                                                            out intermediateHashes,
+                                                            out newMD5Bytes,
+                                                            out finalFileSize,
+                                                            dependencyFileChange,
+                                                            out dependencyFileChangeNotFound,
+                                                            onDependencyFileChangeDifferenceDetected,
+                                                            onDependencyFileChangeDifferenceDetectedState);
                                                     }
                                                     finally
                                                     {
-                                                        try
+                                                        if (dependencyFileChangeNotFound)
                                                         {
-                                                            if (OutputStream != null)
-                                                            {
-                                                                OutputStream.Seek(0, SeekOrigin.Begin);
-                                                            }
+                                                            CurrentDependencyTree.DependencyFileChange.NotFoundForStreamCounter++;
                                                         }
-                                                        catch
-                                                        {
-                                                        }
-
-                                                        hasher.Dispose();
                                                     }
                                                 }
                                                 catch (Exception ex)
@@ -3104,6 +3053,7 @@ namespace Cloud.FileMonitor
 
             return toReturn;
         }
+
         private enum FileChangeSource : byte
         {
             QueuedChanges,

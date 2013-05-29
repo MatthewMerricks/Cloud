@@ -2194,20 +2194,23 @@ namespace Cloud
             object asyncCallbackUserState,
             CLFileItemCompletionCallback itemCompletionCallback,
             object itemCompletionCallbackUserState,
+            CLFileItemTransferStatusDelegate transferStatusCallback,
+            object transferStatusCallbackUserState,
+            CancellationTokenSource cancellationSource,
             params AddFileItemParams[] filesToAdd)
         {
             CheckDisposed(true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.BeginAddFiles(asyncCallback, asyncCallbackUserState, itemCompletionCallback, itemCompletionCallbackUserState, filesToAdd);
+            return httpRestClient.BeginAddFiles(asyncCallback, asyncCallbackUserState, itemCompletionCallback, itemCompletionCallbackUserState, transferStatusCallback, transferStatusCallbackUserState, cancellationSource, filesToAdd);
         }
 
         /// <summary>
         /// Finishes adding files in the syncbox, if it has not already finished via its asynchronous result, and outputs the result,
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
         /// </summary>
-        /// <param name="aResult">The asynchronous result provided upon starting the request</param>
+        /// <param name="asyncResult">The asynchronous result provided upon starting the request</param>
         /// <param name="result">(output) The result from the request</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndAddFiles(IAsyncResult asyncResult, out SyncboxAddFilesResult result)
@@ -2222,22 +2225,26 @@ namespace Cloud
         /// <summary>
         /// Add files in the syncbox.
         /// </summary>
-        /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
-        /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
         /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
         /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the item completion callback above is fired.</param>
+        /// <param name="transferStatusCallback">Callback method which will be fired when the transfer progress changes for upload, can be null</param>
+        /// <param name="transferStatusCallbackState">Userstate to be passed whenever the transfer progress callback is fired</param>
+        /// <param name="cancellationSource">An optional cancellation token which may be used to cancel uploads in progress immediately, can be null</param>
         /// <param name="filesToAdd">(params) An array of pairs of relative path in the syncbox of the file to add, and the parent folder item that will hold the added file.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError AddFiles(
+        internal CLError AddFiles(
             CLFileItemCompletionCallback itemCompletionCallback,
             object itemCompletionCallbackUserState,
+            CLFileItemTransferStatusDelegate transferStatusCallback,
+            object transferStatusCallbackUserState,
+            CancellationTokenSource cancellationSource,
             params AddFileItemParams[] filesToAdd)
         {
             CheckDisposed(true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.AddFiles(itemCompletionCallback, itemCompletionCallbackUserState, filesToAdd);
+            return httpRestClient.AddFiles(itemCompletionCallback, itemCompletionCallbackUserState, transferStatusCallback, transferStatusCallbackUserState, cancellationSource, filesToAdd);
         }
 
         ///// <summary>

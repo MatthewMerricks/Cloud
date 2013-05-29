@@ -2839,7 +2839,7 @@
     <value>The parent folder was found, but it has been deleted</value>
     <comment>Translate</comment>
   </data>
-  <data name="ExceptionOnDemandAddFoldersParentFolderNotFound" xml:space="preserve">
+  <data name="ExceptionOnDemandAddParentFolderNotFound" xml:space="preserve">
     <value>The parent folder was not found</value>
     <comment>Translate</comment>
   </data>
@@ -2906,5 +2906,27 @@
   <data name="IconOverlayRenameBadgePathRemoveBadgeOldPath0" xml:space="preserve">
     <value>IconOverlay: RenameBadgePath. Remove badge at oldPath: {0}.</value>
     <comment>"IconOverlay" and "oldPath" should not be translated.</comment>
+  </data>
+  <data name="ExceptionCLHttpRestAddFilesUploadError" xml:space="preserve">
+    <value>An error occurred uploading a file in CLHttpRest AddFiles</value>
+    <comment>CLHttpRest and AddFiles should not be translated</comment>
+  </data>
+  <data name="ExceptionCLHttpRestDownloadNewerVersion" xml:space="preserve">
+    <value>A newer version of the file already exists and is available for download</value>
+  </data>
+  <data name="ExceptionCLHttpRestWithoutAddFilesResponses" xml:space="preserve">
+    <value>The server responded without an array of add file responses</value>
+  </data>
+  <data name="ExceptionHelpersOpenFileStreamAndCalculateHashesNullDependencyFileChange" xml:space="preserve">
+    <value>dependencyFileChange cannot be null</value>
+    <comment>dependencyFileChange cannot be null</comment>
+  </data>
+  <data name="ExceptionHelpersOpenFileStreamAndCalculateHashesNullDependencyFileChangeMetadata" xml:space="preserve">
+    <value>dependencyFileChange Metadata cannot be null</value>
+    <comment>dependencyFileChange and Metadata cannot be null</comment>
+  </data>
+  <data name="ExceptionMonitorAgentGrabPreprocessedChangesCastInnerState" xml:space="preserve">
+    <value>Unable to cast innerState as IndexingAgent</value>
+    <comment>innerState and IndexingAgent should not be translated</comment>
   </data>
 </root>

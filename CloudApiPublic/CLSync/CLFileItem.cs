@@ -54,14 +54,23 @@ namespace Cloud.CLSync
         }
         private readonly string _name;
 
-        public string Path
+        public string RelativePath
         {
             get
             {
-                return _path;
+                return _relativePath;
             }
         }
-        private readonly string _path;
+        private readonly string _relativePath;
+
+        public string FullPath
+        {
+            get
+            {
+                return _fullPath;
+            }
+        }
+        private readonly string _fullPath;
 
         public string Revision
         {
@@ -176,46 +185,54 @@ namespace Cloud.CLSync
 
         #region Constructors
         
-        // iOS is not allowing public construction of the CLFileItem, it can only be produced internally by create operations or by queries
-        internal /* public */ CLFileItem(
-            string name,
-            string path,
-            string revision,
-            Nullable<long> size,
-            string mimeType,
-            DateTime createdDate,
-            DateTime modifiedDate,
-            string uid,
-            string parentUid,
-            bool isFolder,
-            bool isDeleted,
-            Nullable<POSIXPermissions> permissions,
-            CLSyncbox syncbox)
-        {
-            if (syncbox == null)
-            {
-                throw new CLArgumentNullException(CLExceptionCode.FileItem_NullSyncbox, Resources.SyncboxMustNotBeNull);
-            }
+        //// iOS is not allowing public construction of the CLFileItem, it can only be produced internally by create operations or by queries
+        //
+        //// we aren't using this constructor and it's internal, so it's commented for now
+        //
+        //internal /* public */ CLFileItem(
+        //    string name,
+        //    string relativePath,
+        //    string revision,
+        //    Nullable<long> size,
+        //    string mimeType,
+        //    DateTime createdDate,
+        //    DateTime modifiedDate,
+        //    string uid,
+        //    string parentUid,
+        //    bool isFolder,
+        //    bool isDeleted,
+        //    Nullable<POSIXPermissions> permissions,
+        //    CLSyncbox syncbox)
+        //{
+        //    if (syncbox == null)
+        //    {
+        //        throw new CLArgumentNullException(CLExceptionCode.FileItem_NullSyncbox, Resources.SyncboxMustNotBeNull);
+        //    }
+            //if (string.IsNullOrEmpty(syncbox.Path))
+            //{
+            //    throw new CLArgumentNullException(CLExceptionCode.Syncbox_BadPath, Resources.ExceptionOnDemandCheckPathSyncboxPathNull);
+            //}
 
-            this._name = name;
-            this._path = path;
-            this._revision = revision;
-            this._size = size;
-            this._mimeType = mimeType;
-            this._createdDate = createdDate;
-            this._modifiedDate = modifiedDate;
-            this._uid = uid;
-            this._parentUid = parentUid;
-            this._isFolder = isFolder;
-            this._isDeleted = isDeleted;
-            this._permissions = permissions;
-            this._syncbox = syncbox;
-            //// in public SDK documents, but for now it's always zero, so don't expose it
-            //this._childrenCount = 0;
+        //    this._name = name;
+        //    this._relativePath = relativePath;
+        //    this._fullPath = [calculate full path here]
+        //    this._revision = revision;
+        //    this._size = size;
+        //    this._mimeType = mimeType;
+        //    this._createdDate = createdDate;
+        //    this._modifiedDate = modifiedDate;
+        //    this._uid = uid;
+        //    this._parentUid = parentUid;
+        //    this._isFolder = isFolder;
+        //    this._isDeleted = isDeleted;
+        //    this._permissions = permissions;
+        //    this._syncbox = syncbox;
+        //    //// in public SDK documents, but for now it's always zero, so don't expose it
+        //    //this._childrenCount = 0;
 
-            this._httpRestClient = syncbox.HttpRestClient;
-            this._copiedSettings = syncbox.CopiedSettings;
-        }
+        //    this._httpRestClient = syncbox.HttpRestClient;
+        //    this._copiedSettings = syncbox.CopiedSettings;
+        //}
 
         /// <summary>
         /// Use this if the response does not have a headerAction or action.
@@ -237,6 +254,10 @@ namespace Cloud.CLSync
             if (syncbox == null)
             {
                 throw new CLArgumentNullException(CLExceptionCode.FileItem_NullSyncbox, Resources.SyncboxMustNotBeNull);
+            }
+            if (string.IsNullOrEmpty(syncbox.Path))
+            {
+                throw new CLArgumentNullException(CLExceptionCode.Syncbox_BadPath, Resources.ExceptionOnDemandCheckPathSyncboxPathNull);
             }
 
             if (response.IsFolder == null)
@@ -267,7 +288,16 @@ namespace Cloud.CLSync
             }
 
             this._name = response.Name;
-            this._path = response.RelativePath;
+            string coallescedRelativePath = response.RelativeToPathWithoutEnclosingSlashes ?? response.RelativePathWithoutEnclosingSlashes;
+
+            this._relativePath = (coallescedRelativePath == null
+                ? null
+                : (coallescedRelativePath.Replace('/', '\\')));
+
+            this._fullPath = (coallescedRelativePath == null
+                ? null
+                : (syncbox.Path + "\\" + this._relativePath));
+
             this._revision = response.Revision;
             this._size = response.Size;
             this._mimeType = response.MimeType;
@@ -378,7 +408,7 @@ namespace Cloud.CLSync
 
                 // Move the downloaded file.
                 string backupFileFullPath = Helpers.GetTempFileDownloadPath(castState._copiedSettings, castState.Syncbox.SyncboxId) + /* '\\' */ (char)0x005c + Guid.NewGuid().ToString();
-                CLError errorFromMoveDownloadedFile = Helpers.MoveDownloadedFile(tempFileFullPath, Path, backupFileFullPath);
+                CLError errorFromMoveDownloadedFile = Helpers.MoveDownloadedFile(tempFileFullPath, RelativePath, backupFileFullPath);
                 if (errorFromMoveDownloadedFile != null)
                 {
                     throw new AggregateException("Error moving the downloaded file", errorFromMoveDownloadedFile.Exceptions);

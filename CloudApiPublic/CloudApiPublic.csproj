@@ -132,6 +132,7 @@
     <Compile Include="BadgeNET\IconOverlay.cs" />
     <Compile Include="CLSync\CLCredentials.cs" />
     <Compile Include="CLSync\CLCredentialsSettings.cs" />
+    <Compile Include="CLSync\CLFileItemTransferStatusDelegate.cs" />
     <Compile Include="CLSync\CLSyncboxCallbacks\CLFileItemCompletionCallback.cs" />
     <Compile Include="CLSync\CLSyncbox.cs" />
     <Compile Include="CLSync\CLSyncboxCallbacks\CLCreateSyncboxCompletionCallback.cs" />

@@ -24,6 +24,7 @@ using System.Linq.Expressions;
 using Cloud.Model.EventMessages.ErrorInfo;
 using Cloud.CLSync;
 using Cloud.CLSync.CLSyncboxParameters;
+using System.Threading.Tasks;
 
 namespace Cloud.REST
 {
@@ -468,11 +469,11 @@ namespace Cloud.REST
 
                     // The CLFileItem represents an existing file or folder, and should be valid because we created it.  The new full path must
                     // fit the specs for the Windows client.  Form the new full path and check its validity.
-                    if (String.IsNullOrWhiteSpace(currentParams.ItemToRename.Path))
+                    if (String.IsNullOrWhiteSpace(currentParams.ItemToRename.RelativePath))
                     {
                         throw new CLArgumentException(CLExceptionCode.OnDemand_InvalidExistingPath, String.Format(Resources.ExceptionOnDemandRenameFilesInvalidExistingPathInItemMsg0, paramIdx.ToString()));
                     }
-                    FilePath fullPathExisting = new FilePath(_syncbox.Path + currentParams.ItemToRename.Path.Replace('/', '\\'));
+                    FilePath fullPathExisting = new FilePath(_syncbox.Path + currentParams.ItemToRename.RelativePath.Replace('/', '\\'));
                     FilePath fullPathNew = new FilePath(currentParams.NewName, fullPathExisting.Parent);
                     CheckPath(fullPathNew, CLExceptionCode.OnDemand_RenameNewName);
 
@@ -735,11 +736,11 @@ namespace Cloud.REST
 
                     // The CLFileItem represents an existing file or folder, and should be valid because we created it.  The new full path must
                     // fit the specs for the Windows client.  Form the new full path and check its validity.
-                    if (String.IsNullOrWhiteSpace(currentParams.ItemToRename.Path))
+                    if (String.IsNullOrWhiteSpace(currentParams.ItemToRename.RelativePath))
                     {
                         throw new CLArgumentException(CLExceptionCode.OnDemand_InvalidExistingPath, String.Format(Resources.ExceptionOnDemandRenameFilesInvalidExistingPathInItemMsg0, paramIdx.ToString()));
                     }
-                    FilePath fullPathExisting = new FilePath(_syncbox.Path + currentParams.ItemToRename.Path.Replace('/', '\\').TrimTrailingSlash());
+                    FilePath fullPathExisting = new FilePath(_syncbox.Path + currentParams.ItemToRename.RelativePath.Replace('/', '\\').TrimTrailingSlash());
                     FilePath fullPathNew = new FilePath(currentParams.NewName, fullPathExisting.Parent);
                     CheckPath(fullPathNew, CLExceptionCode.OnDemand_RenameNewName);
 
@@ -1061,9 +1062,6 @@ namespace Cloud.REST
                         throw new CLException(CLExceptionCode.OnDemand_FileRename, Resources.ExceptionOnDemandResponseArrayLength);
                     }
 
-                    List<CLFileItem> listFileItems = new List<CLFileItem>();
-                    List<CLError> listErrors = new List<CLError>();
-
                     for (int responseIdx = 0; responseIdx < responseFromServer.MoveResponses.Length; responseIdx++)
                     {
                         try
@@ -1316,9 +1314,6 @@ namespace Cloud.REST
                     {
                         throw new CLException(CLExceptionCode.OnDemand_FolderRename, Resources.ExceptionOnDemandResponseArrayLength);
                     }
-
-                    List<CLFileItem> listFileItems = new List<CLFileItem>();
-                    List<CLError> listErrors = new List<CLError>();
 
                     for (int responseIdx = 0; responseIdx < responseFromServer.MoveResponses.Length; responseIdx++)
                     {
@@ -2102,7 +2097,7 @@ namespace Cloud.REST
                                     break;
 
                                 case CLDefinitions.CLEventTypeParentNotFound:
-                                    throw new CLNullReferenceException(CLExceptionCode.OnDemand_NotFound, Resources.ExceptionOnDemandAddFoldersParentFolderNotFound);
+                                    throw new CLNullReferenceException(CLExceptionCode.OnDemand_ParentNotFound, Resources.ExceptionOnDemandAddParentFolderNotFound);
 
                                 case CLDefinitions.CLEventTypeParentDeleted:
                                     throw new CLNullReferenceException(CLExceptionCode.OnDemand_AlreadyDeleted, Resources.ExceptionOnDemandAddFoldersParentFolderDeleted);
@@ -2173,8 +2168,11 @@ namespace Cloud.REST
         internal IAsyncResult BeginAddFiles(
             AsyncCallback asyncCallback,
             object asyncCallbackUserState,
-            CLFileItemCompletionCallback itemCompletionCallback, 
-            object itemCompletionCallbackUserState, 
+            CLFileItemCompletionCallback itemCompletionCallback,
+            object itemCompletionCallbackUserState,
+            CLFileItemTransferStatusDelegate transferStatusCallback,
+            object transferStatusCallbackUserState,
+            CancellationTokenSource cancellationSource,
             params AddFileItemParams[] filesToAdd)
         {
             var asyncThread = DelegateAndDataHolderBase.Create(
@@ -2187,6 +2185,9 @@ namespace Cloud.REST
                         asyncCallbackUserState),
                     itemCompletionCallback = itemCompletionCallback,
                     itemCompletionCallbackUserState = itemCompletionCallbackUserState,
+                    transferStatusCallback = transferStatusCallback,
+                    transferStatusCallbackUserState = transferStatusCallbackUserState,
+                    cancellationSource = cancellationSource,
                     filesToAdd = filesToAdd
                 },
                 (Data, errorToAccumulate) =>
@@ -2199,6 +2200,9 @@ namespace Cloud.REST
                         CLError overallError = AddFiles(
                             Data.itemCompletionCallback,
                             Data.itemCompletionCallbackUserState,
+                            Data.transferStatusCallback,
+                            Data.transferStatusCallbackUserState,
+                            Data.cancellationSource,
                             Data.filesToAdd);
 
                         Data.toReturn.Complete(
@@ -2233,19 +2237,80 @@ namespace Cloud.REST
             return Helpers.EndAsyncOperation<SyncboxAddFilesResult>(asyncResult, out result);
         }
 
+        private sealed class StreamOrStreamContextHolder
+        {
+            public Stream baseStream { get; private set; }
+            public StreamContext context { get; private set; }
+
+            public void switchToContext(StreamContext context)
+            {
+                if (context != null)
+                {
+                    this.context = context;
+                    this.baseStream = null;
+                }
+            }
+
+            public StreamOrStreamContextHolder(Stream baseStream)
+            {
+                this.baseStream = baseStream;
+            }
+
+            public static void DisposeHolderInArray(StreamOrStreamContextHolder[] inputArray, int disposeIndex)
+            {
+                if (inputArray != null
+                    && disposeIndex >= 0
+                    && disposeIndex < inputArray.Length)
+                {
+                    StreamOrStreamContextHolder currentItem = inputArray[disposeIndex];
+
+                    if (currentItem != null)
+                    {
+                        if (currentItem.context != null)
+                        {
+                            try
+                            {
+                                currentItem.context.Dispose();
+                            }
+                            catch
+                            {
+                            }
+                            currentItem.context = null;
+                        }
+                        else if (currentItem.baseStream != null)
+                        {
+                            try
+                            {
+                                currentItem.baseStream.Dispose();
+                            }
+                            catch
+                            {
+                            }
+                            currentItem.baseStream = null;
+                        }
+
+                        inputArray[disposeIndex] = null;
+                    }
+                }
+            }
+        }
+
         /// <summary>
         /// Add files in the syncbox.
         /// </summary>
-        /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
-        /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
         /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
         /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the item completion callback above is fired.</param>
+        /// <param name="transferStatusCallback">Callback method which will be fired when the transfer progress changes for upload, can be null</param>
+        /// <param name="transferStatusCallbackState">Userstate to be passed whenever the transfer progress callback is fired</param>
+        /// <param name="cancellationSource">An optional cancellation token which may be used to cancel uploads in progress immediately, can be null</param>
         /// <param name="filesToAdd">(params) An array of pairs of relative path in the syncbox of the file to add, and the parent folder item that will hold the added file.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        /// &&&& TODO: Fix this.  Doesn't work yet.
         internal CLError AddFiles(
             CLFileItemCompletionCallback itemCompletionCallback, 
-            object itemCompletionCallbackUserState, 
+            object itemCompletionCallbackUserState,
+            CLFileItemTransferStatusDelegate transferStatusCallback,
+            object transferStatusCallbackUserState,
+            CancellationTokenSource cancellationSource,
             params AddFileItemParams[] filesToAdd)
         {
             // try/catch to process the request,  On catch return the error
@@ -2256,118 +2321,422 @@ namespace Cloud.REST
                 {
                     throw new ArgumentNullException("filesToAdd must not be null");  //&&&& fix this
                 }
-
-                for (int i=0; i < filesToAdd.Length; i++)
+                if (filesToAdd.Length > 0)
                 {
-                    AddFileItemParams item = filesToAdd[i];
-                    if (item.Parent == null)
-                    {
-                        throw new ArgumentNullException(String.Format("filesToAdd item {0} Parent must not be null", i));  //&&&& fix this
-                    }
-                    if (String.IsNullOrEmpty(item.RelativePath))
-                    {
-                        throw new ArgumentNullException(String.Format("filesToAdd item {0} RelativePath must be specified", i));  //&&&& fix this
-                    }
-
-                    FilePath fullPath = new FilePath(item.RelativePath, _syncbox.Path);
-                    CheckPath(fullPath, CLExceptionCode.OnDemand_FileAddBadPath);
+                    throw new CLArgumentException(CLExceptionCode.Http_BadRequest, "filesToAdd must have a length greater than zero");
                 }
-
                 if (!(_copiedSettings.HttpTimeoutMilliseconds > 0))
                 {
                     throw new ArgumentException(Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
 
-                // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
-                Helpers.RequestNewCredentialsInfo requestNewCredentialsInfo = new Helpers.RequestNewCredentialsInfo()
-                {
-                    ProcessingStateByThreadId = _processingStateByThreadId,
-                    GetNewCredentialsCallback = _getNewCredentialsCallback,
-                    GetNewCredentialsCallbackUserState = _getNewCredentialsCallbackUserState,
-                    GetCurrentCredentialsCallback = GetCurrentCredentialsCallback,
-                    SetCurrentCredentialsCallback = SetCurrentCredentialCallback,
-                };
+                StreamOrStreamContextHolder[] uploadStreams = new StreamOrStreamContextHolder[filesToAdd.Length];
 
-                // Build the REST content dynamically.
-                // This will be an array of contracts.
-                int numberOfFiles = filesToAdd.Length;
-                List<FileAdd> listAddContract = new List<FileAdd>();
-                for (int i = 0; i < numberOfFiles; ++i)
+                try
                 {
-                    AddFileItemParams itemParams = filesToAdd[i];
-                    FilePath filePath = new FilePath(itemParams.RelativePath, _syncbox.Path);
+                    List<KeyValuePair<FileChange, int>> addChanges = new List<KeyValuePair<FileChange, int>>();
+                    List<KeyValuePair<CLError, int>> openStreamErrors = new List<KeyValuePair<CLError, int>>();
 
-                    FileAdd thisAdd = new FileAdd()
+                    for (int currentNameAndParentIdx = 0; currentNameAndParentIdx < filesToAdd.Length; currentNameAndParentIdx++)
                     {
-                        DeviceId = null,
-                        SyncboxId = null,
-                        RelativePath = filePath.GetRelativePath(_syncbox.Path, true),
-                        ParentUid = itemParams.Parent.Uid,
-                    };
+                        AddFileItemParams nameAndParent = filesToAdd[currentNameAndParentIdx];
+                        if (nameAndParent == null)
+                        {
+                            throw new CLArgumentNullException(CLExceptionCode.OnDemand_InvalidParameters, "fix me here");
+                        }
+                        if (nameAndParent.Parent == null)
+                        {
+                            throw new ArgumentNullException(String.Format("filesToAdd item {0} Parent must not be null", currentNameAndParentIdx));  //&&&& fix this
+                        }
+                        if (String.IsNullOrEmpty(nameAndParent.Name))
+                        {
+                            throw new ArgumentNullException(String.Format("filesToAdd item {0} RelativePath must be specified", currentNameAndParentIdx));  //&&&& fix this
+                        }
+                        if (string.IsNullOrEmpty(nameAndParent.Parent.FullPath))
+                        {
+                            throw new CLArgumentNullException(CLExceptionCode.OnDemand_FileAddBadPath, "file add bad path");
+                        }
+                        if (string.IsNullOrEmpty(nameAndParent.Parent.Uid))
+                        {
+                            throw new CLArgumentNullException(CLExceptionCode.OnDemand_FileAddInvalidMetadata, "current file in filesToAdd is missing ServerUid");
+                        }
 
-                    listAddContract.Add(thisAdd);
-                }
+                        FilePath fullPath = new FilePath(nameAndParent.Name, nameAndParent.Parent.FullPath);
+                        string fullPathString = fullPath.ToString();
 
-                // Now make the REST request content.
-                object requestContent = new JsonContracts.FileAdds()
-                {
-                    Adds = listAddContract.ToArray()
-                };
+                        // need to add check for bad characters in name
 
-                // server method path switched on whether change is a file or not
-                string serverMethodPath = CLDefinitions.MethodPathOneOffFileAdds;
+                        // need to add check for length including name: do not use Helpers.CheckSyncboxPathLength since that only works for the syncbox root
 
-                // Communicate with the server to get the response.
-                JsonContracts.SyncboxAddFilesResponse responseFromServer;
-                responseFromServer = Helpers.ProcessHttp<JsonContracts.SyncboxAddFilesResponse>(requestContent, // dynamic type of request content based on method path
-                    CLDefinitions.CLMetaDataServerURL, // base domain is the MDS server
-                    serverMethodPath, // dynamic path to appropriate one-off method
-                    Helpers.requestMethod.post, // one-off methods are all posts
-                    _copiedSettings.HttpTimeoutMilliseconds, // time before communication timeout
-                    null, // not an upload or download
-                    Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
-                    _copiedSettings, // pass the copied settings
-                    _syncbox.SyncboxId, // pass the unique id of the sync box on the server
-                    requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
-                    true);
+                        //// syncbox path should have already been checked, and Name is already checked to not be null
+                        //CheckPath(fullPath, CLExceptionCode.OnDemand_FileAddBadPath);
 
-                // Convert these items to the output array.
-                if (responseFromServer != null && responseFromServer.AddResponses != null)
-                {
-                    List<CLFileItem> listFileItems = new List<CLFileItem>();
-                    List<CLError> listErrors = new List<CLError>();
-                    foreach (FileChangeResponse fileChangeResponse in responseFromServer.AddResponses)
+                        FileChange addChange = new FileChange()
+                        {
+                            Direction = SyncDirection.To,
+                            Metadata = new FileMetadata()
+                            {
+                                EventTime = DateTime.UtcNow,
+                                HashableProperties = new FileMetadataHashableProperties(
+                                    isFolder: false,
+                                    lastTime: File.GetLastWriteTimeUtc(fullPathString),
+                                    creationTime: File.GetCreationTimeUtc(fullPathString),
+                                    size: null),
+                                ParentFolderServerUid = nameAndParent.Parent.Uid
+                            },
+                            NewPath = fullPath,
+                            Type = FileChangeType.Created
+                        };
+                        
+                        FileStream OutputStream;
+                        byte[][] intermediateHashes;
+                        byte[] newMD5Bytes;
+                        Nullable<long> finalFileSize;
+                        bool dependencyFileChangeNotFound = false;
+                        bool openStreamSucceeded;
+
+                        try
+                        {
+                            Helpers.OpenFileStreamAndCalculateHashes(
+                                out OutputStream,
+                                out intermediateHashes,
+                                out newMD5Bytes,
+                                out finalFileSize,
+                                addChange,
+                                out dependencyFileChangeNotFound);
+
+                            openStreamSucceeded = true;
+                        }
+                        catch (Exception ex)
+                        {
+                            if (dependencyFileChangeNotFound)
+                            {
+                                try
+                                {
+                                    throw new CLFileNotFoundException(CLExceptionCode.OnDemand_FileAddNotFound, "file add not found", ex);
+                                }
+                                catch (Exception innerEx)
+                                {
+                                    openStreamErrors.Add(
+                                        new KeyValuePair<CLError, int>(innerEx, currentNameAndParentIdx));
+                                }
+                            }
+                            else
+                            {
+                                openStreamErrors.Add(
+                                    new KeyValuePair<CLError, int>(ex, currentNameAndParentIdx));
+                            }
+
+                            openStreamSucceeded = false;
+
+                            OutputStream = Helpers.DefaultForType<FileStream>();
+                            intermediateHashes = Helpers.DefaultForType<byte[][]>();
+                            newMD5Bytes = Helpers.DefaultForType<byte[]>();
+                            finalFileSize = Helpers.DefaultForType<Nullable<long>>();
+                        }
+
+                        if (openStreamSucceeded)
+                        {
+                            if (OutputStream == null)
+                            {
+                                throw new CLNullReferenceException(CLExceptionCode.OnDemand_FileAdd, "No error creating FileStream but it still does not exist");
+                            }
+                            
+                            uploadStreams[currentNameAndParentIdx] = new StreamOrStreamContextHolder(OutputStream);
+
+                            if (intermediateHashes == null)
+                            {
+                                throw new CLNullReferenceException(CLExceptionCode.OnDemand_FileAdd, "No error creating intermediateHashes but it still does not exist");
+                            }
+                            if (newMD5Bytes == null)
+                            {
+                                throw new CLNullReferenceException(CLExceptionCode.OnDemand_FileAdd, "No error creating newMD5Bytes but it still does not exist");
+                            }
+                            if (finalFileSize == null)
+                            {
+                                throw new CLNullReferenceException(CLExceptionCode.OnDemand_FileAdd, "No error creating finalFileSize but it still does not exist");
+                            }
+
+                            uploadStreams[currentNameAndParentIdx].switchToContext(
+                                UploadStreamContext.Create(OutputStream, intermediateHashes, newMD5Bytes, finalFileSize));
+
+                            addChanges.Add(
+                                new KeyValuePair<FileChange, int>(
+                                    addChange, currentNameAndParentIdx));
+                        }
+                    }
+
+                    if (addChanges.Count > 0)
                     {
-                        if (fileChangeResponse != null && fileChangeResponse.Metadata != null)
+                        // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
+                        Helpers.RequestNewCredentialsInfo requestNewCredentialsInfo = new Helpers.RequestNewCredentialsInfo()
+                        {
+                            ProcessingStateByThreadId = _processingStateByThreadId,
+                            GetNewCredentialsCallback = _getNewCredentialsCallback,
+                            GetNewCredentialsCallbackUserState = _getNewCredentialsCallbackUserState,
+                            GetCurrentCredentialsCallback = GetCurrentCredentialsCallback,
+                            SetCurrentCredentialsCallback = SetCurrentCredentialCallback,
+                        };
+
+                        // Now make the REST request content.
+                        object requestContent = new JsonContracts.FileAdds()
+                        {
+                            DeviceId = _copiedSettings.DeviceId,
+                            SyncboxId = _syncbox.SyncboxId,
+                            Adds = addChanges.Select(currentAddChange => new JsonContracts.FileAdd()
+                                {
+                                    CreatedDate = currentAddChange.Key.Metadata.HashableProperties.CreationTime,
+                                    Hash = currentAddChange.Key.GetMD5LowercaseString(),
+                                    MimeType = currentAddChange.Key.Metadata.MimeType,
+                                    ModifiedDate = currentAddChange.Key.Metadata.HashableProperties.LastTime,
+                                    Name = currentAddChange.Key.NewPath.Name,
+                                    ParentUid = currentAddChange.Key.Metadata.ParentFolderServerUid,
+                                    Size = currentAddChange.Key.Metadata.HashableProperties.Size
+                                }).ToArray()
+                        };
+
+                        // server method path switched on whether change is a file or not
+                        string serverMethodPath = CLDefinitions.MethodPathOneOffFileAdds;
+
+                        // Communicate with the server to get the response.
+                        JsonContracts.SyncboxAddFilesResponse responseFromServer;
+                        responseFromServer = Helpers.ProcessHttp<JsonContracts.SyncboxAddFilesResponse>(requestContent, // dynamic type of request content based on method path
+                            CLDefinitions.CLMetaDataServerURL, // base domain is the MDS server
+                            serverMethodPath, // dynamic path to appropriate one-off method
+                            Helpers.requestMethod.post, // one-off methods are all posts
+                            _copiedSettings.HttpTimeoutMilliseconds, // time before communication timeout
+                            null, // not an upload or download
+                            Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
+                            _copiedSettings, // pass the copied settings
+                            _syncbox.SyncboxId, // pass the unique id of the sync box on the server
+                            requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
+                            isOneOff: true); // one-offs bypass the halt all check
+
+                        // Convert these items to the output array.
+                        if (responseFromServer == null || responseFromServer.AddResponses == null)
+                        {
+                            throw new CLNullReferenceException(CLExceptionCode.OnDemand_FileAdd, Resources.ExceptionCLHttpRestWithoutAddFilesResponses);
+                        }
+
+                        if (responseFromServer.AddResponses.Length != filesToAdd.Length)
+                        {
+                            throw new CLException(CLExceptionCode.OnDemand_FileAdd, Resources.ExceptionOnDemandResponseArrayLength);
+                        }
+
+                        // we know we don't have an overall error by now, so we can finally return the items for which we could not open streams
+                        if (itemCompletionCallback != null
+                            && openStreamErrors.Count > 0)
+                        {
+                            foreach (KeyValuePair<CLError, int> openStreamError in openStreamErrors)
+                            {
+                                itemCompletionCallback(itemIndex: openStreamError.Value, completedItem: null, error: openStreamError.Key, userState: itemCompletionCallbackUserState);
+                            }
+                        }
+
+                        List<Tuple<CLFileItem, FileChange, EventWaitHandle, int>> filesLeftToUpload = new List<Tuple<CLFileItem, FileChange, EventWaitHandle, int>>();
+
+                        for (int responseIdx = 0; responseIdx < responseFromServer.AddResponses.Length; responseIdx++)
                         {
                             try
                             {
-                                listFileItems.Add(new CLFileItem(fileChangeResponse.Metadata, fileChangeResponse.Header.Action, fileChangeResponse.Action, _syncbox));
+                                FileChangeResponse currentAddResponse = responseFromServer.AddResponses[responseIdx];
+
+                                if (currentAddResponse == null)
+                                {
+                                    throw new CLNullReferenceException(CLExceptionCode.OnDemand_MissingResponseField, Resources.ExceptionOnDemandNullItem);
+                                }
+                                if (currentAddResponse.Header == null || string.IsNullOrEmpty(currentAddResponse.Header.Status))
+                                {
+                                    throw new CLNullReferenceException(CLExceptionCode.OnDemand_MissingResponseField, Resources.ExceptionOnDemandNullStatus);
+                                }
+                                if (currentAddResponse.Metadata == null)
+                                {
+                                    throw new CLNullReferenceException(CLExceptionCode.OnDemand_MissingResponseField, Resources.ExceptionOnDemandNullMetadata);
+                                }
+
+                                switch (currentAddResponse.Header.Status)
+                                {
+                                    case CLDefinitions.CLEventTypeDuplicate:
+                                    case CLDefinitions.CLEventTypeExists:
+                                        CLFileItem resultItem = new CLFileItem(currentAddResponse.Metadata, currentAddResponse.Header.Action, currentAddResponse.Action, _syncbox);
+                                        if (itemCompletionCallback != null)
+                                        {
+                                            try
+                                            {
+                                                itemCompletionCallback(responseIdx, resultItem, error: null, userState: itemCompletionCallbackUserState);
+                                            }
+                                            catch
+                                            {
+                                            }
+                                        }
+                                        StreamOrStreamContextHolder.DisposeHolderInArray(uploadStreams, addChanges[responseIdx].Value);
+                                        break;
+
+                                    case CLDefinitions.CLEventTypeUpload:
+                                    case CLDefinitions.CLEventTypeUploading:
+                                        filesLeftToUpload.Add(
+                                            new Tuple<CLFileItem, FileChange, EventWaitHandle, int>(
+                                                new CLFileItem(currentAddResponse.Metadata, currentAddResponse.Header.Action, currentAddResponse.Action, _syncbox),
+                                                addChanges[responseIdx].Key,
+                                                new EventWaitHandle(initialState: false, mode: EventResetMode.ManualReset),
+                                                addChanges[responseIdx].Value));
+                                        break;
+
+                                    case CLDefinitions.CLEventTypeDownload:
+                                        throw new CLException(CLExceptionCode.OnDemand_NewerVersionAvailableForDownload, Resources.ExceptionCLHttpRestDownloadNewerVersion);
+
+                                    case CLDefinitions.CLEventTypeParentNotFound:
+                                        throw new CLException(CLExceptionCode.OnDemand_ParentNotFound, Resources.ExceptionOnDemandAddParentFolderNotFound);
+
+                                    case CLDefinitions.CLEventTypeConflict:
+                                        throw new CLException(CLExceptionCode.OnDemand_Conflict, Resources.ExceptionOnDemandConflict);
+
+                                    case CLDefinitions.RESTResponseStatusFailed:
+                                        Exception innerEx;
+                                        string errorMessageString;
+                                        try
+                                        {
+                                            errorMessageString = string.Join(Environment.NewLine, currentAddResponse.Metadata.ErrorMessage);
+                                            innerEx = null;
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            errorMessageString = Resources.ExceptionOnDemandDeserializeErrorMessage;
+                                            innerEx = ex;
+                                        }
+
+                                        throw new CLException(CLExceptionCode.OnDemand_ItemError, Resources.ExceptionOnDemandItemError, new Exception(errorMessageString, innerEx));
+
+                                    default:
+                                        throw new CLException(CLExceptionCode.OnDemand_UnknownItemStatus, string.Format(Resources.ExceptionOnDemandUnknownItemStatus, currentAddResponse.Header.Status));
+                                }
                             }
                             catch (Exception ex)
                             {
-                                CLException exInner = new CLException(CLExceptionCode.OnDemand_FileAddInvalidMetadata, ex.Message, ex);
-                                listErrors.Add(new CLError(exInner));
+                                if (itemCompletionCallback != null)
+                                {
+                                    try
+                                    {
+                                        itemCompletionCallback(itemIndex: addChanges[responseIdx].Value, completedItem: null, error: ex, userState: itemCompletionCallbackUserState);
+                                    }
+                                    catch
+                                    {
+                                    }
+                                }
+                                StreamOrStreamContextHolder.DisposeHolderInArray(uploadStreams, addChanges[responseIdx].Value);
                             }
                         }
-                        else
+
+                        if (filesLeftToUpload.Count > 0)
                         {
-                            string msg = "<Unknown>";
-                            if (fileChangeResponse.Header.Status != null)
+                            foreach (Tuple<CLFileItem, FileChange, EventWaitHandle, int> fileLeftToUpload in filesLeftToUpload)
                             {
-                                msg = fileChangeResponse.Header.Status;
+                                var uploadForTask = DelegateAndDataHolderBase.Create(
+                                    new
+                                    {
+                                        inputItemIndex = fileLeftToUpload.Item4,
+                                        uploadStreamContext = uploadStreams[fileLeftToUpload.Item4].context,
+                                        uploadChange = fileLeftToUpload.Item2,
+                                        cancellationSource = cancellationSource,
+                                        completionHandle = fileLeftToUpload.Item3,
+                                        itemCompletionCallback = itemCompletionCallback,
+                                        itemCompletionCallbackUserState = itemCompletionCallbackUserState,
+                                        transferStatusCallback = transferStatusCallback,
+                                        transferStatusCallbackUserState = transferStatusCallbackUserState,
+                                        _copiedSettings = _copiedSettings,
+                                        completedItem = fileLeftToUpload.Item1,
+                                        uploadStreams = uploadStreams
+                                    },
+                                    (Data, errorToAccumulate) =>
+                                    {
+                                        try
+                                        {
+                                            var statusConversionDelegate = DelegateAndDataHolderBase<Guid, long, SyncDirection, string, long, long, bool>.Create(
+                                                new
+                                                {
+                                                    transferStatusCallback = Data.transferStatusCallback,
+                                                    transferStatusCallbackUserState = Data.transferStatusCallbackUserState,
+                                                    inputItemIndex = Data.inputItemIndex
+                                                },
+                                                (innerData, threadId, eventId, direction, relativePath, byteProgress, totalByteSize, isError, innerErrorToAccumulate) =>
+                                                {
+                                                    if (innerData.transferStatusCallback != null)
+                                                    {
+                                                        innerData.transferStatusCallback(
+                                                            innerData.inputItemIndex,
+                                                            byteProgress,
+                                                            totalByteSize,
+                                                            innerData.transferStatusCallbackUserState);
+                                                    }
+                                                },
+                                                null);
+
+                                            string unusedMessage;
+                                            bool hashMismatchFound;
+                                            CLError uploadError = UploadFile(
+                                                Data.uploadStreamContext,
+                                                Data.uploadChange,
+                                                Data._copiedSettings.HttpTimeoutMilliseconds,
+                                                out unusedMessage,
+                                                out hashMismatchFound,
+                                                Data.cancellationSource,
+                                                /* aCallback: */ null,
+                                                /* aResult: */ null,
+                                                /* progress: */ null,
+                                                new FileTransferStatusUpdateDelegate(statusConversionDelegate.VoidProcess),
+                                                /* statusUpdateId: */ Guid.Empty);
+
+                                            if (uploadError != null)
+                                            {
+                                                throw new CLException(CLExceptionCode.OnDemand_Upload, Resources.ExceptionCLHttpRestAddFilesUploadError, uploadError.Exceptions);
+                                            }
+
+                                            if (Data.itemCompletionCallback != null)
+                                            {
+                                                Data.itemCompletionCallback(Data.inputItemIndex, Data.completedItem, /* error: */ null, Data.itemCompletionCallbackUserState);
+                                            }
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            if (Data.itemCompletionCallback != null)
+                                            {
+                                                Data.itemCompletionCallback(Data.inputItemIndex, /* completedItem: */ null, ex, Data.itemCompletionCallbackUserState);
+                                            }
+                                        }
+                                        finally
+                                        {
+                                            // UploadFile should dispose the stream, but do it anyways just in case
+                                            StreamOrStreamContextHolder.DisposeHolderInArray(Data.uploadStreams, Data.inputItemIndex);
+
+                                            Data.completionHandle.Set();
+                                        }
+                                    },
+                                    errorToAccumulate: null);
+
+                                (new Task(new Action(uploadForTask.VoidProcess))).Start(HttpScheduler.GetSchedulerByDirection(SyncDirection.To, _copiedSettings));
                             }
 
-                            CLException ex = new CLException(CLExceptionCode.OnDemand_FileAdd, msg);
-                            listErrors.Add(new CLError(ex));
+                            WaitHandle[] allWaitHandles = filesLeftToUpload.Select(fileToUpload => fileToUpload.Item3).ToArray();
+                            WaitHandle.WaitAll(allWaitHandles);
                         }
                     }
-                    //responses = listFileItems.ToArray();
-                    //errors = listErrors.ToArray();
+                    // else there was nothing in addChanges since every item in the input parameters could not have its stream opened
+                    // also, only need to fire completion routines for errors if the completion callback was set
+                    else if (itemCompletionCallback != null)
+                    {
+                        foreach (KeyValuePair<CLError, int> openStreamError in openStreamErrors)
+                        {
+                            itemCompletionCallback(itemIndex: openStreamError.Value, completedItem: null, error: openStreamError.Key, userState: itemCompletionCallbackUserState);
+                        }
+                    }
                 }
-                else
+                catch
                 {
-                    throw new NullReferenceException(Resources.ExceptionCLHttpRestWithoutMoveResponses);
+                    for (int currentDiposalIndex = 0; currentDiposalIndex < uploadStreams.Length; currentDiposalIndex++)
+                    {
+                        StreamOrStreamContextHolder.DisposeHolderInArray(uploadStreams, currentDiposalIndex);
+                    }
+                    throw;
                 }
             }
             catch (Exception ex)
@@ -5897,6 +6266,8 @@ namespace Cloud.REST
         #endregion
 
         #region internal API calls
+
+        #region unregioned
         /// <summary>
         /// Sends a list of sync events to the server.  The events must be batched in groups of 1,000 or less.
         /// </summary>
@@ -6069,6 +6440,8 @@ namespace Cloud.REST
 
             return null;
         }
+
+        #endregion
 
         #region GetMetadata
         /// <summary>
@@ -7109,6 +7482,8 @@ namespace Cloud.REST
             FileTransferStatusUpdateDelegate statusUpdate,
             Nullable<Guid> statusUpdateId)
         {
+            message = Helpers.DefaultForType<string>();
+
             // try/catch to process the file upload, on catch return the error
             try
             {
@@ -7169,7 +7544,6 @@ namespace Cloud.REST
             {
                 hashMismatchFound = (ex is HashMismatchException);
 
-                message = Helpers.DefaultForType<string>();
                 return ex;
             }
             return null;
