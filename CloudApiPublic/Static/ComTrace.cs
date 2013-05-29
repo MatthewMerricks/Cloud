@@ -983,7 +983,7 @@ namespace Cloud.Static
                                 Size = (currentChange.Metadata.HashableProperties.Size == null ? 0L : (long)currentChange.Metadata.HashableProperties.Size),
                                 SizeSpecified = currentChange.Metadata.HashableProperties.Size != null,
                                 IsSyncFrom = IsSyncFromBySyncDirection(currentChange.Direction),
-                                MD5 = PullMD5(currentChange),
+                                MD5 = currentChange.GetMD5LowercaseString(),
                                 StorageKey = currentChange.Metadata.StorageKey,
                                 Dependencies = innerTraceArray
                             };
@@ -1169,11 +1169,6 @@ namespace Cloud.Static
                 default:
                     throw new ArgumentException("Unknown SyncDirection: " + direction.ToString());
             }
-        }
-        private static string PullMD5(FileChange toPull)
-        {
-            string toReturn = toPull.GetMD5LowercaseString();
-            return toReturn;
         }
         #endregion
     }
