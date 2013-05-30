@@ -1303,6 +1303,20 @@ namespace SampleLiveSync.ViewModels
                 if (startSyncbox
                     && _syncbox != null)
                 {
+
+                    //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ DEBUG ONLY, REMOVE @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+                    Cloud.CLSync.CLFileItem parentFolder;
+                    string path = "FileToAdd.txt";
+                    CLError errorFromRootFolder = _syncbox.RootFolder(out parentFolder);
+                    Cloud.CLSync.CLSyncboxParameters.AddFileItemParams myParams = new Cloud.CLSync.CLSyncboxParameters.AddFileItemParams(parentFolder, path);
+
+                    CancellationTokenSource cancellationSource = new CancellationTokenSource();
+
+                    CLError errorFromAddFiles = _syncbox.AddFiles(OnFileAddCompletion, this, OnFileItemTransferStatus, this, cancellationSource, myParams);
+
+                    //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ DEBUG ONLY, REMOVE @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
                     // start syncing
                     CLSyncMode syncMode = Properties.Settings.Default.BadgingEnabled ? CLSyncMode.CLSyncModeLiveWithShellExt : CLSyncMode.CLSyncModeLive;
                     CLError errorFromSyncboxStart = _syncbox.StartLiveSync(
@@ -1384,6 +1398,24 @@ namespace SampleLiveSync.ViewModels
             }
         }
 
+        //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ DEBUG ONLY, REMOVE @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+        private void OnFileItemTransferStatus(int inputItemIndex, long byteProgress, long totalByteSize, object userState)
+        {
+            int myInputItemIndex = inputItemIndex;
+            long myByteProgress = byteProgress;
+            long myTotalByteSize = totalByteSize;
+            CLError error;
+        }
+        
+        private void OnFileAddCompletion(int itemIndex, Cloud.CLSync.CLFileItem completedItem, CLError error, object userState)
+        {
+            int index = itemIndex;
+            Cloud.CLSync.CLFileItem myItem = completedItem;
+            CLError myError = error;
+        }
+        //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ DEBUG ONLY, REMOVE @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+        
         /// <summary>
         /// Called by the Syncbox to request new credentials when the previous credentials have expired.
         /// </summary>

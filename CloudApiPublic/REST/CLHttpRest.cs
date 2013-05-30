@@ -4655,8 +4655,6 @@ namespace Cloud.REST
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
         /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
-        /// <param name="completionCallback">Callback method to fire when a page of items is complete.  Return the result.</param>
-        /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion callback above is fired.</param>
         /// <param name="pageNumber">Beginning page number.  The first page is page 1.</param>
         /// <param name="itemsPerPage">Items per page.</param>
         /// <param name="sinceDate">(optional) null to retrieve all of the recents, or specify a date to retrieve items from that date forward.</param>
@@ -4664,8 +4662,6 @@ namespace Cloud.REST
         internal IAsyncResult BeginRecentFiles(
             AsyncCallback asyncCallback, 
             object asyncCallbackUserState, 
-            CLAllItemsCompletionCallback completionCallback, 
-            object completionCallbackUserState, 
             long pageNumber, 
             long itemsPerPage,
             Nullable<DateTime> sinceDate = null)
@@ -4675,11 +4671,9 @@ namespace Cloud.REST
                 new
                 {
                     // create the asynchronous result to return
-                    toReturn = new GenericAsyncResult<CLError>(
+                    toReturn = new GenericAsyncResult<SyncboxRecentFilesResult>(
                         asyncCallback,
                         asyncCallbackUserState),
-                    completionCallback = completionCallback,
-                    completionCallbackUserState = completionCallbackUserState,
                     pageNumber = pageNumber,
                     itemsPerPage = itemsPerPage,
                     sinceDate = sinceDate
@@ -4691,14 +4685,15 @@ namespace Cloud.REST
                     try
                     {
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
+                        CLFileItem[] items;
                         CLError overallError = RecentFiles(
-                            completionCallback,
-                            completionCallbackUserState,
                             pageNumber,
                             itemsPerPage,
+                            out items,
                             sinceDate);
 
-                        Data.toReturn.Complete(overallError, // any overall error that may have occurred during processing
+                        Data.toReturn.Complete(
+                            new SyncboxRecentFilesResult(overallError, items), // result
                             sCompleted: false); // processing did not complete synchronously
                     }
                     catch (Exception ex)
@@ -4732,13 +4727,12 @@ namespace Cloud.REST
         /// <summary>
         /// Retrieve the specified number of recently modified files (<CLFileItems>s).
         /// </summary>
-        /// <param name="completionCallback">Callback method to fire when a page of items is complete.</param>
-        /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion callback above is fired.  Returns the result.</param>
         /// <param name="pageNumber">Beginning page number.  The first page is page 1.</param>
         /// <param name="itemsPerPage">Items per page.</param>
+        /// <param name="items">(output) The resulting file items.</param>
         /// <param name="sinceDate">(optional) null to retrieve all of the recents, or specify a date to retrieve items from that date forward.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        internal CLError RecentFiles(CLAllItemsCompletionCallback completionCallback, object completionCallbackUserState, long pageNumber, long itemsPerPage, Nullable<DateTime> sinceDate = null)
+        internal CLError RecentFiles(long pageNumber, long itemsPerPage, out CLFileItem[] items, Nullable<DateTime> sinceDate = null)
         {
             // try/catch to process the request,  On catch return the error
             try
@@ -4819,23 +4813,21 @@ namespace Cloud.REST
                         }
                         else
                         {
-                            listFileItems.Add(null);
+                            throw new NullReferenceException(Resources.ExceptionCLHttpRestWithoutMetadata);  //&&&& fix this
                         }
                     }
 
-                    // No error.  Pass back the data via the completion callback.
-                    if (completionCallback != null)
-                    {
-                        completionCallback(listFileItems.ToArray(), (long)responseFromServer.TotalCount, completionCallbackUserState);
-                    }
+                    // No error.  Pass back the data.
+                    items = listFileItems.ToArray();
                 }
                 else
                 {
-                    throw new NullReferenceException(Resources.ExceptionCLHttpRestWithoutMetadata);
+                    throw new NullReferenceException(Resources.ExceptionCLHttpRestWithoutMetadata);    //&&&& fix this 
                 }
             }
             catch (Exception ex)
             {
+                items = Helpers.DefaultForType<CLFileItem[]>();
                 return ex;
             }
 
@@ -5196,30 +5188,41 @@ namespace Cloud.REST
         }
         #endregion
 
-        #region GetFolderContentsAtPath (Query the server for the folder contents at a path)
+        #region ContentsOfFolderAtPath (Query the server for the folder contents at a path)
         /// <summary>
         /// Asynchronously starts querying folder contents at a path.
         /// </summary>
-        /// <param name="callback">Callback method to fire when operation completes</param>
-        /// <param name="callbackUserState">Userstate to pass when firing async callback</param>
-        /// <param name="path">(optional) root path of contents query</param>
-        /// <param name="depthLimit">(optional) how many levels deep to search from the root or provided path, use {null} to return everything</param>
-        /// <param name="includeDeleted">(optional) whether to include changes which are marked deleted</param>
+        /// <param name="asyncCallback">Callback method to fire when operation completes</param>
+        /// <param name="asyncCallbackUserState">Userstate to pass when firing async callback</param>
+        /// <param name="path">(optional) root path of contents query.  Use null for the syncbox root.</param>
+        /// <param name="includeFolders">(optional, default false) Whether to include items that are folders.</param>
+        /// <param name="includeDeleted">(optional, default false) Whether to include changes which are marked deleted</param>
+        /// <param name="includeStoredOnly">(optional, default false) Whether to include only items that have been uploaded (stored, nonpending).</param>
+        /// <param name="depthLimit">(optional, default null) How many levels deep to search from the root or provided path, use null to return everything.</param>
+        /// 
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginGetFolderContentsAtPath(
-            AsyncCallback callback, 
-            object callbackUserState,
-            string path = null)
+        internal IAsyncResult BeginContentsOfFolderAtPath(
+            AsyncCallback asyncCallback, 
+            object asyncCallbackUserState,
+            string path = null,
+            bool includeFolders = false,
+            bool includeDeleted = false,
+            bool includeStoredOnly = false,
+            Nullable<long> depthLimit = null)
         {
             var asyncThread = DelegateAndDataHolderBase.Create(
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
                 new
                 {
                     // create the asynchronous result to return
-                    toReturn = new GenericAsyncResult<SyncboxGetFolderContentsAtPathResult>(
-                        callback,
-                        callbackUserState),
-                    path
+                    toReturn = new GenericAsyncResult<ContentsOfFolderAtPathResult>(
+                        asyncCallback,
+                        asyncCallbackUserState),
+                    path,
+                    includeFolders,
+                    includeDeleted,
+                    includeStoredOnly,
+                    depthLimit,
                 },
                 (Data, errorToAccumulate) =>
                 {
@@ -5228,16 +5231,20 @@ namespace Cloud.REST
                     try
                     {
                         // declare the specific type of result for this operation
-                        CLFileItem[] response;
+                        CLFileItem[] items;
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
-                        CLError processError = GetFolderContentsAtPath(
+                        CLError processError = ContentsOfFolderAtPath(
                             Data.path,
-                            out response);
+                            out items,
+                            Data.includeFolders,
+                            Data.includeDeleted,
+                            Data.includeStoredOnly,
+                            Data.depthLimit);
 
                         Data.toReturn.Complete(
-                            new SyncboxGetFolderContentsAtPathResult(
+                            new ContentsOfFolderAtPathResult(
                                 processError, // any error that may have occurred during processing
-                                response), // the specific type of result for this operation
+                                items), // the specific type of result for this operation
                             sCompleted: false); // processing did not complete synchronously
                     }
                     catch (Exception ex)
@@ -5263,20 +5270,28 @@ namespace Cloud.REST
         /// <param name="aResult">The asynchronous result provided upon starting getting folder contents</param>
         /// <param name="result">(output) The result from folder contents</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndGetFolderContents(IAsyncResult aResult, out SyncboxGetFolderContentsAtPathResult result)
+        internal CLError EndContentsOfFolderAtPath(IAsyncResult aResult, out ContentsOfFolderAtPathResult result)
         {
-            return Helpers.EndAsyncOperation<SyncboxGetFolderContentsAtPathResult>(aResult, out result);
+            return Helpers.EndAsyncOperation<ContentsOfFolderAtPathResult>(aResult, out result);
         }
 
         /// <summary>
         /// Queries server for folder contents at a path.
         /// </summary>
         /// <param name="path">The full path of the folder that would be on disk in the syncbox folder.</param>
-        /// <param name="response">(output) response object from communication</param>
+        /// <param name="items">(output) response object from communication</param>
+        /// <param name="includeFolders">(optional, default false) Whether to include items that are folders.</param>
+        /// <param name="includeDeleted">(optional, default false) whether to include changes which are marked deleted</param>
+        /// <param name="includeStoredOnly">(optional, default false) Whether to include only items that have been uploaded (stored, nonpending).</param>
+        /// <param name="depthLimit">(optional, default null) how many levels deep to search from the root or provided path, use null to return everything.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError GetFolderContentsAtPath(
+        internal CLError ContentsOfFolderAtPath(
             string path,
-            out CLFileItem[] response)
+            out CLFileItem[] items,
+            bool includeFolders = false,
+            bool includeDeleted = false,
+            bool includeStoredOnly = false,
+            Nullable<long> depthLimit = null)
         {
             // try/catch to process the folder contents query, on catch return the error
             try
@@ -5317,17 +5332,17 @@ namespace Cloud.REST
                         // query string parameter for the current sync box id, should not need escaping since it should be an integer in string format
                         new KeyValuePair<string, string>(CLDefinitions.QueryStringSyncboxId, _syncbox.SyncboxId.ToString()),
 
-                        new KeyValuePair<string, string>(CLDefinitions.QueryStringDepth, ((byte)0).ToString()), // query string parameter for optional depth limit
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringDepth, depthLimit == null ? ((byte)0).ToString() : depthLimit.ToString()), // query string parameter for optional depth limit
 
-                        new KeyValuePair<string, string>(CLDefinitions.CLMetadataCloudPath, Uri.EscapeDataString(contentsRoot.GetRelativePath(_syncbox.Path, true) + "/")), // query string parameter for optional path with escaped value
+                        new KeyValuePair<string, string>(CLDefinitions.CLMetadataCloudPath, Uri.EscapeDataString(contentsRoot.GetRelativePath(_syncbox.Path, true) + "/")), // query string parameter for optional path with escaped value  //&&&& fix this
+  
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeDeleted, includeDeleted ? "true" : "false"), // query string parameter for not including deleted objects  //&&&& fix this
 
-                        new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeDeleted, "false"), // query string parameter for not including deleted objects
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeCount, "false"), // query string parameter for including counts within each folder  //&&&& fix this
 
-                        new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeCount, "true"), // query string parameter for including counts within each folder
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeFolders, includeFolders ? "true" : "false"), // query string parameter for including folders in the list  //&&&& fix this
 
-                        new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeFolders, "true"), // query string parameter for including folders in the list
-
-                        new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeStoredOnly, "true") // query string parameter for including only stored items in the list
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeStoredOnly, includeStoredOnly ? "true" : "false") // query string parameter for including only stored items in the list  //&&&& fix this
                     });
 
                 // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
@@ -5370,7 +5385,7 @@ namespace Cloud.REST
                             listFileItems.Add(null);
                         }
                     }
-                    response = listFileItems.ToArray();
+                    items = listFileItems.ToArray();
                 }
                 else
                 {
@@ -5379,12 +5394,12 @@ namespace Cloud.REST
             }
             catch (Exception ex)
             {
-                response = Helpers.DefaultForType<CLFileItem[]>();
+                items = Helpers.DefaultForType<CLFileItem[]>();
                 return ex;
             }
             return null;
         }
-        #endregion  // end GetFolderContentsAtPath (Query the server for the folder contents at a path)
+        #endregion  // end ContentsOfFolderAtPath (Query the server for the folder contents at a path)
 
         #region UpdateSyncboxExtendedMetadata
         /// <summary>
