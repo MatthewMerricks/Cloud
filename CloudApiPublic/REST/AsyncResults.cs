@@ -753,27 +753,15 @@ namespace Cloud.REST
         /// <summary>
         /// Any overall error which may have occurred during communication
         /// </summary>
-        public CLError OverallError
+        public CLFileItem[] Items
         {
             get
             {
-                return _overallError;
+                return _items;
             }
         }
-        private readonly CLError _overallError;
+        private readonly CLFileItem[] _items;
 
-        // construct with all readonly properties
-        internal SyncboxAllImageItemsResult(CLError overallError)
-        {
-            this._overallError = overallError;
-        }
-    }
-
-    /// <summary>
-    /// Holds result properties
-    /// </summary>
-    public sealed class SyncboxAllVideoItemsResult
-    {
         /// <summary>
         /// Any overall error which may have occurred during communication
         /// </summary>
@@ -787,9 +775,47 @@ namespace Cloud.REST
         private readonly CLError _overallError;
 
         // construct with all readonly properties
-        internal SyncboxAllVideoItemsResult(CLError overallError)
+        internal SyncboxAllImageItemsResult(CLError overallError, CLFileItem[] items)
         {
             this._overallError = overallError;
+            this._items = items;
+        }
+    }
+
+    /// <summary>
+    /// Holds result properties
+    /// </summary>
+    public sealed class SyncboxAllVideoItemsResult
+    {
+        /// <summary>
+        /// The resulting file items.
+        /// </summary>
+        public CLFileItem[] Items
+        {
+            get
+            {
+                return _items;
+            }
+        }
+        private readonly CLFileItem[] _items;
+
+        /// <summary>
+        /// Any overall error which may have occurred during communication
+        /// </summary>
+        public CLError OverallError
+        {
+            get
+            {
+                return _overallError;
+            }
+        }
+        private readonly CLError _overallError;
+
+        // construct with all readonly properties
+        internal SyncboxAllVideoItemsResult(CLError overallError, CLFileItem[] items)
+        {
+            this._overallError = overallError;
+            this._items = items;
         }
     }
 
