@@ -3079,6 +3079,8 @@ namespace Cloud
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
         /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
+        /// <param name="completionCallback">Callback method to fire when a page of items is complete.  Return the result.</param>
+        /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion callback above is fired.</param>
         /// <param name="pageNumber">Beginning page number.  The first page is page 1.</param>
         /// <param name="itemsPerPage">Items per page.</param>
         /// <param name="sinceDate">(optional) null to retrieve all of the recents, or specify a date to retrieve items from that date forward.</param>
@@ -3086,6 +3088,8 @@ namespace Cloud
         public IAsyncResult BeginRecentFiles(
             AsyncCallback asyncCallback,
             object asyncCallbackUserState,
+            CLAllItemsCompletionCallback completionCallback,
+            object completionCallbackUserState,
             long pageNumber,
             long itemsPerPage,
             Nullable<DateTime> sinceDate = null)
@@ -3094,7 +3098,7 @@ namespace Cloud
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.BeginRecentFiles(asyncCallback, asyncCallbackUserState, pageNumber, itemsPerPage, sinceDate);
+            return httpRestClient.BeginRecentFiles(asyncCallback, asyncCallbackUserState, completionCallback, completionCallbackUserState, pageNumber, itemsPerPage, sinceDate);
         }
 
         /// <summary>
@@ -3116,49 +3120,38 @@ namespace Cloud
         /// <summary>
         /// Retrieve the specified number of recently modified files (<CLFileItems>s).
         /// </summary>
+        /// <param name="completionCallback">Callback method to fire when a page of items is complete.</param>
+        /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion callback above is fired.  Returns the result.</param>
         /// <param name="pageNumber">Beginning page number.  The first page is page 1.</param>
         /// <param name="itemsPerPage">Items per page.</param>
-        /// <param name="items">(output) The resulting file items.</param>
         /// <param name="sinceDate">(optional) null to retrieve all of the recents, or specify a date to retrieve items from that date forward.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError RecentFiles(long pageNumber, long itemsPerPage, out CLFileItem[] items, Nullable<DateTime> sinceDate = null)
+        public CLError RecentFiles(CLAllItemsCompletionCallback completionCallback, object completionCallbackUserState, long pageNumber, long itemsPerPage, Nullable<DateTime> sinceDate = null)
         {
             CheckDisposed(true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.RecentFiles(pageNumber, itemsPerPage, out items, sinceDate);
+            return httpRestClient.RecentFiles(completionCallback, completionCallbackUserState, pageNumber, itemsPerPage, sinceDate);
         }
 
         #endregion  // end RecentFiles (Retrieves the specified number of recently modified <CLFileItems>s.)
 
-        #region ContentsOfFolderAtPath (Query the cloud for the contents of a syncbox folder at a path)
+        #region GetFolderContentsAtPath (Query the cloud for the contents of a syncbox folder at a path)
         /// <summary>
-        /// Asynchronously starts querying folder contents at a path.
+        /// Asynchronously starts querying folder contents from the cloud at a particular path.
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when operation completes</param>
         /// <param name="asyncCallbackUserState">Userstate to pass when firing async callback</param>
-        /// <param name="path">(optional) root path of contents query.  Use null for the syncbox root.</param>
-        /// <param name="includeFolders">(optional, default false) Whether to include items that are folders.</param>
-        /// <param name="includeDeleted">(optional, default false) Whether to include changes which are marked deleted</param>
-        /// <param name="includeStoredOnly">(optional, default false) Whether to include only items that have been uploaded (stored, nonpending).</param>
-        /// <param name="depthLimit">(optional, default null) How many levels deep to search from the root or provided path, use null to return everything.</param>
-        /// 
+        /// <param name="path">Full path of the folder that would be on disk in the syncbox.</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginContentsOfFolderAtPath(
-            AsyncCallback asyncCallback,
-            object asyncCallbackUserState,
-            string path = null,
-            bool includeFolders = false,
-            bool includeDeleted = false,
-            bool includeStoredOnly = false,
-            Nullable<long> depthLimit = null)
+        public IAsyncResult BeginGetFolderContents(AsyncCallback asyncCallback, object asyncCallbackUserState, string path)
         {
             CheckDisposed(true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.BeginContentsOfFolderAtPath(asyncCallback, asyncCallbackUserState, path, includeFolders, includeDeleted, includeStoredOnly, depthLimit);
+            return httpRestClient.BeginGetFolderContentsAtPath(asyncCallback, asyncCallbackUserState, path);
         }
 
         /// <summary>
@@ -3168,38 +3161,30 @@ namespace Cloud
         /// <param name="asyncResult">The asynchronous result provided upon starting getting folder contents</param>
         /// <param name="result">(output) The result from folder contents</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndContentsOfFolderAtPath(IAsyncResult asyncResult, out ContentsOfFolderAtPathResult result)
+        public CLError EndGetFolderContentsAtPath(IAsyncResult asyncResult, out SyncboxGetFolderContentsAtPathResult result)
         {
             CheckDisposed(true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.EndContentsOfFolderAtPath(asyncResult, out result);
+            return httpRestClient.EndGetFolderContents(asyncResult, out result);
         }
 
         /// <summary>
-        /// Queries server for folder contents at a path.
+        /// Queries server for folder contents with an optional path and an optional depth limit
         /// </summary>
-        /// <param name="path">The full path of the folder that would be on disk in the syncbox folder.</param>
-        /// <param name="items">(output) response object from communication</param>
-        /// <param name="includeFolders">(optional, default false) Whether to include items that are folders.</param>
-        /// <param name="includeDeleted">(optional, default false) whether to include changes which are marked deleted</param>
-        /// <param name="includeStoredOnly">(optional, default false) Whether to include only items that have been uploaded (stored, nonpending).</param>
-        /// <param name="depthLimit">(optional, default null) how many levels deep to search from the root or provided path, use null to return everything.</param>
+        /// <param name="path">The full path of the folder that would be on disk in the local syncbox folder.</param>
+        /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError ContentsOfFolderAtPath(
+        public CLError GetFolderContents(
             string path,
-            out CLFileItem[] items,
-            bool includeFolders = false,
-            bool includeDeleted = false,
-            bool includeStoredOnly = false,
-            Nullable<long> depthLimit = null)
+            out CLFileItem[] response)
         {
             CheckDisposed(true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.ContentsOfFolderAtPath(path, out items, includeFolders, includeDeleted, includeStoredOnly, depthLimit);
+            return httpRestClient.GetFolderContentsAtPath(path, out response);
         }
 
         #endregion  // end GetFolderContentsAtPath (Query the cloud for the contents of a syncbox folder at a path)
