@@ -997,6 +997,18 @@ namespace Cloud.REST
     public sealed class SyncboxAllArchiveItemsResult
     {
         /// <summary>
+        /// The resulting file items.
+        /// </summary>
+        public CLFileItem[] Items
+        {
+            get
+            {
+                return _items;
+            }
+        }
+        private readonly CLFileItem[] _items;
+
+        /// <summary>
         /// Any overall error which may have occurred during communication
         /// </summary>
         public CLError OverallError
@@ -1009,9 +1021,10 @@ namespace Cloud.REST
         private readonly CLError _overallError;
 
         // construct with all readonly properties
-        internal SyncboxAllArchiveItemsResult(CLError overallError)
+        internal SyncboxAllArchiveItemsResult(CLError overallError, CLFileItem[] items)
         {
             this._overallError = overallError;
+            this._items = items;
         }
     }
 
@@ -1045,6 +1058,18 @@ namespace Cloud.REST
     public sealed class SyncboxAllItemsOfTypesResult
     {
         /// <summary>
+        /// The resulting file items.
+        /// </summary>
+        public CLFileItem[] Items
+        {
+            get
+            {
+                return _items;
+            }
+        }
+        private readonly CLFileItem[] _items;
+
+        /// <summary>
         /// Any overall error which may have occurred during communication
         /// </summary>
         public CLError OverallError
@@ -1057,9 +1082,10 @@ namespace Cloud.REST
         private readonly CLError _overallError;
 
         // construct with all readonly properties
-        internal SyncboxAllItemsOfTypesResult(CLError overallError)
+        internal SyncboxAllItemsOfTypesResult(CLError overallError, CLFileItem[] items)
         {
             this._overallError = overallError;
+            this._items = items;
         }
     }
 

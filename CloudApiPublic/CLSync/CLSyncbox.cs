@@ -2966,18 +2966,16 @@ namespace Cloud
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
         /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
-        /// <param name="completionCallback">Callback method to fire when a page of items is complete.  Returns the result.</param>
-        /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion callback above is fired.</param>
         /// <param name="pageNumber">Beginning page number.  The first page is page 1.</param>
         /// <param name="itemsPerPage">Items per page.</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginAllArchivetItems(AsyncCallback asyncCallback, object asyncCallbackUserState, CLAllItemsCompletionCallback completionCallback, object completionCallbackUserState, long pageNumber, long itemsPerPage)
+        public IAsyncResult BeginAllArchivetItems(AsyncCallback asyncCallback, object asyncCallbackUserState, long pageNumber, long itemsPerPage)
         {
             CheckDisposed(true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.BeginAllArchiveItems(asyncCallback, asyncCallbackUserState, completionCallback, completionCallbackUserState, pageNumber, itemsPerPage);
+            return httpRestClient.BeginAllArchiveItems(asyncCallback, asyncCallbackUserState, pageNumber, itemsPerPage);
         }
 
         /// <summary>
@@ -2999,18 +2997,17 @@ namespace Cloud
         /// <summary>
         /// Query archive items from the syncbox.
         /// </summary>
-        /// <param name="completionCallback">Callback method to fire when a page of items is complete.  Returns the result.</param>
-        /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion callback above is fired.</param>
         /// <param name="pageNumber">Beginning page number.  The first page is page 1.</param>
         /// <param name="itemsPerPage">Items per page.</param>
+        /// <param name="items">(output) The resulting file items.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError AllArchiveItems(CLAllItemsCompletionCallback completionCallback, object completionCallbackUserState, long pageNumber, long itemsPerPage)
+        public CLError AllArchiveItems(long pageNumber, long itemsPerPage, out CLFileItem[] items)
         {
             CheckDisposed(true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.AllArchiveItems(completionCallback, completionCallbackUserState, pageNumber, itemsPerPage);
+            return httpRestClient.AllArchiveItems(pageNumber, itemsPerPage, out items);
         }
 
         #endregion  // end AllArchiveItems (Gets archive items from this syncbox)
@@ -3022,8 +3019,6 @@ namespace Cloud
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
         /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
-        /// <param name="completionCallback">Callback method to fire when a page of items is complete.  Return the result.</param>
-        /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion callback above is fired.</param>
         /// <param name="pageNumber">Beginning page number.  The first page is page 1.</param>
         /// <param name="itemsPerPage">Items per page.</param>
         /// <param name="extensions">The array of file extensions the item type should belong to. I.E txt, jpg, pdf, etc.</param>
@@ -3031,8 +3026,6 @@ namespace Cloud
         public IAsyncResult BeginAllItemsOfTypes(
             AsyncCallback asyncCallback,
             object asyncCallbackUserState,
-            CLAllItemsCompletionCallback completionCallback,
-            object completionCallbackUserState,
             long pageNumber,
             long itemsPerPage,
             params string[] extensions)
@@ -3041,7 +3034,7 @@ namespace Cloud
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.BeginAllItemsOfTypes(asyncCallback, asyncCallbackUserState, completionCallback, completionCallbackUserState, pageNumber, itemsPerPage, extensions);
+            return httpRestClient.BeginAllItemsOfTypes(asyncCallback, asyncCallbackUserState, pageNumber, itemsPerPage, extensions);
         }
 
         /// <summary>
@@ -3064,19 +3057,18 @@ namespace Cloud
         /// <summary>
         /// Retrieves the <CLFileItems>s of all of the file items contained in the syncbox that have the specified file extensions.
         /// </summary>
-        /// <param name="completionCallback">Callback method to fire when a page of items is complete.</param>
-        /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion callback above is fired.  Returns the result.</param>
         /// <param name="pageNumber">Beginning page number.  The first page is page 1.</param>
         /// <param name="itemsPerPage">Items per page.</param>
         /// <param name="extensions">The array of file extensions the item type should belong to. I.E txt, jpg, pdf, etc.</param>
+        /// <param name="items">(output) The resulting file items.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError AllItemsOfTypes(CLAllItemsCompletionCallback completionCallback, object completionCallbackUserState, long pageNumber, long itemsPerPage, params string[] extensions)
+        public CLError AllItemsOfTypes(CLAllItemsCompletionCallback completionCallback, object completionCallbackUserState, long pageNumber, long itemsPerPage, out CLFileItem[] items, params string[] extensions)
         {
             CheckDisposed(true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.AllItemsOfTypes(completionCallback, completionCallbackUserState, pageNumber, itemsPerPage, extensions);
+            return httpRestClient.AllItemsOfTypes(pageNumber, itemsPerPage, out items, extensions);
         }
 
         #endregion  // end AllItemsOfTypes (Get file items with various extensions from this syncbox)
