@@ -2932,4 +2932,8 @@
   <data name="ExceptionOnDemandItemForPathNotFound" xml:space="preserve">
     <value>The item was not found at the path</value>
   </data>
+  <data name="ExceptionHelpersProcessHttpInnerWaitHandleArrayLength" xml:space="preserve">
+    <value>millisecondsTimeout must be at least the length of the WaitHandle array to differentiate success from timeout failure</value>
+    <comment>millisecondsTimeout and WaitHandle should not be translated</comment>
+  </data>
 </root>

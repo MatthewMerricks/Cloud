@@ -153,7 +153,25 @@ namespace Cloud
             _copiedSettings = (settings == null
                 ? NullDeviceId.Instance.CopySettings()
                 : settings.CopySettings());
+
+            // setup ServicePointManager as needed here (to be shared with all communication calls everywhere)
+            lock (servicePointManagerConfigured)
+            {
+                if (!servicePointManagerConfigured.Value)
+                {
+                    // 12 is Default Connection Limit (6 up/6 down)
+                    ServicePointManager.DefaultConnectionLimit = CLDefinitions.MaxNumberOfConcurrentDownloads + CLDefinitions.MaxNumberOfConcurrentUploads;
+
+                    ServicePointManager.UseNagleAlgorithm = true;
+                    ServicePointManager.Expect100Continue = true;
+                    ServicePointManager.CheckCertificateRevocationList = true;
+
+                    servicePointManagerConfigured.Value = true;
+                }
+            }
         }
+
+        private static readonly GenericHolder<bool> servicePointManagerConfigured = new GenericHolder<bool>(false);
 
         /// <summary>
         /// Private constructor to create CLCredentials from JsonContracts.Session.

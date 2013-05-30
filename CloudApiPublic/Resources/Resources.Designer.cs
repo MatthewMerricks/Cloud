@@ -2565,6 +2565,15 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to millisecondsTimeout must be at least the length of the WaitHandle array to differentiate success from timeout failure.
+        /// </summary>
+        internal static string ExceptionHelpersProcessHttpInnerWaitHandleArrayLength {
+            get {
+                return ResourceManager.GetString("ExceptionHelpersProcessHttpInnerWaitHandleArrayLength", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to RequestNewCredentialsInfo GetCurrentCredentialsCallback must not be null.
         /// </summary>
         internal static string ExceptionHelpersProcessHttpNullGetCurrentCredentialsCallback {

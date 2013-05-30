@@ -3111,6 +3111,9 @@ namespace Cloud.Static
             // create the main request object for the provided uri location
             HttpWebRequest httpRequest = (HttpWebRequest)HttpWebRequest.Create(serverUrl + serverMethodPath);
 
+            // downgrade to HTTP 1.0 protocol
+            httpRequest.ProtocolVersion = HttpVersion.Version10;
+
             #region set request parameters
             // switch case to set the HTTP method (GET vs. POST vs. PUT); throw exception if not supported yet
             switch (method)
@@ -4562,19 +4565,21 @@ namespace Cloud.Static
                             }
                         }
 
+                        //// no need to pulse because we're using the IAsyncResult's WaitHandle
+                        //
                         // if asynchronous task completed, then pulse the AsyncRequestHolder
-                        if (param1.IsCompleted)
-                        {
-                            if (!param1.CompletedSynchronously)
-                            {
-                                lock (Data)
-                                {
-                                    Monitor.Pulse(Data);
-                                }
-                            }
-                        }
+                        //if (param1.IsCompleted)
+                        //{
+                        //    if (!param1.CompletedSynchronously)
+                        //    {
+                        //        lock (Data)
+                        //        {
+                        //            Monitor.Pulse(Data);
+                        //        }
+                        //    }
+                        //}
                         // else if asychronous task is not completed, then check for cancellation
-                        else if (Data.FullShutdownToken != null)
+                        /* else */ if (Data.FullShutdownToken != null)
                         {
                             // check for cancellation
                             Monitor.Enter(Data.FullShutdownToken);
@@ -4585,13 +4590,15 @@ namespace Cloud.Static
                                 {
                                     Data.IsCancelled.Value = true;
 
-                                    if (!param1.CompletedSynchronously)
-                                    {
-                                        lock (Data)
-                                        {
-                                            Monitor.Pulse(Data);
-                                        }
-                                    }
+                                    //// no need to pulse because we're using the IAsyncResult's WaitHandle
+                                    //
+                                    //if (!param1.CompletedSynchronously)
+                                    //{
+                                    //    lock (Data)
+                                    //    {
+                                    //        Monitor.Pulse(Data);
+                                    //    }
+                                    //}
                                 }
                             }
                             finally
@@ -4604,6 +4611,10 @@ namespace Cloud.Static
                     {
                         // mark AsyncRequestHolder with error and pulse out
                         Data.Error.Value = ex;
+
+                        //// no need to pulse because we're using the IAsyncResult's WaitHandle
+                        //
+                        // [pulse code removed?]
                     }
                 },
                 null);

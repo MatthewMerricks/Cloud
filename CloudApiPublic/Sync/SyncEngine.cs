@@ -254,9 +254,6 @@ namespace Cloud.Sync
             this.MaxNumberOfServerConnectionFailures = MaxNumberConnectionFailures;
             this.DependencyDebugging = DependencyDebugging;
             this.FailedOutRetryMillisecondInterval = FailedOutRetryMillisecondInterval;
-
-            // 12 is Default Connection Limit (6 up/6 down)
-            ServicePointManager.DefaultConnectionLimit = CLDefinitions.MaxNumberOfConcurrentDownloads + CLDefinitions.MaxNumberOfConcurrentUploads;
             #endregion
         }
 
