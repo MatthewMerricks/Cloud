@@ -2733,6 +2733,7 @@ namespace Cloud.Static
             { typeof(JsonContracts.FolderAddRequest), JsonContractHelpers.FolderAddSerializer },
             { typeof(JsonContracts.FolderAddsRequest), JsonContractHelpers.FolderAddsSerializer },
             { typeof(JsonContracts.FileAdd), JsonContractHelpers.FileAddSerializer },
+            { typeof(JsonContracts.FileAdds), JsonContractHelpers.FileAddsSerializer },
             { typeof(JsonContracts.FileModify), JsonContractHelpers.FileModifySerializer },
 
             { typeof(JsonContracts.FileOrFolderDeleteRequest), JsonContractHelpers.FileOrFolderDeleteSerializer },
@@ -2809,6 +2810,7 @@ namespace Cloud.Static
             { typeof(JsonContracts.SyncboxGetAllDocumentItemsResponse), JsonContractHelpers.SyncboxGetAllDocumentItemsResponseSerializer},
             { typeof(JsonContracts.SyncboxGetAllPresentationItemsResponse), JsonContractHelpers.SyncboxGetAllPresentationItemsResponseSerializer},
             { typeof(JsonContracts.SyncboxGetAllTextItemsResponse), JsonContractHelpers.SyncboxGetAllTextItemsResponseSerializer},
+            { typeof(JsonContracts.SyncboxAddFilesResponse), JsonContractHelpers.SyncboxAddFilesResponseSerializer},
         };
         #endregion
 

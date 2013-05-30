@@ -3278,23 +3278,19 @@ namespace Cloud.REST
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
         /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
-        /// <param name="completionCallback">Callback method to fire when a page of items is complete. Returns the result.</param>
-        /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion callback above is fired.</param>
         /// <param name="pageNumber">Beginning page number.  The first page is page 1.</param>
         /// <param name="itemsPerPage">Items per page.</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        internal IAsyncResult BeginAllImageItems(AsyncCallback asyncCallback, object asyncCallbackUserState, CLAllItemsCompletionCallback completionCallback, object completionCallbackUserState, long pageNumber, long itemsPerPage)
+        internal IAsyncResult BeginAllImageItems(AsyncCallback asyncCallback, object asyncCallbackUserState, long pageNumber, long itemsPerPage)
         {
             var asyncThread = DelegateAndDataHolderBase.Create(
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
                 new
                 {
                     // create the asynchronous result to return
-                    toReturn = new GenericAsyncResult<CLError>(
+                    toReturn = new GenericAsyncResult<SyncboxAllImageItemsResult>(
                         asyncCallback,
                         asyncCallbackUserState),
-                    completionCallback = completionCallback,
-                    completionCallbackUserState = completionCallbackUserState,
                     pageNumber = pageNumber,
                     itemsPerPage = itemsPerPage,
                 },
@@ -3305,13 +3301,14 @@ namespace Cloud.REST
                     try
                     {
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
+                        CLFileItem[] items;
                         CLError overallError = AllImageItems(
-                            completionCallback,
-                            completionCallbackUserState,
                             pageNumber,
-                            itemsPerPage);
+                            itemsPerPage,
+                            out items);
 
-                        Data.toReturn.Complete(overallError, // any overall error that may have occurred during processing
+                        Data.toReturn.Complete(
+                            new SyncboxAllImageItemsResult(overallError, items),  // the result
                             sCompleted: false); // processing did not complete synchronously
                     }
                     catch (Exception ex)
@@ -3345,12 +3342,11 @@ namespace Cloud.REST
         /// <summary>
         /// Query image items from the syncbox.
         /// </summary>
-        /// <param name="completionCallback">Callback method to fire when a page of items is complete.  Returns the result.</param>
-        /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion callback above is fired.</param>
         /// <param name="pageNumber">Beginning page number.  The first page is page 1.</param>
         /// <param name="itemsPerPage">Items per page.</param>
+        /// <param name="items">(output) The resulting file items.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        internal CLError AllImageItems(CLAllItemsCompletionCallback completionCallback, object completionCallbackUserState, long pageNumber, long itemsPerPage)
+        internal CLError AllImageItems(long pageNumber, long itemsPerPage, out CLFileItem[] items)
         {
             // try/catch to process the request,  On catch return the error
             try
@@ -3420,23 +3416,22 @@ namespace Cloud.REST
                         }
                         else
                         {
-                            listFileItems.Add(null);
+                            throw new NullReferenceException(Resources.ExceptionCLHttpRestWithoutMetadata);  //&&&& fix this
                         }
                     }
 
-                    // No error.  Pass back the data via the completion callback.
-                    if (completionCallback != null)
-                    {
-                        completionCallback(listFileItems.ToArray(), (long)responseFromServer.TotalCount, completionCallbackUserState);
-                    }
+                    // No error.  Pass back the data.
+                    items = listFileItems.ToArray();
                 }
                 else
                 {
-                    throw new NullReferenceException(Resources.ExceptionCLHttpRestWithoutMetadata);
+                    items = Helpers.DefaultForType<CLFileItem[]>();
+                    throw new NullReferenceException(Resources.ExceptionCLHttpRestWithoutMetadata);  //&&&& fix this
                 }
             }
             catch (Exception ex)
             {
+                items = Helpers.DefaultForType<CLFileItem[]>();
                 return ex;
             }
 
@@ -3451,23 +3446,19 @@ namespace Cloud.REST
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
         /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
-        /// <param name="completionCallback">Callback method to fire when a page of items is complete.  Return the result.</param>
-        /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion callback above is fired.</param>
         /// <param name="pageNumber">Beginning page number.  The first page is page 1.</param>
         /// <param name="itemsPerPage">Items per page.</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        internal IAsyncResult BeginAllVideoItems(AsyncCallback asyncCallback, object asyncCallbackUserState, CLAllItemsCompletionCallback completionCallback, object completionCallbackUserState, long pageNumber, long itemsPerPage)
+        internal IAsyncResult BeginAllVideoItems(AsyncCallback asyncCallback, object asyncCallbackUserState, long pageNumber, long itemsPerPage)
         {
             var asyncThread = DelegateAndDataHolderBase.Create(
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
                 new
                 {
                     // create the asynchronous result to return
-                    toReturn = new GenericAsyncResult<CLError>(
+                    toReturn = new GenericAsyncResult<SyncboxAllVideoItemsResult>(
                         asyncCallback,
                         asyncCallbackUserState),
-                    completionCallback = completionCallback,
-                    completionCallbackUserState = completionCallbackUserState,
                     pageNumber = pageNumber,
                     itemsPerPage = itemsPerPage,
                 },
@@ -3478,13 +3469,14 @@ namespace Cloud.REST
                     try
                     {
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
+                        CLFileItem[] items;
                         CLError overallError = AllVideoItems(
-                            completionCallback,
-                            completionCallbackUserState,
                             pageNumber,
-                            itemsPerPage);
+                            itemsPerPage,
+                            out items);
 
-                        Data.toReturn.Complete(overallError, // any overall error that may have occurred during processing
+                        Data.toReturn.Complete(
+                            new SyncboxAllVideoItemsResult(overallError, items),
                             sCompleted: false); // processing did not complete synchronously
                     }
                     catch (Exception ex)
@@ -3518,12 +3510,11 @@ namespace Cloud.REST
         /// <summary>
         /// Query video items from the syncbox.
         /// </summary>
-        /// <param name="completionCallback">Callback method to fire when a page of items is complete.</param>
-        /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion callback above is fired.  Returns the result.</param>
         /// <param name="pageNumber">Beginning page number.  The first page is page 1.</param>
         /// <param name="itemsPerPage">Items per page.</param>
+        /// <param name="items">(output) The resulting file items.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        internal CLError AllVideoItems(CLAllItemsCompletionCallback completionCallback, object completionCallbackUserState, long pageNumber, long itemsPerPage)
+        internal CLError AllVideoItems(long pageNumber, long itemsPerPage, out CLFileItem[] items)
         {
             // try/catch to process the request,  On catch return the error
             try
@@ -3593,23 +3584,21 @@ namespace Cloud.REST
                         }
                         else
                         {
-                            listFileItems.Add(null);
+                            throw new NullReferenceException(Resources.ExceptionCLHttpRestWithoutMetadata);  //&&&& fix this
                         }
                     }
 
-                    // No error.  Pass back the data via the completion callback.
-                    if (completionCallback != null)
-                    {
-                        completionCallback(listFileItems.ToArray(), (long)responseFromServer.TotalCount, completionCallbackUserState);
-                    }
+                    // No error.  Pass back the data.
+                    items = listFileItems.ToArray();
                 }
                 else
                 {
-                    throw new NullReferenceException(Resources.ExceptionCLHttpRestWithoutMetadata);
+                    throw new NullReferenceException(Resources.ExceptionCLHttpRestWithoutMetadata);   //&&&& fix this
                 }
             }
             catch (Exception ex)
             {
+                items = Helpers.DefaultForType<CLFileItem[]>();
                 return ex;
             }
 
@@ -3624,23 +3613,19 @@ namespace Cloud.REST
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
         /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
-        /// <param name="completionCallback">Callback method to fire when a page of items is complete.  Return the result.</param>
-        /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion callback above is fired.</param>
         /// <param name="pageNumber">Beginning page number.  The first page is page 1.</param>
         /// <param name="itemsPerPage">Items per page.</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        internal IAsyncResult BeginAllAudioItems(AsyncCallback asyncCallback, object asyncCallbackUserState, CLAllItemsCompletionCallback completionCallback, object completionCallbackUserState, long pageNumber, long itemsPerPage)
+        internal IAsyncResult BeginAllAudioItems(AsyncCallback asyncCallback, object asyncCallbackUserState, long pageNumber, long itemsPerPage)
         {
             var asyncThread = DelegateAndDataHolderBase.Create(
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
                 new
                 {
                     // create the asynchronous result to return
-                    toReturn = new GenericAsyncResult<CLError>(
+                    toReturn = new GenericAsyncResult<SyncboxAllAudioItemsResult>(
                         asyncCallback,
                         asyncCallbackUserState),
-                    completionCallback = completionCallback,
-                    completionCallbackUserState = completionCallbackUserState,
                     pageNumber = pageNumber,
                     itemsPerPage = itemsPerPage,
                 },
@@ -3651,13 +3636,14 @@ namespace Cloud.REST
                     try
                     {
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
+                        CLFileItem[] items;
                         CLError overallError = AllAudioItems(
-                            completionCallback,
-                            completionCallbackUserState,
                             pageNumber,
-                            itemsPerPage);
+                            itemsPerPage,
+                            out items);
 
-                        Data.toReturn.Complete(overallError, // any overall error that may have occurred during processing
+                        Data.toReturn.Complete(
+                            new SyncboxAllAudioItemsResult(overallError, items),
                             sCompleted: false); // processing did not complete synchronously
                     }
                     catch (Exception ex)
@@ -3691,12 +3677,11 @@ namespace Cloud.REST
         /// <summary>
         /// Query audio items from the syncbox.
         /// </summary>
-        /// <param name="completionCallback">Callback method to fire when a page of items is complete.</param>
-        /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion callback above is fired.  Returns the result.</param>
         /// <param name="pageNumber">Beginning page number.  The first page is page 1.</param>
         /// <param name="itemsPerPage">Items per page.</param>
+        /// <param name="items">(output) The resulting file items.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        internal CLError AllAudioItems(CLAllItemsCompletionCallback completionCallback, object completionCallbackUserState, long pageNumber, long itemsPerPage)
+        internal CLError AllAudioItems(long pageNumber, long itemsPerPage, out CLFileItem[] items)
         {
             // try/catch to process the request,  On catch return the error
             try
@@ -3766,23 +3751,21 @@ namespace Cloud.REST
                         }
                         else
                         {
-                            listFileItems.Add(null);
+                            throw new NullReferenceException(Resources.ExceptionCLHttpRestWithoutMetadata);  //&&&& fix this
                         }
                     }
 
-                    // No error.  Pass back the data via the completion callback.
-                    if (completionCallback != null)
-                    {
-                        completionCallback(listFileItems.ToArray(), (long)responseFromServer.TotalCount, completionCallbackUserState);
-                    }
+                    // No error.  Pass back the data.
+                    items = listFileItems.ToArray();
                 }
                 else
                 {
-                    throw new NullReferenceException(Resources.ExceptionCLHttpRestWithoutMetadata);
+                    throw new NullReferenceException(Resources.ExceptionCLHttpRestWithoutMetadata);  //&&&& fix this
                 }
             }
             catch (Exception ex)
             {
+                items = Helpers.DefaultForType<CLFileItem[]>();
                 return ex;
             }
 
@@ -3797,23 +3780,19 @@ namespace Cloud.REST
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
         /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
-        /// <param name="completionCallback">Callback method to fire when a page of items is complete.  Return the result.</param>
-        /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion callback above is fired.</param>
         /// <param name="pageNumber">Beginning page number.  The first page is page 1.</param>
         /// <param name="itemsPerPage">Items per page.</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        internal IAsyncResult BeginAllDocumentItems(AsyncCallback asyncCallback, object asyncCallbackUserState, CLAllItemsCompletionCallback completionCallback, object completionCallbackUserState, long pageNumber, long itemsPerPage)
+        internal IAsyncResult BeginAllDocumentItems(AsyncCallback asyncCallback, object asyncCallbackUserState, long pageNumber, long itemsPerPage)
         {
             var asyncThread = DelegateAndDataHolderBase.Create(
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
                 new
                 {
                     // create the asynchronous result to return
-                    toReturn = new GenericAsyncResult<CLError>(
+                    toReturn = new GenericAsyncResult<SyncboxAllDocumentItemsResult>(
                         asyncCallback,
                         asyncCallbackUserState),
-                    completionCallback = completionCallback,
-                    completionCallbackUserState = completionCallbackUserState,
                     pageNumber = pageNumber,
                     itemsPerPage = itemsPerPage,
                 },
@@ -3824,14 +3803,15 @@ namespace Cloud.REST
                     try
                     {
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
+                        CLFileItem[] items;
                         CLError overallError = AllDocumentItems(
-                            completionCallback,
-                            completionCallbackUserState,
                             pageNumber,
-                            itemsPerPage);
+                            itemsPerPage,
+                            out items);
 
-                        Data.toReturn.Complete(overallError, // any overall error that may have occurred during processing
-                            sCompleted: false); // processing did not complete synchronously
+                        Data.toReturn.Complete(
+                            new SyncboxAllDocumentItemsResult(overallError, items),
+                           sCompleted: false); // processing did not complete synchronously
                     }
                     catch (Exception ex)
                     {
@@ -3864,12 +3844,11 @@ namespace Cloud.REST
         /// <summary>
         /// Query document items from the syncbox.
         /// </summary>
-        /// <param name="completionCallback">Callback method to fire when a page of items is complete.</param>
-        /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion callback above is fired.  Returns the result.</param>
         /// <param name="pageNumber">Beginning page number.  The first page is page 1.</param>
         /// <param name="itemsPerPage">Items per page.</param>
+        /// <param name="items">(output) The resulting file items.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        internal CLError AllDocumentItems(CLAllItemsCompletionCallback completionCallback, object completionCallbackUserState, long pageNumber, long itemsPerPage)
+        internal CLError AllDocumentItems(long pageNumber, long itemsPerPage, out CLFileItem[] items)
         {
             // try/catch to process the request,  On catch return the error
             try
@@ -3939,23 +3918,21 @@ namespace Cloud.REST
                         }
                         else
                         {
-                            listFileItems.Add(null);
+                            throw new NullReferenceException(Resources.ExceptionCLHttpRestWithoutMetadata);  //&&&& fix this
                         }
                     }
 
-                    // No error.  Pass back the data via the completion callback.
-                    if (completionCallback != null)
-                    {
-                        completionCallback(listFileItems.ToArray(), (long)responseFromServer.TotalCount, completionCallbackUserState);
-                    }
+                    // No error.  Pass back the data.
+                    items = listFileItems.ToArray();
                 }
                 else
                 {
-                    throw new NullReferenceException(Resources.ExceptionCLHttpRestWithoutMetadata);
+                    throw new NullReferenceException(Resources.ExceptionCLHttpRestWithoutMetadata);   //&&&& fix this
                 }
             }
             catch (Exception ex)
             {
+                items = Helpers.DefaultForType<CLFileItem[]>();
                 return ex;
             }
 
@@ -3970,23 +3947,19 @@ namespace Cloud.REST
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
         /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
-        /// <param name="completionCallback">Callback method to fire when a page of items is complete.  Return the result.</param>
-        /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion callback above is fired.</param>
         /// <param name="pageNumber">Beginning page number.  The first page is page 1.</param>
         /// <param name="itemsPerPage">Items per page.</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        internal IAsyncResult BeginAllPresentationItems(AsyncCallback asyncCallback, object asyncCallbackUserState, CLAllItemsCompletionCallback completionCallback, object completionCallbackUserState, long pageNumber, long itemsPerPage)
+        internal IAsyncResult BeginAllPresentationItems(AsyncCallback asyncCallback, object asyncCallbackUserState, long pageNumber, long itemsPerPage)
         {
             var asyncThread = DelegateAndDataHolderBase.Create(
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
                 new
                 {
                     // create the asynchronous result to return
-                    toReturn = new GenericAsyncResult<CLError>(
+                    toReturn = new GenericAsyncResult<SyncboxAllPresentationItemsResult>(
                         asyncCallback,
                         asyncCallbackUserState),
-                    completionCallback = completionCallback,
-                    completionCallbackUserState = completionCallbackUserState,
                     pageNumber = pageNumber,
                     itemsPerPage = itemsPerPage,
                 },
@@ -3997,13 +3970,14 @@ namespace Cloud.REST
                     try
                     {
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
+                        CLFileItem[] items;
                         CLError overallError = AllPresentationItems(
-                            completionCallback,
-                            completionCallbackUserState,
                             pageNumber,
-                            itemsPerPage);
+                            itemsPerPage,
+                            out items);
 
-                        Data.toReturn.Complete(overallError, // any overall error that may have occurred during processing
+                        Data.toReturn.Complete(
+                            new SyncboxAllPresentationItemsResult(overallError, items), // the result
                             sCompleted: false); // processing did not complete synchronously
                     }
                     catch (Exception ex)
@@ -4041,8 +4015,9 @@ namespace Cloud.REST
         /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion callback above is fired.  Returns the result.</param>
         /// <param name="pageNumber">Beginning page number.  The first page is page 1.</param>
         /// <param name="itemsPerPage">Items per page.</param>
+        /// <param name="items">(output) The resulting file items.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        internal CLError AllPresentationItems(CLAllItemsCompletionCallback completionCallback, object completionCallbackUserState, long pageNumber, long itemsPerPage)
+        internal CLError AllPresentationItems(long pageNumber, long itemsPerPage, out CLFileItem[] items)
         {
             // try/catch to process the request,  On catch return the error
             try
@@ -4112,23 +4087,21 @@ namespace Cloud.REST
                         }
                         else
                         {
-                            listFileItems.Add(null);
+                            throw new NullReferenceException(Resources.ExceptionCLHttpRestWithoutMetadata);  //&&&& fix this
                         }
                     }
 
-                    // No error.  Pass back the data via the completion callback.
-                    if (completionCallback != null)
-                    {
-                        completionCallback(listFileItems.ToArray(), (long)responseFromServer.TotalCount, completionCallbackUserState);
-                    }
+                    // No error.  Pass back the data.
+                    items = listFileItems.ToArray();
                 }
                 else
                 {
-                    throw new NullReferenceException(Resources.ExceptionCLHttpRestWithoutMetadata);
+                    throw new NullReferenceException(Resources.ExceptionCLHttpRestWithoutMetadata);   //&&&& fix this
                 }
             }
             catch (Exception ex)
             {
+                items = Helpers.DefaultForType<CLFileItem[]>();
                 return ex;
             }
 
@@ -4143,23 +4116,19 @@ namespace Cloud.REST
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
         /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
-        /// <param name="completionCallback">Callback method to fire when a page of items is complete.  Return the result.</param>
-        /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion callback above is fired.</param>
         /// <param name="pageNumber">Beginning page number.  The first page is page 1.</param>
         /// <param name="itemsPerPage">Items per page.</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        internal IAsyncResult BeginAllPlainTextItems(AsyncCallback asyncCallback, object asyncCallbackUserState, CLAllItemsCompletionCallback completionCallback, object completionCallbackUserState, long pageNumber, long itemsPerPage)
+        internal IAsyncResult BeginAllPlainTextItems(AsyncCallback asyncCallback, object asyncCallbackUserState, long pageNumber, long itemsPerPage)
         {
             var asyncThread = DelegateAndDataHolderBase.Create(
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
                 new
                 {
                     // create the asynchronous result to return
-                    toReturn = new GenericAsyncResult<CLError>(
+                    toReturn = new GenericAsyncResult<SyncboxAllTextItemsResult>(
                         asyncCallback,
                         asyncCallbackUserState),
-                    completionCallback = completionCallback,
-                    completionCallbackUserState = completionCallbackUserState,
                     pageNumber = pageNumber,
                     itemsPerPage = itemsPerPage,
                 },
@@ -4170,13 +4139,14 @@ namespace Cloud.REST
                     try
                     {
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
+                        CLFileItem[] items;
                         CLError overallError = AllPlainTextItems(
-                            completionCallback,
-                            completionCallbackUserState,
                             pageNumber,
-                            itemsPerPage);
+                            itemsPerPage,
+                            out items);
 
-                        Data.toReturn.Complete(overallError, // any overall error that may have occurred during processing
+                        Data.toReturn.Complete(
+                            new SyncboxAllTextItemsResult(overallError, items),  // the result
                             sCompleted: false); // processing did not complete synchronously
                     }
                     catch (Exception ex)
@@ -4210,12 +4180,11 @@ namespace Cloud.REST
         /// <summary>
         /// Query text items from the syncbox.
         /// </summary>
-        /// <param name="completionCallback">Callback method to fire when a page of items is complete.</param>
-        /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion callback above is fired.  Returns the result.</param>
         /// <param name="pageNumber">Beginning page number.  The first page is page 1.</param>
         /// <param name="itemsPerPage">Items per page.</param>
+        /// <param name="items">(output) The resulting file items.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        internal CLError AllPlainTextItems(CLAllItemsCompletionCallback completionCallback, object completionCallbackUserState, long pageNumber, long itemsPerPage)
+        internal CLError AllPlainTextItems(long pageNumber, long itemsPerPage, out CLFileItem[] items)
         {
             // try/catch to process the request,  On catch return the error
             try
@@ -4285,23 +4254,21 @@ namespace Cloud.REST
                         }
                         else
                         {
-                            listFileItems.Add(null);
+                            throw new NullReferenceException(Resources.ExceptionCLHttpRestWithoutMetadata);  //&&&& fix this
                         }
                     }
 
-                    // No error.  Pass back the data via the completion callback.
-                    if (completionCallback != null)
-                    {
-                        completionCallback(listFileItems.ToArray(), (long)responseFromServer.TotalCount, completionCallbackUserState);
-                    }
+                    // No error.  Pass back the data.
+                    items = listFileItems.ToArray();
                 }
                 else
                 {
-                    throw new NullReferenceException(Resources.ExceptionCLHttpRestWithoutMetadata);
+                    throw new NullReferenceException(Resources.ExceptionCLHttpRestWithoutMetadata);   //&&&& fix this
                 }
             }
             catch (Exception ex)
             {
+                items = Helpers.DefaultForType<CLFileItem[]>();
                 return ex;
             }
 
@@ -4316,23 +4283,19 @@ namespace Cloud.REST
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
         /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
-        /// <param name="completionCallback">Callback method to fire when a page of items is complete.  Return the result.</param>
-        /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion callback above is fired.</param>
         /// <param name="pageNumber">Beginning page number.  The first page is page 1.</param>
         /// <param name="itemsPerPage">Items per page.</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        internal IAsyncResult BeginAllArchiveItems(AsyncCallback asyncCallback, object asyncCallbackUserState, CLAllItemsCompletionCallback completionCallback, object completionCallbackUserState, long pageNumber, long itemsPerPage)
+        internal IAsyncResult BeginAllArchiveItems(AsyncCallback asyncCallback, object asyncCallbackUserState, long pageNumber, long itemsPerPage)
         {
             var asyncThread = DelegateAndDataHolderBase.Create(
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
                 new
                 {
                     // create the asynchronous result to return
-                    toReturn = new GenericAsyncResult<CLError>(
+                    toReturn = new GenericAsyncResult<SyncboxAllArchiveItemsResult>(
                         asyncCallback,
                         asyncCallbackUserState),
-                    completionCallback = completionCallback,
-                    completionCallbackUserState = completionCallbackUserState,
                     pageNumber = pageNumber,
                     itemsPerPage = itemsPerPage,
                 },
@@ -4343,13 +4306,14 @@ namespace Cloud.REST
                     try
                     {
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
+                        CLFileItem[] items;
                         CLError overallError = AllArchiveItems(
-                            completionCallback,
-                            completionCallbackUserState,
                             pageNumber,
-                            itemsPerPage);
+                            itemsPerPage,
+                            out items);
 
-                        Data.toReturn.Complete(overallError, // any overall error that may have occurred during processing
+                        Data.toReturn.Complete(
+                            new SyncboxAllArchiveItemsResult(overallError, items), // the result
                             sCompleted: false); // processing did not complete synchronously
                     }
                     catch (Exception ex)
@@ -4387,8 +4351,9 @@ namespace Cloud.REST
         /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion callback above is fired.  Returns the result.</param>
         /// <param name="pageNumber">Beginning page number.  The first page is page 1.</param>
         /// <param name="itemsPerPage">Items per page.</param>
+        /// <param name="items">(output) The resulting file items.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        internal CLError AllArchiveItems(CLAllItemsCompletionCallback completionCallback, object completionCallbackUserState, long pageNumber, long itemsPerPage)
+        internal CLError AllArchiveItems(long pageNumber, long itemsPerPage, out CLFileItem[] items)
         {
             // try/catch to process the request,  On catch return the error
             try
@@ -4458,23 +4423,21 @@ namespace Cloud.REST
                         }
                         else
                         {
-                            listFileItems.Add(null);
+                            throw new NullReferenceException(Resources.ExceptionCLHttpRestWithoutMetadata);  //&&&& fix this
                         }
                     }
 
-                    // No error.  Pass back the data via the completion callback.
-                    if (completionCallback != null)
-                    {
-                        completionCallback(listFileItems.ToArray(), (long)responseFromServer.TotalCount, completionCallbackUserState);
-                    }
+                    // No error.  Pass back the data.
+                    items = listFileItems.ToArray();
                 }
                 else
                 {
-                    throw new NullReferenceException(Resources.ExceptionCLHttpRestWithoutMetadata);
+                    throw new NullReferenceException(Resources.ExceptionCLHttpRestWithoutMetadata);  //&&&& fix this
                 }
             }
             catch (Exception ex)
             {
+                items = Helpers.DefaultForType<CLFileItem[]>();
                 return ex;
             }
 
@@ -4489,8 +4452,6 @@ namespace Cloud.REST
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
         /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
-        /// <param name="completionCallback">Callback method to fire when a page of items is complete.  Return the result.</param>
-        /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion callback above is fired.</param>
         /// <param name="pageNumber">Beginning page number.  The first page is page 1.</param>
         /// <param name="itemsPerPage">Items per page.</param>
         /// <param name="extensions">The array of file extensions the item type should belong to. I.E txt, jpg, pdf, etc.</param>
@@ -4498,8 +4459,6 @@ namespace Cloud.REST
         internal IAsyncResult BeginAllItemsOfTypes(
             AsyncCallback asyncCallback, 
             object asyncCallbackUserState, 
-            CLAllItemsCompletionCallback completionCallback, 
-            object completionCallbackUserState, 
             long pageNumber, 
             long itemsPerPage,
             params string[] extensions)
@@ -4509,11 +4468,9 @@ namespace Cloud.REST
                 new
                 {
                     // create the asynchronous result to return
-                    toReturn = new GenericAsyncResult<CLError>(
+                    toReturn = new GenericAsyncResult<SyncboxAllItemsOfTypesResult>(
                         asyncCallback,
                         asyncCallbackUserState),
-                    completionCallback = completionCallback,
-                    completionCallbackUserState = completionCallbackUserState,
                     pageNumber = pageNumber,
                     itemsPerPage = itemsPerPage,
                     extensions = extensions
@@ -4525,14 +4482,15 @@ namespace Cloud.REST
                     try
                     {
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
+                        CLFileItem[] items;
                         CLError overallError = AllItemsOfTypes(
-                            completionCallback,
-                            completionCallbackUserState,
                             pageNumber,
                             itemsPerPage,
+                            out items,
                             extensions);
 
-                        Data.toReturn.Complete(overallError, // any overall error that may have occurred during processing
+                        Data.toReturn.Complete(
+                            new SyncboxAllItemsOfTypesResult(overallError, items),  // result
                             sCompleted: false); // processing did not complete synchronously
                     }
                     catch (Exception ex)
@@ -4567,13 +4525,12 @@ namespace Cloud.REST
         /// <summary>
         /// Retrieves the <CLFileItems>s of all of the file items contained in the syncbox that have the specified file extensions.
         /// </summary>
-        /// <param name="completionCallback">Callback method to fire when a page of items is complete.</param>
-        /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion callback above is fired.  Returns the result.</param>
         /// <param name="pageNumber">Beginning page number.  The first page is page 1.</param>
         /// <param name="itemsPerPage">Items per page.</param>
+        /// <param name="items">(output) The resulting file items.</param>
         /// <param name="extensions">The array of file extensions the item type should belong to. I.E txt, jpg, pdf, etc.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        internal CLError AllItemsOfTypes(CLAllItemsCompletionCallback completionCallback, object completionCallbackUserState, long pageNumber, long itemsPerPage, params string[] extensions)
+        internal CLError AllItemsOfTypes(long pageNumber, long itemsPerPage, out CLFileItem[] items, params string[] extensions)
         {
             // try/catch to process the request,  On catch return the error
             try
@@ -4669,23 +4626,21 @@ namespace Cloud.REST
                         }
                         else
                         {
-                            listFileItems.Add(null);
+                            throw new NullReferenceException(Resources.ExceptionCLHttpRestWithoutMetadata);  //&&&& fix this
                         }
                     }
 
-                    // No error.  Pass back the data via the completion callback.
-                    if (completionCallback != null)
-                    {
-                        completionCallback(listFileItems.ToArray(), (long)responseFromServer.TotalCount, completionCallbackUserState);
-                    }
+                    // No error.  Pass back the data.
+                    items = listFileItems.ToArray();
                 }
                 else
                 {
-                    throw new NullReferenceException(Resources.ExceptionCLHttpRestWithoutMetadata);
+                    throw new NullReferenceException(Resources.ExceptionCLHttpRestWithoutMetadata);   //&&&& fix this
                 }
             }
             catch (Exception ex)
             {
+                items = Helpers.DefaultForType<CLFileItem[]>();
                 return ex;
             }
 

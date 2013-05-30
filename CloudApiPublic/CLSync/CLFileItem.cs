@@ -153,6 +153,15 @@ namespace Cloud.CLSync
         }
         private readonly bool _isDeleted;
 
+        public bool IsPending
+        {
+            get
+            {
+                return _isPending;
+            }
+        }
+        private readonly bool _isPending;
+
         public Nullable<POSIXPermissions> Permissions
         {
             get
@@ -201,6 +210,7 @@ namespace Cloud.CLSync
         //    string parentUid,
         //    bool isFolder,
         //    bool isDeleted,
+        //    bool isPending,d
         //    Nullable<POSIXPermissions> permissions,
         //    CLSyncbox syncbox)
         //{
@@ -225,6 +235,7 @@ namespace Cloud.CLSync
         //    this._parentUid = parentUid;
         //    this._isFolder = isFolder;
         //    this._isDeleted = isDeleted;
+        //    this._isPending = isPending;
         //    this._permissions = permissions;
         //    this._syncbox = syncbox;
         //    //// in public SDK documents, but for now it's always zero, so don't expose it
@@ -306,6 +317,7 @@ namespace Cloud.CLSync
             this._uid = response.ServerUid;
             this._parentUid = response.ParentUid;
             this._isDeleted = response.IsDeleted ?? false;
+            this._isPending = !(response.IsNotPending ?? true);
             this._permissions = response.PermissionsEnum;
             this._syncbox = syncbox;
             //// in public SDK documents, but for now it's always zero, so don't expose it
