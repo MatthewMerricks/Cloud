@@ -216,15 +216,11 @@ namespace Cloud.REST
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when operation completes</param>
         /// <param name="asyncCallbackUserState">Userstate to pass when firing async callback</param>
-        /// <param name="completionCallback">Delegate which will be fired upon successful communication for every response item.</param>
-        /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion delegate is fired.</param>
         /// <param name="relativePath">Relative path in the syncbox to where file or folder would exist in the syncbox locally on disk.</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
         internal IAsyncResult BeginItemForPath(
             AsyncCallback asyncCallback,
             object asyncCallbackUserState,
-            CLSingleFileItemCompletionCallback completionCallback,
-            object completionCallbackUserState,
             string relativePath)
         {
             var asyncThread = DelegateAndDataHolderBase.Create(
@@ -232,11 +228,9 @@ namespace Cloud.REST
                 new
                 {
                     // create the asynchronous result to return
-                    toReturn = new GenericAsyncResult<CLError>(
+                    toReturn = new GenericAsyncResult<SyncboxGetItemAtPathResult>(
                         asyncCallback,
                         asyncCallbackUserState),
-                    itemCompletionCallback = completionCallback,
-                    itemCompletionCallbackUserState = completionCallbackUserState,
                     relativePath = relativePath,
                 },
                 (Data, errorToAccumulate) =>
@@ -246,12 +240,13 @@ namespace Cloud.REST
                     try
                     {
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
+                        CLFileItem fileItem;
                         CLError overallError = ItemForPath(
-                            completionCallback,
-                            completionCallbackUserState,
-                            Data.relativePath);
+                            Data.relativePath,
+                            out fileItem);
 
-                        Data.toReturn.Complete(overallError, // any overall error that may have occurred during processing
+                        Data.toReturn.Complete(
+                            new SyncboxGetItemAtPathResult(overallError, fileItem),  // the result to return
                             sCompleted: false); // processing did not complete synchronously
                     }
                     catch (Exception ex)
@@ -288,9 +283,12 @@ namespace Cloud.REST
         /// <param name="completionCallback">Callback method to fire for each item completion.</param>
         /// <param name="completionCallbackUserState">Userstate to be passed whenever the item completion callback above is fired.</param>
         /// <param name="relativePath">Relative path in the syncbox to where file or folder would exist in the syncbox locally on disk.</param>
+        /// <param name="item">(output) The returned item.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        internal CLError ItemForPath(CLSingleFileItemCompletionCallback completionCallback, object completionCallbackUserState, string relativePath)
+        internal CLError ItemForPath(string relativePath, out CLFileItem item)
         {
+            CLFileItem toReturn;
+
             // try/catch to process the request,  On catch return the error
             try
             {
@@ -344,24 +342,20 @@ namespace Cloud.REST
                 if (responseFromServer != null)
                 {
                     // Pass back the response as a CLFileItem.
-                    CLFileItem resultItem = new CLFileItem(responseFromServer, _syncbox);
-                    if (completionCallback != null)
-                    {
-                        try
-                        {
-                            completionCallback(resultItem, userState: completionCallbackUserState);
-                        }
-                        catch
-                        {
-                        }
-                    }
+                    toReturn = new CLFileItem(responseFromServer, _syncbox);
+                }
+                else
+                {
+                    throw new CLNullReferenceException(CLExceptionCode.OnDemand_NotFound, Resources.ExceptionOnDemandItemForPathNotFound);
                 }
             }
             catch (Exception ex)
             {
+                item = Helpers.DefaultForType<CLFileItem>();
                 return ex;
             }
 
+            item = toReturn;
             return null;
         }
 
@@ -2321,7 +2315,7 @@ namespace Cloud.REST
                 {
                     throw new ArgumentNullException("filesToAdd must not be null");  //&&&& fix this
                 }
-                if (filesToAdd.Length > 0)
+                if (filesToAdd.Length < 1)
                 {
                     throw new CLArgumentException(CLExceptionCode.Http_BadRequest, "filesToAdd must have a length greater than zero");
                 }

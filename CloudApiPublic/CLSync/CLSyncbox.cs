@@ -1697,16 +1697,14 @@ namespace Cloud
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when operation completes</param>
         /// <param name="asyncCallbackUserState">Userstate to pass when firing async callback</param>
-        /// <param name="completionCallback">Delegate which will be fired upon successful communication for every response item.</param>
-        /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion delegate is fired.</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginRootFolder(AsyncCallback asyncCallback, object asyncCallbackUserState, CLSingleFileItemCompletionCallback completionCallback, object completionCallbackUserState)
+        public IAsyncResult BeginRootFolder(AsyncCallback asyncCallback, object asyncCallbackUserState)
         {
             CheckDisposed();
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.BeginItemForPath(asyncCallback, asyncCallbackUserState, completionCallback, completionCallbackUserState, Resources.Backslash);
+            return httpRestClient.BeginItemForPath(asyncCallback, asyncCallbackUserState, Resources.Backslash);
         }
 
         /// <summary>
@@ -1731,14 +1729,15 @@ namespace Cloud
         /// </summary>
         /// <param name="completionCallback">Delegate which will be fired upon successful communication for every response item.</param>
         /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion delegate is fired.</param>
+        /// <param name="item">(output) The returned item.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError RootFolder(CLSingleFileItemCompletionCallback completionCallback, object completionCallbackUserState)
+        public CLError RootFolder(out CLFileItem item)
         {
             CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.ItemForPath(completionCallback, completionCallbackUserState, Resources.Backslash);
+            return httpRestClient.ItemForPath(Resources.Backslash, out item);
         }
 
         #endregion  // end GetItemAtPath (Queries the cloud for the item at a particular path)
@@ -1757,15 +1756,13 @@ namespace Cloud
         public IAsyncResult BeginItemForPath(
             AsyncCallback asyncCallback, 
             object asyncCallbackUserState, 
-            CLSingleFileItemCompletionCallback completionCallback, 
-            object completionCallbackUserState, 
             string relativePath)
         {
             CheckDisposed();
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.BeginItemForPath(asyncCallback, asyncCallbackUserState, completionCallback, completionCallbackUserState, relativePath);
+            return httpRestClient.BeginItemForPath(asyncCallback, asyncCallbackUserState, relativePath);
         }
 
         /// <summary>
@@ -1791,14 +1788,15 @@ namespace Cloud
         /// <param name="itemCompletionCallback">Delegate which will be fired upon successful communication for every response item.</param>
         /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the completion delegate is fired.</param>
         /// <param name="relativePath">Relative path in the syncbox to where file or folder would exist in the syncbox locally on disk.</param>
+        /// <param name="item">(output) The returned item.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError ItemForPath(CLSingleFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, string relativePath)
+        public CLError ItemForPath(string relativePath, out CLFileItem item)
         {
             CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.ItemForPath(itemCompletionCallback, itemCompletionCallbackUserState, relativePath);
+            return httpRestClient.ItemForPath(relativePath, out item);
         }
 
         #endregion  // end GetItemAtPath (Queries the cloud for the item at a particular path)
@@ -2232,7 +2230,7 @@ namespace Cloud
         /// <param name="cancellationSource">An optional cancellation token which may be used to cancel uploads in progress immediately, can be null</param>
         /// <param name="filesToAdd">(params) An array of pairs of relative path in the syncbox of the file to add, and the parent folder item that will hold the added file.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        internal CLError AddFiles(
+        public CLError AddFiles(
             CLFileItemCompletionCallback itemCompletionCallback,
             object itemCompletionCallbackUserState,
             CLFileItemTransferStatusDelegate transferStatusCallback,

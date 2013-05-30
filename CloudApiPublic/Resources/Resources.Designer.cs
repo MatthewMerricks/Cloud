@@ -2844,6 +2844,15 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The item was not found at the path.
+        /// </summary>
+        internal static string ExceptionOnDemandItemForPathNotFound {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandItemForPathNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Item to move must not be null.
         /// </summary>
         internal static string ExceptionOnDemandItemToMoveMustNotBeNull {

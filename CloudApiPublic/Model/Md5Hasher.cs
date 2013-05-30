@@ -72,7 +72,7 @@ namespace Cloud.Model
         /// </summary>
         public byte[][] IntermediateHashes
         {
-            get { return _intermediateHashes; }
+            get { return _intermediateHashes ?? new byte[0][]; }
         }
 
         /// <summary>

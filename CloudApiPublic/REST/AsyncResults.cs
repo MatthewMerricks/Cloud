@@ -642,6 +642,18 @@ namespace Cloud.REST
     public sealed class SyncboxGetItemAtPathResult
     {
         /// <summary>
+        /// The returned file or folder item.
+        /// </summary>
+        public CLFileItem Item
+        {
+            get
+            {
+                return _item;
+            }
+        }
+        private readonly CLFileItem _item;
+
+        /// <summary>
         /// Any overall error which may have occurred during communication
         /// </summary>
         public CLError OverallError
@@ -654,9 +666,10 @@ namespace Cloud.REST
         private readonly CLError _overallError;
 
         // construct with all readonly properties
-        internal SyncboxGetItemAtPathResult(CLError overallError)
+        internal SyncboxGetItemAtPathResult(CLError overallError, CLFileItem item)
         {
             this._overallError = overallError;
+            this._item = item;
         }
     }
 
