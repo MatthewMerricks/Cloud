@@ -561,7 +561,7 @@ namespace Cloud
                 this._getNewCredentialsCallback = getNewCredentialsCallback;
                 this._getNewCredentialsCallbackUserState = getNewCredentialsCallbackUserState;
 
-                if (path == null)
+                if (String.IsNullOrEmpty(path))
                 {
                     setPathLocker = new object();
                 }
@@ -834,11 +834,11 @@ namespace Cloud
             {
                 lock (_startLocker)
                 {
-                    if (this.Path == null)
+                    if (String.IsNullOrEmpty(this.Path))
                     {
                         throw new AggregateException(Resources.CLHttpRestSyncboxBadPath);
                     }
-                    if (!string.IsNullOrEmpty(this.Path))
+                    else
                     {
                         CLError syncRootError = Helpers.CheckForBadPath(this.Path);
                         if (syncRootError != null)
@@ -1720,7 +1720,7 @@ namespace Cloud
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when operation completes</param>
         /// <param name="asyncCallbackUserState">Userstate to pass when firing async callback</param>
-        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginRootFolder(AsyncCallback asyncCallback, object asyncCallbackUserState)
         {
             CheckDisposed();
@@ -1833,7 +1833,7 @@ namespace Cloud
         /// <param name="itemCompletionCallback">Delegate which will be fired upon successful communication for every response item.</param>
         /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the completion delegate is fired.</param>
         /// <param name="itemsToRename">One or more pairs of items to rename and the new name of each item (just the filename.ext).</param>
-        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginRenameFiles(AsyncCallback asyncCallback, object asyncCallbackUserState, CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, params RenameItemParams[] itemsToRename)
         {
             CheckDisposed(true);
@@ -1886,7 +1886,7 @@ namespace Cloud
         /// <param name="itemCompletionCallback">Delegate which will be fired upon successful communication for every response item.</param>
         /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the completion delegate is fired.</param>
         /// <param name="itemsToRename">One or more pairs of items to rename and the new name of each item (just the last token in the path).</param>
-        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginRenameFolders(AsyncCallback asyncCallback, object asyncCallbackUserState, CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, params RenameItemParams[] itemsToRename)
         {
             CheckDisposed(true);
@@ -1939,7 +1939,7 @@ namespace Cloud
         /// <param name="itemCompletionCallback">Delegate which will be fired upon successful communication for every response item.</param>
         /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the completion delegate is fired.</param>
         /// <param name="itemsToMove">One or more pairs of item to move and a folder item representing the new parent of the item being moved.</param>
-        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginMoveFiles(
             AsyncCallback asyncCallback, 
             object asyncCallbackUserState, 
@@ -1997,7 +1997,7 @@ namespace Cloud
         /// <param name="itemCompletionCallback">Delegate which will be fired upon successful communication for every response item.</param>
         /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the completion delegate is fired.</param>
         /// <param name="itemsToMove">One or more pairs of item to move and a folder item representing the new parent of the item being moved.</param>
-        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginMoveFolders(AsyncCallback asyncCallback, object asyncCallbackUserState, CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, params MoveItemParams[] itemsToMove)
         {
             CheckDisposed(true);
@@ -2050,7 +2050,7 @@ namespace Cloud
         /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
         /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the item completion callback above is fired.</param>
         /// <param name="itemsToDelete">One or more file items to delete.</param>
-        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginDeleteFiles(AsyncCallback asyncCallback, object asyncCallbackUserState, CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, params CLFileItem[] itemsToDelete)
         {
             CheckDisposed(true);
@@ -2103,7 +2103,7 @@ namespace Cloud
         /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
         /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the item completion callback above is fired.</param>
         /// <param name="itemsToDelete">One or more folder items to delete.</param>
-        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginDeleteFolders(AsyncCallback asyncCallback, object asyncCallbackUserState, CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, params CLFileItem[] itemsToDelete)
         {
             CheckDisposed(true);
@@ -2156,7 +2156,7 @@ namespace Cloud
         /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
         /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the item completion callback above is fired.</param>
         /// <param name="folderItemsToAdd">One or more pairs of folder parent item and name of the new folder to add.</param>
-        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginAddFolders(AsyncCallback asyncCallback, object asyncCallbackUserState, CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, params AddFolderItemParams[] folderItemsToAdd)
         {
             CheckDisposed(true);
@@ -2209,7 +2209,7 @@ namespace Cloud
         /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
         /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the item completion callback above is fired.</param>
         /// <param name="filesToAdd">(params) An array of pairs of relative path in the syncbox of the file to add, and the parent folder item that will hold the added file.</param>
-        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginAddFiles(
             AsyncCallback asyncCallback,
             object asyncCallbackUserState,
@@ -2277,7 +2277,7 @@ namespace Cloud
         ///// <param name="asyncCallback">Callback method to fire when operation completes</param>
         ///// <param name="asyncCallbackUserState">Userstate to pass when firing async callback</param>
         ///// <param name="paths">An array of full paths to where the files would exist locally on disk.</param>
-        ///// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        ///// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         //public IAsyncResult BeginAddFiles(AsyncCallback asyncCallback, object asyncCallbackUserState, string[] paths)
         //{
         //    CheckDisposed(true);
@@ -2339,7 +2339,7 @@ namespace Cloud
         /// <param name="aCallback">Callback method to fire when operation completes</param>
         /// <param name="aState">Userstate to pass when firing async callback</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
-        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginGetAllPending(AsyncCallback asyncCallback,
             object asyncCallbackState,
             int timeoutMilliseconds)
@@ -2393,7 +2393,7 @@ namespace Cloud
         /// <param name="aState">Userstate to pass when firing async callback</param>
         /// <param name="fileServerId">Unique id to the file on the server</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
-        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginGetFileVersions(AsyncCallback asyncCallback,
             object asyncCallbackState,
             string fileServerId,
@@ -2418,7 +2418,7 @@ namespace Cloud
         /// <param name="fileServerId">Unique id to the file on the server</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <param name="includeDeletedVersions">(optional) whether to include file versions which are deleted</param>
-        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginGetFileVersions(AsyncCallback asyncCallback,
             object asyncCallbackState,
             string fileServerId,
@@ -2445,7 +2445,7 @@ namespace Cloud
         /// <param name="fileServerId">Unique id to the file on the server</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <param name="pathToFile">Full path to the file where it would be placed locally within the sync root</param>
-        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginGetFileVersions(AsyncCallback asyncCallback,
             object asyncCallbackState,
             int timeoutMilliseconds,
@@ -2468,7 +2468,7 @@ namespace Cloud
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <param name="pathToFile">Full path to the file where it would be placed locally within the sync root</param>
         /// <param name="includeDeletedVersions">(optional) whether to include file versions which are deleted</param>
-        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginGetFileVersions(AsyncCallback asyncCallback,
             object asyncCallbackState,
             int timeoutMilliseconds,
@@ -2491,7 +2491,7 @@ namespace Cloud
         /// <param name="fileServerId">Unique id to the file on the server</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <param name="pathToFile">Full path to the file where it would be placed locally within the sync root</param>
-        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginGetFileVersions(AsyncCallback asyncCallback,
             object asyncCallbackState,
             string fileServerId,
@@ -2515,7 +2515,7 @@ namespace Cloud
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <param name="pathToFile">Full path to the file where it would be placed locally within the sync root</param>
         /// <param name="includeDeletedVersions">(optional) whether to include file versions which are deleted</param>
-        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginGetFileVersions(AsyncCallback asyncCallback,
             object asyncCallbackState,
             string fileServerId,
@@ -2665,7 +2665,7 @@ namespace Cloud
         /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
         /// <param name="pageNumber">Beginning page number.  The first page is page 1.</param>
         /// <param name="itemsPerPage">Items per page.</param>
-        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginAllImageItems(AsyncCallback asyncCallback, object asyncCallbackUserState, long pageNumber, long itemsPerPage)
         {
             CheckDisposed(true);
@@ -2719,7 +2719,7 @@ namespace Cloud
         /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
         /// <param name="pageNumber">Beginning page number.  The first page is page 1.</param>
         /// <param name="itemsPerPage">Items per page.</param>
-        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginAllVideoItems(AsyncCallback asyncCallback, object asyncCallbackUserState, long pageNumber, long itemsPerPage)
         {
             CheckDisposed(true);
@@ -2773,7 +2773,7 @@ namespace Cloud
         /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
         /// <param name="pageNumber">Beginning page number.  The first page is page 1.</param>
         /// <param name="itemsPerPage">Items per page.</param>
-        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginAllAudioItems(AsyncCallback asyncCallback, object asyncCallbackUserState, long pageNumber, long itemsPerPage)
         {
             CheckDisposed(true);
@@ -2827,7 +2827,7 @@ namespace Cloud
         /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
         /// <param name="pageNumber">Beginning page number.  The first page is page 1.</param>
         /// <param name="itemsPerPage">Items per page.</param>
-        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginAllDocumentItems(AsyncCallback asyncCallback, object asyncCallbackUserState, long pageNumber, long itemsPerPage)
         {
             CheckDisposed(true);
@@ -2883,7 +2883,7 @@ namespace Cloud
         /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
         /// <param name="pageNumber">Beginning page number.  The first page is page 1.</param>
         /// <param name="itemsPerPage">Items per page.</param>
-        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginAllPresentationItems(AsyncCallback asyncCallback, object asyncCallbackUserState, long pageNumber, long itemsPerPage)
         {
             CheckDisposed(true);
@@ -2937,7 +2937,7 @@ namespace Cloud
         /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
         /// <param name="pageNumber">Beginning page number.  The first page is page 1.</param>
         /// <param name="itemsPerPage">Items per page.</param>
-        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginAllPlainTextItems(AsyncCallback asyncCallback, object asyncCallbackUserState, long pageNumber, long itemsPerPage)
         {
             CheckDisposed(true);
@@ -2991,7 +2991,7 @@ namespace Cloud
         /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
         /// <param name="pageNumber">Beginning page number.  The first page is page 1.</param>
         /// <param name="itemsPerPage">Items per page.</param>
-        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginAllArchivetItems(AsyncCallback asyncCallback, object asyncCallbackUserState, long pageNumber, long itemsPerPage)
         {
             CheckDisposed(true);
@@ -3045,7 +3045,7 @@ namespace Cloud
         /// <param name="pageNumber">Beginning page number.  The first page is page 1.</param>
         /// <param name="itemsPerPage">Items per page.</param>
         /// <param name="extensions">The array of file extensions the item type should belong to. I.E txt, jpg, pdf, etc.</param>
-        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginAllItemsOfTypes(
             AsyncCallback asyncCallback,
             object asyncCallbackUserState,
@@ -3107,7 +3107,7 @@ namespace Cloud
         /// <param name="pageNumber">Beginning page number.  The first page is page 1.</param>
         /// <param name="itemsPerPage">Items per page.</param>
         /// <param name="sinceDate">(optional) null to retrieve all of the recents, or specify a date to retrieve items from that date forward.</param>
-        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginRecentFiles(
             AsyncCallback asyncCallback,
             object asyncCallbackUserState,
@@ -3167,7 +3167,7 @@ namespace Cloud
         /// <param name="asyncCallback">Callback method to fire when operation completes</param>
         /// <param name="asyncCallbackUserState">Userstate to pass when firing async callback</param>
         /// <param name="path">Full path of the folder that would be on disk in the syncbox.</param>
-        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginGetFolderContents(AsyncCallback asyncCallback, object asyncCallbackUserState, string path)
         {
             CheckDisposed(true);
@@ -3219,7 +3219,7 @@ namespace Cloud
         /// <param name="asyncCallback">Callback method to fire when operation completes</param>
         /// <param name="asyncCallbackState">Userstate to pass when firing async callback</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
-        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginGetFolderHierarchy(AsyncCallback asyncCallback,
             object asyncCallbackState,
             int timeoutMilliseconds)
@@ -3238,7 +3238,7 @@ namespace Cloud
         /// <param name="asyncCallbackState">Userstate to pass when firing async callback</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <param name="hierarchyRoot">(optional) root path of hierarchy query</param>
-        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginGetFolderHierarchy(AsyncCallback asyncCallback,
             object asyncCallbackState,
             int timeoutMilliseconds,
@@ -3305,7 +3305,7 @@ namespace Cloud
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when operation completes</param>
         /// <param name="asyncCallbackUserState">Userstate to pass as a parameter when firing async callback</param>
-        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginGetDataUsage(AsyncCallback asyncCallback, object asyncCallbackUserState)
         {
             CheckDisposed(true);
@@ -3377,7 +3377,7 @@ namespace Cloud
         /// <param name="asyncCallbackState">Userstate to pass when firing async callback</param>
         /// <param name="metadata">string keys to serializable object values to store as extra metadata to the sync box</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
-        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginUpdateSyncboxExtendedMetadata<T>(AsyncCallback asyncCallback,
             object asyncCallbackState,
             IDictionary<string, T> metadata,
@@ -3397,7 +3397,7 @@ namespace Cloud
         /// <param name="asyncCallbackState">Userstate to pass when firing async callback</param>
         /// <param name="metadata">string keys to serializable object values to store as extra metadata to the sync box</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
-        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginUpdateSyncboxExtendedMetadata(AsyncCallback asyncCallback,
             object asyncCallbackState,
             JsonContracts.MetadataDictionary metadata,
@@ -3467,7 +3467,7 @@ namespace Cloud
         /// <param name="callback">Callback method to fire when operation completes</param>
         /// <param name="asyncCallbackUserState">Userstate to pass as a parameter when firing async callback</param>
         /// <param name="storagePlan">The new storage plan to use for this syncbox)</param>
-        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginUpdateStoragePlan(AsyncCallback asyncCallback, object asyncCallbackUserState, CLStoragePlan storagePlan)
         {
             CheckDisposed(true);
@@ -3548,7 +3548,7 @@ namespace Cloud
         /// <param name="completionCallback">Callback method to fire when a page of items is complete.  Return the result.</param>
         /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion callback above is fired.</param>
         /// <param name="friendlyName">The new friendly name of this syncbox)</param>
-        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginUpdateFriendlyName<T>(
             AsyncCallback asyncCallback,
             object asyncCallbackUserState,
@@ -3633,7 +3633,7 @@ namespace Cloud
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when operation completes</param>
         /// <param name="callbackUserState">Userstate to pass when firing async callback</param>
-        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginGetCurrentStatus(AsyncCallback asyncCallback, object asyncCallbackUserState)
         {
             CheckDisposed(true);
