@@ -2675,7 +2675,7 @@ namespace Cloud
         /// <param name="itemsPerPage">Items per page.</param>
         /// <param name="items">The resulting file items.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError AllImageItems(CLAllItemsCompletionCallback completionCallback, object completionCallbackUserState, long pageNumber, long itemsPerPage, out CLFileItem[] items)
+        public CLError AllImageItems(long pageNumber, long itemsPerPage, out CLFileItem[] items)
         {
             CheckDisposed(true);
 
@@ -2729,7 +2729,7 @@ namespace Cloud
         /// <param name="itemsPerPage">Items per page.</param>
         /// <param name="items">The resulting file items.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError AllVideoItems(CLAllItemsCompletionCallback completionCallback, object completionCallbackUserState, long pageNumber, long itemsPerPage, out CLFileItem[] items)
+        public CLError AllVideoItems(long pageNumber, long itemsPerPage, out CLFileItem[] items)
         {
             CheckDisposed(true);
 
@@ -2947,7 +2947,7 @@ namespace Cloud
         /// <param name="itemsPerPage">Items per page.</param>
         /// <param name="items">(output) The resulting file items.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError AllPlainTextItems(CLAllItemsCompletionCallback completionCallback, object completionCallbackUserState, long pageNumber, long itemsPerPage, out CLFileItem[] items)
+        public CLError AllPlainTextItems(long pageNumber, long itemsPerPage, out CLFileItem[] items)
         {
             CheckDisposed(true);
 

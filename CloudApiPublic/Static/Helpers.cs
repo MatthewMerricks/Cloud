@@ -2556,81 +2556,10 @@ namespace Cloud.Static
                             //noop;
                         }
 
-                        FileInfo oldPathInfo = new FileInfo(fileMoveState.oldPathString);
-                        FileInfo newPathInfo = new FileInfo(fileMoveState.newPathString);
-                        DateTime oldPathCreation = oldPathInfo.CreationTimeUtc;
-                        DateTime oldPathWrite = oldPathInfo.LastWriteTimeUtc;
-                        long oldPathSize = oldPathInfo.Length;
-
-                        try
-                        {
-                            if (newPathInfo.Exists)
-                            {
-                                try
-                                {
-                                    oldPathInfo.Replace(
-                                        fileMoveState.newPathString,
-                                        fileMoveState.backupLocation,
-                                        ignoreMetadataErrors: true);
-                                    try
-                                    {
-                                        if (File.Exists(fileMoveState.backupLocation))
-                                        {
-                                            File.Delete(fileMoveState.backupLocation);
-                                        }
-                                    }
-                                    catch
-                                    {
-                                    }
-                                }
-                                // File.Replace not supported on non-NTFS drives, must use traditional move
-                                catch (PlatformNotSupportedException)
-                                {
-                                    if (newPathInfo.Exists)
-                                    {
-                                        newPathInfo.Delete();
-                                    }
-                                    oldPathInfo.MoveTo(fileMoveState.newPathString);
-                                }
-                                // Some strange condition on specific files which does not make sense can throw an error on replace but may still succeed on move
-                                catch (IOException)
-                                {
-                                    if (newPathInfo.Exists)
-                                    {
-                                        newPathInfo.Delete();
-                                    }
-                                    oldPathInfo.MoveTo(fileMoveState.newPathString);
-                                }
-                            }
-                            else
-                            {
-                                oldPathInfo.MoveTo(fileMoveState.newPathString);
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            if (oldPathCreation.Ticks != FileConstants.InvalidUtcTimeTicks
-                                && oldPathCreation.ToUniversalTime().Ticks != FileConstants.InvalidUtcTimeTicks
-
-                                && oldPathWrite.Ticks != FileConstants.InvalidUtcTimeTicks
-                                && oldPathWrite.ToUniversalTime().Ticks != FileConstants.InvalidUtcTimeTicks
-
-                                && newPathInfo.Exists
-
-                                && DateTime.Compare(newPathInfo.CreationTimeUtc, oldPathCreation) == 0
-
-                                && DateTime.Compare(newPathInfo.LastWriteTimeUtc, oldPathWrite) == 0
-
-                                && oldPathSize == newPathInfo.Length)
-                            {
-                                // file move (or replace) actually worked even though it threw an exception
-                                // silence exception
-                            }
-                            else
-                            {
-                                throw ex;
-                            }
-                        }
+                        FileMoveOrReplace(
+                            fileMoveState.oldPathString,
+                            fileMoveState.newPathString,
+                            fileMoveState.backupLocation);
 
                         FileSecurity fileSecurity = new FileSecurity(fileMoveState.newPathString, AccessControlSections.Access);
                         if (tempExplicitRules != null && tempExplicitRules.Count > 0)
@@ -2681,6 +2610,85 @@ namespace Cloud.Static
             }
 
             return null;
+        }
+
+        internal static void FileMoveOrReplace(string fileMoveOldPathString, string fileMoveNewPathString, string fileMoveBackupLocation)
+        {
+            FileInfo oldPathInfo = new FileInfo(fileMoveOldPathString);
+            FileInfo newPathInfo = new FileInfo(fileMoveNewPathString);
+            DateTime oldPathCreation = oldPathInfo.CreationTimeUtc;
+            DateTime oldPathWrite = oldPathInfo.LastWriteTimeUtc;
+            long oldPathSize = oldPathInfo.Length;
+
+            try
+            {
+                if (newPathInfo.Exists)
+                {
+                    try
+                    {
+                        oldPathInfo.Replace(
+                            fileMoveNewPathString,
+                            fileMoveBackupLocation,
+                            ignoreMetadataErrors: true);
+                        try
+                        {
+                            if (File.Exists(fileMoveBackupLocation))
+                            {
+                                File.Delete(fileMoveBackupLocation);
+                            }
+                        }
+                        catch
+                        {
+                        }
+                    }
+                    // File.Replace not supported on non-NTFS drives, must use traditional move
+                    catch (PlatformNotSupportedException)
+                    {
+                        if (newPathInfo.Exists)
+                        {
+                            newPathInfo.Delete();
+                        }
+                        oldPathInfo.MoveTo(fileMoveNewPathString);
+                    }
+                    // Some strange condition on specific files which does not make sense can throw an error on replace but may still succeed on move
+                    catch (IOException)
+                    {
+                        if (newPathInfo.Exists)
+                        {
+                            newPathInfo.Delete();
+                        }
+                        oldPathInfo.MoveTo(fileMoveNewPathString);
+                    }
+                }
+                else
+                {
+                    oldPathInfo.MoveTo(fileMoveNewPathString);
+                }
+            }
+            catch (Exception ex)
+            {
+                if (oldPathCreation.Ticks != FileConstants.InvalidUtcTimeTicks
+                    && oldPathCreation.ToUniversalTime().Ticks != FileConstants.InvalidUtcTimeTicks
+
+                    && oldPathWrite.Ticks != FileConstants.InvalidUtcTimeTicks
+                    && oldPathWrite.ToUniversalTime().Ticks != FileConstants.InvalidUtcTimeTicks
+
+                    && newPathInfo.Exists
+
+                    && DateTime.Compare(newPathInfo.CreationTimeUtc, oldPathCreation) == 0
+
+                    && DateTime.Compare(newPathInfo.LastWriteTimeUtc, oldPathWrite) == 0
+
+                    && oldPathSize == newPathInfo.Length)
+                {
+                    // file move (or replace) actually worked even though it threw an exception
+                    // silence exception
+                }
+                else
+                {
+                    throw ex;
+                }
+            }
         }
 
         #endregion
