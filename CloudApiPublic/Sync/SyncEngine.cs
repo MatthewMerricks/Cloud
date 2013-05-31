@@ -6264,7 +6264,6 @@ namespace Cloud.Sync
                     }
                 }
 
-
                 // if the error was any that are not recoverable, display a message to the user for the serious problem and return
 
                 if (castState == null)

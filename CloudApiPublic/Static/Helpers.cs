@@ -3114,7 +3114,7 @@ namespace Cloud.Static
             HttpWebRequest httpRequest = (HttpWebRequest)HttpWebRequest.Create(serverUrl + serverMethodPath);
 
             // downgrade to HTTP 1.0 protocol
-            httpRequest.ProtocolVersion = HttpVersion.Version10;
+            httpRequest.ProtocolVersion = HttpVersion.Version11;
 
             #region set request parameters
             // switch case to set the HTTP method (GET vs. POST vs. PUT); throw exception if not supported yet
