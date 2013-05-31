@@ -69,6 +69,30 @@ namespace Cloud
         }
         private readonly string _token;
 
+        /// <summary>
+        /// The session token expiration date.
+        /// </summary>
+        internal Nullable<DateTime> ExpirationDate
+        {
+            get
+            {
+                return _expirationDate;
+            }
+        }
+        private readonly Nullable<DateTime> _expirationDate;
+
+        /// <summary>
+        /// The syncbox IDs associated with these credentials.
+        /// </summary>
+        internal HashSet<long> SyncboxIds
+        {
+            get
+            {
+                return _syncboxIds;
+            }
+        }
+        private readonly HashSet<long> _syncboxIds;
+
         #endregion
 
         #region Private Fields
@@ -197,6 +221,8 @@ namespace Cloud
             this._secret = Secret;
 
             this._token = token;
+            this._expirationDate = session.ExpiresAt;
+            this._syncboxIds = session.SyncboxIds;
 
             // copy settings so they don't change while processing; this also defaults some values
             _copiedSettings = (settings == null
@@ -215,6 +241,41 @@ namespace Cloud
         public bool IsSessionCredentials()
         {
             return !String.IsNullOrEmpty(_token);
+        }
+
+        /// <summary>
+        /// Determine whether the session credentials have expired (!IsValid).  Requires session credentials.
+        /// </summary>
+        /// <param name="isValid">(output) The result.  True: The session credentials have not expired.</param>
+        /// <returns>Any error that occurs, or null.</returns>
+        public CLError IsValid(out bool isValid)
+        {
+            try
+            {
+                if (!IsSessionCredentials())
+                {
+                    throw new CLException(CLExceptionCode.Credentials_NotSessionCredentials, Resources.ExceptionCredentialsIsValidRequiresSessionCredentials);
+                }
+
+                if (ExpirationDate == null)
+                {
+                    throw new CLException(CLExceptionCode.Credentials_ExpirationDateMustNotBeNull, Resources.ExceptionCredentialsExpirationDateMustNotBeNull);
+                }
+
+                if (ExpirationDate < DateTime.UtcNow)
+                {
+                    isValid = true;
+                }
+
+                isValid = false;
+            }
+            catch (Exception ex)
+            {
+                isValid = false;
+                return ex;
+            }
+
+            return null;
         }
 
         #endregion  // end Public Utilities
@@ -376,7 +437,7 @@ namespace Cloud
         }
         #endregion (query the cloud for all active sessions for these credentials)
 
-        #region CreateSessionForSyncboxIds (create a new set of session credentials for a list of syncbox IDs using the current credentials)
+        #region CreateSessionCredentialsForSyncboxIds (create a new set of session credentials for a list of syncbox IDs using the current credentials)
         /// <summary>
         /// Asynchronously starts creating a session on the server for the current application
         /// </summary>
@@ -386,7 +447,7 @@ namespace Cloud
         /// <param name="tokenDurationMinutes">(optional) The number of minutes before the token expires. Default: 2160 minutes (36 hours).  Maximum: 7200 minutes (120 hours).</param>
         /// <param name="settings">(optional) settings for optional tracing and specifying the client version to the server.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public IAsyncResult BeginCreateSessionForSyncboxIds(
+        public IAsyncResult BeginCreateSessionCredentialsForSyncboxIds(
             AsyncCallback asyncCallback,
             object asyncCallbackUserState,
             HashSet<long> syncboxIds = null,
@@ -414,7 +475,7 @@ namespace Cloud
                         // declare the specific type of response for this operation
                         CLCredentials response;
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
-                        CLError processError = CreateSessionForSyncboxIds(
+                        CLError processError = CreateSessionCredentialsForSyncboxIds(
                             out response,
                             Data.syncboxIds,
                             Data.tokenDurationMinutes,
@@ -449,7 +510,7 @@ namespace Cloud
         /// <param name="asyncResult">The asynchronous result provided upon starting the creation of the session.</param>
         /// <param name="result">(output) The result from creating the session.</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndCreateSessionForSyncboxIds(IAsyncResult asyncResult, out CredentialsSessionCreateResult result)
+        public CLError EndCreateSessionCredentialsForSyncboxIds(IAsyncResult asyncResult, out CredentialsSessionCreateResult result)
         {
             return Helpers.EndAsyncOperation<CredentialsSessionCreateResult>(asyncResult, out result);
         }
@@ -462,7 +523,7 @@ namespace Cloud
         /// <param name="tokenDurationMinutes">(optional) The number of minutes before the token expires. Default: 2160 minutes (36 hours).  Maximum: 7200 minutes (120 hours).</param>
         /// <param name="settings">(optional) settings for optional tracing and specifying the client version to the server.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError CreateSessionForSyncboxIds(
+        public CLError CreateSessionCredentialsForSyncboxIds(
                     out CLCredentials response,
                     HashSet<long> syncboxIds = null,
                     Nullable<long> tokenDurationMinutes = null,
@@ -549,7 +610,7 @@ namespace Cloud
         /// <param name="key">The key to use to query the session on the server.</param>
         /// <param name="settings">(optional) settings for optional tracing and specifying the client version to the server.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public IAsyncResult BeginGetSessionForKey(
+        public IAsyncResult BeginSessionCredentialsForKey(
             AsyncCallback asyncCallback,
             object asyncCallbackUserState,
             string key,
@@ -575,7 +636,7 @@ namespace Cloud
                         // declare the specific type of response for this operation
                         CLCredentials response;
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
-                        CLError processError = GetSessionForKey(
+                        CLError processError = SessionCredentialsForKey(
                             out response,
                             Data.key,
                             Data.settings);
@@ -609,7 +670,7 @@ namespace Cloud
         /// <param name="asyncResult">The asynchronous result provided upon starting the creation of the session</param>
         /// <param name="result">(output) The result from creating the session</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndGetSessionForKey(IAsyncResult asyncResult, out CredentialsSessionGetForKeyResult result)
+        public CLError EndSessionCredentialsForKey(IAsyncResult asyncResult, out CredentialsSessionGetForKeyResult result)
         {
             return Helpers.EndAsyncOperation<CredentialsSessionGetForKeyResult>(asyncResult, out result);
         }
@@ -621,7 +682,7 @@ namespace Cloud
         /// <param name="key">The key to use to query the session on the server.</param>
         /// <param name="settings">(optional) settings for optional tracing and specifying the client version to the server.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError GetSessionForKey(
+        public CLError SessionCredentialsForKey(
                     out CLCredentials response,
                     string key,
                     ICLCredentialsSettings settings = null)
@@ -688,7 +749,7 @@ namespace Cloud
         /// <param name="key">Key of the session to delete.</param>
         /// <param name="settings">(optional) Settings to use with this request.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public IAsyncResult BeginDeleteSessionWithKey(
+        public IAsyncResult BeginDeleteSessionCredentialsWithKey(
             AsyncCallback asyncCallback,
             object asyncCallbackUserState,
             string key,
@@ -713,7 +774,7 @@ namespace Cloud
                     {
                         // declare the specific type of response for this operation
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
-                        CLError processError = DeleteSessionWithKey(
+                        CLError processError = DeleteSessionCredentialsWithKey(
                             Data.key,
                             Data.settings);
 
@@ -745,7 +806,7 @@ namespace Cloud
         /// <param name="aResult">The asynchronous result provided upon starting listing the sessions</param>
         /// <param name="result">(output) The result from listing the sessions</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndDeleteSessionWithKey(IAsyncResult aResult, out CredentialsSessionDeleteResult result)
+        public CLError EndDeleteSessionCredentialsWithKey(IAsyncResult aResult, out CredentialsSessionDeleteResult result)
         {
             return Helpers.EndAsyncOperation<CredentialsSessionDeleteResult>(aResult, out result);
         }
@@ -756,7 +817,7 @@ namespace Cloud
         /// <param name="key">The key of the session to delete.</param>
         /// <param name="settings">(optional) settings for optional tracing and specifying the client version to the server</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError DeleteSessionWithKey(
+        public CLError DeleteSessionCredentialsWithKey(
             string key, 
             ICLCredentialsSettings settings = null)
         {

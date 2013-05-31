@@ -564,6 +564,16 @@ namespace Cloud.Static
         /// </summary
         Credentials_NullSecret = (((ulong)CLExceptionDomain.Credentials) << 32) | 1, // 7_1
 
+        /// <summary>
+        /// Credentials: Not session credentials.
+        /// </summary
+        Credentials_NotSessionCredentials = (((ulong)CLExceptionDomain.Credentials) << 32) | 2, // 7_2
+
+        /// <summary>
+        /// Credentials: Not session credentials.
+        /// </summary
+        Credentials_ExpirationDateMustNotBeNull = (((ulong)CLExceptionDomain.Credentials) << 32) | 3, // 7_3
+
         #endregion
 
         // add values in the format (even keep the comma for the last value and add the comment to the end as well, evaluate everything inside of [] brackets):

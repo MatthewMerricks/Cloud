@@ -2936,6 +2936,14 @@
     <value>millisecondsTimeout must be at least the length of the WaitHandle array to differentiate success from timeout failure</value>
     <comment>millisecondsTimeout and WaitHandle should not be translated</comment>
   </data>
+  <data name="ExceptionCredentialsExpirationDateMustNotBeNull" xml:space="preserve">
+    <value>ExpirationDate must not be null</value>
+    <comment>"ExpirationDate" should not be transalated</comment>
+  </data>
+  <data name="ExceptionCredentialsIsValidRequiresSessionCredentials" xml:space="preserve">
+    <value>IsValid requires session credentials</value>
+    <comment>"IsValid" should not be translated</comment>
+  </data>
   <data name="ExceptionOnDemandLinkDeviceFirstTimeRequestMustNotBeNull" xml:space="preserve">
     <value>Link device first time request must not be null</value>
   </data>
