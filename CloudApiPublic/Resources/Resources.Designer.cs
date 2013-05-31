@@ -2187,6 +2187,24 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to ExpirationDate must not be null.
+        /// </summary>
+        internal static string ExceptionCredentialsExpirationDateMustNotBeNull {
+            get {
+                return ResourceManager.GetString("ExceptionCredentialsExpirationDateMustNotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IsValid requires session credentials.
+        /// </summary>
+        internal static string ExceptionCredentialsIsValidRequiresSessionCredentials {
+            get {
+                return ResourceManager.GetString("ExceptionCredentialsIsValidRequiresSessionCredentials", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to delegateToWrap cannot be processed when null.
         /// </summary>
         internal static string ExceptionDelegateAndDataHolderNullDelegateToWrap {

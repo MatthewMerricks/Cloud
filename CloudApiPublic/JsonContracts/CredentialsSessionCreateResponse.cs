@@ -16,7 +16,7 @@ using System.Text;
 namespace Cloud.JsonContracts
 {
     /// <summary>
-    /// Result from <see cref="Cloud.CLCredentials.CreateSessionForSyncboxIds"/>
+    /// Result from <see cref="Cloud.CLCredentials.CreateSessionCredentialsForSyncboxIds"/>
     /// </summary>
     [DataContract]
     public sealed class CredentialsSessionCreateResponse
