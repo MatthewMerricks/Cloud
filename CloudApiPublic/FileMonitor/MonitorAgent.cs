@@ -1922,20 +1922,31 @@ namespace Cloud.FileMonitor
 
                             if (DisposeChanges == null)
                             {
-                                DisposeChanges = new List<FileChangeWithDependencies>(new FileChangeWithDependencies[] { EarlierChange });
+                                DisposeChanges = new List<FileChangeWithDependencies>(new FileChangeWithDependencies[] { CurrentEarlierChange });
                             }
                             else
                             {
-                                DisposeChanges.Add(EarlierChange);
+                                DisposeChanges.Add(CurrentEarlierChange);
                             }
 
-                            PulledChanges.Add(EarlierChange);
+                            PulledChanges.Add(CurrentEarlierChange);
 
-                            foreach (FileChangeWithDependencies laterParent in EnumerateDependenciesFromFileChangeDeepestLevelsFirst(LaterChange)
-                                .OfType<FileChangeWithDependencies>()
-                                .Where(currentParentCheck => currentParentCheck.Dependencies.Contains(EarlierChange)))
+                            FileChangeWithDependencies laterParent =
+                                EnumerateDependenciesFromFileChangeDeepestLevelsFirst(EarlierChange)
+                                    .OfType<FileChangeWithDependencies>()
+                                    .Where(currentParentCheck => currentParentCheck.Dependencies.Contains(CurrentEarlierChange))
+                                    .SingleOrDefault();
+
+                            if (laterParent != null)
                             {
-                                laterParent.RemoveDependency(EarlierChange);
+                                laterParent.RemoveDependency(CurrentEarlierChange);
+
+                                EarlierChange.AddDependency(LaterChange);
+                                if (DependencyDebugging)
+                                {
+                                    Helpers.CheckFileChangeDependenciesForDuplicates(EarlierChange);
+                                }
+                                PulledChanges.Add(LaterChange);
                             }
 
                             ContinueProcessing = false;
