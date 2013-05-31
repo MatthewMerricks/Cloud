@@ -506,6 +506,26 @@ namespace Cloud.Static
         /// </summary>
         OnDemand_Upload = (((ulong)CLExceptionDomain.OnDemand) << 32) | 32, // 5_32
 
+        /// <summary>
+        /// The server returned an invalid item among multiple items.
+        /// </summary>
+        OnDemand_ServerReturnedInvalidItem = (((ulong)CLExceptionDomain.OnDemand) << 32) | 33, // 5_33
+
+        /// <summary>
+        /// The server response did not contain a session.
+        /// </summary>
+        OnDemand_ServerResponseNoSession = (((ulong)CLExceptionDomain.OnDemand) << 32) | 34, // 5_34
+
+        /// <summary>
+        /// No server response.
+        /// </summary>
+        OnDemand_NoServerResponse = (((ulong)CLExceptionDomain.OnDemand) << 32) | 35, // 5_35
+
+        /// <summary>
+        /// A request is required.
+        /// </summary>
+        OnDemand_RequestRequired = (((ulong)CLExceptionDomain.OnDemand) << 32) | 36, // 5_36
+
         #endregion
 
         #region FileItem

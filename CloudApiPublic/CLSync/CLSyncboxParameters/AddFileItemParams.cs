@@ -32,26 +32,26 @@ namespace Cloud.CLSync.CLSyncboxParameters
         private readonly CLFileItem _parent;
 
         /// <summary>
-        /// Returns the relative path in the syncbox of the file item being added.
+        /// The full path on the local disk of the file item being added.
         /// </summary>
-        public string Name
+        public string FullPath
         {
             get
             {
-                return _name;
+                return _fullPath;
             }
         }
-        private readonly string _name;
+        private readonly string _fullPath;
 
         /// <summary>
         /// Construct parameters for adding a file item.
         /// </summary>
         /// <param name="parent">Parent folder of the item we wish to add.</param>
-        /// <param name="name">Filename including extension within the parent folder.</param>
-        public AddFileItemParams(CLFileItem parent, string name)
+        /// <param name="name">The full path on the local disk of the file item being added.</param>
+        public AddFileItemParams(CLFileItem parent, string fullPath)
         {
             this._parent = parent;
-            this._name = name;
+            this._fullPath = fullPath;
         }
     }
 }

@@ -2936,4 +2936,24 @@
     <value>millisecondsTimeout must be at least the length of the WaitHandle array to differentiate success from timeout failure</value>
     <comment>millisecondsTimeout and WaitHandle should not be translated</comment>
   </data>
+  <data name="ExceptionOnDemandLinkDeviceFirstTimeRequestMustNotBeNull" xml:space="preserve">
+    <value>Link device first time request must not be null</value>
+  </data>
+  <data name="ExceptionOnDemandLinkDeviceRequestMustNotBeNull" xml:space="preserve">
+    <value>Link device request must not be null</value>
+  </data>
+  <data name="ExceptionOnDemandListAllSessionCredentialsOneSessionResponseWasInvalid" xml:space="preserve">
+    <value>One of the session responses was invalid</value>
+    <comment>"session" should not be translated</comment>
+  </data>
+  <data name="ExceptionOnDemandNoServerResponse" xml:space="preserve">
+    <value>No response returned from server</value>
+  </data>
+  <data name="ExceptionOnDemandServerResponseNoSession" xml:space="preserve">
+    <value>No session returned from server</value>
+    <comment>"session" should not be translated</comment>
+  </data>
+  <data name="ExceptionOnDemandUnlinkDeviceRequestMustNotBeNull" xml:space="preserve">
+    <value>Unlink device request must not be null</value>
+  </data>
 </root>
