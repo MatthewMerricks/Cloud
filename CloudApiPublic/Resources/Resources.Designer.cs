@@ -2880,6 +2880,33 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Link device first time request must not be null.
+        /// </summary>
+        internal static string ExceptionOnDemandLinkDeviceFirstTimeRequestMustNotBeNull {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandLinkDeviceFirstTimeRequestMustNotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Link device request must not be null.
+        /// </summary>
+        internal static string ExceptionOnDemandLinkDeviceRequestMustNotBeNull {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandLinkDeviceRequestMustNotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to One of the session responses was invalid.
+        /// </summary>
+        internal static string ExceptionOnDemandListAllSessionCredentialsOneSessionResponseWasInvalid {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandListAllSessionCredentialsOneSessionResponseWasInvalid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to newName must be specified.
         /// </summary>
         internal static string ExceptionOnDemandNewNameMustBeSpecified {
@@ -2894,6 +2921,15 @@ namespace Cloud.Static {
         internal static string ExceptionOnDemandNewParentFolderItemMustBeSpecified {
             get {
                 return ResourceManager.GetString("ExceptionOnDemandNewParentFolderItemMustBeSpecified", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No response returned from server.
+        /// </summary>
+        internal static string ExceptionOnDemandNoServerResponse {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandNoServerResponse", resourceCulture);
             }
         }
         
@@ -2970,6 +3006,15 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to No session returned from server.
+        /// </summary>
+        internal static string ExceptionOnDemandServerResponseNoSession {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandServerResponseNoSession", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The syncbox path has already been set.
         /// </summary>
         internal static string ExceptionOnDemandSyncboxPathAlreadySet {
@@ -2984,6 +3029,15 @@ namespace Cloud.Static {
         internal static string ExceptionOnDemandUnknownItemStatus {
             get {
                 return ResourceManager.GetString("ExceptionOnDemandUnknownItemStatus", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unlink device request must not be null.
+        /// </summary>
+        internal static string ExceptionOnDemandUnlinkDeviceRequestMustNotBeNull {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandUnlinkDeviceRequestMustNotBeNull", resourceCulture);
             }
         }
         

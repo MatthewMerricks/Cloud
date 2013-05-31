@@ -86,7 +86,7 @@ namespace Cloud
         /// <param name="secret">The application or session private secret.</param>
         /// <param name="credentials">(output) Created credentials object</param>
         /// <param name="token">(optional) The temporary token to use.  Default: null.</param>
-        /// <returns>Returns any error that occurred in construction, if any, or null.</returns>
+        /// <returns>Returns any error that occurred in construction or initialization, if any, or null.</returns>
         public static CLError AllocAndInit(
             string key,
             string secret,
@@ -96,8 +96,6 @@ namespace Cloud
         {
             try
             {
-                Helpers.CheckHalted();
-
                 credentials = new CLCredentials(
                     key,
                     secret,
@@ -126,8 +124,6 @@ namespace Cloud
             string token, 
             ICLCredentialsSettings settings = null)
         {
-            Helpers.CheckHalted();
-
             // check input parameters
             if (string.IsNullOrEmpty(key))
             {
@@ -180,16 +176,14 @@ namespace Cloud
         /// <param name="settings">The settings to use.</param>
         private CLCredentials(JsonContracts.Session session, ICLCredentialsSettings settings = null)
         {
-            Helpers.CheckHalted();
-
             // check input parameters
             if (string.IsNullOrEmpty(session.Key))
             {
-                throw new NullReferenceException(Resources.CLCredentialKeyCannotBeNull);
+                throw new CLArgumentNullException(CLExceptionCode.Credentials_NullKey, Resources.CLCredentialKeyCannotBeNull);
             }
             if (string.IsNullOrEmpty(session.Secret))
             {
-                throw new NullReferenceException(Resources.CLCredentialSecretCannotBeNull);
+                throw new CLArgumentNullException(CLExceptionCode.Credentials_NullSecret, Resources.CLCredentialSecretCannotBeNull);
             }
 
             // Since we allow null then reverse-null coalesce from empty string
@@ -218,7 +212,7 @@ namespace Cloud
         /// Determine whether the credentials were instantiated with a temporary token.
         /// </summary>
         /// <returns>bool: true: The token exists.</returns>
-        public bool IsSessionToken()
+        public bool IsSessionCredentials()
         {
             return !String.IsNullOrEmpty(_token);
         }
@@ -243,7 +237,7 @@ namespace Cloud
         }
         #endregion
 
-        #region ListAllActiveSessions (query the cloud for all active sessions for these credentials)
+        #region ListAllActiveSessionCredentials (query the cloud for all active sessions for these credentials)
         /// <summary>
         /// Asynchronously starts listing the sessions on the server for the current credentials.
         /// </summary>
@@ -251,13 +245,11 @@ namespace Cloud
         /// <param name="asyncCallbackUserState">Userstate to pass when firing async callback</param>
         /// <param name="settings">(optional) Settings to use with this request.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public IAsyncResult BeginListAllActiveSessions(
+        public IAsyncResult BeginListAllActiveSessionCredentials(
             AsyncCallback asyncCallback,
             object asyncCallbackUserState,
             ICLCredentialsSettings settings = null)
         {
-            Helpers.CheckHalted();
-
             var asyncThread = DelegateAndDataHolderBase.Create(
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
                 new
@@ -277,7 +269,7 @@ namespace Cloud
                         // declare the specific type of response for this operation
                         CLCredentials [] response;
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
-                        CLError processError = ListAllActiveSessions(
+                        CLError processError = ListAllActiveSessionCredentials(
                             out response,
                             Data.settings);
 
@@ -310,10 +302,8 @@ namespace Cloud
         /// <param name="asyncResult">The asynchronous result provided upon starting listing the sessions</param>
         /// <param name="result">(output) The result from listing the sessions</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndListAllActiveSessions(IAsyncResult asyncResult, out CredentialsListSessionsResult result)
+        public CLError EndListAllActiveSessionCredentials(IAsyncResult asyncResult, out CredentialsListSessionsResult result)
         {
-            Helpers.CheckHalted();
-
             return Helpers.EndAsyncOperation<CredentialsListSessionsResult>(asyncResult, out result);
         }
 
@@ -324,10 +314,8 @@ namespace Cloud
         /// <param name="settings">(optional) settings for optional tracing and specifying the client version to the server.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
         /// <remarks>The response array may be null, empty, or may contain null items.</remarks>
-        public CLError ListAllActiveSessions(out CLCredentials [] response, ICLCredentialsSettings settings = null)
+        public CLError ListAllActiveSessionCredentials(out CLCredentials [] response, ICLCredentialsSettings settings = null)
         {
-            Helpers.CheckHalted();
-
             // try/catch to process the metadata query, on catch return the error
             try
             {
@@ -339,7 +327,7 @@ namespace Cloud
                 // check input parameters
                 if (!(copiedSettings.HttpTimeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException(Resources.CLMSTimeoutMustBeGreaterThanZero);
+                    throw new CLArgumentException(CLExceptionCode.OnDemand_InvalidParameters, Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
 
                 // Communicate with the server.
@@ -369,14 +357,14 @@ namespace Cloud
                         }
                         else
                         {
-                            throw new NullReferenceException(Resources.ExceptionCLHttpRestWithoutSessions);
+                            throw new CLNullReferenceException(CLExceptionCode.OnDemand_ServerReturnedInvalidItem, Resources.ExceptionOnDemandListAllSessionCredentialsOneSessionResponseWasInvalid);
                         }
                     }
                     response = listCredentials.ToArray();
                 }
                 else
                 {
-                    throw new NullReferenceException(Resources.ExceptionCLHttpRestWithoutSessions);
+                    throw new CLNullReferenceException(CLExceptionCode.OnDemand_ServerReturnedInvalidItem, Resources.ExceptionCLHttpRestWithoutSessions);
                 }
             }
             catch (Exception ex)
@@ -405,8 +393,6 @@ namespace Cloud
             Nullable<long> tokenDurationMinutes = null,
             ICLCredentialsSettings settings = null)
         {
-            Helpers.CheckHalted();
-
             var asyncThread = DelegateAndDataHolderBase.Create(
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
                 new
@@ -465,8 +451,6 @@ namespace Cloud
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndCreateSessionForSyncboxIds(IAsyncResult asyncResult, out CredentialsSessionCreateResult result)
         {
-            Helpers.CheckHalted();
-
             return Helpers.EndAsyncOperation<CredentialsSessionCreateResult>(asyncResult, out result);
         }
 
@@ -484,8 +468,6 @@ namespace Cloud
                     Nullable<long> tokenDurationMinutes = null,
                     ICLCredentialsSettings settings = null)
         {
-            Helpers.CheckHalted();
-
             // try/catch to process the metadata query, on catch return the error
             try
             {
@@ -498,7 +480,7 @@ namespace Cloud
 
                 if (!(copiedSettings.HttpTimeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException(Resources.CLMSTimeoutMustBeGreaterThanZero);
+                    throw new CLArgumentException(CLExceptionCode.OnDemand_TimeoutMilliseconds, Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
 
                 // Determine the request JSON contract to use.  If the syncboxIds parameter is null, use the "all"
@@ -545,7 +527,7 @@ namespace Cloud
                 }
                 else
                 {
-                    throw new Exception("No session returned from server");
+                    throw new CLException(CLExceptionCode.OnDemand_ServerResponseNoSession, Resources.ExceptionOnDemandServerResponseNoSession);
                 }
 
             }
@@ -573,8 +555,6 @@ namespace Cloud
             string key,
             ICLCredentialsSettings settings = null)
         {
-            Helpers.CheckHalted();
-
             var asyncThread = DelegateAndDataHolderBase.Create(
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
                 new
@@ -631,8 +611,6 @@ namespace Cloud
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndGetSessionForKey(IAsyncResult asyncResult, out CredentialsSessionGetForKeyResult result)
         {
-            Helpers.CheckHalted();
-
             return Helpers.EndAsyncOperation<CredentialsSessionGetForKeyResult>(asyncResult, out result);
         }
 
@@ -648,8 +626,6 @@ namespace Cloud
                     string key,
                     ICLCredentialsSettings settings = null)
         {
-            Helpers.CheckHalted();
-
             // try/catch to process the metadata query, on catch return the error
             try
             {
@@ -662,7 +638,7 @@ namespace Cloud
 
                 if (!(copiedSettings.HttpTimeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException(Resources.CLMSTimeoutMustBeGreaterThanZero);
+                    throw new CLArgumentException(CLExceptionCode.OnDemand_TimeoutMilliseconds, Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
 
                 // Build the query string.
@@ -691,7 +667,7 @@ namespace Cloud
                 }
                 else
                 {
-                    throw new Exception("No session returned from server");
+                    throw new CLException(CLExceptionCode.OnDemand_ServerResponseNoSession, Resources.ExceptionOnDemandServerResponseNoSession);
                 }
             }
             catch (Exception ex)
@@ -718,8 +694,6 @@ namespace Cloud
             string key,
             ICLCredentialsSettings settings = null)
         {
-            Helpers.CheckHalted();
-
             var asyncThread = DelegateAndDataHolderBase.Create(
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
                 new
@@ -773,8 +747,6 @@ namespace Cloud
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndDeleteSessionWithKey(IAsyncResult aResult, out CredentialsSessionDeleteResult result)
         {
-            Helpers.CheckHalted();
-
             return Helpers.EndAsyncOperation<CredentialsSessionDeleteResult>(aResult, out result);
         }
 
@@ -788,8 +760,6 @@ namespace Cloud
             string key, 
             ICLCredentialsSettings settings = null)
         {
-            Helpers.CheckHalted();
-
             // try/catch to process the metadata query, on catch return the error
             try
             {
@@ -801,7 +771,7 @@ namespace Cloud
                 // check input parameters
                 if (!(copiedSettings.HttpTimeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException(Resources.CLMSTimeoutMustBeGreaterThanZero);
+                    throw new CLArgumentException(CLExceptionCode.OnDemand_TimeoutMilliseconds, Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
 
                 // Build the query string.
@@ -828,7 +798,7 @@ namespace Cloud
                 // Convert the server response to a CLCredentials object and pass that back as the response.
                 if (responseFromServer == null && responseFromServer.Status != null)
                 {
-                    throw new Exception("No response returned from server");
+                    throw new CLException(CLExceptionCode.OnDemand_NoServerResponse, Resources.ExceptionOnDemandNoServerResponse);
                 }
             }
             catch (Exception ex)
@@ -864,8 +834,6 @@ namespace Cloud
             JsonContracts.LinkDeviceFirstTimeRequest request,
             ICLCredentialsSettings settings = null)
         {
-            Helpers.CheckHalted();
-
             // create the asynchronous result to return
             GenericAsyncResult<LinkDeviceFirstTimeResult> toReturn = new GenericAsyncResult<LinkDeviceFirstTimeResult>(
                 aCallback,
@@ -944,8 +912,6 @@ namespace Cloud
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         public CLError EndLinkDeviceFirstTime(IAsyncResult aResult, out LinkDeviceFirstTimeResult result)
         {
-            Helpers.CheckHalted();
-
             return Helpers.EndAsyncOperation<LinkDeviceFirstTimeResult>(aResult, out result);
         }
 
@@ -965,19 +931,17 @@ namespace Cloud
                     out JsonContracts.LinkDeviceFirstTimeResponse response,
                     ICLCredentialsSettings settings = null)
         {
-            Helpers.CheckHalted();
-
             // try/catch to process the sync_to request, on catch return the error
             try
             {
                 // check input parameters
                 if (request == null)
                 {
-                    throw new ArgumentException(Resources.CLCredentialPushRequestCannotBeNull);
+                    throw new CLArgumentException(CLExceptionCode.OnDemand_TimeoutMilliseconds, Resources.ExceptionOnDemandLinkDeviceFirstTimeRequestMustNotBeNull);
                 }
                 if (!(timeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException(Resources.CLMSTimeoutMustBeGreaterThanZero);
+                    throw new CLArgumentException(CLExceptionCode.OnDemand_TimeoutMilliseconds, Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
 
                 // copy settings so they don't change while processing; this also defaults some values
@@ -1040,8 +1004,6 @@ namespace Cloud
             JsonContracts.LinkDeviceRequest request,
             ICLCredentialsSettings settings = null)
         {
-            Helpers.CheckHalted();
-
             // create the asynchronous result to return
             GenericAsyncResult<LinkDeviceResult> toReturn = new GenericAsyncResult<LinkDeviceResult>(
                 aCallback,
@@ -1128,8 +1090,6 @@ namespace Cloud
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         public CLError EndLinkDevice(IAsyncResult aResult, out LinkDeviceResult result)
         {
-            Helpers.CheckHalted();
-
             return Helpers.EndAsyncOperation<LinkDeviceResult>(aResult, out result);
         }
 
@@ -1149,19 +1109,17 @@ namespace Cloud
                     out JsonContracts.LinkDeviceResponse response,
                     ICLCredentialsSettings settings = null)
         {
-            Helpers.CheckHalted();
-
             // try/catch to process the sync_to request, on catch return the error
             try
             {
                 // check input parameters
                 if (request == null)
                 {
-                    throw new ArgumentException(Resources.CLCredentialPushRequestCannotBeNull);
+                    throw new CLArgumentException(CLExceptionCode.OnDemand_TimeoutMilliseconds, Resources.ExceptionOnDemandLinkDeviceRequestMustNotBeNull);
                 }
                 if (!(timeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException(Resources.CLMSTimeoutMustBeGreaterThanZero);
+                    throw new CLArgumentException(CLExceptionCode.OnDemand_TimeoutMilliseconds, Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
 
                 // copy settings so they don't change while processing; this also defaults some values
@@ -1215,8 +1173,6 @@ namespace Cloud
             JsonContracts.UnlinkDeviceRequest request,
             ICLCredentialsSettings settings = null)
         {
-            Helpers.CheckHalted();
-
             // create the asynchronous result to return
             GenericAsyncResult<UnlinkDeviceResult> toReturn = new GenericAsyncResult<UnlinkDeviceResult>(
                 aCallback,
@@ -1295,8 +1251,6 @@ namespace Cloud
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         public CLError EndUnlinkDevice(IAsyncResult aResult, out UnlinkDeviceResult result)
         {
-            Helpers.CheckHalted();
-
             return Helpers.EndAsyncOperation<UnlinkDeviceResult>(aResult, out result);
         }
 
@@ -1316,19 +1270,17 @@ namespace Cloud
                     out JsonContracts.UnlinkDeviceResponse response,
                     ICLCredentialsSettings settings = null)
         {
-            Helpers.CheckHalted();
-
             // try/catch to process the sync_to request, on catch return the error
             try
             {
                 // check input parameters
                 if (request == null)
                 {
-                    throw new ArgumentException(Resources.CLCredentialPushRequestCannotBeNull);
+                    throw new CLArgumentException(CLExceptionCode.OnDemand_TimeoutMilliseconds, Resources.ExceptionOnDemandUnlinkDeviceRequestMustNotBeNull);
                 }
                 if (!(timeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException(Resources.CLMSTimeoutMustBeGreaterThanZero);
+                    throw new CLArgumentException(CLExceptionCode.OnDemand_TimeoutMilliseconds, Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
 
                 // copy settings so they don't change while processing; this also defaults some values
