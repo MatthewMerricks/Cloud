@@ -217,8 +217,8 @@ namespace Cloud
                 token = null;
             }
 
-            this._key = Key;
-            this._secret = Secret;
+            this._key = session.Key;
+            this._secret = session.Secret;
 
             this._token = token;
             this._expirationDate = session.ExpiresAt;
@@ -305,7 +305,7 @@ namespace Cloud
         /// <param name="asyncCallback">Callback method to fire when the async operation completes</param>
         /// <param name="asyncCallbackUserState">Userstate to pass when firing async callback</param>
         /// <param name="settings">(optional) Settings to use with this request.</param>
-        /// <returns>Returns any error that occurred during communication, if any</returns>
+        /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginListAllActiveSessionCredentials(
             AsyncCallback asyncCallback,
             object asyncCallbackUserState,
@@ -446,7 +446,7 @@ namespace Cloud
         /// <param name="syncboxIds">(optional) IDs of sync boxes to associate with this session.  A null value causes all syncboxes defined for the application to be associated with this session.</param>
         /// <param name="tokenDurationMinutes">(optional) The number of minutes before the token expires. Default: 2160 minutes (36 hours).  Maximum: 7200 minutes (120 hours).</param>
         /// <param name="settings">(optional) settings for optional tracing and specifying the client version to the server.</param>
-        /// <returns>Returns any error that occurred during communication, if any</returns>
+        /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginCreateSessionCredentialsForSyncboxIds(
             AsyncCallback asyncCallback,
             object asyncCallbackUserState,
@@ -609,7 +609,7 @@ namespace Cloud
         /// <param name="asyncCallbackUserState">Userstate to pass when firing async callback</param>
         /// <param name="key">The key to use to query the session on the server.</param>
         /// <param name="settings">(optional) settings for optional tracing and specifying the client version to the server.</param>
-        /// <returns>Returns any error that occurred during communication, if any</returns>
+        /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginSessionCredentialsForKey(
             AsyncCallback asyncCallback,
             object asyncCallbackUserState,
@@ -740,7 +740,7 @@ namespace Cloud
         }
         #endregion  // end GetSessionForKey (get and existing session from the server using its key)
 
-        #region DeleteSessionWithKey (delete a session in the cloud)
+        #region DeleteSessionCredentialsWithKey (delete a session in the cloud)
         /// <summary>
         /// Asynchronously starts deleting a session on the server for the current credentials.
         /// </summary>
@@ -748,7 +748,7 @@ namespace Cloud
         /// <param name="asyncCallbackUserState">Userstate to pass when firing async callback</param>
         /// <param name="key">Key of the session to delete.</param>
         /// <param name="settings">(optional) Settings to use with this request.</param>
-        /// <returns>Returns any error that occurred during communication, if any</returns>
+        /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginDeleteSessionCredentialsWithKey(
             AsyncCallback asyncCallback,
             object asyncCallbackUserState,
@@ -887,7 +887,7 @@ namespace Cloud
         /// <param name="request">The request.  Note: It is not necessary to set Key and Secret.</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <param name="settings">(optional) settings for optional tracing and specifying the client version to the server</param>
-        /// <returns>Returns any error that occurred during communication, if any</returns>
+        /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         public IAsyncResult BeginLinkDeviceFirstTime(AsyncCallback aCallback,
             object aState,
@@ -1057,7 +1057,7 @@ namespace Cloud
         /// <param name="request">The request.  Note: It is not necessary to set Key or Secret.</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <param name="settings">(optional) settings for optional tracing and specifying the client version to the server</param>
-        /// <returns>Returns any error that occurred during communication, if any</returns>
+        /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         public IAsyncResult BeginLinkDevice(AsyncCallback aCallback,
             object aState,
@@ -1226,7 +1226,7 @@ namespace Cloud
         /// <param name="request">The request.</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <param name="settings">(optional) settings for optional tracing and specifying the client version to the server</param>
-        /// <returns>Returns any error that occurred during communication, if any</returns>
+        /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         public IAsyncResult BeginUnlinkDevice(AsyncCallback aCallback,
             object aState,
