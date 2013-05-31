@@ -508,7 +508,7 @@ namespace Cloud
         /// </summary>
         /// <param name="syncboxId">The syncbox ID.</param>
         /// <param name="credentials">The credentials to use to create this syncbox.</param>
-        /// <param name="path">(optional) The full path on disk of the folder to associate with this syncbox.</param>
+        /// <param name="path">(optional) The full path on disk of the folder to associate with this syncbox. The path is used for live sync only.</param>
         /// <param name="settings">The settings to use. DeviceId required.</param>
         /// <param name="getNewCredentialsCallback">(optional) The delegate to call for getting new temporary credentials.</param>
         /// <param name="getNewCredentialsCallbackUserState">(optional) The user state to pass to the delegate above.</param>
@@ -520,8 +520,13 @@ namespace Cloud
             Helpers.ReplaceExpiredCredentials getNewCredentialsCallback = null,
             object getNewCredentialsCallbackUserState = null)
         {
-            // check input parameters
+            // Fix up the path.  Use String.Empty if the user passed null.
+            if (path == null)
+            {
+                path = String.Empty;
+            }
 
+            // check input parameters
             if (syncboxId <= 0)
             {
                 throw new ArgumentException("syncboxId must be specified");  //&&&& fix
@@ -577,7 +582,7 @@ namespace Cloud
         /// </summary>
         /// <param name="syncboxContract">The syncbox contract to use.</param>
         /// <param name="credentials">The credentials to use.</param>
-        /// <param name="path">(optional) The full path on the local disk of the folder to associate with this syncbox.</param>
+        /// <param name="path">(optional) The full path on the local disk of the folder to associate with this syncbox.  The path is used for live sync only.</param>
         /// <param name="settings">(optional) The settings to use.</param>
         /// <param name="getNewCredentialsCallback">(optional) The delegate to call for getting new temporary credentials.</param>
         /// <param name="getNewCredentialsCallbackUserState">(optional) The user state to pass to the delegate above.</param>
@@ -592,6 +597,12 @@ namespace Cloud
             CheckDisposed();
 
             // check input parameters
+
+            // Fix up the path.  Use String.Empty if the user passed null.
+            if (path == null)
+            {
+                path = String.Empty;
+            }
 
             if (syncboxContract == null)
             {
@@ -635,7 +646,7 @@ namespace Cloud
                 this._getNewCredentialsCallback = getNewCredentialsCallback;
                 this._getNewCredentialsCallbackUserState = getNewCredentialsCallbackUserState;
 
-                if (path == null)
+                if (String.IsNullOrEmpty(path))
                 {
                     setPathLocker = new object();
                 }
@@ -663,7 +674,7 @@ namespace Cloud
         /// <param name="asyncCallbackUserState">Userstate to pass to the callback when it is fired.  Can be null.</param>
         /// <param name="syncboxId">The cloud syncbox ID to use.</param>
         /// <param name="credentials">The credentials to use with this request.</param>
-        /// <param name="path">The full path of the folder on disk to associate with this syncbox. If this parameter is null, the syncbox local disk directory will be %USEERPROFILE%\Cloud. </param>
+        /// <param name="path">(optional) The full path of the folder on disk to associate with this syncbox.  The path is used for live sync only.</param>
         /// <param name="settings">(optional) settings to use with this method.</param>
         /// <param name="getNewCredentialsCallback">(optional) A delegate which will be called to retrieve a new set of credentials when credentials have expired.</param>
         /// <param name="getNewCredentialsCallbackUserState">(optional) The user state to pass as a parameter to the delegate above.</param>
@@ -673,7 +684,7 @@ namespace Cloud
             object asyncCallbackUserState,
             long syncboxId,
             CLCredentials credentials,
-            string path,
+            string path = null,
             ICLSyncSettings settings = null,
             Helpers.ReplaceExpiredCredentials getNewCredentialsCallback = null,
             object getNewCredentialsCallbackUserState = null)
@@ -708,8 +719,8 @@ namespace Cloud
                             Data.syncboxId,
                             Data.credentials,
                             out response,
-                            Data.path,
                             Data.settings,
+                            Data.path,
                             Data.getNewCredentialsCallback,
                             Data.getNewCredentialsCallbackUserState);
 
@@ -754,7 +765,7 @@ namespace Cloud
         /// <param name="syncboxId">Unique ID of the syncbox generated by Cloud</param>
         /// <param name="credentials">Credentials to use with this request.</param>
         /// <param name="syncbox">(output) Created local object representation of the Syncbox</param>
-        /// <param name="path">The full path of the folder on disk to associate with this syncbox. If this parameter is null, the syncbox local disk directory will be %USEERPROFILE%\Cloud. </param>
+        /// <param name="path">(optional) The full path of the folder on disk to associate with this syncbox.  The path is used for live sync only.</param>
         /// <param name="settings">Settings to use with this request. DeviceId is required.</param>
         /// <param name="getNewCredentialsCallback">(optional) A delegate that will be called to provide new credentials when the current credentials token expires.</param>
         /// <param name="getNewCredentialsCallbackUserState">(optional) The user state that will be passed back to the getNewCredentialsCallback delegate.</param>
@@ -763,8 +774,8 @@ namespace Cloud
             long syncboxId,
             CLCredentials credentials,
             out CLSyncbox syncbox,
-            string path,
             ICLSyncSettings settings,
+            string path = null,
             Helpers.ReplaceExpiredCredentials getNewCredentialsCallback = null,
             object getNewCredentialsCallbackUserState = null)
         {
@@ -772,13 +783,15 @@ namespace Cloud
 
             try
             {
+                // Fix up the path.  Use String.Empty if the user passed null.
+                if (path == null)
+                {
+                    path = String.Empty;
+                }
+
                 if (Helpers.AllHaltedOnUnrecoverableError)
                 {
                     throw new InvalidOperationException("Cannot do anything with the Cloud SDK if Helpers.AllHaltedOnUnrecoverableError is set");  //&&&& fix
-                }
-                if (path == null)
-                {
-                    throw new CLArgumentNullException(CLExceptionCode.Syncbox_BadPath, "path must not be null");
                 }
 
                 syncbox = new CLSyncbox(
@@ -821,6 +834,19 @@ namespace Cloud
             {
                 lock (_startLocker)
                 {
+                    if (this.Path == null)
+                    {
+                        throw new AggregateException(Resources.CLHttpRestSyncboxBadPath);
+                    }
+                    if (!string.IsNullOrEmpty(this.Path))
+                    {
+                        CLError syncRootError = Helpers.CheckForBadPath(this.Path);
+                        if (syncRootError != null)
+                        {
+                            throw new AggregateException(Resources.CLHttpRestSyncboxBadPath, syncRootError.Exceptions);
+                        }
+                    }
+
                     if (_isStarted)
                     {
                         throw new CLInvalidOperationException(CLExceptionCode.Syncbox_AlreadyStarted, Resources.CLSyncEngineAlreadyStarted);
@@ -852,13 +878,6 @@ namespace Cloud
 
                     try
                     {
-                        //// OnDemand mode does not start\stop sync, so it is not a valid CLSyncMode anyways (it was removed from that enumeration)
-                        //
-                        //if (mode == CLSyncMode.CLSyncModeOnDemand)
-                        //{
-                        //    throw new CLNotSupportedException(CLExceptionCode.Syncbox_GeneralStart, Resources.ExceptionCLSyncboxBeginSyncOnDemandNotSupported);
-                        //}
-
                         _syncMode = mode;
 
                         // Start the sync engine
@@ -1154,7 +1173,7 @@ namespace Cloud
         /// <param name="completionCallbackUserState">Userstate to be passed to the completion callback above when it is fired.</param>
         /// <param name="plan">The storage plan to use with this Syncbox.</param>
         /// <param name="credentials">The credentials to use with this request.</param>
-        /// <param name="path">The path on the local disk to associate with this syncbox.</param>
+        /// <param name="path">(optional) The full path of the folder on disk to associate with this syncbox.</param>
         /// <param name="friendlyName">(optional) The friendly name of the Syncbox.</param>
         /// <param name="settings">(optional) Settings to use with this method.</param>
         /// <param name="getNewCredentialsCallback">(optional) The callback function that will provide new credentials with temporary credentials expire.</param>
@@ -1167,13 +1186,19 @@ namespace Cloud
                     object completionCallbackUserState,
                     CLStoragePlan plan,
                     CLCredentials credentials,
-                    string path,
+                    string path = null,
                     string friendlyName = null,
                     ICLSyncSettings settings = null,
                     Helpers.ReplaceExpiredCredentials getNewCredentialsCallback = null,
                     object getNewCredentialsCallbackUserState = null)
         {
             Helpers.CheckHalted();
+
+            // Fix up the path.  Use String.Empty if the user passed null.
+            if (path == null)
+            {
+                path = String.Empty;
+            }
 
             // Check the parameters
             if (plan == null)
@@ -1183,10 +1208,6 @@ namespace Cloud
             if (credentials == null)
             {
                 throw new ArgumentNullException("credentials must not be null");  //&&&& fix
-            }
-            if (path == null)
-            {
-                throw new ArgumentNullException("path must not be null");  //&&&& fix
             }
 
             var asyncThread = DelegateAndDataHolderBase.Create(
@@ -1264,7 +1285,7 @@ namespace Cloud
         /// <param name="completionCallbackUserState">Userstate to be passed to the completion callback above when it is fired.</param>
         /// <param name="plan">The storage plan to use with this Syncbox.</param>
         /// <param name="credentials">The credentials to use for this request.</param>
-        /// <param name="path">The path on the local disk to associate with this syncbox.</param>
+        /// <param name="path">(optional) The path on the local disk to associate with this syncbox.  The path is used only for live sync.</param>
         /// <param name="syncbox">(output) Response object from communication</param>
         /// <param name="friendlyName">(optional) The friendly name of the Syncbox.</param>
         /// <param name="settings">(optional) The settings to use with this method</param>
@@ -1276,7 +1297,7 @@ namespace Cloud
                     object completionCallbackUserState,
                     CLStoragePlan plan,
                     CLCredentials credentials,
-                    string path,
+                    string path = null,
                     string friendlyName = null,
                     ICLSyncSettings settings = null,
                     Helpers.ReplaceExpiredCredentials getNewCredentialsCallback = null,
@@ -1287,6 +1308,12 @@ namespace Cloud
             // try/catch to process the metadata query, on catch return the error
             try
             {
+                // Fix up the path.  Use String.Empty if the user passed null.
+                if (path == null)
+                {
+                    path = String.Empty;
+                }
+
                 // Check the input parameters.
                 if (plan == null)
                 {
@@ -1295,10 +1322,6 @@ namespace Cloud
                 if (credentials == null)
                 {
                     throw new ArgumentNullException("credentials must not be null");  //&&&& fix
-                }
-                if (path == null)
-                {
-                    throw new CLArgumentNullException(CLExceptionCode.Syncbox_BadPath, "path must not be null");
                 }
 
                 // copy settings so they don't change while processing; this also defaults some values
@@ -3805,12 +3828,16 @@ namespace Cloud
                     throw new CLArgumentException(errorPathTooLong.PrimaryException.Code, string.Format("syncbox path is too long by {0} characters.", nOutTooLongChars), errorPathTooLong.Exceptions);
                 }
 
-                CLError errorBadPath = Helpers.CheckForBadPath(path);
-                if (errorBadPath != null)
+                // The syncbox path may be specified as null, which is replaced with String.Empty.  The path is actually not used for the On Demand case.
+                // If the path is anything other than String.Empty, check for a valid syncbox root path.
+                if (path != String.Empty)
                 {
-                    throw new CLArgumentException(errorBadPath.PrimaryException.Code, "syncbox path contains invalid characters.", errorBadPath.Exceptions);
+                    CLError errorBadPath = Helpers.CheckForBadPath(path);
+                    if (errorBadPath != null)
+                    {
+                        throw new CLArgumentException(errorBadPath.PrimaryException.Code, "syncbox path contains invalid characters.", errorBadPath.Exceptions);
+                    }
                 }
-
 
                 // Set the path early because the CLHttpRest factory needs it.
                 setPathHolder = new SetPathProperties(path, null);
