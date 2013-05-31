@@ -266,10 +266,6 @@ namespace Cloud.CLSync
             {
                 throw new CLArgumentNullException(CLExceptionCode.FileItem_NullSyncbox, Resources.SyncboxMustNotBeNull);
             }
-            if (string.IsNullOrEmpty(syncbox.Path))
-            {
-                throw new CLArgumentNullException(CLExceptionCode.Syncbox_BadPath, Resources.ExceptionOnDemandCheckPathSyncboxPathNull);
-            }
 
             if (response.IsFolder == null)
             {

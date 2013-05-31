@@ -133,7 +133,7 @@ namespace Cloud.REST
                 throw new NullReferenceException(Resources.SyncboxMustNotBeNull);
             }
 
-            if (string.IsNullOrEmpty(syncbox.Path))
+            if (syncbox.Path == null)
             {
                 throw new NullReferenceException(Resources.CLHttpRestSyncboxPathCannotBeNull);
             }
@@ -158,15 +158,6 @@ namespace Cloud.REST
             else
             {
                 this._copiedSettings = alreadyReadonlySettings;
-            }
-
-            if (!string.IsNullOrEmpty(this._syncbox.Path))
-            {
-                CLError syncRootError = Helpers.CheckForBadPath(this._syncbox.Path);
-                if (syncRootError != null)
-                {
-                    throw new AggregateException(Resources.CLHttpRestSyncboxBadPath, syncRootError.Exceptions);
-                }
             }
 
             if (string.IsNullOrEmpty(this._copiedSettings.DeviceId))
@@ -2333,37 +2324,34 @@ namespace Cloud.REST
 
                     for (int currentNameAndParentIdx = 0; currentNameAndParentIdx < filesToAdd.Length; currentNameAndParentIdx++)
                     {
-                        AddFileItemParams nameAndParent = filesToAdd[currentNameAndParentIdx];
-                        if (nameAndParent == null)
+                        AddFileItemParams fullPathAndParent = filesToAdd[currentNameAndParentIdx];
+                        if (fullPathAndParent == null)
                         {
                             throw new CLArgumentNullException(CLExceptionCode.OnDemand_InvalidParameters, "fix me here");
                         }
-                        if (nameAndParent.Parent == null)
+                        if (fullPathAndParent.Parent == null)
                         {
                             throw new ArgumentNullException(String.Format("filesToAdd item {0} Parent must not be null", currentNameAndParentIdx));  //&&&& fix this
                         }
-                        if (String.IsNullOrEmpty(nameAndParent.Name))
+                        if (String.IsNullOrEmpty(fullPathAndParent.FullPath))
                         {
-                            throw new ArgumentNullException(String.Format("filesToAdd item {0} RelativePath must be specified", currentNameAndParentIdx));  //&&&& fix this
+                            throw new ArgumentNullException(String.Format("filesToAdd item {0} FullPath must be specified", currentNameAndParentIdx));  //&&&& fix this
                         }
-                        if (string.IsNullOrEmpty(nameAndParent.Parent.FullPath))
+                        if (string.IsNullOrEmpty(fullPathAndParent.Parent.FullPath))
                         {
                             throw new CLArgumentNullException(CLExceptionCode.OnDemand_FileAddBadPath, "file add bad path");
                         }
-                        if (string.IsNullOrEmpty(nameAndParent.Parent.Uid))
+                        if (string.IsNullOrEmpty(fullPathAndParent.Parent.Uid))
                         {
                             throw new CLArgumentNullException(CLExceptionCode.OnDemand_FileAddInvalidMetadata, "current file in filesToAdd is missing ServerUid");
                         }
 
-                        FilePath fullPath = new FilePath(nameAndParent.Name, nameAndParent.Parent.FullPath);
-                        string fullPathString = fullPath.ToString();
+                        FilePath fullPath = new FilePath(fullPathAndParent.FullPath);
+                        string nameOfFileToUpload = fullPath.Name;
 
-                        // need to add check for bad characters in name
+                        //TODO: need to add check for bad characters in name
 
-                        // need to add check for length including name: do not use Helpers.CheckSyncboxPathLength since that only works for the syncbox root
-
-                        //// syncbox path should have already been checked, and Name is already checked to not be null
-                        //CheckPath(fullPath, CLExceptionCode.OnDemand_FileAddBadPath);
+                        //TODO: need to add check for length including name: do not use Helpers.CheckSyncboxPathLength since that only works for the syncbox root
 
                         FileChange addChange = new FileChange()
                         {
@@ -2373,10 +2361,10 @@ namespace Cloud.REST
                                 EventTime = DateTime.UtcNow,
                                 HashableProperties = new FileMetadataHashableProperties(
                                     isFolder: false,
-                                    lastTime: File.GetLastWriteTimeUtc(fullPathString),
-                                    creationTime: File.GetCreationTimeUtc(fullPathString),
+                                    lastTime: File.GetLastWriteTimeUtc(fullPathAndParent.FullPath),
+                                    creationTime: File.GetCreationTimeUtc(fullPathAndParent.FullPath),
                                     size: null),
-                                ParentFolderServerUid = nameAndParent.Parent.Uid
+                                ParentFolderServerUid = fullPathAndParent.Parent.Uid
                             },
                             NewPath = fullPath,
                             Type = FileChangeType.Created
@@ -2568,6 +2556,17 @@ namespace Cloud.REST
 
                                     case CLDefinitions.CLEventTypeUpload:
                                     case CLDefinitions.CLEventTypeUploading:
+                                        addChanges[responseIdx].Key.Metadata.StorageKey = currentAddResponse.Metadata.StorageKey;
+
+                                        // This is a little strange.  If the upload completes successfully, we will drive the item completion callback with a CLFileItem.
+                                        // The CLFileItem is constructed below out of the currentAddResponse we just received from the server.  However, at this point,
+                                        // The IsNotPending value in the response is false, because the server wants us to upload the file.  Two cases: 1) The upload fails.
+                                        // In that case, we won't present the constructed CLFileItem to the callback.  2) The upload succeeds.  We need the CLFileItem.IsPending
+                                        // flag to be false.  So, set the server's currentAddResponse.IsNotPending field to properly construct the CLFileItem assuming that
+                                        // the upload will succeed.
+                                        currentAddResponse.Metadata.IsNotPending = true;
+
+                                        // Add this upload request.
                                         filesLeftToUpload.Add(
                                             new Tuple<CLFileItem, FileChange, EventWaitHandle, int>(
                                                 new CLFileItem(currentAddResponse.Metadata, currentAddResponse.Header.Action, currentAddResponse.Action, _syncbox),
@@ -5198,11 +5197,11 @@ namespace Cloud.REST
 
         #region GetFolderContentsAtPath (Query the server for the folder contents at a path)
         /// <summary>
-        /// Asynchronously starts querying folder contents at a path.
+        /// Asynchronously starts querying folder contents at a relative syncbox path.
         /// </summary>
         /// <param name="callback">Callback method to fire when operation completes</param>
         /// <param name="callbackUserState">Userstate to pass when firing async callback</param>
-        /// <param name="path">(optional) root path of contents query</param>
+        /// <param name="path">(optional) relative root path of contents query</param>
         /// <param name="depthLimit">(optional) how many levels deep to search from the root or provided path, use {null} to return everything</param>
         /// <param name="includeDeleted">(optional) whether to include changes which are marked deleted</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
@@ -5269,9 +5268,9 @@ namespace Cloud.REST
         }
 
         /// <summary>
-        /// Queries server for folder contents at a path.
+        /// Queries server for folder contents at a relative syncbox path.
         /// </summary>
-        /// <param name="path">The full path of the folder that would be on disk in the syncbox folder.</param>
+        /// <param name="path">(optional) relative root path of contents query</param>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError GetFolderContentsAtPath(

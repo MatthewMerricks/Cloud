@@ -1436,20 +1436,34 @@ namespace Cloud.REST
     /// <summary>
     /// Holds result properties
     /// </summary>
-    public sealed class SessionShowResult : BaseCLHttpRestResult<JsonContracts.CredentialsSessionGetForKeyResponse>
+    public sealed class CredentialsSessionDeleteResult
     {
+        /// <summary>
+        /// Any overall error which may have occurred during communication
+        /// </summary>
+        public CLError OverallError
+        {
+            get
+            {
+                return _overallError;
+            }
+        }
+        private readonly CLError _overallError;
+
         // construct with all readonly properties
-        internal SessionShowResult(CLError Error, JsonContracts.CredentialsSessionGetForKeyResponse Response)
-            : base(Error, Response) { }
+        internal CredentialsSessionDeleteResult(CLError overallError)
+        {
+            this._overallError = overallError;
+        }
     }
 
     /// <summary>
     /// Holds result properties
     /// </summary>
-    public sealed class CredentialsSessionDeleteResult : BaseCLHttpRestResult<JsonContracts.CredentialsSessionDeleteResponse>
+    public sealed class SessionShowResult : BaseCLHttpRestResult<JsonContracts.CredentialsSessionGetForKeyResponse>
     {
         // construct with all readonly properties
-        internal CredentialsSessionDeleteResult(CLError Error, JsonContracts.CredentialsSessionDeleteResponse Response)
+        internal SessionShowResult(CLError Error, JsonContracts.CredentialsSessionGetForKeyResponse Response)
             : base(Error, Response) { }
     }
 
