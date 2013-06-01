@@ -271,8 +271,6 @@ namespace Cloud.REST
         /// <summary>
         /// Get an item at a particular path in the syncbox.
         /// </summary>
-        /// <param name="completionCallback">Callback method to fire for each item completion.</param>
-        /// <param name="completionCallbackUserState">User state to be passed whenever the item completion callback above is fired.</param>
         /// <param name="relativePath">Relative path in the syncbox to where file or folder would exist in the syncbox locally on disk.</param>
         /// <param name="item">(output) The returned item.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
@@ -5220,26 +5218,24 @@ namespace Cloud.REST
         /// <summary>
         /// Asynchronously starts querying folder contents at a relative syncbox path.
         /// </summary>
-        /// <param name="callback">Callback method to fire when operation completes</param>
-        /// <param name="callbackUserState">User state to pass when firing async callback</param>
-        /// <param name="path">(optional) relative root path of contents query</param>
-        /// <param name="depthLimit">(optional) how many levels deep to search from the root or provided path, use {null} to return everything</param>
-        /// <param name="includeDeleted">(optional) whether to include changes which are marked deleted</param>
+        /// <param name="asyncCallback">Callback method to fire when operation completes</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing async callback</param>
+        /// <param name="relativePath">(optional) relative root path of contents query</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
         public IAsyncResult BeginGetFolderContentsAtPath(
-            AsyncCallback callback, 
-            object callbackUserState,
-            string path = null)
+            AsyncCallback asyncCallback, 
+            object asyncCallbackUserState,
+            string relativePath = null)
         {
             var asyncThread = DelegateAndDataHolderBase.Create(
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
                 new
                 {
                     // create the asynchronous result to return
-                    toReturn = new GenericAsyncResult<SyncboxGetFolderContentsAtPathResult>(
-                        callback,
-                        callbackUserState),
-                    path
+                    toReturn = new GenericAsyncResult<SyncboxItemsAtPathResult>(
+                        asyncCallback,
+                        asyncCallbackUserState),
+                    path = relativePath
                 },
                 (Data, errorToAccumulate) =>
                 {
@@ -5255,7 +5251,7 @@ namespace Cloud.REST
                             out response);
 
                         Data.toReturn.Complete(
-                            new SyncboxGetFolderContentsAtPathResult(
+                            new SyncboxItemsAtPathResult(
                                 processError, // any error that may have occurred during processing
                                 response), // the specific type of result for this operation
                             sCompleted: false); // processing did not complete synchronously
@@ -5283,19 +5279,19 @@ namespace Cloud.REST
         /// <param name="aResult">The asynchronous result provided upon starting getting folder contents</param>
         /// <param name="result">(output) The result from folder contents</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndGetFolderContents(IAsyncResult aResult, out SyncboxGetFolderContentsAtPathResult result)
+        public CLError EndGetFolderContentsAtPath(IAsyncResult aResult, out SyncboxItemsAtPathResult result)
         {
-            return Helpers.EndAsyncOperation<SyncboxGetFolderContentsAtPathResult>(aResult, out result);
+            return Helpers.EndAsyncOperation<SyncboxItemsAtPathResult>(aResult, out result);
         }
 
         /// <summary>
         /// Queries server for folder contents at a relative syncbox path.
         /// </summary>
-        /// <param name="path">(optional) relative root path of contents query</param>
+        /// <param name="relativePath">(optional) relative root path of contents query</param>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError GetFolderContentsAtPath(
-            string path,
+            string relativePath,
             out CLFileItem[] response)
         {
             // try/catch to process the folder contents query, on catch return the error
@@ -5303,12 +5299,12 @@ namespace Cloud.REST
             {
                 // check input parameters
 
-                if (path == null)
+                if (relativePath == null)
                 {
                     throw new NullReferenceException(Resources.ExceptionCLHttpRestNullPath);
                 }
 
-                CLError pathError = Helpers.CheckForBadPath(path);
+                CLError pathError = Helpers.CheckForBadPath(relativePath);
                 if (pathError != null)
                 {
                     throw new AggregateException("path is not in the proper format", pathError.Exceptions);
@@ -5319,7 +5315,7 @@ namespace Cloud.REST
                     throw new NullReferenceException(Resources.CLHttpRestSyncboxPathCannotBeNull);
                 }
 
-                if (!path.Contains(_syncbox.Path))
+                if (!relativePath.Contains(_syncbox.Path))
                 {
                     throw new ArgumentException("path does not contain syncbox path");
                 }
@@ -5329,7 +5325,7 @@ namespace Cloud.REST
                 }
 
                 // build the location of the folder contents retrieval method on the server dynamically
-                FilePath contentsRoot = new FilePath(path);
+                FilePath contentsRoot = new FilePath(relativePath);
                 string serverMethodPath =
                     CLDefinitions.MethodPathGetFolderContents + // path
                     Helpers.QueryStringBuilder(new[]
@@ -5387,7 +5383,7 @@ namespace Cloud.REST
                         }
                         else
                         {
-                            listFileItems.Add(null);
+                            throw new NullReferenceException(Resources.ExceptionCLHttpRestWithoutMetadata);
                         }
                     }
                     response = listFileItems.ToArray();

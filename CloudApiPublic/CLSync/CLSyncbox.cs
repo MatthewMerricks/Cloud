@@ -1703,8 +1703,6 @@ namespace Cloud
         /// <summary>
         /// Queries the syncbox for an item at the syncbox root path.
         /// </summary>
-        /// <param name="completionCallback">Delegate which will be fired upon successful communication for every response item.</param>
-        /// <param name="completionCallbackUserState">User state to be passed whenever the completion delegate is fired.</param>
         /// <param name="item">(output) The returned item.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError RootFolder(out CLFileItem item)
@@ -1716,7 +1714,7 @@ namespace Cloud
             return httpRestClient.ItemForPath(Resources.Backslash, out item);
         }
 
-        #endregion  // end GetItemAtPath (Queries the cloud for the item at a particular path)
+        #endregion  // end RootFolder (Queries the syncbox for the item at the root path)
 
         #region ItemForPath (Queries the syncbox for the item at a particular path)
         /// <summary>
@@ -1725,9 +1723,7 @@ namespace Cloud
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when operation completes</param>
         /// <param name="asyncCallbackUserState">User state to pass when firing async callback</param>
-        /// <param name="completionCallback">Delegate which will be fired upon successful communication for every response item.</param>
-        /// <param name="completionCallbackUserState">User state to be passed whenever the completion delegate is fired.</param>
-        /// <param name="relativePath">Relative path in the syncbox to where file or folder would exist in the syncbox locally on disk.</param>
+        /// <param name="relativePath">Relative path in the syncbox.</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
         public IAsyncResult BeginItemForPath(
             AsyncCallback asyncCallback, 
@@ -1761,9 +1757,7 @@ namespace Cloud
         /// Queries the syncbox at a given file or folder path (must be specified) for existing item metadata at that path.
         /// Check for Deleted flag being true in case the metadata represents a deleted item.
         /// </summary>
-        /// <param name="itemCompletionCallback">Delegate which will be fired upon successful communication for every response item.</param>
-        /// <param name="itemCompletionCallbackUserState">User state to be passed whenever the completion delegate is fired.</param>
-        /// <param name="relativePath">Relative path in the syncbox to where file or folder would exist in the syncbox locally on disk.</param>
+        /// <param name="relativePath">Relative path in the syncbox.</param>
         /// <param name="item">(output) The returned item.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError ItemForPath(string relativePath, out CLFileItem item)
@@ -1775,7 +1769,62 @@ namespace Cloud
             return httpRestClient.ItemForPath(relativePath, out item);
         }
 
-        #endregion  // end GetItemAtPath (Queries the cloud for the item at a particular path)
+        #endregion  // end ItemForPath (Queries the syncbox for the item at a particular path)
+
+        #region ItemsForPath (Queries the syncbox for the contents of the folder item at a particular path)
+        /// <summary>
+        /// Asynchronously starts querying the syncbox for the contents of a folder item at a given relative path in the syncbox. Outputs an array of CLFileItem objects.
+        /// Check for Deleted flag being true in case the metadata represents a deleted item.
+        /// </summary>
+        /// <param name="asyncCallback">Callback method to fire when operation completes</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing async callback</param>
+        /// <param name="relativePath">Relative path in the syncbox.</param>
+        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        public IAsyncResult BeginItemsForPath(
+            AsyncCallback asyncCallback,
+            object asyncCallbackUserState,
+            string relativePath)
+        {
+            CheckDisposed();
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.BeginGetFolderContentsAtPath(asyncCallback, asyncCallbackUserState, relativePath);
+        }
+
+        /// <summary>
+        /// Finishes quering the syncbox for an item at a path, if it has not already finished via its asynchronous result, and outputs the result,
+        /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
+        /// </summary>
+        /// <param name="asyncResult">The asynchronous result provided upon starting the metadata query</param>
+        /// <param name="result">(output) The result from the metadata query</param>
+        /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
+        public CLError EndItemsForPath(IAsyncResult asyncResult, out SyncboxItemsAtPathResult result)
+        {
+            CheckDisposed();
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.EndGetFolderContentsAtPath(asyncResult, out result);
+        }
+
+        /// <summary>
+        /// Queries the syncbox at a given file or folder path (must be specified) for existing item metadata at that path.
+        /// Check for Deleted flag being true in case the metadata represents a deleted item.
+        /// </summary>
+        /// <param name="relativePath">Relative path in the syncbox.</param>
+        /// <param name="items">(output) The returned items.</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        public CLError ItemsForPath(string relativePath, out CLFileItem[] items)
+        {
+            CheckDisposed(isOneOff: true);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.GetFolderContentsAtPath(relativePath, out items);
+        }
+
+        #endregion  // end ItemsForPath (Queries the syncbox for the contents of the folder item at a particular path)
 
         #region RenameFiles (Rename files in-place in the syncbox)
         /// <summary>
@@ -3050,58 +3099,6 @@ namespace Cloud
 
         #endregion  // end RecentFiles (Retrieves the specified number of recently modified <CLFileItems>s.)
 
-        #region GetFolderContentsAtPath (Query the cloud for the contents of a syncbox folder at a path)
-        /// <summary>
-        /// Asynchronously starts querying folder contents from the cloud at a particular path.
-        /// </summary>
-        /// <param name="asyncCallback">Callback method to fire when operation completes</param>
-        /// <param name="asyncCallbackUserState">User state to pass when firing async callback</param>
-        /// <param name="path">Full path of the folder that would be on disk in the syncbox.</param>
-        /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
-        public IAsyncResult BeginGetFolderContents(AsyncCallback asyncCallback, object asyncCallbackUserState, string path)
-        {
-            CheckDisposed(true);
-
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.BeginGetFolderContentsAtPath(asyncCallback, asyncCallbackUserState, path);
-        }
-
-        /// <summary>
-        /// Finishes getting folder contents if it has not already finished via its asynchronous result and outputs the result,
-        /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
-        /// </summary>
-        /// <param name="asyncResult">The asynchronous result provided upon starting getting folder contents</param>
-        /// <param name="result">(output) The result from folder contents</param>
-        /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndGetFolderContentsAtPath(IAsyncResult asyncResult, out SyncboxGetFolderContentsAtPathResult result)
-        {
-            CheckDisposed(true);
-
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.EndGetFolderContents(asyncResult, out result);
-        }
-
-        /// <summary>
-        /// Queries server for folder contents with an optional path and an optional depth limit
-        /// </summary>
-        /// <param name="path">The full path of the folder that would be on disk in the local syncbox folder.</param>
-        /// <param name="response">(output) response object from communication</param>
-        /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError GetFolderContents(
-            string path,
-            out CLFileItem[] response)
-        {
-            CheckDisposed(true);
-
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.GetFolderContentsAtPath(path, out response);
-        }
-
-        #endregion  // end GetFolderContentsAtPath (Query the cloud for the contents of a syncbox folder at a path)
-
         #region GetFolderHierarchy
         /// <summary>
         /// Asynchronously starts querying folder hierarchy with optional path
@@ -3669,9 +3666,9 @@ namespace Cloud
 
         /// <summary>
         /// It is possible to create non-functional syncbox instances.  For example, listing all of the syncboxes for a set of credentials via the server constructs
-        /// an array of CLSyncbox instances, but the information from the server does not include the local syncbox paths.  The instances are unusable in this state
-        /// and any operation that requires the local syncbox path will throw an error.  It is up to the app to provide the local syncbox path before using the instance.
-        /// This is done via SetSyncboxPath().  SetSyncboxPath() defers to this internal version.  This function acts like an extension of the constructor, and it
+        /// an array of CLSyncbox instances, but the information from the server does not include the local syncbox paths.  The instances are unusable for live sync
+        /// in this state and any operation that requires the local syncbox path will throw an error.  It is up to the app to provide the local syncbox path before using the instance
+        /// for live sync.  This is done via SetSyncboxPath().  SetSyncboxPath() defers to this internal version.  This function acts like an extension of the constructor, and it
         /// if called by constructors to create the CLHttpRest client, fill in missing information from the server, and to create an instance of CLSyncEngine that will
         /// be used by this syncbox instance.
         /// </summary>
@@ -3911,23 +3908,6 @@ namespace Cloud
                 Helpers.CheckHalted();
             }
         }
-        // Disposing this object provides no user functionality, so we are hiding Dispose behind its interface.
-        ///// <summary>
-        ///// Call this to cleanup FileSystemWatchers such as on application shutdown,
-        ///// do not start the same monitor instance after it has been disposed 
-        ///// </summary>
-        //public CLError Dispose()
-        //{
-        //    try
-        //    {
-        //        ((IDisposable)this).Dispose();
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return ex;
-        //    }
-        //    return null;
-        //}
 
         // Standard IDisposable implementation based on MSDN System.IDisposable
         void IDisposable.Dispose()

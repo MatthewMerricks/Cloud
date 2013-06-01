@@ -420,43 +420,6 @@ namespace Cloud.REST
     /// <summary>
     /// Holds result properties
     /// </summary>
-    public sealed class SyncboxGetFolderContentsAtPathResult
-    {
-        /// <summary>
-        /// The result returned from the server
-        /// </summary>
-        public CLFileItem[] FileItems
-        {
-            get
-            {
-                return _fileItems;
-            }
-        }
-        private readonly CLFileItem[] _fileItems;
-
-        /// <summary>
-        /// Any error which may have occurred during communication
-        /// </summary>
-        public CLError Error
-        {
-            get
-            {
-                return _error;
-            }
-        }
-        private readonly CLError _error;
-
-        // construct with all readonly properties
-        internal SyncboxGetFolderContentsAtPathResult(CLError error, CLFileItem[] fileItems)
-        {
-            this._error = error;
-            this._fileItems = fileItems;
-        }
-    }
-
-    /// <summary>
-    /// Holds result properties
-    /// </summary>
     public sealed class SyncboxRenameFileResult
     {
         /// <summary>
@@ -560,19 +523,19 @@ namespace Cloud.REST
         /// <summary>
         /// Any overall error which may have occurred during communication
         /// </summary>
-        public CLError OverallError
+        public CLError Error
         {
             get
             {
-                return _overallError;
+                return _error;
             }
         }
-        private readonly CLError _overallError;
+        private readonly CLError _error;
 
         // construct with all readonly properties
-        internal SyncboxUpdateFriendlyNameResult(CLError overallError)
+        internal SyncboxUpdateFriendlyNameResult(CLError error)
         {
-            this._overallError = overallError;
+            this._error = error;
         }
     }
 
@@ -584,19 +547,19 @@ namespace Cloud.REST
         /// <summary>
         /// Any overall error which may have occurred during communication
         /// </summary>
-        public CLError OverallError
+        public CLError Error
         {
             get
             {
-                return _overallError;
+                return _error;
             }
         }
-        private readonly CLError _overallError;
+        private readonly CLError _error;
 
         // construct with all readonly properties
-        internal SyncboxStatusResult(CLError overallError)
+        internal SyncboxStatusResult(CLError error)
         {
-            this._overallError = overallError;
+            this._error = error;
         }
     }
 
@@ -608,19 +571,19 @@ namespace Cloud.REST
         /// <summary>
         /// Any overall error which may have occurred during communication
         /// </summary>
-        public CLError OverallError
+        public CLError Error
         {
             get
             {
-                return _overallError;
+                return _error;
             }
         }
-        private readonly CLError _overallError;
+        private readonly CLError _error;
 
         // construct with all readonly properties
-        internal SyncboxUsageResult(CLError overallError)
+        internal SyncboxUsageResult(CLError error)
         {
-            this._overallError = overallError;
+            this._error = error;
         }
     }
 
@@ -632,19 +595,19 @@ namespace Cloud.REST
         /// <summary>
         /// Any overall error which may have occurred during communication
         /// </summary>
-        public CLError OverallError
+        public CLError Error
         {
             get
             {
-                return _overallError;
+                return _error;
             }
         }
-        private readonly CLError _overallError;
+        private readonly CLError _error;
 
         // construct with all readonly properties
-        internal SyncboxUpdateStoragePlanResult(CLError overallError)
+        internal SyncboxUpdateStoragePlanResult(CLError error)
         {
-            this._overallError = overallError;
+            this._error = error;
         }
     }
 
@@ -669,20 +632,57 @@ namespace Cloud.REST
         /// <summary>
         /// Any overall error which may have occurred during communication
         /// </summary>
-        public CLError OverallError
+        public CLError Error
         {
             get
             {
-                return _overallError;
+                return _error;
             }
         }
-        private readonly CLError _overallError;
+        private readonly CLError _error;
 
         // construct with all readonly properties
-        internal SyncboxGetItemAtPathResult(CLError overallError, CLFileItem item)
+        internal SyncboxGetItemAtPathResult(CLError error, CLFileItem item)
         {
-            this._overallError = overallError;
+            this._error = error;
             this._item = item;
+        }
+    }
+
+    /// <summary>
+    /// Holds result properties
+    /// </summary>
+    public sealed class SyncboxItemsAtPathResult
+    {
+        /// <summary>
+        /// The returned file or folder item.
+        /// </summary>
+        public CLFileItem[] Items
+        {
+            get
+            {
+                return _items;
+            }
+        }
+        private readonly CLFileItem[] _items;
+
+        /// <summary>
+        /// Any overall error which may have occurred during communication
+        /// </summary>
+        public CLError Error
+        {
+            get
+            {
+                return _error;
+            }
+        }
+        private readonly CLError _error;
+
+        // construct with all readonly properties
+        internal SyncboxItemsAtPathResult(CLError error, CLFileItem[] items)
+        {
+            this._error = error;
+            this._items = items;
         }
     }
 
@@ -694,19 +694,19 @@ namespace Cloud.REST
         /// <summary>
         /// Any overall error which may have occurred during communication
         /// </summary>
-        public CLError OverallError
+        public CLError Error
         {
             get
             {
-                return _overallError;
+                return _error;
             }
         }
-        private readonly CLError _overallError;
+        private readonly CLError _error;
 
         // construct with all readonly properties
-        internal SyncboxGetCurrentStatusResult(CLError overallError)
+        internal SyncboxGetCurrentStatusResult(CLError error)
         {
-            this._overallError = overallError;
+            this._error = error;
         }
     }
 
@@ -1131,22 +1131,10 @@ namespace Cloud.REST
     /// <summary>
     /// Holds result properties
     /// </summary>
-    public sealed class SyncboxRenameFolderResult
+    public sealed class SyncboxDeleteResult
     {
         /// <summary>
-        /// The result returned from the server
-        /// </summary>
-        public CLFileItem FolderItem
-        {
-            get
-            {
-                return _folderItem;
-            }
-        }
-        private readonly CLFileItem _folderItem;
-
-        /// <summary>
-        /// Any error which may have occurred during communication
+        /// Any overall error which may have occurred during communication
         /// </summary>
         public CLError Error
         {
@@ -1158,34 +1146,9 @@ namespace Cloud.REST
         private readonly CLError _error;
 
         // construct with all readonly properties
-        internal SyncboxRenameFolderResult(CLError error, CLFileItem folderItem)
+        internal SyncboxDeleteResult(CLError error)
         {
             this._error = error;
-            this._folderItem = folderItem;
-        }
-    }
-
-    /// <summary>
-    /// Holds result properties
-    /// </summary>
-    public sealed class SyncboxDeleteResult
-    {
-        /// <summary>
-        /// Any overall error which may have occurred during communication
-        /// </summary>
-        public CLError OverallError
-        {
-            get
-            {
-                return _overallError;
-            }
-        }
-        private readonly CLError _overallError;
-
-        // construct with all readonly properties
-        internal SyncboxDeleteResult(CLError overallError)
-        {
-            this._overallError = overallError;
         }
     }
 
@@ -1240,80 +1203,6 @@ namespace Cloud.REST
     /// <summary>
     /// Holds result properties
     /// </summary>
-    public sealed class SyncboxDeleteFileResult
-    {
-        /// <summary>
-        /// The result returned from the server
-        /// </summary>
-        public CLFileItem FileItem
-        {
-            get
-            {
-                return _fileItem;
-            }
-        }
-        private readonly CLFileItem _fileItem;
-
-        /// <summary>
-        /// Any error which may have occurred during communication
-        /// </summary>
-        public CLError Error
-        {
-            get
-            {
-                return _error;
-            }
-        }
-        private readonly CLError _error;
-
-        // construct with all readonly properties
-        internal SyncboxDeleteFileResult(CLError error, CLFileItem fileItem)
-        {
-            this._error = error;
-            this._fileItem = fileItem;
-        }
-    }
-
-    /// <summary>
-    /// Holds result properties
-    /// </summary>
-    public sealed class SyncboxDeleteFolderResult
-    {
-        /// <summary>
-        /// The result returned from the server
-        /// </summary>
-        public CLFileItem FolderItem
-        {
-            get
-            {
-                return _folderItem;
-            }
-        }
-        private readonly CLFileItem _folderItem;
-
-        /// <summary>
-        /// Any error which may have occurred during communication
-        /// </summary>
-        public CLError Error
-        {
-            get
-            {
-                return _error;
-            }
-        }
-        private readonly CLError _error;
-
-        // construct with all readonly properties
-        internal SyncboxDeleteFolderResult(CLError error, CLFileItem folderItem)
-        {
-            this._error = error;
-            this._folderItem = folderItem;
-        }
-    }
-
-    /// <summary>
-    /// Holds result properties
-    /// </summary>
     public sealed class SyncboxDeleteFoldersResult
     {
         /// <summary>
@@ -1362,43 +1251,6 @@ namespace Cloud.REST
     /// <summary>
     /// Holds result properties
     /// </summary>
-    public sealed class SyncboxAddFileResult
-    {
-        /// <summary>
-        /// The result returned from the server
-        /// </summary>
-        public CLFileItem FileItem
-        {
-            get
-            {
-                return _fileItem;
-            }
-        }
-        private readonly CLFileItem _fileItem;
-
-        /// <summary>
-        /// Any error which may have occurred during communication
-        /// </summary>
-        public CLError Error
-        {
-            get
-            {
-                return _error;
-            }
-        }
-        private readonly CLError _error;
-
-        // construct with all readonly properties
-        internal SyncboxAddFileResult(CLError error, CLFileItem fileItem)
-        {
-            this._error = error;
-            this._fileItem = fileItem;
-        }
-    }
-
-    /// <summary>
-    /// Holds result properties
-    /// </summary>
     public sealed class SyncboxAddFilesResult
     {
         /// <summary>
@@ -1428,19 +1280,19 @@ namespace Cloud.REST
         /// <summary>
         /// Any overall error which may have occurred during communication
         /// </summary>
-        public CLError OverallError
+        public CLError Error
         {
             get
             {
-                return _overallError;
+                return _error;
             }
         }
-        private readonly CLError _overallError;
+        private readonly CLError _error;
 
         // construct with all readonly properties
-        internal CredentialsSessionDeleteResult(CLError overallError)
+        internal CredentialsSessionDeleteResult(CLError error)
         {
-            this._overallError = overallError;
+            this._error = error;
         }
     }
 
