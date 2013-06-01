@@ -4654,8 +4654,6 @@ namespace Cloud.REST
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
         /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
-        /// <param name="completionCallback">Callback method to fire when a page of items is complete.  Return the result.</param>
-        /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion callback above is fired.</param>
         /// <param name="pageNumber">Beginning page number.  The first page is page 1.</param>
         /// <param name="itemsPerPage">Items per page.</param>
         /// <param name="sinceDate">(optional) null to retrieve all of the recents, or specify a date to retrieve items from that date forward.</param>
@@ -4663,8 +4661,6 @@ namespace Cloud.REST
         internal IAsyncResult BeginRecentFiles(
             AsyncCallback asyncCallback, 
             object asyncCallbackUserState, 
-            CLAllItemsCompletionCallback completionCallback, 
-            object completionCallbackUserState, 
             long pageNumber, 
             long itemsPerPage,
             Nullable<DateTime> sinceDate = null)
@@ -4677,8 +4673,6 @@ namespace Cloud.REST
                     toReturn = new GenericAsyncResult<CLError>(
                         asyncCallback,
                         asyncCallbackUserState),
-                    completionCallback = completionCallback,
-                    completionCallbackUserState = completionCallbackUserState,
                     pageNumber = pageNumber,
                     itemsPerPage = itemsPerPage,
                     sinceDate = sinceDate
@@ -4690,11 +4684,11 @@ namespace Cloud.REST
                     try
                     {
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
+                        CLFileItem[] items;
                         CLError overallError = RecentFiles(
-                            completionCallback,
-                            completionCallbackUserState,
                             pageNumber,
                             itemsPerPage,
+                            out items,
                             sinceDate);
 
                         Data.toReturn.Complete(overallError, // any overall error that may have occurred during processing
@@ -4731,13 +4725,12 @@ namespace Cloud.REST
         /// <summary>
         /// Retrieve the specified number of recently modified files (<CLFileItems>s).
         /// </summary>
-        /// <param name="completionCallback">Callback method to fire when a page of items is complete.</param>
-        /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion callback above is fired.  Returns the result.</param>
         /// <param name="pageNumber">Beginning page number.  The first page is page 1.</param>
         /// <param name="itemsPerPage">Items per page.</param>
+        /// <param name="items">(output) The retrieved items.</param>
         /// <param name="sinceDate">(optional) null to retrieve all of the recents, or specify a date to retrieve items from that date forward.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        internal CLError RecentFiles(CLAllItemsCompletionCallback completionCallback, object completionCallbackUserState, long pageNumber, long itemsPerPage, Nullable<DateTime> sinceDate = null)
+        internal CLError RecentFiles(long pageNumber, long itemsPerPage, out CLFileItem[] items, Nullable<DateTime> sinceDate = null)
         {
             // try/catch to process the request,  On catch return the error
             try
@@ -4818,15 +4811,12 @@ namespace Cloud.REST
                         }
                         else
                         {
-                            listFileItems.Add(null);
+                            throw new NullReferenceException(Resources.ExceptionCLHttpRestWithoutMetadata);  //&&&& fix this
                         }
                     }
 
-                    // No error.  Pass back the data via the completion callback.
-                    if (completionCallback != null)
-                    {
-                        completionCallback(listFileItems.ToArray(), (long)responseFromServer.TotalCount, completionCallbackUserState);
-                    }
+                    // No error.  Pass back the data.
+                    items = listFileItems.ToArray();
                 }
                 else
                 {
@@ -4835,6 +4825,7 @@ namespace Cloud.REST
             }
             catch (Exception ex)
             {
+                items = Helpers.DefaultForType<CLFileItem[]>();
                 return ex;
             }
 
