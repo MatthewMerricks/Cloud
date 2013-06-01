@@ -451,6 +451,14 @@ namespace Cloud.REST
                     {
                         throw new CLArgumentException(CLExceptionCode.OnDemand_FileRename, String.Format(Resources.ExceptionOnDemandFileItemNullAtIndexMsg0, paramIdx.ToString()));
                     }
+                    if (currentParams.ItemToRename == null)
+                    {
+                        throw new CLArgumentNullException(Static.CLExceptionCode.OnDemand_MissingParameters, Resources.ExceptionOnDemandItemToRenameMustNotBeNull);
+                    }
+                    if (String.IsNullOrEmpty(currentParams.NewName))
+                    {
+                        throw new CLArgumentNullException(Static.CLExceptionCode.OnDemand_MissingParameters, Resources.ExceptionOnDemandNewNameMustBeSpecified);
+                    }
 
                     // The CLFileItem represents an existing file or folder, and should be valid because we created it.  The new full path must
                     // fit the specs for the Windows client.  Form the new full path and check its validity.
@@ -717,6 +725,14 @@ namespace Cloud.REST
                     if (currentParams == null)
                     {
                         throw new CLArgumentException(CLExceptionCode.OnDemand_FileRename, String.Format(Resources.ExceptionOnDemandFolderItemNullAtIndexMsg0, paramIdx.ToString()));
+                    }
+                    if (currentParams.ItemToRename == null)
+                    {
+                        throw new CLArgumentNullException(Static.CLExceptionCode.OnDemand_MissingParameters, Resources.ExceptionOnDemandItemToRenameMustNotBeNull);
+                    }
+                    if (String.IsNullOrEmpty(currentParams.NewName))
+                    {
+                        throw new CLArgumentNullException(Static.CLExceptionCode.OnDemand_MissingParameters, Resources.ExceptionOnDemandNewNameMustBeSpecified);
                     }
 
                     // The CLFileItem represents an existing file or folder, and should be valid because we created it.  The new full path must
@@ -989,6 +1005,14 @@ namespace Cloud.REST
                     if (currentParams == null)
                     {
                         throw new CLArgumentException(CLExceptionCode.OnDemand_FileRename, String.Format(Resources.ExceptionOnDemandFileItemNullAtIndexMsg0, paramIdx.ToString()));
+                    }
+                    if (currentParams.ItemToMove == null)
+                    {
+                        throw new CLArgumentNullException(Static.CLExceptionCode.OnDemand_MoveItemParamsMissingProperties, Resources.ExceptionOnDemandItemToMoveMustNotBeNull);
+                    }
+                    if (currentParams.NewParentFolderItem == null)
+                    {
+                        throw new CLArgumentNullException(Static.CLExceptionCode.OnDemand_MoveItemParamsMissingProperties, Resources.ExceptionOnDemandNewParentFolderItemMustBeSpecified);
                     }
 
                     // file move (rename) and folder move (rename) share a json contract object for move (rename)
@@ -1982,6 +2006,10 @@ namespace Cloud.REST
                     if (currentFolderItem == null)
                     {
                         throw new CLArgumentException(CLExceptionCode.OnDemand_FolderRename, String.Format(Resources.ExceptionOnDemandFolderItemNullAtIndexMsg0, paramIdx.ToString()));
+                    }
+                    if (String.IsNullOrEmpty(currentFolderName))
+                    {
+                        throw new CLArgumentNullException(Static.CLExceptionCode.OnDemand_MissingParameters, Resources.ExceptionOnDemandAddItemNameMustBeSpecified);
                     }
 
                     jsonContractAdds[paramIdx] = new FolderAddRequest()
