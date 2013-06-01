@@ -203,7 +203,6 @@ namespace Cloud.REST
         #region ItemForPath (Gets the metedata at a particular server syncbox path)
         /// <summary>
         /// Asynchronously starts querying the syncbox for an item at a given path (must be specified) for existing metadata at that path; outputs a CLFileItem object.
-        /// Check for Deleted flag being true in case the metadata represents a deleted item.
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when operation completes</param>
         /// <param name="asyncCallbackUserState">User state to pass when firing async callback</param>
@@ -298,16 +297,12 @@ namespace Cloud.REST
                     SetCurrentCredentialsCallback = SetCurrentCredentialCallback,
                 };
 
-                // Get the relative path
-                FilePath fullPath = new FilePath(relativePath, _syncbox.Path);
-                string fixedRelativePath = fullPath.GetRelativePath(_syncbox.Path, true);
-
                 // build the location of the metadata retrieval method on the server dynamically
                 string serverMethodPath = CLDefinitions.MethodPathGetItemMetadata +
                     Helpers.QueryStringBuilder(new[] // the method grabs its parameters by query string (since this method is an HTTP GET)
                     {
                         // query string parameter for the path to query, built by turning the full path location into a relative path from the cloud root and then escaping the whole thing for a url
-                        new KeyValuePair<string, string>(CLDefinitions.CLMetadataCloudPath, Uri.EscapeDataString(fixedRelativePath)),
+                        new KeyValuePair<string, string>(CLDefinitions.CLMetadataCloudPath, Uri.EscapeDataString(relativePath)),
 
                         // query string parameter for the current sync box id, should not need escaping since it should be an integer in string format
                         new KeyValuePair<string, string>(CLDefinitions.QueryStringSyncboxId, _syncbox.SyncboxId.ToString())
@@ -349,6 +344,151 @@ namespace Cloud.REST
         }
 
         #endregion  // end ItemForPath (Gets the metedata at a particular server syncbox path)
+
+        #region ItemForItemUid (Returns a CLFileItem for the syncbox item with the given UID.)
+        /// <summary>
+        /// Asynchronously starts querying the syncbox for an item with the given UID. Outputs a CLFileItem object.
+        /// </summary>
+        /// <param name="asyncCallback">Callback method to fire when the async operation completes</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing async callback</param>
+        /// <param name="itemUid">The UID to use in the query.</param>
+        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        internal IAsyncResult BeginItemForItemUid(
+            AsyncCallback asyncCallback,
+            object asyncCallbackUserState,
+            string itemUid)
+        {
+            var asyncThread = DelegateAndDataHolderBase.Create(
+                // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
+                new
+                {
+                    // create the asynchronous result to return
+                    toReturn = new GenericAsyncResult<SyncboxGetItemAtItemUidResult>(
+                        asyncCallback,
+                        asyncCallbackUserState),
+                    itemUid = itemUid,
+                },
+                (Data, errorToAccumulate) =>
+                {
+                    // The ThreadProc.
+                    // try/catch to process with the input parameters, on catch set the exception in the asyncronous result
+                    try
+                    {
+                        // alloc and init the syncbox with the passed parameters, storing any error that occurs
+                        CLFileItem fileItem;
+                        CLError overallError = ItemForItemUid(
+                            Data.itemUid,
+                            out fileItem);
+
+                        Data.toReturn.Complete(
+                            new SyncboxGetItemAtItemUidResult(overallError, fileItem),  // the result to return
+                            sCompleted: false); // processing did not complete synchronously
+                    }
+                    catch (Exception ex)
+                    {
+                        Data.toReturn.HandleException(
+                            ex, // the exception which was not handled correctly by the CLError wrapping
+                            sCompleted: false); // processing did not complete synchronously
+                    }
+                },
+                null);
+
+            // create the thread from a void (object) parameterized start which wraps the synchronous method call
+            (new Thread(new ThreadStart(asyncThread.VoidProcess))).Start(); // start the asynchronous processing thread which is attached to its data
+
+            // return the asynchronous result
+            return asyncThread.TypedData.toReturn;
+        }
+
+        /// <summary>
+        /// Finishes getting an item in the syncbox, if it has not already finished via its asynchronous result, and outputs the result,
+        /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
+        /// </summary>
+        /// <param name="asyncResult">The asynchronous result provided upon starting the request</param>
+        /// <param name="result">(output) An overall error which occurred during processing, if any</param>
+        /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
+        internal CLError EndItemForItemUid(IAsyncResult asyncResult, out SyncboxGetItemAtItemUidResult result)
+        {
+            return Helpers.EndAsyncOperation<SyncboxGetItemAtItemUidResult>(asyncResult, out result);
+        }
+
+        /// <summary>
+        /// Query the syncbox for an item with the given UID. Outputs a CLFileItem object.
+        /// </summary>
+        /// <param name="itemUid">The UID to use in the query.</param>
+        /// <param name="item">(output) The returned item.</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        internal CLError ItemForItemUid(string itemUid, out CLFileItem item)
+        {
+            CLFileItem toReturn;
+
+            // try/catch to process the request,  On catch return the error
+            try
+            {
+                // check input parameters.
+
+                if (itemUid == null)
+                {
+                    throw new CLArgumentNullException(CLExceptionCode.OnDemand_MissingParameters, Resources.ExceptionOnDemandItemUidMustNotBeNull);
+                }
+
+                // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
+                Helpers.RequestNewCredentialsInfo requestNewCredentialsInfo = new Helpers.RequestNewCredentialsInfo()
+                {
+                    ProcessingStateByThreadId = _processingStateByThreadId,
+                    GetNewCredentialsCallback = _getNewCredentialsCallback,
+                    GetNewCredentialsCallbackUserState = _getNewCredentialsCallbackUserState,
+                    GetCurrentCredentialsCallback = GetCurrentCredentialsCallback,
+                    SetCurrentCredentialsCallback = SetCurrentCredentialCallback,
+                };
+
+                // build the location of the metadata retrieval method on the server dynamically
+                string serverMethodPath = CLDefinitions.MethodPathGetItemMetadata +
+                    Helpers.QueryStringBuilder(new[] // the method grabs its parameters by query string (since this method is an HTTP GET)
+                    {
+                        // query string parameter for the server UID to query
+                        new KeyValuePair<string, string>(CLDefinitions.CLMetadataServerId, Uri.EscapeDataString(itemUid)),
+
+                        // query string parameter for the current sync box id, should not need escaping since it should be an integer in string format
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringSyncboxId, _syncbox.SyncboxId.ToString())
+                    });
+
+                // Communicate with the server to get the response.
+                JsonContracts.SyncboxMetadataResponse responseFromServer;
+                responseFromServer = Helpers.ProcessHttp<JsonContracts.SyncboxMetadataResponse>(null, // no content body for get
+                    CLDefinitions.CLMetaDataServerURL, // base domain is the MDS server
+                    serverMethodPath, // dynamic path to appropriate one-off method
+                    Helpers.requestMethod.get, // one-off methods are all posts
+                    _copiedSettings.HttpTimeoutMilliseconds, // time before communication timeout
+                    null, // not an upload or download
+                    Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
+                    _copiedSettings, // pass the copied settings
+                    _syncbox.SyncboxId, // pass the unique id of the sync box on the server
+                    requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
+                    true);
+
+                // Convert the metadata to the output item.
+                if (responseFromServer != null)
+                {
+                    // Pass back the response as a CLFileItem.
+                    toReturn = new CLFileItem(responseFromServer, _syncbox);
+                }
+                else
+                {
+                    throw new CLNullReferenceException(CLExceptionCode.OnDemand_NotFound, Resources.ExceptionOnDemandItemForPathNotFound);
+                }
+            }
+            catch (Exception ex)
+            {
+                item = Helpers.DefaultForType<CLFileItem>();
+                return ex;
+            }
+
+            item = toReturn;
+            return null;
+        }
+
+        #endregion  // end ItemForItemUid (Returns a CLFileItem for the syncbox item with the given UID.)
 
         #region RenameFiles (Rename files in-place in the syncbox.)
         /// <summary>

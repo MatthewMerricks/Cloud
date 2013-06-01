@@ -652,6 +652,43 @@ namespace Cloud.REST
     /// <summary>
     /// Holds result properties
     /// </summary>
+    public sealed class SyncboxGetItemAtItemUidResult
+    {
+        /// <summary>
+        /// The returned file or folder item.
+        /// </summary>
+        public CLFileItem Item
+        {
+            get
+            {
+                return _item;
+            }
+        }
+        private readonly CLFileItem _item;
+
+        /// <summary>
+        /// Any overall error which may have occurred during communication
+        /// </summary>
+        public CLError Error
+        {
+            get
+            {
+                return _error;
+            }
+        }
+        private readonly CLError _error;
+
+        // construct with all readonly properties
+        internal SyncboxGetItemAtItemUidResult(CLError error, CLFileItem item)
+        {
+            this._error = error;
+            this._item = item;
+        }
+    }
+
+    /// <summary>
+    /// Holds result properties
+    /// </summary>
     public sealed class SyncboxItemsAtPathResult
     {
         /// <summary>

@@ -2964,4 +2964,8 @@
   <data name="ExceptionOnDemandUnlinkDeviceRequestMustNotBeNull" xml:space="preserve">
     <value>Unlink device request must not be null</value>
   </data>
+  <data name="ExceptionOnDemandItemUidMustNotBeNull" xml:space="preserve">
+    <value>ItemUid must not be null</value>
+    <comment>"ItemUid" should not be translated</comment>
+  </data>
 </root>

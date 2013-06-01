@@ -1716,6 +1716,60 @@ namespace Cloud
 
         #endregion  // end RootFolder (Queries the syncbox for the item at the root path)
 
+        #region ItemForItemUid (Returns a CLFileItem for the syncbox item with the given UID.)
+
+        /// <summary>
+        /// Asynchronously starts querying the syncbox for an item with the given UID. Outputs a CLFileItem object.
+        /// </summary>
+        /// <param name="asyncCallback">Callback method to fire when the async operation completes</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing async callback</param>
+        /// <param name="itemUid">The UID to use in the query.</param>
+        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        public IAsyncResult BeginItemForItemUid(
+            AsyncCallback asyncCallback,
+            object asyncCallbackUserState,
+            string itemUid)
+        {
+            CheckDisposed();
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.BeginItemForItemUid(asyncCallback, asyncCallbackUserState, itemUid);
+        }
+
+        /// <summary>
+        /// Finishes getting an item in the syncbox, if it has not already finished via its asynchronous result, and outputs the result,
+        /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
+        /// </summary>
+        /// <param name="asyncResult">The asynchronous result provided upon starting the request</param>
+        /// <param name="result">(output) An overall error which occurred during processing, if any</param>
+        /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
+        public CLError EndItemForItemUid(IAsyncResult asyncResult, out SyncboxGetItemAtItemUidResult result)
+        {
+            CheckDisposed();
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.EndItemForItemUid(asyncResult, out result);
+        }
+
+        /// <summary>
+        /// Query the syncbox for an item with the given UID. Outputs a CLFileItem object.
+        /// </summary>
+        /// <param name="itemUid">The UID to use in the query.</param>
+        /// <param name="item">(output) The returned item.</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        public CLError ItemForItemUid(string itemUid, out CLFileItem item)
+        {
+            CheckDisposed(isOneOff: true);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.ItemForItemUid(itemUid, out item);
+        }
+
+        #endregion  // end ItemForItemUid (Returns a CLFileItem for the syncbox item with the given UID.)
+
         #region ItemForPath (Queries the syncbox for the item at a particular path)
         /// <summary>
         /// Asynchronously starts querying the syncbox for an item at a given path (must be specified) for existing metadata at that path; outputs a CLFileItem object.
