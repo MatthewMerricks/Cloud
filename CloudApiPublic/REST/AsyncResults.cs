@@ -201,6 +201,18 @@ namespace Cloud.REST
     public sealed class CreateSyncboxResult
     {
         /// <summary>
+        /// The result returned from the server
+        /// </summary>
+        public CLSyncbox Syncbox
+        {
+            get
+            {
+                return _syncbox;
+            }
+        }
+        private readonly CLSyncbox _syncbox;
+
+        /// <summary>
         /// Any error which may have occurred during communication
         /// </summary>
         public CLError Error
@@ -213,9 +225,10 @@ namespace Cloud.REST
         private readonly CLError _error;
 
         // construct with all readonly properties
-        internal CreateSyncboxResult(CLError error)
+        internal CreateSyncboxResult(CLError error, CLSyncbox syncbox)
         {
             this._error = error;
+            this._syncbox = syncbox;
         }
     }
 
@@ -862,6 +875,18 @@ namespace Cloud.REST
     public sealed class SyncboxListResult
     {
         /// <summary>
+        /// The returned syncboxes.
+        /// </summary>
+        public CLSyncbox[] ReturnedSyncboxes
+        {
+            get
+            {
+                return _returnedSyncboxes;
+            }
+        }
+        private readonly CLSyncbox[] _returnedSyncboxes;
+
+        /// <summary>
         /// Any overall error which may have occurred during communication
         /// </summary>
         public CLError OverallError
@@ -874,9 +899,10 @@ namespace Cloud.REST
         private readonly CLError _overallError;
 
         // construct with all readonly properties
-        internal SyncboxListResult(CLError overallError)
+        internal SyncboxListResult(CLError overallError, CLSyncbox[] returnedSyncboxes)
         {
             this._overallError = overallError;
+            this._returnedSyncboxes = returnedSyncboxes;
         }
     }
 

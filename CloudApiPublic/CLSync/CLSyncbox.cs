@@ -654,7 +654,7 @@ namespace Cloud
         /// Asynchronously begins the factory process to construct an instance of CLSyncbox, initialize it and fill in its properties from the cloud, and associates the cloud syncbox with a folder on the local disk.
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when operation completes.  Can be null.</param>
-        /// <param name="asyncCallbackUserState">Userstate to pass to the callback when it is fired.  Can be null.</param>
+        /// <param name="asyncCallbackUserState">User state to pass to the callback when it is fired.  Can be null.</param>
         /// <param name="syncboxId">The cloud syncbox ID to use.</param>
         /// <param name="credentials">The credentials to use with this request.</param>
         /// <param name="path">(optional) The full path of the folder on disk to associate with this syncbox.  The path is used only for live sync.</param>
@@ -1152,7 +1152,7 @@ namespace Cloud
         /// Asynchronously starts creating a new Syncbox in the Cloud.
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when the async operation completes.  Can be null.</param>
-        /// <param name="asyncCallbackUserState">Userstate to pass to the async callback when it is fired.  Can be null.</param>
+        /// <param name="asyncCallbackUserState">User state to pass to the async callback when it is fired.  Can be null.</param>
         /// <param name="plan">The storage plan to use with this Syncbox.</param>
         /// <param name="credentials">The credentials to use with this request.</param>
         /// <param name="path">(optional) The full path of the folder on disk to associate with this syncbox.  The path is used only for live sync.</param>
@@ -1209,7 +1209,8 @@ namespace Cloud
 
                         Data.toReturn.Complete(
                             new CreateSyncboxResult(
-                                processError), // any error that may have occurred during processing
+                                processError,  // any error that may have occurred during processing
+                                syncbox), 
                             sCompleted: false); // processing did not complete synchronously
                     }
                     catch (Exception ex)
@@ -1348,7 +1349,7 @@ namespace Cloud
         /// Asynchronously starts deleting a new Syncbox in the syncbox.
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when operation completes.  Can be null.</param>
-        /// <param name="asyncCallbackUserState">Userstate to pass as a parameter to the callback when it is fired.  Can be null.</param>
+        /// <param name="asyncCallbackUserState">User state to pass as a parameter to the callback when it is fired.  Can be null.</param>
         /// <param name="syncboxId">The ID of syncbox to delete.</param>
         /// <param name="credentials">The credentials to use with this request.</param>
         /// <param name="settings">(optional) settings to use with this method.</param>
@@ -1491,7 +1492,7 @@ namespace Cloud
         /// Asynchronously starts listing syncboxes in the syncbox.
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when operation completes.</param>
-        /// <param name="asyncCallbackUserState">Userstate to pass as a parameter to the callback when it is fired.</param>
+        /// <param name="asyncCallbackUserState">User state to pass as a parameter to the callback when it is fired.</param>
         /// <param name="credentials">The credentials to use with this request.</param>
         /// <param name="settings">(optional) settings to use with this method.</param>
         /// <param name="getNewCredentialsCallback">(optional) The delegate to call for getting new temporary credentials.</param>
@@ -1537,7 +1538,8 @@ namespace Cloud
 
                         Data.toReturn.Complete(
                             new SyncboxListResult(
-                                processError), // any error that may have occurred during processing
+                                processError, // any error that may have occurred during processing
+                                returnedSyncboxes),  // the returned data
                             sCompleted: false); // processing did not complete synchronously
                     }
                     catch (Exception ex)
@@ -1573,7 +1575,7 @@ namespace Cloud
         /// List syncboxes in the syncbox for these credentials.  This is a synchronous method.
         /// </summary>
         /// <param name="credentials">The credentials to use for this request.</param>
-        /// <param name="returnedSyncboxes">The returned array of syncboxes.</param>
+        /// <param name="returnedSyncboxes">(output) The returned array of syncboxes.</param>
         /// <param name="settings">(optional) the settings to use with this method</param>
         /// <param name="getNewCredentialsCallback">(optional) The delegate to call for getting new temporary credentials.</param>
         /// <param name="getNewCredentialsCallbackUserState">(optional) The user state to pass to the delegate above.</param>
@@ -1670,7 +1672,7 @@ namespace Cloud
         /// Asynchronously starts querying the syncbox for an item at the syncbox root path; outputs a CLFileItem object.
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when operation completes</param>
-        /// <param name="asyncCallbackUserState">Userstate to pass when firing async callback</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing async callback</param>
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginRootFolder(AsyncCallback asyncCallback, object asyncCallbackUserState)
         {
@@ -1702,7 +1704,7 @@ namespace Cloud
         /// Queries the syncbox for an item at the syncbox root path.
         /// </summary>
         /// <param name="completionCallback">Delegate which will be fired upon successful communication for every response item.</param>
-        /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion delegate is fired.</param>
+        /// <param name="completionCallbackUserState">User state to be passed whenever the completion delegate is fired.</param>
         /// <param name="item">(output) The returned item.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError RootFolder(out CLFileItem item)
@@ -1722,9 +1724,9 @@ namespace Cloud
         /// Check for Deleted flag being true in case the metadata represents a deleted item.
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when operation completes</param>
-        /// <param name="asyncCallbackUserState">Userstate to pass when firing async callback</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing async callback</param>
         /// <param name="completionCallback">Delegate which will be fired upon successful communication for every response item.</param>
-        /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion delegate is fired.</param>
+        /// <param name="completionCallbackUserState">User state to be passed whenever the completion delegate is fired.</param>
         /// <param name="relativePath">Relative path in the syncbox to where file or folder would exist in the syncbox locally on disk.</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
         public IAsyncResult BeginItemForPath(
@@ -1760,7 +1762,7 @@ namespace Cloud
         /// Check for Deleted flag being true in case the metadata represents a deleted item.
         /// </summary>
         /// <param name="itemCompletionCallback">Delegate which will be fired upon successful communication for every response item.</param>
-        /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the completion delegate is fired.</param>
+        /// <param name="itemCompletionCallbackUserState">User state to be passed whenever the completion delegate is fired.</param>
         /// <param name="relativePath">Relative path in the syncbox to where file or folder would exist in the syncbox locally on disk.</param>
         /// <param name="item">(output) The returned item.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
@@ -1780,9 +1782,9 @@ namespace Cloud
         /// Asynchronously starts renaming files in-place in the syncbox.  Each item completion will fire an asynchronous callback with the completion status or error for that item.
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
-        /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing the async callback above.</param>
         /// <param name="itemCompletionCallback">Delegate which will be fired upon successful communication for every response item.</param>
-        /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the completion delegate is fired.</param>
+        /// <param name="itemCompletionCallbackUserState">User state to be passed whenever the completion delegate is fired.</param>
         /// <param name="itemsToRename">One or more pairs of items to rename and the new name of each item (just the filename.ext).</param>
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginRenameFiles(AsyncCallback asyncCallback, object asyncCallbackUserState, CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, params RenameItemParams[] itemsToRename)
@@ -1814,7 +1816,7 @@ namespace Cloud
         /// Renames files in-place in the syncbox.  Each item completion will fire an asynchronous callback with the completion status or error for that item.
         /// </summary>
         /// <param name="itemCompletionCallback">Delegate which will be fired upon successful communication for every response item.</param>
-        /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the completion delegate is fired.</param>
+        /// <param name="itemCompletionCallbackUserState">User state to be passed whenever the completion delegate is fired.</param>
         /// <param name="itemsToRename">One or more pairs of items to rename and the new name of each item (just the filename.ext).</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError RenameFiles(CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, params RenameItemParams[] itemsToRename)
@@ -1833,9 +1835,9 @@ namespace Cloud
         /// Asynchronously starts renaming folders in-place in the syncbox.  Each item completion will fire an asynchronous callback with the completion status or error for that item.
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
-        /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing the async callback above.</param>
         /// <param name="itemCompletionCallback">Delegate which will be fired upon successful communication for every response item.</param>
-        /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the completion delegate is fired.</param>
+        /// <param name="itemCompletionCallbackUserState">User state to be passed whenever the completion delegate is fired.</param>
         /// <param name="itemsToRename">One or more pairs of items to rename and the new name of each item (just the last token in the path).</param>
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginRenameFolders(AsyncCallback asyncCallback, object asyncCallbackUserState, CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, params RenameItemParams[] itemsToRename)
@@ -1867,7 +1869,7 @@ namespace Cloud
         /// Renames folders in-place in the syncbox.  Each item completion will fire an asynchronous callback with the completion status or error for that item.
         /// </summary>
         /// <param name="itemCompletionCallback">Delegate which will be fired upon successful communication for every response item.</param>
-        /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the completion delegate is fired.</param>
+        /// <param name="itemCompletionCallbackUserState">User state to be passed whenever the completion delegate is fired.</param>
         /// <param name="itemsToRename">An array of pairs of items to rename and the new name of each item (just the last token in the path).</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError RenameFolders(CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, params RenameItemParams[] itemsToRename)
@@ -1886,9 +1888,9 @@ namespace Cloud
         /// Asynchronously starts moving files in the syncbox.  Each item completion will fire an asynchronous callback with the completion status or error for that item.
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
-        /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing the async callback above.</param>
         /// <param name="itemCompletionCallback">Delegate which will be fired upon successful communication for every response item.</param>
-        /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the completion delegate is fired.</param>
+        /// <param name="itemCompletionCallbackUserState">User state to be passed whenever the completion delegate is fired.</param>
         /// <param name="itemsToMove">One or more pairs of item to move and a folder item representing the new parent of the item being moved.</param>
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginMoveFiles(
@@ -1925,7 +1927,7 @@ namespace Cloud
         /// Moves files in the syncbox.  Each item completion will fire an asynchronous callback with the completion status or error for that item.
         /// </summary>
         /// <param name="itemCompletionCallback">Delegate which will be fired upon successful communication for every response item.</param>
-        /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the completion delegate is fired.</param>
+        /// <param name="itemCompletionCallbackUserState">User state to be passed whenever the completion delegate is fired.</param>
         /// <param name="itemsToMove">One or more pairs of item to move and a folder item representing the new parent of the item being moved.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError MoveFiles(CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, params MoveItemParams[] itemsToMove)
@@ -1944,9 +1946,9 @@ namespace Cloud
         /// Asynchronously starts moving folders in the syncbox.  Each item completion will fire an asynchronous callback with the completion status or error for that item.
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
-        /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing the async callback above.</param>
         /// <param name="itemCompletionCallback">Delegate which will be fired upon successful communication for every response item.</param>
-        /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the completion delegate is fired.</param>
+        /// <param name="itemCompletionCallbackUserState">User state to be passed whenever the completion delegate is fired.</param>
         /// <param name="itemsToMove">One or more pairs of item to move and a folder item representing the new parent of the item being moved.</param>
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginMoveFolders(AsyncCallback asyncCallback, object asyncCallbackUserState, CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, params MoveItemParams[] itemsToMove)
@@ -1978,7 +1980,7 @@ namespace Cloud
         /// Moves folders in the syncbox.  Each item completion will fire an asynchronous callback with the completion status or error for that item.
         /// </summary>
         /// <param name="itemCompletionCallback">Delegate which will be fired upon successful communication for every response item.</param>
-        /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the completion delegate is fired.</param>
+        /// <param name="itemCompletionCallbackUserState">User state to be passed whenever the completion delegate is fired.</param>
         /// <param name="itemsToMove">One or more pairs of item to move and a folder item representing the new parent of the item being moved.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError MoveFolders(CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, params MoveItemParams[] itemsToMove)
@@ -1997,9 +1999,9 @@ namespace Cloud
         /// Asynchronously starts deleting files in the syncbox.  Each item completion will fire an asynchronous callback with the completion status or error for that item.
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
-        /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing the async callback above.</param>
         /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
-        /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the item completion callback above is fired.</param>
+        /// <param name="itemCompletionCallbackUserState">User state to be passed whenever the item completion callback above is fired.</param>
         /// <param name="itemsToDelete">One or more file items to delete.</param>
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginDeleteFiles(AsyncCallback asyncCallback, object asyncCallbackUserState, CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, params CLFileItem[] itemsToDelete)
@@ -2031,7 +2033,7 @@ namespace Cloud
         /// Deletes files in the syncbox.  Each item completion will fire an asynchronous callback with the completion status or error for that item.
         /// </summary>
         /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
-        /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the item completion callback above is fired.</param>
+        /// <param name="itemCompletionCallbackUserState">User state to be passed whenever the item completion callback above is fired.</param>
         /// <param name="itemsToDelete">One or more file items to delete.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError DeleteFiles(CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, params CLFileItem[] itemsToDelete)
@@ -2050,9 +2052,9 @@ namespace Cloud
         /// Asynchronously starts deleting folders in the syncbox.  Each item completion will fire an asynchronous callback with the completion status or error for that item.
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
-        /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing the async callback above.</param>
         /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
-        /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the item completion callback above is fired.</param>
+        /// <param name="itemCompletionCallbackUserState">User state to be passed whenever the item completion callback above is fired.</param>
         /// <param name="itemsToDelete">One or more folder items to delete.</param>
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginDeleteFolders(AsyncCallback asyncCallback, object asyncCallbackUserState, CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, params CLFileItem[] itemsToDelete)
@@ -2084,7 +2086,7 @@ namespace Cloud
         /// Deletes folders in the syncbox.  Each item completion will fire an asynchronous callback with the completion status or error for that item.
         /// </summary>
         /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
-        /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the item completion callback above is fired.</param>
+        /// <param name="itemCompletionCallbackUserState">User state to be passed whenever the item completion callback above is fired.</param>
         /// <param name="itemsToDelete">One or more folder items to delete.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError DeleteFolders(CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, params CLFileItem[] itemsToDelete)
@@ -2103,9 +2105,9 @@ namespace Cloud
         /// Asynchronously starts adding folders to the syncbox.  Each item completion will fire an asynchronous callback with the completion status or error for that item.
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
-        /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing the async callback above.</param>
         /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
-        /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the item completion callback above is fired.</param>
+        /// <param name="itemCompletionCallbackUserState">User state to be passed whenever the item completion callback above is fired.</param>
         /// <param name="folderItemsToAdd">One or more pairs of folder parent item and name of the new folder to add.</param>
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginAddFolders(AsyncCallback asyncCallback, object asyncCallbackUserState, CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, params AddFolderItemParams[] folderItemsToAdd)
@@ -2137,7 +2139,7 @@ namespace Cloud
         /// Adds folders to the syncbox.  Each item completion will fire an asynchronous callback with the completion status or error for that item.
         /// </summary>
         /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
-        /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the item completion callback above is fired.</param>
+        /// <param name="itemCompletionCallbackUserState">User state to be passed whenever the item completion callback above is fired.</param>
         /// <param name="itemsToDelete">One or more file items to delete.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError AddFolders(CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, params AddFolderItemParams[] folderItemsToAdd)
@@ -2151,15 +2153,18 @@ namespace Cloud
 
         #endregion  // end AddFolders (Add folders to the syncbox)
 
-        #region AddFile (Adds a file in the syncbox)
+        #region AddFiles (Adds files to the syncbox)
         /// <summary>
         /// Asynchronously starts adding files in the syncbox.
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
-        /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing the async callback above.</param>
         /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
-        /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the item completion callback above is fired.</param>
-        /// <param name="filesToAdd">(params) An array of pairs of relative path in the syncbox of the file to add, and the parent folder item that will hold the added file.</param>
+        /// <param name="itemCompletionCallbackUserState">User state to be passed whenever the item completion callback above is fired.</param>
+        /// <param name="transferStatusCallback">Callback method which will be fired when the transfer progress changes for upload.  Can be null</param>
+        /// <param name="transferStatusCallbackUserState">User state to be passed whenever the transfer progress callback is fired.  Can be null.</param>
+        /// <param name="cancellationSource">An optional cancellation token which may be used to cancel uploads in progress immediately.  Can be null</param>
+        /// <param name="filesToAdd">(params) An array of information for each file to add (full path of the file, parent folder in the syncbox and the name of the file in the syncbox).</param>
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginAddFiles(
             AsyncCallback asyncCallback,
@@ -2195,14 +2200,14 @@ namespace Cloud
         }
 
         /// <summary>
-        /// Add files in the syncbox.
+        /// Add files in the syncbox.  Uploads the files to the Cloud.
         /// </summary>
         /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
-        /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the item completion callback above is fired.</param>
-        /// <param name="transferStatusCallback">Callback method which will be fired when the transfer progress changes for upload, can be null</param>
-        /// <param name="transferStatusCallbackState">Userstate to be passed whenever the transfer progress callback is fired</param>
-        /// <param name="cancellationSource">An optional cancellation token which may be used to cancel uploads in progress immediately, can be null</param>
-        /// <param name="filesToAdd">(params) An array of pairs of relative path in the syncbox of the file to add, and the parent folder item that will hold the added file.</param>
+        /// <param name="itemCompletionCallbackUserState">User state to be passed whenever the item completion callback above is fired.</param>
+        /// <param name="transferStatusCallback">Callback method which will be fired when the transfer progress changes for upload.  Can be null</param>
+        /// <param name="transferStatusCallbackUserState">User state to be passed whenever the transfer progress callback is fired.  Can be null.</param>
+        /// <param name="cancellationSource">An optional cancellation token which may be used to cancel uploads in progress immediately.  Can be null</param>
+        /// <param name="filesToAdd">(params) An array of information for each file to add (full path of the file, parent folder in the syncbox and the name of the file in the syncbox).</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError AddFiles(
             CLFileItemCompletionCallback itemCompletionCallback,
@@ -2219,68 +2224,7 @@ namespace Cloud
             return httpRestClient.AddFiles(itemCompletionCallback, itemCompletionCallbackUserState, transferStatusCallback, transferStatusCallbackUserState, cancellationSource, filesToAdd);
         }
 
-        #endregion  // end AddFile (Adds a file in the syncbox)
-
-        #region AddFiles (Add files in the syncbox)
-        ///// <summary>
-        ///// Asynchronously starts adding files in the syncbox; outputs an array of  CLFileItem objects, and possibly an array of CLError objects.
-        ///// </summary>
-        ///// <param name="asyncCallback">Callback method to fire when operation completes</param>
-        ///// <param name="asyncCallbackUserState">Userstate to pass when firing async callback</param>
-        ///// <param name="paths">An array of full paths to where the files would exist locally on disk.</param>
-        ///// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
-        //public IAsyncResult BeginAddFiles(AsyncCallback asyncCallback, object asyncCallbackUserState, string[] paths)
-        //{
-        //    CheckDisposed(true);
-
-        //    CLHttpRest httpRestClient;
-        //    GetInstanceRestClient(out httpRestClient);
-        //    return httpRestClient.BeginAddFiles(asyncCallback, asyncCallbackUserState, paths);
-        //}
-
-        ///// <summary>
-        ///// Finishes adding files in the syncbox, if it has not already finished via its asynchronous result, and outputs the result,
-        ///// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
-        ///// </summary>
-        ///// <param name="asyncResult">The asynchronous result provided upon starting the metadata query</param>
-        ///// <param name="result">(output) The result from the metadata query</param>
-        ///// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        //public CLError EndAddFiles(IAsyncResult asyncResult, out SyncboxAddFilesResult result)
-        //{
-        //    CheckDisposed(true);
-        //    SyncboxAddFilesResult deleteResult;
-
-        //    CLHttpRest httpRestClient;
-        //    GetInstanceRestClient(out httpRestClient);
-        //    CLError error = httpRestClient.EndAddFiles(asyncResult, out deleteResult);
-
-        //    if (error != null)
-        //    {
-        //        result = null;
-        //        return error;
-        //    }
-
-        //    result = new SyncboxAddFilesResult(deleteResult.OverallError, deleteResult.Errors, deleteResult.FileItems);
-        //    return error;
-        //}
-
-        ///// <summary>
-        ///// Adds files in the syncbox.
-        ///// </summary>
-        ///// <param name="paths">An array of full paths to where the files would exist locally on disk.</param>
-        ///// <param name="fileItems">(output) response object from communication</param>
-        ///// <param name="errors">(output) Any returned errors, or null.</param>
-        ///// <returns>Returns any error that occurred during communication, if any</returns>
-        //public CLError AddFiles(string[] paths, out CLFileItem[] fileItems, out CLError[] errors)
-        //{
-        //    CheckDisposed(true);
-
-        //    CLHttpRest httpRestClient;
-        //    GetInstanceRestClient(out httpRestClient);
-        //    return httpRestClient.AddFiles(paths, out fileItems, out errors);
-        //}
-
-        #endregion  // end AddFiles (Add files in the syncbox)
+        #endregion  // end AddFiles (Adds files to the syncbox)
 
         #region GetAllPending
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
@@ -2288,7 +2232,7 @@ namespace Cloud
         /// Asynchronously starts querying for all pending files
         /// </summary>
         /// <param name="aCallback">Callback method to fire when operation completes</param>
-        /// <param name="aState">Userstate to pass when firing async callback</param>
+        /// <param name="aState">User state to pass when firing async callback</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginGetAllPending(AsyncCallback asyncCallback,
@@ -2341,7 +2285,7 @@ namespace Cloud
         /// Asynchronously starts querying the server for all versions of a given file
         /// </summary>
         /// <param name="aCallback">Callback method to fire when operation completes</param>
-        /// <param name="aState">Userstate to pass when firing async callback</param>
+        /// <param name="aState">User state to pass when firing async callback</param>
         /// <param name="fileServerId">Unique id to the file on the server</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
@@ -2365,7 +2309,7 @@ namespace Cloud
         /// Asynchronously starts querying the server for all versions of a given file
         /// </summary>
         /// <param name="aCallback">Callback method to fire when operation completes</param>
-        /// <param name="aState">Userstate to pass when firing async callback</param>
+        /// <param name="aState">User state to pass when firing async callback</param>
         /// <param name="fileServerId">Unique id to the file on the server</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <param name="includeDeletedVersions">(optional) whether to include file versions which are deleted</param>
@@ -2392,7 +2336,7 @@ namespace Cloud
         /// Asynchronously starts querying the server for all versions of a given file
         /// </summary>
         /// <param name="aCallback">Callback method to fire when operation completes</param>
-        /// <param name="aState">Userstate to pass when firing async callback</param>
+        /// <param name="aState">User state to pass when firing async callback</param>
         /// <param name="fileServerId">Unique id to the file on the server</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <param name="pathToFile">Full path to the file where it would be placed locally within the sync root</param>
@@ -2414,7 +2358,7 @@ namespace Cloud
         /// Asynchronously starts querying the server for all versions of a given file
         /// </summary>
         /// <param name="aCallback">Callback method to fire when operation completes</param>
-        /// <param name="aState">Userstate to pass when firing async callback</param>
+        /// <param name="aState">User state to pass when firing async callback</param>
         /// <param name="fileServerId">Unique id to the file on the server</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <param name="pathToFile">Full path to the file where it would be placed locally within the sync root</param>
@@ -2438,7 +2382,7 @@ namespace Cloud
         /// Asynchronously starts querying the server for all versions of a given file
         /// </summary>
         /// <param name="aCallback">Callback method to fire when operation completes</param>
-        /// <param name="aState">Userstate to pass when firing async callback</param>
+        /// <param name="aState">User state to pass when firing async callback</param>
         /// <param name="fileServerId">Unique id to the file on the server</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <param name="pathToFile">Full path to the file where it would be placed locally within the sync root</param>
@@ -2461,7 +2405,7 @@ namespace Cloud
         /// Asynchronously starts querying the server for all versions of a given file
         /// </summary>
         /// <param name="aCallback">Callback method to fire when operation completes</param>
-        /// <param name="aState">Userstate to pass when firing async callback</param>
+        /// <param name="aState">User state to pass when firing async callback</param>
         /// <param name="fileServerId">Unique id to the file on the server</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <param name="pathToFile">Full path to the file where it would be placed locally within the sync root</param>
@@ -2613,7 +2557,7 @@ namespace Cloud
         /// via the completion callback.
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
-        /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing the async callback above.</param>
         /// <param name="pageNumber">Beginning page number.  The first page is page 1.</param>
         /// <param name="itemsPerPage">Items per page.</param>
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
@@ -2667,7 +2611,7 @@ namespace Cloud
         /// via the completion callback.
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
-        /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing the async callback above.</param>
         /// <param name="pageNumber">Beginning page number.  The first page is page 1.</param>
         /// <param name="itemsPerPage">Items per page.</param>
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
@@ -2721,7 +2665,7 @@ namespace Cloud
         /// via the completion callback.
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
-        /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing the async callback above.</param>
         /// <param name="pageNumber">Beginning page number.  The first page is page 1.</param>
         /// <param name="itemsPerPage">Items per page.</param>
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
@@ -2775,7 +2719,7 @@ namespace Cloud
         /// via the completion callback.
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
-        /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing the async callback above.</param>
         /// <param name="pageNumber">Beginning page number.  The first page is page 1.</param>
         /// <param name="itemsPerPage">Items per page.</param>
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
@@ -2808,7 +2752,7 @@ namespace Cloud
         /// Query document items from the syncbox.
         /// </summary>
         /// <param name="completionCallback">Callback method to fire when a page of items is complete.  Returns the result.</param>
-        /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion callback above is fired.</param>
+        /// <param name="completionCallbackUserState">User state to be passed whenever the completion callback above is fired.</param>
         /// <param name="pageNumber">Beginning page number.  The first page is page 1.</param>
         /// <param name="itemsPerPage">Items per page.</param>
         /// <param name="items">(output) The resulting file items.</param>
@@ -2831,7 +2775,7 @@ namespace Cloud
         /// via the completion callback.
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
-        /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing the async callback above.</param>
         /// <param name="pageNumber">Beginning page number.  The first page is page 1.</param>
         /// <param name="itemsPerPage">Items per page.</param>
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
@@ -2885,7 +2829,7 @@ namespace Cloud
         /// via the completion callback.
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
-        /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing the async callback above.</param>
         /// <param name="pageNumber">Beginning page number.  The first page is page 1.</param>
         /// <param name="itemsPerPage">Items per page.</param>
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
@@ -2939,7 +2883,7 @@ namespace Cloud
         /// via the completion callback.
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
-        /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing the async callback above.</param>
         /// <param name="pageNumber">Beginning page number.  The first page is page 1.</param>
         /// <param name="itemsPerPage">Items per page.</param>
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
@@ -2992,7 +2936,7 @@ namespace Cloud
         /// Asynchronously starts retrieving the <CLFileItems>s of all of the file items contained in the syncbox that have the specified file extensions.
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
-        /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing the async callback above.</param>
         /// <param name="pageNumber">Beginning page number.  The first page is page 1.</param>
         /// <param name="itemsPerPage">Items per page.</param>
         /// <param name="extensions">The array of file extensions the item type should belong to. I.E txt, jpg, pdf, etc.</param>
@@ -3052,7 +2996,7 @@ namespace Cloud
         /// Asynchronously starts retrieving the specified number of recently modified files (<CLFileItems>s).
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
-        /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing the async callback above.</param>
         /// <param name="pageNumber">Beginning page number.  The first page is page 1.</param>
         /// <param name="itemsPerPage">Items per page.</param>
         /// <param name="sinceDate">(optional) null to retrieve all of the recents, or specify a date to retrieve items from that date forward.</param>
@@ -3111,7 +3055,7 @@ namespace Cloud
         /// Asynchronously starts querying folder contents from the cloud at a particular path.
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when operation completes</param>
-        /// <param name="asyncCallbackUserState">Userstate to pass when firing async callback</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing async callback</param>
         /// <param name="path">Full path of the folder that would be on disk in the syncbox.</param>
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginGetFolderContents(AsyncCallback asyncCallback, object asyncCallbackUserState, string path)
@@ -3163,7 +3107,7 @@ namespace Cloud
         /// Asynchronously starts querying folder hierarchy with optional path
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when operation completes</param>
-        /// <param name="asyncCallbackState">Userstate to pass when firing async callback</param>
+        /// <param name="asyncCallbackState">User state to pass when firing async callback</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginGetFolderHierarchy(AsyncCallback asyncCallback,
@@ -3181,7 +3125,7 @@ namespace Cloud
         /// Asynchronously starts querying folder hierarchy with optional path
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when operation completes</param>
-        /// <param name="asyncCallbackState">Userstate to pass when firing async callback</param>
+        /// <param name="asyncCallbackState">User state to pass when firing async callback</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <param name="hierarchyRoot">(optional) root path of hierarchy query</param>
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
@@ -3250,7 +3194,7 @@ namespace Cloud
         /// Asynchronously starts getting the usage information for this syncbox from the cloud.
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when operation completes</param>
-        /// <param name="asyncCallbackUserState">Userstate to pass as a parameter when firing async callback</param>
+        /// <param name="asyncCallbackUserState">User state to pass as a parameter when firing async callback</param>
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginGetDataUsage(AsyncCallback asyncCallback, object asyncCallbackUserState)
         {
@@ -3320,7 +3264,7 @@ namespace Cloud
         /// Asynchronously updates the extended metadata on a sync box
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when operation completes</param>
-        /// <param name="asyncCallbackState">Userstate to pass when firing async callback</param>
+        /// <param name="asyncCallbackState">User state to pass when firing async callback</param>
         /// <param name="metadata">string keys to serializable object values to store as extra metadata to the sync box</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
@@ -3340,7 +3284,7 @@ namespace Cloud
         /// Asynchronously updates the extended metadata on a sync box
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when operation completes</param>
-        /// <param name="asyncCallbackState">Userstate to pass when firing async callback</param>
+        /// <param name="asyncCallbackState">User state to pass when firing async callback</param>
         /// <param name="metadata">string keys to serializable object values to store as extra metadata to the sync box</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
@@ -3410,8 +3354,8 @@ namespace Cloud
         /// Asynchronously updates the storage plan for a syncbox in the syncbox.
         /// Updates this object's StoragePlanId property.
         /// </summary>
-        /// <param name="callback">Callback method to fire when operation completes</param>
-        /// <param name="asyncCallbackUserState">Userstate to pass as a parameter when firing async callback</param>
+        /// <param name="asyncCallback">Callback method to fire when operation completes</param>
+        /// <param name="asyncCallbackUserState">User state to pass as a parameter when firing async callback</param>
         /// <param name="storagePlan">The new storage plan to use for this syncbox)</param>
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginUpdateStoragePlan(AsyncCallback asyncCallback, object asyncCallbackUserState, CLStoragePlan storagePlan)
@@ -3490,16 +3434,12 @@ namespace Cloud
         /// Asynchronously starts changing the friendly name of this syncbox.  Updates the information in this syncbox object.
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
-        /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
-        /// <param name="completionCallback">Callback method to fire when a page of items is complete.  Return the result.</param>
-        /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion callback above is fired.</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing the async callback above.</param>
         /// <param name="friendlyName">The new friendly name of this syncbox)</param>
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginUpdateFriendlyName<T>(
             AsyncCallback asyncCallback,
             object asyncCallbackUserState,
-            Action<JsonContracts.SyncboxResponse, T> completionCallback,
-            T completionCallbackUserState,
             string friendlyName)
         {
             CheckDisposed(true);
@@ -3533,14 +3473,9 @@ namespace Cloud
         /// <summary>
         /// Changes the friendly name of this syncbox.  Updates the information in this syncbox object.
         /// </summary>
-        /// <param name="completionCallback">Callback method to fire when a page of items is complete.  Return the result.</param>
-        /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion callback above is fired.</param>
-        /// <param name="reservedForActiveSync">true: Live sync is active.  User calls are not allowed.</param>
         /// <param name="friendlyName">The new friendly name of this syncbox)</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError UpdateFriendlyName<T>(
-            Action<JsonContracts.SyncboxResponse, T> completionCallback,
-            T completionCallbackUserState,
             string friendlyName)
         {
             CheckDisposed(true);
@@ -3578,7 +3513,7 @@ namespace Cloud
         /// Asynchronously gets the status of this Syncbox.
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when operation completes</param>
-        /// <param name="callbackUserState">Userstate to pass when firing async callback</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing async callback</param>
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginGetCurrentStatus(AsyncCallback asyncCallback, object asyncCallbackUserState)
         {
@@ -3617,7 +3552,6 @@ namespace Cloud
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            JsonContracts.SyncboxStatusResponse response;
             return httpRestClient.GetCurrentStatus(new Action<JsonContracts.SyncboxStatusResponse, object>(OnStatusCompletion), null);
         }
 
@@ -3651,6 +3585,8 @@ namespace Cloud
         /// <remarks>The path may be set only once.</remarks>
         public CLError UpdatePath(string path)
         {
+            CheckDisposed();
+
             CLError errorFromSet = UpdatePathInternal(path, shouldUpdateSyncboxStatusFromServer: true);
             return errorFromSet;
         }

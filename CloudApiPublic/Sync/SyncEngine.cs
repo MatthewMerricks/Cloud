@@ -135,7 +135,7 @@ namespace Cloud.Sync
         /// <param name="httpRestClient">Http client for REST communication</param>
         /// <param name="engine">(output) Created SyncEngine</param>
         /// <param name="statusUpdated">(optional) Callback to fire upon update of the running status</param>
-        /// <param name="statusUpdatedUserState">(optional) Userstate to pass to the statusUpdated callback</param>
+        /// <param name="statusUpdatedUserState">(optional) User state to pass to the statusUpdated callback</param>
         /// <param name="HttpTimeoutMilliseconds">(optional) Milliseconds to wait before presuming communication failure</param>
         /// <param name="MaxNumberOfFailureRetries">(optional) Number of times to retry an event dependency tree before stopping</param>
         /// <param name="MaxNumberOfNotFounds">(optional) Number of times to retry an event that keeps getting a not found error before presuming the event was cancelled out, should be less than MaxNumberOfFailureRetries</param>

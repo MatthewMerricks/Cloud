@@ -697,7 +697,7 @@ namespace Cloud.FileMonitor
         /// <param name="indexer">Created and initialized but not started SQLIndexer</param>
         /// <param name="httpRestClient">Client for Http REST communication</param>
         /// <param name="StatusUpdated">Callback to fire upon update of the running status</param>
-        /// <param name="StatusUpdatedUserState">Userstate to pass to the statusUpdated callback</param>
+        /// <param name="StatusUpdatedUserState">User state to pass to the statusUpdated callback</param>
         /// <param name="newAgent">(output) the return MonitorAgent created by this method</param>
         /// <param name="syncEngine">(output) the return SyncEngine which is also created with the combination of the input SQLIndexer indexer and the output MonitorAgent</param>
         /// <param name="debugMemory">Whether memory of the FileMonitor will be debugged</param>
@@ -4778,7 +4778,7 @@ namespace Cloud.FileMonitor
                                     // start delayed processing of file change
                                     castState.Item1.ProcessAfterDelay(
                                         castState.Item2,// Callback which fires on process timer completion (on a new thread)
-                                        null,// Userstate if needed on callback (unused)
+                                        null,// User state if needed on callback (unused)
                                         castState.Item3,// processing delay to wait for more events on this file
                                         castState.Item4);// number of processing delay resets before it will process the file anyways
                                 }
@@ -4796,7 +4796,7 @@ namespace Cloud.FileMonitor
                         // start delayed processing of file change
                         toDelay.ProcessAfterDelay(
                             ProcessFileChange,// Callback which fires on process timer completion (on a new thread)
-                            null,// Userstate if needed on callback (unused)
+                            null,// User state if needed on callback (unused)
                             ProcessingDelayInMilliseconds,// processing delay to wait for more events on this file
                             ProcessingDelayMaxResets);// number of processing delay resets before it will process the file anyways
                     }
@@ -5303,7 +5303,7 @@ namespace Cloud.FileMonitor
         /// EventHandler for processing a file change after its delay completed
         /// </summary>
         /// <param name="sender">The file change itself</param>
-        /// <param name="state">Userstate, if provided before the delayed processing</param>
+        /// <param name="state">User state, if provided before the delayed processing</param>
         /// <param name="remainingOperations">Number of operations remaining across all FileChange (via DelayProcessable)</param>
         private void ProcessFileChange(FileChange sender, object state, int remainingOperations)
         {

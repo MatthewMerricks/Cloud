@@ -339,7 +339,7 @@ namespace Cloud.CLSync
         /// Asynchronously starts downloading a file representing this CLFileItem object from the cloud.
         /// </summary>
         /// <param name="callback">Callback method to fire when operation completes</param>
-        /// <param name="callbackUserState">Userstate to pass when firing async callback</param>
+        /// <param name="callbackUserState">User state to pass when firing async callback</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
         public IAsyncResult BeginDownloadFile(AsyncCallback callback, object callbackUserState)
         {
