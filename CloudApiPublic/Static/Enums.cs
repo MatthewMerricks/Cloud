@@ -853,15 +853,14 @@ namespace Cloud.Static
     }
 
     /// <summary>
-    /// Used as a parameter to CLSyncBox.BeginSync.  These values describe how the syncbox will be synced:
+    /// Used as a parameter to CLSyncbox.StartLiveSync.  These values describe how the syncbox will be synced:
     ///   - CLSyncModeLive: All files, folders and metadata will be synced all the time (live).
-    ///   - CLSyncModeLiveWithShellExt: As above, with shell extension (badging).
-    ///   - CLSyncModeOnDemand: Only the metadata is synced.  File downloads are on-demand.
+    ///   - CLSyncModeLiveWithBadgingEnabled: As above, with shell extension (badging).
     /// </summary>
     public enum CLSyncMode : int
     {
         CLSyncModeLive,
-        CLSyncModeLiveWithShellExt
+        CLSyncModeLiveWithBadgingEnabled
     }
 
     /// <summary>
