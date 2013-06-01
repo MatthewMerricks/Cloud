@@ -1206,6 +1206,8 @@ namespace Cloud.FileMonitor
                                     recurseFolderCreationToRoot.TypedData.toCreate.Value = toApply.NewPath.Parent;
                                     recurseFolderCreationToRoot.Process();
 
+                                    bool isFileMoveFromTempFolder;
+
                                     // check if move old path is outside of the cloud directory (temp download directory) in order to bypass updown checking and locking
                                     if (toApply.Metadata.HashableProperties.IsFolder
                                         || toApply.OldPath.Contains(rootPath, insensitiveNameSearch: true))
@@ -1221,6 +1223,12 @@ namespace Cloud.FileMonitor
 
                                         recurseHierarchyAndAddSyncFromsToHashSet.TypedData.innerHierarchy.Value = renamedHierarchy;
                                         recurseHierarchyAndAddSyncFromsToHashSet.Process();
+
+                                        isFileMoveFromTempFolder = false;
+                                    }
+                                    else
+                                    {
+                                        isFileMoveFromTempFolder = true;
                                     }
 
                                     foreach (FileChange matchedDown in recurseHierarchyAndAddSyncFromsToHashSet.TypedData.matchedDowns)
@@ -1283,12 +1291,23 @@ namespace Cloud.FileMonitor
                                             string targetFileFullPath = toApply.NewPath.ToString();
                                             string sourceFileFullPath = toApply.OldPath.ToString();
                                             string backupFileFullPath = Helpers.GetTempFileDownloadPath(_syncbox.CopiedSettings, _syncbox.SyncboxId) + "\\" + Guid.NewGuid().ToString();
-                                            CLError errorFromMoveDownloadedFile = Helpers.MoveDownloadedFile(sourceFileFullPath, targetFileFullPath, backupFileFullPath);
-                                            if (errorFromMoveDownloadedFile != null)
+
+                                            if (isFileMoveFromTempFolder)
                                             {
-                                                throw new AggregateException("Failed to apply SyncFrom change", errorFromMoveDownloadedFile.Exceptions);
+                                                CLError errorFromMoveDownloadedFile = Helpers.MoveDownloadedFile(sourceFileFullPath, targetFileFullPath, backupFileFullPath);
+                                                if (errorFromMoveDownloadedFile != null)
+                                                {
+                                                    throw new AggregateException("Failed to apply SyncFrom change: moving a completed download", errorFromMoveDownloadedFile.Exceptions);
+                                                }
                                             }
-                                        }  // end else file rename
+                                            else // file move, but not from temp folder
+                                            {
+                                                Helpers.FileMoveOrReplace(
+                                                    sourceFileFullPath,
+                                                    targetFileFullPath,
+                                                    backupFileFullPath);
+                                            }
+                                        }
 
                                         foreach (FileChange matchedDown in recurseHierarchyAndAddSyncFromsToHashSet.TypedData.matchedDowns)
                                         {
@@ -1903,20 +1922,31 @@ namespace Cloud.FileMonitor
 
                             if (DisposeChanges == null)
                             {
-                                DisposeChanges = new List<FileChangeWithDependencies>(new FileChangeWithDependencies[] { EarlierChange });
+                                DisposeChanges = new List<FileChangeWithDependencies>(new FileChangeWithDependencies[] { CurrentEarlierChange });
                             }
                             else
                             {
-                                DisposeChanges.Add(EarlierChange);
+                                DisposeChanges.Add(CurrentEarlierChange);
                             }
 
-                            PulledChanges.Add(EarlierChange);
+                            PulledChanges.Add(CurrentEarlierChange);
 
-                            foreach (FileChangeWithDependencies laterParent in EnumerateDependenciesFromFileChangeDeepestLevelsFirst(LaterChange)
-                                .OfType<FileChangeWithDependencies>()
-                                .Where(currentParentCheck => currentParentCheck.Dependencies.Contains(EarlierChange)))
+                            FileChangeWithDependencies laterParent =
+                                EnumerateDependenciesFromFileChangeDeepestLevelsFirst(EarlierChange)
+                                    .OfType<FileChangeWithDependencies>()
+                                    .Where(currentParentCheck => currentParentCheck.Dependencies.Contains(CurrentEarlierChange))
+                                    .SingleOrDefault();
+
+                            if (laterParent != null)
                             {
-                                laterParent.RemoveDependency(EarlierChange);
+                                laterParent.RemoveDependency(CurrentEarlierChange);
+
+                                EarlierChange.AddDependency(LaterChange);
+                                if (DependencyDebugging)
+                                {
+                                    Helpers.CheckFileChangeDependenciesForDuplicates(EarlierChange);
+                                }
+                                PulledChanges.Add(LaterChange);
                             }
 
                             ContinueProcessing = false;
