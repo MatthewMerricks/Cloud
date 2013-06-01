@@ -1247,7 +1247,6 @@ namespace Cloud
         /// <param name="credentials">The credentials to use for this request.</param>
         /// <param name="syncbox">(output) The created syncbox object.</param>
         /// <param name="path">(optional) The path on the local disk to associate with this syncbox.  The path is used only for live sync.</param>
-        /// <param name="syncbox">(output) Response object from communication</param>
         /// <param name="friendlyName">(optional) The friendly name of the Syncbox.</param>
         /// <param name="settings">(optional) The settings to use with this method</param>
         /// <param name="getNewCredentialsCallback">(optional) The callback function that will provide new credentials with temporary credentials expire.</param>
@@ -1423,7 +1422,7 @@ namespace Cloud
         /// <summary>
         /// Delete a Syncbox in the syncbox.  This is a synchronous method.
         /// </summary>
-        /// <param name="syncboxId">the ID of the syncbox to delete.
+        /// <param name="syncboxId">the ID of the syncbox to delete.</param>
         /// <param name="credentials">The credentials to use for this request.</param>
         /// <param name="settings">(optional) the settings to use with this method</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
@@ -1491,20 +1490,20 @@ namespace Cloud
         /// <summary>
         /// Asynchronously starts listing syncboxes in the syncbox.
         /// </summary>
-        /// <param name="asyncCallback">Callback method to fire when operation completes.  Can be null.</param>
-        /// <param name="asyncCallbackUserState">Userstate to pass as a parameter to the callback when it is fired.  Can be null.</param>
-        /// <param name="completionCallback">Callback method to fire when the operation is complete.  Returns the result.</param>
-        /// <param name="completionCallbackUserState">Userstate to be passed to the completion callback above when it is fired.</param>
+        /// <param name="asyncCallback">Callback method to fire when operation completes.</param>
+        /// <param name="asyncCallbackUserState">Userstate to pass as a parameter to the callback when it is fired.</param>
         /// <param name="credentials">The credentials to use with this request.</param>
         /// <param name="settings">(optional) settings to use with this method.</param>
+        /// <param name="getNewCredentialsCallback">(optional) The delegate to call for getting new temporary credentials.</param>
+        /// <param name="getNewCredentialsCallbackUserState">(optional) The user state to pass to the delegate above.</param>
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public static IAsyncResult BeginListAllSyncboxes(
             AsyncCallback asyncCallback,
             object asyncCallbackUserState,
-            CLListSyncboxesCompletionCallback completionCallback,
-            object completionCallbackUserState,
             CLCredentials credentials,
-            ICLCredentialsSettings settings = null)
+            ICLCredentialsSettings settings = null,
+            Helpers.ReplaceExpiredCredentials getNewCredentialsCallback = null,
+            object getNewCredentialsCallbackUserState = null)
         {
             Helpers.CheckHalted();
 
@@ -1516,10 +1515,10 @@ namespace Cloud
                     toReturn = new GenericAsyncResult<SyncboxListResult>(
                         asyncCallback,
                         asyncCallbackUserState),
-                    completionCallback = completionCallback,
-                    completionCallbackUserState = completionCallbackUserState,
                     credentials = credentials,
-                    settings = settings
+                    settings = settings,
+                    getNewCredentialsCallback = getNewCredentialsCallback,
+                    getNewCredentialsCallbackUserState = getNewCredentialsCallbackUserState,
                 },
                 (Data, errorToAccumulate) =>
                 {
@@ -1528,11 +1527,13 @@ namespace Cloud
                     try
                     {
                         // Call the synchronous version of this method.
+                        CLSyncbox[] returnedSyncboxes;
                         CLError processError = ListAllSyncboxes(
-                            completionCallback,
-                            completionCallbackUserState,
                             Data.credentials,
-                            Data.settings);
+                            out returnedSyncboxes,
+                            Data.settings,
+                            Data.getNewCredentialsCallback,
+                            Data.getNewCredentialsCallbackUserState);
 
                         Data.toReturn.Complete(
                             new SyncboxListResult(
@@ -1571,19 +1572,16 @@ namespace Cloud
         /// <summary>
         /// List syncboxes in the syncbox for these credentials.  This is a synchronous method.
         /// </summary>
-        /// <param name="completionCallback">Callback method to fire when the operation is complete.  Returns the result.</param>
-        /// <param name="completionCallbackUserState">Userstate to be passed to the completion callback above when it is fired.</param>
         /// <param name="credentials">The credentials to use for this request.</param>
-        /// <param name="response">(output) response object from communication</param>
+        /// <param name="returnedSyncboxes">The returned array of syncboxes.</param>
         /// <param name="settings">(optional) the settings to use with this method</param>
-        /// <param name="getNewCredentialsCallback">The delegate to call for getting new temporary credentials.</param>
-        /// <param name="getNewCredentialsCallbackUserState">The user state to pass to the delegate above.</param>
+        /// <param name="getNewCredentialsCallback">(optional) The delegate to call for getting new temporary credentials.</param>
+        /// <param name="getNewCredentialsCallbackUserState">(optional) The user state to pass to the delegate above.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
         /// <remarks>The response array may be null, empty, or may contain null items.</remarks>
         public static CLError ListAllSyncboxes(
-            CLListSyncboxesCompletionCallback completionCallback,
-            object completionCallbackUserState,
             CLCredentials credentials,
+            out CLSyncbox[] returnedSyncboxes,
             ICLCredentialsSettings settings = null,
             Helpers.ReplaceExpiredCredentials getNewCredentialsCallback = null,
             object getNewCredentialsCallbackUserState = null)
@@ -1625,15 +1623,12 @@ namespace Cloud
                         }
                         else
                         {
-                            listSyncboxes.Add(null);
+                            throw new NullReferenceException(Resources.ExceptionCLHttpRestWithoutMetadata);  //&&&& fix this
                         }
                     }
 
-                    // Drive the completion callback to return the results.
-                    if (completionCallback != null)
-                    {
-                        completionCallback(listSyncboxes.ToArray(), completionCallbackUserState);
-                    }
+                    // Return the results.
+                    returnedSyncboxes = listSyncboxes.ToArray();
                 }
                 else
                 {
@@ -1643,6 +1638,7 @@ namespace Cloud
             }
             catch (Exception ex)
             {
+                returnedSyncboxes = Helpers.DefaultForType<CLSyncbox[]>();
                 return ex;
             }
             return null;
