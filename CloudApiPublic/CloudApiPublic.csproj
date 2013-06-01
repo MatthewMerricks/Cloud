@@ -135,9 +135,7 @@
     <Compile Include="CLSync\CLFileItemTransferStatusDelegate.cs" />
     <Compile Include="CLSync\CLSyncboxCallbacks\CLFileItemCompletionCallback.cs" />
     <Compile Include="CLSync\CLSyncbox.cs" />
-    <Compile Include="CLSync\CLSyncboxCallbacks\CLCreateSyncboxCompletionCallback.cs" />
     <Compile Include="CLSync\CLSyncboxCallbacks\CLListSyncboxesCompletionCallback.cs" />
-    <Compile Include="CLSync\CLSyncboxCallbacks\CLSingleFileItemCompletionCallback.cs" />
     <Compile Include="CLSync\CLSyncboxParameters\AddFolderItemParams.cs" />
     <Compile Include="CLSync\CLSyncboxParameters\AddFileItemParams.cs" />
     <Compile Include="CLSync\CLSyncboxParameters\RenameItemParams.cs" />

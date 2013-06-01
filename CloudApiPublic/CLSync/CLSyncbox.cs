@@ -1153,8 +1153,6 @@ namespace Cloud
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when the async operation completes.  Can be null.</param>
         /// <param name="asyncCallbackUserState">Userstate to pass to the async callback when it is fired.  Can be null.</param>
-        /// <param name="completionCallback">Callback method to fire when the operation is complete.  Returns the result.</param>
-        /// <param name="completionCallbackUserState">Userstate to be passed to the completion callback above when it is fired.</param>
         /// <param name="plan">The storage plan to use with this Syncbox.</param>
         /// <param name="credentials">The credentials to use with this request.</param>
         /// <param name="path">(optional) The full path of the folder on disk to associate with this syncbox.  The path is used only for live sync.</param>
@@ -1166,8 +1164,6 @@ namespace Cloud
         public static IAsyncResult BeginCreateSyncbox(
                     AsyncCallback asyncCallback,
                     object asyncCallbackUserState,
-                    CLCreateSyncboxCompletionCallback completionCallback,
-                    object completionCallbackUserState,
                     CLStoragePlan plan,
                     CLCredentials credentials,
                     string path = null,
@@ -1178,22 +1174,6 @@ namespace Cloud
         {
             Helpers.CheckHalted();
 
-            // Fix up the path.  Use String.Empty if the user passed null.
-            if (path == null)
-            {
-                path = String.Empty;
-            }
-
-            // Check the parameters
-            if (plan == null)
-            {
-                throw new ArgumentNullException("plan must not be null");  //&&&& fix
-            }
-            if (credentials == null)
-            {
-                throw new ArgumentNullException("credentials must not be null");  //&&&& fix
-            }
-
             var asyncThread = DelegateAndDataHolderBase.Create(
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
                 new
@@ -1202,8 +1182,6 @@ namespace Cloud
                     toReturn = new GenericAsyncResult<CreateSyncboxResult>(
                         asyncCallback,
                         asyncCallbackUserState),
-                    completionCallback = completionCallback,
-                    completionCallbackUserState = completionCallbackUserState,
                     plan = plan,
                     friendlyName = friendlyName,
                     credentials = credentials,
@@ -1218,11 +1196,11 @@ namespace Cloud
                     try
                     {
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
+                        CLSyncbox syncbox;
                         CLError processError = CreateSyncbox(
-                            completionCallback,
-                            completionCallbackUserState,
                             Data.plan,
                             Data.credentials,
+                            out syncbox,
                             path,
                             Data.friendlyName,
                             Data.settings,
@@ -1265,10 +1243,9 @@ namespace Cloud
         /// <summary>
         /// Create a Syncbox in the syncbox for the current application.  This is a synchronous method.
         /// </summary>
-        /// <param name="completionCallback">Callback method to fire when the operation is complete.  Returns the result.</param>
-        /// <param name="completionCallbackUserState">Userstate to be passed to the completion callback above when it is fired.</param>
         /// <param name="plan">The storage plan to use with this Syncbox.</param>
         /// <param name="credentials">The credentials to use for this request.</param>
+        /// <param name="syncbox">(output) The created syncbox object.</param>
         /// <param name="path">(optional) The path on the local disk to associate with this syncbox.  The path is used only for live sync.</param>
         /// <param name="syncbox">(output) Response object from communication</param>
         /// <param name="friendlyName">(optional) The friendly name of the Syncbox.</param>
@@ -1277,10 +1254,9 @@ namespace Cloud
         /// <param name="getNewCredentialsCallbackUserState">(optional) The user state that will be passed as a parameter to the callback function above.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public static CLError CreateSyncbox(
-                    CLCreateSyncboxCompletionCallback completionCallback,
-                    object completionCallbackUserState,
                     CLStoragePlan plan,
                     CLCredentials credentials,
+                    out CLSyncbox syncbox,
                     string path = null,
                     string friendlyName = null,
                     ICLSyncSettings settings = null,
@@ -1350,22 +1326,17 @@ namespace Cloud
                 }
 
                 // Convert the response object to a CLSyncbox and return that.
-                CLSyncbox syncbox =  new CLSyncbox(
+                syncbox =  new CLSyncbox(
                     syncboxContract: responseFromServer.Syncbox,
                     credentials: credentials,
                     path: path,
                     settings: copiedSettings,
                     getNewCredentialsCallback: getNewCredentialsCallback,
                     getNewCredentialsCallbackUserState: getNewCredentialsCallbackUserState);
-
-                // Return the result
-                if (completionCallback != null)
-                {
-                    completionCallback(syncbox, completionCallbackUserState);
-                }
             }
             catch (Exception ex)
             {
+                syncbox = Helpers.DefaultForType<CLSyncbox>();
                 return ex;
             }
             return null;
@@ -3069,7 +3040,7 @@ namespace Cloud
         /// <param name="extensions">The array of file extensions the item type should belong to. I.E txt, jpg, pdf, etc.</param>
         /// <param name="items">(output) The resulting file items.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError AllItemsOfTypes(CLAllItemsCompletionCallback completionCallback, object completionCallbackUserState, long pageNumber, long itemsPerPage, out CLFileItem[] items, params string[] extensions)
+        public CLError AllItemsOfTypes(long pageNumber, long itemsPerPage, out CLFileItem[] items, params string[] extensions)
         {
             CheckDisposed(true);
 
