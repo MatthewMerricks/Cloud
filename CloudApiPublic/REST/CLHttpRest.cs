@@ -5299,26 +5299,11 @@ namespace Cloud.REST
             {
                 // check input parameters
 
-                if (relativePath == null)
+                if (string.IsNullOrEmpty(relativePath))
                 {
-                    throw new NullReferenceException(Resources.ExceptionCLHttpRestNullPath);
+                    relativePath = "/";         // assume the syncbox root
                 }
 
-                CLError pathError = Helpers.CheckForBadPath(relativePath);
-                if (pathError != null)
-                {
-                    throw new AggregateException("path is not in the proper format", pathError.Exceptions);
-                }
-
-                if (string.IsNullOrEmpty(_syncbox.Path))
-                {
-                    throw new NullReferenceException(Resources.CLHttpRestSyncboxPathCannotBeNull);
-                }
-
-                if (!relativePath.Contains(_syncbox.Path))
-                {
-                    throw new ArgumentException("path does not contain syncbox path");
-                }
                 if (!(_copiedSettings.HttpTimeoutMilliseconds > 0))
                 {
                     throw new ArgumentException(Resources.CLMSTimeoutMustBeGreaterThanZero);
@@ -5335,7 +5320,7 @@ namespace Cloud.REST
 
                         new KeyValuePair<string, string>(CLDefinitions.QueryStringDepth, ((byte)0).ToString()), // query string parameter for optional depth limit
 
-                        new KeyValuePair<string, string>(CLDefinitions.CLMetadataCloudPath, Uri.EscapeDataString(contentsRoot.GetRelativePath(_syncbox.Path, true) + "/")), // query string parameter for optional path with escaped value
+                        new KeyValuePair<string, string>(CLDefinitions.CLMetadataCloudPath, Uri.EscapeDataString(contentsRoot.ToString())), // query string parameter for optional path with escaped value
 
                         new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeDeleted, "false"), // query string parameter for not including deleted objects
 
@@ -5401,6 +5386,175 @@ namespace Cloud.REST
             return null;
         }
         #endregion  // end GetFolderContentsAtPath (Query the server for the folder contents at a path)
+
+        #region GetFolderContentsAtItem (Query the server for the folder contents at a folder item)
+        /// <summary>
+        /// Asynchronously starts querying folder contents at a relative syncbox path.
+        /// </summary>
+        /// <param name="asyncCallback">Callback method to fire when operation completes</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing async callback</param>
+        /// <param name="folderItem">The CLFileItem representing the folder to query.  If folderItem is null, the contents of the synbox root folder will be returned.</param>
+        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        public IAsyncResult BeginGetFolderContentsAtItem(
+            AsyncCallback asyncCallback,
+            object asyncCallbackUserState,
+            CLFileItem folderItem)
+        {
+            var asyncThread = DelegateAndDataHolderBase.Create(
+                // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
+                new
+                {
+                    // create the asynchronous result to return
+                    toReturn = new GenericAsyncResult<SyncboxItemsForFolderItemResult>(
+                        asyncCallback,
+                        asyncCallbackUserState),
+                    folderItem = folderItem,
+                },
+                (Data, errorToAccumulate) =>
+                {
+                    // The ThreadProc.
+                    // try/catch to process with the input parameters, on catch set the exception in the asyncronous result
+                    try
+                    {
+                        // declare the specific type of result for this operation
+                        CLFileItem[] response;
+                        // alloc and init the syncbox with the passed parameters, storing any error that occurs
+                        CLError processError = GetFolderContentsAtItem(
+                            Data.folderItem,
+                            out response);
+
+                        Data.toReturn.Complete(
+                            new SyncboxItemsForFolderItemResult(
+                                processError, // any error that may have occurred during processing
+                                response), // the specific type of result for this operation
+                            sCompleted: false); // processing did not complete synchronously
+                    }
+                    catch (Exception ex)
+                    {
+                        Data.toReturn.HandleException(
+                            ex, // the exception which was not handled correctly by the CLError wrapping
+                            sCompleted: false); // processing did not complete synchronously
+                    }
+                },
+                null);
+
+            // create the thread from a void (object) parameterized start which wraps the synchronous method call
+            (new Thread(new ThreadStart(asyncThread.VoidProcess))).Start(); // start the asynchronous processing thread which is attached to its data
+
+            // return the asynchronous result
+            return asyncThread.TypedData.toReturn;
+        }
+
+        /// <summary>
+        /// Finishes getting folder contents if it has not already finished via its asynchronous result and outputs the result,
+        /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
+        /// </summary>
+        /// <param name="aResult">The asynchronous result provided upon starting getting folder contents</param>
+        /// <param name="result">(output) The result from folder contents</param>
+        /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
+        public CLError EndGetFolderContentsAtItem(IAsyncResult aResult, out SyncboxItemsForFolderItemResult result)
+        {
+            return Helpers.EndAsyncOperation<SyncboxItemsForFolderItemResult>(aResult, out result);
+        }
+
+        /// <summary>
+        /// Queries server for folder contents at a relative syncbox path.
+        /// </summary>
+        /// <param name="folderItem">The CLFileItem representing the folder to query.  If folderItem is null, the syncbox root folder will be queried.</param>
+        /// <param name="items">(output) response object from communication</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        public CLError GetFolderContentsAtItem(
+            CLFileItem folderItem,
+            out CLFileItem[] items)
+        {
+            // try/catch to process the folder contents query, on catch return the error
+            try
+            {
+                // check input parameters
+                if (!(_copiedSettings.HttpTimeoutMilliseconds > 0))
+                {
+                    throw new ArgumentException(Resources.CLMSTimeoutMustBeGreaterThanZero);
+                }
+
+                // build the location of the folder contents retrieval method on the server dynamically
+                string serverMethodPath =
+                    CLDefinitions.MethodPathGetFolderContents + // path
+                    Helpers.QueryStringBuilder(new[]
+                    {
+                        // query string parameter for the current sync box id, should not need escaping since it should be an integer in string format
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringSyncboxId, _syncbox.SyncboxId.ToString()),
+
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringDepth, ((byte)0).ToString()), // query string parameter for optional depth limit
+
+                        // Fill in the uid only if it is supplied.
+                        (folderItem == null || folderItem.Uid == null)
+                            ? new KeyValuePair<string, string>()
+                            : new KeyValuePair<string, string>(CLDefinitions.CLMetadataServerId, Uri.EscapeDataString(folderItem.Uid)),
+
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeDeleted, "false"), // query string parameter for not including deleted objects
+
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeCount, "true"), // query string parameter for including counts within each folder
+
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeFolders, "true"), // query string parameter for including folders in the list
+
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeStoredOnly, "true") // query string parameter for including only stored items in the list
+                    });
+
+                // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
+                Helpers.RequestNewCredentialsInfo requestNewCredentialsInfo = new Helpers.RequestNewCredentialsInfo()
+                {
+                    ProcessingStateByThreadId = _processingStateByThreadId,
+                    GetNewCredentialsCallback = _getNewCredentialsCallback,
+                    GetNewCredentialsCallbackUserState = _getNewCredentialsCallbackUserState,
+                    GetCurrentCredentialsCallback = GetCurrentCredentialsCallback,
+                    SetCurrentCredentialsCallback = SetCurrentCredentialCallback,
+                };
+
+                // Communicate with the server to get the response.
+                JsonContracts.SyncboxFolderContentsResponse responseFromServer;
+                responseFromServer = Helpers.ProcessHttp<JsonContracts.SyncboxFolderContentsResponse>(
+                    null, // HTTP Get method does not have content
+                    CLDefinitions.CLMetaDataServerURL, // base domain is the MDS server
+                    serverMethodPath, // path to query folder contents (dynamic adding query string)
+                    Helpers.requestMethod.get, // query folder contents is a get
+                    _copiedSettings.HttpTimeoutMilliseconds, // time before communication timeout
+                    null, // not an upload or download
+                    Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
+                    _copiedSettings, // pass the copied settings
+                    _syncbox.SyncboxId, // pass the unique id of the sync box on the server
+                    requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
+                    true);
+
+                // Convert these items to the output array.
+                if (responseFromServer != null && responseFromServer.Objects != null)
+                {
+                    List<CLFileItem> listFileItems = new List<CLFileItem>();
+                    foreach (SyncboxMetadataResponse metadata in responseFromServer.Objects)
+                    {
+                        if (metadata != null)
+                        {
+                            listFileItems.Add(new CLFileItem(metadata, _syncbox));
+                        }
+                        else
+                        {
+                            throw new NullReferenceException(Resources.ExceptionCLHttpRestWithoutMetadata);
+                        }
+                    }
+                    items = listFileItems.ToArray();
+                }
+                else
+                {
+                    throw new NullReferenceException(Resources.ExceptionCLHttpRestWithoutMetadata);
+                }
+            }
+            catch (Exception ex)
+            {
+                items = Helpers.DefaultForType<CLFileItem[]>();
+                return ex;
+            }
+            return null;
+        }
+        #endregion  // end GetFolderContentsAtItem (Query the server for the folder contents at a folder item)
 
         #region UpdateSyncboxExtendedMetadata
         /// <summary>

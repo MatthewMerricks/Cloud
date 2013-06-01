@@ -1719,7 +1719,6 @@ namespace Cloud
         #region ItemForPath (Queries the syncbox for the item at a particular path)
         /// <summary>
         /// Asynchronously starts querying the syncbox for an item at a given path (must be specified) for existing metadata at that path; outputs a CLFileItem object.
-        /// Check for Deleted flag being true in case the metadata represents a deleted item.
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when operation completes</param>
         /// <param name="asyncCallbackUserState">User state to pass when firing async callback</param>
@@ -1755,7 +1754,6 @@ namespace Cloud
 
         /// <summary>
         /// Queries the syncbox at a given file or folder path (must be specified) for existing item metadata at that path.
-        /// Check for Deleted flag being true in case the metadata represents a deleted item.
         /// </summary>
         /// <param name="relativePath">Relative path in the syncbox.</param>
         /// <param name="item">(output) The returned item.</param>
@@ -1774,7 +1772,6 @@ namespace Cloud
         #region ItemsForPath (Queries the syncbox for the contents of the folder item at a particular path)
         /// <summary>
         /// Asynchronously starts querying the syncbox for the contents of a folder item at a given relative path in the syncbox. Outputs an array of CLFileItem objects.
-        /// Check for Deleted flag being true in case the metadata represents a deleted item.
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when operation completes</param>
         /// <param name="asyncCallbackUserState">User state to pass when firing async callback</param>
@@ -1810,7 +1807,6 @@ namespace Cloud
 
         /// <summary>
         /// Queries the syncbox at a given file or folder path (must be specified) for existing item metadata at that path.
-        /// Check for Deleted flag being true in case the metadata represents a deleted item.
         /// </summary>
         /// <param name="relativePath">Relative path in the syncbox.</param>
         /// <param name="items">(output) The returned items.</param>
@@ -1825,6 +1821,59 @@ namespace Cloud
         }
 
         #endregion  // end ItemsForPath (Queries the syncbox for the contents of the folder item at a particular path)
+
+        #region ItemsForFolderItem (Queries the syncbox for the contents of the folder item)
+        /// <summary>
+        /// Asynchronously starts querying the syncbox for the contents of a folder at the given folder item. Outputs an array of CLFileItem objects.
+        /// </summary>
+        /// <param name="asyncCallback">Callback method to fire when operation completes</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing async callback</param>
+        /// <param name="folderItem">The CLFileItem representing the folder to query.  If folderItem is null, the contents of the synbox root folder will be returned.</param>
+        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        public IAsyncResult BeginItemsForFolderItem(
+            AsyncCallback asyncCallback,
+            object asyncCallbackUserState,
+            CLFileItem folderItem)
+        {
+            CheckDisposed();
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.BeginGetFolderContentsAtItem(asyncCallback, asyncCallbackUserState, folderItem);
+        }
+
+        /// <summary>
+        /// Finishes quering the syncbox for the contents of a folder at the given folder item, if it has not already finished via its asynchronous result, and outputs the result,
+        /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
+        /// </summary>
+        /// <param name="asyncResult">The asynchronous result provided upon starting the metadata query</param>
+        /// <param name="result">(output) The result from the metadata query</param>
+        /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
+        public CLError EndItemsForFolderItem(IAsyncResult asyncResult, out SyncboxItemsForFolderItemResult result)
+        {
+            CheckDisposed();
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.EndGetFolderContentsAtItem(asyncResult, out result);
+        }
+
+        /// <summary>
+        /// Queries the syncbox for the contents of a folder at the given folder item.
+        /// </summary>
+        /// <param name="folderItem">The CLFileItem representing the folder to query.  If folderItem is null, the contents of the synbox root folder will be returned.</param>
+        /// <param name="items">(output) The returned items.</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        public CLError ItemsForFolderItem(CLFileItem folderItem, out CLFileItem[] items)
+        {
+            CheckDisposed(isOneOff: true);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.GetFolderContentsAtItem(folderItem, out items);
+        }
+
+        #endregion  // end ItemsForFolderItem (Queries the syncbox for the contents of the folder item)
 
         #region RenameFiles (Rename files in-place in the syncbox)
         /// <summary>
