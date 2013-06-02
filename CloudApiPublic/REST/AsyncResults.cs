@@ -800,6 +800,43 @@ namespace Cloud.REST
     /// <summary>
     /// Holds result properties
     /// </summary>
+    public sealed class SyncboxHierarchyOfFolderAtFolderItemResult
+    {
+        /// <summary>
+        /// The returned file or folder item.
+        /// </summary>
+        public CLFileItem[] Items
+        {
+            get
+            {
+                return _items;
+            }
+        }
+        private readonly CLFileItem[] _items;
+
+        /// <summary>
+        /// Any overall error which may have occurred during communication
+        /// </summary>
+        public CLError Error
+        {
+            get
+            {
+                return _error;
+            }
+        }
+        private readonly CLError _error;
+
+        // construct with all readonly properties
+        internal SyncboxHierarchyOfFolderAtFolderItemResult(CLError error, CLFileItem[] items)
+        {
+            this._error = error;
+            this._items = items;
+        }
+    }
+
+    /// <summary>
+    /// Holds result properties
+    /// </summary>
     public sealed class SyncboxGetCurrentStatusResult
     {
         /// <summary>

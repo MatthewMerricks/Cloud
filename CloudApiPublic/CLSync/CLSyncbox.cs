@@ -1984,6 +1984,61 @@ namespace Cloud
 
         #endregion  // end HierarchyOfFolderAtPath (Queries the syncbox for the folder hierarchy under the given folder path)
 
+        #region HierarchyOfFolderAtFolderItem (Query the server for the folder hierarchy at a folder item)
+        /// <summary>
+        /// Asynchronously starts querying the syncbox folder hierarchy at a particular folder item.
+        /// </summary>
+        /// <param name="asyncCallback">Callback method to fire when operation completes</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing async callback</param>
+        /// <param name="folderItem">The CLFileItem representing the folder to query.  If folderItem is null, the hierarchy of the synbox root folder will be returned.</param>
+        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        public IAsyncResult BeginHierarchyOfFolderAtFolderItem(
+            AsyncCallback asyncCallback,
+            object asyncCallbackUserState,
+            CLFileItem folderItem)
+        {
+            CheckDisposed();
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.BeginHierarchyOfFolderAtFolderItem(asyncCallback, asyncCallbackUserState, folderItem);
+        }
+
+        /// <summary>
+        /// Finishes getting the folder hierarchy if it has not already finished via its asynchronous result, and outputs the result,
+        /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
+        /// </summary>
+        /// <param name="asyncResult">The asynchronous result provided upon starting getting folder contents</param>
+        /// <param name="result">(output) The result from folder contents</param>
+        /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
+        public CLError EndHierarchyOfFolderAtFolderItem(IAsyncResult asyncResult, out SyncboxHierarchyOfFolderAtFolderItemResult result)
+        {
+            CheckDisposed();
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.EndHierarchyOfFolderAtFolderItem(asyncResult, out result);
+        }
+
+        /// <summary>
+        /// Queries the syncbox folder hierarchy at a particular folder item.
+        /// </summary>
+        /// <param name="folderItem">The CLFileItem representing the folder to query.  If folderItem is null, the syncbox root folder will be queried.</param>
+        /// <param name="items">(output) response object from communication</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        public CLError HierarchyOfFolderAtFolderItem(
+            CLFileItem folderItem,
+            out CLFileItem[] items)
+        {
+            CheckDisposed(isOneOff: true);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.HierarchyOfFolderAtFolderItem(folderItem, out items);
+        }
+
+        #endregion  // end HierarchyOfFolderAtFolderItem (Query the server for the folder hierarchy at a folder item)
+
         #region RenameFiles (Rename files in-place in the syncbox)
         /// <summary>
         /// Asynchronously starts renaming files in-place in the syncbox.  Each item completion will fire an asynchronous callback with the completion status or error for that item.
