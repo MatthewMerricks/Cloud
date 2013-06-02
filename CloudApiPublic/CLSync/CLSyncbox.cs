@@ -3253,9 +3253,9 @@ namespace Cloud
 
         #endregion  // end AllItemsOfTypes (Get file items with various extensions from this syncbox)
 
-        #region RecentFiles (Retrieves the specified number of recently modified <CLFileItems>s.)
+        #region RecentFilesSinceDate (Retrieves the specified number of recently modified <CLFileItems>s.)
         /// <summary>
-        /// Asynchronously starts retrieving the specified number of recently modified files (<CLFileItems>s).
+        /// Asynchronously starts retrieving the recently modified files (<CLFileItems>s) from the syncbox since a particular date.
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
         /// <param name="asyncCallbackUserState">User state to pass when firing the async callback above.</param>
@@ -3263,7 +3263,7 @@ namespace Cloud
         /// <param name="itemsPerPage">Items per page.</param>
         /// <param name="sinceDate">(optional) null to retrieve all of the recents, or specify a date to retrieve items from that date forward.</param>
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
-        public IAsyncResult BeginRecentFiles(
+        public IAsyncResult BeginRecentFilesSinceDate(
             AsyncCallback asyncCallback,
             object asyncCallbackUserState,
             long pageNumber,
@@ -3274,7 +3274,7 @@ namespace Cloud
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.BeginRecentFiles(asyncCallback, asyncCallbackUserState, pageNumber, itemsPerPage, sinceDate);
+            return httpRestClient.BeginRecentFilesSinceDate(asyncCallback, asyncCallbackUserState, pageNumber, itemsPerPage, sinceDate);
         }
 
         /// <summary>
@@ -3284,33 +3284,33 @@ namespace Cloud
         /// <param name="asyncResult">The asynchronous result provided upon starting the request</param>
         /// <param name="result">(output) An overall error which occurred during processing, if any</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndRecentFiles(IAsyncResult asyncResult, out SyncboxRecentFilesResult result)
+        public CLError EndRecentFilesSinceDate(IAsyncResult asyncResult, out SyncboxRecentFilesResult result)
         {
             CheckDisposed(true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.EndRecentFiles(asyncResult, out result);
+            return httpRestClient.EndRecentFilesSinceDate(asyncResult, out result);
         }
 
         /// <summary>
-        /// Retrieve the specified number of recently modified files (<CLFileItems>s).
+        /// Rretrieve the recently modified files (<CLFileItems>s) from the syncbox since a particular date.
         /// </summary>
         /// <param name="pageNumber">Beginning page number.  The first page is page 1.</param>
         /// <param name="itemsPerPage">Items per page.</param>
         /// <param name="items">(output) The retrieved items.</param>
         /// <param name="sinceDate">(optional) null to retrieve all of the recents, or specify a date to retrieve items from that date forward.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError RecentFiles(long pageNumber, long itemsPerPage, out CLFileItem[] items, Nullable<DateTime> sinceDate = null)
+        public CLError RecentFilesSinceDate(long pageNumber, long itemsPerPage, out CLFileItem[] items, Nullable<DateTime> sinceDate = null)
         {
             CheckDisposed(true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.RecentFiles(pageNumber, itemsPerPage, out items, sinceDate);
+            return httpRestClient.RecentFilesSinceDate(pageNumber, itemsPerPage, out items, sinceDate);
         }
 
-        #endregion  // end RecentFiles (Retrieves the specified number of recently modified <CLFileItems>s.)
+        #endregion  // end RecentFilesSincDate (Retrieves the specified number of recently modified <CLFileItems>s.)
 
         #region GetDataUsage (get the usage information for this syncbox from the cloud)
         /// <summary>

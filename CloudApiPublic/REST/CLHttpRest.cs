@@ -4816,9 +4816,9 @@ namespace Cloud.REST
 
         #endregion  // end AllItemsForTypes (Get file items with various extensions from this syncbox)
 
-        #region RecentFiles (Retrieves the specified number of recently modified <CLFileItems>s.)
+        #region RecentFilesSinceDate (Retrieves recently modified <CLFileItems>s since a particular date.)
         /// <summary>
-        /// Asynchronously starts retrieving the specified number of recently modified files (<CLFileItems>s).
+        /// Asynchronously starts retrieving the recently modified files (<CLFileItems>s) from the syncbox since a particular date.
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
         /// <param name="asyncCallbackUserState">User state to pass when firing the async callback above.</param>
@@ -4826,7 +4826,7 @@ namespace Cloud.REST
         /// <param name="itemsPerPage">Items per page.</param>
         /// <param name="sinceDate">(optional) null to retrieve all of the recents, or specify a date to retrieve items from that date forward.</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        internal IAsyncResult BeginRecentFiles(
+        internal IAsyncResult BeginRecentFilesSinceDate(
             AsyncCallback asyncCallback, 
             object asyncCallbackUserState, 
             long pageNumber, 
@@ -4853,7 +4853,7 @@ namespace Cloud.REST
                     {
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
                         CLFileItem[] items;
-                        CLError overallError = RecentFiles(
+                        CLError overallError = RecentFilesSinceDate(
                             pageNumber,
                             itemsPerPage,
                             out items,
@@ -4885,20 +4885,20 @@ namespace Cloud.REST
         /// <param name="asyncResult">The asynchronous result provided upon starting the request</param>
         /// <param name="result">(output) An overall error which occurred during processing, if any</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        internal CLError EndRecentFiles(IAsyncResult asyncResult, out SyncboxRecentFilesResult result)
+        internal CLError EndRecentFilesSinceDate(IAsyncResult asyncResult, out SyncboxRecentFilesResult result)
         {
             return Helpers.EndAsyncOperation<SyncboxRecentFilesResult>(asyncResult, out result);
         }
 
         /// <summary>
-        /// Retrieve the specified number of recently modified files (<CLFileItems>s).
+        /// Rretrieve the recently modified files (<CLFileItems>s) from the syncbox since a particular date.
         /// </summary>
         /// <param name="pageNumber">Beginning page number.  The first page is page 1.</param>
         /// <param name="itemsPerPage">Items per page.</param>
         /// <param name="items">(output) The retrieved items.</param>
         /// <param name="sinceDate">(optional) null to retrieve all of the recents, or specify a date to retrieve items from that date forward.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        internal CLError RecentFiles(long pageNumber, long itemsPerPage, out CLFileItem[] items, Nullable<DateTime> sinceDate = null)
+        internal CLError RecentFilesSinceDate(long pageNumber, long itemsPerPage, out CLFileItem[] items, Nullable<DateTime> sinceDate = null)
         {
             // try/catch to process the request,  On catch return the error
             try
@@ -5000,7 +5000,7 @@ namespace Cloud.REST
             return null;
         }
 
-        #endregion  // end RecentFiles (Retrieves the specified number of recently modified <CLFileItems>s.)
+        #endregion  // end RecentFilesSinceDate (Retrieves recently modified <CLFileItems>s since a particular date.)
 
         #region GetDataUsage (get the usage information for this syncbox)
         /// <summary>
