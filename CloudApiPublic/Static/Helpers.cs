@@ -3337,11 +3337,11 @@ namespace Cloud.Static
                     if (uploadDownload is uploadParams)
                     {
                         if (uploadDownload.StatusUpdate != null
-                            && uploadDownload.StatusUpdateId != null)
+                            && uploadDownload.StatusUpdateUserState != null)
                         {
                             try
                             {
-                                uploadDownload.StatusUpdate((Guid)uploadDownload.StatusUpdateId,
+                                uploadDownload.StatusUpdate((Guid)uploadDownload.StatusUpdateUserState,
                                     uploadDownload.ChangeToTransfer.EventId,
                                     uploadDownload.ChangeToTransfer.Direction,
                                     uploadDownload.RelativePathForStatus,
@@ -3468,11 +3468,11 @@ namespace Cloud.Static
                                     CopiedSettings.DeviceId); // pass in device id to allow filtering
 
                                 if (uploadDownload.StatusUpdate != null
-                                    && uploadDownload.StatusUpdateId != null)
+                                    && uploadDownload.StatusUpdateUserState != null)
                                 {
                                     try
                                     {
-                                        uploadDownload.StatusUpdate((Guid)uploadDownload.StatusUpdateId,
+                                        uploadDownload.StatusUpdate((Guid)uploadDownload.StatusUpdateUserState,
                                             uploadDownload.ChangeToTransfer.EventId,
                                             uploadDownload.ChangeToTransfer.Direction,
                                             uploadDownload.RelativePathForStatus,
@@ -3891,13 +3891,13 @@ namespace Cloud.Static
                         try
                         {
                             if (uploadDownload.StatusUpdate != null
-                                && uploadDownload.StatusUpdateId != null)
+                                && uploadDownload.StatusUpdateUserState != null)
                             {
                                 if (uploadDownload.RelativePathForStatus != null)
                                 {
                                     try
                                     {
-                                        uploadDownload.StatusUpdate((Guid)uploadDownload.StatusUpdateId,
+                                        uploadDownload.StatusUpdate((Guid)uploadDownload.StatusUpdateUserState,
                                             uploadDownload.ChangeToTransfer.EventId,
                                             uploadDownload.ChangeToTransfer.Direction,
                                             uploadDownload.RelativePathForStatus,
@@ -4020,11 +4020,11 @@ namespace Cloud.Static
                                         }
 
                                         if (uploadDownload.StatusUpdate != null
-                                            && uploadDownload.StatusUpdateId != null)
+                                            && uploadDownload.StatusUpdateUserState != null)
                                         {
                                             try
                                             {
-                                                uploadDownload.StatusUpdate((Guid)uploadDownload.StatusUpdateId,
+                                                uploadDownload.StatusUpdate((Guid)uploadDownload.StatusUpdateUserState,
                                                     uploadDownload.ChangeToTransfer.EventId,
                                                     uploadDownload.ChangeToTransfer.Direction,
                                                     uploadDownload.RelativePathForStatus,
@@ -4271,13 +4271,13 @@ namespace Cloud.Static
                     }
 
                     if (uploadDownload.StatusUpdate != null
-                        && uploadDownload.StatusUpdateId != null)
+                        && uploadDownload.StatusUpdateUserState != null)
                     {
                         try
                         {
                             if (uploadDownload.RelativePathForStatus != null)
                             {
-                                uploadDownload.StatusUpdate((Guid)uploadDownload.StatusUpdateId,
+                                uploadDownload.StatusUpdate((Guid)uploadDownload.StatusUpdateUserState,
                                     uploadDownload.ChangeToTransfer.EventId,
                                     uploadDownload.ChangeToTransfer.Direction,
                                     uploadDownload.RelativePathForStatus,
@@ -4802,14 +4802,14 @@ namespace Cloud.Static
             private readonly FileTransferStatusUpdateDelegate _statusUpdate;
 
 
-            public Nullable<Guid> StatusUpdateId
+            public object StatusUpdateUserState
             {
                 get
                 {
-                    return _statusUpdateId;
+                    return _statusUpdateUserState;
                 }
             }
-            private readonly Nullable<Guid> _statusUpdateId;
+            private readonly object _statusUpdateUserState;
 
             /// <summary>
             /// The constructor for this abstract base object with all parameters corresponding to all properties
@@ -4821,7 +4821,9 @@ namespace Cloud.Static
             /// <param name="ACallback">User-provided callback to fire upon asynchronous operation</param>
             /// <param name="AResult">Asynchronous result for firing async callbacks</param>
             /// <param name="ProgressHolder">Holder for a progress state which can be queried by the user</param>
-            public uploadDownloadParams(SendUploadDownloadStatus StatusCallback, FileChange ChangeToTransfer, CancellationTokenSource ShutdownToken, string SyncboxPath, AsyncCallback ACallback, IAsyncResult AResult, GenericHolder<TransferProgress> ProgressHolder, FileTransferStatusUpdateDelegate StatusUpdate, Nullable<Guid> StatusUpdateId)
+            /// <param name="StatusUpdate">A transfer status update callback for reporting upload status.  May be null.</param>
+            /// <param name="StatusUpdateUserState">The user contect to pass to the transfer status update callback above.  May be null.</param>
+            public uploadDownloadParams(SendUploadDownloadStatus StatusCallback, FileChange ChangeToTransfer, CancellationTokenSource ShutdownToken, string SyncboxPath, AsyncCallback ACallback, IAsyncResult AResult, GenericHolder<TransferProgress> ProgressHolder, FileTransferStatusUpdateDelegate StatusUpdate, object StatusUpdateUserState)
             {
                 // check for required parameters and error out if not set
 
@@ -4868,7 +4870,7 @@ namespace Cloud.Static
                 this._aResult = AResult;
                 this._progressHolder = ProgressHolder;
                 this._statusUpdate = StatusUpdate;
-                this._statusUpdateId = StatusUpdateId;
+                this._statusUpdateUserState = StatusUpdateUserState;
             }
         }
 
@@ -4950,10 +4952,12 @@ namespace Cloud.Static
             /// <param name="ACallback">User-provided callback to fire upon asynchronous operation</param>
             /// <param name="AResult">Asynchronous result for firing async callbacks</param>
             /// <param name="ProgressHolder">Holder for a progress state which can be queried by the user</param>
+            /// <param name="StatusUpdate">A transfer status update callback for reporting upload status.  May be null.</param>
+            /// <param name="StatusUpdateUserState">The user contect to pass to the transfer status update callback above.  May be null.</param>
             /// <param name="BeforeDownloadCallback">A non-required (possibly null) event handler for before a download starts</param>
             /// <param name="BeforeDownloadUserState">UserState object passed through as-is when the BeforeDownloadCallback handler is fired</param>
-            public downloadParams(AfterDownloadToTempFile AfterDownloadCallback, object AfterDownloadUserState, string TempDownloadFolderPath, SendUploadDownloadStatus StatusCallback, FileChange ChangeToTransfer, CancellationTokenSource ShutdownToken, string SyncboxPath, AsyncCallback ACallback, IAsyncResult AResult, GenericHolder<TransferProgress> ProgressHolder, FileTransferStatusUpdateDelegate StatusUpdate, Nullable<Guid> StatusUpdateId, BeforeDownloadToTempFile BeforeDownloadCallback = null, object BeforeDownloadUserState = null)
-                : base(StatusCallback, ChangeToTransfer, ShutdownToken, SyncboxPath, ACallback, AResult, ProgressHolder, StatusUpdate, StatusUpdateId)
+            public downloadParams(AfterDownloadToTempFile AfterDownloadCallback, object AfterDownloadUserState, string TempDownloadFolderPath, SendUploadDownloadStatus StatusCallback, FileChange ChangeToTransfer, CancellationTokenSource ShutdownToken, string SyncboxPath, AsyncCallback ACallback, IAsyncResult AResult, GenericHolder<TransferProgress> ProgressHolder, FileTransferStatusUpdateDelegate StatusUpdate, object StatusUpdateUserState, BeforeDownloadToTempFile BeforeDownloadCallback = null, object BeforeDownloadUserState = null)
+                : base(StatusCallback, ChangeToTransfer, ShutdownToken, SyncboxPath, ACallback, AResult, ProgressHolder, StatusUpdate, StatusUpdateUserState)
             {
                 // additional checks for parameters which were not already checked via the abstract base constructor
 
@@ -5051,6 +5055,7 @@ namespace Cloud.Static
             /// <summary>
             /// The sole constructor for this class with all parameters corresponding to all properties in this class and within its base class uploadDownloadParams
             /// </summary>
+            /// <param name="StreamContext">The stream context to represent the stream opened to the file on disk.</param>
             /// <param name="StatusCallback">A handler delegate to be fired whenever there is new status information for an upload or download (the progress of the upload/download or completion)</param>
             /// <param name="ChangeToTransfer">UserState object which is required for calling the StatusCallback for sending status information events; also used to retrieve the StorageKey and MD5 hash for upload</param>
             /// <param name="ShutdownToken">A non-required (possibly null) user-provided token source which is checked through an upload or download in order to cancel it</param>
@@ -5059,8 +5064,10 @@ namespace Cloud.Static
             /// <param name="ACallback">User-provided callback to fire upon asynchronous operation</param>
             /// <param name="AResult">Asynchronous result for firing async callbacks</param>
             /// <param name="ProgressHolder">Holder for a progress state which can be queried by the user</param>
-            public uploadParams(StreamContext StreamContext, SendUploadDownloadStatus StatusCallback, FileChange ChangeToTransfer, CancellationTokenSource ShutdownToken, string SyncboxPath, AsyncCallback ACallback, IAsyncResult AResult, GenericHolder<TransferProgress> ProgressHolder, FileTransferStatusUpdateDelegate StatusUpdate, Nullable<Guid> StatusUpdateId)
-                : base(StatusCallback, ChangeToTransfer, ShutdownToken, SyncboxPath, ACallback, AResult, ProgressHolder, StatusUpdate, StatusUpdateId)
+            /// <param name="StatusUpdate">A transfer status update callback for reporting upload status.  May be null.</param>
+            /// <param name="StatusUpdateUserState">The user contect to pass to the transfer status update callback above.  May be null.</param>
+            public uploadParams(StreamContext StreamContext, SendUploadDownloadStatus StatusCallback, FileChange ChangeToTransfer, CancellationTokenSource ShutdownToken, string SyncboxPath, AsyncCallback ACallback, IAsyncResult AResult, GenericHolder<TransferProgress> ProgressHolder, FileTransferStatusUpdateDelegate StatusUpdate, object StatusUpdateUserState)
+                : base(StatusCallback, ChangeToTransfer, ShutdownToken, SyncboxPath, ACallback, AResult, ProgressHolder, StatusUpdate, StatusUpdateUserState)
             {
                 // additional checks for parameters which were not already checked via the abstract base constructor
 

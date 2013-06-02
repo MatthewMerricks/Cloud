@@ -12,6 +12,7 @@ using Cloud.Static;
 using System;
 using System.Drawing;
 using System.Linq;
+using System.Threading;
 
 namespace Cloud.CLSync
 {
@@ -366,18 +367,80 @@ namespace Cloud.CLSync
         }
 
         /// <summary>
-        /// Download the file represented by this CLFileItem object from the cloud.
+        /// Download the file represented by this CLFileItem object from the cloud.  The file will be downloaded into a unique
+        /// file name in the temporary download directory.  Upon successful download, the full path of the temporary file will be output to the caller.
+        /// The caller is responsible for moving the temp file to its permanent location, and for ensuring that the temporary file
+        /// has been deleted.
         /// </summary>
+        /// <param name="fullPathDownloadedTempFile">(output) The full path of the downloaded file in the temp download directory.</param>
+        /// <param name="transferStatusCallback">The callback to fire with tranfer status updates.  May be null.</param>
+        /// <param name="transferStatusCallbackUserState">The user state to pass to the transfer status callback above.  May be null.</param>
         /// <returns>CLError: Any error, or null.</returns>
-        public CLError DownloadFile()
+        public CLError DownloadFile(
+            out string fullPathDownloadedTempFile, 
+            FileDownloadTransferStatusCallback transferStatusCallback, 
+            object transferStatusCallbackUserState,
+            CancellationTokenSource cancellationSource)
         {
+            // Build the file change to represent the file to download.
             FileChange fcToDownload = new FileChange()
             {
                 Direction = SyncDirection.From,
                 Metadata = new FileMetadata()
             };
 
-            return _httpRestClient.DownloadFile(fcToDownload, this.Uid, this.Revision, OnAfterDownloadToTempFile, this, _copiedSettings.HttpTimeoutMilliseconds);
+            // Make a holder for the callers transfer status callback and user state.
+            Tuple<FileDownloadTransferStatusCallback, object> userTransferStatusParamHolder = new Tuple<FileDownloadTransferStatusCallback, object>(transferStatusCallback, transferStatusCallbackUserState);
+
+            // Build a holder to receive the full path of the downloaded temp file.
+            GenericHolder<string> fullPathDownloadedTempFileHolder = new GenericHolder<string>(null);
+
+            // Download the file.
+            CLError errorFromDownloadFile = _httpRestClient.DownloadFile(
+                fcToDownload,
+                this.Uid,
+                this.Revision,
+                moveFileUponCompletion: OnAfterDownloadToTempFile,
+                moveFileUponCompletionState: fullPathDownloadedTempFileHolder,
+                timeoutMilliseconds: _copiedSettings.HttpTimeoutMilliseconds,
+                beforeDownload: null,
+                beforeDownloadState: null,
+                shutdownToken: cancellationSource,
+                customDownloadFolderFullPath: _copiedSettings.TempDownloadFolderFullPath,
+                statusUpdate: TransferStatusCallback,
+                statusUpdateUserState: userTransferStatusParamHolder);
+
+            // Output the full path of the downloaded file on success
+            if (errorFromDownloadFile == null)
+            {
+                fullPathDownloadedTempFile = fullPathDownloadedTempFileHolder.Value;
+            }
+            else
+            {
+                fullPathDownloadedTempFile = null;
+            }
+
+            return errorFromDownloadFile;
+        }
+
+        /// <summary>
+        /// Transfer status has changed.  This is called by CLHttpRest during the download.  Forward the info to the app.
+        /// </summary>
+        private void TransferStatusCallback(object userState, long eventId, SyncDirection direction, string relativePath, long byteProgress, long totalByteSize, bool isError)
+        {
+            Tuple<FileDownloadTransferStatusCallback, object> castState = userState as Tuple<FileDownloadTransferStatusCallback, object>;
+            if (castState == null)
+            {
+                throw new CLNullReferenceException(CLExceptionCode.OnDemand_Download, Resources.ExceptionOnDemandDownloadFileIncorrectUserState);
+            }
+
+            FileDownloadTransferStatusCallback transferStatusCallback = castState.Item1;
+            object transferStatusCallbackUserState = castState.Item2;
+
+            if (transferStatusCallback != null)
+            {
+                transferStatusCallback(byteProgress, totalByteSize, transferStatusCallbackUserState);
+            }
         }
 
         /// <summary>
@@ -387,40 +450,19 @@ namespace Cloud.CLSync
         /// <param name="downloadChange">The FileChange representing the download request.</param>
         /// <param name="responseBody">The HTTP response body returned from the server.</param>
         /// <param name="UserState">The user state.</param>
-        /// <param name="tempId">The temp ID of this downloaded file (GUID).</param>
+        /// <param name="tempId">The temp ID of this downloaded file (Guid).</param>
         private void OnAfterDownloadToTempFile(string tempFileFullPath, FileChange downloadChange, ref string responseBody, object UserState, Guid tempId)
         {
             try
             {
-                CLFileItem castState = UserState as CLFileItem;
+                GenericHolder<string> castState = UserState as GenericHolder<string>;
                 if (castState == null)
                 {
-                    throw new NullReferenceException(Resources.CLFileItemCastStateMustBeACLFileItem);
-                }
-                if (castState._copiedSettings == null)
-                {
-                    throw new NullReferenceException(Resources.CLFileItemCastStateCopiedSettingsMustNotBeNull);
-                }
-                if (castState.Syncbox == null)
-                {
-                    throw new NullReferenceException("castState Syncbox must not be null");
-                }
-                if (tempFileFullPath == null)
-                {
-                    throw new NullReferenceException("tempFileFullPath must not be null");
-                }
-                if (downloadChange == null)
-                {
-                    throw new NullReferenceException("downloadChange must not be null");
+                    throw new CLNullReferenceException(CLExceptionCode.OnDemand_Download, Resources.CLFileItemCastStateMustBeAGenericHolderOfString);
                 }
 
-                // Move the downloaded file.
-                string backupFileFullPath = Helpers.GetTempFileDownloadPath(castState._copiedSettings, castState.Syncbox.SyncboxId) + /* '\\' */ (char)0x005c + Guid.NewGuid().ToString();
-                CLError errorFromMoveDownloadedFile = Helpers.MoveDownloadedFile(tempFileFullPath, RelativePath, backupFileFullPath);
-                if (errorFromMoveDownloadedFile != null)
-                {
-                    throw new AggregateException("Error moving the downloaded file", errorFromMoveDownloadedFile.Exceptions);
-                }
+                // Output the full path of the temp file for the user to move.
+                castState.Value = tempFileFullPath;
 
                 // Success
                 responseBody = Resources.CompletedFileDownloadHttpBody;

@@ -214,11 +214,11 @@ namespace Cloud.Static {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to castState must be a CLFileItem.
+        ///   Looks up a localized string similar to castState must be a GenericHolder&lt;string&gt;.
         /// </summary>
-        internal static string CLFileItemCastStateMustBeACLFileItem {
+        internal static string CLFileItemCastStateMustBeAGenericHolderOfString {
             get {
-                return ResourceManager.GetString("CLFileItemCastStateMustBeACLFileItem", resourceCulture);
+                return ResourceManager.GetString("CLFileItemCastStateMustBeAGenericHolderOfString", resourceCulture);
             }
         }
         
@@ -2804,6 +2804,15 @@ namespace Cloud.Static {
         internal static string ExceptionOnDemandDeserializeErrorMessage {
             get {
                 return ResourceManager.GetString("ExceptionOnDemandDeserializeErrorMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to incorrect userState object type.
+        /// </summary>
+        internal static string ExceptionOnDemandDownloadFileIncorrectUserState {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandDownloadFileIncorrectUserState", resourceCulture);
             }
         }
         

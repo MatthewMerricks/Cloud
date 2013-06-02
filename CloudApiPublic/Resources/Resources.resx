@@ -2851,9 +2851,9 @@
     <value>Item must not be null</value>
     <comment>"Item" shoud not be translated</comment>
   </data>
-  <data name="CLFileItemCastStateMustBeACLFileItem" xml:space="preserve">
-    <value>castState must be a CLFileItem</value>
-    <comment>"castState" and "CLFileItem" should not be translated</comment>
+  <data name="CLFileItemCastStateMustBeAGenericHolderOfString" xml:space="preserve">
+    <value>castState must be a GenericHolder&lt;string&gt;</value>
+    <comment>"castState" and "GenericHolder&lt;string&gt;" should not be translated</comment>
   </data>
   <data name="ExceptionOnDemandAddItemNameMustBeSpecified" xml:space="preserve">
     <value>Name must be specified</value>
@@ -2963,6 +2963,10 @@
   </data>
   <data name="ExceptionOnDemandUnlinkDeviceRequestMustNotBeNull" xml:space="preserve">
     <value>Unlink device request must not be null</value>
+  </data>
+  <data name="ExceptionOnDemandDownloadFileIncorrectUserState" xml:space="preserve">
+    <value>incorrect userState object type</value>
+    <comment>"userState" should not be translated</comment>
   </data>
   <data name="ExceptionOnDemandInvalidReturnLimit" xml:space="preserve">
     <value>returnLimit must be greater than zero</value>

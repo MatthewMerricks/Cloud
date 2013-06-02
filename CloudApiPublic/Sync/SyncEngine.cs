@@ -1061,12 +1061,14 @@ namespace Cloud.Sync
             {
             }
         }
-        private void FileTransferStatusUpdate(Guid threadId, long eventId, SyncDirection direction, string relativePath, long byteProgress, long totalByteSize, bool isError)
+        private void FileTransferStatusUpdate(object userState, long eventId, SyncDirection direction, string relativePath, long byteProgress, long totalByteSize, bool isError)
         {
             try
             {
                 lock (StatusChangesQueue)
                 {
+                    GenericHolder<Guid> threadIdHolder = userState as GenericHolder<Guid>;
+                    Guid threadId = threadIdHolder.Value;
                     StatusChangesQueue.Enqueue(new KeyValuePair<Guid, ThreadStatus>(
                         threadId,
                         new ThreadStatus()
@@ -5091,7 +5093,7 @@ namespace Cloud.Sync
                                     {
                                         // Properties function as named:
 
-                                        ThreadId = asyncTaskThreadId,
+                                        StatusUpdateUserState = new GenericHolder<Guid>(asyncTaskThreadId),
                                         StatusUpdate = FileTransferStatusUpdate,
                                         FailureTimer = FailureTimer,
                                         FileToDownload = toComplete.FileChange,
@@ -5171,7 +5173,7 @@ namespace Cloud.Sync
                             {
                                 // Properties are purposed as named
 
-                                ThreadId = asyncTaskThreadId,
+                                StatusUpdateUserState = new GenericHolder<Guid>(asyncTaskThreadId),
                                 StatusUpdate = FileTransferStatusUpdate,
                                 FailureTimer = FailureTimer,
                                 FileToUpload = toComplete.FileChange,
@@ -5367,7 +5369,7 @@ namespace Cloud.Sync
                         out hashMismatchFound,
                         castState.ShutdownToken, // pass in the shutdown token for the optional parameter so it can be cancelled
                         castState.StatusUpdate,
-                        castState.ThreadId);
+                        castState.StatusUpdateUserState);
 
                     // depending on whether the communication status is a connection failure or not, either increment the failure count or clear it, respectively
                     if (uploadError != null)
@@ -5415,7 +5417,7 @@ namespace Cloud.Sync
                                     && castState.FileToUpload.Metadata.HashableProperties.Size != null)
                                 {
                                     castState.StatusUpdate(
-                                        castState.ThreadId, // threadId
+                                        castState.StatusUpdateUserState, // threadId
                                         castState.FileToUpload.EventId, // eventId
                                         SyncDirection.To, // direction
                                         castState.FileToUpload.NewPath.GetRelativePath(castState.Syncbox.Path, false), // relativePath
@@ -5488,7 +5490,7 @@ namespace Cloud.Sync
                         && castState.FileToUpload.Metadata.HashableProperties.Size != null)
                     {
                         castState.StatusUpdate(
-                            castState.ThreadId, // threadId
+                            castState.StatusUpdateUserState, // threadId
                             castState.FileToUpload.EventId, // eventId
                             SyncDirection.To, // direction
                             castState.FileToUpload.NewPath.GetRelativePath(castState.Syncbox.Path, false), // relativePath
@@ -6087,7 +6089,7 @@ namespace Cloud.Sync
                         castState.ShutdownToken, // the cancellation token which can cause the download to stop in the middle
                         castState.TempDownloadFolderPath, // the full path to the folder which will contain all the temporary-downloaded files
                         castState.StatusUpdate,
-                        castState.ThreadId);
+                        castState.StatusUpdateUserState);
 
                     // depending on whether the communication status is a connection failure or not, either increment the failure count or clear it, respectively
                     if (downloadError != null)
@@ -6187,7 +6189,7 @@ namespace Cloud.Sync
                     {
                         _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: DownloadForTask: Call StatusUpdate."));
                         castState.StatusUpdate(
-                            castState.ThreadId, // threadId
+                            castState.StatusUpdateUserState, // threadId
                             castState.FileToDownload.EventId, // eventId
                             SyncDirection.From, // direction
                             castState.FileToDownload.NewPath.GetRelativePath(castState.Syncbox.Path, false), // relativePath
@@ -6708,7 +6710,7 @@ namespace Cloud.Sync
         /// </summary>
         private sealed class DownloadTaskState : ITransferTaskState
         {
-            public Guid ThreadId { get; set; }
+            public object StatusUpdateUserState { get; set; }
             public FileTransferStatusUpdateDelegate StatusUpdate { get; set; }
             public FileChange FileToDownload { get; set; }
             public string ServerUid { get; set; }
@@ -6733,7 +6735,7 @@ namespace Cloud.Sync
         /// </summary>
         private sealed class UploadTaskState : ITransferTaskState
         {
-            public Guid ThreadId { get; set; }
+            public object StatusUpdateUserState { get; set; }
             public FileTransferStatusUpdateDelegate StatusUpdate { get; set; }
             public FileChange FileToUpload { get; set; }
             public StreamContext StreamContext { get; set; }
@@ -11756,12 +11758,12 @@ namespace Cloud.Sync
     /// <summary>
     /// Delegate to FileTransferStatusUpdate in SyncEngine which fires status change callbacks to CLSyncEngine
     /// </summary>
-    /// <param name="threadId">Unique id of the running thread calling back for status change</param>
+    /// <param name="threadId">User state to be passed to the delegate when firing.</param>
     /// <param name="eventId">The unique ID of the event being transferred</param>
     /// <param name="direction">Direction of the event (To the server of From the server)</param>
     /// <param name="relativePath">Relative path of the file being transferred</param>
     /// <param name="byteProgress">Bytes already transferred for the file</param>
     /// <param name="totalByteSize">Total byte size of the file</param>
     /// <param name="isError">Whether or not the transfer has errored out</param>
-    internal delegate void FileTransferStatusUpdateDelegate(Guid threadId, long eventId, SyncDirection direction, string relativePath, long byteProgress, long totalByteSize, bool isError);
+    internal delegate void FileTransferStatusUpdateDelegate(object userState, long eventId, SyncDirection direction, string relativePath, long byteProgress, long totalByteSize, bool isError);
 }

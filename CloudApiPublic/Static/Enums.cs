@@ -526,6 +526,11 @@ namespace Cloud.Static
         /// </summary>
         OnDemand_RequestRequired = (((ulong)CLExceptionDomain.OnDemand) << 32) | 36, // 5_36
 
+        /// <summary>
+        /// An error occurred downloading a file.
+        /// </summary>
+        OnDemand_Download = (((ulong)CLExceptionDomain.OnDemand) << 32) | 37, // 5_37
+
         #endregion
 
         #region FileItem

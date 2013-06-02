@@ -2324,7 +2324,7 @@ namespace Cloud.REST
             object asyncCallbackUserState,
             CLFileItemCompletionCallback itemCompletionCallback,
             object itemCompletionCallbackUserState,
-            CLFileItemTransferStatusDelegate transferStatusCallback,
+            FileUploadTransferStatusCallback transferStatusCallback,
             object transferStatusCallbackUserState,
             CancellationTokenSource cancellationSource,
             params AddFileItemParams[] filesToAdd)
@@ -2462,7 +2462,7 @@ namespace Cloud.REST
         internal CLError AddFiles(
             CLFileItemCompletionCallback itemCompletionCallback, 
             object itemCompletionCallbackUserState,
-            CLFileItemTransferStatusDelegate transferStatusCallback,
+            FileUploadTransferStatusCallback transferStatusCallback,
             object transferStatusCallbackUserState,
             CancellationTokenSource cancellationSource,
             params AddFileItemParams[] filesToAdd)
@@ -2812,14 +2812,14 @@ namespace Cloud.REST
                                     {
                                         try
                                         {
-                                            var statusConversionDelegate = DelegateAndDataHolderBase<Guid, long, SyncDirection, string, long, long, bool>.Create(
+                                            var statusConversionDelegate = DelegateAndDataHolderBase<object, long, SyncDirection, string, long, long, bool>.Create(
                                                 new
                                                 {
                                                     transferStatusCallback = Data.transferStatusCallback,
                                                     transferStatusCallbackUserState = Data.transferStatusCallbackUserState,
                                                     inputItemIndex = Data.inputItemIndex
                                                 },
-                                                (innerData, threadId, eventId, direction, relativePath, byteProgress, totalByteSize, isError, innerErrorToAccumulate) =>
+                                                (innerData, userState, eventId, direction, relativePath, byteProgress, totalByteSize, isError, innerErrorToAccumulate) =>
                                                 {
                                                     if (innerData.transferStatusCallback != null)
                                                     {
@@ -7597,7 +7597,7 @@ namespace Cloud.REST
             CancellationTokenSource shutdownToken,
             string customDownloadFolderFullPath,
             FileTransferStatusUpdateDelegate statusUpdate,
-            Guid statusUpdateId)
+            object statusUpdateUserState)
         {
             return DownloadFile(changeToDownload,
                 serverUid,
@@ -7613,7 +7613,7 @@ namespace Cloud.REST
                 null,
                 null,
                 statusUpdate,
-                statusUpdateId);
+                statusUpdateUserState);
         }
 
         // private helper for DownloadFile which takes additional parameters we don't wish to expose; does the actual processing
@@ -7631,7 +7631,7 @@ namespace Cloud.REST
             IAsyncResult asyncResult,
             GenericHolder<TransferProgress> progress,
             FileTransferStatusUpdateDelegate statusUpdate,
-            Nullable<Guid> statusUpdateId)
+            object statusUpdateUserState)
         {
             // try/catch to process the file download, on catch return the error
             try
@@ -7709,7 +7709,7 @@ namespace Cloud.REST
                     asyncResult, // asynchronous result to pass when firing the asynchronous callback
                     progress, // holder for progress data which can be queried by user if called via async wrapper
                     statusUpdate, // callback to user to notify when a CLSyncEngine status has changed
-                    statusUpdateId, // userstate to pass to the statusUpdate callback
+                    statusUpdateUserState, // userstate to pass to the statusUpdate callback
                     beforeDownload, // optional callback fired before download starts
                     beforeDownloadState); // userstate passed when firing download start callback
 
@@ -8010,7 +8010,7 @@ namespace Cloud.REST
             out bool hashMismatchFound,
             CancellationTokenSource shutdownToken,
             FileTransferStatusUpdateDelegate statusUpdate,
-            Guid statusUpdateId)
+            object statusUpdateUserState)
         {
             return UploadFile(
                 streamContext,
@@ -8023,7 +8023,7 @@ namespace Cloud.REST
                 null,
                 null,
                 statusUpdate,
-                statusUpdateId);
+                statusUpdateUserState);
         }
 
         // private helper for UploadFile which takes additional parameters we don't wish to expose; does the actual processing
@@ -8037,7 +8037,7 @@ namespace Cloud.REST
             IAsyncResult asyncResult,
             GenericHolder<TransferProgress> progress,
             FileTransferStatusUpdateDelegate statusUpdate,
-            Nullable<Guid> statusUpdateId)
+            object statusUpdateUserState)
         {
             message = Helpers.DefaultForType<string>();
 
@@ -8088,7 +8088,7 @@ namespace Cloud.REST
                         asyncResult, // asynchronous result to pass when firing the asynchronous callback
                         progress, // holder for progress data which can be queried by user if called via async wrapper
                         statusUpdate, // callback to user to notify when a CLSyncEngine status has changed
-                        statusUpdateId), // userstate to pass to the statusUpdate callback
+                        statusUpdateUserState), // userstate to pass to the statusUpdate callback
                     Helpers.HttpStatusesOkCreatedNotModified, // use the hashset for ok/created/not modified as successful HttpStatusCodes
                     _copiedSettings, // pass the copied settings
                     _syncbox.SyncboxId, // pass the unique id of the sync box on the server

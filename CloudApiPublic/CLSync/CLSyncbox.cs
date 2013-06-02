@@ -2433,7 +2433,7 @@ namespace Cloud
             object asyncCallbackUserState,
             CLFileItemCompletionCallback itemCompletionCallback,
             object itemCompletionCallbackUserState,
-            CLFileItemTransferStatusDelegate transferStatusCallback,
+            FileUploadTransferStatusCallback transferStatusCallback,
             object transferStatusCallbackUserState,
             CancellationTokenSource cancellationSource,
             params AddFileItemParams[] filesToAdd)
@@ -2474,7 +2474,7 @@ namespace Cloud
         public CLError AddFiles(
             CLFileItemCompletionCallback itemCompletionCallback,
             object itemCompletionCallbackUserState,
-            CLFileItemTransferStatusDelegate transferStatusCallback,
+            FileUploadTransferStatusCallback transferStatusCallback,
             object transferStatusCallbackUserState,
             CancellationTokenSource cancellationSource,
             params AddFileItemParams[] filesToAdd)
