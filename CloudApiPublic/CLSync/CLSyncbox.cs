@@ -1840,7 +1840,7 @@ namespace Cloud
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.BeginGetFolderContentsAtPath(asyncCallback, asyncCallbackUserState, relativePath);
+            return httpRestClient.BeginItemsForPath(asyncCallback, asyncCallbackUserState, relativePath);
         }
 
         /// <summary>
@@ -1856,7 +1856,7 @@ namespace Cloud
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.EndGetFolderContentsAtPath(asyncResult, out result);
+            return httpRestClient.EndItemsForPath(asyncResult, out result);
         }
 
         /// <summary>
@@ -1871,7 +1871,7 @@ namespace Cloud
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.GetFolderContentsAtPath(relativePath, out items);
+            return httpRestClient.ItemsForPath(relativePath, out items);
         }
 
         #endregion  // end ItemsForPath (Queries the syncbox for the contents of the folder item at a particular path)
@@ -1893,7 +1893,7 @@ namespace Cloud
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.BeginGetFolderContentsAtItem(asyncCallback, asyncCallbackUserState, folderItem);
+            return httpRestClient.BeginItemsForFolderItem(asyncCallback, asyncCallbackUserState, folderItem);
         }
 
         /// <summary>
@@ -1909,7 +1909,7 @@ namespace Cloud
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.EndGetFolderContentsAtItem(asyncResult, out result);
+            return httpRestClient.EndItemsForFolderItem(asyncResult, out result);
         }
 
         /// <summary>
@@ -1924,10 +1924,65 @@ namespace Cloud
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.GetFolderContentsAtItem(folderItem, out items);
+            return httpRestClient.ItemsForFolderItem(folderItem, out items);
         }
 
         #endregion  // end ItemsForFolderItem (Queries the syncbox for the contents of the folder item)
+
+        #region HierarchyOfFolderAtPath (Queries the syncbox for the folder hierarchy under the given folder path)
+        /// <summary>
+        /// Asynchronously starts getting the syncbox items that represent the specified folder's folder hierarchy.
+        /// </summary>
+        /// <param name="asyncCallback">Callback method to fire when operation completes</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing async callback</param>
+        /// <param name="relativePath">(optional) relative root path of contents query.  If this is null or empty, the syncbox root folder will be queried.</param>
+        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        public IAsyncResult BeginHierarchyOfFolderAtPath(
+            AsyncCallback asyncCallback,
+            object asyncCallbackUserState,
+            string relativePath = null)
+        {
+            CheckDisposed();
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.BeginHierarchyOfFolderAtPath(asyncCallback, asyncCallbackUserState, relativePath);
+        }
+
+        /// <summary>
+        /// Finishes getting the folder hierarchy, if it has not already finished via its asynchronous result, and outputs the result,
+        /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
+        /// </summary>
+        /// <param name="asyncResult">The asynchronous result provided upon starting getting folder contents</param>
+        /// <param name="result">(output) The result from folder contents</param>
+        /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
+        public CLError EndHierarchyOfFolderAtPath(IAsyncResult asyncResult, out SyncboxHierarchyOfFolderAtPathResult result)
+        {
+            CheckDisposed();
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.EndHierarchyOfFolderAtPath(asyncResult, out result);
+        }
+
+        /// <summary>
+        /// Gets the syncbox items that represent the specified folder's folder hierarchy.
+        /// </summary>
+        /// <param name="relativePath">(optional) relative root path of contents query.  If this is null or empty, the syncbox root folder will be queried.</param>
+        /// <param name="items">(output) resulting items.</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        public CLError HierarchyOfFolderAtPath(
+            string relativePath,
+            out CLFileItem[] items)
+        {
+            CheckDisposed(isOneOff: true);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.HierarchyOfFolderAtPath(relativePath, out items);
+        }
+
+        #endregion  // end HierarchyOfFolderAtPath (Queries the syncbox for the folder hierarchy under the given folder path)
 
         #region RenameFiles (Rename files in-place in the syncbox)
         /// <summary>
@@ -3201,93 +3256,6 @@ namespace Cloud
         }
 
         #endregion  // end RecentFiles (Retrieves the specified number of recently modified <CLFileItems>s.)
-
-        #region GetFolderHierarchy
-        /// <summary>
-        /// Asynchronously starts querying folder hierarchy with optional path
-        /// </summary>
-        /// <param name="asyncCallback">Callback method to fire when operation completes</param>
-        /// <param name="asyncCallbackState">User state to pass when firing async callback</param>
-        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
-        /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
-        public IAsyncResult BeginGetFolderHierarchy(AsyncCallback asyncCallback,
-            object asyncCallbackState,
-            int timeoutMilliseconds)
-        {
-            CheckDisposed(true);
-
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.BeginGetFolderHierarchy(asyncCallback, asyncCallbackState, timeoutMilliseconds);
-        }
-
-        /// <summary>
-        /// Asynchronously starts querying folder hierarchy with optional path
-        /// </summary>
-        /// <param name="asyncCallback">Callback method to fire when operation completes</param>
-        /// <param name="asyncCallbackState">User state to pass when firing async callback</param>
-        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
-        /// <param name="hierarchyRoot">(optional) root path of hierarchy query</param>
-        /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
-        public IAsyncResult BeginGetFolderHierarchy(AsyncCallback asyncCallback,
-            object asyncCallbackState,
-            int timeoutMilliseconds,
-            FilePath hierarchyRoot)
-        {
-            CheckDisposed(true);
-
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.BeginGetFolderHierarchy(asyncCallback, asyncCallbackState, timeoutMilliseconds, hierarchyRoot);
-        }
-        
-        /// <summary>
-        /// Finishes getting folder hierarchy if it has not already finished via its asynchronous result and outputs the result,
-        /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
-        /// </summary>
-        /// <param name="asyncResult">The asynchronous result provided upon starting getting folder hierarchy</param>
-        /// <param name="result">(output) The result from folder hierarchy</param>
-        /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndGetFolderHierarchy(IAsyncResult asyncResult, out GetFolderHierarchyResult result)
-        {
-            CheckDisposed(true);
-
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.EndGetFolderHierarchy(asyncResult, out result);
-        }
-
-        /// <summary>
-        /// Queries server for folder hierarchy with an optional path
-        /// </summary>
-        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
-        /// <param name="response">(output) response object from communication</param>
-        /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError GetFolderHierarchy(int timeoutMilliseconds,out JsonContracts.FoldersResponse response)
-        {
-            CheckDisposed(true);
-
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.GetFolderHierarchy(timeoutMilliseconds, out response);
-        }
-
-        /// <summary>
-        /// Queries server for folder hierarchy with an optional path
-        /// </summary>
-        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
-        /// <param name="response">(output) response object from communication</param>
-        /// <param name="hierarchyRoot">(optional) root path of hierarchy query</param>
-        /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError GetFolderHierarchy(int timeoutMilliseconds, out JsonContracts.FoldersResponse response, FilePath hierarchyRoot)
-        {
-            CheckDisposed(true);
-
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.GetFolderHierarchy(timeoutMilliseconds, out response, hierarchyRoot);
-        }
-        #endregion
 
         #region GetDataUsage (get the usage information for this syncbox from the cloud)
         /// <summary>
