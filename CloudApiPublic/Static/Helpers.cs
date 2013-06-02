@@ -3341,7 +3341,7 @@ namespace Cloud.Static
                         {
                             try
                             {
-                                uploadDownload.StatusUpdate((Guid)uploadDownload.StatusUpdateUserState,
+                                uploadDownload.StatusUpdate(uploadDownload.StatusUpdateUserState,
                                     uploadDownload.ChangeToTransfer.EventId,
                                     uploadDownload.ChangeToTransfer.Direction,
                                     uploadDownload.RelativePathForStatus,
@@ -3472,7 +3472,7 @@ namespace Cloud.Static
                                 {
                                     try
                                     {
-                                        uploadDownload.StatusUpdate((Guid)uploadDownload.StatusUpdateUserState,
+                                        uploadDownload.StatusUpdate(uploadDownload.StatusUpdateUserState,
                                             uploadDownload.ChangeToTransfer.EventId,
                                             uploadDownload.ChangeToTransfer.Direction,
                                             uploadDownload.RelativePathForStatus,
@@ -3897,7 +3897,7 @@ namespace Cloud.Static
                                 {
                                     try
                                     {
-                                        uploadDownload.StatusUpdate((Guid)uploadDownload.StatusUpdateUserState,
+                                        uploadDownload.StatusUpdate(uploadDownload.StatusUpdateUserState,
                                             uploadDownload.ChangeToTransfer.EventId,
                                             uploadDownload.ChangeToTransfer.Direction,
                                             uploadDownload.RelativePathForStatus,
@@ -4024,7 +4024,7 @@ namespace Cloud.Static
                                         {
                                             try
                                             {
-                                                uploadDownload.StatusUpdate((Guid)uploadDownload.StatusUpdateUserState,
+                                                uploadDownload.StatusUpdate(uploadDownload.StatusUpdateUserState,
                                                     uploadDownload.ChangeToTransfer.EventId,
                                                     uploadDownload.ChangeToTransfer.Direction,
                                                     uploadDownload.RelativePathForStatus,
@@ -4277,7 +4277,7 @@ namespace Cloud.Static
                         {
                             if (uploadDownload.RelativePathForStatus != null)
                             {
-                                uploadDownload.StatusUpdate((Guid)uploadDownload.StatusUpdateUserState,
+                                uploadDownload.StatusUpdate(uploadDownload.StatusUpdateUserState,
                                     uploadDownload.ChangeToTransfer.EventId,
                                     uploadDownload.ChangeToTransfer.Direction,
                                     uploadDownload.RelativePathForStatus,

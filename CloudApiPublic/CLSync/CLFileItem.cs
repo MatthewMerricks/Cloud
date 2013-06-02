@@ -193,8 +193,21 @@ namespace Cloud.CLSync
 
         #endregion  // end Public Properties
 
+        #region Internal Readonly Properties
+
+        internal string StorageKey
+        {
+            get
+            {
+                return _storageKey;
+            }
+        }
+        private readonly string _storageKey;
+
+        #endregion
+
         #region Constructors
-        
+
         //// iOS is not allowing public construction of the CLFileItem, it can only be produced internally by create operations or by queries
         //
         //// we aren't using this constructor and it's internal, so it's commented for now
@@ -317,6 +330,7 @@ namespace Cloud.CLSync
             this._isPending = !(response.IsNotPending ?? true);
             this._permissions = response.PermissionsEnum;
             this._syncbox = syncbox;
+            this._storageKey = response.StorageKey;
             //// in public SDK documents, but for now it's always zero, so don't expose it
             //this._childrenCount = 0;
 
@@ -344,8 +358,6 @@ namespace Cloud.CLSync
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
         public IAsyncResult BeginDownloadFile(AsyncCallback callback, object callbackUserState)
         {
-            CheckHalted();
-
             FileChange fcToDownload = new FileChange()
             {
                  Direction = SyncDirection.From
@@ -362,7 +374,6 @@ namespace Cloud.CLSync
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndDownloadFile(IAsyncResult aResult, out DownloadFileResult result)
         {
-            CheckHalted();
             return _httpRestClient.EndDownloadFile(aResult, out result);
         }
 
@@ -386,7 +397,8 @@ namespace Cloud.CLSync
             FileChange fcToDownload = new FileChange()
             {
                 Direction = SyncDirection.From,
-                Metadata = new FileMetadata()
+                Metadata = new FileMetadata(this),
+                NewPath = RelativePath,
             };
 
             // Make a holder for the callers transfer status callback and user state.
@@ -406,7 +418,7 @@ namespace Cloud.CLSync
                 beforeDownload: null,
                 beforeDownloadState: null,
                 shutdownToken: cancellationSource,
-                customDownloadFolderFullPath: _copiedSettings.TempDownloadFolderFullPath,
+                customDownloadFolderFullPath: null,
                 statusUpdate: TransferStatusCallback,
                 statusUpdateUserState: userTransferStatusParamHolder);
 

@@ -2899,9 +2899,9 @@
     <value>Error deleting syncbox: {0}</value>
     <comment>"{0}" shoud not be translated</comment>
   </data>
-  <data name="Backslash" xml:space="preserve">
-    <value>\</value>
-    <comment>"\" should not be translated</comment>
+  <data name="Slash" xml:space="preserve">
+    <value>/</value>
+    <comment>"/" should not be translated</comment>
   </data>
   <data name="IconOverlayRenameBadgePathRemoveBadgeOldPath0" xml:space="preserve">
     <value>IconOverlay: RenameBadgePath. Remove badge at oldPath: {0}.</value>

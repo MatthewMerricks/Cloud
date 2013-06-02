@@ -97,15 +97,6 @@ namespace Cloud.Static {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to \.
-        /// </summary>
-        internal static string Backslash {
-            get {
-                return ResourceManager.GetString("Backslash", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Bytes.
         /// </summary>
         internal static string BytesPlural {
@@ -6489,6 +6480,15 @@ namespace Cloud.Static {
         internal static string SetBadgePathToBadgeCannotBeNull {
             get {
                 return ResourceManager.GetString("SetBadgePathToBadgeCannotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to /.
+        /// </summary>
+        internal static string Slash {
+            get {
+                return ResourceManager.GetString("Slash", resourceCulture);
             }
         }
         

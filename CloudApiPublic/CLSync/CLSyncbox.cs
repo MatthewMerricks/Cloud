@@ -551,11 +551,12 @@ namespace Cloud
                 else
                 {
                     setPathLocker = null;
-                    CLError setPathError = UpdatePathInternal(path, shouldUpdateSyncboxStatusFromServer: true);
-                    if (setPathError != null)
-                    {
-                        throw new CLException(CLExceptionCode.Syncbox_Initializing, "Error initializing the syncbox", setPathError.Exceptions);
-                    }
+                }
+
+                CLError setPathError = UpdatePathInternal(path, shouldUpdateSyncboxStatusFromServer: true);
+                if (setPathError != null)
+                {
+                    throw new CLException(CLExceptionCode.Syncbox_Initializing, "Error initializing the syncbox", setPathError.Exceptions);
                 }
             }
         }
@@ -1680,7 +1681,7 @@ namespace Cloud
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.BeginItemForPath(asyncCallback, asyncCallbackUserState, Resources.Backslash);
+            return httpRestClient.BeginItemForPath(asyncCallback, asyncCallbackUserState, Resources.Slash);
         }
 
         /// <summary>
@@ -1711,7 +1712,7 @@ namespace Cloud
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.ItemForPath(Resources.Backslash, out item);
+            return httpRestClient.ItemForPath(Resources.Slash, out item);
         }
 
         #endregion  // end RootFolder (Queries the syncbox for the item at the root path)
@@ -3867,7 +3868,7 @@ namespace Cloud
             }
             try
             {
-                if (setPathHolder != null)
+                if (setPathHolder != null  && !string.IsNullOrEmpty(setPathHolder.Path))
                 {
                     throw new CLException(CLExceptionCode.Syncbox_PathAlreadySet, Resources.ExceptionOnDemandSyncboxPathAlreadySet);
                 }
