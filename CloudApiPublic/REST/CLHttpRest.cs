@@ -4838,7 +4838,7 @@ namespace Cloud.REST
                 new
                 {
                     // create the asynchronous result to return
-                    toReturn = new GenericAsyncResult<CLError>(
+                    toReturn = new GenericAsyncResult<SyncboxRecentFilesSinceDateResult>(
                         asyncCallback,
                         asyncCallbackUserState),
                     pageNumber = pageNumber,
@@ -4859,7 +4859,10 @@ namespace Cloud.REST
                             out items,
                             sinceDate);
 
-                        Data.toReturn.Complete(overallError, // any overall error that may have occurred during processing
+                        Data.toReturn.Complete(
+                            new SyncboxRecentFilesSinceDateResult(
+                                overallError, // any overall error that may have occurred during processing
+                                items),
                             sCompleted: false); // processing did not complete synchronously
                     }
                     catch (Exception ex)
@@ -4885,9 +4888,9 @@ namespace Cloud.REST
         /// <param name="asyncResult">The asynchronous result provided upon starting the request</param>
         /// <param name="result">(output) An overall error which occurred during processing, if any</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        internal CLError EndRecentFilesSinceDate(IAsyncResult asyncResult, out SyncboxRecentFilesResult result)
+        internal CLError EndRecentFilesSinceDate(IAsyncResult asyncResult, out SyncboxRecentFilesSinceDateResult result)
         {
-            return Helpers.EndAsyncOperation<SyncboxRecentFilesResult>(asyncResult, out result);
+            return Helpers.EndAsyncOperation<SyncboxRecentFilesSinceDateResult>(asyncResult, out result);
         }
 
         /// <summary>
@@ -5001,6 +5004,169 @@ namespace Cloud.REST
         }
 
         #endregion  // end RecentFilesSinceDate (Retrieves recently modified <CLFileItems>s since a particular date.)
+
+        #region RecentFiles (Retrieves the specified number of recently modified <CLFileItems>s.)
+        /// <summary>
+        /// Asynchronously starts retrieving up to the given number of recently modified syncbox files.
+        /// </summary>
+        /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing the async callback above.</param>
+        /// <param name="returnLimit">The maximum number of file items to retrieve.</param>
+        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        internal IAsyncResult BeginRecentFiles(
+            AsyncCallback asyncCallback,
+            object asyncCallbackUserState,
+            long returnLimit)
+        {
+            var asyncThread = DelegateAndDataHolderBase.Create(
+                // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
+                new
+                {
+                    // create the asynchronous result to return
+                    toReturn = new GenericAsyncResult<SyncboxRecentFilesResult>(
+                        asyncCallback,
+                        asyncCallbackUserState),
+                    returnLimit = returnLimit
+                },
+                (Data, errorToAccumulate) =>
+                {
+                    // The ThreadProc.
+                    // try/catch to process with the input parameters, on catch set the exception in the asyncronous result
+                    try
+                    {
+                        // alloc and init the syncbox with the passed parameters, storing any error that occurs
+                        CLFileItem[] items;
+                        CLError overallError = RecentFiles(
+                            returnLimit,
+                            out items);
+
+                        Data.toReturn.Complete(
+                            new SyncboxRecentFilesResult(
+                                overallError, // any overall error that may have occurred during processing
+                                items),
+                            sCompleted: false); // processing did not complete synchronously
+                    }
+                    catch (Exception ex)
+                    {
+                        Data.toReturn.HandleException(
+                            ex, // the exception which was not handled correctly by the CLError wrapping
+                            sCompleted: false); // processing did not complete synchronously
+                    }
+                },
+                null);
+
+            // create the thread from a void (object) parameterized start which wraps the synchronous method call
+            (new Thread(new ThreadStart(asyncThread.VoidProcess))).Start(); // start the asynchronous processing thread which is attached to its data
+
+            // return the asynchronous result
+            return asyncThread.TypedData.toReturn;
+        }
+
+        /// <summary>
+        /// Finishes retrieving recent file items from the syncbox, if it has not already finished via its asynchronous result, and outputs the result,
+        /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
+        /// </summary>
+        /// <param name="asyncResult">The asynchronous result provided upon starting the request</param>
+        /// <param name="result">(output) An overall error which occurred during processing, if any</param>
+        /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
+        internal CLError EndRecentFiles(IAsyncResult asyncResult, out SyncboxRecentFilesResult result)
+        {
+            return Helpers.EndAsyncOperation<SyncboxRecentFilesResult>(asyncResult, out result);
+        }
+
+        /// <summary>
+        /// Retrieve up to the given number of recently modified syncbox files.
+        /// </summary>
+        /// <param name="returnLimit">The maximum number of file items to retrieve.</param>
+        /// <param name="items">(output) The retrieved items.</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        internal CLError RecentFiles(long returnLimit, out CLFileItem[] items)
+        {
+            // try/catch to process the request,  On catch return the error
+            try
+            {
+                // check input parameters.
+                if (returnLimit < 1)
+                {
+                    throw new CLArgumentException(CLExceptionCode.OnDemand_InvalidParameters, Resources.ExceptionOnDemandInvalidReturnLimit);
+                }
+
+                // build the URL with query string dynamically.
+                string serverMethodPath =
+                    CLDefinitions.MethodPathGetRecents + // path
+                    Helpers.QueryStringBuilder(new[]
+                    {
+                        // query string parameter for the current sync box id, should not need escaping since it should be an integer in string format
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringSyncboxId, _syncbox.SyncboxId.ToString()),
+                        // pageNumber should not need escaping since it is an integer.  Get page 1.
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringPageNumber, ((byte)1).ToString()), // query string parameter for optional depth limit
+                        // itemsPerPage should not need escaping since it is an integer
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringPerPage, returnLimit.ToString()),
+                    });
+
+                if (!(_copiedSettings.HttpTimeoutMilliseconds > 0))
+                {
+                    throw new CLArgumentException(CLExceptionCode.OnDemand_TimeoutMilliseconds, Resources.CLMSTimeoutMustBeGreaterThanZero);
+                }
+
+                // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
+                Helpers.RequestNewCredentialsInfo requestNewCredentialsInfo = new Helpers.RequestNewCredentialsInfo()
+                {
+                    ProcessingStateByThreadId = _processingStateByThreadId,
+                    GetNewCredentialsCallback = _getNewCredentialsCallback,
+                    GetNewCredentialsCallbackUserState = _getNewCredentialsCallbackUserState,
+                    GetCurrentCredentialsCallback = GetCurrentCredentialsCallback,
+                    SetCurrentCredentialsCallback = SetCurrentCredentialCallback,
+                };
+
+                // Communicate with the server to get the response.
+                JsonContracts.SyncboxGetRecentsResponse responseFromServer;
+                responseFromServer = Helpers.ProcessHttp<JsonContracts.SyncboxGetRecentsResponse>(null, // no request body for get
+                    CLDefinitions.CLMetaDataServerURL, // base domain is the MDS server
+                    serverMethodPath, // dynamic path to appropriate one-off method
+                    Helpers.requestMethod.get, // one-off methods are all posts
+                    _copiedSettings.HttpTimeoutMilliseconds, // time before communication timeout
+                    null, // not an upload or download
+                    Helpers.HttpStatusesOkAccepted, //use the hashset for ok/accepted as successful HttpStatusCodes
+                    _copiedSettings, // pass the copied settings
+                    _syncbox.SyncboxId, // pass the unique id of the sync box on the server
+                    requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
+                    true);
+
+                // Convert these items to the output array.
+                if (responseFromServer != null && responseFromServer.Metadata != null && responseFromServer.TotalCount != null)
+                {
+                    List<CLFileItem> listFileItems = new List<CLFileItem>();
+                    foreach (SyncboxMetadataResponse metadata in responseFromServer.Metadata)
+                    {
+                        if (metadata != null)
+                        {
+                            listFileItems.Add(new CLFileItem(metadata, _syncbox));
+                        }
+                        else
+                        {
+                            throw new NullReferenceException(Resources.ExceptionCLHttpRestWithoutMetadata);  //&&&& fix this
+                        }
+                    }
+
+                    // No error.  Pass back the data.
+                    items = listFileItems.ToArray();
+                }
+                else
+                {
+                    throw new NullReferenceException(Resources.ExceptionCLHttpRestWithoutMetadata);
+                }
+            }
+            catch (Exception ex)
+            {
+                items = Helpers.DefaultForType<CLFileItem[]>();
+                return ex;
+            }
+
+            return null;
+        }
+
+        #endregion  // end RecentFiles (Retrieves the specified number of recently modified <CLFileItems>s.)
 
         #region GetDataUsage (get the usage information for this syncbox)
         /// <summary>

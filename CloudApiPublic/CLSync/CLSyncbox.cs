@@ -3284,7 +3284,7 @@ namespace Cloud
         /// <param name="asyncResult">The asynchronous result provided upon starting the request</param>
         /// <param name="result">(output) An overall error which occurred during processing, if any</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndRecentFilesSinceDate(IAsyncResult asyncResult, out SyncboxRecentFilesResult result)
+        public CLError EndRecentFilesSinceDate(IAsyncResult asyncResult, out SyncboxRecentFilesSinceDateResult result)
         {
             CheckDisposed(true);
 
@@ -3311,6 +3311,59 @@ namespace Cloud
         }
 
         #endregion  // end RecentFilesSincDate (Retrieves the specified number of recently modified <CLFileItems>s.)
+
+        #region RecentFiles (Retrieves the specified number of recently modified <CLFileItems>s.)
+        /// <summary>
+        /// Asynchronously starts retrieving up to the given number of recently modified syncbox files.
+        /// </summary>
+        /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing the async callback above.</param>
+        /// <param name="returnLimit">The maximum number of file items to retrieve.</param>
+        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        public IAsyncResult BeginRecentFiles(
+            AsyncCallback asyncCallback,
+            object asyncCallbackUserState,
+            long returnLimit)
+        {
+            CheckDisposed(true);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.BeginRecentFiles(asyncCallback, asyncCallbackUserState, returnLimit);
+        }
+
+        /// <summary>
+        /// Finishes retrieving recent file items from the syncbox, if it has not already finished via its asynchronous result, and outputs the result,
+        /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
+        /// </summary>
+        /// <param name="asyncResult">The asynchronous result provided upon starting the request</param>
+        /// <param name="result">(output) An overall error which occurred during processing, if any</param>
+        /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
+        public CLError EndRecentFiles(IAsyncResult asyncResult, out SyncboxRecentFilesResult result)
+        {
+            CheckDisposed(true);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.EndRecentFiles(asyncResult, out result);
+        }
+
+        /// <summary>
+        /// Retrieve up to the given number of recently modified syncbox files.
+        /// </summary>
+        /// <param name="returnLimit">The maximum number of file items to retrieve.</param>
+        /// <param name="items">(output) The retrieved items.</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        public CLError RecentFiles(long returnLimit, out CLFileItem[] items)
+        {
+            CheckDisposed(true);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.RecentFiles(returnLimit, out items);
+        }
+
+        #endregion  // end RecentFiles (Retrieves the specified number of recently modified <CLFileItems>s.)
 
         #region GetDataUsage (get the usage information for this syncbox from the cloud)
         /// <summary>

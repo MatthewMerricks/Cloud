@@ -2862,6 +2862,15 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to returnLimit must be greater than zero.
+        /// </summary>
+        internal static string ExceptionOnDemandInvalidReturnLimit {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandInvalidReturnLimit", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to An error occurred for the current item, check the InnerException Message.
         /// </summary>
         internal static string ExceptionOnDemandItemError {
