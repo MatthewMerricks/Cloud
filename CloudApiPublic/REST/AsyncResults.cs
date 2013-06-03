@@ -235,6 +235,43 @@ namespace Cloud.REST
     /// <summary>
     /// Holds result properties
     /// </summary>
+    public sealed class FileItemDownloadFileResult
+    {
+        /// <summary>
+        /// The full path of the downloaded file in the tempoarary download director.
+        /// </summary>
+        public string FullPathTempDownloadedFile
+        {
+            get
+            {
+                return _fullPathTempDownloadedFile;
+            }
+        }
+        private readonly string _fullPathTempDownloadedFile;
+
+        /// <summary>
+        /// Any error which may have occurred during communication
+        /// </summary>
+        public CLError Error
+        {
+            get
+            {
+                return _error;
+            }
+        }
+        private readonly CLError _error;
+
+        // construct with all readonly properties
+        internal FileItemDownloadFileResult(CLError error, string fullPathTempDownloadedFile)
+        {
+            this._error = error;
+            this._fullPathTempDownloadedFile = fullPathTempDownloadedFile;
+        }
+    }
+
+    /// <summary>
+    /// Holds result properties
+    /// </summary>
     public sealed class SyncboxAllocAndInitResult
     {
         /// <summary>

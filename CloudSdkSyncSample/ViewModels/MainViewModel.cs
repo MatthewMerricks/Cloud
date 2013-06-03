@@ -1246,7 +1246,10 @@ namespace SampleLiveSync.ViewModels
                                     syncboxId: (long)SettingsAdvancedImpl.Instance.SyncboxId,
                                     credentials: syncCredentials,
                                     syncbox: out _syncbox,
-                                    path: SettingsAdvancedImpl.Instance.SyncRoot,
+                                    //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@  DEBUG REMOVE  @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                                    path: null,
+                                    //path: SettingsAdvancedImpl.Instance.SyncRoot,
+                                    //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@  DEBUG REMOVE  @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
                                     settings: SettingsAdvancedImpl.Instance,
                                     getNewCredentialsCallback: ReplaceExpiredCredentialsCallback,
                                     getNewCredentialsCallbackUserState: this);
@@ -1303,6 +1306,20 @@ namespace SampleLiveSync.ViewModels
                 if (startSyncbox
                     && _syncbox != null)
                 {
+                    //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@  DEBUG REMOVE  @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+                    Cloud.CLSync.CLFileItem rootItem;
+                    CLError errorFromRootFolder = _syncbox.RootFolder(out rootItem);
+
+                    Cloud.CLSync.CLFileItem downloadItem;
+                    CLError errorFromItemForPath = _syncbox.ItemForPath("/BobTestFile2.txt", out downloadItem);
+
+                    string fullPathDownloadedTempFile;
+                    CancellationTokenSource cancellationSource = new CancellationTokenSource();
+                    CLError errorFromDownload = downloadItem.DownloadFile(out fullPathDownloadedTempFile, TransferStatusCallback, this, cancellationSource);
+
+                    //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@  DEBUG REMOVE  @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
                     // start syncing
                     CLSyncMode syncMode = Properties.Settings.Default.BadgingEnabled ? CLSyncMode.CLSyncModeLiveWithBadgingEnabled : CLSyncMode.CLSyncModeLive;
                     CLError errorFromSyncboxStart = _syncbox.StartLiveSync(
@@ -1382,6 +1399,12 @@ namespace SampleLiveSync.ViewModels
                 _trace.writeToLog(1, "MainViewModel: StartSyncing: ERROR: Exception: Msg: <{0}>.", ex.Message);
                 NotifyException(this, new NotificationEventArgs<CLError>() { Data = error, Message = String.Format("Error: {0}.", ex.Message) });
             }
+        }
+
+        private void TransferStatusCallback(long byteProgress, long totalByteSize, object userState)
+        {
+            long progress = byteProgress;
+            long size = totalByteSize;
         }
         
         /// <summary>

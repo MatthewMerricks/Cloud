@@ -353,28 +353,76 @@ namespace Cloud.CLSync
         /// <summary>
         /// Asynchronously starts downloading a file representing this CLFileItem object from the cloud.
         /// </summary>
-        /// <param name="callback">Callback method to fire when operation completes</param>
-        /// <param name="callbackUserState">User state to pass when firing async callback</param>
+        /// <param name="asyncCallback">Callback method to fire when the async operation completes.  Can be null.</param>
+        /// <param name="asyncCallbackUserState">User state to pass to the async callback when it is fired.  Can be null.</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginDownloadFile(AsyncCallback callback, object callbackUserState)
+        public IAsyncResult BeginDownloadFile(
+            AsyncCallback asyncCallback, 
+            object asyncCallbackUserState,
+            FileDownloadTransferStatusCallback transferStatusCallback,
+            object transferStatusCallbackUserState,
+            CancellationTokenSource cancellationSource)
         {
-            FileChange fcToDownload = new FileChange()
-            {
-                 Direction = SyncDirection.From
-            };
-            return _httpRestClient.BeginDownloadFile(callback, callbackUserState, fcToDownload, this.Uid, this.Revision, OnAfterDownloadToTempFile, this, _copiedSettings.HttpTimeoutMilliseconds);
+            Helpers.CheckHalted();
+
+            var asyncThread = DelegateAndDataHolderBase.Create(
+                // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
+                new
+                {
+                    // create the asynchronous result to return
+                    toReturn = new GenericAsyncResult<FileItemDownloadFileResult>(
+                        asyncCallback,
+                        asyncCallbackUserState),
+                    transferStatusCallback = transferStatusCallback,
+                    transferStatusCallbackUserState = transferStatusCallbackUserState,
+                    cancellationSource = cancellationSource,
+                },
+                (Data, errorToAccumulate) =>
+                {
+                    // The ThreadProc.
+                    // try/catch to process with the input parameters, on catch set the exception in the asyncronous result
+                    try
+                    {
+                        // alloc and init the syncbox with the passed parameters, storing any error that occurs
+                        string fullPathDownloadedTempFile;
+                        CLError processError = DownloadFile(
+                            out fullPathDownloadedTempFile,
+                            Data.transferStatusCallback,
+                            Data.transferStatusCallbackUserState,
+                            Data.cancellationSource);
+
+                        Data.toReturn.Complete(
+                            new FileItemDownloadFileResult(
+                                processError,  // any error that may have occurred during processing
+                                fullPathDownloadedTempFile),
+                            sCompleted: false); // processing did not complete synchronously
+                    }
+                    catch (Exception ex)
+                    {
+                        Data.toReturn.HandleException(
+                            ex, // the exception which was not handled correctly by the CLError wrapping
+                            sCompleted: false); // processing did not complete synchronously
+                    }
+                },
+                null);
+
+            // create the thread from a void (object) parameterized start which wraps the synchronous method call
+            (new Thread(new ThreadStart(asyncThread.VoidProcess))).Start(); // start the asynchronous processing thread which is attached to its data
+
+            // return the asynchronous result
+            return asyncThread.TypedData.toReturn;
         }
 
         /// <summary>
-        /// Finishes downloading a file, if it has not already finished via its asynchronous result, and outputs the result,
+        /// Finishes downloading a file from the syncbox, if it has not already finished via its asynchronous result, and outputs the result,
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
         /// </summary>
-        /// <param name="aResult">The asynchronous result provided upon starting the audios query</param>
-        /// <param name="result">(output) The result from the request</param>
+        /// <param name="asyncResult">The asynchronous result provided upon starting creating the syncbox</param>
+        /// <param name="result">(output) The result from the asynchronous operation.</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndDownloadFile(IAsyncResult aResult, out DownloadFileResult result)
+        public static CLError EndDownloadFile(IAsyncResult asyncResult, out FileItemDownloadFileResult result)
         {
-            return _httpRestClient.EndDownloadFile(aResult, out result);
+            return Helpers.EndAsyncOperation<FileItemDownloadFileResult>(asyncResult, out result);
         }
 
         /// <summary>
@@ -386,6 +434,7 @@ namespace Cloud.CLSync
         /// <param name="fullPathDownloadedTempFile">(output) The full path of the downloaded file in the temp download directory.</param>
         /// <param name="transferStatusCallback">The callback to fire with tranfer status updates.  May be null.</param>
         /// <param name="transferStatusCallbackUserState">The user state to pass to the transfer status callback above.  May be null.</param>
+        /// <param name="cancellationSource">A cancellation token source object that can be used to cancel the download operation.  May be null</param>
         /// <returns>CLError: Any error, or null.</returns>
         public CLError DownloadFile(
             out string fullPathDownloadedTempFile, 

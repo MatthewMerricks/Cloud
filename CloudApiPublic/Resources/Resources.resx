@@ -2976,4 +2976,7 @@
     <value>ItemUid must not be null</value>
     <comment>"ItemUid" should not be translated</comment>
   </data>
+  <data name="ExceptionOnDemandDownloadFileTempFileDidNotExistAfterSuccessfulDownload" xml:space="preserve">
+    <value>The temp download file did not exist on the disk after a successful download</value>
+  </data>
 </root>

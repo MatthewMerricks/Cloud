@@ -531,6 +531,11 @@ namespace Cloud.Static
         /// </summary>
         OnDemand_Download = (((ulong)CLExceptionDomain.OnDemand) << 32) | 37, // 5_37
 
+        /// <summary>
+        /// An error occurred downloading a file.
+        /// </summary>
+        OnDemand_DownloadTempDownloadFileNotFoundAfterSuccessfulDownload = (((ulong)CLExceptionDomain.OnDemand) << 32) | 38, // 5_38
+
         #endregion
 
         #region FileItem
