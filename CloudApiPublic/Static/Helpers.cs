@@ -2556,81 +2556,10 @@ namespace Cloud.Static
                             //noop;
                         }
 
-                        FileInfo oldPathInfo = new FileInfo(fileMoveState.oldPathString);
-                        FileInfo newPathInfo = new FileInfo(fileMoveState.newPathString);
-                        DateTime oldPathCreation = oldPathInfo.CreationTimeUtc;
-                        DateTime oldPathWrite = oldPathInfo.LastWriteTimeUtc;
-                        long oldPathSize = oldPathInfo.Length;
-
-                        try
-                        {
-                            if (newPathInfo.Exists)
-                            {
-                                try
-                                {
-                                    oldPathInfo.Replace(
-                                        fileMoveState.newPathString,
-                                        fileMoveState.backupLocation,
-                                        ignoreMetadataErrors: true);
-                                    try
-                                    {
-                                        if (File.Exists(fileMoveState.backupLocation))
-                                        {
-                                            File.Delete(fileMoveState.backupLocation);
-                                        }
-                                    }
-                                    catch
-                                    {
-                                    }
-                                }
-                                // File.Replace not supported on non-NTFS drives, must use traditional move
-                                catch (PlatformNotSupportedException)
-                                {
-                                    if (newPathInfo.Exists)
-                                    {
-                                        newPathInfo.Delete();
-                                    }
-                                    oldPathInfo.MoveTo(fileMoveState.newPathString);
-                                }
-                                // Some strange condition on specific files which does not make sense can throw an error on replace but may still succeed on move
-                                catch (IOException)
-                                {
-                                    if (newPathInfo.Exists)
-                                    {
-                                        newPathInfo.Delete();
-                                    }
-                                    oldPathInfo.MoveTo(fileMoveState.newPathString);
-                                }
-                            }
-                            else
-                            {
-                                oldPathInfo.MoveTo(fileMoveState.newPathString);
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            if (oldPathCreation.Ticks != FileConstants.InvalidUtcTimeTicks
-                                && oldPathCreation.ToUniversalTime().Ticks != FileConstants.InvalidUtcTimeTicks
-
-                                && oldPathWrite.Ticks != FileConstants.InvalidUtcTimeTicks
-                                && oldPathWrite.ToUniversalTime().Ticks != FileConstants.InvalidUtcTimeTicks
-
-                                && newPathInfo.Exists
-
-                                && DateTime.Compare(newPathInfo.CreationTimeUtc, oldPathCreation) == 0
-
-                                && DateTime.Compare(newPathInfo.LastWriteTimeUtc, oldPathWrite) == 0
-
-                                && oldPathSize == newPathInfo.Length)
-                            {
-                                // file move (or replace) actually worked even though it threw an exception
-                                // silence exception
-                            }
-                            else
-                            {
-                                throw ex;
-                            }
-                        }
+                        FileMoveOrReplace(
+                            fileMoveState.oldPathString,
+                            fileMoveState.newPathString,
+                            fileMoveState.backupLocation);
 
                         FileSecurity fileSecurity = new FileSecurity(fileMoveState.newPathString, AccessControlSections.Access);
                         if (tempExplicitRules != null && tempExplicitRules.Count > 0)
@@ -2681,6 +2610,85 @@ namespace Cloud.Static
             }
 
             return null;
+        }
+
+        internal static void FileMoveOrReplace(string fileMoveOldPathString, string fileMoveNewPathString, string fileMoveBackupLocation)
+        {
+            FileInfo oldPathInfo = new FileInfo(fileMoveOldPathString);
+            FileInfo newPathInfo = new FileInfo(fileMoveNewPathString);
+            DateTime oldPathCreation = oldPathInfo.CreationTimeUtc;
+            DateTime oldPathWrite = oldPathInfo.LastWriteTimeUtc;
+            long oldPathSize = oldPathInfo.Length;
+
+            try
+            {
+                if (newPathInfo.Exists)
+                {
+                    try
+                    {
+                        oldPathInfo.Replace(
+                            fileMoveNewPathString,
+                            fileMoveBackupLocation,
+                            ignoreMetadataErrors: true);
+                        try
+                        {
+                            if (File.Exists(fileMoveBackupLocation))
+                            {
+                                File.Delete(fileMoveBackupLocation);
+                            }
+                        }
+                        catch
+                        {
+                        }
+                    }
+                    // File.Replace not supported on non-NTFS drives, must use traditional move
+                    catch (PlatformNotSupportedException)
+                    {
+                        if (newPathInfo.Exists)
+                        {
+                            newPathInfo.Delete();
+                        }
+                        oldPathInfo.MoveTo(fileMoveNewPathString);
+                    }
+                    // Some strange condition on specific files which does not make sense can throw an error on replace but may still succeed on move
+                    catch (IOException)
+                    {
+                        if (newPathInfo.Exists)
+                        {
+                            newPathInfo.Delete();
+                        }
+                        oldPathInfo.MoveTo(fileMoveNewPathString);
+                    }
+                }
+                else
+                {
+                    oldPathInfo.MoveTo(fileMoveNewPathString);
+                }
+            }
+            catch (Exception ex)
+            {
+                if (oldPathCreation.Ticks != FileConstants.InvalidUtcTimeTicks
+                    && oldPathCreation.ToUniversalTime().Ticks != FileConstants.InvalidUtcTimeTicks
+
+                    && oldPathWrite.Ticks != FileConstants.InvalidUtcTimeTicks
+                    && oldPathWrite.ToUniversalTime().Ticks != FileConstants.InvalidUtcTimeTicks
+
+                    && newPathInfo.Exists
+
+                    && DateTime.Compare(newPathInfo.CreationTimeUtc, oldPathCreation) == 0
+
+                    && DateTime.Compare(newPathInfo.LastWriteTimeUtc, oldPathWrite) == 0
+
+                    && oldPathSize == newPathInfo.Length)
+                {
+                    // file move (or replace) actually worked even though it threw an exception
+                    // silence exception
+                }
+                else
+                {
+                    throw ex;
+                }
+            }
         }
 
         #endregion
@@ -3329,11 +3337,11 @@ namespace Cloud.Static
                     if (uploadDownload is uploadParams)
                     {
                         if (uploadDownload.StatusUpdate != null
-                            && uploadDownload.StatusUpdateId != null)
+                            && uploadDownload.StatusUpdateUserState != null)
                         {
                             try
                             {
-                                uploadDownload.StatusUpdate((Guid)uploadDownload.StatusUpdateId,
+                                uploadDownload.StatusUpdate(uploadDownload.StatusUpdateUserState,
                                     uploadDownload.ChangeToTransfer.EventId,
                                     uploadDownload.ChangeToTransfer.Direction,
                                     uploadDownload.RelativePathForStatus,
@@ -3460,11 +3468,11 @@ namespace Cloud.Static
                                     CopiedSettings.DeviceId); // pass in device id to allow filtering
 
                                 if (uploadDownload.StatusUpdate != null
-                                    && uploadDownload.StatusUpdateId != null)
+                                    && uploadDownload.StatusUpdateUserState != null)
                                 {
                                     try
                                     {
-                                        uploadDownload.StatusUpdate((Guid)uploadDownload.StatusUpdateId,
+                                        uploadDownload.StatusUpdate(uploadDownload.StatusUpdateUserState,
                                             uploadDownload.ChangeToTransfer.EventId,
                                             uploadDownload.ChangeToTransfer.Direction,
                                             uploadDownload.RelativePathForStatus,
@@ -3883,13 +3891,13 @@ namespace Cloud.Static
                         try
                         {
                             if (uploadDownload.StatusUpdate != null
-                                && uploadDownload.StatusUpdateId != null)
+                                && uploadDownload.StatusUpdateUserState != null)
                             {
                                 if (uploadDownload.RelativePathForStatus != null)
                                 {
                                     try
                                     {
-                                        uploadDownload.StatusUpdate((Guid)uploadDownload.StatusUpdateId,
+                                        uploadDownload.StatusUpdate(uploadDownload.StatusUpdateUserState,
                                             uploadDownload.ChangeToTransfer.EventId,
                                             uploadDownload.ChangeToTransfer.Direction,
                                             uploadDownload.RelativePathForStatus,
@@ -4012,11 +4020,11 @@ namespace Cloud.Static
                                         }
 
                                         if (uploadDownload.StatusUpdate != null
-                                            && uploadDownload.StatusUpdateId != null)
+                                            && uploadDownload.StatusUpdateUserState != null)
                                         {
                                             try
                                             {
-                                                uploadDownload.StatusUpdate((Guid)uploadDownload.StatusUpdateId,
+                                                uploadDownload.StatusUpdate(uploadDownload.StatusUpdateUserState,
                                                     uploadDownload.ChangeToTransfer.EventId,
                                                     uploadDownload.ChangeToTransfer.Direction,
                                                     uploadDownload.RelativePathForStatus,
@@ -4045,59 +4053,115 @@ namespace Cloud.Static
                                 }
                             }
 
-                            // set the file attributes so when the file move triggers a change in the event source its metadata should match the current event;
-                            // also, perform each attribute change with up to 4 retries since it seems to throw errors under normal conditions (if it still fails then it rethrows the exception);
-                            // attributes to set: creation time, last modified time, and last access time
+                            //&&&&RKS Review this.
+                            // The downloadParams.AfterDownloadState may be type IAfterDownCallbackState (live sync download), or type GenericHolder<string> (On Demand download). Process accordingly.
+                            bool shouldSetFileAttributes = false;
+                            IAfterDownloadCallbackState castDownloadStateLiveSync = ((downloadParams)uploadDownload).AfterDownloadUserState as IAfterDownloadCallbackState;
+                            if (castDownloadStateLiveSync != null)
+                            {
+                                // This download is from Live Sync.
+                                _trace.writeToMemory(() => _trace.trcFmtStr(2, "Helpers: ProcessHttpInner<T>: Download is from Live Sync."));
 
-                            IAfterDownloadCallbackState castDownloadState = ((downloadParams)uploadDownload).AfterDownloadUserState as IAfterDownloadCallbackState;
-
-                            if (castDownloadState == null)
-                            {
-                                _trace.writeToMemory(() => _trace.trcFmtStr(2, "Helpers: ProcessHttpInner<T>: ERROR: castDownloadState is null."));
-                            }
-                            if (castDownloadState.LockerForDownloadedFileAccess == null)
-                            {
-                                _trace.writeToMemory(() => _trace.trcFmtStr(2, "Helpers: ProcessHttpInner<T>: ERROR: castDownloadState.LockerForDownloadedFileAccess is null."));
-                            }
-                            lock (castDownloadState == null ? new object() : (castDownloadState.LockerForDownloadedFileAccess ?? new object()))
-                            {
-                                _trace.writeToMemory(() => _trace.trcFmtStr(2, "Helpers: ProcessHttpInner<T>: In lock LockerForDownloadedFileAccess."));
-                                if (castDownloadState != null
-                                    && !File.Exists(newTempFileString))
+                                if (castDownloadStateLiveSync.LockerForDownloadedFileAccess == null)
                                 {
-                                    _trace.writeToMemory(() => _trace.trcFmtStr(2, "Helpers: ProcessHttpInner<T>: WARNING: Set file not found to trigger re-download."));
-                                    castDownloadState.SetFileNotFound();
+                                    _trace.writeToMemory(() => _trace.trcFmtStr(2, "Helpers: ProcessHttpInner<T>: ERROR: castDownloadState.LockerForDownloadedFileAccess is null."));
+                                }
+                                lock (castDownloadStateLiveSync == null ? new object() : (castDownloadStateLiveSync.LockerForDownloadedFileAccess ?? new object()))
+                                {
+                                    _trace.writeToMemory(() => _trace.trcFmtStr(2, "Helpers: ProcessHttpInner<T>: In lock LockerForDownloadedFileAccess."));
+                                    if (castDownloadStateLiveSync != null
+                                        && !File.Exists(newTempFileString))
+                                    {
+                                        _trace.writeToMemory(() => _trace.trcFmtStr(2, "Helpers: ProcessHttpInner<T>: WARNING: Set file not found to trigger re-download."));
+                                        castDownloadStateLiveSync.SetFileNotFound();
+                                    }
+                                    else
+                                    {
+                                        shouldSetFileAttributes = true;
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                // This download is not from Live Sync.
+                                _trace.writeToMemory(() => _trace.trcFmtStr(2, "Helpers: ProcessHttpInner<T>: Download is NOT from Live Sync."));
+                                GenericHolder<string> castStateOnDemand = ((downloadParams)uploadDownload).AfterDownloadUserState as GenericHolder<string>;
+                                if (castStateOnDemand != null)
+                                {
+                                    // This is an On Demand download
+                                    if (!File.Exists(newTempFileString))
+                                    {
+                                        throw new CLException(CLExceptionCode.OnDemand_DownloadTempDownloadFileNotFoundAfterSuccessfulDownload, Resources.ExceptionOnDemandDownloadFileTempFileDidNotExistAfterSuccessfulDownload);
+                                    }
+
+                                    shouldSetFileAttributes = true;
                                 }
                                 else
                                 {
-                                    // set the file attributes so when the file move triggers a change in the event source its metadata should match the current event;
-                                    // also, perform each attribute change with up to 4 retries since it seems to throw errors under normal conditions (if it still fails then it rethrows the exception);
-                                    // attributes to set: creation time, last modified time, and last access time
-
-                                    _trace.writeToMemory(() => _trace.trcFmtStr(2, "Helpers: ProcessHttpInner<T>: Set file attributes for file: {0}.", uploadDownload.ChangeToTransfer.NewPath));
-                                    _trace.writeToMemory(() => _trace.trcFmtStr(2, "Helpers: ProcessHttpInner<T>: Set the file creation time attribute. Time: {0}.", uploadDownload.ChangeToTransfer.Metadata.HashableProperties.CreationTime.ToString("G")));
-                                    Helpers.RunActionWithRetries(actionState => System.IO.File.SetCreationTimeUtc(actionState.Key, actionState.Value),
-                                        new KeyValuePair<string, DateTime>(newTempFileString, uploadDownload.ChangeToTransfer.Metadata.HashableProperties.CreationTime),
-                                        true);
-                                    _trace.writeToMemory(() => _trace.trcFmtStr(2, "Helpers: ProcessHttpInner<T>: Set the file last access time attribute. Time: {0}.", uploadDownload.ChangeToTransfer.Metadata.HashableProperties.LastTime.ToString("G")));
-                                    Helpers.RunActionWithRetries(actionState => System.IO.File.SetLastAccessTimeUtc(actionState.Key, actionState.Value),
-                                        new KeyValuePair<string, DateTime>(newTempFileString, uploadDownload.ChangeToTransfer.Metadata.HashableProperties.LastTime),
-                                        true);
-                                    _trace.writeToMemory(() => _trace.trcFmtStr(2, "Helpers: ProcessHttpInner<T>: Set the file last write time attribute. Time: {0}.", uploadDownload.ChangeToTransfer.Metadata.HashableProperties.LastTime.ToString("G")));
-                                    Helpers.RunActionWithRetries(actionState => System.IO.File.SetLastWriteTimeUtc(actionState.Key, actionState.Value),
-                                        new KeyValuePair<string, DateTime>(newTempFileString, uploadDownload.ChangeToTransfer.Metadata.HashableProperties.LastTime),
-                                        true);
-
-                                    // fire callback to perform the actual move of the temp file to the final destination
-                                    _trace.writeToMemory(() => _trace.trcFmtStr(2, "Helpers: ProcessHttpInner<T>: Call AfterDownloadCallback. Path: {0}.", newTempFileString));
-                                    ((downloadParams)uploadDownload).AfterDownloadCallback(newTempFileString, // location of temp file
-                                        uploadDownload.ChangeToTransfer,
-                                        ref responseBody, // reference to response string (sets to "---Completed file download---" on success)
-                                        ((downloadParams)uploadDownload).AfterDownloadUserState, // timer for failure queue
-                                        newTempFile); // id for the downloaded file
-                                    _trace.writeToMemory(() => _trace.trcFmtStr(2, "Helpers: ProcessHttpInner<T>: After call to AfterDownloadCallback."));
+                                    // No AfterDownloadUserState.  Not expected.  Just trace.
+                                    _trace.writeToMemory(() => _trace.trcFmtStr(2, "Helpers: ProcessHttpInner<T>: ERROR: castDownloadState is null."));
                                 }
                             }
+
+                            // Set the attributes of the temp download file.
+                            if (shouldSetFileAttributes)
+                            {
+                                responseBody = SetTempDownloadFileAttributes(uploadDownload, responseBody, newTempFile, newTempFileString);
+                            }
+
+                            //// set the file attributes so when the file move triggers a change in the event source its metadata should match the current event;  //&&&&RKS Old code
+                            //// also, perform each attribute change with up to 4 retries since it seems to throw errors under normal conditions (if it still fails then it rethrows the exception);
+                            //// attributes to set: creation time, last modified time, and last access time
+
+                            //IAfterDownloadCallbackState castDownloadState = ((downloadParams)uploadDownload).AfterDownloadUserState as IAfterDownloadCallbackState;
+
+                            //if (castDownloadState == null)
+                            //{
+                            //    _trace.writeToMemory(() => _trace.trcFmtStr(2, "Helpers: ProcessHttpInner<T>: ERROR: castDownloadState is null."));
+                            //}
+                            //if (castDownloadState.LockerForDownloadedFileAccess == null)
+                            //{
+                            //    _trace.writeToMemory(() => _trace.trcFmtStr(2, "Helpers: ProcessHttpInner<T>: ERROR: castDownloadState.LockerForDownloadedFileAccess is null."));
+                            //}
+                            //lock (castDownloadState == null ? new object() : (castDownloadState.LockerForDownloadedFileAccess ?? new object()))
+                            //{
+                            //    _trace.writeToMemory(() => _trace.trcFmtStr(2, "Helpers: ProcessHttpInner<T>: In lock LockerForDownloadedFileAccess."));
+                            //    if (castDownloadState != null
+                            //        && !File.Exists(newTempFileString))
+                            //    {
+                            //        _trace.writeToMemory(() => _trace.trcFmtStr(2, "Helpers: ProcessHttpInner<T>: WARNING: Set file not found to trigger re-download."));
+                            //        castDownloadState.SetFileNotFound();
+                            //    }
+                            //    else
+                            //    {
+                            //        // set the file attributes so when the file move triggers a change in the event source its metadata should match the current event;
+                            //        // also, perform each attribute change with up to 4 retries since it seems to throw errors under normal conditions (if it still fails then it rethrows the exception);
+                            //        // attributes to set: creation time, last modified time, and last access time
+
+                            //        _trace.writeToMemory(() => _trace.trcFmtStr(2, "Helpers: ProcessHttpInner<T>: Set file attributes for file: {0}.", uploadDownload.ChangeToTransfer.NewPath));
+                            //        _trace.writeToMemory(() => _trace.trcFmtStr(2, "Helpers: ProcessHttpInner<T>: Set the file creation time attribute. Time: {0}.", uploadDownload.ChangeToTransfer.Metadata.HashableProperties.CreationTime.ToString("G")));
+                            //        Helpers.RunActionWithRetries(actionState => System.IO.File.SetCreationTimeUtc(actionState.Key, actionState.Value),
+                            //            new KeyValuePair<string, DateTime>(newTempFileString, uploadDownload.ChangeToTransfer.Metadata.HashableProperties.CreationTime),
+                            //            true);
+                            //        _trace.writeToMemory(() => _trace.trcFmtStr(2, "Helpers: ProcessHttpInner<T>: Set the file last access time attribute. Time: {0}.", uploadDownload.ChangeToTransfer.Metadata.HashableProperties.LastTime.ToString("G")));
+                            //        Helpers.RunActionWithRetries(actionState => System.IO.File.SetLastAccessTimeUtc(actionState.Key, actionState.Value),
+                            //            new KeyValuePair<string, DateTime>(newTempFileString, uploadDownload.ChangeToTransfer.Metadata.HashableProperties.LastTime),
+                            //            true);
+                            //        _trace.writeToMemory(() => _trace.trcFmtStr(2, "Helpers: ProcessHttpInner<T>: Set the file last write time attribute. Time: {0}.", uploadDownload.ChangeToTransfer.Metadata.HashableProperties.LastTime.ToString("G")));
+                            //        Helpers.RunActionWithRetries(actionState => System.IO.File.SetLastWriteTimeUtc(actionState.Key, actionState.Value),
+                            //            new KeyValuePair<string, DateTime>(newTempFileString, uploadDownload.ChangeToTransfer.Metadata.HashableProperties.LastTime),
+                            //            true);
+
+                            //        // fire callback to perform the actual move of the temp file to the final destination
+                            //        _trace.writeToMemory(() => _trace.trcFmtStr(2, "Helpers: ProcessHttpInner<T>: Call AfterDownloadCallback. Path: {0}.", newTempFileString));
+                            //        ((downloadParams)uploadDownload).AfterDownloadCallback(newTempFileString, // location of temp file
+                            //            uploadDownload.ChangeToTransfer,
+                            //            ref responseBody, // reference to response string (sets to "---Completed file download---" on success)
+                            //            ((downloadParams)uploadDownload).AfterDownloadUserState, // timer for failure queue
+                            //            newTempFile); // id for the downloaded file
+                            //        _trace.writeToMemory(() => _trace.trcFmtStr(2, "Helpers: ProcessHttpInner<T>: After call to AfterDownloadCallback."));
+                            //    }
+                            //}
 
                             // if the after downloading callback set the response to null, then replace it saying it was null
                             if (responseBody == null)
@@ -4263,13 +4327,13 @@ namespace Cloud.Static
                     }
 
                     if (uploadDownload.StatusUpdate != null
-                        && uploadDownload.StatusUpdateId != null)
+                        && uploadDownload.StatusUpdateUserState != null)
                     {
                         try
                         {
                             if (uploadDownload.RelativePathForStatus != null)
                             {
-                                uploadDownload.StatusUpdate((Guid)uploadDownload.StatusUpdateId,
+                                uploadDownload.StatusUpdate(uploadDownload.StatusUpdateUserState,
                                     uploadDownload.ChangeToTransfer.EventId,
                                     uploadDownload.ChangeToTransfer.Direction,
                                     uploadDownload.RelativePathForStatus,
@@ -4347,6 +4411,41 @@ namespace Cloud.Static
                     }
                 }
             }
+        }
+
+
+        /// <summary>
+        /// Set the attributes of the temp download file.
+        /// </summary>
+        private static string SetTempDownloadFileAttributes(uploadDownloadParams uploadDownload, string responseBody, Guid newTempFile, string newTempFileString)
+        {
+            // set the file attributes so when the file move triggers a change in the event source its metadata should match the current event;
+            // also, perform each attribute change with up to 4 retries since it seems to throw errors under normal conditions (if it still fails then it rethrows the exception);
+            // attributes to set: creation time, last modified time, and last access time
+
+            _trace.writeToMemory(() => _trace.trcFmtStr(2, "Helpers: SetTempDownloadFileAttributes: Set file attributes for file: {0}.", uploadDownload.ChangeToTransfer.NewPath));
+            _trace.writeToMemory(() => _trace.trcFmtStr(2, "Helpers: SetTempDownloadFileAttributes: Set the file creation time attribute. Time: {0}.", uploadDownload.ChangeToTransfer.Metadata.HashableProperties.CreationTime.ToString("G")));
+            Helpers.RunActionWithRetries(actionState => System.IO.File.SetCreationTimeUtc(actionState.Key, actionState.Value),
+                new KeyValuePair<string, DateTime>(newTempFileString, uploadDownload.ChangeToTransfer.Metadata.HashableProperties.CreationTime),
+                true);
+            _trace.writeToMemory(() => _trace.trcFmtStr(2, "Helpers: SetTempDownloadFileAttributes: Set the file last access time attribute. Time: {0}.", uploadDownload.ChangeToTransfer.Metadata.HashableProperties.LastTime.ToString("G")));
+            Helpers.RunActionWithRetries(actionState => System.IO.File.SetLastAccessTimeUtc(actionState.Key, actionState.Value),
+                new KeyValuePair<string, DateTime>(newTempFileString, uploadDownload.ChangeToTransfer.Metadata.HashableProperties.LastTime),
+                true);
+            _trace.writeToMemory(() => _trace.trcFmtStr(2, "Helpers: SetTempDownloadFileAttributes: Set the file last write time attribute. Time: {0}.", uploadDownload.ChangeToTransfer.Metadata.HashableProperties.LastTime.ToString("G")));
+            Helpers.RunActionWithRetries(actionState => System.IO.File.SetLastWriteTimeUtc(actionState.Key, actionState.Value),
+                new KeyValuePair<string, DateTime>(newTempFileString, uploadDownload.ChangeToTransfer.Metadata.HashableProperties.LastTime),
+                true);
+
+            // fire callback to perform the actual move of the temp file to the final destination
+            _trace.writeToMemory(() => _trace.trcFmtStr(2, "Helpers: SetTempDownloadFileAttributes: Call AfterDownloadCallback. Path: {0}.", newTempFileString));
+            ((downloadParams)uploadDownload).AfterDownloadCallback(newTempFileString, // location of temp file
+                uploadDownload.ChangeToTransfer,
+                ref responseBody, // reference to response string (sets to "---Completed file download---" on success)
+                ((downloadParams)uploadDownload).AfterDownloadUserState, // timer for failure queue
+                newTempFile); // id for the downloaded file
+            _trace.writeToMemory(() => _trace.trcFmtStr(2, "Helpers: SetTempDownloadFileAttributes: After call to AfterDownloadCallback."));
+            return responseBody;
         }
 
         private static void RemoveNullJsonFields(SimpleJsonBase.SimpleJson.JsonObject toClean)
@@ -4794,14 +4893,14 @@ namespace Cloud.Static
             private readonly FileTransferStatusUpdateDelegate _statusUpdate;
 
 
-            public Nullable<Guid> StatusUpdateId
+            public object StatusUpdateUserState
             {
                 get
                 {
-                    return _statusUpdateId;
+                    return _statusUpdateUserState;
                 }
             }
-            private readonly Nullable<Guid> _statusUpdateId;
+            private readonly object _statusUpdateUserState;
 
             /// <summary>
             /// The constructor for this abstract base object with all parameters corresponding to all properties
@@ -4813,7 +4912,9 @@ namespace Cloud.Static
             /// <param name="ACallback">User-provided callback to fire upon asynchronous operation</param>
             /// <param name="AResult">Asynchronous result for firing async callbacks</param>
             /// <param name="ProgressHolder">Holder for a progress state which can be queried by the user</param>
-            public uploadDownloadParams(SendUploadDownloadStatus StatusCallback, FileChange ChangeToTransfer, CancellationTokenSource ShutdownToken, string SyncboxPath, AsyncCallback ACallback, IAsyncResult AResult, GenericHolder<TransferProgress> ProgressHolder, FileTransferStatusUpdateDelegate StatusUpdate, Nullable<Guid> StatusUpdateId)
+            /// <param name="StatusUpdate">A transfer status update callback for reporting upload status.  May be null.</param>
+            /// <param name="StatusUpdateUserState">The user contect to pass to the transfer status update callback above.  May be null.</param>
+            public uploadDownloadParams(SendUploadDownloadStatus StatusCallback, FileChange ChangeToTransfer, CancellationTokenSource ShutdownToken, string SyncboxPath, AsyncCallback ACallback, IAsyncResult AResult, GenericHolder<TransferProgress> ProgressHolder, FileTransferStatusUpdateDelegate StatusUpdate, object StatusUpdateUserState)
             {
                 // check for required parameters and error out if not set
 
@@ -4860,7 +4961,7 @@ namespace Cloud.Static
                 this._aResult = AResult;
                 this._progressHolder = ProgressHolder;
                 this._statusUpdate = StatusUpdate;
-                this._statusUpdateId = StatusUpdateId;
+                this._statusUpdateUserState = StatusUpdateUserState;
             }
         }
 
@@ -4942,10 +5043,12 @@ namespace Cloud.Static
             /// <param name="ACallback">User-provided callback to fire upon asynchronous operation</param>
             /// <param name="AResult">Asynchronous result for firing async callbacks</param>
             /// <param name="ProgressHolder">Holder for a progress state which can be queried by the user</param>
+            /// <param name="StatusUpdate">A transfer status update callback for reporting upload status.  May be null.</param>
+            /// <param name="StatusUpdateUserState">The user contect to pass to the transfer status update callback above.  May be null.</param>
             /// <param name="BeforeDownloadCallback">A non-required (possibly null) event handler for before a download starts</param>
             /// <param name="BeforeDownloadUserState">UserState object passed through as-is when the BeforeDownloadCallback handler is fired</param>
-            public downloadParams(AfterDownloadToTempFile AfterDownloadCallback, object AfterDownloadUserState, string TempDownloadFolderPath, SendUploadDownloadStatus StatusCallback, FileChange ChangeToTransfer, CancellationTokenSource ShutdownToken, string SyncboxPath, AsyncCallback ACallback, IAsyncResult AResult, GenericHolder<TransferProgress> ProgressHolder, FileTransferStatusUpdateDelegate StatusUpdate, Nullable<Guid> StatusUpdateId, BeforeDownloadToTempFile BeforeDownloadCallback = null, object BeforeDownloadUserState = null)
-                : base(StatusCallback, ChangeToTransfer, ShutdownToken, SyncboxPath, ACallback, AResult, ProgressHolder, StatusUpdate, StatusUpdateId)
+            public downloadParams(AfterDownloadToTempFile AfterDownloadCallback, object AfterDownloadUserState, string TempDownloadFolderPath, SendUploadDownloadStatus StatusCallback, FileChange ChangeToTransfer, CancellationTokenSource ShutdownToken, string SyncboxPath, AsyncCallback ACallback, IAsyncResult AResult, GenericHolder<TransferProgress> ProgressHolder, FileTransferStatusUpdateDelegate StatusUpdate, object StatusUpdateUserState, BeforeDownloadToTempFile BeforeDownloadCallback = null, object BeforeDownloadUserState = null)
+                : base(StatusCallback, ChangeToTransfer, ShutdownToken, SyncboxPath, ACallback, AResult, ProgressHolder, StatusUpdate, StatusUpdateUserState)
             {
                 // additional checks for parameters which were not already checked via the abstract base constructor
 
@@ -5043,6 +5146,7 @@ namespace Cloud.Static
             /// <summary>
             /// The sole constructor for this class with all parameters corresponding to all properties in this class and within its base class uploadDownloadParams
             /// </summary>
+            /// <param name="StreamContext">The stream context to represent the stream opened to the file on disk.</param>
             /// <param name="StatusCallback">A handler delegate to be fired whenever there is new status information for an upload or download (the progress of the upload/download or completion)</param>
             /// <param name="ChangeToTransfer">UserState object which is required for calling the StatusCallback for sending status information events; also used to retrieve the StorageKey and MD5 hash for upload</param>
             /// <param name="ShutdownToken">A non-required (possibly null) user-provided token source which is checked through an upload or download in order to cancel it</param>
@@ -5051,8 +5155,10 @@ namespace Cloud.Static
             /// <param name="ACallback">User-provided callback to fire upon asynchronous operation</param>
             /// <param name="AResult">Asynchronous result for firing async callbacks</param>
             /// <param name="ProgressHolder">Holder for a progress state which can be queried by the user</param>
-            public uploadParams(StreamContext StreamContext, SendUploadDownloadStatus StatusCallback, FileChange ChangeToTransfer, CancellationTokenSource ShutdownToken, string SyncboxPath, AsyncCallback ACallback, IAsyncResult AResult, GenericHolder<TransferProgress> ProgressHolder, FileTransferStatusUpdateDelegate StatusUpdate, Nullable<Guid> StatusUpdateId)
-                : base(StatusCallback, ChangeToTransfer, ShutdownToken, SyncboxPath, ACallback, AResult, ProgressHolder, StatusUpdate, StatusUpdateId)
+            /// <param name="StatusUpdate">A transfer status update callback for reporting upload status.  May be null.</param>
+            /// <param name="StatusUpdateUserState">The user contect to pass to the transfer status update callback above.  May be null.</param>
+            public uploadParams(StreamContext StreamContext, SendUploadDownloadStatus StatusCallback, FileChange ChangeToTransfer, CancellationTokenSource ShutdownToken, string SyncboxPath, AsyncCallback ACallback, IAsyncResult AResult, GenericHolder<TransferProgress> ProgressHolder, FileTransferStatusUpdateDelegate StatusUpdate, object StatusUpdateUserState)
+                : base(StatusCallback, ChangeToTransfer, ShutdownToken, SyncboxPath, ACallback, AResult, ProgressHolder, StatusUpdate, StatusUpdateUserState)
             {
                 // additional checks for parameters which were not already checked via the abstract base constructor
 

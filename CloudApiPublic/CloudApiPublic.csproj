@@ -132,12 +132,10 @@
     <Compile Include="BadgeNET\IconOverlay.cs" />
     <Compile Include="CLSync\CLCredentials.cs" />
     <Compile Include="CLSync\CLCredentialsSettings.cs" />
-    <Compile Include="CLSync\CLFileItemTransferStatusDelegate.cs" />
+    <Compile Include="CLSync\CLSyncboxCallbacks\CLFileDownloadTransferStatusCallback.cs" />
+    <Compile Include="CLSync\CLSyncboxCallbacks\CLFileUploadTransferStatusCallback.cs" />
     <Compile Include="CLSync\CLSyncboxCallbacks\CLFileItemCompletionCallback.cs" />
     <Compile Include="CLSync\CLSyncbox.cs" />
-    <Compile Include="CLSync\CLSyncboxCallbacks\CLCreateSyncboxCompletionCallback.cs" />
-    <Compile Include="CLSync\CLSyncboxCallbacks\CLListSyncboxesCompletionCallback.cs" />
-    <Compile Include="CLSync\CLSyncboxCallbacks\CLSingleFileItemCompletionCallback.cs" />
     <Compile Include="CLSync\CLSyncboxParameters\AddFolderItemParams.cs" />
     <Compile Include="CLSync\CLSyncboxParameters\AddFileItemParams.cs" />
     <Compile Include="CLSync\CLSyncboxParameters\RenameItemParams.cs" />
@@ -145,7 +143,6 @@
     <Compile Include="CLSync\CLSyncboxParameters\RenamePathParams.cs" />
     <Compile Include="CLSync\CLSyncCurrentStatus.cs" />
     <Compile Include="CLSync\CLSyncTransferringFile.cs" />
-    <Compile Include="CLSync\CLSyncboxCallbacks\CLAllItemsCompletionCallback.cs" />
     <Compile Include="CompilerServices.cs" />
     <Compile Include="FileMonitor\FileMonitorMemory.cs">
       <DependentUpon>FileMonitorMemory.xsd</DependentUpon>

@@ -102,10 +102,6 @@ namespace Cloud.Support
         {
             try
             {
-                if (String.IsNullOrEmpty(TraceLocation))
-                {
-                    throw new NullReferenceException("TraceLocation must be specified");
-                }
                 if (TraceCategory == null)
                 {
                     throw new NullReferenceException("TraceCategory must not be null");
@@ -113,6 +109,13 @@ namespace Cloud.Support
                 if (FileExtensionWithoutPeriod == null)
                 {
                     throw new NullReferenceException("FileExtensionWithoutPeriod must not be null");
+                }
+
+                // Just exit if there is no trace location.
+                if (String.IsNullOrEmpty(TraceLocation))
+                {
+                    _traceLocation = null;
+                    return;
                 }
 
                 lock (_instanceLocker)
@@ -151,7 +154,7 @@ namespace Cloud.Support
             try
             {
                 // Only write high priority messages
-                if ((_traceLocation == null || priority <= _maxPriority)
+                if ((_traceLocation != null || priority <= _maxPriority)
                     
                     // only trace if trace category was set via initialization to prevent an exception being thrown -David
                     && _traceCategory != null)

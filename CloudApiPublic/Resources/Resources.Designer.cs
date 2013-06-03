@@ -97,15 +97,6 @@ namespace Cloud.Static {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to \.
-        /// </summary>
-        internal static string Backslash {
-            get {
-                return ResourceManager.GetString("Backslash", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Bytes.
         /// </summary>
         internal static string BytesPlural {
@@ -214,11 +205,11 @@ namespace Cloud.Static {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to castState must be a CLFileItem.
+        ///   Looks up a localized string similar to castState must be a GenericHolder&lt;string&gt;.
         /// </summary>
-        internal static string CLFileItemCastStateMustBeACLFileItem {
+        internal static string CLFileItemCastStateMustBeAGenericHolderOfString {
             get {
-                return ResourceManager.GetString("CLFileItemCastStateMustBeACLFileItem", resourceCulture);
+                return ResourceManager.GetString("CLFileItemCastStateMustBeAGenericHolderOfString", resourceCulture);
             }
         }
         
@@ -2808,6 +2799,24 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to incorrect userState object type.
+        /// </summary>
+        internal static string ExceptionOnDemandDownloadFileIncorrectUserState {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandDownloadFileIncorrectUserState", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The temp download file did not exist on the disk after a successful download.
+        /// </summary>
+        internal static string ExceptionOnDemandDownloadFileTempFileDidNotExistAfterSuccessfulDownload {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandDownloadFileTempFileDidNotExistAfterSuccessfulDownload", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to File item must not be null at item index {0}.
         /// </summary>
         internal static string ExceptionOnDemandFileItemNullAtIndexMsg0 {
@@ -2862,6 +2871,15 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to returnLimit must be greater than zero.
+        /// </summary>
+        internal static string ExceptionOnDemandInvalidReturnLimit {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandInvalidReturnLimit", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to An error occurred for the current item, check the InnerException Message.
         /// </summary>
         internal static string ExceptionOnDemandItemError {
@@ -2894,6 +2912,15 @@ namespace Cloud.Static {
         internal static string ExceptionOnDemandItemToRenameMustNotBeNull {
             get {
                 return ResourceManager.GetString("ExceptionOnDemandItemToRenameMustNotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ItemUid must not be null.
+        /// </summary>
+        internal static string ExceptionOnDemandItemUidMustNotBeNull {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandItemUidMustNotBeNull", resourceCulture);
             }
         }
         
@@ -3128,6 +3155,15 @@ namespace Cloud.Static {
         internal static string ExceptionSyncboxStartStatus {
             get {
                 return ResourceManager.GetString("ExceptionSyncboxStartStatus", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to cast userState as Nullable&lt;Guid&gt;.
+        /// </summary>
+        internal static string ExceptionSyncEngineFileTransferStatusUpdateCastUserstate {
+            get {
+                return ResourceManager.GetString("ExceptionSyncEngineFileTransferStatusUpdateCastUserstate", resourceCulture);
             }
         }
         

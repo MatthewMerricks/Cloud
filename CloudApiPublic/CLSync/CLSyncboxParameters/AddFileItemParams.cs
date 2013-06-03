@@ -20,16 +20,30 @@ namespace Cloud.CLSync.CLSyncboxParameters
     public sealed class AddFileItemParams
     {
         /// <summary>
-        /// Returns the parent folder item of the file being added.
+        /// The parent folder item in the syncbox to which the file will be added.
         /// </summary>
-        public CLFileItem Parent
+        public CLFileItem ParentFolder
         {
             get
             {
-                return _parent;
+                return _parentFolder;
             }
         }
-        private readonly CLFileItem _parent;
+        private readonly CLFileItem _parentFolder;
+
+        /// <summary>
+        /// The new name of the file in the syncbox (within the parent folder item).
+        /// </summary>
+        public string FileName
+        {
+            get
+            {
+                return _fileName;
+            }
+        }
+        private readonly string _fileName;
+
+
 
         /// <summary>
         /// The full path on the local disk of the file item being added.
@@ -46,12 +60,14 @@ namespace Cloud.CLSync.CLSyncboxParameters
         /// <summary>
         /// Construct parameters for adding a file item.
         /// </summary>
-        /// <param name="parent">Parent folder of the item we wish to add.</param>
-        /// <param name="name">The full path on the local disk of the file item being added.</param>
-        public AddFileItemParams(CLFileItem parent, string fullPath)
+        /// <param name="fullPath">The full path on the local disk of the file being added.</param>
+        /// <param name="parentFolder">Parent folder in the syncbox to which the file will be added.</param>
+        /// <param name="fileName">The new filename of the file in the syncbox (just the filename and extension).</param>
+        public AddFileItemParams(string fullPath, CLFileItem parentFolder, string fileName)
         {
-            this._parent = parent;
+            this._parentFolder = parentFolder;
             this._fullPath = fullPath;
+            this._fileName = fileName;
         }
     }
 }

@@ -32,8 +32,7 @@ namespace Cloud.REST
     /// <summary>
     /// Client for manual HTTP communication calls to the Cloud
     /// </summary>
-    [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-    public sealed class CLHttpRest
+    internal sealed class CLHttpRest
     {
         #region Private fields
 
@@ -53,30 +52,6 @@ namespace Cloud.REST
         private void SetCurrentCredentialCallback(CLCredentials credentials)
         {
             _syncbox.Credentials = credentials;
-        }
-
-        private void CheckPath(FilePath pathToCheck, CLExceptionCode codeOnError)
-        {
-            if (pathToCheck == null)
-            {
-                throw new CLArgumentNullException(codeOnError, Resources.ExceptionOnDemandCheckPathNull);
-            }
-
-            CLError pathError = Helpers.CheckForBadPath(pathToCheck);
-            if (pathError != null)
-            {
-                throw new CLArgumentException(codeOnError, Resources.ExceptionOnDemandCheckPathBad, pathError.Exceptions);
-            }
-
-            if (string.IsNullOrEmpty(_syncbox.Path))
-            {
-                throw new CLArgumentNullException(codeOnError, Resources.ExceptionOnDemandCheckPathSyncboxPathNull);
-            }
-
-            if (!pathToCheck.Contains(_syncbox.Path))
-            {
-                throw new CLArgumentException(codeOnError, Resources.ExceptionOnDemandCheckPathNotContained);
-            }
         }
 
         #endregion
@@ -199,14 +174,461 @@ namespace Cloud.REST
 
         #endregion  // end Constructors and Factories
 
-        #region public API calls
+        #region internal methods supporting public API calls
+        #region DownloadFile
+        /// <summary>
+        /// Asynchronously starts downloading a file from a provided file download change
+        /// </summary>
+        /// <param name="asyncCallback">Callback method to fire upon progress changes in download, make sure it processes quickly if the IAsyncResult IsCompleted is false</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing async callback</param>
+        /// <param name="changeToDownload">File download change, requires Metadata.</param>
+        /// <param name="moveFileUponCompletion">¡¡ Action required: move the completed download file from the temp directory to the final destination !! Callback fired when download completes</param>
+        /// <param name="moveFileUponCompletionState">User state passed upon firing completed download callback</param>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception, does not restrict time for the actual file download</param>
+        /// <param name="beforeDownload">(optional) Callback fired before a download starts</param>
+        /// <param name="beforeDownloadState">User state passed upon firing before download callback</param>
+        /// <param name="shutdownToken">(optional) Token used to request cancellation of the download</param>
+        /// <param name="customDownloadFolderFullPath">(optional) Full path to a folder where temporary downloads will be stored to override default</param>
+        /// <returns>Returns the asynchronous result which is used to retrieve progress and/or the result</returns>
+        public IAsyncResult BeginDownloadFile(AsyncCallback asyncCallback,
+            object asyncCallbackUserState,
+            FileChange changeToDownload,
+            string serverUid,
+            string revision,
+            Helpers.AfterDownloadToTempFile moveFileUponCompletion,
+            object moveFileUponCompletionState,
+            int timeoutMilliseconds,
+            Helpers.BeforeDownloadToTempFile beforeDownload = null,
+            object beforeDownloadState = null,
+            CancellationTokenSource shutdownToken = null,
+            string customDownloadFolderFullPath = null)
+        {
+            // create a holder for the changing progress of the transfer
+            GenericHolder<TransferProgress> progressHolder = new GenericHolder<TransferProgress>(null);
+
+            // create the asynchronous result to return
+            GenericAsyncResult<DownloadFileResult> toReturn = new GenericAsyncResult<DownloadFileResult>(
+                asyncCallback,
+                asyncCallbackUserState,
+                progressHolder);
+
+            // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
+            Tuple<GenericAsyncResult<DownloadFileResult>, AsyncCallback, FileChange, string, string, Helpers.AfterDownloadToTempFile, object, Tuple<int, Helpers.BeforeDownloadToTempFile, object, CancellationTokenSource, string>> asyncParams =
+                new Tuple<GenericAsyncResult<DownloadFileResult>, AsyncCallback, FileChange, string, string, Helpers.AfterDownloadToTempFile, object, Tuple<int, Helpers.BeforeDownloadToTempFile, object, CancellationTokenSource, string>>(
+                    toReturn,
+                    asyncCallback,
+                    changeToDownload,
+                    serverUid,
+                    revision,
+                    moveFileUponCompletion,
+                    moveFileUponCompletionState,
+                    new Tuple<int, Helpers.BeforeDownloadToTempFile, object, CancellationTokenSource, string>(
+                        timeoutMilliseconds,
+                        beforeDownload,
+                        beforeDownloadState,
+                        shutdownToken,
+                        customDownloadFolderFullPath));
+
+            // create the thread from a void (object) parameterized start which wraps the synchronous method call
+            (new Thread(new ParameterizedThreadStart(state =>
+            {
+                // try cast the state as the object with all the input parameters
+                Tuple<GenericAsyncResult<DownloadFileResult>, AsyncCallback, FileChange, string, string, Helpers.AfterDownloadToTempFile, object, Tuple<int, Helpers.BeforeDownloadToTempFile, object, CancellationTokenSource, string>> castState =
+                    state as Tuple<GenericAsyncResult<DownloadFileResult>, AsyncCallback, FileChange, string, string, Helpers.AfterDownloadToTempFile, object, Tuple<int, Helpers.BeforeDownloadToTempFile, object, CancellationTokenSource, string>>;
+                // if the try cast failed, then show a message box for this unrecoverable error
+                if (castState == null)
+                {
+                    MessageEvents.FireNewEventMessage(
+                        Resources.CLCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
+                        EventMessageLevel.Important,
+                        new HaltAllOfCloudSDKErrorInfo());
+                }
+                // else if the try cast did not fail, then start processing with the input parameters
+                else
+                {
+                    // try/catch to process with the input parameters, on catch set the exception in the asyncronous result
+                    try
+                    {
+                        // declare the holder for transfer progress changes
+                        GenericHolder<TransferProgress> progress;
+                        // if there was no asynchronous result in the parameters, then the progress holder cannot be grabbed so set it to null
+                        if (castState.Item1 == null)
+                        {
+                            progress = null;
+                        }
+                        // else if there was an asynchronous result in the parameters, then pull the progress holder by try casting the internal state
+                        else
+                        {
+                            progress = castState.Item1.InternalState as GenericHolder<TransferProgress>;
+                        }
+
+                        // run the download of the file with the passed parameters, storing any error that occurs
+                        CLError processError = DownloadFile(
+                            castState.Item3,
+                            castState.Item4,
+                            castState.Item5,
+                            castState.Item6,
+                            castState.Item7,
+                            castState.Rest.Item1,
+                            castState.Rest.Item2,
+                            castState.Rest.Item3,
+                            castState.Rest.Item4,
+                            castState.Rest.Item5,
+                            castState.Item2,
+                            castState.Item1,
+                            progress,
+                            null,
+                            null);
+
+                        // if there was an asynchronous result in the parameters, then complete it with a new result object
+                        if (castState.Item1 != null)
+                        {
+                            castState.Item1.Complete(
+                                new DownloadFileResult(
+                                    processError), // any error that may have occurred during processing
+                                sCompleted: false); // processing did not complete synchronously
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        // if there was an asynchronous result in the parameters, then pass through the exception to it
+                        if (castState.Item1 != null)
+                        {
+                            castState.Item1.HandleException(
+                                ex, // the exception which was not handled correctly by the CLError wrapping
+                                sCompleted: false); // processing did not complete synchronously
+                        }
+                    }
+                }
+            }))).Start(asyncParams); // start the asynchronous processing thread with the input parameters object
+
+            // return the asynchronous result
+            return toReturn;
+        }
+
+        /// <summary>
+        /// Outputs the latest progress from a file download, returning any error that occurs in the retrieval
+        /// </summary>
+        /// <param name="asyncResult">Asynchronous result originally returned by BeginDownloadFile</param>
+        /// <param name="progress">(output) Latest progress from a file download, may be null if the download file hasn't started</param>
+        /// <returns>Returns any error that occurred in retrieving the latest progress, if any</returns>
+        public CLError GetProgressDownloadFile(IAsyncResult asyncResult, out TransferProgress progress)
+        {
+            // try/catch to retrieve the latest progress, on catch default the output and return the error
+            try
+            {
+                // try cast the asynchronous result as the type of file downloads
+                GenericAsyncResult<DownloadFileResult> castAResult = asyncResult as GenericAsyncResult<DownloadFileResult>;
+
+                // if try casting the asynchronous result failed, throw an error
+                if (castAResult == null)
+                {
+                    throw new NullReferenceException(Resources.CLAsyncResultInternalTypeMismatch);
+                }
+
+                // try to cast the asynchronous result internal state as the holder for the progress
+                GenericHolder<TransferProgress> iState = castAResult.InternalState as GenericHolder<TransferProgress>;
+
+                // if trying to cast the internal state as the holder for progress failed, then throw an error (non-descriptive since it's our error)
+                if (iState == null)
+                {
+                    throw new Exception(Resources.CLHttpRestInternalProgressRetrievalFailure1);
+                }
+
+                // lock on the holder and retrieve the progress for output
+                lock (iState)
+                {
+                    progress = iState.Value;
+                }
+            }
+            catch (Exception ex)
+            {
+                progress = Helpers.DefaultForType<TransferProgress>();
+                return ex;
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Finishes a file download if it has not already finished via its asynchronous result and outputs the result,
+        /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
+        /// </summary>
+        /// <param name="asyncResult">The asynchronous result provided upon starting the file download</param>
+        /// <param name="result">(output) The result from the file download</param>
+        /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
+        public CLError EndDownloadFile(IAsyncResult asyncResult, out DownloadFileResult result)
+        {
+            // declare the specific type of asynchronous result for file downloads
+            GenericAsyncResult<DownloadFileResult> castAResult;
+
+            // try/catch to try casting the asynchronous result as the type for file downloads and pull the result (possibly incomplete), on catch default the output and return the error
+            try
+            {
+                // try cast the asynchronous result as the type for file downloads
+                castAResult = asyncResult as GenericAsyncResult<DownloadFileResult>;
+
+                // if trying to cast the asynchronous result failed, then throw an error
+                if (castAResult == null)
+                {
+                    throw new NullReferenceException(Resources.CLAsyncResultInternalTypeMismatch);
+                }
+
+                // pull the result for output (may not yet be complete)
+                result = castAResult.Result;
+            }
+            catch (Exception ex)
+            {
+                result = Helpers.DefaultForType<DownloadFileResult>();
+                return ex;
+            }
+
+            // try/catch to finish the asynchronous operation if necessary, re-pull the result for output, and rethrow any exception which may have occurred; on catch, return the error
+            try
+            {
+                // This method assumes that only 1 thread calls EndInvoke 
+                // for this object
+                if (!castAResult.IsCompleted)
+                {
+                    // If the operation isn't done, wait for it
+                    castAResult.AsyncWaitHandle.WaitOne();
+                    castAResult.AsyncWaitHandle.Close();
+                }
+
+                // re-pull the result for output in case it was not completed when it was pulled before
+                result = castAResult.Result;
+
+                // Operation is done: if an exception occurred, return it
+                if (castAResult.Exception != null)
+                {
+                    return castAResult.Exception;
+                }
+            }
+            catch (Exception ex)
+            {
+                return ex;
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Downloads a file from a provided file download change
+        /// </summary>
+        /// <param name="changeToDownload">File download change, requires Metadata.</param>
+        /// <param name="moveFileUponCompletion">¡¡ Action required: move the completed download file from the temp directory to the final destination !! Callback fired when download completes</param>
+        /// <param name="moveFileUponCompletionState">User state passed upon firing completed download callback</param>
+        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception, does not restrict time for the actual file download</param>
+        /// <param name="beforeDownload">(optional) Callback fired before a download starts</param>
+        /// <param name="beforeDownloadState">User state passed upon firing before download callback</param>
+        /// <param name="shutdownToken">(optional) Token used to request cancellation of the download</param>
+        /// <param name="customDownloadFolderFullPath">(optional) Full path to a folder where temporary downloads will be stored to override default</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        public CLError DownloadFile(FileChange changeToDownload,
+            string serverUid,
+            string revision,
+            Helpers.AfterDownloadToTempFile moveFileUponCompletion,
+            object moveFileUponCompletionState,
+            int timeoutMilliseconds,
+            Helpers.BeforeDownloadToTempFile beforeDownload = null,
+            object beforeDownloadState = null,
+            CancellationTokenSource shutdownToken = null,
+            string customDownloadFolderFullPath = null)
+        {
+            // pass through input parameters to the private call (which takes additional parameters we don't wish to expose)
+            return DownloadFile(changeToDownload,
+                serverUid,
+                revision,
+                moveFileUponCompletion,
+                moveFileUponCompletionState,
+                timeoutMilliseconds,
+                beforeDownload,
+                beforeDownloadState,
+                shutdownToken,
+                customDownloadFolderFullPath,
+                null,
+                null,
+                null,
+                null,
+                null);
+
+        }
+
+        // internal version with added action for status update
+        internal CLError DownloadFile(FileChange changeToDownload,
+            string serverUid,
+            string revision,
+            Helpers.AfterDownloadToTempFile moveFileUponCompletion,
+            object moveFileUponCompletionState,
+            int timeoutMilliseconds,
+            Helpers.BeforeDownloadToTempFile beforeDownload,
+            object beforeDownloadState,
+            CancellationTokenSource shutdownToken,
+            string customDownloadFolderFullPath,
+            FileTransferStatusUpdateDelegate statusUpdate,
+            object statusUpdateUserState)
+        {
+            return DownloadFile(changeToDownload,
+                serverUid,
+                revision,
+                moveFileUponCompletion,
+                moveFileUponCompletionState,
+                timeoutMilliseconds,
+                beforeDownload,
+                beforeDownloadState,
+                shutdownToken,
+                customDownloadFolderFullPath,
+                null,
+                null,
+                null,
+                statusUpdate,
+                statusUpdateUserState);
+        }
+
+        // private helper for DownloadFile which takes additional parameters we don't wish to expose; does the actual processing
+        private CLError DownloadFile(FileChange changeToDownload,
+            string serverUid,
+            string revision,
+            Helpers.AfterDownloadToTempFile moveFileUponCompletion,
+            object moveFileUponCompletionState,
+            int timeoutMilliseconds,
+            Helpers.BeforeDownloadToTempFile beforeDownload,
+            object beforeDownloadState,
+            CancellationTokenSource shutdownToken,
+            string customDownloadFolderFullPath,
+            AsyncCallback asyncCallback,
+            IAsyncResult asyncResult,
+            GenericHolder<TransferProgress> progress,
+            FileTransferStatusUpdateDelegate statusUpdate,
+            object statusUpdateUserState)
+        {
+            // try/catch to process the file download, on catch return the error
+            try
+            {
+                // check input parameters (other checks are done on constructing the private download class upon Helpers.ProcessHttp)
+
+                if (timeoutMilliseconds <= 0)
+                {
+                    throw new ArgumentException(Resources.CLMSTimeoutMustBeGreaterThanZero);
+                }
+
+                if (serverUid == null)
+                {
+                    throw new ArgumentNullException(Resources.ExceptionCLHttpRestNullServerUid);
+                }
+
+                if (revision == null)
+                {
+                    throw new ArgumentNullException(Resources.CLHttpRestMetaDataRevisionCannotBeNull);
+                }
+
+                // declare the path for the folder which will store temp download files
+                string currentDownloadFolder;
+
+                // if a specific folder path was passed to use as an override, then store it as the one to use
+                if (customDownloadFolderFullPath != null)
+                {
+                    currentDownloadFolder = customDownloadFolderFullPath;
+                }
+                // else if a specified folder path was not passed and a path was specified in settings, then store the one from settings as the one to use
+                else if (!String.IsNullOrWhiteSpace(_copiedSettings.TempDownloadFolderFullPath))
+                {
+                    currentDownloadFolder = _copiedSettings.TempDownloadFolderFullPath;
+                }
+                // else if a specified folder path was not passed and one did not exist in settings, then build one dynamically to use
+                else
+                {
+                    currentDownloadFolder = Helpers.GetTempFileDownloadPath(_copiedSettings, _syncbox.SyncboxId);
+                }
+
+                // check if the folder for temp downloads represents a bad path
+                CLError badTempFolderError = Helpers.CheckForBadPath(currentDownloadFolder);
+
+                // if the temp download folder is a bad path rethrow the error
+                if (badTempFolderError != null)
+                {
+                    throw new AggregateException(Resources.CLHttpRestThecustomDownloadFolderFullPathIsBad, badTempFolderError.Exceptions);
+                }
+
+                // if the folder path for downloads is too long, then throw an exception
+                if (currentDownloadFolder.Length > 222) // 222 calculated by 259 max path length minus 1 character for a folder slash seperator plus 36 characters for (Guid).ToString(Resources.CLCredentialStringSettingsN)
+                {
+                    throw new ArgumentException(Resources.CLHttpRestFolderPathTooLong + (currentDownloadFolder.Length - 222).ToString());
+                }
+
+                // build the location of the metadata retrieval method on the server dynamically
+                string serverMethodPath =
+                    CLDefinitions.MethodPathDownload + // download method path
+                    Helpers.QueryStringBuilder(Helpers.EnumerateSingleItem( // add SyncboxId for file download
+                    // query string parameter for the current sync box id, should not need escaping since it should be an integer in string format
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringSyncboxId, _syncbox.SyncboxId.ToString())
+                    ));
+
+                // prepare the downloadParams before the Helpers.ProcessHttp because it does additional parameter checks first
+                Helpers.downloadParams currentDownload = new Helpers.downloadParams( // this is a special communication method and requires passing download parameters
+                    moveFileUponCompletion, // callback which should move the file to final location
+                    moveFileUponCompletionState, // userstate for the move file callback
+                    customDownloadFolderFullPath ?? // first try to use a provided custom folder full path
+                        Helpers.GetTempFileDownloadPath(_copiedSettings, _syncbox.SyncboxId), // if custom path not provided, null-coallesce to default
+                    Helpers.HandleUploadDownloadStatus, // private event handler to relay status change events
+                    changeToDownload, // the FileChange describing the download
+                    shutdownToken, // a provided, possibly null CancellationTokenSource which can be cancelled to stop in the middle of communication
+                    _syncbox.Path, // pass in the full path to the sync root folder which is used to calculate a relative path for firing the status change event
+                    asyncCallback, // asynchronous callback to fire on progress changes if called via async wrapper
+                    asyncResult, // asynchronous result to pass when firing the asynchronous callback
+                    progress, // holder for progress data which can be queried by user if called via async wrapper
+                    statusUpdate, // callback to user to notify when a CLSyncEngine status has changed
+                    statusUpdateUserState, // userstate to pass to the statusUpdate callback
+                    beforeDownload, // optional callback fired before download starts
+                    beforeDownloadState); // userstate passed when firing download start callback
+
+                // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
+                Helpers.RequestNewCredentialsInfo requestNewCredentialsInfo = new Helpers.RequestNewCredentialsInfo()
+                {
+                    ProcessingStateByThreadId = _processingStateByThreadId,
+                    GetNewCredentialsCallback = _getNewCredentialsCallback,
+                    GetNewCredentialsCallbackUserState = _getNewCredentialsCallbackUserState,
+                    GetCurrentCredentialsCallback = GetCurrentCredentialsCallback,
+                    SetCurrentCredentialsCallback = SetCurrentCredentialCallback,
+                };
+
+                // run the actual communication
+                Helpers.ProcessHttp<object>(
+
+                     // JSON contract to serialize
+                    (string.IsNullOrEmpty(changeToDownload.Metadata.StorageKey)
+                        ? new Download()
+                        {
+                            Uid = serverUid,
+                            Revision = revision
+                        }
+                        : new Download()
+                        {
+                            StorageKey = changeToDownload.Metadata.StorageKey
+                        }),
+                    CLDefinitions.CLUploadDownloadServerURL, // server for download
+                    serverMethodPath, // dynamic method path to incorporate query string parameters
+                    Helpers.requestMethod.post, // download is a post
+                    timeoutMilliseconds, // time before communication timeout (does not restrict time
+                    currentDownload, // download-specific parameters holder constructed directly above
+                    Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
+                    _copiedSettings, // pass the copied settings
+                    _syncbox.SyncboxId, // pass the unique id of the sync box on the server
+                    requestNewCredentialsInfo, // pass the optional parameters to support temporary token reallocation.
+                    false);
+            }
+            catch (Exception ex)
+            {
+                return ex;
+            }
+            return null;
+        }
+        #endregion
+
         #region ItemForPath (Gets the metedata at a particular server syncbox path)
         /// <summary>
         /// Asynchronously starts querying the syncbox for an item at a given path (must be specified) for existing metadata at that path; outputs a CLFileItem object.
-        /// Check for Deleted flag being true in case the metadata represents a deleted item.
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when operation completes</param>
-        /// <param name="asyncCallbackUserState">Userstate to pass when firing async callback</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing async callback</param>
         /// <param name="relativePath">Relative path in the syncbox to where file or folder would exist in the syncbox locally on disk.</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
         internal IAsyncResult BeginItemForPath(
@@ -271,8 +693,6 @@ namespace Cloud.REST
         /// <summary>
         /// Get an item at a particular path in the syncbox.
         /// </summary>
-        /// <param name="completionCallback">Callback method to fire for each item completion.</param>
-        /// <param name="completionCallbackUserState">Userstate to be passed whenever the item completion callback above is fired.</param>
         /// <param name="relativePath">Relative path in the syncbox to where file or folder would exist in the syncbox locally on disk.</param>
         /// <param name="item">(output) The returned item.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
@@ -300,16 +720,12 @@ namespace Cloud.REST
                     SetCurrentCredentialsCallback = SetCurrentCredentialCallback,
                 };
 
-                // Get the relative path
-                FilePath fullPath = new FilePath(relativePath, _syncbox.Path);
-                string fixedRelativePath = fullPath.GetRelativePath(_syncbox.Path, true);
-
                 // build the location of the metadata retrieval method on the server dynamically
                 string serverMethodPath = CLDefinitions.MethodPathGetItemMetadata +
                     Helpers.QueryStringBuilder(new[] // the method grabs its parameters by query string (since this method is an HTTP GET)
                     {
                         // query string parameter for the path to query, built by turning the full path location into a relative path from the cloud root and then escaping the whole thing for a url
-                        new KeyValuePair<string, string>(CLDefinitions.CLMetadataCloudPath, Uri.EscapeDataString(fixedRelativePath)),
+                        new KeyValuePair<string, string>(CLDefinitions.CLMetadataCloudPath, Uri.EscapeDataString(relativePath)),
 
                         // query string parameter for the current sync box id, should not need escaping since it should be an integer in string format
                         new KeyValuePair<string, string>(CLDefinitions.QueryStringSyncboxId, _syncbox.SyncboxId.ToString())
@@ -352,14 +768,159 @@ namespace Cloud.REST
 
         #endregion  // end ItemForPath (Gets the metedata at a particular server syncbox path)
 
+        #region ItemForItemUid (Returns a CLFileItem for the syncbox item with the given UID.)
+        /// <summary>
+        /// Asynchronously starts querying the syncbox for an item with the given UID. Outputs a CLFileItem object.
+        /// </summary>
+        /// <param name="asyncCallback">Callback method to fire when the async operation completes</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing async callback</param>
+        /// <param name="itemUid">The UID to use in the query.</param>
+        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        internal IAsyncResult BeginItemForItemUid(
+            AsyncCallback asyncCallback,
+            object asyncCallbackUserState,
+            string itemUid)
+        {
+            var asyncThread = DelegateAndDataHolderBase.Create(
+                // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
+                new
+                {
+                    // create the asynchronous result to return
+                    toReturn = new GenericAsyncResult<SyncboxGetItemAtItemUidResult>(
+                        asyncCallback,
+                        asyncCallbackUserState),
+                    itemUid = itemUid,
+                },
+                (Data, errorToAccumulate) =>
+                {
+                    // The ThreadProc.
+                    // try/catch to process with the input parameters, on catch set the exception in the asyncronous result
+                    try
+                    {
+                        // alloc and init the syncbox with the passed parameters, storing any error that occurs
+                        CLFileItem fileItem;
+                        CLError overallError = ItemForItemUid(
+                            Data.itemUid,
+                            out fileItem);
+
+                        Data.toReturn.Complete(
+                            new SyncboxGetItemAtItemUidResult(overallError, fileItem),  // the result to return
+                            sCompleted: false); // processing did not complete synchronously
+                    }
+                    catch (Exception ex)
+                    {
+                        Data.toReturn.HandleException(
+                            ex, // the exception which was not handled correctly by the CLError wrapping
+                            sCompleted: false); // processing did not complete synchronously
+                    }
+                },
+                null);
+
+            // create the thread from a void (object) parameterized start which wraps the synchronous method call
+            (new Thread(new ThreadStart(asyncThread.VoidProcess))).Start(); // start the asynchronous processing thread which is attached to its data
+
+            // return the asynchronous result
+            return asyncThread.TypedData.toReturn;
+        }
+
+        /// <summary>
+        /// Finishes getting an item in the syncbox, if it has not already finished via its asynchronous result, and outputs the result,
+        /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
+        /// </summary>
+        /// <param name="asyncResult">The asynchronous result provided upon starting the request</param>
+        /// <param name="result">(output) An overall error which occurred during processing, if any</param>
+        /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
+        internal CLError EndItemForItemUid(IAsyncResult asyncResult, out SyncboxGetItemAtItemUidResult result)
+        {
+            return Helpers.EndAsyncOperation<SyncboxGetItemAtItemUidResult>(asyncResult, out result);
+        }
+
+        /// <summary>
+        /// Query the syncbox for an item with the given UID. Outputs a CLFileItem object.
+        /// </summary>
+        /// <param name="itemUid">The UID to use in the query.</param>
+        /// <param name="item">(output) The returned item.</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        internal CLError ItemForItemUid(string itemUid, out CLFileItem item)
+        {
+            CLFileItem toReturn;
+
+            // try/catch to process the request,  On catch return the error
+            try
+            {
+                // check input parameters.
+
+                if (itemUid == null)
+                {
+                    throw new CLArgumentNullException(CLExceptionCode.OnDemand_MissingParameters, Resources.ExceptionOnDemandItemUidMustNotBeNull);
+                }
+
+                // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
+                Helpers.RequestNewCredentialsInfo requestNewCredentialsInfo = new Helpers.RequestNewCredentialsInfo()
+                {
+                    ProcessingStateByThreadId = _processingStateByThreadId,
+                    GetNewCredentialsCallback = _getNewCredentialsCallback,
+                    GetNewCredentialsCallbackUserState = _getNewCredentialsCallbackUserState,
+                    GetCurrentCredentialsCallback = GetCurrentCredentialsCallback,
+                    SetCurrentCredentialsCallback = SetCurrentCredentialCallback,
+                };
+
+                // build the location of the metadata retrieval method on the server dynamically
+                string serverMethodPath = CLDefinitions.MethodPathGetItemMetadata +
+                    Helpers.QueryStringBuilder(new[] // the method grabs its parameters by query string (since this method is an HTTP GET)
+                    {
+                        // query string parameter for the server UID to query
+                        new KeyValuePair<string, string>(CLDefinitions.CLMetadataServerId, Uri.EscapeDataString(itemUid)),
+
+                        // query string parameter for the current sync box id, should not need escaping since it should be an integer in string format
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringSyncboxId, _syncbox.SyncboxId.ToString())
+                    });
+
+                // Communicate with the server to get the response.
+                JsonContracts.SyncboxMetadataResponse responseFromServer;
+                responseFromServer = Helpers.ProcessHttp<JsonContracts.SyncboxMetadataResponse>(null, // no content body for get
+                    CLDefinitions.CLMetaDataServerURL, // base domain is the MDS server
+                    serverMethodPath, // dynamic path to appropriate one-off method
+                    Helpers.requestMethod.get, // one-off methods are all posts
+                    _copiedSettings.HttpTimeoutMilliseconds, // time before communication timeout
+                    null, // not an upload or download
+                    Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
+                    _copiedSettings, // pass the copied settings
+                    _syncbox.SyncboxId, // pass the unique id of the sync box on the server
+                    requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
+                    true);
+
+                // Convert the metadata to the output item.
+                if (responseFromServer != null)
+                {
+                    // Pass back the response as a CLFileItem.
+                    toReturn = new CLFileItem(responseFromServer, _syncbox);
+                }
+                else
+                {
+                    throw new CLNullReferenceException(CLExceptionCode.OnDemand_NotFound, Resources.ExceptionOnDemandItemForPathNotFound);
+                }
+            }
+            catch (Exception ex)
+            {
+                item = Helpers.DefaultForType<CLFileItem>();
+                return ex;
+            }
+
+            item = toReturn;
+            return null;
+        }
+
+        #endregion  // end ItemForItemUid (Returns a CLFileItem for the syncbox item with the given UID.)
+
         #region RenameFiles (Rename files in-place in the syncbox.)
         /// <summary>
         /// Asynchronously starts renaming files in-place in the syncbox.
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
-        /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing the async callback above.</param>
         /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
-        /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the item completion callback above is fired.</param>
+        /// <param name="itemCompletionCallbackUserState">User state to be passed whenever the item completion callback above is fired.</param>
         /// <param name="itemParams">One or more parameter pairs (item to rename and new name) to be used to rename each item in place.</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
         internal IAsyncResult BeginRenameFiles(AsyncCallback asyncCallback, object asyncCallbackUserState, CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, params RenameItemParams[] itemParams)
@@ -423,7 +984,7 @@ namespace Cloud.REST
         /// Rename files in-place in the syncbox.
         /// </summary>
         /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
-        /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the item completion callback above is fired.</param>
+        /// <param name="itemCompletionCallbackUserState">User state to be passed whenever the item completion callback above is fired.</param>
         /// <param name="itemParams">One or more parameter pairs (item to rename and new name) to be used to rename each item in place.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
         internal CLError RenameFiles(CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, params RenameItemParams[] itemParams)
@@ -442,7 +1003,6 @@ namespace Cloud.REST
                 }
 
                 FileOrFolderMove[] jsonContractMoves = new FileOrFolderMove[itemParams.Length];
-                FilePath syncboxPathObject = _syncbox.Path;
 
                 for (int paramIdx = 0; paramIdx < itemParams.Length; paramIdx++)
                 {
@@ -451,22 +1011,19 @@ namespace Cloud.REST
                     {
                         throw new CLArgumentException(CLExceptionCode.OnDemand_FileRename, String.Format(Resources.ExceptionOnDemandFileItemNullAtIndexMsg0, paramIdx.ToString()));
                     }
-
-                    // The CLFileItem represents an existing file or folder, and should be valid because we created it.  The new full path must
-                    // fit the specs for the Windows client.  Form the new full path and check its validity.
-                    if (String.IsNullOrWhiteSpace(currentParams.ItemToRename.RelativePath))
+                    if (currentParams.ItemToRename == null)
                     {
-                        throw new CLArgumentException(CLExceptionCode.OnDemand_InvalidExistingPath, String.Format(Resources.ExceptionOnDemandRenameFilesInvalidExistingPathInItemMsg0, paramIdx.ToString()));
+                        throw new CLArgumentNullException(Static.CLExceptionCode.OnDemand_MissingParameters, Resources.ExceptionOnDemandItemToRenameMustNotBeNull);
                     }
-                    FilePath fullPathExisting = new FilePath(_syncbox.Path + currentParams.ItemToRename.RelativePath.Replace('/', '\\'));
-                    FilePath fullPathNew = new FilePath(currentParams.NewName, fullPathExisting.Parent);
-                    CheckPath(fullPathNew, CLExceptionCode.OnDemand_RenameNewName);
-
+                    if (String.IsNullOrEmpty(currentParams.NewName))
+                    {
+                        throw new CLArgumentNullException(Static.CLExceptionCode.OnDemand_MissingParameters, Resources.ExceptionOnDemandNewNameMustBeSpecified);
+                    }
 
                     // file move (rename) and folder move (rename) share a json contract object for move (rename)
                     jsonContractMoves[paramIdx] = new FileOrFolderMove()
                     {
-                        RelativeToPath = fullPathNew.GetRelativePath(_syncbox.Path, true),
+                        ToName = currentParams.NewName,
                         ServerUid = currentParams.ItemToRename.Uid,
                     };
                 }
@@ -624,9 +1181,9 @@ namespace Cloud.REST
         /// Asynchronously starts renaming folders in-place in the syncbox.
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
-        /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing the async callback above.</param>
         /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
-        /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the item completion callback above is fired.</param>
+        /// <param name="itemCompletionCallbackUserState">User state to be passed whenever the item completion callback above is fired.</param>
         /// <param name="itemParams">One or more parameter pairs (item to rename and new name) to be used to rename each item in place.</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
         internal IAsyncResult BeginRenameFolders(AsyncCallback asyncCallback, object asyncCallbackUserState, CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, params RenameItemParams[] itemParams)
@@ -690,7 +1247,7 @@ namespace Cloud.REST
         /// Rename folders in-place in the syncbox.
         /// </summary>
         /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
-        /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the item completion callback above is fired.</param>
+        /// <param name="itemCompletionCallbackUserState">User state to be passed whenever the item completion callback above is fired.</param>
         /// <param name="itemParams">One or more parameter pairs (item to rename and new name) to be used to rename each item in place.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
         internal CLError RenameFolders(CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, params RenameItemParams[] itemParams)
@@ -709,7 +1266,6 @@ namespace Cloud.REST
                 }
 
                 FileOrFolderMove[] jsonContractMoves = new FileOrFolderMove[itemParams.Length];
-                FilePath syncboxPathObject = _syncbox.Path;
 
                 for (int paramIdx = 0; paramIdx < itemParams.Length; paramIdx++)
                 {
@@ -718,22 +1274,19 @@ namespace Cloud.REST
                     {
                         throw new CLArgumentException(CLExceptionCode.OnDemand_FileRename, String.Format(Resources.ExceptionOnDemandFolderItemNullAtIndexMsg0, paramIdx.ToString()));
                     }
-
-                    // The CLFileItem represents an existing file or folder, and should be valid because we created it.  The new full path must
-                    // fit the specs for the Windows client.  Form the new full path and check its validity.
-                    if (String.IsNullOrWhiteSpace(currentParams.ItemToRename.RelativePath))
+                    if (currentParams.ItemToRename == null)
                     {
-                        throw new CLArgumentException(CLExceptionCode.OnDemand_InvalidExistingPath, String.Format(Resources.ExceptionOnDemandRenameFilesInvalidExistingPathInItemMsg0, paramIdx.ToString()));
+                        throw new CLArgumentNullException(Static.CLExceptionCode.OnDemand_MissingParameters, Resources.ExceptionOnDemandItemToRenameMustNotBeNull);
                     }
-                    FilePath fullPathExisting = new FilePath(_syncbox.Path + currentParams.ItemToRename.RelativePath.Replace('/', '\\').TrimTrailingSlash());
-                    FilePath fullPathNew = new FilePath(currentParams.NewName, fullPathExisting.Parent);
-                    CheckPath(fullPathNew, CLExceptionCode.OnDemand_RenameNewName);
-
+                    if (String.IsNullOrEmpty(currentParams.NewName))
+                    {
+                        throw new CLArgumentNullException(Static.CLExceptionCode.OnDemand_MissingParameters, Resources.ExceptionOnDemandNewNameMustBeSpecified);
+                    }
 
                     // file move (rename) and folder move (rename) share a json contract object for move (rename)
                     jsonContractMoves[paramIdx] = new FileOrFolderMove()
                     {
-                        RelativeToPath = fullPathNew.GetRelativePath(_syncbox.Path, true),
+                        ToName = currentParams.NewName,
                         ServerUid = currentParams.ItemToRename.Uid,
                     };
                 }
@@ -891,9 +1444,9 @@ namespace Cloud.REST
         /// Asynchronously starts moving files in the syncbox.
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
-        /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing the async callback above.</param>
         /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
-        /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the item completion callback above is fired.</param>
+        /// <param name="itemCompletionCallbackUserState">User state to be passed whenever the item completion callback above is fired.</param>
         /// <param name="itemsToMove">One or more pairs of item to move and a folder item representing the new parent of the item being moved.</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
         internal IAsyncResult BeginMoveFiles(
@@ -962,7 +1515,7 @@ namespace Cloud.REST
         /// Move files in the syncbox.
         /// </summary>
         /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
-        /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the item completion callback above is fired.</param>
+        /// <param name="itemCompletionCallbackUserState">User state to be passed whenever the item completion callback above is fired.</param>
         /// <param name="itemsToMove">One or more pairs of item to move and a folder item representing the new parent of the item being moved.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
         internal CLError MoveFiles(CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, params MoveItemParams[] itemParams)
@@ -981,7 +1534,6 @@ namespace Cloud.REST
                 }
 
                 FileOrFolderMove[] jsonContractMoves = new FileOrFolderMove[itemParams.Length];
-                FilePath syncboxPathObject = _syncbox.Path;
 
                 for (int paramIdx = 0; paramIdx < itemParams.Length; paramIdx++)
                 {
@@ -989,6 +1541,14 @@ namespace Cloud.REST
                     if (currentParams == null)
                     {
                         throw new CLArgumentException(CLExceptionCode.OnDemand_FileRename, String.Format(Resources.ExceptionOnDemandFileItemNullAtIndexMsg0, paramIdx.ToString()));
+                    }
+                    if (currentParams.ItemToMove == null)
+                    {
+                        throw new CLArgumentNullException(Static.CLExceptionCode.OnDemand_MoveItemParamsMissingProperties, Resources.ExceptionOnDemandItemToMoveMustNotBeNull);
+                    }
+                    if (currentParams.NewParentFolderItem == null)
+                    {
+                        throw new CLArgumentNullException(Static.CLExceptionCode.OnDemand_MoveItemParamsMissingProperties, Resources.ExceptionOnDemandNewParentFolderItemMustBeSpecified);
                     }
 
                     // file move (rename) and folder move (rename) share a json contract object for move (rename)
@@ -1149,9 +1709,9 @@ namespace Cloud.REST
         /// Asynchronously starts moving folders in the syncbox.
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
-        /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing the async callback above.</param>
         /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
-        /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the item completion callback above is fired.</param>
+        /// <param name="itemCompletionCallbackUserState">User state to be passed whenever the item completion callback above is fired.</param>
         /// <param name="itemsToMove">One or more pairs of item to move and a folder item representing the new parent of the item being moved.</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
         internal IAsyncResult BeginMoveFolders(AsyncCallback asyncCallback, object asyncCallbackUserState, CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, params MoveItemParams[] itemParams)
@@ -1215,7 +1775,7 @@ namespace Cloud.REST
         /// Move folders in the syncbox.
         /// </summary>
         /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
-        /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the item completion callback above is fired.</param>
+        /// <param name="itemCompletionCallbackUserState">User state to be passed whenever the item completion callback above is fired.</param>
         /// <param name="itemsToMove">One or more pairs of item to move and a folder item representing the new parent of the item being moved.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
         internal CLError MoveFolders(CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, params MoveItemParams[] itemParams)
@@ -1234,7 +1794,6 @@ namespace Cloud.REST
                 }
 
                 FileOrFolderMove[] jsonContractMoves = new FileOrFolderMove[itemParams.Length];
-                FilePath syncboxPathObject = _syncbox.Path;
 
                 for (int paramIdx = 0; paramIdx < itemParams.Length; paramIdx++)
                 {
@@ -1402,9 +1961,9 @@ namespace Cloud.REST
         /// Asynchronously starts deleting files in the syncbox.
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
-        /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing the async callback above.</param>
         /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
-        /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the item completion callback above is fired.</param>
+        /// <param name="itemCompletionCallbackUserState">User state to be passed whenever the item completion callback above is fired.</param>
         /// <param name="itemsToDelete">One or more file items to delete.</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
         internal IAsyncResult BeginDeleteFiles(AsyncCallback asyncCallback, object asyncCallbackUserState, CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, params CLFileItem[] itemsToDelete)
@@ -1468,7 +2027,7 @@ namespace Cloud.REST
         /// Delete files in the syncbox.
         /// </summary>
         /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
-        /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the item completion callback above is fired.</param>
+        /// <param name="itemCompletionCallbackUserState">User state to be passed whenever the item completion callback above is fired.</param>
         /// <param name="itemsToDelete">One or more file items to delete.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
         internal CLError DeleteFiles(CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, params CLFileItem[] itemsToDelete)
@@ -1644,9 +2203,9 @@ namespace Cloud.REST
         /// Asynchronously starts deleting folders in the syncbox.  
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
-        /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing the async callback above.</param>
         /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
-        /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the item completion callback above is fired.</param>
+        /// <param name="itemCompletionCallbackUserState">User state to be passed whenever the item completion callback above is fired.</param>
         /// <param name="itemsToDelete">One or more folder items to delete.</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
         internal IAsyncResult BeginDeleteFolders(AsyncCallback asyncCallback, object asyncCallbackUserState, CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, params CLFileItem[] itemsToDelete)
@@ -1710,7 +2269,7 @@ namespace Cloud.REST
         /// Delete folders in the syncbox.
         /// </summary>
         /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
-        /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the item completion callback above is fired.</param>
+        /// <param name="itemCompletionCallbackUserState">User state to be passed whenever the item completion callback above is fired.</param>
         /// <param name="itemsToDelete">One or more folder items to delete.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
         internal CLError DeleteFolders(CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, params CLFileItem[] itemsToDelete)
@@ -1891,9 +2450,9 @@ namespace Cloud.REST
         /// Asynchronously starts adding folders to the syncbox.  
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
-        /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing the async callback above.</param>
         /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
-        /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the item completion callback above is fired.</param>
+        /// <param name="itemCompletionCallbackUserState">User state to be passed whenever the item completion callback above is fired.</param>
         /// <param name="folderItemsToAdd">One or more pairs of parent folder item and folder name to add.</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
         internal IAsyncResult BeginAddFolders(AsyncCallback asyncCallback, object asyncCallbackUserState, CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, params AddFolderItemParams[] folderItemsToAdd)
@@ -1957,7 +2516,7 @@ namespace Cloud.REST
         /// Add folders to the syncbox.
         /// </summary>
         /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
-        /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the item completion callback above is fired.</param>
+        /// <param name="itemCompletionCallbackUserState">User state to be passed whenever the item completion callback above is fired.</param>
         /// <param name="folderItemsToAdd">One or more pairs of parent folder item and folder name to add.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
         internal CLError AddFolders(CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, params AddFolderItemParams[] folderItemsToAdd)
@@ -1982,6 +2541,10 @@ namespace Cloud.REST
                     if (currentFolderItem == null)
                     {
                         throw new CLArgumentException(CLExceptionCode.OnDemand_FolderRename, String.Format(Resources.ExceptionOnDemandFolderItemNullAtIndexMsg0, paramIdx.ToString()));
+                    }
+                    if (String.IsNullOrEmpty(currentFolderName))
+                    {
+                        throw new CLArgumentNullException(Static.CLExceptionCode.OnDemand_MissingParameters, Resources.ExceptionOnDemandAddItemNameMustBeSpecified);
                     }
 
                     jsonContractAdds[paramIdx] = new FolderAddRequest()
@@ -2145,17 +2708,20 @@ namespace Cloud.REST
         /// Asynchronously starts adding files in the syncbox.
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
-        /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing the async callback above.</param>
         /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
-        /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the item completion callback above is fired.</param>
-        /// <param name="filesToAdd">(params) An array of pairs of relative path in the syncbox of the file to add, and the parent folder item that will hold the added file.</param>
+        /// <param name="itemCompletionCallbackUserState">User state to be passed whenever the item completion callback above is fired.</param>
+        /// <param name="transferStatusCallback">Callback method to fire when transfer status is updated for each active item.  Can be null.</param>
+        /// <param name="transferStatusCallbackUserState">User state to be passed whenever the transfer status callback above is fired.  Can be null.</param>
+        /// <param name="cancellationSource">The cancellation token which can be used to cancel the file upload operations.  Can be null.</param>
+        /// <param name="filesToAdd">(params) An array of information for each file to add (full path of the file, parent folder in the syncbox and the name of the file in the syncbox).</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
         internal IAsyncResult BeginAddFiles(
             AsyncCallback asyncCallback,
             object asyncCallbackUserState,
             CLFileItemCompletionCallback itemCompletionCallback,
             object itemCompletionCallbackUserState,
-            CLFileItemTransferStatusDelegate transferStatusCallback,
+            CLFileUploadTransferStatusCallback transferStatusCallback,
             object transferStatusCallbackUserState,
             CancellationTokenSource cancellationSource,
             params AddFileItemParams[] filesToAdd)
@@ -2281,19 +2847,19 @@ namespace Cloud.REST
         }
 
         /// <summary>
-        /// Add files in the syncbox.
+        /// Add files in the syncbox.  Uploads the files to the Cloud.
         /// </summary>
         /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
-        /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the item completion callback above is fired.</param>
-        /// <param name="transferStatusCallback">Callback method which will be fired when the transfer progress changes for upload, can be null</param>
-        /// <param name="transferStatusCallbackState">Userstate to be passed whenever the transfer progress callback is fired</param>
-        /// <param name="cancellationSource">An optional cancellation token which may be used to cancel uploads in progress immediately, can be null</param>
-        /// <param name="filesToAdd">(params) An array of pairs of relative path in the syncbox of the file to add, and the parent folder item that will hold the added file.</param>
+        /// <param name="itemCompletionCallbackUserState">User state to be passed whenever the item completion callback above is fired.</param>
+        /// <param name="transferStatusCallback">Callback method to fire when transfer status is updated for each active item.  Can be null.</param>
+        /// <param name="transferStatusCallbackUserState">User state to be passed whenever the transfer status callback above is fired.  Can be null.</param>
+        /// <param name="cancellationSource">The cancellation token which can be used to cancel the file upload operations.  Can be null.</param>
+        /// <param name="filesToAdd">(params) An array of information for each file to add (full path of the file, parent folder in the syncbox and the name of the file in the syncbox).</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
         internal CLError AddFiles(
             CLFileItemCompletionCallback itemCompletionCallback, 
             object itemCompletionCallbackUserState,
-            CLFileItemTransferStatusDelegate transferStatusCallback,
+            CLFileUploadTransferStatusCallback transferStatusCallback,
             object transferStatusCallbackUserState,
             CancellationTokenSource cancellationSource,
             params AddFileItemParams[] filesToAdd)
@@ -2324,30 +2890,29 @@ namespace Cloud.REST
 
                     for (int currentNameAndParentIdx = 0; currentNameAndParentIdx < filesToAdd.Length; currentNameAndParentIdx++)
                     {
-                        AddFileItemParams fullPathAndParent = filesToAdd[currentNameAndParentIdx];
-                        if (fullPathAndParent == null)
+                        AddFileItemParams fullPathAndParentAndNewName = filesToAdd[currentNameAndParentIdx];
+                        if (fullPathAndParentAndNewName == null)
                         {
                             throw new CLArgumentNullException(CLExceptionCode.OnDemand_InvalidParameters, "fix me here");
                         }
-                        if (fullPathAndParent.Parent == null)
+                        if (fullPathAndParentAndNewName.ParentFolder == null)
                         {
                             throw new ArgumentNullException(String.Format("filesToAdd item {0} Parent must not be null", currentNameAndParentIdx));  //&&&& fix this
                         }
-                        if (String.IsNullOrEmpty(fullPathAndParent.FullPath))
+                        if (String.IsNullOrEmpty(fullPathAndParentAndNewName.FullPath))
                         {
                             throw new ArgumentNullException(String.Format("filesToAdd item {0} FullPath must be specified", currentNameAndParentIdx));  //&&&& fix this
                         }
-                        if (string.IsNullOrEmpty(fullPathAndParent.Parent.FullPath))
+                        if (string.IsNullOrEmpty(fullPathAndParentAndNewName.ParentFolder.FullPath))
                         {
                             throw new CLArgumentNullException(CLExceptionCode.OnDemand_FileAddBadPath, "file add bad path");
                         }
-                        if (string.IsNullOrEmpty(fullPathAndParent.Parent.Uid))
+                        if (string.IsNullOrEmpty(fullPathAndParentAndNewName.ParentFolder.Uid))
                         {
                             throw new CLArgumentNullException(CLExceptionCode.OnDemand_FileAddInvalidMetadata, "current file in filesToAdd is missing ServerUid");
                         }
 
-                        FilePath fullPath = new FilePath(fullPathAndParent.FullPath);
-                        string nameOfFileToUpload = fullPath.Name;
+                        FilePath fullPath = new FilePath(fullPathAndParentAndNewName.FullPath);
 
                         //TODO: need to add check for bad characters in name
 
@@ -2361,10 +2926,10 @@ namespace Cloud.REST
                                 EventTime = DateTime.UtcNow,
                                 HashableProperties = new FileMetadataHashableProperties(
                                     isFolder: false,
-                                    lastTime: File.GetLastWriteTimeUtc(fullPathAndParent.FullPath),
-                                    creationTime: File.GetCreationTimeUtc(fullPathAndParent.FullPath),
+                                    lastTime: File.GetLastWriteTimeUtc(fullPathAndParentAndNewName.FullPath),
+                                    creationTime: File.GetCreationTimeUtc(fullPathAndParentAndNewName.FullPath),
                                     size: null),
-                                ParentFolderServerUid = fullPathAndParent.Parent.Uid
+                                ParentFolderServerUid = fullPathAndParentAndNewName.ParentFolder.Uid
                             },
                             NewPath = fullPath,
                             Type = FileChangeType.Created
@@ -2471,9 +3036,9 @@ namespace Cloud.REST
                                     Hash = currentAddChange.Key.GetMD5LowercaseString(),
                                     MimeType = currentAddChange.Key.Metadata.MimeType,
                                     ModifiedDate = currentAddChange.Key.Metadata.HashableProperties.LastTime,
-                                    Name = currentAddChange.Key.NewPath.Name,
                                     ParentUid = currentAddChange.Key.Metadata.ParentFolderServerUid,
-                                    Size = currentAddChange.Key.Metadata.HashableProperties.Size
+                                    Size = currentAddChange.Key.Metadata.HashableProperties.Size,
+                                    Name = filesToAdd[currentAddChange.Value].FileName,
                                 }).ToArray()
                         };
 
@@ -2644,14 +3209,14 @@ namespace Cloud.REST
                                     {
                                         try
                                         {
-                                            var statusConversionDelegate = DelegateAndDataHolderBase<Guid, long, SyncDirection, string, long, long, bool>.Create(
+                                            var statusConversionDelegate = DelegateAndDataHolderBase<object, long, SyncDirection, string, long, long, bool>.Create(
                                                 new
                                                 {
                                                     transferStatusCallback = Data.transferStatusCallback,
                                                     transferStatusCallbackUserState = Data.transferStatusCallbackUserState,
                                                     inputItemIndex = Data.inputItemIndex
                                                 },
-                                                (innerData, threadId, eventId, direction, relativePath, byteProgress, totalByteSize, isError, innerErrorToAccumulate) =>
+                                                (innerData, userState, eventId, direction, relativePath, byteProgress, totalByteSize, isError, innerErrorToAccumulate) =>
                                                 {
                                                     if (innerData.transferStatusCallback != null)
                                                     {
@@ -2673,8 +3238,8 @@ namespace Cloud.REST
                                                 out unusedMessage,
                                                 out hashMismatchFound,
                                                 Data.cancellationSource,
-                                                /* aCallback: */ null,
-                                                /* aResult: */ null,
+                                                /* asyncCallback: */ null,
+                                                /* asyncResult: */ null,
                                                 /* progress: */ null,
                                                 new FileTransferStatusUpdateDelegate(statusConversionDelegate.VoidProcess),
                                                 /* statusUpdateId: */ Guid.Empty);
@@ -2744,22 +3309,22 @@ namespace Cloud.REST
         /// <summary>
         /// Asynchronously starts posting a single FileChange to the server
         /// </summary>
-        /// <param name="aCallback">Callback method to fire when operation completes</param>
-        /// <param name="aState">Userstate to pass when firing async callback</param>
+        /// <param name="asyncCallback">Callback method to fire when operation completes</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing async callback</param>
         /// <param name="deletionChange">Deletion change which needs to be undone</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <param name="serverUid">Unique server "uid" for the file or folder</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginUndoDeletionFileChange(AsyncCallback aCallback,
-            object aState,
+        public IAsyncResult BeginUndoDeletionFileChange(AsyncCallback asyncCallback,
+            object asyncCallbackUserState,
             FileChange deletionChange,
             int timeoutMilliseconds,
             string serverUid)
         {
             // create the asynchronous result to return
             GenericAsyncResult<UndoDeletionFileChangeResult> toReturn = new GenericAsyncResult<UndoDeletionFileChangeResult>(
-                aCallback,
-                aState);
+                asyncCallback,
+                asyncCallbackUserState);
 
             // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
             Tuple<GenericAsyncResult<UndoDeletionFileChangeResult>, FileChange, int, string> asyncParams =
@@ -2828,10 +3393,10 @@ namespace Cloud.REST
         /// Finishes undoing a deletion FileChange if it has not already finished via its asynchronous result and outputs the result,
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
         /// </summary>
-        /// <param name="aResult">The asynchronous result provided upon starting undoing the deletion</param>
+        /// <param name="asyncResult">The asynchronous result provided upon starting undoing the deletion</param>
         /// <param name="result">(output) The result from undoing the deletion</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndUndoDeletionFileChange(IAsyncResult aResult, out UndoDeletionFileChangeResult result)
+        public CLError EndUndoDeletionFileChange(IAsyncResult asyncResult, out UndoDeletionFileChangeResult result)
         {
             // declare the specific type of asynchronous result for undoing deletion
             GenericAsyncResult<UndoDeletionFileChangeResult> castAResult;
@@ -2840,7 +3405,7 @@ namespace Cloud.REST
             try
             {
                 // try cast the asynchronous result as the type for undoing deletion
-                castAResult = aResult as GenericAsyncResult<UndoDeletionFileChangeResult>;
+                castAResult = asyncResult as GenericAsyncResult<UndoDeletionFileChangeResult>;
 
                 // if trying to cast the asynchronous result failed, then throw an error
                 if (castAResult == null)
@@ -2920,10 +3485,6 @@ namespace Cloud.REST
                 {
                     throw new ArgumentException(Resources.CLHttpRestChangeIsNotOfTypeDeletion);
                 }
-                if (_syncbox.Path == null)
-                {
-                    throw new NullReferenceException(Resources.CLHttpRestSyncboxPathCannotBeNull);
-                }
                 if (serverUid == null)
                 {
                     throw new NullReferenceException(Resources.CLHttpRestDeletionChangeMetadataServerUidMustnotBeNull);
@@ -2972,303 +3533,307 @@ namespace Cloud.REST
         }
         #endregion
 
-        #region CopyFile
-        /// <summary>
-        /// Asynchronously copies a file on the server to another location
-        /// </summary>
-        /// <param name="aCallback">Callback method to fire when operation completes</param>
-        /// <param name="aState">Userstate to pass when firing async callback</param>
-        /// <param name="fileServerId">Unique id to the file on the server</param>
-        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
-        /// <param name="copyTargetPath">Location where file shoule be copied to</param>
-        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginCopyFile(AsyncCallback aCallback,
-            object aState,
-            string fileServerId,
-            int timeoutMilliseconds,
-            FilePath copyTargetPath)
-        {
-            return BeginCopyFile(aCallback,
-                aState,
-                fileServerId,
-                timeoutMilliseconds,
-                null,
-                copyTargetPath);
-        }
+        #region CopyFile (needs to be updated before working, see comment inside)
+        // !!
+        // Needs to be updated before uncommenting! Other on-demand calls have been updated to use CLFileItem and path usages are now difference since the user may not put in a full path for the syncbox root
+        // !!
 
-        /// <summary>
-        /// Asynchronously copies a file on the server to another location
-        /// </summary>
-        /// <param name="aCallback">Callback method to fire when operation completes</param>
-        /// <param name="aState">Userstate to pass when firing async callback</param>
-        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
-        /// <param name="pathToFile">Location of existing file to copy from</param>
-        /// <param name="copyTargetPath">Location where file shoule be copied to</param>
-        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginCopyFile(AsyncCallback aCallback,
-            object aState,
-            int timeoutMilliseconds,
-            FilePath pathToFile,
-            FilePath copyTargetPath)
-        {
-            return BeginCopyFile(aCallback,
-                aState,
-                null,
-                timeoutMilliseconds,
-                pathToFile,
-                copyTargetPath);
-        }
+        ///// <summary>
+        ///// Asynchronously copies a file on the server to another location
+        ///// </summary>
+        ///// <param name="asyncCallback">Callback method to fire when operation completes</param>
+        ///// <param name="asyncCallbackUserState">User state to pass when firing async callback</param>
+        ///// <param name="fileServerId">Unique id to the file on the server</param>
+        ///// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        ///// <param name="copyTargetPath">Location where file shoule be copied to</param>
+        ///// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        //internal IAsyncResult BeginCopyFile(AsyncCallback asyncCallback,
+        //    object asyncCallbackUserState,
+        //    string fileServerId,
+        //    int timeoutMilliseconds,
+        //    FilePath copyTargetPath)
+        //{
+        //    return BeginCopyFile(asyncCallback,
+        //        asyncCallbackUserState,
+        //        fileServerId,
+        //        timeoutMilliseconds,
+        //        null,
+        //        copyTargetPath);
+        //}
 
-        /// <summary>
-        /// Asynchronously copies a file on the server to another location
-        /// </summary>
-        /// <param name="aCallback">Callback method to fire when operation completes</param>
-        /// <param name="aState">Userstate to pass when firing async callback</param>
-        /// <param name="fileServerId">Unique id to the file on the server</param>
-        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
-        /// <param name="pathToFile">Location of existing file to copy from</param>
-        /// <param name="copyTargetPath">Location where file shoule be copied to</param>
-        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginCopyFile(AsyncCallback aCallback,
-            object aState,
-            string fileServerId,
-            int timeoutMilliseconds,
-            FilePath pathToFile,
-            FilePath copyTargetPath)
-        {
-            // create the asynchronous result to return
-            GenericAsyncResult<CopyFileResult> toReturn = new GenericAsyncResult<CopyFileResult>(
-                aCallback,
-                aState);
+        ///// <summary>
+        ///// Asynchronously copies a file on the server to another location
+        ///// </summary>
+        ///// <param name="asyncCallback">Callback method to fire when operation completes</param>
+        ///// <param name="asyncCallbackUserState">User state to pass when firing async callback</param>
+        ///// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        ///// <param name="pathToFile">Location of existing file to copy from</param>
+        ///// <param name="copyTargetPath">Location where file shoule be copied to</param>
+        ///// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        //internal IAsyncResult BeginCopyFile(AsyncCallback asyncCallback,
+        //    object asyncCallbackUserState,
+        //    int timeoutMilliseconds,
+        //    FilePath pathToFile,
+        //    FilePath copyTargetPath)
+        //{
+        //    return BeginCopyFile(asyncCallback,
+        //        asyncCallbackUserState,
+        //        null,
+        //        timeoutMilliseconds,
+        //        pathToFile,
+        //        copyTargetPath);
+        //}
 
-            // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
-            Tuple<GenericAsyncResult<CopyFileResult>, string, int, FilePath, FilePath> asyncParams =
-                new Tuple<GenericAsyncResult<CopyFileResult>, string, int, FilePath, FilePath>(
-                    toReturn,
-                    fileServerId,
-                    timeoutMilliseconds,
-                    pathToFile,
-                    copyTargetPath);
+        ///// <summary>
+        ///// Asynchronously copies a file on the server to another location
+        ///// </summary>
+        ///// <param name="asyncCallback">Callback method to fire when operation completes</param>
+        ///// <param name="asyncCallbackUserState">User state to pass when firing async callback</param>
+        ///// <param name="fileServerId">Unique id to the file on the server</param>
+        ///// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        ///// <param name="pathToFile">Location of existing file to copy from</param>
+        ///// <param name="copyTargetPath">Location where file shoule be copied to</param>
+        ///// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        //internal IAsyncResult BeginCopyFile(AsyncCallback asyncCallback,
+        //    object asyncCallbackUserState,
+        //    string fileServerId,
+        //    int timeoutMilliseconds,
+        //    FilePath pathToFile,
+        //    FilePath copyTargetPath)
+        //{
+        //    // create the asynchronous result to return
+        //    GenericAsyncResult<CopyFileResult> toReturn = new GenericAsyncResult<CopyFileResult>(
+        //        asyncCallback,
+        //        asyncCallbackUserState);
 
-            // create the thread from a void (object) parameterized start which wraps the synchronous method call
-            (new Thread(new ParameterizedThreadStart(state =>
-            {
-                // try cast the state as the object with all the input parameters
-                Tuple<GenericAsyncResult<CopyFileResult>, string, int, FilePath, FilePath> castState = state as Tuple<GenericAsyncResult<CopyFileResult>, string, int, FilePath, FilePath>;
-                // if the try cast failed, then show a message box for this unrecoverable error
-                if (castState == null)
-                {
-                    MessageEvents.FireNewEventMessage(
-                        "Cannot cast state as " + Helpers.GetTypeNameEvenForNulls(castState),
-                        EventMessageLevel.Important,
-                        new HaltAllOfCloudSDKErrorInfo());
-                }
-                // else if the try cast did not fail, then start processing with the input parameters
-                else
-                {
-                    // try/catch to process with the input parameters, on catch set the exception in the asyncronous result
-                    try
-                    {
-                        // declare the specific type of result for this operation
-                        JsonContracts.FileChangeResponse result;
-                        // run the download of the file with the passed parameters, storing any error that occurs
-                        CLError processError = CopyFile(
-                            castState.Item2,
-                            castState.Item3,
-                            castState.Item4,
-                            out result);
+        //    // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
+        //    Tuple<GenericAsyncResult<CopyFileResult>, string, int, FilePath, FilePath> asyncParams =
+        //        new Tuple<GenericAsyncResult<CopyFileResult>, string, int, FilePath, FilePath>(
+        //            toReturn,
+        //            fileServerId,
+        //            timeoutMilliseconds,
+        //            pathToFile,
+        //            copyTargetPath);
 
-                        // if there was an asynchronous result in the parameters, then complete it with a new result object
-                        if (castState.Item1 != null)
-                        {
-                            castState.Item1.Complete(
-                                new CopyFileResult(
-                                    processError, // any error that may have occurred during processing
-                                    result), // the specific type of result for this operation
-                                    sCompleted: false); // processing did not complete synchronously
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        // if there was an asynchronous result in the parameters, then pass through the exception to it
-                        if (castState.Item1 != null)
-                        {
-                            castState.Item1.HandleException(
-                                ex, // the exception which was not handled correctly by the CLError wrapping
-                                sCompleted: false); // processing did not complete synchronously
-                        }
-                    }
-                }
-            }))).Start(asyncParams); // start the asynchronous processing thread with the input parameters object
+        //    // create the thread from a void (object) parameterized start which wraps the synchronous method call
+        //    (new Thread(new ParameterizedThreadStart(state =>
+        //    {
+        //        // try cast the state as the object with all the input parameters
+        //        Tuple<GenericAsyncResult<CopyFileResult>, string, int, FilePath, FilePath> castState = state as Tuple<GenericAsyncResult<CopyFileResult>, string, int, FilePath, FilePath>;
+        //        // if the try cast failed, then show a message box for this unrecoverable error
+        //        if (castState == null)
+        //        {
+        //            MessageEvents.FireNewEventMessage(
+        //                "Cannot cast state as " + Helpers.GetTypeNameEvenForNulls(castState),
+        //                EventMessageLevel.Important,
+        //                new HaltAllOfCloudSDKErrorInfo());
+        //        }
+        //        // else if the try cast did not fail, then start processing with the input parameters
+        //        else
+        //        {
+        //            // try/catch to process with the input parameters, on catch set the exception in the asyncronous result
+        //            try
+        //            {
+        //                // declare the specific type of result for this operation
+        //                JsonContracts.FileChangeResponse result;
+        //                // run the download of the file with the passed parameters, storing any error that occurs
+        //                CLError processError = CopyFile(
+        //                    castState.Item2,
+        //                    castState.Item3,
+        //                    castState.Item4,
+        //                    out result);
 
-            // return the asynchronous result
-            return toReturn;
-        }
+        //                // if there was an asynchronous result in the parameters, then complete it with a new result object
+        //                if (castState.Item1 != null)
+        //                {
+        //                    castState.Item1.Complete(
+        //                        new CopyFileResult(
+        //                            processError, // any error that may have occurred during processing
+        //                            result), // the specific type of result for this operation
+        //                            sCompleted: false); // processing did not complete synchronously
+        //                }
+        //            }
+        //            catch (Exception ex)
+        //            {
+        //                // if there was an asynchronous result in the parameters, then pass through the exception to it
+        //                if (castState.Item1 != null)
+        //                {
+        //                    castState.Item1.HandleException(
+        //                        ex, // the exception which was not handled correctly by the CLError wrapping
+        //                        sCompleted: false); // processing did not complete synchronously
+        //                }
+        //            }
+        //        }
+        //    }))).Start(asyncParams); // start the asynchronous processing thread with the input parameters object
 
-        /// <summary>
-        /// Finishes copying a file on the server to another location if it has not already finished via its asynchronous result and outputs the result,
-        /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
-        /// </summary>
-        /// <param name="aResult">The asynchronous result provided upon starting copying the file</param>
-        /// <param name="result">(output) The result from copying the file</param>
-        /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndCopyFile(IAsyncResult aResult, out CopyFileResult result)
-        {
-            // declare the specific type of asynchronous result for copying the file
-            GenericAsyncResult<CopyFileResult> castAResult;
+        //    // return the asynchronous result
+        //    return toReturn;
+        //}
 
-            // try/catch to try casting the asynchronous result as the type for copying the file and pull the result (possibly incomplete), on catch default the output and return the error
-            try
-            {
-                // try cast the asynchronous result as the type for copying the file
-                castAResult = aResult as GenericAsyncResult<CopyFileResult>;
+        ///// <summary>
+        ///// Finishes copying a file on the server to another location if it has not already finished via its asynchronous result and outputs the result,
+        ///// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
+        ///// </summary>
+        ///// <param name="asyncResult">The asynchronous result provided upon starting copying the file</param>
+        ///// <param name="result">(output) The result from copying the file</param>
+        ///// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
+        //internal CLError EndCopyFile(IAsyncResult asyncResult, out CopyFileResult result)
+        //{
+        //    // declare the specific type of asynchronous result for copying the file
+        //    GenericAsyncResult<CopyFileResult> castAResult;
 
-                // if trying to cast the asynchronous result failed, then throw an error
-                if (castAResult == null)
-                {
-                    throw new NullReferenceException(Resources.CLAsyncResultInternalTypeMismatch);
-                }
+        //    // try/catch to try casting the asynchronous result as the type for copying the file and pull the result (possibly incomplete), on catch default the output and return the error
+        //    try
+        //    {
+        //        // try cast the asynchronous result as the type for copying the file
+        //        castAResult = asyncResult as GenericAsyncResult<CopyFileResult>;
 
-                // pull the result for output (may not yet be complete)
-                result = castAResult.Result;
-            }
-            catch (Exception ex)
-            {
-                result = Helpers.DefaultForType<CopyFileResult>();
-                return ex;
-            }
+        //        // if trying to cast the asynchronous result failed, then throw an error
+        //        if (castAResult == null)
+        //        {
+        //            throw new NullReferenceException(Resources.CLAsyncResultInternalTypeMismatch);
+        //        }
 
-            // try/catch to finish the asynchronous operation if necessary, re-pull the result for output, and rethrow any exception which may have occurred; on catch, return the error
-            try
-            {
-                // This method assumes that only 1 thread calls EndInvoke 
-                // for this object
-                if (!castAResult.IsCompleted)
-                {
-                    // If the operation isn't done, wait for it
-                    castAResult.AsyncWaitHandle.WaitOne();
-                    castAResult.AsyncWaitHandle.Close();
-                }
+        //        // pull the result for output (may not yet be complete)
+        //        result = castAResult.Result;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        result = Helpers.DefaultForType<CopyFileResult>();
+        //        return ex;
+        //    }
 
-                // re-pull the result for output in case it was not completed when it was pulled before
-                result = castAResult.Result;
+        //    // try/catch to finish the asynchronous operation if necessary, re-pull the result for output, and rethrow any exception which may have occurred; on catch, return the error
+        //    try
+        //    {
+        //        // This method assumes that only 1 thread calls EndInvoke 
+        //        // for this object
+        //        if (!castAResult.IsCompleted)
+        //        {
+        //            // If the operation isn't done, wait for it
+        //            castAResult.AsyncWaitHandle.WaitOne();
+        //            castAResult.AsyncWaitHandle.Close();
+        //        }
 
-                // Operation is done: if an exception occurred, return it
-                if (castAResult.Exception != null)
-                {
-                    return castAResult.Exception;
-                }
-            }
-            catch (Exception ex)
-            {
-                return ex;
-            }
-            return null;
-        }
+        //        // re-pull the result for output in case it was not completed when it was pulled before
+        //        result = castAResult.Result;
 
-        /// <summary>
-        /// Copies a file on the server to another location
-        /// </summary>
-        /// <param name="fileServerId">Unique id to the file on the server</param>
-        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
-        /// <param name="copyTargetPath">Location where file shoule be copied to</param>
-        /// <param name="response">(output) response object from communication</param>
-        /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError CopyFile(string fileServerId, int timeoutMilliseconds, FilePath copyTargetPath, out JsonContracts.FileChangeResponse response)
-        {
-            return CopyFile(fileServerId, timeoutMilliseconds, null, copyTargetPath, out response);
-        }
+        //        // Operation is done: if an exception occurred, return it
+        //        if (castAResult.Exception != null)
+        //        {
+        //            return castAResult.Exception;
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return ex;
+        //    }
+        //    return null;
+        //}
 
-        /// <summary>
-        /// Copies a file on the server to another location
-        /// </summary>
-        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
-        /// <param name="pathToFile">Location of existing file to copy from</param>
-        /// <param name="copyTargetPath">Location where file shoule be copied to</param>
-        /// <param name="response">(output) response object from communication</param>
-        /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError CopyFile(int timeoutMilliseconds, FilePath pathToFile, FilePath copyTargetPath, out JsonContracts.FileChangeResponse response)
-        {
-            return CopyFile(null, timeoutMilliseconds, pathToFile, copyTargetPath, out response);
-        }
+        ///// <summary>
+        ///// Copies a file on the server to another location
+        ///// </summary>
+        ///// <param name="fileServerId">Unique id to the file on the server</param>
+        ///// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        ///// <param name="copyTargetPath">Location where file shoule be copied to</param>
+        ///// <param name="response">(output) response object from communication</param>
+        ///// <returns>Returns any error that occurred during communication, if any</returns>
+        //internal CLError CopyFile(string fileServerId, int timeoutMilliseconds, FilePath copyTargetPath, out JsonContracts.FileChangeResponse response)
+        //{
+        //    return CopyFile(fileServerId, timeoutMilliseconds, null, copyTargetPath, out response);
+        //}
 
-        /// <summary>
-        /// Copies a file on the server to another location
-        /// </summary>
-        /// <param name="fileServerId">Unique id to the file on the server</param>
-        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
-        /// <param name="pathToFile">Location of existing file to copy from</param>
-        /// <param name="copyTargetPath">Location where file shoule be copied to</param>
-        /// <param name="response">(output) response object from communication</param>
-        /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError CopyFile(string fileServerId, int timeoutMilliseconds, FilePath pathToFile, FilePath copyTargetPath, out JsonContracts.FileChangeResponse response)
-        {
-            // try/catch to process the undeletion, on catch return the error
-            try
-            {
-                // check input parameters
+        ///// <summary>
+        ///// Copies a file on the server to another location
+        ///// </summary>
+        ///// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        ///// <param name="pathToFile">Location of existing file to copy from</param>
+        ///// <param name="copyTargetPath">Location where file shoule be copied to</param>
+        ///// <param name="response">(output) response object from communication</param>
+        ///// <returns>Returns any error that occurred during communication, if any</returns>
+        //internal CLError CopyFile(int timeoutMilliseconds, FilePath pathToFile, FilePath copyTargetPath, out JsonContracts.FileChangeResponse response)
+        //{
+        //    return CopyFile(null, timeoutMilliseconds, pathToFile, copyTargetPath, out response);
+        //}
 
-                if (!(timeoutMilliseconds > 0))
-                {
-                    throw new ArgumentException(Resources.CLMSTimeoutMustBeGreaterThanZero);
-                }
-                if (_syncbox.Path == null)
-                {
-                    throw new NullReferenceException(Resources.CLHttpRestSyncboxPathCannotBeNull);
-                }
-                if (copyTargetPath == null)
-                {
-                    throw new NullReferenceException(Resources.CLHttpRestCopyPathCannotBeNull);
-                }
-                if (pathToFile == null
-                    && string.IsNullOrEmpty(fileServerId))
-                {
-                    throw new NullReferenceException(Resources.CLHttpRestXOROldPathServerUidCannotBeNull);
-                }
-                if (string.IsNullOrEmpty(_copiedSettings.DeviceId))
-                {
-                    throw new NullReferenceException(Resources.CLHttpRestDeviceIDCannotBeNull);
-                }
+        ///// <summary>
+        ///// Copies a file on the server to another location
+        ///// </summary>
+        ///// <param name="fileServerId">Unique id to the file on the server</param>
+        ///// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        ///// <param name="pathToFile">Location of existing file to copy from</param>
+        ///// <param name="copyTargetPath">Location where file shoule be copied to</param>
+        ///// <param name="response">(output) response object from communication</param>
+        ///// <returns>Returns any error that occurred during communication, if any</returns>
+        //internal CLError CopyFile(string fileServerId, int timeoutMilliseconds, FilePath pathToFile, FilePath copyTargetPath, out JsonContracts.FileChangeResponse response)
+        //{
+        //    // try/catch to process the undeletion, on catch return the error
+        //    try
+        //    {
+        //        // check input parameters
 
-                // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
-                Helpers.RequestNewCredentialsInfo requestNewCredentialsInfo = new Helpers.RequestNewCredentialsInfo()
-                {
-                    ProcessingStateByThreadId = _processingStateByThreadId,
-                    GetNewCredentialsCallback = _getNewCredentialsCallback,
-                    GetNewCredentialsCallbackUserState = _getNewCredentialsCallbackUserState,
-                    GetCurrentCredentialsCallback = GetCurrentCredentialsCallback,
-                    SetCurrentCredentialsCallback = SetCurrentCredentialCallback,
-                };
+        //        if (!(timeoutMilliseconds > 0))
+        //        {
+        //            throw new ArgumentException(Resources.CLMSTimeoutMustBeGreaterThanZero);
+        //        }
+        //        if (_syncbox.Path == null)
+        //        {
+        //            throw new NullReferenceException(Resources.CLHttpRestSyncboxPathCannotBeNull);
+        //        }
+        //        if (copyTargetPath == null)
+        //        {
+        //            throw new NullReferenceException(Resources.CLHttpRestCopyPathCannotBeNull);
+        //        }
+        //        if (pathToFile == null
+        //            && string.IsNullOrEmpty(fileServerId))
+        //        {
+        //            throw new NullReferenceException(Resources.CLHttpRestXOROldPathServerUidCannotBeNull);
+        //        }
+        //        if (string.IsNullOrEmpty(_copiedSettings.DeviceId))
+        //        {
+        //            throw new NullReferenceException(Resources.CLHttpRestDeviceIDCannotBeNull);
+        //        }
 
-                // run the HTTP communication and store the response object to the output parameter
-                response = Helpers.ProcessHttp<JsonContracts.FileChangeResponse>(new JsonContracts.FileCopy() // object for file copy
-                    {
-                        DeviceId = _copiedSettings.DeviceId, // device id
-                        ServerId = fileServerId, // unique id on server
-                        RelativePath = (pathToFile == null
-                            ? null
-                            : pathToFile.GetRelativePath(_syncbox.Path, true)), // path of existing file to copy
-                        RelativeToPath = copyTargetPath.GetRelativePath(_syncbox.Path, true), // location to copy file to
-                        SyncboxId = _syncbox.SyncboxId // id of sync box
-                    },
-                    CLDefinitions.CLMetaDataServerURL, // base domain is the MDS server
-                    CLDefinitions.MethodPathFileCopy, // path for file copy
-                    Helpers.requestMethod.post, // file copy is a post
-                    timeoutMilliseconds, // time before communication timeout
-                    null, // not an upload or download
-                    Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
-                    _copiedSettings, // pass the copied settings
-                    _syncbox.SyncboxId, // pass the unique id of the sync box on the server
-                    requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
-                    true);
-            }
-            catch (Exception ex)
-            {
-                response = Helpers.DefaultForType<JsonContracts.FileChangeResponse>();
-                return ex;
-            }
-            return null;
-        }
+        //        // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
+        //        Helpers.RequestNewCredentialsInfo requestNewCredentialsInfo = new Helpers.RequestNewCredentialsInfo()
+        //        {
+        //            ProcessingStateByThreadId = _processingStateByThreadId,
+        //            GetNewCredentialsCallback = _getNewCredentialsCallback,
+        //            GetNewCredentialsCallbackUserState = _getNewCredentialsCallbackUserState,
+        //            GetCurrentCredentialsCallback = GetCurrentCredentialsCallback,
+        //            SetCurrentCredentialsCallback = SetCurrentCredentialCallback,
+        //        };
+
+        //        // run the HTTP communication and store the response object to the output parameter
+        //        response = Helpers.ProcessHttp<JsonContracts.FileChangeResponse>(new JsonContracts.FileCopy() // object for file copy
+        //            {
+        //                DeviceId = _copiedSettings.DeviceId, // device id
+        //                ServerId = fileServerId, // unique id on server
+        //                RelativePath = (pathToFile == null
+        //                    ? null
+        //                    : pathToFile.GetRelativePath(_syncbox.Path, true)), // path of existing file to copy
+        //                RelativeToPath = copyTargetPath.GetRelativePath(_syncbox.Path, true), // location to copy file to
+        //                SyncboxId = _syncbox.SyncboxId // id of sync box
+        //            },
+        //            CLDefinitions.CLMetaDataServerURL, // base domain is the MDS server
+        //            CLDefinitions.MethodPathFileCopy, // path for file copy
+        //            Helpers.requestMethod.post, // file copy is a post
+        //            timeoutMilliseconds, // time before communication timeout
+        //            null, // not an upload or download
+        //            Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
+        //            _copiedSettings, // pass the copied settings
+        //            _syncbox.SyncboxId, // pass the unique id of the sync box on the server
+        //            requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
+        //            true);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        response = Helpers.DefaultForType<JsonContracts.FileChangeResponse>();
+        //        return ex;
+        //    }
+        //    return null;
+        //}
         #endregion
 
         #region AllImageItems (Get image items from this syncbox)
@@ -3276,7 +3841,7 @@ namespace Cloud.REST
         /// Asynchronously starts querying image items from the syncbox.  
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
-        /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing the async callback above.</param>
         /// <param name="pageNumber">Beginning page number.  The first page is page 1.</param>
         /// <param name="itemsPerPage">Items per page.</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
@@ -3444,7 +4009,7 @@ namespace Cloud.REST
         /// Asynchronously starts querying video items from the syncbox.  
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
-        /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing the async callback above.</param>
         /// <param name="pageNumber">Beginning page number.  The first page is page 1.</param>
         /// <param name="itemsPerPage">Items per page.</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
@@ -3611,7 +4176,7 @@ namespace Cloud.REST
         /// Asynchronously starts querying audio items from the syncbox.  
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
-        /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing the async callback above.</param>
         /// <param name="pageNumber">Beginning page number.  The first page is page 1.</param>
         /// <param name="itemsPerPage">Items per page.</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
@@ -3778,7 +4343,7 @@ namespace Cloud.REST
         /// Asynchronously starts querying document items from the syncbox.  
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
-        /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing the async callback above.</param>
         /// <param name="pageNumber">Beginning page number.  The first page is page 1.</param>
         /// <param name="itemsPerPage">Items per page.</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
@@ -3945,7 +4510,7 @@ namespace Cloud.REST
         /// Asynchronously starts querying presentation items from the syncbox.  
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
-        /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing the async callback above.</param>
         /// <param name="pageNumber">Beginning page number.  The first page is page 1.</param>
         /// <param name="itemsPerPage">Items per page.</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
@@ -4011,7 +4576,7 @@ namespace Cloud.REST
         /// Query presentation items from the syncbox.
         /// </summary>
         /// <param name="completionCallback">Callback method to fire when a page of items is complete.</param>
-        /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion callback above is fired.  Returns the result.</param>
+        /// <param name="completionCallbackUserState">User state to be passed whenever the completion callback above is fired.  Returns the result.</param>
         /// <param name="pageNumber">Beginning page number.  The first page is page 1.</param>
         /// <param name="itemsPerPage">Items per page.</param>
         /// <param name="items">(output) The resulting file items.</param>
@@ -4114,7 +4679,7 @@ namespace Cloud.REST
         /// Asynchronously starts querying text items from the syncbox.  
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
-        /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing the async callback above.</param>
         /// <param name="pageNumber">Beginning page number.  The first page is page 1.</param>
         /// <param name="itemsPerPage">Items per page.</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
@@ -4281,7 +4846,7 @@ namespace Cloud.REST
         /// Asynchronously starts querying archive items from the syncbox.  
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
-        /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing the async callback above.</param>
         /// <param name="pageNumber">Beginning page number.  The first page is page 1.</param>
         /// <param name="itemsPerPage">Items per page.</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
@@ -4347,7 +4912,7 @@ namespace Cloud.REST
         /// Query archive items from the syncbox.
         /// </summary>
         /// <param name="completionCallback">Callback method to fire when a page of items is complete.</param>
-        /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion callback above is fired.  Returns the result.</param>
+        /// <param name="completionCallbackUserState">User state to be passed whenever the completion callback above is fired.  Returns the result.</param>
         /// <param name="pageNumber">Beginning page number.  The first page is page 1.</param>
         /// <param name="itemsPerPage">Items per page.</param>
         /// <param name="items">(output) The resulting file items.</param>
@@ -4450,7 +5015,7 @@ namespace Cloud.REST
         /// Asynchronously starts retrieving the <CLFileItems>s of all of the file items contained in the syncbox that have the specified file extensions.
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
-        /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing the async callback above.</param>
         /// <param name="pageNumber">Beginning page number.  The first page is page 1.</param>
         /// <param name="itemsPerPage">Items per page.</param>
         /// <param name="extensions">The array of file extensions the item type should belong to. I.E txt, jpg, pdf, etc.</param>
@@ -4648,23 +5213,19 @@ namespace Cloud.REST
 
         #endregion  // end AllItemsForTypes (Get file items with various extensions from this syncbox)
 
-        #region RecentFiles (Retrieves the specified number of recently modified <CLFileItems>s.)
+        #region RecentFilesSinceDate (Retrieves recently modified <CLFileItems>s since a particular date.)
         /// <summary>
-        /// Asynchronously starts retrieving the specified number of recently modified files (<CLFileItems>s).
+        /// Asynchronously starts retrieving the recently modified files (<CLFileItems>s) from the syncbox since a particular date.
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
-        /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
-        /// <param name="completionCallback">Callback method to fire when a page of items is complete.  Return the result.</param>
-        /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion callback above is fired.</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing the async callback above.</param>
         /// <param name="pageNumber">Beginning page number.  The first page is page 1.</param>
         /// <param name="itemsPerPage">Items per page.</param>
         /// <param name="sinceDate">(optional) null to retrieve all of the recents, or specify a date to retrieve items from that date forward.</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        internal IAsyncResult BeginRecentFiles(
+        internal IAsyncResult BeginRecentFilesSinceDate(
             AsyncCallback asyncCallback, 
             object asyncCallbackUserState, 
-            CLAllItemsCompletionCallback completionCallback, 
-            object completionCallbackUserState, 
             long pageNumber, 
             long itemsPerPage,
             Nullable<DateTime> sinceDate = null)
@@ -4674,11 +5235,9 @@ namespace Cloud.REST
                 new
                 {
                     // create the asynchronous result to return
-                    toReturn = new GenericAsyncResult<CLError>(
+                    toReturn = new GenericAsyncResult<SyncboxRecentFilesSinceDateResult>(
                         asyncCallback,
                         asyncCallbackUserState),
-                    completionCallback = completionCallback,
-                    completionCallbackUserState = completionCallbackUserState,
                     pageNumber = pageNumber,
                     itemsPerPage = itemsPerPage,
                     sinceDate = sinceDate
@@ -4690,14 +5249,17 @@ namespace Cloud.REST
                     try
                     {
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
-                        CLError overallError = RecentFiles(
-                            completionCallback,
-                            completionCallbackUserState,
+                        CLFileItem[] items;
+                        CLError overallError = RecentFilesSinceDate(
                             pageNumber,
                             itemsPerPage,
+                            out items,
                             sinceDate);
 
-                        Data.toReturn.Complete(overallError, // any overall error that may have occurred during processing
+                        Data.toReturn.Complete(
+                            new SyncboxRecentFilesSinceDateResult(
+                                overallError, // any overall error that may have occurred during processing
+                                items),
                             sCompleted: false); // processing did not complete synchronously
                     }
                     catch (Exception ex)
@@ -4723,21 +5285,20 @@ namespace Cloud.REST
         /// <param name="asyncResult">The asynchronous result provided upon starting the request</param>
         /// <param name="result">(output) An overall error which occurred during processing, if any</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        internal CLError EndRecentFiles(IAsyncResult asyncResult, out SyncboxRecentFilesResult result)
+        internal CLError EndRecentFilesSinceDate(IAsyncResult asyncResult, out SyncboxRecentFilesSinceDateResult result)
         {
-            return Helpers.EndAsyncOperation<SyncboxRecentFilesResult>(asyncResult, out result);
+            return Helpers.EndAsyncOperation<SyncboxRecentFilesSinceDateResult>(asyncResult, out result);
         }
 
         /// <summary>
-        /// Retrieve the specified number of recently modified files (<CLFileItems>s).
+        /// Rretrieve the recently modified files (<CLFileItems>s) from the syncbox since a particular date.
         /// </summary>
-        /// <param name="completionCallback">Callback method to fire when a page of items is complete.</param>
-        /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion callback above is fired.  Returns the result.</param>
         /// <param name="pageNumber">Beginning page number.  The first page is page 1.</param>
         /// <param name="itemsPerPage">Items per page.</param>
+        /// <param name="items">(output) The retrieved items.</param>
         /// <param name="sinceDate">(optional) null to retrieve all of the recents, or specify a date to retrieve items from that date forward.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        internal CLError RecentFiles(CLAllItemsCompletionCallback completionCallback, object completionCallbackUserState, long pageNumber, long itemsPerPage, Nullable<DateTime> sinceDate = null)
+        internal CLError RecentFilesSinceDate(long pageNumber, long itemsPerPage, out CLFileItem[] items, Nullable<DateTime> sinceDate = null)
         {
             // try/catch to process the request,  On catch return the error
             try
@@ -4818,15 +5379,12 @@ namespace Cloud.REST
                         }
                         else
                         {
-                            listFileItems.Add(null);
+                            throw new NullReferenceException(Resources.ExceptionCLHttpRestWithoutMetadata);  //&&&& fix this
                         }
                     }
 
-                    // No error.  Pass back the data via the completion callback.
-                    if (completionCallback != null)
-                    {
-                        completionCallback(listFileItems.ToArray(), (long)responseFromServer.TotalCount, completionCallbackUserState);
-                    }
+                    // No error.  Pass back the data.
+                    items = listFileItems.ToArray();
                 }
                 else
                 {
@@ -4835,6 +5393,170 @@ namespace Cloud.REST
             }
             catch (Exception ex)
             {
+                items = Helpers.DefaultForType<CLFileItem[]>();
+                return ex;
+            }
+
+            return null;
+        }
+
+        #endregion  // end RecentFilesSinceDate (Retrieves recently modified <CLFileItems>s since a particular date.)
+
+        #region RecentFiles (Retrieves the specified number of recently modified <CLFileItems>s.)
+        /// <summary>
+        /// Asynchronously starts retrieving up to the given number of recently modified syncbox files.
+        /// </summary>
+        /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing the async callback above.</param>
+        /// <param name="returnLimit">The maximum number of file items to retrieve.</param>
+        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        internal IAsyncResult BeginRecentFiles(
+            AsyncCallback asyncCallback,
+            object asyncCallbackUserState,
+            long returnLimit)
+        {
+            var asyncThread = DelegateAndDataHolderBase.Create(
+                // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
+                new
+                {
+                    // create the asynchronous result to return
+                    toReturn = new GenericAsyncResult<SyncboxRecentFilesResult>(
+                        asyncCallback,
+                        asyncCallbackUserState),
+                    returnLimit = returnLimit
+                },
+                (Data, errorToAccumulate) =>
+                {
+                    // The ThreadProc.
+                    // try/catch to process with the input parameters, on catch set the exception in the asyncronous result
+                    try
+                    {
+                        // alloc and init the syncbox with the passed parameters, storing any error that occurs
+                        CLFileItem[] items;
+                        CLError overallError = RecentFiles(
+                            returnLimit,
+                            out items);
+
+                        Data.toReturn.Complete(
+                            new SyncboxRecentFilesResult(
+                                overallError, // any overall error that may have occurred during processing
+                                items),
+                            sCompleted: false); // processing did not complete synchronously
+                    }
+                    catch (Exception ex)
+                    {
+                        Data.toReturn.HandleException(
+                            ex, // the exception which was not handled correctly by the CLError wrapping
+                            sCompleted: false); // processing did not complete synchronously
+                    }
+                },
+                null);
+
+            // create the thread from a void (object) parameterized start which wraps the synchronous method call
+            (new Thread(new ThreadStart(asyncThread.VoidProcess))).Start(); // start the asynchronous processing thread which is attached to its data
+
+            // return the asynchronous result
+            return asyncThread.TypedData.toReturn;
+        }
+
+        /// <summary>
+        /// Finishes retrieving recent file items from the syncbox, if it has not already finished via its asynchronous result, and outputs the result,
+        /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
+        /// </summary>
+        /// <param name="asyncResult">The asynchronous result provided upon starting the request</param>
+        /// <param name="result">(output) An overall error which occurred during processing, if any</param>
+        /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
+        internal CLError EndRecentFiles(IAsyncResult asyncResult, out SyncboxRecentFilesResult result)
+        {
+            return Helpers.EndAsyncOperation<SyncboxRecentFilesResult>(asyncResult, out result);
+        }
+
+        /// <summary>
+        /// Retrieve up to the given number of recently modified syncbox files.
+        /// </summary>
+        /// <param name="returnLimit">The maximum number of file items to retrieve.</param>
+        /// <param name="items">(output) The retrieved items.</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        internal CLError RecentFiles(long returnLimit, out CLFileItem[] items)
+        {
+            // try/catch to process the request,  On catch return the error
+            try
+            {
+                // check input parameters.
+                if (returnLimit < 1)
+                {
+                    throw new CLArgumentException(CLExceptionCode.OnDemand_InvalidParameters, Resources.ExceptionOnDemandInvalidReturnLimit);
+                }
+
+                // build the URL with query string dynamically.
+                string serverMethodPath =
+                    CLDefinitions.MethodPathGetRecents + // path
+                    Helpers.QueryStringBuilder(new[]
+                    {
+                        // query string parameter for the current sync box id, should not need escaping since it should be an integer in string format
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringSyncboxId, _syncbox.SyncboxId.ToString()),
+                        // pageNumber should not need escaping since it is an integer.  Get page 1.
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringPageNumber, ((byte)1).ToString()), // query string parameter for optional depth limit
+                        // itemsPerPage should not need escaping since it is an integer
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringPerPage, returnLimit.ToString()),
+                    });
+
+                if (!(_copiedSettings.HttpTimeoutMilliseconds > 0))
+                {
+                    throw new CLArgumentException(CLExceptionCode.OnDemand_TimeoutMilliseconds, Resources.CLMSTimeoutMustBeGreaterThanZero);
+                }
+
+                // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
+                Helpers.RequestNewCredentialsInfo requestNewCredentialsInfo = new Helpers.RequestNewCredentialsInfo()
+                {
+                    ProcessingStateByThreadId = _processingStateByThreadId,
+                    GetNewCredentialsCallback = _getNewCredentialsCallback,
+                    GetNewCredentialsCallbackUserState = _getNewCredentialsCallbackUserState,
+                    GetCurrentCredentialsCallback = GetCurrentCredentialsCallback,
+                    SetCurrentCredentialsCallback = SetCurrentCredentialCallback,
+                };
+
+                // Communicate with the server to get the response.
+                JsonContracts.SyncboxGetRecentsResponse responseFromServer;
+                responseFromServer = Helpers.ProcessHttp<JsonContracts.SyncboxGetRecentsResponse>(null, // no request body for get
+                    CLDefinitions.CLMetaDataServerURL, // base domain is the MDS server
+                    serverMethodPath, // dynamic path to appropriate one-off method
+                    Helpers.requestMethod.get, // one-off methods are all posts
+                    _copiedSettings.HttpTimeoutMilliseconds, // time before communication timeout
+                    null, // not an upload or download
+                    Helpers.HttpStatusesOkAccepted, //use the hashset for ok/accepted as successful HttpStatusCodes
+                    _copiedSettings, // pass the copied settings
+                    _syncbox.SyncboxId, // pass the unique id of the sync box on the server
+                    requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
+                    true);
+
+                // Convert these items to the output array.
+                if (responseFromServer != null && responseFromServer.Metadata != null && responseFromServer.TotalCount != null)
+                {
+                    List<CLFileItem> listFileItems = new List<CLFileItem>();
+                    foreach (SyncboxMetadataResponse metadata in responseFromServer.Metadata)
+                    {
+                        if (metadata != null)
+                        {
+                            listFileItems.Add(new CLFileItem(metadata, _syncbox));
+                        }
+                        else
+                        {
+                            throw new NullReferenceException(Resources.ExceptionCLHttpRestWithoutMetadata);  //&&&& fix this
+                        }
+                    }
+
+                    // No error.  Pass back the data.
+                    items = listFileItems.ToArray();
+                }
+                else
+                {
+                    throw new NullReferenceException(Resources.ExceptionCLHttpRestWithoutMetadata);
+                }
+            }
+            catch (Exception ex)
+            {
+                items = Helpers.DefaultForType<CLFileItem[]>();
                 return ex;
             }
 
@@ -4848,7 +5570,9 @@ namespace Cloud.REST
         /// Asynchronously starts getting the syncbox usage information.  
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
-        /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing the async callback above.</param>
+        /// <param name="completionCallback">Callback method to fire when the operation is complete.  Returns the result.</param>
+        /// <param name="completionCallbackUserState">User state to be passed whenever the completion callback above is fired.</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
         internal IAsyncResult BeginGetDataUsage<T>(
             AsyncCallback asyncCallback, 
@@ -4913,7 +5637,7 @@ namespace Cloud.REST
         /// Get the syncbox usage information.  Updates the information in this syncbox object.
         /// </summary>
         /// <param name="completionCallback">Callback method to fire when the operation is complete.  Returns the result.</param>
-        /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion callback above is fired.</param>
+        /// <param name="completionCallbackUserState">User state to be passed whenever the completion callback above is fired.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
         internal CLError GetDataUsage<T>(
             Action<JsonContracts.SyncboxUsageResponse, T> completionCallback,
@@ -4985,240 +5709,28 @@ namespace Cloud.REST
 
         #endregion
 
-        #region GetFolderHierarchy
-        /// <summary>
-        /// Asynchronously starts querying folder hierarchy with optional path
-        /// </summary>
-        /// <param name="aCallback">Callback method to fire when operation completes</param>
-        /// <param name="aState">Userstate to pass when firing async callback</param>
-        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
-        /// <param name="hierarchyRoot">(optional) root path of hierarchy query</param>
-        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginGetFolderHierarchy(AsyncCallback aCallback,
-            object aState,
-            int timeoutMilliseconds,
-            FilePath hierarchyRoot = null)
-        {
-            // create the asynchronous result to return
-            GenericAsyncResult<GetFolderHierarchyResult> toReturn = new GenericAsyncResult<GetFolderHierarchyResult>(
-                aCallback,
-                aState);
-
-            // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
-            Tuple<GenericAsyncResult<GetFolderHierarchyResult>, int, FilePath> asyncParams =
-                new Tuple<GenericAsyncResult<GetFolderHierarchyResult>, int, FilePath>(
-                    toReturn,
-                    timeoutMilliseconds,
-                    hierarchyRoot);
-
-            // create the thread from a void (object) parameterized start which wraps the synchronous method call
-            (new Thread(new ParameterizedThreadStart(state =>
-            {
-                // try cast the state as the object with all the input parameters
-                Tuple<GenericAsyncResult<GetFolderHierarchyResult>, int, FilePath> castState = state as Tuple<GenericAsyncResult<GetFolderHierarchyResult>, int, FilePath>;
-                // if the try cast failed, then show a message box for this unrecoverable error
-                if (castState == null)
-                {
-                    MessageEvents.FireNewEventMessage(
-                        Resources.CLCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
-                        EventMessageLevel.Important,
-                        new HaltAllOfCloudSDKErrorInfo());
-                }
-                // else if the try cast did not fail, then start processing with the input parameters
-                else
-                {
-                    // try/catch to process with the input parameters, on catch set the exception in the asyncronous result
-                    try
-                    {
-                        // declare the specific type of result for this operation
-                        JsonContracts.FoldersResponse result;
-                        // run the download of the file with the passed parameters, storing any error that occurs
-                        CLError processError = GetFolderHierarchy(
-                            castState.Item2,
-                            out result,
-                            castState.Item3);
-
-                        // if there was an asynchronous result in the parameters, then complete it with a new result object
-                        if (castState.Item1 != null)
-                        {
-                            castState.Item1.Complete(
-                                new GetFolderHierarchyResult(
-                                    processError, // any error that may have occurred during processing
-                                    result), // the specific type of result for this operation
-                                    sCompleted: false); // processing did not complete synchronously
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        // if there was an asynchronous result in the parameters, then pass through the exception to it
-                        if (castState.Item1 != null)
-                        {
-                            castState.Item1.HandleException(
-                                ex, // the exception which was not handled correctly by the CLError wrapping
-                                sCompleted: false); // processing did not complete synchronously
-                        }
-                    }
-                }
-            }))).Start(asyncParams); // start the asynchronous processing thread with the input parameters object
-
-            // return the asynchronous result
-            return toReturn;
-        }
-
-        /// <summary>
-        /// Finishes getting folder hierarchy if it has not already finished via its asynchronous result and outputs the result,
-        /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
-        /// </summary>
-        /// <param name="aResult">The asynchronous result provided upon starting getting folder hierarchy</param>
-        /// <param name="result">(output) The result from folder hierarchy</param>
-        /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndGetFolderHierarchy(IAsyncResult aResult, out GetFolderHierarchyResult result)
-        {
-            // declare the specific type of asynchronous result for getting folder hierarchy
-            GenericAsyncResult<GetFolderHierarchyResult> castAResult;
-
-            // try/catch to try casting the asynchronous result as the type for getting folder hierarchy and pull the result (possibly incomplete), on catch default the output and return the error
-            try
-            {
-                // try cast the asynchronous result as the type for getting folder hierarchy
-                castAResult = aResult as GenericAsyncResult<GetFolderHierarchyResult>;
-
-                // if trying to cast the asynchronous result failed, then throw an error
-                if (castAResult == null)
-                {
-                    throw new NullReferenceException(Resources.CLAsyncResultInternalTypeMismatch);
-                }
-
-                // pull the result for output (may not yet be complete)
-                result = castAResult.Result;
-            }
-            catch (Exception ex)
-            {
-                result = Helpers.DefaultForType<GetFolderHierarchyResult>();
-                return ex;
-            }
-
-            // try/catch to finish the asynchronous operation if necessary, re-pull the result for output, and rethrow any exception which may have occurred; on catch, return the error
-            try
-            {
-                // This method assumes that only 1 thread calls EndInvoke 
-                // for this object
-                if (!castAResult.IsCompleted)
-                {
-                    // If the operation isn't done, wait for it
-                    castAResult.AsyncWaitHandle.WaitOne();
-                    castAResult.AsyncWaitHandle.Close();
-                }
-
-                // re-pull the result for output in case it was not completed when it was pulled before
-                result = castAResult.Result;
-
-                // Operation is done: if an exception occurred, return it
-                if (castAResult.Exception != null)
-                {
-                    return castAResult.Exception;
-                }
-            }
-            catch (Exception ex)
-            {
-                return ex;
-            }
-            return null;
-        }
-
-        /// <summary>
-        /// Queries server for folder hierarchy with an optional path
-        /// </summary>
-        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
-        /// <param name="response">(output) response object from communication</param>
-        /// <param name="hierarchyRoot">(optional) root path of hierarchy query</param>
-        /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError GetFolderHierarchy(int timeoutMilliseconds, out JsonContracts.FoldersResponse response, FilePath hierarchyRoot = null)
-        {
-            // try/catch to process the folder hierarchy query, on catch return the error
-            try
-            {
-                // check input parameters
-
-                if (!(timeoutMilliseconds > 0))
-                {
-                    throw new ArgumentException(Resources.CLMSTimeoutMustBeGreaterThanZero);
-                }
-                if (string.IsNullOrEmpty(_syncbox.Path))
-                {
-                    throw new NullReferenceException(Resources.CLHttpRestSyncboxPathCannotBeNull);
-                }
-
-                // build the location of the folder hierarchy retrieval method on the server dynamically
-                string serverMethodPath =
-                    CLDefinitions.MethodPathGetFolderHierarchy + // path
-                    Helpers.QueryStringBuilder(new[]
-                    {
-                        // query string parameter for the current sync box id, should not need escaping since it should be an integer in string format
-                        new KeyValuePair<string, string>(CLDefinitions.QueryStringSyncboxId, _syncbox.SyncboxId.ToString()),
-
-                        (hierarchyRoot == null
-                            ? new KeyValuePair<string, string>() // do not add extra query string parameter if path is not set
-                            : new KeyValuePair<string, string>(CLDefinitions.CLMetadataCloudPath, Uri.EscapeDataString(hierarchyRoot.GetRelativePath(_syncbox.Path, true) + "/"))) // query string parameter for optional path with escaped value
-                    });
-
-                // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
-                Helpers.RequestNewCredentialsInfo requestNewCredentialsInfo = new Helpers.RequestNewCredentialsInfo()
-                {
-                    ProcessingStateByThreadId = _processingStateByThreadId,
-                    GetNewCredentialsCallback = _getNewCredentialsCallback,
-                    GetNewCredentialsCallbackUserState = _getNewCredentialsCallbackUserState,
-                    GetCurrentCredentialsCallback = GetCurrentCredentialsCallback,
-                    SetCurrentCredentialsCallback = SetCurrentCredentialCallback,
-                };
-
-                // run the HTTP communication and store the response object to the output parameter
-                response = Helpers.ProcessHttp<JsonContracts.FoldersResponse>(
-                    null, // HTTP Get method does not have content
-                    CLDefinitions.CLMetaDataServerURL, // base domain is the MDS server
-                    serverMethodPath, // path to query folder hierarchy (dynamic adding query string)
-                    Helpers.requestMethod.get, // query folder hierarchy is a get
-                    timeoutMilliseconds, // time before communication timeout
-                    null, // not an upload or download
-                    Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
-                    _copiedSettings, // pass the copied settings
-                    _syncbox.SyncboxId, // pass the unique id of the sync box on the server
-                    requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
-                    true);
-            }
-            catch (Exception ex)
-            {
-                response = Helpers.DefaultForType<JsonContracts.FoldersResponse>();
-                return ex;
-            }
-            return null;
-        }
-        #endregion
-
-        #region GetFolderContentsAtPath (Query the server for the folder contents at a path)
+        #region ItemsForPath (Query the server for the folder contents at a path)
         /// <summary>
         /// Asynchronously starts querying folder contents at a relative syncbox path.
         /// </summary>
-        /// <param name="callback">Callback method to fire when operation completes</param>
-        /// <param name="callbackUserState">Userstate to pass when firing async callback</param>
-        /// <param name="path">(optional) relative root path of contents query</param>
-        /// <param name="depthLimit">(optional) how many levels deep to search from the root or provided path, use {null} to return everything</param>
-        /// <param name="includeDeleted">(optional) whether to include changes which are marked deleted</param>
+        /// <param name="asyncCallback">Callback method to fire when operation completes</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing async callback</param>
+        /// <param name="relativePath">(optional) relative root path of contents query.  If this is null or empty, the syncbox root folder will be queried.</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginGetFolderContentsAtPath(
-            AsyncCallback callback, 
-            object callbackUserState,
-            string path = null)
+        internal IAsyncResult BeginItemsForPath(
+            AsyncCallback asyncCallback, 
+            object asyncCallbackUserState,
+            string relativePath = null)
         {
             var asyncThread = DelegateAndDataHolderBase.Create(
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
                 new
                 {
                     // create the asynchronous result to return
-                    toReturn = new GenericAsyncResult<SyncboxGetFolderContentsAtPathResult>(
-                        callback,
-                        callbackUserState),
-                    path
+                    toReturn = new GenericAsyncResult<SyncboxItemsAtPathResult>(
+                        asyncCallback,
+                        asyncCallbackUserState),
+                    relativePath = relativePath
                 },
                 (Data, errorToAccumulate) =>
                 {
@@ -5229,12 +5741,12 @@ namespace Cloud.REST
                         // declare the specific type of result for this operation
                         CLFileItem[] response;
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
-                        CLError processError = GetFolderContentsAtPath(
-                            Data.path,
+                        CLError processError = ItemsForPath(
+                            Data.relativePath,
                             out response);
 
                         Data.toReturn.Complete(
-                            new SyncboxGetFolderContentsAtPathResult(
+                            new SyncboxItemsAtPathResult(
                                 processError, // any error that may have occurred during processing
                                 response), // the specific type of result for this operation
                             sCompleted: false); // processing did not complete synchronously
@@ -5259,56 +5771,40 @@ namespace Cloud.REST
         /// Finishes getting folder contents if it has not already finished via its asynchronous result and outputs the result,
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
         /// </summary>
-        /// <param name="aResult">The asynchronous result provided upon starting getting folder contents</param>
+        /// <param name="asyncResult">The asynchronous result provided upon starting getting folder contents</param>
         /// <param name="result">(output) The result from folder contents</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndGetFolderContents(IAsyncResult aResult, out SyncboxGetFolderContentsAtPathResult result)
+        internal CLError EndItemsForPath(IAsyncResult asyncResult, out SyncboxItemsAtPathResult result)
         {
-            return Helpers.EndAsyncOperation<SyncboxGetFolderContentsAtPathResult>(aResult, out result);
+            return Helpers.EndAsyncOperation<SyncboxItemsAtPathResult>(asyncResult, out result);
         }
 
         /// <summary>
         /// Queries server for folder contents at a relative syncbox path.
         /// </summary>
-        /// <param name="path">(optional) relative root path of contents query</param>
-        /// <param name="response">(output) response object from communication</param>
+        /// <param name="relativePath">(optional) relative root path of contents query.  If this is null or empty, the syncbox root folder will be queried.</param>
+        /// <param name="items">(output) resulting items.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError GetFolderContentsAtPath(
-            string path,
-            out CLFileItem[] response)
+        internal CLError ItemsForPath(
+            string relativePath,
+            out CLFileItem[] items)
         {
             // try/catch to process the folder contents query, on catch return the error
             try
             {
                 // check input parameters
 
-                if (path == null)
+                if (string.IsNullOrEmpty(relativePath))
                 {
-                    throw new NullReferenceException(Resources.ExceptionCLHttpRestNullPath);
+                    relativePath = "/";         // assume the syncbox root
                 }
 
-                CLError pathError = Helpers.CheckForBadPath(path);
-                if (pathError != null)
-                {
-                    throw new AggregateException("path is not in the proper format", pathError.Exceptions);
-                }
-
-                if (string.IsNullOrEmpty(_syncbox.Path))
-                {
-                    throw new NullReferenceException(Resources.CLHttpRestSyncboxPathCannotBeNull);
-                }
-
-                if (!path.Contains(_syncbox.Path))
-                {
-                    throw new ArgumentException("path does not contain syncbox path");
-                }
                 if (!(_copiedSettings.HttpTimeoutMilliseconds > 0))
                 {
                     throw new ArgumentException(Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
 
                 // build the location of the folder contents retrieval method on the server dynamically
-                FilePath contentsRoot = new FilePath(path);
                 string serverMethodPath =
                     CLDefinitions.MethodPathGetFolderContents + // path
                     Helpers.QueryStringBuilder(new[]
@@ -5318,7 +5814,7 @@ namespace Cloud.REST
 
                         new KeyValuePair<string, string>(CLDefinitions.QueryStringDepth, ((byte)0).ToString()), // query string parameter for optional depth limit
 
-                        new KeyValuePair<string, string>(CLDefinitions.CLMetadataCloudPath, Uri.EscapeDataString(contentsRoot.GetRelativePath(_syncbox.Path, true) + "/")), // query string parameter for optional path with escaped value
+                        new KeyValuePair<string, string>(CLDefinitions.CLMetadataCloudPath, Uri.EscapeDataString(relativePath.Replace('\\', '/'))), // query string parameter for optional path with escaped value
 
                         new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeDeleted, "false"), // query string parameter for not including deleted objects
 
@@ -5366,10 +5862,10 @@ namespace Cloud.REST
                         }
                         else
                         {
-                            listFileItems.Add(null);
+                            throw new NullReferenceException(Resources.ExceptionCLHttpRestWithoutMetadata);
                         }
                     }
-                    response = listFileItems.ToArray();
+                    items = listFileItems.ToArray();
                 }
                 else
                 {
@@ -5378,31 +5874,541 @@ namespace Cloud.REST
             }
             catch (Exception ex)
             {
-                response = Helpers.DefaultForType<CLFileItem[]>();
+                items = Helpers.DefaultForType<CLFileItem[]>();
                 return ex;
             }
             return null;
         }
-        #endregion  // end GetFolderContentsAtPath (Query the server for the folder contents at a path)
+        #endregion  // end ItemsForPath (Query the server for the folder contents at a path)
+
+        #region ItemsForFolderItem (Query the server for the folder contents at a folder item)
+        /// <summary>
+        /// Asynchronously starts querying folder contents at a relative syncbox path.
+        /// </summary>
+        /// <param name="asyncCallback">Callback method to fire when operation completes</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing async callback</param>
+        /// <param name="folderItem">The CLFileItem representing the folder to query.  If folderItem is null, the contents of the synbox root folder will be returned.</param>
+        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        internal IAsyncResult BeginItemsForFolderItem(
+            AsyncCallback asyncCallback,
+            object asyncCallbackUserState,
+            CLFileItem folderItem)
+        {
+            var asyncThread = DelegateAndDataHolderBase.Create(
+                // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
+                new
+                {
+                    // create the asynchronous result to return
+                    toReturn = new GenericAsyncResult<SyncboxItemsForFolderItemResult>(
+                        asyncCallback,
+                        asyncCallbackUserState),
+                    folderItem = folderItem,
+                },
+                (Data, errorToAccumulate) =>
+                {
+                    // The ThreadProc.
+                    // try/catch to process with the input parameters, on catch set the exception in the asyncronous result
+                    try
+                    {
+                        // declare the specific type of result for this operation
+                        CLFileItem[] response;
+                        // alloc and init the syncbox with the passed parameters, storing any error that occurs
+                        CLError processError = ItemsForFolderItem(
+                            Data.folderItem,
+                            out response);
+
+                        Data.toReturn.Complete(
+                            new SyncboxItemsForFolderItemResult(
+                                processError, // any error that may have occurred during processing
+                                response), // the specific type of result for this operation
+                            sCompleted: false); // processing did not complete synchronously
+                    }
+                    catch (Exception ex)
+                    {
+                        Data.toReturn.HandleException(
+                            ex, // the exception which was not handled correctly by the CLError wrapping
+                            sCompleted: false); // processing did not complete synchronously
+                    }
+                },
+                null);
+
+            // create the thread from a void (object) parameterized start which wraps the synchronous method call
+            (new Thread(new ThreadStart(asyncThread.VoidProcess))).Start(); // start the asynchronous processing thread which is attached to its data
+
+            // return the asynchronous result
+            return asyncThread.TypedData.toReturn;
+        }
+
+        /// <summary>
+        /// Finishes getting folder contents if it has not already finished via its asynchronous result and outputs the result,
+        /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
+        /// </summary>
+        /// <param name="asyncResult">The asynchronous result provided upon starting getting folder contents</param>
+        /// <param name="result">(output) The result from folder contents</param>
+        /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
+        internal CLError EndItemsForFolderItem(IAsyncResult asyncResult, out SyncboxItemsForFolderItemResult result)
+        {
+            return Helpers.EndAsyncOperation<SyncboxItemsForFolderItemResult>(asyncResult, out result);
+        }
+
+        /// <summary>
+        /// Queries server for folder contents at a relative syncbox path.
+        /// </summary>
+        /// <param name="folderItem">The CLFileItem representing the folder to query.  If folderItem is null, the syncbox root folder will be queried.</param>
+        /// <param name="items">(output) response object from communication</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        internal CLError ItemsForFolderItem(
+            CLFileItem folderItem,
+            out CLFileItem[] items)
+        {
+            // try/catch to process the folder contents query, on catch return the error
+            try
+            {
+                // check input parameters
+                if (!(_copiedSettings.HttpTimeoutMilliseconds > 0))
+                {
+                    throw new ArgumentException(Resources.CLMSTimeoutMustBeGreaterThanZero);
+                }
+
+                // build the location of the folder contents retrieval method on the server dynamically
+                string serverMethodPath =
+                    CLDefinitions.MethodPathGetFolderContents + // path
+                    Helpers.QueryStringBuilder(new[]
+                    {
+                        // query string parameter for the current sync box id, should not need escaping since it should be an integer in string format
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringSyncboxId, _syncbox.SyncboxId.ToString()),
+
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringDepth, ((byte)0).ToString()), // query string parameter for optional depth limit
+
+                        // Fill in the uid only if it is supplied.
+                        (folderItem == null || folderItem.Uid == null)
+                            ? new KeyValuePair<string, string>()
+                            : new KeyValuePair<string, string>(CLDefinitions.CLMetadataServerId, Uri.EscapeDataString(folderItem.Uid)),
+
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeDeleted, "false"), // query string parameter for not including deleted objects
+
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeCount, "true"), // query string parameter for including counts within each folder
+
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeFolders, "true"), // query string parameter for including folders in the list
+
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeStoredOnly, "true") // query string parameter for including only stored items in the list
+                    });
+
+                // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
+                Helpers.RequestNewCredentialsInfo requestNewCredentialsInfo = new Helpers.RequestNewCredentialsInfo()
+                {
+                    ProcessingStateByThreadId = _processingStateByThreadId,
+                    GetNewCredentialsCallback = _getNewCredentialsCallback,
+                    GetNewCredentialsCallbackUserState = _getNewCredentialsCallbackUserState,
+                    GetCurrentCredentialsCallback = GetCurrentCredentialsCallback,
+                    SetCurrentCredentialsCallback = SetCurrentCredentialCallback,
+                };
+
+                // Communicate with the server to get the response.
+                JsonContracts.SyncboxFolderContentsResponse responseFromServer;
+                responseFromServer = Helpers.ProcessHttp<JsonContracts.SyncboxFolderContentsResponse>(
+                    null, // HTTP Get method does not have content
+                    CLDefinitions.CLMetaDataServerURL, // base domain is the MDS server
+                    serverMethodPath, // path to query folder contents (dynamic adding query string)
+                    Helpers.requestMethod.get, // query folder contents is a get
+                    _copiedSettings.HttpTimeoutMilliseconds, // time before communication timeout
+                    null, // not an upload or download
+                    Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
+                    _copiedSettings, // pass the copied settings
+                    _syncbox.SyncboxId, // pass the unique id of the sync box on the server
+                    requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
+                    true);
+
+                // Convert these items to the output array.
+                if (responseFromServer != null && responseFromServer.Objects != null)
+                {
+                    List<CLFileItem> listFileItems = new List<CLFileItem>();
+                    foreach (SyncboxMetadataResponse metadata in responseFromServer.Objects)
+                    {
+                        if (metadata != null)
+                        {
+                            listFileItems.Add(new CLFileItem(metadata, _syncbox));
+                        }
+                        else
+                        {
+                            throw new NullReferenceException(Resources.ExceptionCLHttpRestWithoutMetadata);
+                        }
+                    }
+                    items = listFileItems.ToArray();
+                }
+                else
+                {
+                    throw new NullReferenceException(Resources.ExceptionCLHttpRestWithoutMetadata);
+                }
+            }
+            catch (Exception ex)
+            {
+                items = Helpers.DefaultForType<CLFileItem[]>();
+                return ex;
+            }
+            return null;
+        }
+        #endregion  // end ItemsForFolderItem (Query the server for the folder contents at a folder item)
+
+        #region HierarchyOfFolderAtPath (Gets the items that represent the specified folder's folder hierarchy)
+        /// <summary>
+        /// Asynchronously starts getting the syncbox items that represent the specified folder's folder hierarchy.
+        /// </summary>
+        /// <param name="asyncCallback">Callback method to fire when operation completes</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing async callback</param>
+        /// <param name="relativePath">(optional) relative root path of contents query.  If this is null or empty, the syncbox root folder will be queried.</param>
+        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        internal IAsyncResult BeginHierarchyOfFolderAtPath(
+            AsyncCallback asyncCallback,
+            object asyncCallbackUserState,
+            string relativePath = null)
+        {
+            var asyncThread = DelegateAndDataHolderBase.Create(
+                // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
+                new
+                {
+                    // create the asynchronous result to return
+                    toReturn = new GenericAsyncResult<SyncboxHierarchyOfFolderAtPathResult>(
+                        asyncCallback,
+                        asyncCallbackUserState),
+                    relativePath = relativePath
+                },
+                (Data, errorToAccumulate) =>
+                {
+                    // The ThreadProc.
+                    // try/catch to process with the input parameters, on catch set the exception in the asyncronous result
+                    try
+                    {
+                        // declare the specific type of result for this operation
+                        CLFileItem[] response;
+                        // alloc and init the syncbox with the passed parameters, storing any error that occurs
+                        CLError processError = HierarchyOfFolderAtPath(
+                            Data.relativePath,
+                            out response);
+
+                        Data.toReturn.Complete(
+                            new SyncboxHierarchyOfFolderAtPathResult(
+                                processError, // any error that may have occurred during processing
+                                response), // the specific type of result for this operation
+                            sCompleted: false); // processing did not complete synchronously
+                    }
+                    catch (Exception ex)
+                    {
+                        Data.toReturn.HandleException(
+                            ex, // the exception which was not handled correctly by the CLError wrapping
+                            sCompleted: false); // processing did not complete synchronously
+                    }
+                },
+                null);
+
+            // create the thread from a void (object) parameterized start which wraps the synchronous method call
+            (new Thread(new ThreadStart(asyncThread.VoidProcess))).Start(); // start the asynchronous processing thread which is attached to its data
+
+            // return the asynchronous result
+            return asyncThread.TypedData.toReturn;
+        }
+
+        /// <summary>
+        /// Finishes getting the folder hierarchy, if it has not already finished via its asynchronous result, and outputs the result,
+        /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
+        /// </summary>
+        /// <param name="asyncResult">The asynchronous result provided upon starting getting folder contents</param>
+        /// <param name="result">(output) The result from folder contents</param>
+        /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
+        internal CLError EndHierarchyOfFolderAtPath(IAsyncResult asyncResult, out SyncboxHierarchyOfFolderAtPathResult result)
+        {
+            return Helpers.EndAsyncOperation<SyncboxHierarchyOfFolderAtPathResult>(asyncResult, out result);
+        }
+
+        /// <summary>
+        /// Gets the syncbox items that represent the specified folder's folder hierarchy.
+        /// </summary>
+        /// <param name="relativePath">(optional) relative root path of contents query.  If this is null or empty, the syncbox root folder will be queried.</param>
+        /// <param name="items">(output) resulting items.</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        internal CLError HierarchyOfFolderAtPath(
+            string relativePath,
+            out CLFileItem[] items)
+        {
+            // try/catch to process the folder contents query, on catch return the error
+            try
+            {
+                // check input parameters
+
+                if (string.IsNullOrEmpty(relativePath))
+                {
+                    relativePath = "/";         // assume the syncbox root
+                }
+
+                if (!(_copiedSettings.HttpTimeoutMilliseconds > 0))
+                {
+                    throw new ArgumentException(Resources.CLMSTimeoutMustBeGreaterThanZero);
+                }
+
+                // build the location of the folder contents retrieval method on the server dynamically
+                string serverMethodPath =
+                    CLDefinitions.MethodPathGetFolderHierarchy + // path
+                    Helpers.QueryStringBuilder(new[]
+                    {
+                        // query string parameter for the current sync box id, should not need escaping since it should be an integer in string format
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringSyncboxId, _syncbox.SyncboxId.ToString()),
+
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringDepth, ((byte)0).ToString()), // query string parameter for optional depth limit
+
+                        new KeyValuePair<string, string>(CLDefinitions.CLMetadataCloudPath, Uri.EscapeDataString(relativePath.Replace('\\', '/'))), // query string parameter for optional path with escaped value
+
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeDeleted, "false"), // query string parameter for not including deleted objects
+
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeCount, "true"), // query string parameter for including counts within each folder
+
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeFolders, "true"), // query string parameter for including folders in the list
+
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeStoredOnly, "true") // query string parameter for including only stored items in the list
+                    });
+
+                // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
+                Helpers.RequestNewCredentialsInfo requestNewCredentialsInfo = new Helpers.RequestNewCredentialsInfo()
+                {
+                    ProcessingStateByThreadId = _processingStateByThreadId,
+                    GetNewCredentialsCallback = _getNewCredentialsCallback,
+                    GetNewCredentialsCallbackUserState = _getNewCredentialsCallbackUserState,
+                    GetCurrentCredentialsCallback = GetCurrentCredentialsCallback,
+                    SetCurrentCredentialsCallback = SetCurrentCredentialCallback,
+                };
+
+                // Communicate with the server to get the response.
+                JsonContracts.FoldersResponse responseFromServer;
+                responseFromServer = Helpers.ProcessHttp<JsonContracts.FoldersResponse>(
+                    null, // HTTP Get method does not have content
+                    CLDefinitions.CLMetaDataServerURL, // base domain is the MDS server
+                    serverMethodPath, // path to query folder contents (dynamic adding query string)
+                    Helpers.requestMethod.get, // query folder contents is a get
+                    _copiedSettings.HttpTimeoutMilliseconds, // time before communication timeout
+                    null, // not an upload or download
+                    Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
+                    _copiedSettings, // pass the copied settings
+                    _syncbox.SyncboxId, // pass the unique id of the sync box on the server
+                    requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
+                    true);
+
+                // Convert these items to the output array.
+                if (responseFromServer != null && responseFromServer.Metadata != null)
+                {
+                    List<CLFileItem> listFileItems = new List<CLFileItem>();
+                    foreach (SyncboxMetadataResponse metadata in responseFromServer.Metadata)
+                    {
+                        if (metadata != null)
+                        {
+                            listFileItems.Add(new CLFileItem(metadata, _syncbox));
+                        }
+                        else
+                        {
+                            throw new NullReferenceException(Resources.ExceptionCLHttpRestWithoutMetadata);
+                        }
+                    }
+                    items = listFileItems.ToArray();
+                }
+                else
+                {
+                    throw new NullReferenceException(Resources.ExceptionCLHttpRestWithoutMetadata);
+                }
+            }
+            catch (Exception ex)
+            {
+                items = Helpers.DefaultForType<CLFileItem[]>();
+                return ex;
+            }
+            return null;
+        }
+        #endregion  // end HierarchyOfFolderAtPath (Gets the items that represent the specified folder's folder hierarchy)
+
+        #region HierarchyOfFolderAtFolderItem (Query the server for the folder hierarchy at a folder item)
+        /// <summary>
+        /// Asynchronously starts querying the syncbox folder hierarchy at a particular folder item.
+        /// </summary>
+        /// <param name="asyncCallback">Callback method to fire when operation completes</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing async callback</param>
+        /// <param name="folderItem">The CLFileItem representing the folder to query.  If folderItem is null, the hierarchy of the synbox root folder will be returned.</param>
+        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        internal IAsyncResult BeginHierarchyOfFolderAtFolderItem(
+            AsyncCallback asyncCallback,
+            object asyncCallbackUserState,
+            CLFileItem folderItem)
+        {
+            var asyncThread = DelegateAndDataHolderBase.Create(
+                // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
+                new
+                {
+                    // create the asynchronous result to return
+                    toReturn = new GenericAsyncResult<SyncboxHierarchyOfFolderAtFolderItemResult>(
+                        asyncCallback,
+                        asyncCallbackUserState),
+                    folderItem = folderItem,
+                },
+                (Data, errorToAccumulate) =>
+                {
+                    // The ThreadProc.
+                    // try/catch to process with the input parameters, on catch set the exception in the asyncronous result
+                    try
+                    {
+                        // declare the specific type of result for this operation
+                        CLFileItem[] items;
+                        // alloc and init the syncbox with the passed parameters, storing any error that occurs
+                        CLError processError = HierarchyOfFolderAtFolderItem(
+                            Data.folderItem,
+                            out items);
+
+                        Data.toReturn.Complete(
+                            new SyncboxHierarchyOfFolderAtFolderItemResult(
+                                processError, // any error that may have occurred during processing
+                                items), // the specific type of result for this operation
+                            sCompleted: false); // processing did not complete synchronously
+                    }
+                    catch (Exception ex)
+                    {
+                        Data.toReturn.HandleException(
+                            ex, // the exception which was not handled correctly by the CLError wrapping
+                            sCompleted: false); // processing did not complete synchronously
+                    }
+                },
+                null);
+
+            // create the thread from a void (object) parameterized start which wraps the synchronous method call
+            (new Thread(new ThreadStart(asyncThread.VoidProcess))).Start(); // start the asynchronous processing thread which is attached to its data
+
+            // return the asynchronous result
+            return asyncThread.TypedData.toReturn;
+        }
+
+        /// <summary>
+        /// Finishes getting the folder hierarchy if it has not already finished via its asynchronous result, and outputs the result,
+        /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
+        /// </summary>
+        /// <param name="asyncResult">The asynchronous result provided upon starting getting folder contents</param>
+        /// <param name="result">(output) The result from folder contents</param>
+        /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
+        internal CLError EndHierarchyOfFolderAtFolderItem(IAsyncResult asyncResult, out SyncboxHierarchyOfFolderAtFolderItemResult result)
+        {
+            return Helpers.EndAsyncOperation<SyncboxHierarchyOfFolderAtFolderItemResult>(asyncResult, out result);
+        }
+
+        /// <summary>
+        /// Queries the syncbox folder hierarchy at a particular folder item.
+        /// </summary>
+        /// <param name="folderItem">The CLFileItem representing the folder to query.  If folderItem is null, the syncbox root folder will be queried.</param>
+        /// <param name="items">(output) response object from communication</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        internal CLError HierarchyOfFolderAtFolderItem(
+            CLFileItem folderItem,
+            out CLFileItem[] items)
+        {
+            // try/catch to process the folder contents query, on catch return the error
+            try
+            {
+                // check input parameters
+                if (!(_copiedSettings.HttpTimeoutMilliseconds > 0))
+                {
+                    throw new ArgumentException(Resources.CLMSTimeoutMustBeGreaterThanZero);
+                }
+
+                // build the location of the folder contents retrieval method on the server dynamically
+                string serverMethodPath =
+                    CLDefinitions.MethodPathGetFolderHierarchy + // path
+                    Helpers.QueryStringBuilder(new[]
+                    {
+                        // query string parameter for the current sync box id, should not need escaping since it should be an integer in string format
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringSyncboxId, _syncbox.SyncboxId.ToString()),
+
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringDepth, ((byte)0).ToString()), // query string parameter for optional depth limit
+
+                        // Fill in the uid only if it is supplied.
+                        (folderItem == null || folderItem.Uid == null)
+                            ? new KeyValuePair<string, string>()
+                            : new KeyValuePair<string, string>(CLDefinitions.CLMetadataServerId, Uri.EscapeDataString(folderItem.Uid)),
+
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeDeleted, "false"), // query string parameter for not including deleted objects
+
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeCount, "true"), // query string parameter for including counts within each folder
+
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeFolders, "true"), // query string parameter for including folders in the list
+
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeStoredOnly, "true") // query string parameter for including only stored items in the list
+                    });
+
+                // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
+                Helpers.RequestNewCredentialsInfo requestNewCredentialsInfo = new Helpers.RequestNewCredentialsInfo()
+                {
+                    ProcessingStateByThreadId = _processingStateByThreadId,
+                    GetNewCredentialsCallback = _getNewCredentialsCallback,
+                    GetNewCredentialsCallbackUserState = _getNewCredentialsCallbackUserState,
+                    GetCurrentCredentialsCallback = GetCurrentCredentialsCallback,
+                    SetCurrentCredentialsCallback = SetCurrentCredentialCallback,
+                };
+
+                // Communicate with the server to get the response.
+                JsonContracts.FoldersResponse responseFromServer;
+                responseFromServer = Helpers.ProcessHttp<JsonContracts.FoldersResponse>(
+                    null, // HTTP Get method does not have content
+                    CLDefinitions.CLMetaDataServerURL, // base domain is the MDS server
+                    serverMethodPath, // path to query folder contents (dynamic adding query string)
+                    Helpers.requestMethod.get, // query folder contents is a get
+                    _copiedSettings.HttpTimeoutMilliseconds, // time before communication timeout
+                    null, // not an upload or download
+                    Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
+                    _copiedSettings, // pass the copied settings
+                    _syncbox.SyncboxId, // pass the unique id of the sync box on the server
+                    requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
+                    true);
+
+                // Convert these items to the output array.
+                if (responseFromServer != null && responseFromServer.Metadata != null)
+                {
+                    List<CLFileItem> listFileItems = new List<CLFileItem>();
+                    foreach (SyncboxMetadataResponse metadata in responseFromServer.Metadata)
+                    {
+                        if (metadata != null)
+                        {
+                            listFileItems.Add(new CLFileItem(metadata, _syncbox));
+                        }
+                        else
+                        {
+                            throw new NullReferenceException(Resources.ExceptionCLHttpRestWithoutMetadata);
+                        }
+                    }
+                    items = listFileItems.ToArray();
+                }
+                else
+                {
+                    throw new NullReferenceException(Resources.ExceptionCLHttpRestWithoutMetadata);
+                }
+            }
+            catch (Exception ex)
+            {
+                items = Helpers.DefaultForType<CLFileItem[]>();
+                return ex;
+            }
+            return null;
+        }
+        #endregion  // end HierarchyOfFolderAtFolderItem (Query the server for the folder hierarchy at a folder item)
 
         #region UpdateSyncboxExtendedMetadata
         /// <summary>
         /// Asynchronously updates the extended metadata on a sync box
         /// </summary>
-        /// <param name="aCallback">Callback method to fire when operation completes</param>
-        /// <param name="aState">Userstate to pass when firing async callback</param>
+        /// <param name="asyncCallback">Callback method to fire when operation completes</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing async callback</param>
         /// <param name="metadata">string keys to serializable object values to store as extra metadata to the sync box</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginUpdateSyncboxExtendedMetadata<T>(AsyncCallback aCallback,
-            object aState,
+        internal IAsyncResult BeginUpdateSyncboxExtendedMetadata<T>(AsyncCallback asyncCallback,
+            object asyncCallbackUserState,
             IDictionary<string, T> metadata,
             int timeoutMilliseconds)
         {
             // create the asynchronous result to return
             GenericAsyncResult<SyncboxUpdateExtendedMetadataResult> toReturn = new GenericAsyncResult<SyncboxUpdateExtendedMetadataResult>(
-                aCallback,
-                aState);
+                asyncCallback,
+                asyncCallbackUserState);
 
             // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
             Tuple<GenericAsyncResult<SyncboxUpdateExtendedMetadataResult>, IDictionary<string, T>, int> asyncParams =
@@ -5468,20 +6474,20 @@ namespace Cloud.REST
         /// <summary>
         /// Asynchronously updates the extended metadata on a sync box
         /// </summary>
-        /// <param name="aCallback">Callback method to fire when operation completes</param>
-        /// <param name="aState">Userstate to pass when firing async callback</param>
+        /// <param name="asyncCallback">Callback method to fire when operation completes</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing async callback</param>
         /// <param name="metadata">string keys to serializable object values to store as extra metadata to the sync box</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginUpdateSyncboxExtendedMetadata(AsyncCallback aCallback,
-            object aState,
+        internal IAsyncResult BeginUpdateSyncboxExtendedMetadata(AsyncCallback asyncCallback,
+            object asyncCallbackUserState,
             MetadataDictionary metadata,
             int timeoutMilliseconds)
         {
             // create the asynchronous result to return
             GenericAsyncResult<SyncboxUpdateExtendedMetadataResult> toReturn = new GenericAsyncResult<SyncboxUpdateExtendedMetadataResult>(
-                aCallback,
-                aState);
+                asyncCallback,
+                asyncCallbackUserState);
 
             // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
             Tuple<GenericAsyncResult<SyncboxUpdateExtendedMetadataResult>, MetadataDictionary, int> asyncParams =
@@ -5548,10 +6554,10 @@ namespace Cloud.REST
         /// Finishes updating the extended metadata on a sync box if it has not already finished via its asynchronous result and outputs the result,
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
         /// </summary>
-        /// <param name="aResult">The asynchronous result provided upon starting updating extended metadata</param>
+        /// <param name="asyncResult">The asynchronous result provided upon starting updating extended metadata</param>
         /// <param name="result">(output) The result from updating extended metadata</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndUpdateSyncboxExtendedMetadata(IAsyncResult aResult, out SyncboxUpdateExtendedMetadataResult result)
+        internal CLError EndUpdateSyncboxExtendedMetadata(IAsyncResult asyncResult, out SyncboxUpdateExtendedMetadataResult result)
         {
             // declare the specific type of asynchronous result for updating extended metadata
             GenericAsyncResult<SyncboxUpdateExtendedMetadataResult> castAResult;
@@ -5560,7 +6566,7 @@ namespace Cloud.REST
             try
             {
                 // try cast the asynchronous result as the type for updating extended metadata
-                castAResult = aResult as GenericAsyncResult<SyncboxUpdateExtendedMetadataResult>;
+                castAResult = asyncResult as GenericAsyncResult<SyncboxUpdateExtendedMetadataResult>;
 
                 // if trying to cast the asynchronous result failed, then throw an error
                 if (castAResult == null)
@@ -5612,7 +6618,7 @@ namespace Cloud.REST
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError UpdateSyncboxExtendedMetadata<T>(IDictionary<string, T> metadata, int timeoutMilliseconds, out JsonContracts.SyncboxResponse response)
+        internal CLError UpdateSyncboxExtendedMetadata<T>(IDictionary<string, T> metadata, int timeoutMilliseconds, out JsonContracts.SyncboxResponse response)
         {
             try
             {
@@ -5638,7 +6644,7 @@ namespace Cloud.REST
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError UpdateSyncboxExtendedMetadata(MetadataDictionary metadata, int timeoutMilliseconds, out JsonContracts.SyncboxResponse response)
+        internal CLError UpdateSyncboxExtendedMetadata(MetadataDictionary metadata, int timeoutMilliseconds, out JsonContracts.SyncboxResponse response)
         {
             // try/catch to process setting extended metadata, on catch return the error
             try
@@ -5690,9 +6696,9 @@ namespace Cloud.REST
         /// Asynchronously starts changing the storage plan associated with this syncbox.  Updates the information in this syncbox object.
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
-        /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing the async callback above.</param>
         /// <param name="completionCallback">Callback method to fire when a page of items is complete.  Return the result.</param>
-        /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion callback above is fired.</param>
+        /// <param name="completionCallbackUserState">User state to be passed whenever the completion callback above is fired.</param>
         /// <param name="reservedForActiveSync">true: Live sync is active.  User calls are not allowed.</param>
         /// <param name="storagePlan">The new storage plan to use for this syncbox)</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
@@ -5778,7 +6784,7 @@ namespace Cloud.REST
         /// Changes the storage plan associated with this syncbox.  Updates the information in this syncbox object.
         /// </summary>
         /// <param name="completionCallback">Callback method to fire when a page of items is complete.  Return the result.</param>
-        /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion callback above is fired.</param>
+        /// <param name="completionCallbackUserState">User state to be passed whenever the completion callback above is fired.</param>
         /// <param name="reservedForActiveSync">true: Live sync is active.  User calls are not allowed.</param>
         /// <param name="storagePlan">The new storage plan to use for this syncbox)</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
@@ -5886,9 +6892,9 @@ namespace Cloud.REST
         /// Asynchronously starts changing the friendly name of this syncbox.  Updates the information in this syncbox object.
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
-        /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing the async callback above.</param>
         /// <param name="completionCallback">Callback method to fire when a page of items is complete.  Return the result.</param>
-        /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion callback above is fired.</param>
+        /// <param name="completionCallbackUserState">User state to be passed whenever the completion callback above is fired.</param>
         /// <param name="friendlyName">The new friendly name of this syncbox)</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
         internal IAsyncResult BeginUpdateFriendlyName<T>(
@@ -5957,7 +6963,7 @@ namespace Cloud.REST
         /// Changes the friendly name of this syncbox.  Updates the information in this syncbox object.
         /// </summary>
         /// <param name="completionCallback">Callback method to fire when a page of items is complete.  Return the result.</param>
-        /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion callback above is fired.</param>
+        /// <param name="completionCallbackUserState">User state to be passed whenever the completion callback above is fired.</param>
         /// <param name="reservedForActiveSync">true: Live sync is active.  User calls are not allowed.</param>
         /// <param name="friendlyName">The new friendly name of this syncbox)</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
@@ -6056,9 +7062,9 @@ namespace Cloud.REST
         /// Asynchronously starts getting the current status of this syncbox.  Updates the information in this syncbox object.
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
-        /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing the async callback above.</param>
         /// <param name="completionCallback">Callback method to fire when a page of items is complete.  Return the result.</param>
-        /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion callback above is fired.</param>
+        /// <param name="completionCallbackUserState">User state to be passed whenever the completion callback above is fired.</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
         internal IAsyncResult BeginGetCurrentStatus<T>(
             AsyncCallback asyncCallback,
@@ -6123,7 +7129,7 @@ namespace Cloud.REST
         /// Gets ths curret statu of this syncbox.  Updates the information in this syncbox object.
         /// </summary>
         /// <param name="completionCallback">Callback method to fire when a page of items is complete.  Return the result.</param>
-        /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion callback above is fired.</param>
+        /// <param name="completionCallbackUserState">User state to be passed whenever the completion callback above is fired.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
         internal CLError GetCurrentStatus<T>(
             Action<JsonContracts.SyncboxStatusResponse, T> completionCallback,
@@ -6214,7 +7220,6 @@ namespace Cloud.REST
         #endregion
 
         #region internal API calls
-
         #region unregioned
         /// <summary>
         /// Sends a list of sync events to the server.  The events must be batched in groups of 1,000 or less.
@@ -6391,190 +7396,195 @@ namespace Cloud.REST
 
         #endregion
 
-        #region GetMetadata
-        /// <summary>
-        /// Asynchronously starts querying the server at a given file or folder path (must be specified) for existing metadata at that path
-        /// </summary>
-        /// <param name="aCallback">Callback method to fire when operation completes</param>
-        /// <param name="aState">Userstate to pass when firing async callback</param>
-        /// <param name="fullPath">Full path to where file or folder would exist locally on disk</param>
-        /// <param name="isFolder">Whether the query is for a folder (as opposed to a file/link)</param>
-        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
-        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        internal IAsyncResult BeginGetMetadata(AsyncCallback aCallback,
-            object aState,
-            FilePath fullPath,
-            bool isFolder,
-            int timeoutMilliseconds)
-        {
-            return BeginGetMetadata(aCallback, aState, fullPath, /*serverId*/ null, isFolder, timeoutMilliseconds);
-        }
+        #region GetMetadata (partially commented out since methods have not been updated for CLFileItem and usage with a possibly null or empty syncbox path, currently used in the previous manner by sync engine, see comment inside)
+        // !!
+        // Needs to be updated before uncommenting! Other on-demand calls have been updated to use CLFileItem and path usages are now difference since the user may not put in a full path for the syncbox root
+        // Also, sync engine is currently using the pieces left uncommented internally so if changed to allow public access make sure not to break sync engine usage
+        // !!
 
-        /// <summary>
-        /// Asynchronously starts querying the server at a given file or folder server id (must be specified) for existing metadata at that id
-        /// </summary>
-        /// <param name="aCallback">Callback method to fire when operation completes</param>
-        /// <param name="aState">Userstate to pass when firing async callback</param>
-        /// <param name="isFolder">Whether the query is for a folder (as opposed to a file/link)</param>
-        /// <param name="serverId">Unique id of the item on the server</param>
-        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
-        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        internal IAsyncResult BeginGetMetadata(AsyncCallback aCallback,
-            object aState,
-            bool isFolder,
-            string serverId,
-            int timeoutMilliseconds)
-        {
-            return BeginGetMetadata(aCallback, aState, /*fullPath*/ null, serverId, isFolder, timeoutMilliseconds);
-        }
+        ///// <summary>
+        ///// Asynchronously starts querying the server at a given file or folder path (must be specified) for existing metadata at that path
+        ///// </summary>
+        ///// <param name="asyncCallback">Callback method to fire when operation completes</param>
+        ///// <param name="asyncCallbackUserState">User state to pass when firing async callback</param>
+        ///// <param name="fullPath">Full path to where file or folder would exist locally on disk</param>
+        ///// <param name="isFolder">Whether the query is for a folder (as opposed to a file/link)</param>
+        ///// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        ///// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        //internal IAsyncResult BeginGetMetadata(AsyncCallback asyncCallback,
+        //    object asyncCallbackUserState,
+        //    FilePath fullPath,
+        //    bool isFolder,
+        //    int timeoutMilliseconds)
+        //{
+        //    return BeginGetMetadata(asyncCallback, asyncCallbackUserState, fullPath, /*serverId*/ null, isFolder, timeoutMilliseconds);
+        //}
 
-        /// <summary>
-        /// Private helper to combine two overloaded public versions: Asynchronously starts querying the server at a given file or folder path (must be specified) for existing metadata at that path
-        /// </summary>
-        /// <param name="aCallback">Callback method to fire when operation completes</param>
-        /// <param name="aState">Userstate to pass when firing async callback</param>
-        /// <param name="fullPath">Full path to where file or folder would exist locally on disk</param>
-        /// <param name="serverId">Unique id of the item on the server</param>
-        /// <param name="isFolder">Whether the query is for a folder (as opposed to a file/link)</param>
-        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
-        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        private IAsyncResult BeginGetMetadata(AsyncCallback aCallback,
-            object aState,
-            FilePath fullPath,
-            string serverId,
-            bool isFolder,
-            int timeoutMilliseconds)
-        {
-            // create the asynchronous result to return
-            GenericAsyncResult<GetMetadataResult> toReturn = new GenericAsyncResult<GetMetadataResult>(
-                aCallback,
-                aState);
+        ///// <summary>
+        ///// Asynchronously starts querying the server at a given file or folder server id (must be specified) for existing metadata at that id
+        ///// </summary>
+        ///// <param name="asyncCallback">Callback method to fire when operation completes</param>
+        ///// <param name="asyncCallbackUserState">User state to pass when firing async callback</param>
+        ///// <param name="isFolder">Whether the query is for a folder (as opposed to a file/link)</param>
+        ///// <param name="serverId">Unique id of the item on the server</param>
+        ///// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        ///// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        //internal IAsyncResult BeginGetMetadata(AsyncCallback asyncCallback,
+        //    object asyncCallbackUserState,
+        //    bool isFolder,
+        //    string serverId,
+        //    int timeoutMilliseconds)
+        //{
+        //    return BeginGetMetadata(asyncCallback, asyncCallbackUserState, /*fullPath*/ null, serverId, isFolder, timeoutMilliseconds);
+        //}
 
-            // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
-            Tuple<GenericAsyncResult<GetMetadataResult>, FilePath, string, bool, int> asyncParams =
-                new Tuple<GenericAsyncResult<GetMetadataResult>, FilePath, string, bool, int>(
-                    toReturn,
-                    fullPath,
-                    serverId,
-                    isFolder,
-                    timeoutMilliseconds);
+        ///// <summary>
+        ///// Private helper to combine two overloaded public versions: Asynchronously starts querying the server at a given file or folder path (must be specified) for existing metadata at that path
+        ///// </summary>
+        ///// <param name="asyncCallback">Callback method to fire when operation completes</param>
+        ///// <param name="asyncCallbackUserState">User state to pass when firing async callback</param>
+        ///// <param name="fullPath">Full path to where file or folder would exist locally on disk</param>
+        ///// <param name="serverId">Unique id of the item on the server</param>
+        ///// <param name="isFolder">Whether the query is for a folder (as opposed to a file/link)</param>
+        ///// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        ///// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        //private IAsyncResult BeginGetMetadata(AsyncCallback asyncCallback,
+        //    object asyncCallbackUserState,
+        //    FilePath fullPath,
+        //    string serverId,
+        //    bool isFolder,
+        //    int timeoutMilliseconds)
+        //{
+        //    // create the asynchronous result to return
+        //    GenericAsyncResult<GetMetadataResult> toReturn = new GenericAsyncResult<GetMetadataResult>(
+        //        asyncCallback,
+        //        asyncCallbackUserState);
 
-            // create the thread from a void (object) parameterized start which wraps the synchronous method call
-            (new Thread(new ParameterizedThreadStart(state =>
-            {
-                // try cast the state as the object with all the input parameters
-                Tuple<GenericAsyncResult<GetMetadataResult>, FilePath, string, bool, int> castState = state as Tuple<GenericAsyncResult<GetMetadataResult>, FilePath, string, bool, int>;
-                // if the try cast failed, then show a message box for this unrecoverable error
-                if (castState == null)
-                {
-                    MessageEvents.FireNewEventMessage(
-                        Resources.CLCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
-                        EventMessageLevel.Important,
-                        new HaltAllOfCloudSDKErrorInfo());
-                }
-                // else if the try cast did not fail, then start processing with the input parameters
-                else
-                {
-                    // try/catch to process with the input parameters, on catch set the exception in the asyncronous result
-                    try
-                    {
-                        // declare the specific type of result for this operation
-                        JsonContracts.SyncboxMetadataResponse result;
-                        // run the download of the file with the passed parameters, storing any error that occurs
-                        CLError processError = GetMetadata(
-                            castState.Item2,
-                            castState.Item3,
-                            castState.Item4,
-                            castState.Item5,
-                            out result);
+        //    // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
+        //    Tuple<GenericAsyncResult<GetMetadataResult>, FilePath, string, bool, int> asyncParams =
+        //        new Tuple<GenericAsyncResult<GetMetadataResult>, FilePath, string, bool, int>(
+        //            toReturn,
+        //            fullPath,
+        //            serverId,
+        //            isFolder,
+        //            timeoutMilliseconds);
 
-                        // if there was an asynchronous result in the parameters, then complete it with a new result object
-                        if (castState.Item1 != null)
-                        {
-                            castState.Item1.Complete(
-                                new GetMetadataResult(
-                                    processError, // any error that may have occurred during processing
-                                    result), // the specific type of result for this operation
-                                    sCompleted: false); // processing did not complete synchronously
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        // if there was an asynchronous result in the parameters, then pass through the exception to it
-                        if (castState.Item1 != null)
-                        {
-                            castState.Item1.HandleException(
-                                ex, // the exception which was not handled correctly by the CLError wrapping
-                                sCompleted: false); // processing did not complete synchronously
-                        }
-                    }
-                }
-            }))).Start(asyncParams); // start the asynchronous processing thread with the input parameters object
+        //    // create the thread from a void (object) parameterized start which wraps the synchronous method call
+        //    (new Thread(new ParameterizedThreadStart(state =>
+        //    {
+        //        // try cast the state as the object with all the input parameters
+        //        Tuple<GenericAsyncResult<GetMetadataResult>, FilePath, string, bool, int> castState = state as Tuple<GenericAsyncResult<GetMetadataResult>, FilePath, string, bool, int>;
+        //        // if the try cast failed, then show a message box for this unrecoverable error
+        //        if (castState == null)
+        //        {
+        //            MessageEvents.FireNewEventMessage(
+        //                Resources.CLCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
+        //                EventMessageLevel.Important,
+        //                new HaltAllOfCloudSDKErrorInfo());
+        //        }
+        //        // else if the try cast did not fail, then start processing with the input parameters
+        //        else
+        //        {
+        //            // try/catch to process with the input parameters, on catch set the exception in the asyncronous result
+        //            try
+        //            {
+        //                // declare the specific type of result for this operation
+        //                JsonContracts.SyncboxMetadataResponse result;
+        //                // run the download of the file with the passed parameters, storing any error that occurs
+        //                CLError processError = GetMetadata(
+        //                    castState.Item2,
+        //                    castState.Item3,
+        //                    castState.Item4,
+        //                    castState.Item5,
+        //                    out result);
 
-            // return the asynchronous result
-            return toReturn;
-        }
+        //                // if there was an asynchronous result in the parameters, then complete it with a new result object
+        //                if (castState.Item1 != null)
+        //                {
+        //                    castState.Item1.Complete(
+        //                        new GetMetadataResult(
+        //                            processError, // any error that may have occurred during processing
+        //                            result), // the specific type of result for this operation
+        //                            sCompleted: false); // processing did not complete synchronously
+        //                }
+        //            }
+        //            catch (Exception ex)
+        //            {
+        //                // if there was an asynchronous result in the parameters, then pass through the exception to it
+        //                if (castState.Item1 != null)
+        //                {
+        //                    castState.Item1.HandleException(
+        //                        ex, // the exception which was not handled correctly by the CLError wrapping
+        //                        sCompleted: false); // processing did not complete synchronously
+        //                }
+        //            }
+        //        }
+        //    }))).Start(asyncParams); // start the asynchronous processing thread with the input parameters object
 
-        /// <summary>
-        /// Finishes a metadata query if it has not already finished via its asynchronous result and outputs the result,
-        /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
-        /// </summary>
-        /// <param name="aResult">The asynchronous result provided upon starting the metadata query</param>
-        /// <param name="result">(output) The result from the metadata query</param>
-        /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        internal CLError EndGetMetadata(IAsyncResult aResult, out GetMetadataResult result)
-        {
-            // declare the specific type of asynchronous result for metadata query
-            GenericAsyncResult<GetMetadataResult> castAResult;
+        //    // return the asynchronous result
+        //    return toReturn;
+        //}
 
-            // try/catch to try casting the asynchronous result as the type for metadata query and pull the result (possibly incomplete), on catch default the output and return the error
-            try
-            {
-                // try cast the asynchronous result as the type for metadata query
-                castAResult = aResult as GenericAsyncResult<GetMetadataResult>;
+        ///// <summary>
+        ///// Finishes a metadata query if it has not already finished via its asynchronous result and outputs the result,
+        ///// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
+        ///// </summary>
+        ///// <param name="asyncResult">The asynchronous result provided upon starting the metadata query</param>
+        ///// <param name="result">(output) The result from the metadata query</param>
+        ///// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
+        //internal CLError EndGetMetadata(IAsyncResult asyncResult, out GetMetadataResult result)
+        //{
+        //    // declare the specific type of asynchronous result for metadata query
+        //    GenericAsyncResult<GetMetadataResult> castAResult;
 
-                // if trying to cast the asynchronous result failed, then throw an error
-                if (castAResult == null)
-                {
-                    throw new NullReferenceException(Resources.CLAsyncResultInternalTypeMismatch);
-                }
+        //    // try/catch to try casting the asynchronous result as the type for metadata query and pull the result (possibly incomplete), on catch default the output and return the error
+        //    try
+        //    {
+        //        // try cast the asynchronous result as the type for metadata query
+        //        castAResult = asyncResult as GenericAsyncResult<GetMetadataResult>;
 
-                // pull the result for output (may not yet be complete)
-                result = castAResult.Result;
-            }
-            catch (Exception ex)
-            {
-                result = Helpers.DefaultForType<GetMetadataResult>();
-                return ex;
-            }
+        //        // if trying to cast the asynchronous result failed, then throw an error
+        //        if (castAResult == null)
+        //        {
+        //            throw new NullReferenceException(Resources.CLAsyncResultInternalTypeMismatch);
+        //        }
 
-            // try/catch to finish the asynchronous operation if necessary, re-pull the result for output, and rethrow any exception which may have occurred; on catch, return the error
-            try
-            {
-                // This method assumes that only 1 thread calls EndInvoke 
-                // for this object
-                if (!castAResult.IsCompleted)
-                {
-                    // If the operation isn't done, wait for it
-                    castAResult.AsyncWaitHandle.WaitOne();
-                    castAResult.AsyncWaitHandle.Close();
-                }
+        //        // pull the result for output (may not yet be complete)
+        //        result = castAResult.Result;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        result = Helpers.DefaultForType<GetMetadataResult>();
+        //        return ex;
+        //    }
 
-                // re-pull the result for output in case it was not completed when it was pulled before
-                result = castAResult.Result;
+        //    // try/catch to finish the asynchronous operation if necessary, re-pull the result for output, and rethrow any exception which may have occurred; on catch, return the error
+        //    try
+        //    {
+        //        // This method assumes that only 1 thread calls EndInvoke 
+        //        // for this object
+        //        if (!castAResult.IsCompleted)
+        //        {
+        //            // If the operation isn't done, wait for it
+        //            castAResult.AsyncWaitHandle.WaitOne();
+        //            castAResult.AsyncWaitHandle.Close();
+        //        }
 
-                // Operation is done: if an exception occurred, return it
-                if (castAResult.Exception != null)
-                {
-                    return castAResult.Exception;
-                }
-            }
-            catch (Exception ex)
-            {
-                return ex;
-            }
-            return null;
-        }
+        //        // re-pull the result for output in case it was not completed when it was pulled before
+        //        result = castAResult.Result;
+
+        //        // Operation is done: if an exception occurred, return it
+        //        if (castAResult.Exception != null)
+        //        {
+        //            return castAResult.Exception;
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return ex;
+        //    }
+        //    return null;
+        //}
 
         /// <summary>
         /// Private helper to combine two overloaded public versions: Queries the server at a given file or folder path (must be specified) for existing metadata at that path; outputs CLHttpRestStatus.NoContent for status if not found on server
@@ -6699,467 +7709,19 @@ namespace Cloud.REST
 
         #endregion
 
-        #region DownloadFile
-        /// <summary>
-        /// Asynchronously starts downloading a file from a provided file download change
-        /// </summary>
-        /// <param name="aCallback">Callback method to fire upon progress changes in download, make sure it processes quickly if the IAsyncResult IsCompleted is false</param>
-        /// <param name="aState">Userstate to pass when firing async callback</param>
-        /// <param name="changeToDownload">File download change, requires Metadata.</param>
-        /// <param name="moveFileUponCompletion">¡¡ Action required: move the completed download file from the temp directory to the final destination !! Callback fired when download completes</param>
-        /// <param name="moveFileUponCompletionState">Userstate passed upon firing completed download callback</param>
-        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception, does not restrict time for the actual file download</param>
-        /// <param name="beforeDownload">(optional) Callback fired before a download starts</param>
-        /// <param name="beforeDownloadState">Userstate passed upon firing before download callback</param>
-        /// <param name="shutdownToken">(optional) Token used to request cancellation of the download</param>
-        /// <param name="customDownloadFolderFullPath">(optional) Full path to a folder where temporary downloads will be stored to override default</param>
-        /// <returns>Returns the asynchronous result which is used to retrieve progress and/or the result</returns>
-        public IAsyncResult BeginDownloadFile(AsyncCallback aCallback,
-            object aState,
-            FileChange changeToDownload,
-            string serverUid,
-            string revision,
-            Helpers.AfterDownloadToTempFile moveFileUponCompletion,
-            object moveFileUponCompletionState,
-            int timeoutMilliseconds,
-            Helpers.BeforeDownloadToTempFile beforeDownload = null,
-            object beforeDownloadState = null,
-            CancellationTokenSource shutdownToken = null,
-            string customDownloadFolderFullPath = null)
-        {
-            // create a holder for the changing progress of the transfer
-            GenericHolder<TransferProgress> progressHolder = new GenericHolder<TransferProgress>(null);
-
-            // create the asynchronous result to return
-            GenericAsyncResult<DownloadFileResult> toReturn = new GenericAsyncResult<DownloadFileResult>(
-                aCallback,
-                aState,
-                progressHolder);
-
-            // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
-            Tuple<GenericAsyncResult<DownloadFileResult>, AsyncCallback, FileChange, string, string, Helpers.AfterDownloadToTempFile, object, Tuple<int, Helpers.BeforeDownloadToTempFile, object, CancellationTokenSource, string>> asyncParams =
-                new Tuple<GenericAsyncResult<DownloadFileResult>, AsyncCallback, FileChange, string, string, Helpers.AfterDownloadToTempFile, object, Tuple<int, Helpers.BeforeDownloadToTempFile, object, CancellationTokenSource, string>>(
-                    toReturn,
-                    aCallback,
-                    changeToDownload,
-                    serverUid,
-                    revision,
-                    moveFileUponCompletion,
-                    moveFileUponCompletionState,
-                    new Tuple<int, Helpers.BeforeDownloadToTempFile, object, CancellationTokenSource, string>(
-                        timeoutMilliseconds,
-                        beforeDownload,
-                        beforeDownloadState,
-                        shutdownToken,
-                        customDownloadFolderFullPath));
-
-            // create the thread from a void (object) parameterized start which wraps the synchronous method call
-            (new Thread(new ParameterizedThreadStart(state =>
-            {
-                // try cast the state as the object with all the input parameters
-                Tuple<GenericAsyncResult<DownloadFileResult>, AsyncCallback, FileChange, string, string, Helpers.AfterDownloadToTempFile, object, Tuple<int, Helpers.BeforeDownloadToTempFile, object, CancellationTokenSource, string>> castState =
-                    state as Tuple<GenericAsyncResult<DownloadFileResult>, AsyncCallback, FileChange, string, string, Helpers.AfterDownloadToTempFile, object, Tuple<int, Helpers.BeforeDownloadToTempFile, object, CancellationTokenSource, string>>;
-                // if the try cast failed, then show a message box for this unrecoverable error
-                if (castState == null)
-                {
-                    MessageEvents.FireNewEventMessage(
-                        Resources.CLCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
-                        EventMessageLevel.Important,
-                        new HaltAllOfCloudSDKErrorInfo());
-                }
-                // else if the try cast did not fail, then start processing with the input parameters
-                else
-                {
-                    // try/catch to process with the input parameters, on catch set the exception in the asyncronous result
-                    try
-                    {
-                        // declare the holder for transfer progress changes
-                        GenericHolder<TransferProgress> progress;
-                        // if there was no asynchronous result in the parameters, then the progress holder cannot be grabbed so set it to null
-                        if (castState.Item1 == null)
-                        {
-                            progress = null;
-                        }
-                        // else if there was an asynchronous result in the parameters, then pull the progress holder by try casting the internal state
-                        else
-                        {
-                            progress = castState.Item1.InternalState as GenericHolder<TransferProgress>;
-                        }
-
-                        // run the download of the file with the passed parameters, storing any error that occurs
-                        CLError processError = DownloadFile(
-                            castState.Item3,
-                            castState.Item4,
-                            castState.Item5,
-                            castState.Item6,
-                            castState.Item7,
-                            castState.Rest.Item1,
-                            castState.Rest.Item2,
-                            castState.Rest.Item3,
-                            castState.Rest.Item4,
-                            castState.Rest.Item5,
-                            castState.Item2,
-                            castState.Item1,
-                            progress,
-                            null,
-                            null);
-
-                        // if there was an asynchronous result in the parameters, then complete it with a new result object
-                        if (castState.Item1 != null)
-                        {
-                            castState.Item1.Complete(
-                                new DownloadFileResult(
-                                    processError), // any error that may have occurred during processing
-                                sCompleted: false); // processing did not complete synchronously
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        // if there was an asynchronous result in the parameters, then pass through the exception to it
-                        if (castState.Item1 != null)
-                        {
-                            castState.Item1.HandleException(
-                                ex, // the exception which was not handled correctly by the CLError wrapping
-                                sCompleted: false); // processing did not complete synchronously
-                        }
-                    }
-                }
-            }))).Start(asyncParams); // start the asynchronous processing thread with the input parameters object
-
-            // return the asynchronous result
-            return toReturn;
-        }
-
-        /// <summary>
-        /// Outputs the latest progress from a file download, returning any error that occurs in the retrieval
-        /// </summary>
-        /// <param name="aResult">Asynchronous result originally returned by BeginDownloadFile</param>
-        /// <param name="progress">(output) Latest progress from a file download, may be null if the download file hasn't started</param>
-        /// <returns>Returns any error that occurred in retrieving the latest progress, if any</returns>
-        public CLError GetProgressDownloadFile(IAsyncResult aResult, out TransferProgress progress)
-        {
-            // try/catch to retrieve the latest progress, on catch default the output and return the error
-            try
-            {
-                // try cast the asynchronous result as the type of file downloads
-                GenericAsyncResult<DownloadFileResult> castAResult = aResult as GenericAsyncResult<DownloadFileResult>;
-
-                // if try casting the asynchronous result failed, throw an error
-                if (castAResult == null)
-                {
-                    throw new NullReferenceException(Resources.CLAsyncResultInternalTypeMismatch);
-                }
-
-                // try to cast the asynchronous result internal state as the holder for the progress
-                GenericHolder<TransferProgress> iState = castAResult.InternalState as GenericHolder<TransferProgress>;
-
-                // if trying to cast the internal state as the holder for progress failed, then throw an error (non-descriptive since it's our error)
-                if (iState == null)
-                {
-                    throw new Exception(Resources.CLHttpRestInternalProgressRetrievalFailure1);
-                }
-
-                // lock on the holder and retrieve the progress for output
-                lock (iState)
-                {
-                    progress = iState.Value;
-                }
-            }
-            catch (Exception ex)
-            {
-                progress = Helpers.DefaultForType<TransferProgress>();
-                return ex;
-            }
-            return null;
-        }
-
-        /// <summary>
-        /// Finishes a file download if it has not already finished via its asynchronous result and outputs the result,
-        /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
-        /// </summary>
-        /// <param name="aResult">The asynchronous result provided upon starting the file download</param>
-        /// <param name="result">(output) The result from the file download</param>
-        /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndDownloadFile(IAsyncResult aResult, out DownloadFileResult result)
-        {
-            // declare the specific type of asynchronous result for file downloads
-            GenericAsyncResult<DownloadFileResult> castAResult;
-
-            // try/catch to try casting the asynchronous result as the type for file downloads and pull the result (possibly incomplete), on catch default the output and return the error
-            try
-            {
-                // try cast the asynchronous result as the type for file downloads
-                castAResult = aResult as GenericAsyncResult<DownloadFileResult>;
-
-                // if trying to cast the asynchronous result failed, then throw an error
-                if (castAResult == null)
-                {
-                    throw new NullReferenceException(Resources.CLAsyncResultInternalTypeMismatch);
-                }
-
-                // pull the result for output (may not yet be complete)
-                result = castAResult.Result;
-            }
-            catch (Exception ex)
-            {
-                result = Helpers.DefaultForType<DownloadFileResult>();
-                return ex;
-            }
-
-            // try/catch to finish the asynchronous operation if necessary, re-pull the result for output, and rethrow any exception which may have occurred; on catch, return the error
-            try
-            {
-                // This method assumes that only 1 thread calls EndInvoke 
-                // for this object
-                if (!castAResult.IsCompleted)
-                {
-                    // If the operation isn't done, wait for it
-                    castAResult.AsyncWaitHandle.WaitOne();
-                    castAResult.AsyncWaitHandle.Close();
-                }
-
-                // re-pull the result for output in case it was not completed when it was pulled before
-                result = castAResult.Result;
-
-                // Operation is done: if an exception occurred, return it
-                if (castAResult.Exception != null)
-                {
-                    return castAResult.Exception;
-                }
-            }
-            catch (Exception ex)
-            {
-                return ex;
-            }
-            return null;
-        }
-
-        /// <summary>
-        /// Downloads a file from a provided file download change
-        /// </summary>
-        /// <param name="changeToDownload">File download change, requires Metadata.</param>
-        /// <param name="moveFileUponCompletion">¡¡ Action required: move the completed download file from the temp directory to the final destination !! Callback fired when download completes</param>
-        /// <param name="moveFileUponCompletionState">Userstate passed upon firing completed download callback</param>
-        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception, does not restrict time for the actual file download</param>
-        /// <param name="beforeDownload">(optional) Callback fired before a download starts</param>
-        /// <param name="beforeDownloadState">Userstate passed upon firing before download callback</param>
-        /// <param name="shutdownToken">(optional) Token used to request cancellation of the download</param>
-        /// <param name="customDownloadFolderFullPath">(optional) Full path to a folder where temporary downloads will be stored to override default</param>
-        /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError DownloadFile(FileChange changeToDownload,
-            string serverUid,
-            string revision,
-            Helpers.AfterDownloadToTempFile moveFileUponCompletion,
-            object moveFileUponCompletionState,
-            int timeoutMilliseconds,
-            Helpers.BeforeDownloadToTempFile beforeDownload = null,
-            object beforeDownloadState = null,
-            CancellationTokenSource shutdownToken = null,
-            string customDownloadFolderFullPath = null)
-        {
-            // pass through input parameters to the private call (which takes additional parameters we don't wish to expose)
-            return DownloadFile(changeToDownload,
-                serverUid,
-                revision,
-                moveFileUponCompletion,
-                moveFileUponCompletionState,
-                timeoutMilliseconds,
-                beforeDownload,
-                beforeDownloadState,
-                shutdownToken,
-                customDownloadFolderFullPath,
-                null,
-                null,
-                null,
-                null,
-                null);
-
-        }
-
-        // internal version with added action for status update
-        internal CLError DownloadFile(FileChange changeToDownload,
-            string serverUid,
-            string revision,
-            Helpers.AfterDownloadToTempFile moveFileUponCompletion,
-            object moveFileUponCompletionState,
-            int timeoutMilliseconds,
-            Helpers.BeforeDownloadToTempFile beforeDownload,
-            object beforeDownloadState,
-            CancellationTokenSource shutdownToken,
-            string customDownloadFolderFullPath,
-            FileTransferStatusUpdateDelegate statusUpdate,
-            Guid statusUpdateId)
-        {
-            return DownloadFile(changeToDownload,
-                serverUid,
-                revision,
-                moveFileUponCompletion,
-                moveFileUponCompletionState,
-                timeoutMilliseconds,
-                beforeDownload,
-                beforeDownloadState,
-                shutdownToken,
-                customDownloadFolderFullPath,
-                null,
-                null,
-                null,
-                statusUpdate,
-                statusUpdateId);
-        }
-
-        // private helper for DownloadFile which takes additional parameters we don't wish to expose; does the actual processing
-        private CLError DownloadFile(FileChange changeToDownload,
-            string serverUid,
-            string revision,
-            Helpers.AfterDownloadToTempFile moveFileUponCompletion,
-            object moveFileUponCompletionState,
-            int timeoutMilliseconds,
-            Helpers.BeforeDownloadToTempFile beforeDownload,
-            object beforeDownloadState,
-            CancellationTokenSource shutdownToken,
-            string customDownloadFolderFullPath,
-            AsyncCallback aCallback,
-            IAsyncResult aResult,
-            GenericHolder<TransferProgress> progress,
-            FileTransferStatusUpdateDelegate statusUpdate,
-            Nullable<Guid> statusUpdateId)
-        {
-            // try/catch to process the file download, on catch return the error
-            try
-            {
-                // check input parameters (other checks are done on constructing the private download class upon Helpers.ProcessHttp)
-
-                if (timeoutMilliseconds <= 0)
-                {
-                    throw new ArgumentException(Resources.CLMSTimeoutMustBeGreaterThanZero);
-                }
-
-                if (serverUid == null)
-                {
-                    throw new ArgumentNullException(Resources.ExceptionCLHttpRestNullServerUid);
-                }
-
-                if (revision == null)
-                {
-                    throw new ArgumentNullException(Resources.CLHttpRestMetaDataRevisionCannotBeNull);
-                }
-
-                // declare the path for the folder which will store temp download files
-                string currentDownloadFolder;
-
-                // if a specific folder path was passed to use as an override, then store it as the one to use
-                if (customDownloadFolderFullPath != null)
-                {
-                    currentDownloadFolder = customDownloadFolderFullPath;
-                }
-                // else if a specified folder path was not passed and a path was specified in settings, then store the one from settings as the one to use
-                else if (!String.IsNullOrWhiteSpace(_copiedSettings.TempDownloadFolderFullPath))
-                {
-                    currentDownloadFolder = _copiedSettings.TempDownloadFolderFullPath;
-                }
-                // else if a specified folder path was not passed and one did not exist in settings, then build one dynamically to use
-                else
-                {
-                    currentDownloadFolder = Helpers.GetTempFileDownloadPath(_copiedSettings, _syncbox.SyncboxId);
-                }
-
-                // check if the folder for temp downloads represents a bad path
-                CLError badTempFolderError = Helpers.CheckForBadPath(currentDownloadFolder);
-
-                // if the temp download folder is a bad path rethrow the error
-                if (badTempFolderError != null)
-                {
-                    throw new AggregateException(Resources.CLHttpRestThecustomDownloadFolderFullPathIsBad, badTempFolderError.Exceptions);
-                }
-
-                // if the folder path for downloads is too long, then throw an exception
-                if (currentDownloadFolder.Length > 222) // 222 calculated by 259 max path length minus 1 character for a folder slash seperator plus 36 characters for (Guid).ToString(Resources.CLCredentialStringSettingsN)
-                {
-                    throw new ArgumentException(Resources.CLHttpRestFolderPathTooLong + (currentDownloadFolder.Length - 222).ToString());
-                }
-
-                // build the location of the metadata retrieval method on the server dynamically
-                string serverMethodPath =
-                    CLDefinitions.MethodPathDownload + // download method path
-                    Helpers.QueryStringBuilder(Helpers.EnumerateSingleItem( // add SyncboxId for file download
-                    // query string parameter for the current sync box id, should not need escaping since it should be an integer in string format
-                        new KeyValuePair<string, string>(CLDefinitions.QueryStringSyncboxId, _syncbox.SyncboxId.ToString())
-                    ));
-
-                // prepare the downloadParams before the Helpers.ProcessHttp because it does additional parameter checks first
-                Helpers.downloadParams currentDownload = new Helpers.downloadParams( // this is a special communication method and requires passing download parameters
-                    moveFileUponCompletion, // callback which should move the file to final location
-                    moveFileUponCompletionState, // userstate for the move file callback
-                    customDownloadFolderFullPath ?? // first try to use a provided custom folder full path
-                        Helpers.GetTempFileDownloadPath(_copiedSettings, _syncbox.SyncboxId), // if custom path not provided, null-coallesce to default
-                    Helpers.HandleUploadDownloadStatus, // private event handler to relay status change events
-                    changeToDownload, // the FileChange describing the download
-                    shutdownToken, // a provided, possibly null CancellationTokenSource which can be cancelled to stop in the middle of communication
-                    _syncbox.Path, // pass in the full path to the sync root folder which is used to calculate a relative path for firing the status change event
-                    aCallback, // asynchronous callback to fire on progress changes if called via async wrapper
-                    aResult, // asynchronous result to pass when firing the asynchronous callback
-                    progress, // holder for progress data which can be queried by user if called via async wrapper
-                    statusUpdate, // callback to user to notify when a CLSyncEngine status has changed
-                    statusUpdateId, // userstate to pass to the statusUpdate callback
-                    beforeDownload, // optional callback fired before download starts
-                    beforeDownloadState); // userstate passed when firing download start callback
-
-                // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
-                Helpers.RequestNewCredentialsInfo requestNewCredentialsInfo = new Helpers.RequestNewCredentialsInfo()
-                {
-                    ProcessingStateByThreadId = _processingStateByThreadId,
-                    GetNewCredentialsCallback = _getNewCredentialsCallback,
-                    GetNewCredentialsCallbackUserState = _getNewCredentialsCallbackUserState,
-                    GetCurrentCredentialsCallback = GetCurrentCredentialsCallback,
-                    SetCurrentCredentialsCallback = SetCurrentCredentialCallback,
-                };
-
-                // run the actual communication
-                Helpers.ProcessHttp<object>(
-
-                     // JSON contract to serialize
-                    (string.IsNullOrEmpty(changeToDownload.Metadata.StorageKey)
-                        ? new Download()
-                            {
-                                Uid = serverUid,
-                                Revision = revision
-                            }
-                        : new Download()
-                            {
-                                StorageKey = changeToDownload.Metadata.StorageKey
-                            }),
-                    CLDefinitions.CLUploadDownloadServerURL, // server for download
-                    serverMethodPath, // dynamic method path to incorporate query string parameters
-                    Helpers.requestMethod.post, // download is a post
-                    timeoutMilliseconds, // time before communication timeout (does not restrict time
-                    currentDownload, // download-specific parameters holder constructed directly above
-                    Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
-                    _copiedSettings, // pass the copied settings
-                    _syncbox.SyncboxId, // pass the unique id of the sync box on the server
-                    requestNewCredentialsInfo, // pass the optional parameters to support temporary token reallocation.
-                    false);
-            }
-            catch (Exception ex)
-            {
-                return ex;
-            }
-            return null;
-        }
-        #endregion
-
         #region UploadFile
         /// <summary>
         /// Asynchronously starts uploading a file from a provided stream and file upload change
         /// </summary>
-        /// <param name="aCallback">Callback method to fire upon progress changes in upload, make sure it processes quickly if the IAsyncResult IsCompleted is false</param>
-        /// <param name="aState">Userstate to pass when firing async callback</param>
+        /// <param name="asyncCallback">Callback method to fire upon progress changes in upload, make sure it processes quickly if the IAsyncResult IsCompleted is false</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing async callback</param>
         /// <param name="uploadStream">Stream to upload, if it is a FileStream then make sure the file is locked to prevent simultaneous writes</param>
         /// <param name="changeToUpload">File upload change, requires Metadata.HashableProperties.Size, NewPath, Metadata.StorageKey, and MD5 hash to be set</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception, does not restrict time for the actual file upload</param>
         /// <param name="shutdownToken">(optional) Token used to request cancellation of the upload</param>
         /// <returns>Returns the asynchronous result which is used to retrieve progress and/or the result</returns>
-        internal IAsyncResult BeginUploadFile(AsyncCallback aCallback,
-            object aState,
+        internal IAsyncResult BeginUploadFile(AsyncCallback asyncCallback,
+            object asyncCallbackUserState,
             Stream uploadStream,
             FileChange changeToUpload,
             int timeoutMilliseconds,
@@ -7170,15 +7732,15 @@ namespace Cloud.REST
 
             // create the asynchronous result to return
             GenericAsyncResult<UploadFileResult> toReturn = new GenericAsyncResult<UploadFileResult>(
-                aCallback,
-                aState,
+                asyncCallback,
+                asyncCallbackUserState,
                 progressHolder);
 
             // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
             Tuple<GenericAsyncResult<UploadFileResult>, AsyncCallback, Stream, FileChange, int, CancellationTokenSource> asyncParams =
                 new Tuple<GenericAsyncResult<UploadFileResult>, AsyncCallback, Stream, FileChange, int, CancellationTokenSource>(
                     toReturn,
-                    aCallback,
+                    asyncCallback,
                     uploadStream,
                     changeToUpload,
                     timeoutMilliseconds,
@@ -7262,16 +7824,16 @@ namespace Cloud.REST
         /// <summary>
         /// Outputs the latest progress from a file upload, returning any error that occurs in the retrieval
         /// </summary>
-        /// <param name="aResult">Asynchronous result originally returned by BeginUploadFile</param>
+        /// <param name="asyncResult">Asynchronous result originally returned by BeginUploadFile</param>
         /// <param name="progress">(output) Latest progress from a file upload, may be null if the upload file hasn't started</param>
         /// <returns>Returns any error that occurred in retrieving the latest progress, if any</returns>
-        internal CLError GetProgressUploadFile(IAsyncResult aResult, out TransferProgress progress)
+        internal CLError GetProgressUploadFile(IAsyncResult asyncResult, out TransferProgress progress)
         {
             // try/catch to retrieve the latest progress, on catch default the output and return the error
             try
             {
                 // try cast the asynchronous result as the type of file uploads
-                GenericAsyncResult<UploadFileResult> castAResult = aResult as GenericAsyncResult<UploadFileResult>;
+                GenericAsyncResult<UploadFileResult> castAResult = asyncResult as GenericAsyncResult<UploadFileResult>;
 
                 // if try casting the asynchronous result failed, throw an error
                 if (castAResult == null)
@@ -7306,10 +7868,10 @@ namespace Cloud.REST
         /// Finishes a file upload if it has not already finished via its asynchronous result and outputs the result,
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
         /// </summary>
-        /// <param name="aResult">The asynchronous result provided upon starting the file upload</param>
+        /// <param name="asyncResult">The asynchronous result provided upon starting the file upload</param>
         /// <param name="result">(output) The result from the file upload</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        internal CLError EndUploadFile(IAsyncResult aResult, out UploadFileResult result)
+        internal CLError EndUploadFile(IAsyncResult asyncResult, out UploadFileResult result)
         {
             // declare the specific type of asynchronous result for file uploads
             GenericAsyncResult<UploadFileResult> castAResult;
@@ -7318,7 +7880,7 @@ namespace Cloud.REST
             try
             {
                 // try cast the asynchronous result as the type for file uploads
-                castAResult = aResult as GenericAsyncResult<UploadFileResult>;
+                castAResult = asyncResult as GenericAsyncResult<UploadFileResult>;
 
                 // if trying to cast the asynchronous result failed, then throw an error
                 if (castAResult == null)
@@ -7401,7 +7963,7 @@ namespace Cloud.REST
             out bool hashMismatchFound,
             CancellationTokenSource shutdownToken,
             FileTransferStatusUpdateDelegate statusUpdate,
-            Guid statusUpdateId)
+            object statusUpdateUserState)
         {
             return UploadFile(
                 streamContext,
@@ -7414,7 +7976,7 @@ namespace Cloud.REST
                 null,
                 null,
                 statusUpdate,
-                statusUpdateId);
+                statusUpdateUserState);
         }
 
         // private helper for UploadFile which takes additional parameters we don't wish to expose; does the actual processing
@@ -7424,11 +7986,11 @@ namespace Cloud.REST
             out string message,
             out bool hashMismatchFound,
             CancellationTokenSource shutdownToken,
-            AsyncCallback aCallback,
-            IAsyncResult aResult,
+            AsyncCallback asyncCallback,
+            IAsyncResult asyncResult,
             GenericHolder<TransferProgress> progress,
             FileTransferStatusUpdateDelegate statusUpdate,
-            Nullable<Guid> statusUpdateId)
+            object statusUpdateUserState)
         {
             message = Helpers.DefaultForType<string>();
 
@@ -7475,11 +8037,11 @@ namespace Cloud.REST
                         changeToUpload, // the FileChange describing the upload
                         shutdownToken, // a provided, possibly null CancellationTokenSource which can be cancelled to stop in the middle of communication
                         _syncbox.Path, // pass in the full path to the sync root folder which is used to calculate a relative path for firing the status change event
-                        aCallback, // asynchronous callback to fire on progress changes if called via async wrapper
-                        aResult, // asynchronous result to pass when firing the asynchronous callback
+                        asyncCallback, // asynchronous callback to fire on progress changes if called via async wrapper
+                        asyncResult, // asynchronous result to pass when firing the asynchronous callback
                         progress, // holder for progress data which can be queried by user if called via async wrapper
                         statusUpdate, // callback to user to notify when a CLSyncEngine status has changed
-                        statusUpdateId), // userstate to pass to the statusUpdate callback
+                        statusUpdateUserState), // userstate to pass to the statusUpdate callback
                     Helpers.HttpStatusesOkCreatedNotModified, // use the hashset for ok/created/not modified as successful HttpStatusCodes
                     _copiedSettings, // pass the copied settings
                     _syncbox.SyncboxId, // pass the unique id of the sync box on the server
@@ -7502,18 +8064,18 @@ namespace Cloud.REST
         /// <summary>
         /// Asynchronously starts querying for all pending files
         /// </summary>
-        /// <param name="aCallback">Callback method to fire when operation completes</param>
-        /// <param name="aState">Userstate to pass when firing async callback</param>
+        /// <param name="asyncCallback">Callback method to fire when operation completes</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing async callback</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginGetAllPending(AsyncCallback aCallback,
-            object aState,
+        public IAsyncResult BeginGetAllPending(AsyncCallback asyncCallback,
+            object asyncCallbackUserState,
             int timeoutMilliseconds)
         {
             // create the asynchronous result to return
             GenericAsyncResult<GetAllPendingResult> toReturn = new GenericAsyncResult<GetAllPendingResult>(
-                aCallback,
-                aState);
+                asyncCallback,
+                asyncCallbackUserState);
 
             // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
             Tuple<GenericAsyncResult<GetAllPendingResult>, int> asyncParams =
@@ -7578,10 +8140,10 @@ namespace Cloud.REST
         /// Finishes a query for all pending files if it has not already finished via its asynchronous result and outputs the result,
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
         /// </summary>
-        /// <param name="aResult">The asynchronous result provided upon starting the pending query</param>
+        /// <param name="asyncResult">The asynchronous result provided upon starting the pending query</param>
         /// <param name="result">(output) The result from the pending query</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndGetAllPending(IAsyncResult aResult, out GetAllPendingResult result)
+        public CLError EndGetAllPending(IAsyncResult asyncResult, out GetAllPendingResult result)
         {
             // declare the specific type of asynchronous result for pending query
             GenericAsyncResult<GetAllPendingResult> castAResult;
@@ -7590,7 +8152,7 @@ namespace Cloud.REST
             try
             {
                 // try cast the asynchronous result as the type for pending query
-                castAResult = aResult as GenericAsyncResult<GetAllPendingResult>;
+                castAResult = asyncResult as GenericAsyncResult<GetAllPendingResult>;
 
                 // if trying to cast the asynchronous result failed, then throw an error
                 if (castAResult == null)
@@ -7698,152 +8260,157 @@ namespace Cloud.REST
         }
         #endregion
 
-        #region PostFileChange
-        /// <summary>
-        /// Asynchronously starts posting a single FileChange to the server
-        /// </summary>
-        /// <param name="aCallback">Callback method to fire when operation completes</param>
-        /// <param name="aState">Userstate to pass when firing async callback</param>
-        /// <param name="toCommunicate">Single FileChange to send</param>
-        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
-        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        internal IAsyncResult BeginPostFileChange(AsyncCallback aCallback,
-            object aState,
-            FileChange toCommunicate,
-            int timeoutMilliseconds,
-            string serverUid,
-            string revision)
-        {
-            // create the asynchronous result to return
-            GenericAsyncResult<FileChangeResult> toReturn = new GenericAsyncResult<FileChangeResult>(
-                aCallback,
-                aState);
+        #region PostFileChange (partially commented out since methods have not been updated for CLFileItem and usage with a possibly null or empty syncbox path, currently used in the previous manner by sync engine, see comment inside)
+        // !!
+        // Needs to be updated before uncommenting! Other on-demand calls have been updated to use CLFileItem and path usages are now difference since the user may not put in a full path for the syncbox root
+        // Also, sync engine is currently using the pieces left uncommented internally so if changed to allow public access make sure not to break sync engine usage
+        // !!
 
-            // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
-            Tuple<GenericAsyncResult<FileChangeResult>, FileChange, int, string, string> asyncParams =
-                new Tuple<GenericAsyncResult<FileChangeResult>, FileChange, int, string, string>(
-                    toReturn,
-                    toCommunicate,
-                    timeoutMilliseconds,
-                    serverUid,
-                    revision);
+        ///// <summary>
+        ///// Asynchronously starts posting a single FileChange to the server
+        ///// </summary>
+        ///// <param name="asyncCallback">Callback method to fire when operation completes</param>
+        ///// <param name="asyncCallbackUserState">User state to pass when firing async callback</param>
+        ///// <param name="toCommunicate">Single FileChange to send</param>
+        ///// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
+        ///// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        //internal IAsyncResult BeginPostFileChange(AsyncCallback asyncCallback,
+        //    object asyncCallbackUserState,
+        //    FileChange toCommunicate,
+        //    int timeoutMilliseconds,
+        //    string serverUid,
+        //    string revision)
+        //{
+        //    // create the asynchronous result to return
+        //    GenericAsyncResult<FileChangeResult> toReturn = new GenericAsyncResult<FileChangeResult>(
+        //        asyncCallback,
+        //        asyncCallbackUserState);
 
-            // create the thread from a void (object) parameterized start which wraps the synchronous method call
-            (new Thread(new ParameterizedThreadStart(state =>
-            {
-                // try cast the state as the object with all the input parameters
-                Tuple<GenericAsyncResult<FileChangeResult>, FileChange, int, string, string> castState = state as Tuple<GenericAsyncResult<FileChangeResult>, FileChange, int, string, string>;
-                // if the try cast failed, then show a message box for this unrecoverable error
-                if (castState == null)
-                {
-                    MessageEvents.FireNewEventMessage(
-                        Resources.CLCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
-                        EventMessageLevel.Important,
-                        new HaltAllOfCloudSDKErrorInfo());
-                }
-                // else if the try cast did not fail, then start processing with the input parameters
-                else
-                {
-                    // try/catch to process with the input parameters, on catch set the exception in the asyncronous result
-                    try
-                    {
-                        // declare the specific type of result for this operation
-                        JsonContracts.FileChangeResponse response;
-                        // run the download of the file with the passed parameters, storing any error that occurs
-                        CLError processError = PostFileChange(
-                            castState.Item2,
-                            castState.Item3,
-                            out response,
-                            castState.Item4,
-                            castState.Item5);
+        //    // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
+        //    Tuple<GenericAsyncResult<FileChangeResult>, FileChange, int, string, string> asyncParams =
+        //        new Tuple<GenericAsyncResult<FileChangeResult>, FileChange, int, string, string>(
+        //            toReturn,
+        //            toCommunicate,
+        //            timeoutMilliseconds,
+        //            serverUid,
+        //            revision);
 
-                        // if there was an asynchronous result in the parameters, then complete it with a new result object
-                        if (castState.Item1 != null)
-                        {
-                            castState.Item1.Complete(
-                                new FileChangeResult(
-                                    processError, // any error that may have occurred during processing
-                                    response), // the specific type of result for this operation
-                                    sCompleted: false); // processing did not complete synchronously
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        // if there was an asynchronous result in the parameters, then pass through the exception to it
-                        if (castState.Item1 != null)
-                        {
-                            castState.Item1.HandleException(
-                                ex, // the exception which was not handled correctly by the CLError wrapping
-                                sCompleted: false); // processing did not complete synchronously
-                        }
-                    }
-                }
-            }))).Start(asyncParams); // start the asynchronous processing thread with the input parameters object
+        //    // create the thread from a void (object) parameterized start which wraps the synchronous method call
+        //    (new Thread(new ParameterizedThreadStart(state =>
+        //    {
+        //        // try cast the state as the object with all the input parameters
+        //        Tuple<GenericAsyncResult<FileChangeResult>, FileChange, int, string, string> castState = state as Tuple<GenericAsyncResult<FileChangeResult>, FileChange, int, string, string>;
+        //        // if the try cast failed, then show a message box for this unrecoverable error
+        //        if (castState == null)
+        //        {
+        //            MessageEvents.FireNewEventMessage(
+        //                Resources.CLCannotCastStateAs + Helpers.GetTypeNameEvenForNulls(castState),
+        //                EventMessageLevel.Important,
+        //                new HaltAllOfCloudSDKErrorInfo());
+        //        }
+        //        // else if the try cast did not fail, then start processing with the input parameters
+        //        else
+        //        {
+        //            // try/catch to process with the input parameters, on catch set the exception in the asyncronous result
+        //            try
+        //            {
+        //                // declare the specific type of result for this operation
+        //                JsonContracts.FileChangeResponse response;
+        //                // run the download of the file with the passed parameters, storing any error that occurs
+        //                CLError processError = PostFileChange(
+        //                    castState.Item2,
+        //                    castState.Item3,
+        //                    out response,
+        //                    castState.Item4,
+        //                    castState.Item5);
 
-            // return the asynchronous result
-            return toReturn;
-        }
+        //                // if there was an asynchronous result in the parameters, then complete it with a new result object
+        //                if (castState.Item1 != null)
+        //                {
+        //                    castState.Item1.Complete(
+        //                        new FileChangeResult(
+        //                            processError, // any error that may have occurred during processing
+        //                            response), // the specific type of result for this operation
+        //                            sCompleted: false); // processing did not complete synchronously
+        //                }
+        //            }
+        //            catch (Exception ex)
+        //            {
+        //                // if there was an asynchronous result in the parameters, then pass through the exception to it
+        //                if (castState.Item1 != null)
+        //                {
+        //                    castState.Item1.HandleException(
+        //                        ex, // the exception which was not handled correctly by the CLError wrapping
+        //                        sCompleted: false); // processing did not complete synchronously
+        //                }
+        //            }
+        //        }
+        //    }))).Start(asyncParams); // start the asynchronous processing thread with the input parameters object
 
-        /// <summary>
-        /// Finishes posting a FileChange if it has not already finished via its asynchronous result and outputs the result,
-        /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
-        /// </summary>
-        /// <param name="aResult">The asynchronous result provided upon starting the FileChange post</param>
-        /// <param name="result">(output) The result from the FileChange post</param>
-        /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        internal CLError EndPostFileChange(IAsyncResult aResult, out FileChangeResult result)
-        {
-            // declare the specific type of asynchronous result for FileChange post
-            GenericAsyncResult<FileChangeResult> castAResult;
+        //    // return the asynchronous result
+        //    return toReturn;
+        //}
 
-            // try/catch to try casting the asynchronous result as the type for FileChange post and pull the result (possibly incomplete), on catch default the output and return the error
-            try
-            {
-                // try cast the asynchronous result as the type for FileChange post
-                castAResult = aResult as GenericAsyncResult<FileChangeResult>;
+        ///// <summary>
+        ///// Finishes posting a FileChange if it has not already finished via its asynchronous result and outputs the result,
+        ///// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
+        ///// </summary>
+        ///// <param name="asyncResult">The asynchronous result provided upon starting the FileChange post</param>
+        ///// <param name="result">(output) The result from the FileChange post</param>
+        ///// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
+        //internal CLError EndPostFileChange(IAsyncResult asyncResult, out FileChangeResult result)
+        //{
+        //    // declare the specific type of asynchronous result for FileChange post
+        //    GenericAsyncResult<FileChangeResult> castAResult;
 
-                // if trying to cast the asynchronous result failed, then throw an error
-                if (castAResult == null)
-                {
-                    throw new NullReferenceException(Resources.CLAsyncResultInternalTypeMismatch);
-                }
+        //    // try/catch to try casting the asynchronous result as the type for FileChange post and pull the result (possibly incomplete), on catch default the output and return the error
+        //    try
+        //    {
+        //        // try cast the asynchronous result as the type for FileChange post
+        //        castAResult = asyncResult as GenericAsyncResult<FileChangeResult>;
 
-                // pull the result for output (may not yet be complete)
-                result = castAResult.Result;
-            }
-            catch (Exception ex)
-            {
-                result = Helpers.DefaultForType<FileChangeResult>();
-                return ex;
-            }
+        //        // if trying to cast the asynchronous result failed, then throw an error
+        //        if (castAResult == null)
+        //        {
+        //            throw new NullReferenceException(Resources.CLAsyncResultInternalTypeMismatch);
+        //        }
 
-            // try/catch to finish the asynchronous operation if necessary, re-pull the result for output, and rethrow any exception which may have occurred; on catch, return the error
-            try
-            {
-                // This method assumes that only 1 thread calls EndInvoke 
-                // for this object
-                if (!castAResult.IsCompleted)
-                {
-                    // If the operation isn't done, wait for it
-                    castAResult.AsyncWaitHandle.WaitOne();
-                    castAResult.AsyncWaitHandle.Close();
-                }
+        //        // pull the result for output (may not yet be complete)
+        //        result = castAResult.Result;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        result = Helpers.DefaultForType<FileChangeResult>();
+        //        return ex;
+        //    }
 
-                // re-pull the result for output in case it was not completed when it was pulled before
-                result = castAResult.Result;
+        //    // try/catch to finish the asynchronous operation if necessary, re-pull the result for output, and rethrow any exception which may have occurred; on catch, return the error
+        //    try
+        //    {
+        //        // This method assumes that only 1 thread calls EndInvoke 
+        //        // for this object
+        //        if (!castAResult.IsCompleted)
+        //        {
+        //            // If the operation isn't done, wait for it
+        //            castAResult.AsyncWaitHandle.WaitOne();
+        //            castAResult.AsyncWaitHandle.Close();
+        //        }
 
-                // Operation is done: if an exception occurred, return it
-                if (castAResult.Exception != null)
-                {
-                    return castAResult.Exception;
-                }
-            }
-            catch (Exception ex)
-            {
-                return ex;
-            }
-            return null;
-        }
+        //        // re-pull the result for output in case it was not completed when it was pulled before
+        //        result = castAResult.Result;
+
+        //        // Operation is done: if an exception occurred, return it
+        //        if (castAResult.Exception != null)
+        //        {
+        //            return castAResult.Exception;
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return ex;
+        //    }
+        //    return null;
+        //}
 
         /// <summary>
         /// Posts a single FileChange to the server to update the sync box in the syncbox.
@@ -8102,20 +8669,20 @@ namespace Cloud.REST
         /// <summary>
         /// Asynchronously starts querying the server for all versions of a given file
         /// </summary>
-        /// <param name="aCallback">Callback method to fire when operation completes</param>
-        /// <param name="aState">Userstate to pass when firing async callback</param>
+        /// <param name="asyncCallback">Callback method to fire when operation completes</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing async callback</param>
         /// <param name="fileServerId">Unique id to the file on the server</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <param name="includeDeletedVersions">(optional) whether to include file versions which are deleted</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginGetFileVersions(AsyncCallback aCallback,
-            object aState,
+        public IAsyncResult BeginGetFileVersions(AsyncCallback asyncCallback,
+            object asyncCallbackUserState,
             string fileServerId,
             int timeoutMilliseconds,
             bool includeDeletedVersions = false)
         {
-            return BeginGetFileVersions(aCallback,
-                aState,
+            return BeginGetFileVersions(asyncCallback,
+                asyncCallbackUserState,
                 fileServerId,
                 timeoutMilliseconds,
                 null,
@@ -8125,21 +8692,21 @@ namespace Cloud.REST
         /// <summary>
         /// Asynchronously starts querying the server for all versions of a given file
         /// </summary>
-        /// <param name="aCallback">Callback method to fire when operation completes</param>
-        /// <param name="aState">Userstate to pass when firing async callback</param>
+        /// <param name="asyncCallback">Callback method to fire when operation completes</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing async callback</param>
         /// <param name="fileServerId">Unique id to the file on the server</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <param name="includeDeletedVersions">(optional) whether to include file versions which are deleted</param>
         /// <param name="pathToFile">Full path to the file where it would be placed locally within the sync root</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginGetFileVersions(AsyncCallback aCallback,
-            object aState,
+        public IAsyncResult BeginGetFileVersions(AsyncCallback asyncCallback,
+            object asyncCallbackUserState,
             int timeoutMilliseconds,
             FilePath pathToFile,
             bool includeDeletedVersions = false)
         {
-            return BeginGetFileVersions(aCallback,
-                aState,
+            return BeginGetFileVersions(asyncCallback,
+                asyncCallbackUserState,
                 null,
                 timeoutMilliseconds,
                 pathToFile,
@@ -8149,15 +8716,15 @@ namespace Cloud.REST
         /// <summary>
         /// Asynchronously starts querying the server for all versions of a given file
         /// </summary>
-        /// <param name="aCallback">Callback method to fire when operation completes</param>
-        /// <param name="aState">Userstate to pass when firing async callback</param>
+        /// <param name="asyncCallback">Callback method to fire when operation completes</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing async callback</param>
         /// <param name="fileServerId">Unique id to the file on the server</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <param name="pathToFile">Full path to the file where it would be placed locally within the sync root</param>
         /// <param name="includeDeletedVersions">(optional) whether to include file versions which are deleted</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginGetFileVersions(AsyncCallback aCallback,
-            object aState,
+        public IAsyncResult BeginGetFileVersions(AsyncCallback asyncCallback,
+            object asyncCallbackUserState,
             string fileServerId,
             int timeoutMilliseconds,
             FilePath pathToFile,
@@ -8165,8 +8732,8 @@ namespace Cloud.REST
         {
             // create the asynchronous result to return
             GenericAsyncResult<GetFileVersionsResult> toReturn = new GenericAsyncResult<GetFileVersionsResult>(
-                aCallback,
-                aState);
+                asyncCallback,
+                asyncCallbackUserState);
 
             // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
             Tuple<GenericAsyncResult<GetFileVersionsResult>, string, int, FilePath, bool> asyncParams =
@@ -8236,10 +8803,10 @@ namespace Cloud.REST
         /// Finishes querying for all versions of a given file if it has not already finished via its asynchronous result and outputs the result,
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
         /// </summary>
-        /// <param name="aResult">The asynchronous result provided upon starting undoing the deletion</param>
+        /// <param name="asyncResult">The asynchronous result provided upon starting undoing the deletion</param>
         /// <param name="result">(output) The result from undoing the deletion</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndGetFileVersions(IAsyncResult aResult, out GetFileVersionsResult result)
+        public CLError EndGetFileVersions(IAsyncResult asyncResult, out GetFileVersionsResult result)
         {
             // declare the specific type of asynchronous result for querying file versions
             GenericAsyncResult<GetFileVersionsResult> castAResult;
@@ -8248,7 +8815,7 @@ namespace Cloud.REST
             try
             {
                 // try cast the asynchronous result as the type for querying file versions
-                castAResult = aResult as GenericAsyncResult<GetFileVersionsResult>;
+                castAResult = asyncResult as GenericAsyncResult<GetFileVersionsResult>;
 
                 // if trying to cast the asynchronous result failed, then throw an error
                 if (castAResult == null)
@@ -8408,18 +8975,18 @@ namespace Cloud.REST
         /// <summary>
         /// Asynchronously purges any pending changes (pending file uploads) and outputs the files which were purged
         /// </summary>
-        /// <param name="aCallback">Callback method to fire when operation completes</param>
-        /// <param name="aState">Userstate to pass when firing async callback</param>
+        /// <param name="asyncCallback">Callback method to fire when operation completes</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing async callback</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginPurgePending(AsyncCallback aCallback,
-            object aState,
+        public IAsyncResult BeginPurgePending(AsyncCallback asyncCallback,
+            object asyncCallbackUserState,
             int timeoutMilliseconds)
         {
             // create the asynchronous result to return
             GenericAsyncResult<PurgePendingResult> toReturn = new GenericAsyncResult<PurgePendingResult>(
-                aCallback,
-                aState);
+                asyncCallback,
+                asyncCallbackUserState);
 
             // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
             Tuple<GenericAsyncResult<PurgePendingResult>, int> asyncParams =
@@ -8484,10 +9051,10 @@ namespace Cloud.REST
         /// Finishes purging pending changes if it has not already finished via its asynchronous result and outputs the result,
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
         /// </summary>
-        /// <param name="aResult">The asynchronous result provided upon starting purging pending</param>
+        /// <param name="asyncResult">The asynchronous result provided upon starting purging pending</param>
         /// <param name="result">(output) The result from purging pending</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndPurgePending(IAsyncResult aResult, out PurgePendingResult result)
+        public CLError EndPurgePending(IAsyncResult asyncResult, out PurgePendingResult result)
         {
             // declare the specific type of asynchronous result for purging pending
             GenericAsyncResult<PurgePendingResult> castAResult;
@@ -8496,7 +9063,7 @@ namespace Cloud.REST
             try
             {
                 // try cast the asynchronous result as the type for purging pending
-                castAResult = aResult as GenericAsyncResult<PurgePendingResult>;
+                castAResult = asyncResult as GenericAsyncResult<PurgePendingResult>;
 
                 // if trying to cast the asynchronous result failed, then throw an error
                 if (castAResult == null)

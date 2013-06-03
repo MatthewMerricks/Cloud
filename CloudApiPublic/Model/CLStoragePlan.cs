@@ -159,7 +159,7 @@ namespace Cloud.Model
         /// Asynchronously starts listing the plans on the server for the current application
         /// </summary>
         /// <param name="callback">Callback method to fire when operation completes</param>
-        /// <param name="callbackUserState">Userstate to pass when firing async callback</param>
+        /// <param name="callbackUserState">User state to pass when firing async callback</param>
         /// <param name="credentials">The credentials to use with this request.</param>
         /// <param name="settings">(optional) settings to use with this request</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>

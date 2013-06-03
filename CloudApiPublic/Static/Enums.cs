@@ -526,6 +526,16 @@ namespace Cloud.Static
         /// </summary>
         OnDemand_RequestRequired = (((ulong)CLExceptionDomain.OnDemand) << 32) | 36, // 5_36
 
+        /// <summary>
+        /// An error occurred downloading a file.
+        /// </summary>
+        OnDemand_Download = (((ulong)CLExceptionDomain.OnDemand) << 32) | 37, // 5_37
+
+        /// <summary>
+        /// An error occurred downloading a file.
+        /// </summary>
+        OnDemand_DownloadTempDownloadFileNotFoundAfterSuccessfulDownload = (((ulong)CLExceptionDomain.OnDemand) << 32) | 38, // 5_38
+
         #endregion
 
         #region FileItem
@@ -853,15 +863,14 @@ namespace Cloud.Static
     }
 
     /// <summary>
-    /// Used as a parameter to CLSyncBox.BeginSync.  These values describe how the syncbox will be synced:
+    /// Used as a parameter to CLSyncbox.StartLiveSync.  These values describe how the syncbox will be synced:
     ///   - CLSyncModeLive: All files, folders and metadata will be synced all the time (live).
-    ///   - CLSyncModeLiveWithShellExt: As above, with shell extension (badging).
-    ///   - CLSyncModeOnDemand: Only the metadata is synced.  File downloads are on-demand.
+    ///   - CLSyncModeLiveWithBadgingEnabled: As above, with shell extension (badging).
     /// </summary>
     public enum CLSyncMode : int
     {
         CLSyncModeLive,
-        CLSyncModeLiveWithShellExt
+        CLSyncModeLiveWithBadgingEnabled
     }
 
     /// <summary>

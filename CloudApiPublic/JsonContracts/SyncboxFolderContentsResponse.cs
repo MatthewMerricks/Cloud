@@ -16,7 +16,7 @@ using Cloud.Static;
 namespace Cloud.JsonContracts
 {
     /// <summary>
-    /// Result from <see cref="Cloud.CLSyncbox.GetFolderContents"/>
+    /// Result from <see cref="Cloud.CLSyncbox.ItemsForPath"/>
     /// </summary>
     [DataContract]
     public sealed class SyncboxFolderContentsResponse

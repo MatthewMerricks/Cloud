@@ -23,23 +23,6 @@ using System.Threading;
 
 namespace Cloud
 {
-    #region Public Enums
-    
-    /// <summary>
-    /// Status of creation of <see cref="CLSyncbox"/>
-    /// </summary>
-    public enum CLSyncboxCreationStatus : byte
-    {
-        Success = 0,
-        ErrorNullCredentials = 1,
-        ErrorUnknown = 2,
-        ErrorCreatingRestClient = 3,
-        ErrorSyncboxIdZero = 4,
-        ErrorPathNotSpecified = 5,
-    }
-
-    #endregion
-
     #region Public CLSyncbox Class
     /// <summary>
     /// Represents a Syncbox in Cloud where everything is stored
@@ -197,12 +180,12 @@ namespace Cloud
 
         #endregion  // end Private Fields
 
-        #region Internal Properties
+        #region Internal properties
 
         /// <summary>
-        /// true: The user is busy in a public API call that is modifying the syncbox.
+        /// Internal client for passing HTTP REST calls to the server
         /// </summary>
-        internal bool IsModifyingSyncboxViaPublicAPICalls
+        internal CLHttpRest HttpRestClient
         {
             get
             {
@@ -214,9 +197,9 @@ namespace Cloud
                 {
                     if (setPathHolder == null)
                     {
-                        return false;
+                        return null;
                     }
-                    return setPathHolder.HttpRestClient.IsModifyingSyncboxViaPublicAPICalls;
+                    return setPathHolder.HttpRestClient;
                 }
                 finally
                 {
@@ -228,7 +211,7 @@ namespace Cloud
             }
         }
 
-        #endregion  // end Internal Properties
+        #endregion
 
         #region Public Properties
 
@@ -291,7 +274,7 @@ namespace Cloud
         private readonly object setPathLocker;
 
         /// <summary>
-        /// The full path on the disk associated with this syncbox.
+        /// The full path on the disk associated with this syncbox.  Used only for live sync.
         /// </summary>
         public string Path
         {
@@ -320,41 +303,12 @@ namespace Cloud
         }
 
         /// <summary>
-        /// Internal client for passing HTTP REST calls to the server
-        /// </summary>
-        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public CLHttpRest HttpRestClient
-        {
-            get
-            {
-                if (setPathLocker != null)
-                {
-                    Monitor.Enter(setPathLocker);
-                }
-                try
-                {
-                    if (setPathHolder == null)
-                    {
-                        return null;
-                    }
-                    return setPathHolder.HttpRestClient;
-                }
-                finally
-                {
-                    if (setPathLocker != null)
-                    {
-                        Monitor.Exit(setPathLocker);
-                    }
-                }
-            }
-        }
-
-        /// <summary>
         /// lock on _startLocker for modifications or retrieval
         /// </summary>
         private CLSyncEngine _syncEngine = null;
 
-        private SetPathProperties setPathHolder;
+        // this effectively sets path as null and sets the rest client as null
+        private SetPathProperties setPathHolder = null;
 
         private sealed class SetPathProperties
         {
@@ -383,7 +337,7 @@ namespace Cloud
             }
         }
 
-        #endregion  // end proerties set on SetPath
+        #endregion  // end properties set on SetPath
 
         /// <summary>
         /// The ID of the storage plan to use for this syncbox.
@@ -508,8 +462,8 @@ namespace Cloud
         /// </summary>
         /// <param name="syncboxId">The syncbox ID.</param>
         /// <param name="credentials">The credentials to use to create this syncbox.</param>
-        /// <param name="path">(optional) The full path on disk of the folder to associate with this syncbox. The path is used for live sync only.</param>
-        /// <param name="settings">The settings to use. DeviceId required.</param>
+        /// <param name="path">(optional) The full path on disk of the folder to associate with this syncbox. The path is used only for live sync only.</param>
+        /// <param name="settings">(optional)The settings to use.</param>
         /// <param name="getNewCredentialsCallback">(optional) The delegate to call for getting new temporary credentials.</param>
         /// <param name="getNewCredentialsCallbackUserState">(optional) The user state to pass to the delegate above.</param>
         private CLSyncbox(
@@ -538,11 +492,11 @@ namespace Cloud
             }
 
             // Copy the settings so the user can't change them.
-            if (settings == null
-
-                || string.IsNullOrEmpty(
-                    (this._copiedSettings = settings.CopySettings())
-                        .DeviceId)) // also, make sure device id is not null since it is required for CLHttpRest client
+            // copy settings so they don't change while processing; this also defaults some values
+            this._copiedSettings = (settings == null
+                ? AdvancedSyncSettings.CreateDefaultSettings()
+                : settings.CopySettings());
+            if (_copiedSettings.DeviceId == null)
             {
                 throw new CLArgumentNullException(CLExceptionCode.Syncbox_DeviceId, Resources.CLHttpRestDeviceIDCannotBeNull);
             }
@@ -561,18 +515,21 @@ namespace Cloud
                 this._getNewCredentialsCallback = getNewCredentialsCallback;
                 this._getNewCredentialsCallbackUserState = getNewCredentialsCallbackUserState;
 
-                if (String.IsNullOrEmpty(path))
-                {
-                    setPathLocker = new object();
-                }
-                else
-                {
+                //// calling UpdatePathInternal now occurs regardless of whether path was set, therefore no need to allow updating the path later (with a locker)
+                //
+                //if (String.IsNullOrEmpty(path))
+                //{
+                //    setPathLocker = new object();
+                //}
+                //else
+                //{
                     setPathLocker = null;
-                    CLError setPathError = UpdatePathInternal(path, shouldUpdateSyncboxStatusFromServer: true);
-                    if (setPathError != null)
-                    {
-                        throw new CLException(CLExceptionCode.Syncbox_Initializing, "Error initializing the syncbox", setPathError.Exceptions);
-                    }
+                //}
+
+                CLError setPathError = InitializeInternal(path, shouldUpdateSyncboxStatusFromServer: true);
+                if (setPathError != null)
+                {
+                    throw new CLException(CLExceptionCode.Syncbox_Initializing, "Error initializing the syncbox", setPathError.Exceptions);
                 }
             }
         }
@@ -582,14 +539,12 @@ namespace Cloud
         /// </summary>
         /// <param name="syncboxContract">The syncbox contract to use.</param>
         /// <param name="credentials">The credentials to use.</param>
-        /// <param name="path">(optional) The full path on the local disk of the folder to associate with this syncbox.  The path is used for live sync only.</param>
         /// <param name="settings">(optional) The settings to use.</param>
         /// <param name="getNewCredentialsCallback">(optional) The delegate to call for getting new temporary credentials.</param>
         /// <param name="getNewCredentialsCallbackUserState">(optional) The user state to pass to the delegate above.</param>
         private CLSyncbox(
             JsonContracts.Syncbox syncboxContract,
             CLCredentials credentials,
-            string path = null,
             ICLSyncSettings settings = null,
             Helpers.ReplaceExpiredCredentials getNewCredentialsCallback = null,
             object getNewCredentialsCallbackUserState = null)
@@ -597,12 +552,6 @@ namespace Cloud
             CheckDisposed();
 
             // check input parameters
-
-            // Fix up the path.  Use String.Empty if the user passed null.
-            if (path == null)
-            {
-                path = String.Empty;
-            }
 
             if (syncboxContract == null)
             {
@@ -646,20 +595,7 @@ namespace Cloud
                 this._getNewCredentialsCallback = getNewCredentialsCallback;
                 this._getNewCredentialsCallbackUserState = getNewCredentialsCallbackUserState;
 
-                if (String.IsNullOrEmpty(path))
-                {
-                    setPathLocker = new object();
-                }
-                else
-                {
-                    setPathLocker = null;
-                    CLError setPathError = UpdatePathInternal(path, shouldUpdateSyncboxStatusFromServer: false);  // the information in the server response filled in the current syncbox status.
-                    if (setPathError != null)
-                    {
-                        //&&&& Put all strings in resources.
-                        throw new CLException(CLExceptionCode.Syncbox_Initializing, "Error initializing the syncbox", setPathError.Exceptions);
-                    }
-                }
+                setPathLocker = new object();
             }
         }
 
@@ -671,10 +607,10 @@ namespace Cloud
         /// Asynchronously begins the factory process to construct an instance of CLSyncbox, initialize it and fill in its properties from the cloud, and associates the cloud syncbox with a folder on the local disk.
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when operation completes.  Can be null.</param>
-        /// <param name="asyncCallbackUserState">Userstate to pass to the callback when it is fired.  Can be null.</param>
+        /// <param name="asyncCallbackUserState">User state to pass to the callback when it is fired.  Can be null.</param>
         /// <param name="syncboxId">The cloud syncbox ID to use.</param>
         /// <param name="credentials">The credentials to use with this request.</param>
-        /// <param name="path">(optional) The full path of the folder on disk to associate with this syncbox.  The path is used for live sync only.</param>
+        /// <param name="path">(optional) The full path of the folder on disk to associate with this syncbox.  The path is used only for live sync.</param>
         /// <param name="settings">(optional) settings to use with this method.</param>
         /// <param name="getNewCredentialsCallback">(optional) A delegate which will be called to retrieve a new set of credentials when credentials have expired.</param>
         /// <param name="getNewCredentialsCallbackUserState">(optional) The user state to pass as a parameter to the delegate above.</param>
@@ -719,8 +655,8 @@ namespace Cloud
                             Data.syncboxId,
                             Data.credentials,
                             out response,
-                            Data.settings,
                             Data.path,
+                            Data.settings,
                             Data.getNewCredentialsCallback,
                             Data.getNewCredentialsCallbackUserState);
 
@@ -765,8 +701,8 @@ namespace Cloud
         /// <param name="syncboxId">Unique ID of the syncbox generated by Cloud</param>
         /// <param name="credentials">Credentials to use with this request.</param>
         /// <param name="syncbox">(output) Created local object representation of the Syncbox</param>
-        /// <param name="path">(optional) The full path of the folder on disk to associate with this syncbox.  The path is used for live sync only.</param>
-        /// <param name="settings">Settings to use with this request. DeviceId is required.</param>
+        /// <param name="path">(optional) The full path of the folder on disk to associate with this syncbox.  The path is used only for live sync.</param>
+        /// <param name="settings">(optional) Settings to use with this request.</param>
         /// <param name="getNewCredentialsCallback">(optional) A delegate that will be called to provide new credentials when the current credentials token expires.</param>
         /// <param name="getNewCredentialsCallbackUserState">(optional) The user state that will be passed back to the getNewCredentialsCallback delegate.</param>
         /// <returns>Returns any error which occurred during object allocation or initialization, if any, or null.</returns>
@@ -774,8 +710,8 @@ namespace Cloud
             long syncboxId,
             CLCredentials credentials,
             out CLSyncbox syncbox,
-            ICLSyncSettings settings,
             string path = null,
+            ICLSyncSettings settings = null,
             Helpers.ReplaceExpiredCredentials getNewCredentialsCallback = null,
             object getNewCredentialsCallbackUserState = null)
         {
@@ -818,8 +754,9 @@ namespace Cloud
         /// <summary>
         /// Start syncing according to the requested sync mode.
         /// </summary>
-        /// <remarks>Note that only SyncMode.CLSyncModeLive is currently supported.</remarks>
         /// <param name="mode">The sync mode to start.</param>
+        /// <param name="syncStatusChangedCallback">Callback method that will be fired when the status changes in the syncbox.</param>
+        /// <param name="syncStatusChangedCallbackUserState">User state to pass to the callback method above.</param>
         /// <returns></returns>
         public CLError StartLiveSync(
                 CLSyncMode mode,
@@ -930,9 +867,9 @@ namespace Cloud
         }
 
         /// <summary>
-        /// Stop syncing.
+        /// Stop live sync.
         /// </summary>
-        /// <remarks>Note that after stopping it is possible to call BeginSync() again to restart syncing.</remarks>
+        /// <remarks>Note that after stopping it is possible to call SartLiveSync() again to restart syncing.</remarks>
         public void StopLiveSync()
         {
             CheckDisposed();
@@ -972,16 +909,16 @@ namespace Cloud
         }
 
         /// <summary>
-        /// Return true if LiveSync is started.  Otherwise, false.
+        /// Return true if Live Sync is started.  Otherwise, false.
         /// </summary>
-        /// <returns>true: LiveSync is started.</returns>
+        /// <returns>true: Live Sync is started.</returns>
         public bool IsLiveSyncStarted()
         {
             return _isStarted;
         }
 
         /// <summary>
-        /// Reset sync.  Sync must be stopped before calling this method.  Starting sync after resetting sync will merge the
+        /// Reset sync.  Live sync must be stopped before calling this method.  Starting live sync after resetting live sync will merge the
         /// syncbox folder with the server syncbox contents.
         /// </summary>
         public CLError ResetLocalCache()
@@ -1049,7 +986,7 @@ namespace Cloud
         }
 
         /// <summary>
-        /// Output the current status of syncing
+        /// Output the current status of live sync.
         /// </summary>
         /// <returns>Returns any error which occurred in retrieving the sync status, if any</returns>
         public CLError GetSyncCurrentStatus(out CLSyncCurrentStatus status)
@@ -1085,8 +1022,8 @@ namespace Cloud
             }
         }
 
-        /// <summary>l
-        /// Call when application is shutting down.
+        /// <summary>
+        /// Call when then application is shutting down.
         /// </summary>
         public static void Shutdown()
         {
@@ -1162,18 +1099,16 @@ namespace Cloud
 
         #region Public Static HTTP REST Methods
 
-        #region CreateSyncbox (create a syncbox in the syncbox)
+        #region CreateSyncbox (create a syncbox in the Cloud.)
 
         /// <summary>
-        /// Asynchronously starts creating a new Syncbox in the syncbox.
+        /// Asynchronously starts creating a new Syncbox in the Cloud.
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when the async operation completes.  Can be null.</param>
-        /// <param name="asyncCallbackUserState">Userstate to pass to the async callback when it is fired.  Can be null.</param>
-        /// <param name="completionCallback">Callback method to fire when the operation is complete.  Returns the result.</param>
-        /// <param name="completionCallbackUserState">Userstate to be passed to the completion callback above when it is fired.</param>
+        /// <param name="asyncCallbackUserState">User state to pass to the async callback when it is fired.  Can be null.</param>
         /// <param name="plan">The storage plan to use with this Syncbox.</param>
         /// <param name="credentials">The credentials to use with this request.</param>
-        /// <param name="path">(optional) The full path of the folder on disk to associate with this syncbox.</param>
+        /// <param name="path">(optional) The full path of the folder on disk to associate with this syncbox.  The path is used only for live sync.</param>
         /// <param name="friendlyName">(optional) The friendly name of the Syncbox.</param>
         /// <param name="settings">(optional) Settings to use with this method.</param>
         /// <param name="getNewCredentialsCallback">(optional) The callback function that will provide new credentials with temporary credentials expire.</param>
@@ -1182,8 +1117,6 @@ namespace Cloud
         public static IAsyncResult BeginCreateSyncbox(
                     AsyncCallback asyncCallback,
                     object asyncCallbackUserState,
-                    CLCreateSyncboxCompletionCallback completionCallback,
-                    object completionCallbackUserState,
                     CLStoragePlan plan,
                     CLCredentials credentials,
                     string path = null,
@@ -1194,22 +1127,6 @@ namespace Cloud
         {
             Helpers.CheckHalted();
 
-            // Fix up the path.  Use String.Empty if the user passed null.
-            if (path == null)
-            {
-                path = String.Empty;
-            }
-
-            // Check the parameters
-            if (plan == null)
-            {
-                throw new ArgumentNullException("plan must not be null");  //&&&& fix
-            }
-            if (credentials == null)
-            {
-                throw new ArgumentNullException("credentials must not be null");  //&&&& fix
-            }
-
             var asyncThread = DelegateAndDataHolderBase.Create(
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
                 new
@@ -1218,8 +1135,6 @@ namespace Cloud
                     toReturn = new GenericAsyncResult<CreateSyncboxResult>(
                         asyncCallback,
                         asyncCallbackUserState),
-                    completionCallback = completionCallback,
-                    completionCallbackUserState = completionCallbackUserState,
                     plan = plan,
                     friendlyName = friendlyName,
                     credentials = credentials,
@@ -1234,11 +1149,11 @@ namespace Cloud
                     try
                     {
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
+                        CLSyncbox syncbox;
                         CLError processError = CreateSyncbox(
-                            completionCallback,
-                            completionCallbackUserState,
                             Data.plan,
                             Data.credentials,
+                            out syncbox,
                             path,
                             Data.friendlyName,
                             Data.settings,
@@ -1247,7 +1162,8 @@ namespace Cloud
 
                         Data.toReturn.Complete(
                             new CreateSyncboxResult(
-                                processError), // any error that may have occurred during processing
+                                processError,  // any error that may have occurred during processing
+                                syncbox), 
                             sCompleted: false); // processing did not complete synchronously
                     }
                     catch (Exception ex)
@@ -1281,22 +1197,19 @@ namespace Cloud
         /// <summary>
         /// Create a Syncbox in the syncbox for the current application.  This is a synchronous method.
         /// </summary>
-        /// <param name="completionCallback">Callback method to fire when the operation is complete.  Returns the result.</param>
-        /// <param name="completionCallbackUserState">Userstate to be passed to the completion callback above when it is fired.</param>
         /// <param name="plan">The storage plan to use with this Syncbox.</param>
         /// <param name="credentials">The credentials to use for this request.</param>
+        /// <param name="syncbox">(output) The created syncbox object.</param>
         /// <param name="path">(optional) The path on the local disk to associate with this syncbox.  The path is used only for live sync.</param>
-        /// <param name="syncbox">(output) Response object from communication</param>
         /// <param name="friendlyName">(optional) The friendly name of the Syncbox.</param>
         /// <param name="settings">(optional) The settings to use with this method</param>
         /// <param name="getNewCredentialsCallback">(optional) The callback function that will provide new credentials with temporary credentials expire.</param>
         /// <param name="getNewCredentialsCallbackUserState">(optional) The user state that will be passed as a parameter to the callback function above.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public static CLError CreateSyncbox(
-                    CLCreateSyncboxCompletionCallback completionCallback,
-                    object completionCallbackUserState,
                     CLStoragePlan plan,
                     CLCredentials credentials,
+                    out CLSyncbox syncbox,
                     string path = null,
                     string friendlyName = null,
                     ICLSyncSettings settings = null,
@@ -1308,12 +1221,6 @@ namespace Cloud
             // try/catch to process the metadata query, on catch return the error
             try
             {
-                // Fix up the path.  Use String.Empty if the user passed null.
-                if (path == null)
-                {
-                    path = String.Empty;
-                }
-
                 // Check the input parameters.
                 if (plan == null)
                 {
@@ -1366,22 +1273,21 @@ namespace Cloud
                 }
 
                 // Convert the response object to a CLSyncbox and return that.
-                CLSyncbox syncbox =  new CLSyncbox(
+                syncbox =  new CLSyncbox(
                     syncboxContract: responseFromServer.Syncbox,
                     credentials: credentials,
-                    path: path,
                     settings: copiedSettings,
                     getNewCredentialsCallback: getNewCredentialsCallback,
                     getNewCredentialsCallbackUserState: getNewCredentialsCallbackUserState);
 
-                // Return the result
-                if (completionCallback != null)
-                {
-                    completionCallback(syncbox, completionCallbackUserState);
-                }
+                // CreateSyncbox call both creates a CLSyncbox via data from the server (like ListAllSyncboxes) (via the call immediately above),
+                // and this CreateSyncbox call also takes a path from the user to start initialized,
+                // so the following call was added to finish this initilization (unlike ListAllSyncboxes)
+                syncbox.InitWithPath(path);
             }
             catch (Exception ex)
             {
+                syncbox = Helpers.DefaultForType<CLSyncbox>();
                 return ex;
             }
             return null;
@@ -1394,7 +1300,7 @@ namespace Cloud
         /// Asynchronously starts deleting a new Syncbox in the syncbox.
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when operation completes.  Can be null.</param>
-        /// <param name="asyncCallbackUserState">Userstate to pass as a parameter to the callback when it is fired.  Can be null.</param>
+        /// <param name="asyncCallbackUserState">User state to pass as a parameter to the callback when it is fired.  Can be null.</param>
         /// <param name="syncboxId">The ID of syncbox to delete.</param>
         /// <param name="credentials">The credentials to use with this request.</param>
         /// <param name="settings">(optional) settings to use with this method.</param>
@@ -1468,7 +1374,7 @@ namespace Cloud
         /// <summary>
         /// Delete a Syncbox in the syncbox.  This is a synchronous method.
         /// </summary>
-        /// <param name="syncboxId">the ID of the syncbox to delete.
+        /// <param name="syncboxId">the ID of the syncbox to delete.</param>
         /// <param name="credentials">The credentials to use for this request.</param>
         /// <param name="settings">(optional) the settings to use with this method</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
@@ -1536,20 +1442,20 @@ namespace Cloud
         /// <summary>
         /// Asynchronously starts listing syncboxes in the syncbox.
         /// </summary>
-        /// <param name="asyncCallback">Callback method to fire when operation completes.  Can be null.</param>
-        /// <param name="asyncCallbackUserState">Userstate to pass as a parameter to the callback when it is fired.  Can be null.</param>
-        /// <param name="completionCallback">Callback method to fire when the operation is complete.  Returns the result.</param>
-        /// <param name="completionCallbackUserState">Userstate to be passed to the completion callback above when it is fired.</param>
+        /// <param name="asyncCallback">Callback method to fire when operation completes.</param>
+        /// <param name="asyncCallbackUserState">User state to pass as a parameter to the callback when it is fired.</param>
         /// <param name="credentials">The credentials to use with this request.</param>
         /// <param name="settings">(optional) settings to use with this method.</param>
+        /// <param name="getNewCredentialsCallback">(optional) The delegate to call for getting new temporary credentials.</param>
+        /// <param name="getNewCredentialsCallbackUserState">(optional) The user state to pass to the delegate above.</param>
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public static IAsyncResult BeginListAllSyncboxes(
             AsyncCallback asyncCallback,
             object asyncCallbackUserState,
-            CLListSyncboxesCompletionCallback completionCallback,
-            object completionCallbackUserState,
             CLCredentials credentials,
-            ICLCredentialsSettings settings = null)
+            ICLCredentialsSettings settings = null,
+            Helpers.ReplaceExpiredCredentials getNewCredentialsCallback = null,
+            object getNewCredentialsCallbackUserState = null)
         {
             Helpers.CheckHalted();
 
@@ -1561,10 +1467,10 @@ namespace Cloud
                     toReturn = new GenericAsyncResult<SyncboxListResult>(
                         asyncCallback,
                         asyncCallbackUserState),
-                    completionCallback = completionCallback,
-                    completionCallbackUserState = completionCallbackUserState,
                     credentials = credentials,
-                    settings = settings
+                    settings = settings,
+                    getNewCredentialsCallback = getNewCredentialsCallback,
+                    getNewCredentialsCallbackUserState = getNewCredentialsCallbackUserState,
                 },
                 (Data, errorToAccumulate) =>
                 {
@@ -1573,15 +1479,18 @@ namespace Cloud
                     try
                     {
                         // Call the synchronous version of this method.
+                        CLSyncbox[] returnedSyncboxes;
                         CLError processError = ListAllSyncboxes(
-                            completionCallback,
-                            completionCallbackUserState,
                             Data.credentials,
-                            Data.settings);
+                            out returnedSyncboxes,
+                            Data.settings,
+                            Data.getNewCredentialsCallback,
+                            Data.getNewCredentialsCallbackUserState);
 
                         Data.toReturn.Complete(
                             new SyncboxListResult(
-                                processError), // any error that may have occurred during processing
+                                processError, // any error that may have occurred during processing
+                                returnedSyncboxes),  // the returned data
                             sCompleted: false); // processing did not complete synchronously
                     }
                     catch (Exception ex)
@@ -1616,19 +1525,16 @@ namespace Cloud
         /// <summary>
         /// List syncboxes in the syncbox for these credentials.  This is a synchronous method.
         /// </summary>
-        /// <param name="completionCallback">Callback method to fire when the operation is complete.  Returns the result.</param>
-        /// <param name="completionCallbackUserState">Userstate to be passed to the completion callback above when it is fired.</param>
         /// <param name="credentials">The credentials to use for this request.</param>
-        /// <param name="response">(output) response object from communication</param>
+        /// <param name="returnedSyncboxes">(output) The returned array of syncboxes.</param>
         /// <param name="settings">(optional) the settings to use with this method</param>
-        /// <param name="getNewCredentialsCallback">The delegate to call for getting new temporary credentials.</param>
-        /// <param name="getNewCredentialsCallbackUserState">The user state to pass to the delegate above.</param>
+        /// <param name="getNewCredentialsCallback">(optional) The delegate to call for getting new temporary credentials.</param>
+        /// <param name="getNewCredentialsCallbackUserState">(optional) The user state to pass to the delegate above.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
         /// <remarks>The response array may be null, empty, or may contain null items.</remarks>
         public static CLError ListAllSyncboxes(
-            CLListSyncboxesCompletionCallback completionCallback,
-            object completionCallbackUserState,
             CLCredentials credentials,
+            out CLSyncbox[] returnedSyncboxes,
             ICLCredentialsSettings settings = null,
             Helpers.ReplaceExpiredCredentials getNewCredentialsCallback = null,
             object getNewCredentialsCallbackUserState = null)
@@ -1666,19 +1572,21 @@ namespace Cloud
                     {
                         if (syncbox != null)
                         {
-                            listSyncboxes.Add(new CLSyncbox(syncbox, credentials, null, copiedSettings, getNewCredentialsCallback, getNewCredentialsCallbackUserState));
+                            listSyncboxes.Add(
+                                new CLSyncbox(syncbox,
+                                    credentials,
+                                    copiedSettings,
+                                    getNewCredentialsCallback,
+                                    getNewCredentialsCallbackUserState));
                         }
                         else
                         {
-                            listSyncboxes.Add(null);
+                            throw new NullReferenceException(Resources.ExceptionCLHttpRestWithoutMetadata);  //&&&& fix this
                         }
                     }
 
-                    // Drive the completion callback to return the results.
-                    if (completionCallback != null)
-                    {
-                        completionCallback(listSyncboxes.ToArray(), completionCallbackUserState);
-                    }
+                    // Return the results.
+                    returnedSyncboxes = listSyncboxes.ToArray();
                 }
                 else
                 {
@@ -1688,6 +1596,7 @@ namespace Cloud
             }
             catch (Exception ex)
             {
+                returnedSyncboxes = Helpers.DefaultForType<CLSyncbox[]>();
                 return ex;
             }
             return null;
@@ -1719,7 +1628,7 @@ namespace Cloud
         /// Asynchronously starts querying the syncbox for an item at the syncbox root path; outputs a CLFileItem object.
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when operation completes</param>
-        /// <param name="asyncCallbackUserState">Userstate to pass when firing async callback</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing async callback</param>
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginRootFolder(AsyncCallback asyncCallback, object asyncCallbackUserState)
         {
@@ -1727,7 +1636,7 @@ namespace Cloud
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.BeginItemForPath(asyncCallback, asyncCallbackUserState, Resources.Backslash);
+            return httpRestClient.BeginItemForPath(asyncCallback, asyncCallbackUserState, (/* '/' */ ((char)0x2f)).ToString());
         }
 
         /// <summary>
@@ -1750,8 +1659,6 @@ namespace Cloud
         /// <summary>
         /// Queries the syncbox for an item at the syncbox root path.
         /// </summary>
-        /// <param name="completionCallback">Delegate which will be fired upon successful communication for every response item.</param>
-        /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion delegate is fired.</param>
         /// <param name="item">(output) The returned item.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError RootFolder(out CLFileItem item)
@@ -1760,21 +1667,72 @@ namespace Cloud
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.ItemForPath(Resources.Backslash, out item);
+            return httpRestClient.ItemForPath((/* '/' */ ((char)0x2f)).ToString(), out item);
         }
 
-        #endregion  // end GetItemAtPath (Queries the cloud for the item at a particular path)
+        #endregion  // end RootFolder (Queries the syncbox for the item at the root path)
+
+        #region ItemForItemUid (Returns a CLFileItem for the syncbox item with the given UID.)
+
+        /// <summary>
+        /// Asynchronously starts querying the syncbox for an item with the given UID. Outputs a CLFileItem object.
+        /// </summary>
+        /// <param name="asyncCallback">Callback method to fire when the async operation completes</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing async callback</param>
+        /// <param name="itemUid">The UID to use in the query.</param>
+        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        public IAsyncResult BeginItemForItemUid(
+            AsyncCallback asyncCallback,
+            object asyncCallbackUserState,
+            string itemUid)
+        {
+            CheckDisposed();
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.BeginItemForItemUid(asyncCallback, asyncCallbackUserState, itemUid);
+        }
+
+        /// <summary>
+        /// Finishes getting an item in the syncbox, if it has not already finished via its asynchronous result, and outputs the result,
+        /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
+        /// </summary>
+        /// <param name="asyncResult">The asynchronous result provided upon starting the request</param>
+        /// <param name="result">(output) An overall error which occurred during processing, if any</param>
+        /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
+        public CLError EndItemForItemUid(IAsyncResult asyncResult, out SyncboxGetItemAtItemUidResult result)
+        {
+            CheckDisposed();
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.EndItemForItemUid(asyncResult, out result);
+        }
+
+        /// <summary>
+        /// Query the syncbox for an item with the given UID. Outputs a CLFileItem object.
+        /// </summary>
+        /// <param name="itemUid">The UID to use in the query.</param>
+        /// <param name="item">(output) The returned item.</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        public CLError ItemForItemUid(string itemUid, out CLFileItem item)
+        {
+            CheckDisposed(isOneOff: true);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.ItemForItemUid(itemUid, out item);
+        }
+
+        #endregion  // end ItemForItemUid (Returns a CLFileItem for the syncbox item with the given UID.)
 
         #region ItemForPath (Queries the syncbox for the item at a particular path)
         /// <summary>
         /// Asynchronously starts querying the syncbox for an item at a given path (must be specified) for existing metadata at that path; outputs a CLFileItem object.
-        /// Check for Deleted flag being true in case the metadata represents a deleted item.
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when operation completes</param>
-        /// <param name="asyncCallbackUserState">Userstate to pass when firing async callback</param>
-        /// <param name="completionCallback">Delegate which will be fired upon successful communication for every response item.</param>
-        /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion delegate is fired.</param>
-        /// <param name="relativePath">Relative path in the syncbox to where file or folder would exist in the syncbox locally on disk.</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing async callback</param>
+        /// <param name="relativePath">Relative path in the syncbox.</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
         public IAsyncResult BeginItemForPath(
             AsyncCallback asyncCallback, 
@@ -1806,11 +1764,8 @@ namespace Cloud
 
         /// <summary>
         /// Queries the syncbox at a given file or folder path (must be specified) for existing item metadata at that path.
-        /// Check for Deleted flag being true in case the metadata represents a deleted item.
         /// </summary>
-        /// <param name="itemCompletionCallback">Delegate which will be fired upon successful communication for every response item.</param>
-        /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the completion delegate is fired.</param>
-        /// <param name="relativePath">Relative path in the syncbox to where file or folder would exist in the syncbox locally on disk.</param>
+        /// <param name="relativePath">Relative path in the syncbox.</param>
         /// <param name="item">(output) The returned item.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError ItemForPath(string relativePath, out CLFileItem item)
@@ -1822,16 +1777,232 @@ namespace Cloud
             return httpRestClient.ItemForPath(relativePath, out item);
         }
 
-        #endregion  // end GetItemAtPath (Queries the cloud for the item at a particular path)
+        #endregion  // end ItemForPath (Queries the syncbox for the item at a particular path)
+
+        #region ItemsForPath (Queries the syncbox for the contents of the folder item at a particular path)
+        /// <summary>
+        /// Asynchronously starts querying the syncbox for the contents of a folder item at a given relative path in the syncbox. Outputs an array of CLFileItem objects.
+        /// </summary>
+        /// <param name="asyncCallback">Callback method to fire when operation completes</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing async callback</param>
+        /// <param name="relativePath">Relative path in the syncbox.</param>
+        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        public IAsyncResult BeginItemsForPath(
+            AsyncCallback asyncCallback,
+            object asyncCallbackUserState,
+            string relativePath)
+        {
+            CheckDisposed();
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.BeginItemsForPath(asyncCallback, asyncCallbackUserState, relativePath);
+        }
+
+        /// <summary>
+        /// Finishes quering the syncbox for an item at a path, if it has not already finished via its asynchronous result, and outputs the result,
+        /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
+        /// </summary>
+        /// <param name="asyncResult">The asynchronous result provided upon starting the metadata query</param>
+        /// <param name="result">(output) The result from the metadata query</param>
+        /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
+        public CLError EndItemsForPath(IAsyncResult asyncResult, out SyncboxItemsAtPathResult result)
+        {
+            CheckDisposed();
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.EndItemsForPath(asyncResult, out result);
+        }
+
+        /// <summary>
+        /// Queries the syncbox at a given file or folder path (must be specified) for existing item metadata at that path.
+        /// </summary>
+        /// <param name="relativePath">Relative path in the syncbox.</param>
+        /// <param name="items">(output) The returned items.</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        public CLError ItemsForPath(string relativePath, out CLFileItem[] items)
+        {
+            CheckDisposed(isOneOff: true);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.ItemsForPath(relativePath, out items);
+        }
+
+        #endregion  // end ItemsForPath (Queries the syncbox for the contents of the folder item at a particular path)
+
+        #region ItemsForFolderItem (Queries the syncbox for the contents of the folder item)
+        /// <summary>
+        /// Asynchronously starts querying the syncbox for the contents of a folder at the given folder item. Outputs an array of CLFileItem objects.
+        /// </summary>
+        /// <param name="asyncCallback">Callback method to fire when operation completes</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing async callback</param>
+        /// <param name="folderItem">The CLFileItem representing the folder to query.  If folderItem is null, the contents of the synbox root folder will be returned.</param>
+        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        public IAsyncResult BeginItemsForFolderItem(
+            AsyncCallback asyncCallback,
+            object asyncCallbackUserState,
+            CLFileItem folderItem)
+        {
+            CheckDisposed();
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.BeginItemsForFolderItem(asyncCallback, asyncCallbackUserState, folderItem);
+        }
+
+        /// <summary>
+        /// Finishes quering the syncbox for the contents of a folder at the given folder item, if it has not already finished via its asynchronous result, and outputs the result,
+        /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
+        /// </summary>
+        /// <param name="asyncResult">The asynchronous result provided upon starting the metadata query</param>
+        /// <param name="result">(output) The result from the metadata query</param>
+        /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
+        public CLError EndItemsForFolderItem(IAsyncResult asyncResult, out SyncboxItemsForFolderItemResult result)
+        {
+            CheckDisposed();
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.EndItemsForFolderItem(asyncResult, out result);
+        }
+
+        /// <summary>
+        /// Queries the syncbox for the contents of a folder at the given folder item.
+        /// </summary>
+        /// <param name="folderItem">The CLFileItem representing the folder to query.  If folderItem is null, the contents of the synbox root folder will be returned.</param>
+        /// <param name="items">(output) The returned items.</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        public CLError ItemsForFolderItem(CLFileItem folderItem, out CLFileItem[] items)
+        {
+            CheckDisposed(isOneOff: true);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.ItemsForFolderItem(folderItem, out items);
+        }
+
+        #endregion  // end ItemsForFolderItem (Queries the syncbox for the contents of the folder item)
+
+        #region HierarchyOfFolderAtPath (Queries the syncbox for the folder hierarchy under the given folder path)
+        /// <summary>
+        /// Asynchronously starts getting the syncbox items that represent the specified folder's folder hierarchy.
+        /// </summary>
+        /// <param name="asyncCallback">Callback method to fire when operation completes</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing async callback</param>
+        /// <param name="relativePath">(optional) relative root path of contents query.  If this is null or empty, the syncbox root folder will be queried.</param>
+        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        public IAsyncResult BeginHierarchyOfFolderAtPath(
+            AsyncCallback asyncCallback,
+            object asyncCallbackUserState,
+            string relativePath = null)
+        {
+            CheckDisposed();
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.BeginHierarchyOfFolderAtPath(asyncCallback, asyncCallbackUserState, relativePath);
+        }
+
+        /// <summary>
+        /// Finishes getting the folder hierarchy, if it has not already finished via its asynchronous result, and outputs the result,
+        /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
+        /// </summary>
+        /// <param name="asyncResult">The asynchronous result provided upon starting getting folder contents</param>
+        /// <param name="result">(output) The result from folder contents</param>
+        /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
+        public CLError EndHierarchyOfFolderAtPath(IAsyncResult asyncResult, out SyncboxHierarchyOfFolderAtPathResult result)
+        {
+            CheckDisposed();
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.EndHierarchyOfFolderAtPath(asyncResult, out result);
+        }
+
+        /// <summary>
+        /// Gets the syncbox items that represent the specified folder's folder hierarchy.
+        /// </summary>
+        /// <param name="relativePath">(optional) relative root path of contents query.  If this is null or empty, the syncbox root folder will be queried.</param>
+        /// <param name="items">(output) resulting items.</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        public CLError HierarchyOfFolderAtPath(
+            string relativePath,
+            out CLFileItem[] items)
+        {
+            CheckDisposed(isOneOff: true);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.HierarchyOfFolderAtPath(relativePath, out items);
+        }
+
+        #endregion  // end HierarchyOfFolderAtPath (Queries the syncbox for the folder hierarchy under the given folder path)
+
+        #region HierarchyOfFolderAtFolderItem (Query the server for the folder hierarchy at a folder item)
+        /// <summary>
+        /// Asynchronously starts querying the syncbox folder hierarchy at a particular folder item.
+        /// </summary>
+        /// <param name="asyncCallback">Callback method to fire when operation completes</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing async callback</param>
+        /// <param name="folderItem">The CLFileItem representing the folder to query.  If folderItem is null, the hierarchy of the synbox root folder will be returned.</param>
+        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        public IAsyncResult BeginHierarchyOfFolderAtFolderItem(
+            AsyncCallback asyncCallback,
+            object asyncCallbackUserState,
+            CLFileItem folderItem)
+        {
+            CheckDisposed();
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.BeginHierarchyOfFolderAtFolderItem(asyncCallback, asyncCallbackUserState, folderItem);
+        }
+
+        /// <summary>
+        /// Finishes getting the folder hierarchy if it has not already finished via its asynchronous result, and outputs the result,
+        /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
+        /// </summary>
+        /// <param name="asyncResult">The asynchronous result provided upon starting getting folder contents</param>
+        /// <param name="result">(output) The result from folder contents</param>
+        /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
+        public CLError EndHierarchyOfFolderAtFolderItem(IAsyncResult asyncResult, out SyncboxHierarchyOfFolderAtFolderItemResult result)
+        {
+            CheckDisposed();
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.EndHierarchyOfFolderAtFolderItem(asyncResult, out result);
+        }
+
+        /// <summary>
+        /// Queries the syncbox folder hierarchy at a particular folder item.
+        /// </summary>
+        /// <param name="folderItem">The CLFileItem representing the folder to query.  If folderItem is null, the syncbox root folder will be queried.</param>
+        /// <param name="items">(output) response object from communication</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        public CLError HierarchyOfFolderAtFolderItem(
+            CLFileItem folderItem,
+            out CLFileItem[] items)
+        {
+            CheckDisposed(isOneOff: true);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.HierarchyOfFolderAtFolderItem(folderItem, out items);
+        }
+
+        #endregion  // end HierarchyOfFolderAtFolderItem (Query the server for the folder hierarchy at a folder item)
 
         #region RenameFiles (Rename files in-place in the syncbox)
         /// <summary>
         /// Asynchronously starts renaming files in-place in the syncbox.  Each item completion will fire an asynchronous callback with the completion status or error for that item.
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
-        /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing the async callback above.</param>
         /// <param name="itemCompletionCallback">Delegate which will be fired upon successful communication for every response item.</param>
-        /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the completion delegate is fired.</param>
+        /// <param name="itemCompletionCallbackUserState">User state to be passed whenever the completion delegate is fired.</param>
         /// <param name="itemsToRename">One or more pairs of items to rename and the new name of each item (just the filename.ext).</param>
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginRenameFiles(AsyncCallback asyncCallback, object asyncCallbackUserState, CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, params RenameItemParams[] itemsToRename)
@@ -1863,7 +2034,7 @@ namespace Cloud
         /// Renames files in-place in the syncbox.  Each item completion will fire an asynchronous callback with the completion status or error for that item.
         /// </summary>
         /// <param name="itemCompletionCallback">Delegate which will be fired upon successful communication for every response item.</param>
-        /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the completion delegate is fired.</param>
+        /// <param name="itemCompletionCallbackUserState">User state to be passed whenever the completion delegate is fired.</param>
         /// <param name="itemsToRename">One or more pairs of items to rename and the new name of each item (just the filename.ext).</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError RenameFiles(CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, params RenameItemParams[] itemsToRename)
@@ -1882,9 +2053,9 @@ namespace Cloud
         /// Asynchronously starts renaming folders in-place in the syncbox.  Each item completion will fire an asynchronous callback with the completion status or error for that item.
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
-        /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing the async callback above.</param>
         /// <param name="itemCompletionCallback">Delegate which will be fired upon successful communication for every response item.</param>
-        /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the completion delegate is fired.</param>
+        /// <param name="itemCompletionCallbackUserState">User state to be passed whenever the completion delegate is fired.</param>
         /// <param name="itemsToRename">One or more pairs of items to rename and the new name of each item (just the last token in the path).</param>
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginRenameFolders(AsyncCallback asyncCallback, object asyncCallbackUserState, CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, params RenameItemParams[] itemsToRename)
@@ -1916,7 +2087,7 @@ namespace Cloud
         /// Renames folders in-place in the syncbox.  Each item completion will fire an asynchronous callback with the completion status or error for that item.
         /// </summary>
         /// <param name="itemCompletionCallback">Delegate which will be fired upon successful communication for every response item.</param>
-        /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the completion delegate is fired.</param>
+        /// <param name="itemCompletionCallbackUserState">User state to be passed whenever the completion delegate is fired.</param>
         /// <param name="itemsToRename">An array of pairs of items to rename and the new name of each item (just the last token in the path).</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError RenameFolders(CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, params RenameItemParams[] itemsToRename)
@@ -1935,9 +2106,9 @@ namespace Cloud
         /// Asynchronously starts moving files in the syncbox.  Each item completion will fire an asynchronous callback with the completion status or error for that item.
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
-        /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing the async callback above.</param>
         /// <param name="itemCompletionCallback">Delegate which will be fired upon successful communication for every response item.</param>
-        /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the completion delegate is fired.</param>
+        /// <param name="itemCompletionCallbackUserState">User state to be passed whenever the completion delegate is fired.</param>
         /// <param name="itemsToMove">One or more pairs of item to move and a folder item representing the new parent of the item being moved.</param>
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginMoveFiles(
@@ -1974,7 +2145,7 @@ namespace Cloud
         /// Moves files in the syncbox.  Each item completion will fire an asynchronous callback with the completion status or error for that item.
         /// </summary>
         /// <param name="itemCompletionCallback">Delegate which will be fired upon successful communication for every response item.</param>
-        /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the completion delegate is fired.</param>
+        /// <param name="itemCompletionCallbackUserState">User state to be passed whenever the completion delegate is fired.</param>
         /// <param name="itemsToMove">One or more pairs of item to move and a folder item representing the new parent of the item being moved.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError MoveFiles(CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, params MoveItemParams[] itemsToMove)
@@ -1993,9 +2164,9 @@ namespace Cloud
         /// Asynchronously starts moving folders in the syncbox.  Each item completion will fire an asynchronous callback with the completion status or error for that item.
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
-        /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing the async callback above.</param>
         /// <param name="itemCompletionCallback">Delegate which will be fired upon successful communication for every response item.</param>
-        /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the completion delegate is fired.</param>
+        /// <param name="itemCompletionCallbackUserState">User state to be passed whenever the completion delegate is fired.</param>
         /// <param name="itemsToMove">One or more pairs of item to move and a folder item representing the new parent of the item being moved.</param>
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginMoveFolders(AsyncCallback asyncCallback, object asyncCallbackUserState, CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, params MoveItemParams[] itemsToMove)
@@ -2027,7 +2198,7 @@ namespace Cloud
         /// Moves folders in the syncbox.  Each item completion will fire an asynchronous callback with the completion status or error for that item.
         /// </summary>
         /// <param name="itemCompletionCallback">Delegate which will be fired upon successful communication for every response item.</param>
-        /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the completion delegate is fired.</param>
+        /// <param name="itemCompletionCallbackUserState">User state to be passed whenever the completion delegate is fired.</param>
         /// <param name="itemsToMove">One or more pairs of item to move and a folder item representing the new parent of the item being moved.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError MoveFolders(CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, params MoveItemParams[] itemsToMove)
@@ -2046,9 +2217,9 @@ namespace Cloud
         /// Asynchronously starts deleting files in the syncbox.  Each item completion will fire an asynchronous callback with the completion status or error for that item.
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
-        /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing the async callback above.</param>
         /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
-        /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the item completion callback above is fired.</param>
+        /// <param name="itemCompletionCallbackUserState">User state to be passed whenever the item completion callback above is fired.</param>
         /// <param name="itemsToDelete">One or more file items to delete.</param>
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginDeleteFiles(AsyncCallback asyncCallback, object asyncCallbackUserState, CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, params CLFileItem[] itemsToDelete)
@@ -2080,7 +2251,7 @@ namespace Cloud
         /// Deletes files in the syncbox.  Each item completion will fire an asynchronous callback with the completion status or error for that item.
         /// </summary>
         /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
-        /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the item completion callback above is fired.</param>
+        /// <param name="itemCompletionCallbackUserState">User state to be passed whenever the item completion callback above is fired.</param>
         /// <param name="itemsToDelete">One or more file items to delete.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError DeleteFiles(CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, params CLFileItem[] itemsToDelete)
@@ -2099,9 +2270,9 @@ namespace Cloud
         /// Asynchronously starts deleting folders in the syncbox.  Each item completion will fire an asynchronous callback with the completion status or error for that item.
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
-        /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing the async callback above.</param>
         /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
-        /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the item completion callback above is fired.</param>
+        /// <param name="itemCompletionCallbackUserState">User state to be passed whenever the item completion callback above is fired.</param>
         /// <param name="itemsToDelete">One or more folder items to delete.</param>
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginDeleteFolders(AsyncCallback asyncCallback, object asyncCallbackUserState, CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, params CLFileItem[] itemsToDelete)
@@ -2133,7 +2304,7 @@ namespace Cloud
         /// Deletes folders in the syncbox.  Each item completion will fire an asynchronous callback with the completion status or error for that item.
         /// </summary>
         /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
-        /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the item completion callback above is fired.</param>
+        /// <param name="itemCompletionCallbackUserState">User state to be passed whenever the item completion callback above is fired.</param>
         /// <param name="itemsToDelete">One or more folder items to delete.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError DeleteFolders(CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, params CLFileItem[] itemsToDelete)
@@ -2152,9 +2323,9 @@ namespace Cloud
         /// Asynchronously starts adding folders to the syncbox.  Each item completion will fire an asynchronous callback with the completion status or error for that item.
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
-        /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing the async callback above.</param>
         /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
-        /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the item completion callback above is fired.</param>
+        /// <param name="itemCompletionCallbackUserState">User state to be passed whenever the item completion callback above is fired.</param>
         /// <param name="folderItemsToAdd">One or more pairs of folder parent item and name of the new folder to add.</param>
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginAddFolders(AsyncCallback asyncCallback, object asyncCallbackUserState, CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, params AddFolderItemParams[] folderItemsToAdd)
@@ -2186,7 +2357,7 @@ namespace Cloud
         /// Adds folders to the syncbox.  Each item completion will fire an asynchronous callback with the completion status or error for that item.
         /// </summary>
         /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
-        /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the item completion callback above is fired.</param>
+        /// <param name="itemCompletionCallbackUserState">User state to be passed whenever the item completion callback above is fired.</param>
         /// <param name="itemsToDelete">One or more file items to delete.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError AddFolders(CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, params AddFolderItemParams[] folderItemsToAdd)
@@ -2200,22 +2371,25 @@ namespace Cloud
 
         #endregion  // end AddFolders (Add folders to the syncbox)
 
-        #region AddFile (Adds a file in the syncbox)
+        #region AddFiles (Adds files to the syncbox)
         /// <summary>
         /// Asynchronously starts adding files in the syncbox.
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
-        /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing the async callback above.</param>
         /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
-        /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the item completion callback above is fired.</param>
-        /// <param name="filesToAdd">(params) An array of pairs of relative path in the syncbox of the file to add, and the parent folder item that will hold the added file.</param>
+        /// <param name="itemCompletionCallbackUserState">User state to be passed whenever the item completion callback above is fired.</param>
+        /// <param name="transferStatusCallback">Callback method which will be fired when the transfer progress changes for upload.  Can be null</param>
+        /// <param name="transferStatusCallbackUserState">User state to be passed whenever the transfer progress callback is fired.  Can be null.</param>
+        /// <param name="cancellationSource">An optional cancellation token which may be used to cancel uploads in progress immediately.  Can be null</param>
+        /// <param name="filesToAdd">(params) An array of information for each file to add (full path of the file, parent folder in the syncbox and the name of the file in the syncbox).</param>
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginAddFiles(
             AsyncCallback asyncCallback,
             object asyncCallbackUserState,
             CLFileItemCompletionCallback itemCompletionCallback,
             object itemCompletionCallbackUserState,
-            CLFileItemTransferStatusDelegate transferStatusCallback,
+            CLFileUploadTransferStatusCallback transferStatusCallback,
             object transferStatusCallbackUserState,
             CancellationTokenSource cancellationSource,
             params AddFileItemParams[] filesToAdd)
@@ -2244,19 +2418,19 @@ namespace Cloud
         }
 
         /// <summary>
-        /// Add files in the syncbox.
+        /// Add files in the syncbox.  Uploads the files to the Cloud.
         /// </summary>
         /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
-        /// <param name="itemCompletionCallbackUserState">Userstate to be passed whenever the item completion callback above is fired.</param>
-        /// <param name="transferStatusCallback">Callback method which will be fired when the transfer progress changes for upload, can be null</param>
-        /// <param name="transferStatusCallbackState">Userstate to be passed whenever the transfer progress callback is fired</param>
-        /// <param name="cancellationSource">An optional cancellation token which may be used to cancel uploads in progress immediately, can be null</param>
-        /// <param name="filesToAdd">(params) An array of pairs of relative path in the syncbox of the file to add, and the parent folder item that will hold the added file.</param>
+        /// <param name="itemCompletionCallbackUserState">User state to be passed whenever the item completion callback above is fired.</param>
+        /// <param name="transferStatusCallback">Callback method which will be fired when the transfer progress changes for upload.  Can be null</param>
+        /// <param name="transferStatusCallbackUserState">User state to be passed whenever the transfer progress callback is fired.  Can be null.</param>
+        /// <param name="cancellationSource">An optional cancellation token which may be used to cancel uploads in progress immediately.  Can be null</param>
+        /// <param name="filesToAdd">(params) An array of information for each file to add (full path of the file, parent folder in the syncbox and the name of the file in the syncbox).</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError AddFiles(
             CLFileItemCompletionCallback itemCompletionCallback,
             object itemCompletionCallbackUserState,
-            CLFileItemTransferStatusDelegate transferStatusCallback,
+            CLFileUploadTransferStatusCallback transferStatusCallback,
             object transferStatusCallbackUserState,
             CancellationTokenSource cancellationSource,
             params AddFileItemParams[] filesToAdd)
@@ -2268,68 +2442,7 @@ namespace Cloud
             return httpRestClient.AddFiles(itemCompletionCallback, itemCompletionCallbackUserState, transferStatusCallback, transferStatusCallbackUserState, cancellationSource, filesToAdd);
         }
 
-        #endregion  // end AddFile (Adds a file in the syncbox)
-
-        #region AddFiles (Add files in the syncbox)
-        ///// <summary>
-        ///// Asynchronously starts adding files in the syncbox; outputs an array of  CLFileItem objects, and possibly an array of CLError objects.
-        ///// </summary>
-        ///// <param name="asyncCallback">Callback method to fire when operation completes</param>
-        ///// <param name="asyncCallbackUserState">Userstate to pass when firing async callback</param>
-        ///// <param name="paths">An array of full paths to where the files would exist locally on disk.</param>
-        ///// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
-        //public IAsyncResult BeginAddFiles(AsyncCallback asyncCallback, object asyncCallbackUserState, string[] paths)
-        //{
-        //    CheckDisposed(true);
-
-        //    CLHttpRest httpRestClient;
-        //    GetInstanceRestClient(out httpRestClient);
-        //    return httpRestClient.BeginAddFiles(asyncCallback, asyncCallbackUserState, paths);
-        //}
-
-        ///// <summary>
-        ///// Finishes adding files in the syncbox, if it has not already finished via its asynchronous result, and outputs the result,
-        ///// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
-        ///// </summary>
-        ///// <param name="asyncResult">The asynchronous result provided upon starting the metadata query</param>
-        ///// <param name="result">(output) The result from the metadata query</param>
-        ///// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        //public CLError EndAddFiles(IAsyncResult asyncResult, out SyncboxAddFilesResult result)
-        //{
-        //    CheckDisposed(true);
-        //    SyncboxAddFilesResult deleteResult;
-
-        //    CLHttpRest httpRestClient;
-        //    GetInstanceRestClient(out httpRestClient);
-        //    CLError error = httpRestClient.EndAddFiles(asyncResult, out deleteResult);
-
-        //    if (error != null)
-        //    {
-        //        result = null;
-        //        return error;
-        //    }
-
-        //    result = new SyncboxAddFilesResult(deleteResult.OverallError, deleteResult.Errors, deleteResult.FileItems);
-        //    return error;
-        //}
-
-        ///// <summary>
-        ///// Adds files in the syncbox.
-        ///// </summary>
-        ///// <param name="paths">An array of full paths to where the files would exist locally on disk.</param>
-        ///// <param name="fileItems">(output) response object from communication</param>
-        ///// <param name="errors">(output) Any returned errors, or null.</param>
-        ///// <returns>Returns any error that occurred during communication, if any</returns>
-        //public CLError AddFiles(string[] paths, out CLFileItem[] fileItems, out CLError[] errors)
-        //{
-        //    CheckDisposed(true);
-
-        //    CLHttpRest httpRestClient;
-        //    GetInstanceRestClient(out httpRestClient);
-        //    return httpRestClient.AddFiles(paths, out fileItems, out errors);
-        //}
-
-        #endregion  // end AddFiles (Add files in the syncbox)
+        #endregion  // end AddFiles (Adds files to the syncbox)
 
         #region GetAllPending
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
@@ -2337,7 +2450,7 @@ namespace Cloud
         /// Asynchronously starts querying for all pending files
         /// </summary>
         /// <param name="aCallback">Callback method to fire when operation completes</param>
-        /// <param name="aState">Userstate to pass when firing async callback</param>
+        /// <param name="aState">User state to pass when firing async callback</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginGetAllPending(AsyncCallback asyncCallback,
@@ -2390,7 +2503,7 @@ namespace Cloud
         /// Asynchronously starts querying the server for all versions of a given file
         /// </summary>
         /// <param name="aCallback">Callback method to fire when operation completes</param>
-        /// <param name="aState">Userstate to pass when firing async callback</param>
+        /// <param name="aState">User state to pass when firing async callback</param>
         /// <param name="fileServerId">Unique id to the file on the server</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
@@ -2414,7 +2527,7 @@ namespace Cloud
         /// Asynchronously starts querying the server for all versions of a given file
         /// </summary>
         /// <param name="aCallback">Callback method to fire when operation completes</param>
-        /// <param name="aState">Userstate to pass when firing async callback</param>
+        /// <param name="aState">User state to pass when firing async callback</param>
         /// <param name="fileServerId">Unique id to the file on the server</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <param name="includeDeletedVersions">(optional) whether to include file versions which are deleted</param>
@@ -2441,7 +2554,7 @@ namespace Cloud
         /// Asynchronously starts querying the server for all versions of a given file
         /// </summary>
         /// <param name="aCallback">Callback method to fire when operation completes</param>
-        /// <param name="aState">Userstate to pass when firing async callback</param>
+        /// <param name="aState">User state to pass when firing async callback</param>
         /// <param name="fileServerId">Unique id to the file on the server</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <param name="pathToFile">Full path to the file where it would be placed locally within the sync root</param>
@@ -2463,7 +2576,7 @@ namespace Cloud
         /// Asynchronously starts querying the server for all versions of a given file
         /// </summary>
         /// <param name="aCallback">Callback method to fire when operation completes</param>
-        /// <param name="aState">Userstate to pass when firing async callback</param>
+        /// <param name="aState">User state to pass when firing async callback</param>
         /// <param name="fileServerId">Unique id to the file on the server</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <param name="pathToFile">Full path to the file where it would be placed locally within the sync root</param>
@@ -2487,7 +2600,7 @@ namespace Cloud
         /// Asynchronously starts querying the server for all versions of a given file
         /// </summary>
         /// <param name="aCallback">Callback method to fire when operation completes</param>
-        /// <param name="aState">Userstate to pass when firing async callback</param>
+        /// <param name="aState">User state to pass when firing async callback</param>
         /// <param name="fileServerId">Unique id to the file on the server</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <param name="pathToFile">Full path to the file where it would be placed locally within the sync root</param>
@@ -2510,7 +2623,7 @@ namespace Cloud
         /// Asynchronously starts querying the server for all versions of a given file
         /// </summary>
         /// <param name="aCallback">Callback method to fire when operation completes</param>
-        /// <param name="aState">Userstate to pass when firing async callback</param>
+        /// <param name="aState">User state to pass when firing async callback</param>
         /// <param name="fileServerId">Unique id to the file on the server</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <param name="pathToFile">Full path to the file where it would be placed locally within the sync root</param>
@@ -2662,7 +2775,7 @@ namespace Cloud
         /// via the completion callback.
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
-        /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing the async callback above.</param>
         /// <param name="pageNumber">Beginning page number.  The first page is page 1.</param>
         /// <param name="itemsPerPage">Items per page.</param>
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
@@ -2698,7 +2811,7 @@ namespace Cloud
         /// <param name="itemsPerPage">Items per page.</param>
         /// <param name="items">The resulting file items.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError AllImageItems(CLAllItemsCompletionCallback completionCallback, object completionCallbackUserState, long pageNumber, long itemsPerPage, out CLFileItem[] items)
+        public CLError AllImageItems(long pageNumber, long itemsPerPage, out CLFileItem[] items)
         {
             CheckDisposed(true);
 
@@ -2716,7 +2829,7 @@ namespace Cloud
         /// via the completion callback.
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
-        /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing the async callback above.</param>
         /// <param name="pageNumber">Beginning page number.  The first page is page 1.</param>
         /// <param name="itemsPerPage">Items per page.</param>
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
@@ -2752,7 +2865,7 @@ namespace Cloud
         /// <param name="itemsPerPage">Items per page.</param>
         /// <param name="items">The resulting file items.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError AllVideoItems(CLAllItemsCompletionCallback completionCallback, object completionCallbackUserState, long pageNumber, long itemsPerPage, out CLFileItem[] items)
+        public CLError AllVideoItems(long pageNumber, long itemsPerPage, out CLFileItem[] items)
         {
             CheckDisposed(true);
 
@@ -2770,7 +2883,7 @@ namespace Cloud
         /// via the completion callback.
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
-        /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing the async callback above.</param>
         /// <param name="pageNumber">Beginning page number.  The first page is page 1.</param>
         /// <param name="itemsPerPage">Items per page.</param>
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
@@ -2824,7 +2937,7 @@ namespace Cloud
         /// via the completion callback.
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
-        /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing the async callback above.</param>
         /// <param name="pageNumber">Beginning page number.  The first page is page 1.</param>
         /// <param name="itemsPerPage">Items per page.</param>
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
@@ -2857,7 +2970,7 @@ namespace Cloud
         /// Query document items from the syncbox.
         /// </summary>
         /// <param name="completionCallback">Callback method to fire when a page of items is complete.  Returns the result.</param>
-        /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion callback above is fired.</param>
+        /// <param name="completionCallbackUserState">User state to be passed whenever the completion callback above is fired.</param>
         /// <param name="pageNumber">Beginning page number.  The first page is page 1.</param>
         /// <param name="itemsPerPage">Items per page.</param>
         /// <param name="items">(output) The resulting file items.</param>
@@ -2880,7 +2993,7 @@ namespace Cloud
         /// via the completion callback.
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
-        /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing the async callback above.</param>
         /// <param name="pageNumber">Beginning page number.  The first page is page 1.</param>
         /// <param name="itemsPerPage">Items per page.</param>
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
@@ -2934,7 +3047,7 @@ namespace Cloud
         /// via the completion callback.
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
-        /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing the async callback above.</param>
         /// <param name="pageNumber">Beginning page number.  The first page is page 1.</param>
         /// <param name="itemsPerPage">Items per page.</param>
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
@@ -2970,7 +3083,7 @@ namespace Cloud
         /// <param name="itemsPerPage">Items per page.</param>
         /// <param name="items">(output) The resulting file items.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError AllPlainTextItems(CLAllItemsCompletionCallback completionCallback, object completionCallbackUserState, long pageNumber, long itemsPerPage, out CLFileItem[] items)
+        public CLError AllPlainTextItems(long pageNumber, long itemsPerPage, out CLFileItem[] items)
         {
             CheckDisposed(true);
 
@@ -2988,7 +3101,7 @@ namespace Cloud
         /// via the completion callback.
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
-        /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing the async callback above.</param>
         /// <param name="pageNumber">Beginning page number.  The first page is page 1.</param>
         /// <param name="itemsPerPage">Items per page.</param>
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
@@ -3041,7 +3154,7 @@ namespace Cloud
         /// Asynchronously starts retrieving the <CLFileItems>s of all of the file items contained in the syncbox that have the specified file extensions.
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
-        /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing the async callback above.</param>
         /// <param name="pageNumber">Beginning page number.  The first page is page 1.</param>
         /// <param name="itemsPerPage">Items per page.</param>
         /// <param name="extensions">The array of file extensions the item type should belong to. I.E txt, jpg, pdf, etc.</param>
@@ -3085,7 +3198,7 @@ namespace Cloud
         /// <param name="extensions">The array of file extensions the item type should belong to. I.E txt, jpg, pdf, etc.</param>
         /// <param name="items">(output) The resulting file items.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError AllItemsOfTypes(CLAllItemsCompletionCallback completionCallback, object completionCallbackUserState, long pageNumber, long itemsPerPage, out CLFileItem[] items, params string[] extensions)
+        public CLError AllItemsOfTypes(long pageNumber, long itemsPerPage, out CLFileItem[] items, params string[] extensions)
         {
             CheckDisposed(true);
 
@@ -3096,23 +3209,19 @@ namespace Cloud
 
         #endregion  // end AllItemsOfTypes (Get file items with various extensions from this syncbox)
 
-        #region RecentFiles (Retrieves the specified number of recently modified <CLFileItems>s.)
+        #region RecentFilesSinceDate (Retrieves the specified number of recently modified <CLFileItems>s.)
         /// <summary>
-        /// Asynchronously starts retrieving the specified number of recently modified files (<CLFileItems>s).
+        /// Asynchronously starts retrieving the recently modified files (<CLFileItems>s) from the syncbox since a particular date.
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
-        /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
-        /// <param name="completionCallback">Callback method to fire when a page of items is complete.  Return the result.</param>
-        /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion callback above is fired.</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing the async callback above.</param>
         /// <param name="pageNumber">Beginning page number.  The first page is page 1.</param>
         /// <param name="itemsPerPage">Items per page.</param>
         /// <param name="sinceDate">(optional) null to retrieve all of the recents, or specify a date to retrieve items from that date forward.</param>
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
-        public IAsyncResult BeginRecentFiles(
+        public IAsyncResult BeginRecentFilesSinceDate(
             AsyncCallback asyncCallback,
             object asyncCallbackUserState,
-            CLAllItemsCompletionCallback completionCallback,
-            object completionCallbackUserState,
             long pageNumber,
             long itemsPerPage,
             Nullable<DateTime> sinceDate = null)
@@ -3121,7 +3230,62 @@ namespace Cloud
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.BeginRecentFiles(asyncCallback, asyncCallbackUserState, completionCallback, completionCallbackUserState, pageNumber, itemsPerPage, sinceDate);
+            return httpRestClient.BeginRecentFilesSinceDate(asyncCallback, asyncCallbackUserState, pageNumber, itemsPerPage, sinceDate);
+        }
+
+        /// <summary>
+        /// Finishes retrieving recent file items from the syncbox, if it has not already finished via its asynchronous result, and outputs the result,
+        /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
+        /// </summary>
+        /// <param name="asyncResult">The asynchronous result provided upon starting the request</param>
+        /// <param name="result">(output) An overall error which occurred during processing, if any</param>
+        /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
+        public CLError EndRecentFilesSinceDate(IAsyncResult asyncResult, out SyncboxRecentFilesSinceDateResult result)
+        {
+            CheckDisposed(true);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.EndRecentFilesSinceDate(asyncResult, out result);
+        }
+
+        /// <summary>
+        /// Rretrieve the recently modified files (<CLFileItems>s) from the syncbox since a particular date.
+        /// </summary>
+        /// <param name="pageNumber">Beginning page number.  The first page is page 1.</param>
+        /// <param name="itemsPerPage">Items per page.</param>
+        /// <param name="items">(output) The retrieved items.</param>
+        /// <param name="sinceDate">(optional) null to retrieve all of the recents, or specify a date to retrieve items from that date forward.</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        public CLError RecentFilesSinceDate(long pageNumber, long itemsPerPage, out CLFileItem[] items, Nullable<DateTime> sinceDate = null)
+        {
+            CheckDisposed(true);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.RecentFilesSinceDate(pageNumber, itemsPerPage, out items, sinceDate);
+        }
+
+        #endregion  // end RecentFilesSincDate (Retrieves the specified number of recently modified <CLFileItems>s.)
+
+        #region RecentFiles (Retrieves the specified number of recently modified <CLFileItems>s.)
+        /// <summary>
+        /// Asynchronously starts retrieving up to the given number of recently modified syncbox files.
+        /// </summary>
+        /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing the async callback above.</param>
+        /// <param name="returnLimit">The maximum number of file items to retrieve.</param>
+        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        public IAsyncResult BeginRecentFiles(
+            AsyncCallback asyncCallback,
+            object asyncCallbackUserState,
+            long returnLimit)
+        {
+            CheckDisposed(true);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.BeginRecentFiles(asyncCallback, asyncCallbackUserState, returnLimit);
         }
 
         /// <summary>
@@ -3141,170 +3305,28 @@ namespace Cloud
         }
 
         /// <summary>
-        /// Retrieve the specified number of recently modified files (<CLFileItems>s).
+        /// Retrieve up to the given number of recently modified syncbox files.
         /// </summary>
-        /// <param name="completionCallback">Callback method to fire when a page of items is complete.</param>
-        /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion callback above is fired.  Returns the result.</param>
-        /// <param name="pageNumber">Beginning page number.  The first page is page 1.</param>
-        /// <param name="itemsPerPage">Items per page.</param>
-        /// <param name="sinceDate">(optional) null to retrieve all of the recents, or specify a date to retrieve items from that date forward.</param>
+        /// <param name="returnLimit">The maximum number of file items to retrieve.</param>
+        /// <param name="items">(output) The retrieved items.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError RecentFiles(CLAllItemsCompletionCallback completionCallback, object completionCallbackUserState, long pageNumber, long itemsPerPage, Nullable<DateTime> sinceDate = null)
+        public CLError RecentFiles(long returnLimit, out CLFileItem[] items)
         {
             CheckDisposed(true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.RecentFiles(completionCallback, completionCallbackUserState, pageNumber, itemsPerPage, sinceDate);
+            return httpRestClient.RecentFiles(returnLimit, out items);
         }
 
         #endregion  // end RecentFiles (Retrieves the specified number of recently modified <CLFileItems>s.)
-
-        #region GetFolderContentsAtPath (Query the cloud for the contents of a syncbox folder at a path)
-        /// <summary>
-        /// Asynchronously starts querying folder contents from the cloud at a particular path.
-        /// </summary>
-        /// <param name="asyncCallback">Callback method to fire when operation completes</param>
-        /// <param name="asyncCallbackUserState">Userstate to pass when firing async callback</param>
-        /// <param name="path">Full path of the folder that would be on disk in the syncbox.</param>
-        /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
-        public IAsyncResult BeginGetFolderContents(AsyncCallback asyncCallback, object asyncCallbackUserState, string path)
-        {
-            CheckDisposed(true);
-
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.BeginGetFolderContentsAtPath(asyncCallback, asyncCallbackUserState, path);
-        }
-
-        /// <summary>
-        /// Finishes getting folder contents if it has not already finished via its asynchronous result and outputs the result,
-        /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
-        /// </summary>
-        /// <param name="asyncResult">The asynchronous result provided upon starting getting folder contents</param>
-        /// <param name="result">(output) The result from folder contents</param>
-        /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndGetFolderContentsAtPath(IAsyncResult asyncResult, out SyncboxGetFolderContentsAtPathResult result)
-        {
-            CheckDisposed(true);
-
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.EndGetFolderContents(asyncResult, out result);
-        }
-
-        /// <summary>
-        /// Queries server for folder contents with an optional path and an optional depth limit
-        /// </summary>
-        /// <param name="path">The full path of the folder that would be on disk in the local syncbox folder.</param>
-        /// <param name="response">(output) response object from communication</param>
-        /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError GetFolderContents(
-            string path,
-            out CLFileItem[] response)
-        {
-            CheckDisposed(true);
-
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.GetFolderContentsAtPath(path, out response);
-        }
-
-        #endregion  // end GetFolderContentsAtPath (Query the cloud for the contents of a syncbox folder at a path)
-
-        #region GetFolderHierarchy
-        /// <summary>
-        /// Asynchronously starts querying folder hierarchy with optional path
-        /// </summary>
-        /// <param name="asyncCallback">Callback method to fire when operation completes</param>
-        /// <param name="asyncCallbackState">Userstate to pass when firing async callback</param>
-        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
-        /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
-        public IAsyncResult BeginGetFolderHierarchy(AsyncCallback asyncCallback,
-            object asyncCallbackState,
-            int timeoutMilliseconds)
-        {
-            CheckDisposed(true);
-
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.BeginGetFolderHierarchy(asyncCallback, asyncCallbackState, timeoutMilliseconds);
-        }
-
-        /// <summary>
-        /// Asynchronously starts querying folder hierarchy with optional path
-        /// </summary>
-        /// <param name="asyncCallback">Callback method to fire when operation completes</param>
-        /// <param name="asyncCallbackState">Userstate to pass when firing async callback</param>
-        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
-        /// <param name="hierarchyRoot">(optional) root path of hierarchy query</param>
-        /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
-        public IAsyncResult BeginGetFolderHierarchy(AsyncCallback asyncCallback,
-            object asyncCallbackState,
-            int timeoutMilliseconds,
-            FilePath hierarchyRoot)
-        {
-            CheckDisposed(true);
-
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.BeginGetFolderHierarchy(asyncCallback, asyncCallbackState, timeoutMilliseconds, hierarchyRoot);
-        }
-        
-        /// <summary>
-        /// Finishes getting folder hierarchy if it has not already finished via its asynchronous result and outputs the result,
-        /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
-        /// </summary>
-        /// <param name="asyncResult">The asynchronous result provided upon starting getting folder hierarchy</param>
-        /// <param name="result">(output) The result from folder hierarchy</param>
-        /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndGetFolderHierarchy(IAsyncResult asyncResult, out GetFolderHierarchyResult result)
-        {
-            CheckDisposed(true);
-
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.EndGetFolderHierarchy(asyncResult, out result);
-        }
-
-        /// <summary>
-        /// Queries server for folder hierarchy with an optional path
-        /// </summary>
-        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
-        /// <param name="response">(output) response object from communication</param>
-        /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError GetFolderHierarchy(int timeoutMilliseconds,out JsonContracts.FoldersResponse response)
-        {
-            CheckDisposed(true);
-
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.GetFolderHierarchy(timeoutMilliseconds, out response);
-        }
-
-        /// <summary>
-        /// Queries server for folder hierarchy with an optional path
-        /// </summary>
-        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
-        /// <param name="response">(output) response object from communication</param>
-        /// <param name="hierarchyRoot">(optional) root path of hierarchy query</param>
-        /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError GetFolderHierarchy(int timeoutMilliseconds, out JsonContracts.FoldersResponse response, FilePath hierarchyRoot)
-        {
-            CheckDisposed(true);
-
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.GetFolderHierarchy(timeoutMilliseconds, out response, hierarchyRoot);
-        }
-        #endregion
 
         #region GetDataUsage (get the usage information for this syncbox from the cloud)
         /// <summary>
         /// Asynchronously starts getting the usage information for this syncbox from the cloud.
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when operation completes</param>
-        /// <param name="asyncCallbackUserState">Userstate to pass as a parameter when firing async callback</param>
+        /// <param name="asyncCallbackUserState">User state to pass as a parameter when firing async callback</param>
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginGetDataUsage(AsyncCallback asyncCallback, object asyncCallbackUserState)
         {
@@ -3374,7 +3396,7 @@ namespace Cloud
         /// Asynchronously updates the extended metadata on a sync box
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when operation completes</param>
-        /// <param name="asyncCallbackState">Userstate to pass when firing async callback</param>
+        /// <param name="asyncCallbackState">User state to pass when firing async callback</param>
         /// <param name="metadata">string keys to serializable object values to store as extra metadata to the sync box</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
@@ -3394,7 +3416,7 @@ namespace Cloud
         /// Asynchronously updates the extended metadata on a sync box
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when operation completes</param>
-        /// <param name="asyncCallbackState">Userstate to pass when firing async callback</param>
+        /// <param name="asyncCallbackState">User state to pass when firing async callback</param>
         /// <param name="metadata">string keys to serializable object values to store as extra metadata to the sync box</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
@@ -3464,8 +3486,8 @@ namespace Cloud
         /// Asynchronously updates the storage plan for a syncbox in the syncbox.
         /// Updates this object's StoragePlanId property.
         /// </summary>
-        /// <param name="callback">Callback method to fire when operation completes</param>
-        /// <param name="asyncCallbackUserState">Userstate to pass as a parameter when firing async callback</param>
+        /// <param name="asyncCallback">Callback method to fire when operation completes</param>
+        /// <param name="asyncCallbackUserState">User state to pass as a parameter when firing async callback</param>
         /// <param name="storagePlan">The new storage plan to use for this syncbox)</param>
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginUpdateStoragePlan(AsyncCallback asyncCallback, object asyncCallbackUserState, CLStoragePlan storagePlan)
@@ -3544,16 +3566,12 @@ namespace Cloud
         /// Asynchronously starts changing the friendly name of this syncbox.  Updates the information in this syncbox object.
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
-        /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
-        /// <param name="completionCallback">Callback method to fire when a page of items is complete.  Return the result.</param>
-        /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion callback above is fired.</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing the async callback above.</param>
         /// <param name="friendlyName">The new friendly name of this syncbox)</param>
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginUpdateFriendlyName<T>(
             AsyncCallback asyncCallback,
             object asyncCallbackUserState,
-            Action<JsonContracts.SyncboxResponse, T> completionCallback,
-            T completionCallbackUserState,
             string friendlyName)
         {
             CheckDisposed(true);
@@ -3587,14 +3605,9 @@ namespace Cloud
         /// <summary>
         /// Changes the friendly name of this syncbox.  Updates the information in this syncbox object.
         /// </summary>
-        /// <param name="completionCallback">Callback method to fire when a page of items is complete.  Return the result.</param>
-        /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion callback above is fired.</param>
-        /// <param name="reservedForActiveSync">true: Live sync is active.  User calls are not allowed.</param>
         /// <param name="friendlyName">The new friendly name of this syncbox)</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError UpdateFriendlyName<T>(
-            Action<JsonContracts.SyncboxResponse, T> completionCallback,
-            T completionCallbackUserState,
             string friendlyName)
         {
             CheckDisposed(true);
@@ -3632,7 +3645,7 @@ namespace Cloud
         /// Asynchronously gets the status of this Syncbox.
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when operation completes</param>
-        /// <param name="callbackUserState">Userstate to pass when firing async callback</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing async callback</param>
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginGetCurrentStatus(AsyncCallback asyncCallback, object asyncCallbackUserState)
         {
@@ -3671,7 +3684,6 @@ namespace Cloud
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            JsonContracts.SyncboxStatusResponse response;
             return httpRestClient.GetCurrentStatus(new Action<JsonContracts.SyncboxStatusResponse, object>(OnStatusCompletion), null);
         }
 
@@ -3699,13 +3711,22 @@ namespace Cloud
         #endregion  // end GetCurrentStatus (update the status of this syncbox from the cloud)
 
         /// <summary>
-        /// Sets the full path on the local disk that is associated with this Syncbox.  This method does not communicate with the server.
+        /// Initializes a CLSyncbox which was created by the SDK. For example, ListAllSyncboxes allocates instances of CLSyncbox, but does not initialize them for usage.
         /// </summary>
+        /// <param name="path">(optional) The full path of the folder on disk to associate with this syncbox.  The path is used only for live sync.</param>
         /// <returns>Returns any error that occurred, or null</returns>
-        /// <remarks>The path may be set only once.</remarks>
-        public CLError UpdatePath(string path)
+        /// <remarks>Each instance of CLSyncbox can only be initialized once, either by AllocAndInit or by InitWithPath.</remarks>
+        public CLError InitWithPath(string path = null)
         {
-            CLError errorFromSet = UpdatePathInternal(path, shouldUpdateSyncboxStatusFromServer: true);
+            CheckDisposed();
+
+            // Fix up the path.  Use String.Empty if the user passed null.
+            if (path == null)
+            {
+                path = String.Empty;
+            }
+
+            CLError errorFromSet = InitializeInternal(path, shouldUpdateSyncboxStatusFromServer: true);
             return errorFromSet;
         }
 
@@ -3787,16 +3808,13 @@ namespace Cloud
 
         /// <summary>
         /// It is possible to create non-functional syncbox instances.  For example, listing all of the syncboxes for a set of credentials via the server constructs
-        /// an array of CLSyncbox instances, but the information from the server does not include the local syncbox paths.  The instances are unusable in this state
-        /// and any operation that requires the local syncbox path will throw an error.  It is up to the app to provide the local syncbox path before using the instance.
-        /// This is done via SetSyncboxPath().  SetSyncboxPath() defers to this internal version.  This function acts like an extension of the constructor, and it
+        /// an array of CLSyncbox instances, but the information from the server does not include the local syncbox paths.  The instances are unusable for live sync
+        /// in this state and any operation that requires the local syncbox path will throw an error.  It is up to the app to provide the local syncbox path before using the instance
+        /// for live sync.  This is done via SetSyncboxPath().  SetSyncboxPath() defers to this internal version.  This function acts like an extension of the constructor, and it
         /// if called by constructors to create the CLHttpRest client, fill in missing information from the server, and to create an instance of CLSyncEngine that will
         /// be used by this syncbox instance.
         /// </summary>
-        /// <param name="path"></param>
-        /// <param name="shouldUpdateSyncboxStatusFromServer"></param>
-        /// <returns></returns>
-        private CLError UpdatePathInternal(string path, bool shouldUpdateSyncboxStatusFromServer)
+        private CLError InitializeInternal(string path, bool shouldUpdateSyncboxStatusFromServer)
         {
             if (path == null)
             {
@@ -3807,13 +3825,22 @@ namespace Cloud
             {
                 Monitor.Enter(setPathLocker);
             }
+
+            // seperate this try/catch just for throwing the Syncbox_PathAlreadySet code since cleanup on the following try/catch should not cleanup an already initialized syncbox
             try
             {
                 if (setPathHolder != null)
                 {
                     throw new CLException(CLExceptionCode.Syncbox_PathAlreadySet, Resources.ExceptionOnDemandSyncboxPathAlreadySet);
                 }
+            }
+            catch (Exception ex)
+            {
+                return ex;
+            }
 
+            try
+            {
                 //TODO: Remove this when the sync engine support case insensitive paths.
                 // This was required because OSD code was providing paths that started with a lower case drive letter.
                 if (path.Length >= 2 && path[1] == ':')
@@ -3888,6 +3915,9 @@ namespace Cloud
             }
             catch (Exception ex)
             {
+                // cleanup to allow a repeated attempt to initialize
+                setPathHolder = null;
+
                 return ex;
             }
             finally
@@ -4029,23 +4059,6 @@ namespace Cloud
                 Helpers.CheckHalted();
             }
         }
-        // Disposing this object provides no user functionality, so we are hiding Dispose behind its interface.
-        ///// <summary>
-        ///// Call this to cleanup FileSystemWatchers such as on application shutdown,
-        ///// do not start the same monitor instance after it has been disposed 
-        ///// </summary>
-        //public CLError Dispose()
-        //{
-        //    try
-        //    {
-        //        ((IDisposable)this).Dispose();
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return ex;
-        //    }
-        //    return null;
-        //}
 
         // Standard IDisposable implementation based on MSDN System.IDisposable
         void IDisposable.Dispose()

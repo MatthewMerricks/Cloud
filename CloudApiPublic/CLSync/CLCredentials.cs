@@ -303,7 +303,7 @@ namespace Cloud
         /// Asynchronously starts listing the sessions on the server for the current credentials.
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when the async operation completes</param>
-        /// <param name="asyncCallbackUserState">Userstate to pass when firing async callback</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing async callback</param>
         /// <param name="settings">(optional) Settings to use with this request.</param>
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginListAllActiveSessionCredentials(
@@ -442,7 +442,7 @@ namespace Cloud
         /// Asynchronously starts creating a session on the server for the current application
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
-        /// <param name="asyncCallbackUserState">Userstate to pass when firing async callback</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing async callback</param>
         /// <param name="syncboxIds">(optional) IDs of sync boxes to associate with this session.  A null value causes all syncboxes defined for the application to be associated with this session.</param>
         /// <param name="tokenDurationMinutes">(optional) The number of minutes before the token expires. Default: 2160 minutes (36 hours).  Maximum: 7200 minutes (120 hours).</param>
         /// <param name="settings">(optional) settings for optional tracing and specifying the client version to the server.</param>
@@ -606,7 +606,7 @@ namespace Cloud
         /// Asynchronously starts creating a session on the server for the current application
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when operation completes</param>
-        /// <param name="asyncCallbackUserState">Userstate to pass when firing async callback</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing async callback</param>
         /// <param name="key">The key to use to query the session on the server.</param>
         /// <param name="settings">(optional) settings for optional tracing and specifying the client version to the server.</param>
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
@@ -745,7 +745,7 @@ namespace Cloud
         /// Asynchronously starts deleting a session on the server for the current credentials.
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when the async operation completes</param>
-        /// <param name="asyncCallbackUserState">Userstate to pass when firing async callback</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing async callback</param>
         /// <param name="key">Key of the session to delete.</param>
         /// <param name="settings">(optional) Settings to use with this request.</param>
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
@@ -883,7 +883,7 @@ namespace Cloud
         /// Asynchronously starts a request to create an account with a device and a new Syncbox.
         /// </summary>
         /// <param name="aCallback">Callback method to fire when operation completes</param>
-        /// <param name="aState">Userstate to pass when firing async callback</param>
+        /// <param name="aState">User state to pass when firing async callback</param>
         /// <param name="request">The request.  Note: It is not necessary to set Key and Secret.</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <param name="settings">(optional) settings for optional tracing and specifying the client version to the server</param>
@@ -1053,7 +1053,7 @@ namespace Cloud
         /// Asynchronously starts a request to log in to an account with a device.
         /// </summary>
         /// <param name="aCallback">Callback method to fire when operation completes</param>
-        /// <param name="aState">Userstate to pass when firing async callback</param>
+        /// <param name="aState">User state to pass when firing async callback</param>
         /// <param name="request">The request.  Note: It is not necessary to set Key or Secret.</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <param name="settings">(optional) settings for optional tracing and specifying the client version to the server</param>
@@ -1222,7 +1222,7 @@ namespace Cloud
         /// Asynchronously starts a request to unlink a device (and log out of the user account).
         /// </summary>
         /// <param name="aCallback">Callback method to fire when operation completes</param>
-        /// <param name="aState">Userstate to pass when firing async callback</param>
+        /// <param name="aState">User state to pass when firing async callback</param>
         /// <param name="request">The request.</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <param name="settings">(optional) settings for optional tracing and specifying the client version to the server</param>

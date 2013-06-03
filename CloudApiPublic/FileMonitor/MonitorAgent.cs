@@ -697,7 +697,7 @@ namespace Cloud.FileMonitor
         /// <param name="indexer">Created and initialized but not started SQLIndexer</param>
         /// <param name="httpRestClient">Client for Http REST communication</param>
         /// <param name="StatusUpdated">Callback to fire upon update of the running status</param>
-        /// <param name="StatusUpdatedUserState">Userstate to pass to the statusUpdated callback</param>
+        /// <param name="StatusUpdatedUserState">User state to pass to the statusUpdated callback</param>
         /// <param name="newAgent">(output) the return MonitorAgent created by this method</param>
         /// <param name="syncEngine">(output) the return SyncEngine which is also created with the combination of the input SQLIndexer indexer and the output MonitorAgent</param>
         /// <param name="debugMemory">Whether memory of the FileMonitor will be debugged</param>
@@ -1206,6 +1206,8 @@ namespace Cloud.FileMonitor
                                     recurseFolderCreationToRoot.TypedData.toCreate.Value = toApply.NewPath.Parent;
                                     recurseFolderCreationToRoot.Process();
 
+                                    bool isFileMoveFromTempFolder;
+
                                     // check if move old path is outside of the cloud directory (temp download directory) in order to bypass updown checking and locking
                                     if (toApply.Metadata.HashableProperties.IsFolder
                                         || toApply.OldPath.Contains(rootPath, insensitiveNameSearch: true))
@@ -1221,6 +1223,12 @@ namespace Cloud.FileMonitor
 
                                         recurseHierarchyAndAddSyncFromsToHashSet.TypedData.innerHierarchy.Value = renamedHierarchy;
                                         recurseHierarchyAndAddSyncFromsToHashSet.Process();
+
+                                        isFileMoveFromTempFolder = false;
+                                    }
+                                    else
+                                    {
+                                        isFileMoveFromTempFolder = true;
                                     }
 
                                     foreach (FileChange matchedDown in recurseHierarchyAndAddSyncFromsToHashSet.TypedData.matchedDowns)
@@ -1283,12 +1291,23 @@ namespace Cloud.FileMonitor
                                             string targetFileFullPath = toApply.NewPath.ToString();
                                             string sourceFileFullPath = toApply.OldPath.ToString();
                                             string backupFileFullPath = Helpers.GetTempFileDownloadPath(_syncbox.CopiedSettings, _syncbox.SyncboxId) + "\\" + Guid.NewGuid().ToString();
-                                            CLError errorFromMoveDownloadedFile = Helpers.MoveDownloadedFile(sourceFileFullPath, targetFileFullPath, backupFileFullPath);
-                                            if (errorFromMoveDownloadedFile != null)
+
+                                            if (isFileMoveFromTempFolder)
                                             {
-                                                throw new AggregateException("Failed to apply SyncFrom change", errorFromMoveDownloadedFile.Exceptions);
+                                                CLError errorFromMoveDownloadedFile = Helpers.MoveDownloadedFile(sourceFileFullPath, targetFileFullPath, backupFileFullPath);
+                                                if (errorFromMoveDownloadedFile != null)
+                                                {
+                                                    throw new AggregateException("Failed to apply SyncFrom change: moving a completed download", errorFromMoveDownloadedFile.Exceptions);
+                                                }
                                             }
-                                        }  // end else file rename
+                                            else // file move, but not from temp folder
+                                            {
+                                                Helpers.FileMoveOrReplace(
+                                                    sourceFileFullPath,
+                                                    targetFileFullPath,
+                                                    backupFileFullPath);
+                                            }
+                                        }
 
                                         foreach (FileChange matchedDown in recurseHierarchyAndAddSyncFromsToHashSet.TypedData.matchedDowns)
                                         {
@@ -1903,20 +1922,31 @@ namespace Cloud.FileMonitor
 
                             if (DisposeChanges == null)
                             {
-                                DisposeChanges = new List<FileChangeWithDependencies>(new FileChangeWithDependencies[] { EarlierChange });
+                                DisposeChanges = new List<FileChangeWithDependencies>(new FileChangeWithDependencies[] { CurrentEarlierChange });
                             }
                             else
                             {
-                                DisposeChanges.Add(EarlierChange);
+                                DisposeChanges.Add(CurrentEarlierChange);
                             }
 
-                            PulledChanges.Add(EarlierChange);
+                            PulledChanges.Add(CurrentEarlierChange);
 
-                            foreach (FileChangeWithDependencies laterParent in EnumerateDependenciesFromFileChangeDeepestLevelsFirst(LaterChange)
-                                .OfType<FileChangeWithDependencies>()
-                                .Where(currentParentCheck => currentParentCheck.Dependencies.Contains(EarlierChange)))
+                            FileChangeWithDependencies laterParent =
+                                EnumerateDependenciesFromFileChangeDeepestLevelsFirst(EarlierChange)
+                                    .OfType<FileChangeWithDependencies>()
+                                    .Where(currentParentCheck => currentParentCheck.Dependencies.Contains(CurrentEarlierChange))
+                                    .SingleOrDefault();
+
+                            if (laterParent != null)
                             {
-                                laterParent.RemoveDependency(EarlierChange);
+                                laterParent.RemoveDependency(CurrentEarlierChange);
+
+                                EarlierChange.AddDependency(LaterChange);
+                                if (DependencyDebugging)
+                                {
+                                    Helpers.CheckFileChangeDependenciesForDuplicates(EarlierChange);
+                                }
+                                PulledChanges.Add(LaterChange);
                             }
 
                             ContinueProcessing = false;
@@ -4748,7 +4778,7 @@ namespace Cloud.FileMonitor
                                     // start delayed processing of file change
                                     castState.Item1.ProcessAfterDelay(
                                         castState.Item2,// Callback which fires on process timer completion (on a new thread)
-                                        null,// Userstate if needed on callback (unused)
+                                        null,// User state if needed on callback (unused)
                                         castState.Item3,// processing delay to wait for more events on this file
                                         castState.Item4);// number of processing delay resets before it will process the file anyways
                                 }
@@ -4766,7 +4796,7 @@ namespace Cloud.FileMonitor
                         // start delayed processing of file change
                         toDelay.ProcessAfterDelay(
                             ProcessFileChange,// Callback which fires on process timer completion (on a new thread)
-                            null,// Userstate if needed on callback (unused)
+                            null,// User state if needed on callback (unused)
                             ProcessingDelayInMilliseconds,// processing delay to wait for more events on this file
                             ProcessingDelayMaxResets);// number of processing delay resets before it will process the file anyways
                     }
@@ -5273,7 +5303,7 @@ namespace Cloud.FileMonitor
         /// EventHandler for processing a file change after its delay completed
         /// </summary>
         /// <param name="sender">The file change itself</param>
-        /// <param name="state">Userstate, if provided before the delayed processing</param>
+        /// <param name="state">User state, if provided before the delayed processing</param>
         /// <param name="remainingOperations">Number of operations remaining across all FileChange (via DelayProcessable)</param>
         private void ProcessFileChange(FileChange sender, object state, int remainingOperations)
         {

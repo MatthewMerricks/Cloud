@@ -51,7 +51,7 @@ namespace Cloud.Support
         /// <param name="onTimeout">Action to run when timer runs out</param>
         /// <param name="millisecondTime">Length of timer whenever it is started</param>
         /// <param name="newTimer">Outputs the new ProcessingQueuesTimer that was created</param>
-        /// <param name="UserState">(optional) Userstate to pass to action</param>
+        /// <param name="UserState">(optional) User state to pass to action</param>
         /// <returns>Returns an error creating the ProcessingQueuesTimer, if any</returns>
         public static CLError CreateAndInitializeProcessingQueuesTimer(Action<object> onTimeout, int millisecondTime, out ProcessingQueuesTimer newTimer, object UserState = null)
         {

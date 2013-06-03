@@ -1304,7 +1304,7 @@ namespace SampleLiveSync.ViewModels
                     && _syncbox != null)
                 {
                     // start syncing
-                    CLSyncMode syncMode = Properties.Settings.Default.BadgingEnabled ? CLSyncMode.CLSyncModeLiveWithShellExt : CLSyncMode.CLSyncModeLive;
+                    CLSyncMode syncMode = Properties.Settings.Default.BadgingEnabled ? CLSyncMode.CLSyncModeLiveWithBadgingEnabled : CLSyncMode.CLSyncModeLive;
                     CLError errorFromSyncboxStart = _syncbox.StartLiveSync(
                         syncMode,
                         syncStatusChangedCallback: OnSyncStatusUpdated, // called when sync status is updated
@@ -1383,7 +1383,7 @@ namespace SampleLiveSync.ViewModels
                 NotifyException(this, new NotificationEventArgs<CLError>() { Data = error, Message = String.Format("Error: {0}.", ex.Message) });
             }
         }
-        
+
         /// <summary>
         /// Called by the Syncbox to request new credentials when the previous credentials have expired.
         /// </summary>

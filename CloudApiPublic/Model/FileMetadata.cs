@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Cloud.Static;
+using Cloud.CLSync;
 
 namespace Cloud.Model
 {
@@ -83,6 +84,25 @@ namespace Cloud.Model
                 StorageKey = this.StorageKey,
                 Version = this.Version
             };
+        }
+
+        /// <summary>
+        /// Constructor to build a FileMetadata out of a CLFileItem.
+        /// </summary>
+        /// <param name="item">CLFileItem to use.</param>
+        internal FileMetadata(CLFileItem item)
+        {
+            this.EventTime = DateTime.UtcNow;
+
+            this.HashableProperties = new FileMetadataHashableProperties(item.IsFolder, item.ModifiedDate, item.CreatedDate, item.Size);
+
+            this.IsShare = false;
+            this.MimeType = item.MimeType;
+            this.ParentFolderServerUid = item.ParentUid;
+            this.Permissions = item.Permissions;
+            this._serverUidId = 0;  // On Demand only.  Not used currently in the index.
+            this.StorageKey = item.StorageKey;
+            this.Version = null;
         }
     }
     /// <summary>
