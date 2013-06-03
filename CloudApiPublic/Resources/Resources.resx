@@ -2979,4 +2979,12 @@
     <value>Unable to cast userState as Nullable&lt;Guid&gt;</value>
     <comment>userState and Nullable&lt;Guid&gt; should not be translated</comment>
   </data>
+  <data name="ExceptionOnDemandCLFileItemNotCreatedInThisSyncbox" xml:space="preserve">
+    <value>The input CLFileItem was not created in this syncbox</value>
+    <comment>"CLFileItem" should not be translated</comment>
+  </data>
+  <data name="ExceptionOnDemandCLFileItemNotCreatedInThisSyncboxMsg0" xml:space="preserve">
+    <value>The input CLFileItem at index {0} was not created in this syncbox</value>
+    <comment>"CLFileItem" and "{0}" should not be translated</comment>
+  </data>
 </root>

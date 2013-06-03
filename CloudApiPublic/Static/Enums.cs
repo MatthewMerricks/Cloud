@@ -541,6 +541,11 @@ namespace Cloud.Static
         /// </summary>
         OnDemand_LiveSyncIsActive = (((ulong)CLExceptionDomain.OnDemand) << 32) | 39, // 5_39
 
+        /// <summary>
+        /// CLFileItem was not created in this synbox.
+        /// </summary>
+        OnDemand_NotCreatedInThisSyncbox = (((ulong)CLExceptionDomain.OnDemand) << 32) | 40, // 5_40
+
         #endregion
 
         #region FileItem

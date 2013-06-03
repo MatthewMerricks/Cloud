@@ -849,7 +849,6 @@ namespace Cloud.REST
             try
             {
                 // check input parameters.
-
                 if (itemUid == null)
                 {
                     throw new CLArgumentNullException(CLExceptionCode.OnDemand_MissingParameters, Resources.ExceptionOnDemandItemUidMustNotBeNull);
@@ -995,13 +994,13 @@ namespace Cloud.REST
         /// <param name="reservedForActiveSync">true: Live sync is active.  User calls are not allowed.</param>
         /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
         /// <param name="itemCompletionCallbackUserState">User state to be passed whenever the item completion callback above is fired.</param>
-        /// <param name="itemParams">One or more parameter pairs (item to rename and new name) to be used to rename each item in place.</param>
+        /// <param name="itemsToRename">One or more parameter pairs (item to rename and new name) to be used to rename each item in place.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
         internal CLError RenameFiles(
             bool reservedForActiveSync,
             CLFileItemCompletionCallback itemCompletionCallback, 
             object itemCompletionCallbackUserState,
-            params RenameItemParams[] itemParams)
+            params RenameItemParams[] itemsToRename)
         {
             // try/catch to process the request,  On catch return the error
             try
@@ -1014,19 +1013,19 @@ namespace Cloud.REST
                 IncrementModifyingSyncboxViaPublicAPICalls();
 
                 // check input parameters.
-                if (itemParams == null
-                    || itemParams.Length == 0)
+                if (itemsToRename == null
+                    || itemsToRename.Length == 0)
                 {
                     throw new CLArgumentNullException(
                         CLExceptionCode.OnDemand_RenameMissingParameters,
                         Resources.ExceptionOnDemandRenameMissingParameters);
                 }
 
-                FileOrFolderMove[] jsonContractMoves = new FileOrFolderMove[itemParams.Length];
+                FileOrFolderMove[] jsonContractMoves = new FileOrFolderMove[itemsToRename.Length];
 
-                for (int paramIdx = 0; paramIdx < itemParams.Length; paramIdx++)
+                for (int paramIdx = 0; paramIdx < itemsToRename.Length; paramIdx++)
                 {
-                    RenameItemParams currentParams = itemParams[paramIdx];
+                    RenameItemParams currentParams = itemsToRename[paramIdx];
                     if (currentParams == null)
                     {
                         throw new CLArgumentException(CLExceptionCode.OnDemand_FileRename, String.Format(Resources.ExceptionOnDemandFileItemNullAtIndexMsg0, paramIdx.ToString()));
@@ -1034,6 +1033,10 @@ namespace Cloud.REST
                     if (currentParams.ItemToRename == null)
                     {
                         throw new CLArgumentNullException(Static.CLExceptionCode.OnDemand_MissingParameters, Resources.ExceptionOnDemandItemToRenameMustNotBeNull);
+                    }
+                    if (currentParams.ItemToRename.Syncbox != _syncbox)
+                    {
+                        throw new CLInvalidOperationException(CLExceptionCode.OnDemand_NotCreatedInThisSyncbox, String.Format(Resources.ExceptionOnDemandCLFileItemNotCreatedInThisSyncboxMsg0, paramIdx));
                     }
                     if (String.IsNullOrEmpty(currentParams.NewName))
                     {
@@ -1091,7 +1094,7 @@ namespace Cloud.REST
                 // Convert these items to the output array.
                 if (responseFromServer != null && responseFromServer.MoveResponses != null)
                 {
-                    if (responseFromServer.MoveResponses.Length != itemParams.Length)
+                    if (responseFromServer.MoveResponses.Length != itemsToRename.Length)
                     {
                         throw new CLException(CLExceptionCode.OnDemand_FileRename, Resources.ExceptionOnDemandResponseArrayLength);
                     }
@@ -1209,7 +1212,7 @@ namespace Cloud.REST
         /// <param name="reservedForActiveSync">true: Live sync is active.  User calls are not allowed.</param>
         /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
         /// <param name="itemCompletionCallbackUserState">User state to be passed whenever the item completion callback above is fired.</param>
-        /// <param name="itemParams">One or more parameter pairs (item to rename and new name) to be used to rename each item in place.</param>
+        /// <param name="itemsToRename">One or more parameter pairs (item to rename and new name) to be used to rename each item in place.</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
         internal IAsyncResult BeginRenameFolders(
             AsyncCallback asyncCallback, 
@@ -1217,7 +1220,7 @@ namespace Cloud.REST
             bool reservedForActiveSync, 
             CLFileItemCompletionCallback itemCompletionCallback, 
             object itemCompletionCallbackUserState, 
-            params RenameItemParams[] itemParams)
+            params RenameItemParams[] itemsToRename)
         {
             var asyncThread = DelegateAndDataHolderBase.Create(
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
@@ -1230,7 +1233,7 @@ namespace Cloud.REST
                     reservedForActiveSync = reservedForActiveSync,
                     itemCompletionCallback = itemCompletionCallback,
                     itemCompletionCallbackUserState = itemCompletionCallbackUserState,
-                    itemParams = itemParams
+                    itemParams = itemsToRename
                 },
                 (Data, errorToAccumulate) =>
                 {
@@ -1282,13 +1285,13 @@ namespace Cloud.REST
         /// <param name="reservedForActiveSync">true: Live sync is active.  User calls are not allowed.</param>
         /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
         /// <param name="itemCompletionCallbackUserState">User state to be passed whenever the item completion callback above is fired.</param>
-        /// <param name="itemParams">One or more parameter pairs (item to rename and new name) to be used to rename each item in place.</param>
+        /// <param name="itemsToRename">One or more parameter pairs (item to rename and new name) to be used to rename each item in place.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
         internal CLError RenameFolders(
             bool reservedForActiveSync,
             CLFileItemCompletionCallback itemCompletionCallback, 
             object itemCompletionCallbackUserState, 
-            params RenameItemParams[] itemParams)
+            params RenameItemParams[] itemsToRename)
         {
             // try/catch to process the request,  On catch return the error
             try
@@ -1301,19 +1304,19 @@ namespace Cloud.REST
                 IncrementModifyingSyncboxViaPublicAPICalls();
 
                 // check input parameters.
-                if (itemParams == null
-                    || itemParams.Length == 0)
+                if (itemsToRename == null
+                    || itemsToRename.Length == 0)
                 {
                     throw new CLArgumentNullException(
                         CLExceptionCode.OnDemand_RenameMissingParameters,
                         Resources.ExceptionOnDemandRenameMissingParameters);
                 }
 
-                FileOrFolderMove[] jsonContractMoves = new FileOrFolderMove[itemParams.Length];
+                FileOrFolderMove[] jsonContractMoves = new FileOrFolderMove[itemsToRename.Length];
 
-                for (int paramIdx = 0; paramIdx < itemParams.Length; paramIdx++)
+                for (int paramIdx = 0; paramIdx < itemsToRename.Length; paramIdx++)
                 {
-                    RenameItemParams currentParams = itemParams[paramIdx];
+                    RenameItemParams currentParams = itemsToRename[paramIdx];
                     if (currentParams == null)
                     {
                         throw new CLArgumentException(CLExceptionCode.OnDemand_FileRename, String.Format(Resources.ExceptionOnDemandFolderItemNullAtIndexMsg0, paramIdx.ToString()));
@@ -1321,6 +1324,10 @@ namespace Cloud.REST
                     if (currentParams.ItemToRename == null)
                     {
                         throw new CLArgumentNullException(Static.CLExceptionCode.OnDemand_MissingParameters, Resources.ExceptionOnDemandItemToRenameMustNotBeNull);
+                    }
+                    if (currentParams.ItemToRename.Syncbox != _syncbox)
+                    {
+                        throw new CLInvalidOperationException(CLExceptionCode.OnDemand_NotCreatedInThisSyncbox, String.Format(Resources.ExceptionOnDemandCLFileItemNotCreatedInThisSyncboxMsg0, paramIdx));
                     }
                     if (String.IsNullOrEmpty(currentParams.NewName))
                     {
@@ -1378,7 +1385,7 @@ namespace Cloud.REST
                 // Convert these items to the output array.
                 if (responseFromServer != null && responseFromServer.MoveResponses != null)
                 {
-                    if (responseFromServer.MoveResponses.Length != itemParams.Length)
+                    if (responseFromServer.MoveResponses.Length != itemsToRename.Length)
                     {
                         throw new CLException(CLExceptionCode.OnDemand_FolderRename, Resources.ExceptionOnDemandResponseArrayLength);
                     }
@@ -1603,11 +1610,15 @@ namespace Cloud.REST
                     MoveItemParams currentParams = itemsToMove[paramIdx];
                     if (currentParams == null)
                     {
-                        throw new CLArgumentException(CLExceptionCode.OnDemand_FileRename, String.Format(Resources.ExceptionOnDemandFileItemNullAtIndexMsg0, paramIdx.ToString()));
+                        throw new CLArgumentException(CLExceptionCode.OnDemand_FileRename, String.Format(Resources.ExceptionOnDemandFileItemNullAtIndexMsg0, paramIdx));
                     }
                     if (currentParams.ItemToMove == null)
                     {
                         throw new CLArgumentNullException(Static.CLExceptionCode.OnDemand_MoveItemParamsMissingProperties, Resources.ExceptionOnDemandItemToMoveMustNotBeNull);
+                    }
+                    if (currentParams.ItemToMove.Syncbox != _syncbox)
+                    {
+                        throw new CLInvalidOperationException(CLExceptionCode.OnDemand_NotCreatedInThisSyncbox, String.Format(Resources.ExceptionOnDemandCLFileItemNotCreatedInThisSyncboxMsg0, paramIdx));
                     }
                     if (currentParams.NewParentFolderItem == null)
                     {
@@ -1889,6 +1900,19 @@ namespace Cloud.REST
                     {
                         throw new CLArgumentException(CLExceptionCode.OnDemand_FileRename, String.Format(Resources.ExceptionOnDemandFolderItemNullAtIndexMsg0, paramIdx.ToString()));
                     }
+                    if (currentParams.ItemToMove == null)
+                    {
+                        throw new CLArgumentNullException(Static.CLExceptionCode.OnDemand_MoveItemParamsMissingProperties, Resources.ExceptionOnDemandItemToMoveMustNotBeNull);
+                    }
+                    if (currentParams.ItemToMove.Syncbox != _syncbox)
+                    {
+                        throw new CLInvalidOperationException(CLExceptionCode.OnDemand_NotCreatedInThisSyncbox, String.Format(Resources.ExceptionOnDemandCLFileItemNotCreatedInThisSyncboxMsg0, paramIdx));
+                    }
+                    if (currentParams.NewParentFolderItem == null)
+                    {
+                        throw new CLArgumentNullException(Static.CLExceptionCode.OnDemand_MoveItemParamsMissingProperties, Resources.ExceptionOnDemandNewParentFolderItemMustBeSpecified);
+                    }
+
 
                     // file move (rename) and folder move (rename) share a json contract object for move (rename)
                     jsonContractMoves[paramIdx] = new FileOrFolderMove()
@@ -2165,6 +2189,10 @@ namespace Cloud.REST
                     {
                         throw new CLArgumentException(CLExceptionCode.OnDemand_FileRename, String.Format(Resources.ExceptionOnDemandFileItemNullAtIndexMsg0, paramIdx.ToString()));
                     }
+                    if (currentFileItem.Syncbox != _syncbox)
+                    {
+                        throw new CLInvalidOperationException(CLExceptionCode.OnDemand_NotCreatedInThisSyncbox, String.Format(Resources.ExceptionOnDemandCLFileItemNotCreatedInThisSyncboxMsg0, paramIdx));
+                    }
 
                     jsonContractDeletes[paramIdx] = currentFileItem.Uid;
                 }
@@ -2430,6 +2458,10 @@ namespace Cloud.REST
                     if (currentFileItem == null)
                     {
                         throw new CLArgumentException(CLExceptionCode.OnDemand_FileRename, String.Format(Resources.ExceptionOnDemandFileItemNullAtIndexMsg0, paramIdx.ToString()));
+                    }
+                    if (currentFileItem.Syncbox != _syncbox)
+                    {
+                        throw new CLInvalidOperationException(CLExceptionCode.OnDemand_NotCreatedInThisSyncbox, String.Format(Resources.ExceptionOnDemandCLFileItemNotCreatedInThisSyncboxMsg0, paramIdx));
                     }
 
                     jsonContractDeletes[paramIdx] = currentFileItem.Uid;
@@ -2700,6 +2732,10 @@ namespace Cloud.REST
                     if (currentFolderItem == null)
                     {
                         throw new CLArgumentException(CLExceptionCode.OnDemand_FolderRename, String.Format(Resources.ExceptionOnDemandFolderItemNullAtIndexMsg0, paramIdx.ToString()));
+                    }
+                    if (currentFolderItem.Syncbox != _syncbox)
+                    {
+                        throw new CLInvalidOperationException(CLExceptionCode.OnDemand_NotCreatedInThisSyncbox, String.Format(Resources.ExceptionOnDemandCLFileItemNotCreatedInThisSyncboxMsg0, paramIdx));
                     }
                     if (String.IsNullOrEmpty(currentFolderName))
                     {
@@ -3070,6 +3106,10 @@ namespace Cloud.REST
                         if (fullPathAndParentAndNewName == null)
                         {
                             throw new CLArgumentNullException(CLExceptionCode.OnDemand_InvalidParameters, "fix me here");
+                        }
+                        if (fullPathAndParentAndNewName.ParentFolder.Syncbox != _syncbox)
+                        {
+                            throw new CLInvalidOperationException(CLExceptionCode.OnDemand_NotCreatedInThisSyncbox, String.Format(Resources.ExceptionOnDemandCLFileItemNotCreatedInThisSyncboxMsg0, currentNameAndParentIdx));
                         }
                         if (fullPathAndParentAndNewName.ParentFolder == null)
                         {
@@ -4756,8 +4796,6 @@ namespace Cloud.REST
         /// <summary>
         /// Query presentation items from the syncbox.
         /// </summary>
-        /// <param name="completionCallback">Callback method to fire when a page of items is complete.</param>
-        /// <param name="completionCallbackUserState">User state to be passed whenever the completion callback above is fired.  Returns the result.</param>
         /// <param name="pageNumber">Beginning page number.  The first page is page 1.</param>
         /// <param name="itemsPerPage">Items per page.</param>
         /// <param name="items">(output) The resulting file items.</param>
@@ -5092,8 +5130,6 @@ namespace Cloud.REST
         /// <summary>
         /// Query archive items from the syncbox.
         /// </summary>
-        /// <param name="completionCallback">Callback method to fire when a page of items is complete.</param>
-        /// <param name="completionCallbackUserState">User state to be passed whenever the completion callback above is fired.  Returns the result.</param>
         /// <param name="pageNumber">Beginning page number.  The first page is page 1.</param>
         /// <param name="itemsPerPage">Items per page.</param>
         /// <param name="items">(output) The resulting file items.</param>
@@ -6150,6 +6186,10 @@ namespace Cloud.REST
                 {
                     throw new ArgumentException(Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
+                if (folderItem != null && folderItem.Syncbox != _syncbox)
+                {
+                    throw new CLInvalidOperationException(CLExceptionCode.OnDemand_NotCreatedInThisSyncbox, Resources.ExceptionOnDemandCLFileItemNotCreatedInThisSyncbox);
+                }
 
                 // build the location of the folder contents retrieval method on the server dynamically
                 string serverMethodPath =
@@ -6490,6 +6530,10 @@ namespace Cloud.REST
                 if (!(_copiedSettings.HttpTimeoutMilliseconds > 0))
                 {
                     throw new ArgumentException(Resources.CLMSTimeoutMustBeGreaterThanZero);
+                }
+                if (folderItem != null && folderItem.Syncbox != _syncbox)
+                {
+                    throw new CLInvalidOperationException(CLExceptionCode.OnDemand_NotCreatedInThisSyncbox, Resources.ExceptionOnDemandCLFileItemNotCreatedInThisSyncbox);
                 }
 
                 // build the location of the folder contents retrieval method on the server dynamically
