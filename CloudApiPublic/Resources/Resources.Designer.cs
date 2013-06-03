@@ -2106,6 +2106,15 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Error initializing the syncbox, see InnerExceptions for details.
+        /// </summary>
+        internal static string ExceptionCLSyncboxAllocAndInitInnerInitialize {
+            get {
+                return ResourceManager.GetString("ExceptionCLSyncboxAllocAndInitInnerInitialize", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Not marked as already started, but still has an existing CLSyncEngine.
         /// </summary>
         internal static string ExceptionCLSyncboxBeginSyncExistingEngine {
@@ -2660,6 +2669,24 @@ namespace Cloud.Static {
         internal static string ExceptionLoggingInWithCode {
             get {
                 return ResourceManager.GetString("ExceptionLoggingInWithCode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to An error occurred swapping the order of two FileChanges in the database in AssignDependencies.
+        /// </summary>
+        internal static string ExceptionMonitorAgentAssignDependenciesEventIdSwap {
+            get {
+                return ResourceManager.GetString("ExceptionMonitorAgentAssignDependenciesEventIdSwap", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to One or more FileChange instances failed to add or update in the database in AssignDependencies.
+        /// </summary>
+        internal static string ExceptionMonitorAgentAssignDependenciesMergeToSql {
+            get {
+                return ResourceManager.GetString("ExceptionMonitorAgentAssignDependenciesMergeToSql", resourceCulture);
             }
         }
         

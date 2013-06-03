@@ -2979,4 +2979,16 @@
     <value>Unable to cast userState as Nullable&lt;Guid&gt;</value>
     <comment>userState and Nullable&lt;Guid&gt; should not be translated</comment>
   </data>
+  <data name="ExceptionCLSyncboxAllocAndInitInnerInitialize" xml:space="preserve">
+    <value>Error initializing the syncbox, see InnerExceptions for details</value>
+    <comment>syncbox and InnerExceptions should not be translated</comment>
+  </data>
+  <data name="ExceptionMonitorAgentAssignDependenciesEventIdSwap" xml:space="preserve">
+    <value>An error occurred swapping the order of two FileChanges in the database in AssignDependencies</value>
+    <comment>FileChanges and AssignDependencies should not be translated</comment>
+  </data>
+  <data name="ExceptionMonitorAgentAssignDependenciesMergeToSql" xml:space="preserve">
+    <value>One or more FileChange instances failed to add or update in the database in AssignDependencies</value>
+    <comment>FileChange and AssignDependencies should not be translated</comment>
+  </data>
 </root>

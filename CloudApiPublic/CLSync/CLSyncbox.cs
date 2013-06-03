@@ -529,7 +529,7 @@ namespace Cloud
                 CLError setPathError = InitializeInternal(path, shouldUpdateSyncboxStatusFromServer: true);
                 if (setPathError != null)
                 {
-                    throw new CLException(CLExceptionCode.Syncbox_Initializing, "Error initializing the syncbox", setPathError.Exceptions);
+                    throw new CLException(CLExceptionCode.Syncbox_Initializing, Resources.ExceptionCLSyncboxAllocAndInitInnerInitialize, setPathError.Exceptions);
                 }
             }
         }

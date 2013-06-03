@@ -1738,13 +1738,14 @@ namespace Cloud.FileMonitor
             try
             {
                 List<FileChange> removeFromSql = new List<FileChange>();
+                HashSet<FileChange> addOrModifyInSql = new HashSet<FileChange>();
+                List<KeyValuePair<FileChange, FileChange>> eventIdSwaps = new List<KeyValuePair<FileChange, FileChange>>();
 
                 using (SQLTransactionalBase sqlTran = Indexer.GetNewTransaction())
                 {
+                    PulledChanges = new HashSet<FileChangeWithDependencies>();
                     try
                     {
-                        PulledChanges = new HashSet<FileChangeWithDependencies>();
-
                         for (int outerChangeIndex = 0; outerChangeIndex < dependencyChanges.Length; outerChangeIndex++)
                         {
                             KeyValuePair<FileChangeSource, FileChangeWithDependencies> OuterChangePair = dependencyChanges[outerChangeIndex];
@@ -1766,21 +1767,21 @@ namespace Cloud.FileMonitor
                                         {
                                             case FileChangeType.Created:
                                             case FileChangeType.Modified:
-                                            CLError creationModificationCheckError = CreationModificationDependencyCheck(OuterFileChange, InnerFileChange, PulledChanges, out DisposeChanges, out ContinueProcessing, sqlTran);
+                                            CLError creationModificationCheckError = CreationModificationDependencyCheck(OuterFileChange, InnerFileChange, PulledChanges, out DisposeChanges, out ContinueProcessing, sqlTran, addOrModifyInSql);
                                                 if (creationModificationCheckError != null)
                                                 {
                                                     toReturn += new AggregateException(Resources.MonitorAgentErrorInCreationModifactionDependencyCheck, creationModificationCheckError.Exceptions);
                                                 }
                                                 break;
                                             case FileChangeType.Renamed:
-                                                CLError renameCheckError = RenameDependencyCheck(OuterFileChange, InnerFileChange, PulledChanges, out DisposeChanges, out ContinueProcessing, sqlTran);
+                                                CLError renameCheckError = RenameDependencyCheck(OuterFileChange, InnerFileChange, PulledChanges, out DisposeChanges, out ContinueProcessing, sqlTran, addOrModifyInSql, eventIdSwaps);
                                                 if (renameCheckError != null)
                                                 {
                                                     toReturn += new AggregateException(Resources.MonitorAgentErrorInRenameDependencyCheck, renameCheckError.Exceptions);
                                                 }
                                                 break;
                                             case FileChangeType.Deleted:
-                                                CLError deleteCheckError = DeleteDependencyCheck(OuterFileChange, InnerFileChange, PulledChanges, out DisposeChanges, out ContinueProcessing, sqlTran);
+                                                CLError deleteCheckError = DeleteDependencyCheck(OuterFileChange, InnerFileChange, PulledChanges, out DisposeChanges, out ContinueProcessing, sqlTran, addOrModifyInSql);
                                                 if (deleteCheckError != null)
                                                 {
                                                     toReturn += new AggregateException(Resources.MonitorAgentErrorInDeleteDependencyCheck, deleteCheckError.Exceptions);
@@ -1834,7 +1835,11 @@ namespace Cloud.FileMonitor
                                                             RemoveFileChangeFromQueuedChanges(currentDequeuedChangeToDispose, originalQueuedChangesIndexesByInMemoryIds);
                                                         }
 
-                                                        if (currentDequeuedChangeToDispose.EventId != 0)
+                                                        if (currentDequeuedChangeToDispose.EventId == 0)
+                                                        {
+                                                            addOrModifyInSql.Remove(currentDequeuedChangeToDispose);
+                                                        }
+                                                        else
                                                         {
                                                             _trace.writeToMemory(() => _trace.trcFmtStr(2, Resources.MonitorAgentAssignDependenciesCurrentOriginalMappingAddCurrentDisposaltoRemoveFromSQL));
                                                             removeFromSql.Add(currentDequeuedChangeToDispose);
@@ -1859,6 +1864,80 @@ namespace Cloud.FileMonitor
                     }
                     finally
                     {
+                        if (addOrModifyInSql.Count > 0)
+                        {
+                            // need to add or modify events in logical dependency order so search all dependency trees until all changes to add/modify are found
+
+                            // create a local symbol even though it's just a simple reference copy because it must be local to use in a lambda expression
+                            HashSet<FileChangeWithDependencies> localPulledChangesReference = PulledChanges;
+
+                            int addOrModifiesFound = 0;
+                            LinkedList<FileChange> changesLeastDependentToMostDependent = new LinkedList<FileChange>(
+                                dependencyChanges.Where(currentDependencyChange => !localPulledChangesReference.Contains(currentDependencyChange.Value))
+                                    .Select(currentDependencyChange => currentDependencyChange.Value));
+
+                            if (changesLeastDependentToMostDependent.Count > 0)
+                            {
+                                List<FileChange> mergeToSqlBatch = null;
+
+                                do
+                                {
+                                    FileChange currentLeastDependentChange = changesLeastDependentToMostDependent.First.Value;
+                                    changesLeastDependentToMostDependent.RemoveFirst();
+
+                                    FileChangeWithDependencies castCurrentChange = currentLeastDependentChange as FileChangeWithDependencies;
+                                    if (castCurrentChange != null
+                                        && castCurrentChange.DependenciesCount > 0)
+                                    {
+                                        foreach (FileChange castCurrentChangeDependency in castCurrentChange.Dependencies)
+                                        {
+                                            changesLeastDependentToMostDependent.AddLast(castCurrentChangeDependency);
+                                        }
+                                    }
+
+                                    if (addOrModifyInSql.Contains(currentLeastDependentChange))
+                                    {
+                                        if (mergeToSqlBatch == null)
+                                        {
+                                            mergeToSqlBatch = new List<FileChange>(Helpers.EnumerateSingleItem(currentLeastDependentChange));
+                                        }
+                                        else
+                                        {
+                                            mergeToSqlBatch.Add(currentLeastDependentChange);
+                                        }
+
+                                        addOrModifiesFound++;
+                                    }
+                                }
+                                while (changesLeastDependentToMostDependent.Count > 0
+                                    && addOrModifiesFound < addOrModifyInSql.Count);
+
+                                if (mergeToSqlBatch != null)
+                                {
+                                    CLError mergeDependencyAddsOrModifiesError = Indexer.MergeEventsIntoDatabase(mergeToSqlBatch.Select(currentToMerge => new FileChangeMerge(currentToMerge)), sqlTran);
+                                    if (mergeDependencyAddsOrModifiesError != null)
+                                    {
+                                        toReturn += new CLException(CLExceptionCode.Syncing_Database, Resources.ExceptionMonitorAgentAssignDependenciesMergeToSql, mergeDependencyAddsOrModifiesError.Exceptions);
+                                    }
+                                }
+                            }
+                        }
+
+                        if (eventIdSwaps.Count > 0)
+                        {
+                            foreach (KeyValuePair<FileChange, FileChange> currentEventIdToSwap in eventIdSwaps)
+                            {
+                                try
+                                {
+                                    Indexer.SwapOrderBetweenTwoEventIds(currentEventIdToSwap.Key.EventId, currentEventIdToSwap.Value.EventId, sqlTran);
+                                }
+                                catch (Exception ex)
+                                {
+                                    toReturn += new CLException(CLExceptionCode.Syncing_Database, Resources.ExceptionMonitorAgentAssignDependenciesEventIdSwap, ex);
+                                }
+                            }
+                        }
+
                         if (removeFromSql.Count > 0)
                         {
                             try
@@ -1894,7 +1973,7 @@ namespace Cloud.FileMonitor
             return toReturn;
         }
 
-        private CLError CreationModificationDependencyCheck(FileChangeWithDependencies EarlierChange, FileChangeWithDependencies LaterChange, HashSet<FileChangeWithDependencies> PulledChanges, out List<FileChangeWithDependencies> DisposeChanges, out bool ContinueProcessing, SQLTransactionalBase sqlTran)
+        private CLError CreationModificationDependencyCheck(FileChangeWithDependencies EarlierChange, FileChangeWithDependencies LaterChange, HashSet<FileChangeWithDependencies> PulledChanges, out List<FileChangeWithDependencies> DisposeChanges, out bool ContinueProcessing, SQLTransactionalBase sqlTran, HashSet<FileChange> addOrModifyInSql)
         {
             CLError toReturn = null;
             DisposeChanges = null;
@@ -1913,11 +1992,7 @@ namespace Cloud.FileMonitor
                             {
                                 LaterChange.Type = FileChangeType.Created;
 
-                                CLError updateLaterChangeAsCreatedError = Indexer.MergeEventsIntoDatabase(new[] { new FileChangeMerge(LaterChange) }, sqlTran);
-                                if (updateLaterChangeAsCreatedError != null)
-                                {
-                                    throw new AggregateException(Resources.MonitorAgentLaterChangeInCreationModificationDependencyChecktoCreatedType, updateLaterChangeAsCreatedError.Exceptions);
-                                }
+                                addOrModifyInSql.Add(LaterChange);
                             }
 
                             if (DisposeChanges == null)
@@ -1971,7 +2046,7 @@ namespace Cloud.FileMonitor
             return toReturn;
         }
 
-        private CLError RenameDependencyCheck(FileChangeWithDependencies EarlierChange, FileChangeWithDependencies LaterChange, HashSet<FileChangeWithDependencies> PulledChanges, out List<FileChangeWithDependencies> DisposeChanges, out bool ContinueProcessing, SQLTransactionalBase sqlTran)
+        private CLError RenameDependencyCheck(FileChangeWithDependencies EarlierChange, FileChangeWithDependencies LaterChange, HashSet<FileChangeWithDependencies> PulledChanges, out List<FileChangeWithDependencies> DisposeChanges, out bool ContinueProcessing, SQLTransactionalBase sqlTran, HashSet<FileChange> addOrModifyInSql, List<KeyValuePair<FileChange, FileChange>> eventIdSwaps)
         {
             CLError toReturn = null;
             try
@@ -2057,11 +2132,8 @@ namespace Cloud.FileMonitor
                                 {
                                     _trace.writeToMemory(() => _trace.trcFmtStr(2, Resources.MonitorAgentRenameDependencyCheckNewPathEqualsOldPath));
                                     CurrentEarlierChange.NewPath = LaterChange.NewPath;
-                                    CLError updateSqlError = Indexer.MergeEventsIntoDatabase(Helpers.EnumerateSingleItem(new FileChangeMerge(CurrentEarlierChange)), sqlTran);
-                                    if (updateSqlError != null)
-                                    {
-                                        toReturn += new AggregateException(Resources.MonitorAgentErrorUpdatingSQLAfterReplacingNewPath, updateSqlError.Exceptions);
-                                    }
+
+                                    addOrModifyInSql.Add(CurrentEarlierChange);
 
                                     if (CurrentEarlierChange.Type == FileChangeType.Created)
                                     {
@@ -2096,9 +2168,9 @@ namespace Cloud.FileMonitor
                                     {
                                         if (LaterChange.EventId == 0)
                                         {
-                                            Indexer.MergeEventsIntoDatabase(Helpers.EnumerateSingleItem(new FileChangeMerge(LaterChange)), sqlTran);
+                                            addOrModifyInSql.Add(LaterChange);
                                         }
-                                        Indexer.SwapOrderBetweenTwoEventIds(CurrentEarlierChange.EventId, LaterChange.EventId, sqlTran);
+                                        eventIdSwaps.Add(new KeyValuePair<FileChange, FileChange>(CurrentEarlierChange, LaterChange));
 
                                         _trace.writeToMemory(() => _trace.trcFmtStr(2, Resources.MonitorAgentRenameDependencyCheckNoDependenciesAddedToLaterChange2));
                                         LaterChange.AddDependency(CurrentEarlierChange);
@@ -2129,17 +2201,15 @@ namespace Cloud.FileMonitor
                                         {
                                             _trace.writeToMemory(() => _trace.trcFmtStr(2, Resources.MonitorAgentRenameDependencyCheckRenamedOverlapEqualsLaterChangeOldPath0MergeEarlierChangeToSQL, LaterChange.OldPath.Name));
                                             renamedOverlapChild.Parent = LaterChange.NewPath;
-                                            CLError replacePathPortionError = Indexer.MergeEventsIntoDatabase(Helpers.EnumerateSingleItem(new FileChangeMerge(CurrentEarlierChange)), sqlTran);
-                                            if (replacePathPortionError != null)
-                                            {
-                                                toReturn += new AggregateException(Resources.MonitorAgentErrorReplacingAPortionOfThePathOfCurrentEarlierChange, replacePathPortionError.Exceptions);
-                                            }
+
+                                            addOrModifyInSql.Add(CurrentEarlierChange);
 
                                             if (LaterChange.EventId == 0)
                                             {
-                                                Indexer.MergeEventsIntoDatabase(Helpers.EnumerateSingleItem(new FileChangeMerge(LaterChange)), sqlTran);
+                                                addOrModifyInSql.Add(LaterChange);
                                             }
-                                            Indexer.SwapOrderBetweenTwoEventIds(CurrentEarlierChange.EventId, LaterChange.EventId, sqlTran);
+
+                                            eventIdSwaps.Add(new KeyValuePair<FileChange, FileChange>(CurrentEarlierChange, LaterChange));
                                             break;
                                         }
 
@@ -2212,7 +2282,7 @@ namespace Cloud.FileMonitor
             return toReturn;
         }
 
-        private CLError DeleteDependencyCheck(FileChangeWithDependencies EarlierChange, FileChangeWithDependencies LaterChange, HashSet<FileChangeWithDependencies> PulledChanges, out List<FileChangeWithDependencies> DisposeChanges, out bool ContinueProcessing, SQLTransactionalBase sqlTran)
+        private CLError DeleteDependencyCheck(FileChangeWithDependencies EarlierChange, FileChangeWithDependencies LaterChange, HashSet<FileChangeWithDependencies> PulledChanges, out List<FileChangeWithDependencies> DisposeChanges, out bool ContinueProcessing, SQLTransactionalBase sqlTran, HashSet<FileChange> addOrModifyInSql)
         {
             CLError toReturn = null;
             try
@@ -2266,11 +2336,8 @@ namespace Cloud.FileMonitor
                         if (!FilePathComparer.Instance.Equals(newLaterChangeNewPath, LaterChange.NewPath))
                         {
                             LaterChange.NewPath = newLaterChangeNewPath;
-                            CLError replacePathPortionError = Indexer.MergeEventsIntoDatabase(Helpers.EnumerateSingleItem(new FileChangeMerge(LaterChange)), sqlTran);
-                            if (replacePathPortionError != null)
-                            {
-                                    toReturn += new AggregateException(Resources.MonitorAgentErrorReplacingAPortionOfThePathOfCurrentEarlierChange, replacePathPortionError.Exceptions);
-                            }
+
+                            addOrModifyInSql.Add(LaterChange);
                         }
                     }
                 }
