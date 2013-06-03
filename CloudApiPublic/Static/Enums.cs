@@ -536,6 +536,11 @@ namespace Cloud.Static
         /// </summary>
         OnDemand_DownloadTempDownloadFileNotFoundAfterSuccessfulDownload = (((ulong)CLExceptionDomain.OnDemand) << 32) | 38, // 5_38
 
+        /// <summary>
+        /// Live sync is active for this syncbox, and this method would modify the syncbox.
+        /// </summary>
+        OnDemand_LiveSyncIsActive = (((ulong)CLExceptionDomain.OnDemand) << 32) | 39, // 5_39
+
         #endregion
 
         #region FileItem

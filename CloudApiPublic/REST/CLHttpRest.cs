@@ -174,7 +174,7 @@ namespace Cloud.REST
 
         #endregion  // end Constructors and Factories
 
-        #region internal methods supporting public API calls
+        #region Internal Methods Supporting Public API Calls
         #region DownloadFile
         /// <summary>
         /// Asynchronously starts downloading a file from a provided file download change
@@ -919,11 +919,18 @@ namespace Cloud.REST
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
         /// <param name="asyncCallbackUserState">User state to pass when firing the async callback above.</param>
+        /// <param name="reservedForActiveSync">true: Live sync is active.  User calls are not allowed.</param>
         /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
         /// <param name="itemCompletionCallbackUserState">User state to be passed whenever the item completion callback above is fired.</param>
         /// <param name="itemParams">One or more parameter pairs (item to rename and new name) to be used to rename each item in place.</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        internal IAsyncResult BeginRenameFiles(AsyncCallback asyncCallback, object asyncCallbackUserState, CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, params RenameItemParams[] itemParams)
+        internal IAsyncResult BeginRenameFiles(
+            AsyncCallback asyncCallback, 
+            object asyncCallbackUserState,
+            bool reservedForActiveSync,
+            CLFileItemCompletionCallback itemCompletionCallback, 
+            object itemCompletionCallbackUserState, 
+            params RenameItemParams[] itemParams)
         {
             var asyncThread = DelegateAndDataHolderBase.Create(
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
@@ -933,6 +940,7 @@ namespace Cloud.REST
                     toReturn = new GenericAsyncResult<CLError>(
                         asyncCallback,
                         asyncCallbackUserState),
+                    reservedForActiveSync = reservedForActiveSync,
                     itemCompletionCallback = itemCompletionCallback,
                     itemCompletionCallbackUserState = itemCompletionCallbackUserState,
                     itemParams = itemParams
@@ -945,8 +953,9 @@ namespace Cloud.REST
                     {
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
                         CLError overallError = RenameFiles(
-                            itemCompletionCallback,
-                            itemCompletionCallbackUserState,
+                            Data.reservedForActiveSync,
+                            Data.itemCompletionCallback,
+                            Data.itemCompletionCallbackUserState,
                             Data.itemParams);
 
                         Data.toReturn.Complete(overallError, // any overall error that may have occurred during processing
@@ -983,17 +992,28 @@ namespace Cloud.REST
         /// <summary>
         /// Rename files in-place in the syncbox.
         /// </summary>
+        /// <param name="reservedForActiveSync">true: Live sync is active.  User calls are not allowed.</param>
         /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
         /// <param name="itemCompletionCallbackUserState">User state to be passed whenever the item completion callback above is fired.</param>
         /// <param name="itemParams">One or more parameter pairs (item to rename and new name) to be used to rename each item in place.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        internal CLError RenameFiles(CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, params RenameItemParams[] itemParams)
+        internal CLError RenameFiles(
+            bool reservedForActiveSync,
+            CLFileItemCompletionCallback itemCompletionCallback, 
+            object itemCompletionCallbackUserState,
+            params RenameItemParams[] itemParams)
         {
             // try/catch to process the request,  On catch return the error
             try
             {
-                // check input parameters.
+                // This method modifies the syncbox.  It is incompatible with live sync.
+                if (reservedForActiveSync)
+                {
+                    throw new CLInvalidOperationException(CLExceptionCode.OnDemand_LiveSyncIsActive, Resources.CLHttpRestCurrentSyncboxCannotBeModifiedWhileSyncing);
+                }
+                IncrementModifyingSyncboxViaPublicAPICalls();
 
+                // check input parameters.
                 if (itemParams == null
                     || itemParams.Length == 0)
                 {
@@ -1170,6 +1190,10 @@ namespace Cloud.REST
             {
                 return ex;
             }
+            finally
+            {
+                DecrementModifyingSyncboxViaPublicAPICalls();
+            }
 
             return null;
         }
@@ -1182,11 +1206,18 @@ namespace Cloud.REST
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
         /// <param name="asyncCallbackUserState">User state to pass when firing the async callback above.</param>
+        /// <param name="reservedForActiveSync">true: Live sync is active.  User calls are not allowed.</param>
         /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
         /// <param name="itemCompletionCallbackUserState">User state to be passed whenever the item completion callback above is fired.</param>
         /// <param name="itemParams">One or more parameter pairs (item to rename and new name) to be used to rename each item in place.</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        internal IAsyncResult BeginRenameFolders(AsyncCallback asyncCallback, object asyncCallbackUserState, CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, params RenameItemParams[] itemParams)
+        internal IAsyncResult BeginRenameFolders(
+            AsyncCallback asyncCallback, 
+            object asyncCallbackUserState,
+            bool reservedForActiveSync, 
+            CLFileItemCompletionCallback itemCompletionCallback, 
+            object itemCompletionCallbackUserState, 
+            params RenameItemParams[] itemParams)
         {
             var asyncThread = DelegateAndDataHolderBase.Create(
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
@@ -1196,6 +1227,7 @@ namespace Cloud.REST
                     toReturn = new GenericAsyncResult<CLError>(
                         asyncCallback,
                         asyncCallbackUserState),
+                    reservedForActiveSync = reservedForActiveSync,
                     itemCompletionCallback = itemCompletionCallback,
                     itemCompletionCallbackUserState = itemCompletionCallbackUserState,
                     itemParams = itemParams
@@ -1208,8 +1240,9 @@ namespace Cloud.REST
                     {
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
                         CLError overallError = RenameFolders(
-                            itemCompletionCallback,
-                            itemCompletionCallbackUserState,
+                            Data.reservedForActiveSync,
+                            Data.itemCompletionCallback,
+                            Data.itemCompletionCallbackUserState,
                             Data.itemParams);
 
                         Data.toReturn.Complete(overallError, // any overall error that may have occurred during processing
@@ -1246,17 +1279,28 @@ namespace Cloud.REST
         /// <summary>
         /// Rename folders in-place in the syncbox.
         /// </summary>
+        /// <param name="reservedForActiveSync">true: Live sync is active.  User calls are not allowed.</param>
         /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
         /// <param name="itemCompletionCallbackUserState">User state to be passed whenever the item completion callback above is fired.</param>
         /// <param name="itemParams">One or more parameter pairs (item to rename and new name) to be used to rename each item in place.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        internal CLError RenameFolders(CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, params RenameItemParams[] itemParams)
+        internal CLError RenameFolders(
+            bool reservedForActiveSync,
+            CLFileItemCompletionCallback itemCompletionCallback, 
+            object itemCompletionCallbackUserState, 
+            params RenameItemParams[] itemParams)
         {
             // try/catch to process the request,  On catch return the error
             try
             {
-                // check input parameters.
+                // This method modifies the syncbox.  It is incompatible with live sync.
+                if (reservedForActiveSync)
+                {
+                    throw new CLInvalidOperationException(CLExceptionCode.OnDemand_LiveSyncIsActive, Resources.CLHttpRestCurrentSyncboxCannotBeModifiedWhileSyncing);
+                }
+                IncrementModifyingSyncboxViaPublicAPICalls();
 
+                // check input parameters.
                 if (itemParams == null
                     || itemParams.Length == 0)
                 {
@@ -1433,6 +1477,10 @@ namespace Cloud.REST
             {
                 return ex;
             }
+            finally
+            {
+                DecrementModifyingSyncboxViaPublicAPICalls();
+            }
 
             return null;
         }
@@ -1445,16 +1493,18 @@ namespace Cloud.REST
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
         /// <param name="asyncCallbackUserState">User state to pass when firing the async callback above.</param>
-        /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
+        /// <param name="reservedForActiveSync">true: Live sync is active.  User calls are not allowed.</param>
+        /// /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
         /// <param name="itemCompletionCallbackUserState">User state to be passed whenever the item completion callback above is fired.</param>
         /// <param name="itemsToMove">One or more pairs of item to move and a folder item representing the new parent of the item being moved.</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
         internal IAsyncResult BeginMoveFiles(
             AsyncCallback asyncCallback, 
-            object asyncCallbackUserState, 
+            object asyncCallbackUserState,
+            bool reservedForActiveSync, 
             CLFileItemCompletionCallback itemCompletionCallback, 
             object itemCompletionCallbackUserState, 
-            params MoveItemParams[] itemParams)
+            params MoveItemParams[] itemsToMove)
         {
             var asyncThread = DelegateAndDataHolderBase.Create(
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
@@ -1464,9 +1514,10 @@ namespace Cloud.REST
                     toReturn = new GenericAsyncResult<CLError>(
                         asyncCallback,
                         asyncCallbackUserState),
+                    reservedForActiveSync = reservedForActiveSync,
                     itemCompletionCallback = itemCompletionCallback,
                     itemCompletionCallbackUserState = itemCompletionCallbackUserState,
-                    itemParams = itemParams
+                    itemParams = itemsToMove
                 },
                 (Data, errorToAccumulate) =>
                 {
@@ -1476,8 +1527,9 @@ namespace Cloud.REST
                     {
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
                         CLError overallError = MoveFiles(
-                            itemCompletionCallback,
-                            itemCompletionCallbackUserState,
+                            Data.reservedForActiveSync,
+                            Data.itemCompletionCallback,
+                            Data.itemCompletionCallbackUserState,
                             Data.itemParams);
 
                         Data.toReturn.Complete(overallError, // any overall error that may have occurred during processing
@@ -1514,30 +1566,41 @@ namespace Cloud.REST
         /// <summary>
         /// Move files in the syncbox.
         /// </summary>
+        /// <param name="reservedForActiveSync">true: Live sync is active.  User calls are not allowed.</param>
         /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
         /// <param name="itemCompletionCallbackUserState">User state to be passed whenever the item completion callback above is fired.</param>
         /// <param name="itemsToMove">One or more pairs of item to move and a folder item representing the new parent of the item being moved.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        internal CLError MoveFiles(CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, params MoveItemParams[] itemParams)
+        internal CLError MoveFiles(
+            bool reservedForActiveSync,
+            CLFileItemCompletionCallback itemCompletionCallback, 
+            object itemCompletionCallbackUserState, 
+            params MoveItemParams[] itemsToMove)
         {
             // try/catch to process the request,  On catch return the error
             try
             {
-                // check input parameters.
+                // This method modifies the syncbox.  It is incompatible with live sync.
+                if (reservedForActiveSync)
+                {
+                    throw new CLInvalidOperationException(CLExceptionCode.OnDemand_LiveSyncIsActive, Resources.CLHttpRestCurrentSyncboxCannotBeModifiedWhileSyncing);
+                }
+                IncrementModifyingSyncboxViaPublicAPICalls();
 
-                if (itemParams == null
-                    || itemParams.Length == 0)
+                // check input parameters.
+                if (itemsToMove == null
+                    || itemsToMove.Length == 0)
                 {
                     throw new CLArgumentNullException(
                         CLExceptionCode.OnDemand_RenameMissingParameters,
                         Resources.ExceptionOnDemandRenameMissingParameters);
                 }
 
-                FileOrFolderMove[] jsonContractMoves = new FileOrFolderMove[itemParams.Length];
+                FileOrFolderMove[] jsonContractMoves = new FileOrFolderMove[itemsToMove.Length];
 
-                for (int paramIdx = 0; paramIdx < itemParams.Length; paramIdx++)
+                for (int paramIdx = 0; paramIdx < itemsToMove.Length; paramIdx++)
                 {
-                    MoveItemParams currentParams = itemParams[paramIdx];
+                    MoveItemParams currentParams = itemsToMove[paramIdx];
                     if (currentParams == null)
                     {
                         throw new CLArgumentException(CLExceptionCode.OnDemand_FileRename, String.Format(Resources.ExceptionOnDemandFileItemNullAtIndexMsg0, paramIdx.ToString()));
@@ -1602,7 +1665,7 @@ namespace Cloud.REST
                 // Convert these items to the output array.
                 if (responseFromServer != null && responseFromServer.MoveResponses != null)
                 {
-                    if (responseFromServer.MoveResponses.Length != itemParams.Length)
+                    if (responseFromServer.MoveResponses.Length != itemsToMove.Length)
                     {
                         throw new CLException(CLExceptionCode.OnDemand_FileRename, Resources.ExceptionOnDemandResponseArrayLength);
                     }
@@ -1698,6 +1761,10 @@ namespace Cloud.REST
             {
                 return ex;
             }
+            finally
+            {
+                DecrementModifyingSyncboxViaPublicAPICalls();
+            }
 
             return null;
         }
@@ -1710,11 +1777,18 @@ namespace Cloud.REST
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
         /// <param name="asyncCallbackUserState">User state to pass when firing the async callback above.</param>
+        /// <param name="reservedForActiveSync">true: Live sync is active.  User calls are not allowed.</param>
         /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
         /// <param name="itemCompletionCallbackUserState">User state to be passed whenever the item completion callback above is fired.</param>
         /// <param name="itemsToMove">One or more pairs of item to move and a folder item representing the new parent of the item being moved.</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        internal IAsyncResult BeginMoveFolders(AsyncCallback asyncCallback, object asyncCallbackUserState, CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, params MoveItemParams[] itemParams)
+        internal IAsyncResult BeginMoveFolders(
+            AsyncCallback asyncCallback, 
+            object asyncCallbackUserState,
+            bool reservedForActiveSync, 
+            CLFileItemCompletionCallback itemCompletionCallback, 
+            object itemCompletionCallbackUserState, 
+            params MoveItemParams[] itemsToMove)
         {
             var asyncThread = DelegateAndDataHolderBase.Create(
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
@@ -1724,9 +1798,10 @@ namespace Cloud.REST
                     toReturn = new GenericAsyncResult<CLError>(
                         asyncCallback,
                         asyncCallbackUserState),
+                    reservedForActiveSync = reservedForActiveSync,
                     itemCompletionCallback = itemCompletionCallback,
                     itemCompletionCallbackUserState = itemCompletionCallbackUserState,
-                    itemParams = itemParams
+                    itemParams = itemsToMove
                 },
                 (Data, errorToAccumulate) =>
                 {
@@ -1736,8 +1811,9 @@ namespace Cloud.REST
                     {
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
                         CLError overallError = MoveFolders(
-                            itemCompletionCallback,
-                            itemCompletionCallbackUserState,
+                            Data.reservedForActiveSync,
+                            Data.itemCompletionCallback,
+                            Data.itemCompletionCallbackUserState,
                             Data.itemParams);
 
                         Data.toReturn.Complete(overallError, // any overall error that may have occurred during processing
@@ -1774,30 +1850,41 @@ namespace Cloud.REST
         /// <summary>
         /// Move folders in the syncbox.
         /// </summary>
+        /// <param name="reservedForActiveSync">true: Live sync is active.  User calls are not allowed.</param>
         /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
         /// <param name="itemCompletionCallbackUserState">User state to be passed whenever the item completion callback above is fired.</param>
         /// <param name="itemsToMove">One or more pairs of item to move and a folder item representing the new parent of the item being moved.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        internal CLError MoveFolders(CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, params MoveItemParams[] itemParams)
+        internal CLError MoveFolders(
+            bool reservedForActiveSync,
+            CLFileItemCompletionCallback itemCompletionCallback, 
+            object itemCompletionCallbackUserState, 
+            params MoveItemParams[] itemsToMove)
         {
             // try/catch to process the request,  On catch return the error
             try
             {
-                // check input parameters.
+                // This method modifies the syncbox.  It is incompatible with live sync.
+                if (reservedForActiveSync)
+                {
+                    throw new CLInvalidOperationException(CLExceptionCode.OnDemand_LiveSyncIsActive, Resources.CLHttpRestCurrentSyncboxCannotBeModifiedWhileSyncing);
+                }
+                IncrementModifyingSyncboxViaPublicAPICalls();
 
-                if (itemParams == null
-                    || itemParams.Length == 0)
+                // check input parameters.
+                if (itemsToMove == null
+                    || itemsToMove.Length == 0)
                 {
                     throw new CLArgumentNullException(
                         CLExceptionCode.OnDemand_RenameMissingParameters,
                         Resources.ExceptionOnDemandRenameMissingParameters);
                 }
 
-                FileOrFolderMove[] jsonContractMoves = new FileOrFolderMove[itemParams.Length];
+                FileOrFolderMove[] jsonContractMoves = new FileOrFolderMove[itemsToMove.Length];
 
-                for (int paramIdx = 0; paramIdx < itemParams.Length; paramIdx++)
+                for (int paramIdx = 0; paramIdx < itemsToMove.Length; paramIdx++)
                 {
-                    MoveItemParams currentParams = itemParams[paramIdx];
+                    MoveItemParams currentParams = itemsToMove[paramIdx];
                     if (currentParams == null)
                     {
                         throw new CLArgumentException(CLExceptionCode.OnDemand_FileRename, String.Format(Resources.ExceptionOnDemandFolderItemNullAtIndexMsg0, paramIdx.ToString()));
@@ -1854,7 +1941,7 @@ namespace Cloud.REST
                 // Convert these items to the output array.
                 if (responseFromServer != null && responseFromServer.MoveResponses != null)
                 {
-                    if (responseFromServer.MoveResponses.Length != itemParams.Length)
+                    if (responseFromServer.MoveResponses.Length != itemsToMove.Length)
                     {
                         throw new CLException(CLExceptionCode.OnDemand_FolderRename, Resources.ExceptionOnDemandResponseArrayLength);
                     }
@@ -1950,6 +2037,10 @@ namespace Cloud.REST
             {
                 return ex;
             }
+            finally
+            {
+                DecrementModifyingSyncboxViaPublicAPICalls();
+            }
 
             return null;
         }
@@ -1962,11 +2053,18 @@ namespace Cloud.REST
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
         /// <param name="asyncCallbackUserState">User state to pass when firing the async callback above.</param>
+        /// <param name="reservedForActiveSync">true: Live sync is active.  User calls are not allowed.</param>
         /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
         /// <param name="itemCompletionCallbackUserState">User state to be passed whenever the item completion callback above is fired.</param>
         /// <param name="itemsToDelete">One or more file items to delete.</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        internal IAsyncResult BeginDeleteFiles(AsyncCallback asyncCallback, object asyncCallbackUserState, CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, params CLFileItem[] itemsToDelete)
+        internal IAsyncResult BeginDeleteFiles(
+            AsyncCallback asyncCallback, 
+            object asyncCallbackUserState,
+            bool reservedForActiveSync, 
+            CLFileItemCompletionCallback itemCompletionCallback, 
+            object itemCompletionCallbackUserState, 
+            params CLFileItem[] itemsToDelete)
         {
             var asyncThread = DelegateAndDataHolderBase.Create(
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
@@ -1976,6 +2074,7 @@ namespace Cloud.REST
                     toReturn = new GenericAsyncResult<CLError>(
                         asyncCallback,
                         asyncCallbackUserState),
+                    reservedForActiveSync = reservedForActiveSync,
                     itemCompletionCallback = itemCompletionCallback,
                     itemCompletionCallbackUserState = itemCompletionCallbackUserState,
                     itemsToDelete = itemsToDelete
@@ -1988,8 +2087,9 @@ namespace Cloud.REST
                     {
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
                         CLError overallError = DeleteFiles(
-                            itemCompletionCallback,
-                            itemCompletionCallbackUserState,
+                            Data.reservedForActiveSync,
+                            Data.itemCompletionCallback,
+                            Data.itemCompletionCallbackUserState,
                             Data.itemsToDelete);
 
                         Data.toReturn.Complete(overallError, // any overall error that may have occurred during processing
@@ -2026,17 +2126,28 @@ namespace Cloud.REST
         /// <summary>
         /// Delete files in the syncbox.
         /// </summary>
+        /// <param name="reservedForActiveSync">true: Live sync is active.  User calls are not allowed.</param>
         /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
         /// <param name="itemCompletionCallbackUserState">User state to be passed whenever the item completion callback above is fired.</param>
         /// <param name="itemsToDelete">One or more file items to delete.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        internal CLError DeleteFiles(CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, params CLFileItem[] itemsToDelete)
+        internal CLError DeleteFiles(
+            bool reservedForActiveSync, 
+            CLFileItemCompletionCallback itemCompletionCallback, 
+            object itemCompletionCallbackUserState, 
+            params CLFileItem[] itemsToDelete)
         {
             // try/catch to process the request,  On catch return the error
             try
             {
-                // check input parameters.
+                // This method modifies the syncbox.  It is incompatible with live sync.
+                if (reservedForActiveSync)
+                {
+                    throw new CLInvalidOperationException(CLExceptionCode.OnDemand_LiveSyncIsActive, Resources.CLHttpRestCurrentSyncboxCannotBeModifiedWhileSyncing);
+                }
 
+                IncrementModifyingSyncboxViaPublicAPICalls();
+                // check input parameters.
                 if (itemsToDelete == null
                     || itemsToDelete.Length == 0)
                 {
@@ -2192,6 +2303,10 @@ namespace Cloud.REST
             {
                 return ex;
             }
+            finally
+            {
+                DecrementModifyingSyncboxViaPublicAPICalls();
+            }
 
             return null;
         }
@@ -2204,11 +2319,18 @@ namespace Cloud.REST
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
         /// <param name="asyncCallbackUserState">User state to pass when firing the async callback above.</param>
+        /// <param name="reservedForActiveSync">true: Live sync is active.  User calls are not allowed.</param>
         /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
         /// <param name="itemCompletionCallbackUserState">User state to be passed whenever the item completion callback above is fired.</param>
         /// <param name="itemsToDelete">One or more folder items to delete.</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        internal IAsyncResult BeginDeleteFolders(AsyncCallback asyncCallback, object asyncCallbackUserState, CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, params CLFileItem[] itemsToDelete)
+        internal IAsyncResult BeginDeleteFolders(
+            AsyncCallback asyncCallback, 
+            object asyncCallbackUserState,
+            bool reservedForActiveSync, 
+            CLFileItemCompletionCallback itemCompletionCallback, 
+            object itemCompletionCallbackUserState, 
+            params CLFileItem[] itemsToDelete)
         {
             var asyncThread = DelegateAndDataHolderBase.Create(
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
@@ -2218,6 +2340,7 @@ namespace Cloud.REST
                     toReturn = new GenericAsyncResult<CLError>(
                         asyncCallback,
                         asyncCallbackUserState),
+                    reservedForActiveSync = reservedForActiveSync,
                     itemCompletionCallback = itemCompletionCallback,
                     itemCompletionCallbackUserState = itemCompletionCallbackUserState,
                     itemsToDelete = itemsToDelete
@@ -2230,8 +2353,9 @@ namespace Cloud.REST
                     {
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
                         CLError overallError = DeleteFolders(
-                            itemCompletionCallback,
-                            itemCompletionCallbackUserState,
+                            Data.reservedForActiveSync,
+                            Data.itemCompletionCallback,
+                            Data.itemCompletionCallbackUserState,
                             Data.itemsToDelete);
 
                         Data.toReturn.Complete(overallError, // any overall error that may have occurred during processing
@@ -2268,17 +2392,28 @@ namespace Cloud.REST
         /// <summary>
         /// Delete folders in the syncbox.
         /// </summary>
+        /// <param name="reservedForActiveSync">true: Live sync is active.  User calls are not allowed.</param>
         /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
         /// <param name="itemCompletionCallbackUserState">User state to be passed whenever the item completion callback above is fired.</param>
         /// <param name="itemsToDelete">One or more folder items to delete.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        internal CLError DeleteFolders(CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, params CLFileItem[] itemsToDelete)
+        internal CLError DeleteFolders(
+            bool reservedForActiveSync, 
+            CLFileItemCompletionCallback itemCompletionCallback, 
+            object itemCompletionCallbackUserState, 
+            params CLFileItem[] itemsToDelete)
         {
             // try/catch to process the request,  On catch return the error
             try
             {
-                // check input parameters.
+                // This method modifies the syncbox.  It is incompatible with live sync.
+                if (reservedForActiveSync)
+                {
+                    throw new CLInvalidOperationException(CLExceptionCode.OnDemand_LiveSyncIsActive, Resources.CLHttpRestCurrentSyncboxCannotBeModifiedWhileSyncing);
+                }
+                IncrementModifyingSyncboxViaPublicAPICalls();
 
+                // check input parameters.
                 if (itemsToDelete == null
                     || itemsToDelete.Length == 0)
                 {
@@ -2439,6 +2574,10 @@ namespace Cloud.REST
             {
                 return ex;
             }
+            finally
+            {
+                DecrementModifyingSyncboxViaPublicAPICalls();
+            }
 
             return null;
         }
@@ -2451,11 +2590,18 @@ namespace Cloud.REST
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
         /// <param name="asyncCallbackUserState">User state to pass when firing the async callback above.</param>
+        /// <param name="reservedForActiveSync">true: Live sync is active.  User calls are not allowed.</param>
         /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
         /// <param name="itemCompletionCallbackUserState">User state to be passed whenever the item completion callback above is fired.</param>
         /// <param name="folderItemsToAdd">One or more pairs of parent folder item and folder name to add.</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        internal IAsyncResult BeginAddFolders(AsyncCallback asyncCallback, object asyncCallbackUserState, CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, params AddFolderItemParams[] folderItemsToAdd)
+        internal IAsyncResult BeginAddFolders(
+            AsyncCallback asyncCallback, 
+            object asyncCallbackUserState,
+            bool reservedForActiveSync, 
+            CLFileItemCompletionCallback itemCompletionCallback, 
+            object itemCompletionCallbackUserState, 
+            params AddFolderItemParams[] folderItemsToAdd)
         {
             var asyncThread = DelegateAndDataHolderBase.Create(
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
@@ -2465,6 +2611,7 @@ namespace Cloud.REST
                     toReturn = new GenericAsyncResult<CLError>(
                         asyncCallback,
                         asyncCallbackUserState),
+                    reservedForActiveSync = reservedForActiveSync,
                     itemCompletionCallback = itemCompletionCallback,
                     itemCompletionCallbackUserState = itemCompletionCallbackUserState,
                     foldersToAdd = folderItemsToAdd
@@ -2477,8 +2624,9 @@ namespace Cloud.REST
                     {
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
                         CLError overallError = AddFolders(
-                            itemCompletionCallback,
-                            itemCompletionCallbackUserState,
+                            Data.reservedForActiveSync,
+                            Data.itemCompletionCallback,
+                            Data.itemCompletionCallbackUserState,
                             Data.foldersToAdd);
 
                         Data.toReturn.Complete(overallError, // any overall error that may have occurred during processing
@@ -2515,17 +2663,28 @@ namespace Cloud.REST
         /// <summary>
         /// Add folders to the syncbox.
         /// </summary>
+        /// <param name="reservedForActiveSync">true: Live sync is active.  User calls are not allowed.</param>
         /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
         /// <param name="itemCompletionCallbackUserState">User state to be passed whenever the item completion callback above is fired.</param>
         /// <param name="folderItemsToAdd">One or more pairs of parent folder item and folder name to add.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        internal CLError AddFolders(CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, params AddFolderItemParams[] folderItemsToAdd)
+        internal CLError AddFolders(
+            bool reservedForActiveSync, 
+            CLFileItemCompletionCallback itemCompletionCallback, 
+            object itemCompletionCallbackUserState, 
+            params AddFolderItemParams[] folderItemsToAdd)
         {
             // try/catch to process the request,  On catch return the error
             try
             {
-                // check input parameters.
+                // This method modifies the syncbox.  It is incompatible with live sync.
+                if (reservedForActiveSync)
+                {
+                    throw new CLInvalidOperationException(CLExceptionCode.OnDemand_LiveSyncIsActive, Resources.CLHttpRestCurrentSyncboxCannotBeModifiedWhileSyncing);
+                }
+                IncrementModifyingSyncboxViaPublicAPICalls();
 
+                // check input parameters.
                 if (folderItemsToAdd == null
                     || folderItemsToAdd.Length == 0)
                 {
@@ -2697,6 +2856,10 @@ namespace Cloud.REST
             {
                 return ex;
             }
+            finally
+            {
+                DecrementModifyingSyncboxViaPublicAPICalls();
+            }
 
             return null;
         }
@@ -2709,6 +2872,7 @@ namespace Cloud.REST
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
         /// <param name="asyncCallbackUserState">User state to pass when firing the async callback above.</param>
+        /// <param name="reservedForActiveSync">true: Live sync is active.  User calls are not allowed.</param>
         /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
         /// <param name="itemCompletionCallbackUserState">User state to be passed whenever the item completion callback above is fired.</param>
         /// <param name="transferStatusCallback">Callback method to fire when transfer status is updated for each active item.  Can be null.</param>
@@ -2719,6 +2883,7 @@ namespace Cloud.REST
         internal IAsyncResult BeginAddFiles(
             AsyncCallback asyncCallback,
             object asyncCallbackUserState,
+            bool reservedForActiveSync, 
             CLFileItemCompletionCallback itemCompletionCallback,
             object itemCompletionCallbackUserState,
             CLFileUploadTransferStatusCallback transferStatusCallback,
@@ -2734,6 +2899,7 @@ namespace Cloud.REST
                     toReturn = new GenericAsyncResult<SyncboxAddFilesResult>(
                         asyncCallback,
                         asyncCallbackUserState),
+                    reservedForActiveSync = reservedForActiveSync,
                     itemCompletionCallback = itemCompletionCallback,
                     itemCompletionCallbackUserState = itemCompletionCallbackUserState,
                     transferStatusCallback = transferStatusCallback,
@@ -2749,6 +2915,7 @@ namespace Cloud.REST
                     {
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
                         CLError overallError = AddFiles(
+                            Data.reservedForActiveSync,
                             Data.itemCompletionCallback,
                             Data.itemCompletionCallbackUserState,
                             Data.transferStatusCallback,
@@ -2849,6 +3016,7 @@ namespace Cloud.REST
         /// <summary>
         /// Add files in the syncbox.  Uploads the files to the Cloud.
         /// </summary>
+        /// <param name="reservedForActiveSync">true: Live sync is active.  User calls are not allowed.</param>
         /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
         /// <param name="itemCompletionCallbackUserState">User state to be passed whenever the item completion callback above is fired.</param>
         /// <param name="transferStatusCallback">Callback method to fire when transfer status is updated for each active item.  Can be null.</param>
@@ -2857,6 +3025,7 @@ namespace Cloud.REST
         /// <param name="filesToAdd">(params) An array of information for each file to add (full path of the file, parent folder in the syncbox and the name of the file in the syncbox).</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
         internal CLError AddFiles(
+            bool reservedForActiveSync, 
             CLFileItemCompletionCallback itemCompletionCallback, 
             object itemCompletionCallbackUserState,
             CLFileUploadTransferStatusCallback transferStatusCallback,
@@ -2867,6 +3036,13 @@ namespace Cloud.REST
             // try/catch to process the request,  On catch return the error
             try
             {
+                // This method modifies the syncbox.  It is incompatible with live sync.
+                if (reservedForActiveSync)
+                {
+                    throw new CLInvalidOperationException(CLExceptionCode.OnDemand_LiveSyncIsActive, Resources.CLHttpRestCurrentSyncboxCannotBeModifiedWhileSyncing);
+                }
+                IncrementModifyingSyncboxViaPublicAPICalls();
+
                 // check input parameters.{
                 if (filesToAdd == null)
                 {
@@ -3301,6 +3477,11 @@ namespace Cloud.REST
             {
                 return ex;
             }
+            finally
+            {
+                DecrementModifyingSyncboxViaPublicAPICalls();
+            }
+
             return null;
         }
         #endregion  // end AddFiles (Adds files in the syncbox.)
@@ -3867,8 +4048,8 @@ namespace Cloud.REST
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
                         CLFileItem[] items;
                         CLError overallError = AllImageItems(
-                            pageNumber,
-                            itemsPerPage,
+                            Data.pageNumber,
+                            Data.itemsPerPage,
                             out items);
 
                         Data.toReturn.Complete(
@@ -4035,8 +4216,8 @@ namespace Cloud.REST
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
                         CLFileItem[] items;
                         CLError overallError = AllVideoItems(
-                            pageNumber,
-                            itemsPerPage,
+                            Data.pageNumber,
+                            Data.itemsPerPage,
                             out items);
 
                         Data.toReturn.Complete(
@@ -4202,8 +4383,8 @@ namespace Cloud.REST
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
                         CLFileItem[] items;
                         CLError overallError = AllAudioItems(
-                            pageNumber,
-                            itemsPerPage,
+                            Data.pageNumber,
+                            Data.itemsPerPage,
                             out items);
 
                         Data.toReturn.Complete(
@@ -4369,8 +4550,8 @@ namespace Cloud.REST
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
                         CLFileItem[] items;
                         CLError overallError = AllDocumentItems(
-                            pageNumber,
-                            itemsPerPage,
+                            Data.pageNumber,
+                            Data.itemsPerPage,
                             out items);
 
                         Data.toReturn.Complete(
@@ -4536,8 +4717,8 @@ namespace Cloud.REST
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
                         CLFileItem[] items;
                         CLError overallError = AllPresentationItems(
-                            pageNumber,
-                            itemsPerPage,
+                            Data.pageNumber,
+                            Data.itemsPerPage,
                             out items);
 
                         Data.toReturn.Complete(
@@ -4705,8 +4886,8 @@ namespace Cloud.REST
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
                         CLFileItem[] items;
                         CLError overallError = AllPlainTextItems(
-                            pageNumber,
-                            itemsPerPage,
+                            Data.pageNumber,
+                            Data.itemsPerPage,
                             out items);
 
                         Data.toReturn.Complete(
@@ -4872,8 +5053,8 @@ namespace Cloud.REST
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
                         CLFileItem[] items;
                         CLError overallError = AllArchiveItems(
-                            pageNumber,
-                            itemsPerPage,
+                            Data.pageNumber,
+                            Data.itemsPerPage,
                             out items);
 
                         Data.toReturn.Complete(
@@ -5048,10 +5229,10 @@ namespace Cloud.REST
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
                         CLFileItem[] items;
                         CLError overallError = AllItemsOfTypes(
-                            pageNumber,
-                            itemsPerPage,
+                            Data.pageNumber,
+                            Data.itemsPerPage,
                             out items,
-                            extensions);
+                            Data.extensions);
 
                         Data.toReturn.Complete(
                             new SyncboxAllItemsOfTypesResult(overallError, items),  // result
@@ -5251,10 +5432,10 @@ namespace Cloud.REST
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
                         CLFileItem[] items;
                         CLError overallError = RecentFilesSinceDate(
-                            pageNumber,
-                            itemsPerPage,
+                            Data.pageNumber,
+                            Data.itemsPerPage,
                             out items,
-                            sinceDate);
+                            Data.sinceDate);
 
                         Data.toReturn.Complete(
                             new SyncboxRecentFilesSinceDateResult(
@@ -5434,7 +5615,7 @@ namespace Cloud.REST
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
                         CLFileItem[] items;
                         CLError overallError = RecentFiles(
-                            returnLimit,
+                            Data.returnLimit,
                             out items);
 
                         Data.toReturn.Complete(
@@ -5599,8 +5780,8 @@ namespace Cloud.REST
                     {
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
                         CLError overallError = GetDataUsage(
-                            completionCallback,
-                            completionCallbackUserState);
+                            Data.completionCallback,
+                            Data.completionCallbackUserState);
 
                         Data.toReturn.Complete(overallError, // any overall error that may have occurred during processing
                             sCompleted: false); // processing did not complete synchronously
@@ -6744,8 +6925,8 @@ namespace Cloud.REST
                     {
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
                         CLError overallError = UpdateStoragePlan(
-                            completionCallback,
-                            completionCallbackUserState,
+                            Data.completionCallback,
+                            Data.completionCallbackUserState,
                             Data.reservedForActiveSync,
                             Data.storagePlan);
 
@@ -6893,6 +7074,7 @@ namespace Cloud.REST
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
         /// <param name="asyncCallbackUserState">User state to pass when firing the async callback above.</param>
+        /// <param name="reservedForActiveSync">true: Live sync is active.  User calls are not allowed.</param>
         /// <param name="completionCallback">Callback method to fire when a page of items is complete.  Return the result.</param>
         /// <param name="completionCallbackUserState">User state to be passed whenever the completion callback above is fired.</param>
         /// <param name="friendlyName">The new friendly name of this syncbox)</param>
@@ -6900,6 +7082,7 @@ namespace Cloud.REST
         internal IAsyncResult BeginUpdateFriendlyName<T>(
             AsyncCallback asyncCallback,
             object asyncCallbackUserState,
+            bool reservedForActiveSync, 
             Action<JsonContracts.SyncboxResponse, T> completionCallback,
             T completionCallbackUserState,
             string friendlyName)
@@ -6912,6 +7095,7 @@ namespace Cloud.REST
                     toReturn = new GenericAsyncResult<CLError>(
                         asyncCallback,
                         asyncCallbackUserState),
+                    reservedForActiveSync = reservedForActiveSync,
                     completionCallback = completionCallback,
                     completionCallbackUserState = completionCallbackUserState,
                     friendlyName = friendlyName,
@@ -6924,8 +7108,9 @@ namespace Cloud.REST
                     {
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
                         CLError overallError = UpdateFriendlyName(
-                            completionCallback,
-                            completionCallbackUserState,
+                            Data.reservedForActiveSync,
+                            Data.completionCallback,
+                            Data.completionCallbackUserState,
                             Data.friendlyName);
 
                         Data.toReturn.Complete(overallError, // any overall error that may have occurred during processing
@@ -6962,12 +7147,13 @@ namespace Cloud.REST
         /// <summary>
         /// Changes the friendly name of this syncbox.  Updates the information in this syncbox object.
         /// </summary>
+        /// <param name="reservedForActiveSync">true: Live sync is active.  User calls are not allowed.</param>
         /// <param name="completionCallback">Callback method to fire when a page of items is complete.  Return the result.</param>
         /// <param name="completionCallbackUserState">User state to be passed whenever the completion callback above is fired.</param>
-        /// <param name="reservedForActiveSync">true: Live sync is active.  User calls are not allowed.</param>
         /// <param name="friendlyName">The new friendly name of this syncbox)</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
         internal CLError UpdateFriendlyName<T>(
+            bool reservedForActiveSync, 
             Action<JsonContracts.SyncboxResponse, T> completionCallback,
             T completionCallbackUserState,
             string friendlyName)
@@ -6975,6 +7161,13 @@ namespace Cloud.REST
             // try/catch to process the request,  On catch return the error
             try
             {
+                // This method modifies the syncbox.  It is incompatible with live sync.
+                if (reservedForActiveSync)
+                {
+                    throw new CLInvalidOperationException(CLExceptionCode.OnDemand_LiveSyncIsActive, Resources.CLHttpRestCurrentSyncboxCannotBeModifiedWhileSyncing);
+                }
+                IncrementModifyingSyncboxViaPublicAPICalls();
+
                 // check input parameters
                 if (!(_syncbox.CopiedSettings.HttpTimeoutMilliseconds > 0))
                 {
@@ -7051,6 +7244,10 @@ namespace Cloud.REST
             {
                 return ex;
             }
+            finally
+            {
+                DecrementModifyingSyncboxViaPublicAPICalls();
+            }
 
             return null;
         }
@@ -7091,8 +7288,8 @@ namespace Cloud.REST
                     {
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
                         CLError overallError = GetCurrentStatus(
-                            completionCallback,
-                            completionCallbackUserState);
+                            Data.completionCallback,
+                            Data.completionCallbackUserState);
 
                         Data.toReturn.Complete(overallError, // any overall error that may have occurred during processing
                             sCompleted: false); // processing did not complete synchronously

@@ -2011,7 +2011,7 @@ namespace Cloud
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.BeginRenameFiles(asyncCallback, asyncCallbackUserState, itemCompletionCallback, itemCompletionCallbackUserState, itemsToRename);
+            return httpRestClient.BeginRenameFiles(asyncCallback, asyncCallbackUserState, ReservedForActiveSync, itemCompletionCallback, itemCompletionCallbackUserState, itemsToRename);
         }
 
         /// <summary>
@@ -2043,7 +2043,7 @@ namespace Cloud
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.RenameFiles(itemCompletionCallback, itemCompletionCallbackUserState, itemsToRename);
+            return httpRestClient.RenameFiles(ReservedForActiveSync, itemCompletionCallback, itemCompletionCallbackUserState, itemsToRename);
         }
 
         #endregion  // end RenameFiles (Rename files in-place in the syncbox)
@@ -2064,7 +2064,7 @@ namespace Cloud
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.BeginRenameFolders(asyncCallback, asyncCallbackUserState, itemCompletionCallback, itemCompletionCallbackUserState, itemsToRename);
+            return httpRestClient.BeginRenameFolders(asyncCallback, asyncCallbackUserState, ReservedForActiveSync, itemCompletionCallback, itemCompletionCallbackUserState, itemsToRename);
         }
 
         /// <summary>
@@ -2096,7 +2096,7 @@ namespace Cloud
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.RenameFolders(itemCompletionCallback, itemCompletionCallbackUserState, itemsToRename);
+            return httpRestClient.RenameFolders(ReservedForActiveSync, itemCompletionCallback, itemCompletionCallbackUserState, itemsToRename);
         }
 
         #endregion  // end RenameFolders (Rename folders in the syncbox)
@@ -2122,7 +2122,7 @@ namespace Cloud
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.BeginMoveFiles(asyncCallback, asyncCallbackUserState, itemCompletionCallback, itemCompletionCallbackUserState, itemsToMove);
+            return httpRestClient.BeginMoveFiles(asyncCallback, asyncCallbackUserState, ReservedForActiveSync, itemCompletionCallback, itemCompletionCallbackUserState, itemsToMove);
         }
 
         /// <summary>
@@ -2154,7 +2154,7 @@ namespace Cloud
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.MoveFiles(itemCompletionCallback, itemCompletionCallbackUserState, itemsToMove);
+            return httpRestClient.MoveFiles(ReservedForActiveSync, itemCompletionCallback, itemCompletionCallbackUserState, itemsToMove);
         }
 
         #endregion  // end MoveFiles (Move files in the syncbox)
@@ -2175,7 +2175,7 @@ namespace Cloud
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.BeginMoveFolders(asyncCallback, asyncCallbackUserState, itemCompletionCallback, itemCompletionCallbackUserState, itemsToMove);
+            return httpRestClient.BeginMoveFolders(asyncCallback, asyncCallbackUserState, ReservedForActiveSync, itemCompletionCallback, itemCompletionCallbackUserState, itemsToMove);
         }
 
         /// <summary>
@@ -2207,7 +2207,7 @@ namespace Cloud
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.MoveFolders(itemCompletionCallback, itemCompletionCallbackUserState, itemsToMove);
+            return httpRestClient.MoveFolders(ReservedForActiveSync, itemCompletionCallback, itemCompletionCallbackUserState, itemsToMove);
         }
 
         #endregion  // end RenameFolders (Rename folders in the syncbox)
@@ -2228,7 +2228,7 @@ namespace Cloud
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.BeginDeleteFiles(asyncCallback, asyncCallbackUserState, itemCompletionCallback, itemCompletionCallbackUserState, itemsToDelete);
+            return httpRestClient.BeginDeleteFiles(asyncCallback, asyncCallbackUserState, ReservedForActiveSync, itemCompletionCallback, itemCompletionCallbackUserState, itemsToDelete);
         }
 
         /// <summary>
@@ -2260,7 +2260,7 @@ namespace Cloud
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.DeleteFiles(itemCompletionCallback, itemCompletionCallbackUserState, itemsToDelete);
+            return httpRestClient.DeleteFiles(ReservedForActiveSync, itemCompletionCallback, itemCompletionCallbackUserState, itemsToDelete);
         }
 
         #endregion  // end DeleteFiles (Delete files in the syncbox)
@@ -2281,7 +2281,7 @@ namespace Cloud
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.BeginDeleteFolders(asyncCallback, asyncCallbackUserState, itemCompletionCallback, itemCompletionCallbackUserState, itemsToDelete);
+            return httpRestClient.BeginDeleteFolders(asyncCallback, asyncCallbackUserState, ReservedForActiveSync, itemCompletionCallback, itemCompletionCallbackUserState, itemsToDelete);
         }
 
         /// <summary>
@@ -2313,7 +2313,7 @@ namespace Cloud
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.DeleteFolders(itemCompletionCallback, itemCompletionCallbackUserState, itemsToDelete);
+            return httpRestClient.DeleteFolders(ReservedForActiveSync, itemCompletionCallback, itemCompletionCallbackUserState, itemsToDelete);
         }
 
         #endregion  // end DeleteFolders (Delete folders in the syncbox)
@@ -2334,7 +2334,7 @@ namespace Cloud
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.BeginAddFolders(asyncCallback, asyncCallbackUserState, itemCompletionCallback, itemCompletionCallbackUserState, folderItemsToAdd);
+            return httpRestClient.BeginAddFolders(asyncCallback, asyncCallbackUserState, ReservedForActiveSync, itemCompletionCallback, itemCompletionCallbackUserState, folderItemsToAdd);
         }
 
         /// <summary>
@@ -2366,7 +2366,7 @@ namespace Cloud
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.AddFolders(itemCompletionCallback, itemCompletionCallbackUserState, folderItemsToAdd);
+            return httpRestClient.AddFolders(ReservedForActiveSync, itemCompletionCallback, itemCompletionCallbackUserState, folderItemsToAdd);
         }
 
         #endregion  // end AddFolders (Add folders to the syncbox)
@@ -2398,7 +2398,7 @@ namespace Cloud
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.BeginAddFiles(asyncCallback, asyncCallbackUserState, itemCompletionCallback, itemCompletionCallbackUserState, transferStatusCallback, transferStatusCallbackUserState, cancellationSource, filesToAdd);
+            return httpRestClient.BeginAddFiles(asyncCallback, asyncCallbackUserState, ReservedForActiveSync, itemCompletionCallback, itemCompletionCallbackUserState, transferStatusCallback, transferStatusCallbackUserState, cancellationSource, filesToAdd);
         }
 
         /// <summary>
@@ -2439,7 +2439,7 @@ namespace Cloud
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.AddFiles(itemCompletionCallback, itemCompletionCallbackUserState, transferStatusCallback, transferStatusCallbackUserState, cancellationSource, filesToAdd);
+            return httpRestClient.AddFiles(ReservedForActiveSync, itemCompletionCallback, itemCompletionCallbackUserState, transferStatusCallback, transferStatusCallbackUserState, cancellationSource, filesToAdd);
         }
 
         #endregion  // end AddFiles (Adds files to the syncbox)
@@ -3400,7 +3400,7 @@ namespace Cloud
         /// <param name="metadata">string keys to serializable object values to store as extra metadata to the sync box</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
-        public IAsyncResult BeginUpdateSyncboxExtendedMetadata<T>(AsyncCallback asyncCallback,
+        internal IAsyncResult BeginUpdateSyncboxExtendedMetadata<T>(AsyncCallback asyncCallback,
             object asyncCallbackState,
             IDictionary<string, T> metadata,
             int timeoutMilliseconds)
@@ -3420,7 +3420,7 @@ namespace Cloud
         /// <param name="metadata">string keys to serializable object values to store as extra metadata to the sync box</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
-        public IAsyncResult BeginUpdateSyncboxExtendedMetadata(AsyncCallback asyncCallback,
+        internal IAsyncResult BeginUpdateSyncboxExtendedMetadata(AsyncCallback asyncCallback,
             object asyncCallbackState,
             JsonContracts.MetadataDictionary metadata,
             int timeoutMilliseconds)
@@ -3439,7 +3439,7 @@ namespace Cloud
         /// <param name="asyncResult">The asynchronous result provided upon starting updating extended metadata</param>
         /// <param name="result">(output) The result from updating extended metadata</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndUpdateSyncboxExtendedMetadata(IAsyncResult asyncResult, out SyncboxUpdateExtendedMetadataResult result)
+        internal CLError EndUpdateSyncboxExtendedMetadata(IAsyncResult asyncResult, out SyncboxUpdateExtendedMetadataResult result)
         {
             CheckDisposed(true);
 
@@ -3455,7 +3455,7 @@ namespace Cloud
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError UpdateSyncboxExtendedMetadata<T>(IDictionary<string, T> metadata, int timeoutMilliseconds, out JsonContracts.SyncboxResponse response)
+        internal CLError UpdateSyncboxExtendedMetadata<T>(IDictionary<string, T> metadata, int timeoutMilliseconds, out JsonContracts.SyncboxResponse response)
         {
             CheckDisposed(true);
 
@@ -3471,7 +3471,7 @@ namespace Cloud
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <param name="response">(output) response object from communication</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError SyncboxUpdateExtendedMetadata(JsonContracts.MetadataDictionary metadata, int timeoutMilliseconds, out JsonContracts.SyncboxResponse response)
+        internal CLError SyncboxUpdateExtendedMetadata(JsonContracts.MetadataDictionary metadata, int timeoutMilliseconds, out JsonContracts.SyncboxResponse response)
         {
             CheckDisposed(true);
 
@@ -3581,6 +3581,7 @@ namespace Cloud
             return httpRestClient.BeginUpdateFriendlyName(
                 asyncCallback,
                 asyncCallbackUserState,
+                ReservedForActiveSync,
                 new Action<JsonContracts.SyncboxResponse, object>(OnUpdateFriendlyNameCompletion),
                 this,
                 friendlyName);
@@ -3615,6 +3616,7 @@ namespace Cloud
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
             return httpRestClient.UpdateFriendlyName(
+                ReservedForActiveSync,
                 new Action<JsonContracts.SyncboxResponse, object>(OnUpdateFriendlyNameCompletion),
                 this,
                 friendlyName);
