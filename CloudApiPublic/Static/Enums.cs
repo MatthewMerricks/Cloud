@@ -546,6 +546,16 @@ namespace Cloud.Static
         /// </summary>
         OnDemand_NotCreatedInThisSyncbox = (((ulong)CLExceptionDomain.OnDemand) << 32) | 40, // 5_40
 
+        /// <summary>
+        /// CLFileItem was a folder when a file type was expected.
+        /// </summary>
+        OnDemand_FolderItemWhenFileItemExpected = (((ulong)CLExceptionDomain.OnDemand) << 32) | 41, // 5_41
+
+        /// <summary>
+        /// CLFileItem was a file when a folder type was expected.
+        /// </summary>
+        OnDemand_FileItemWhenFolderItemExpected = (((ulong)CLExceptionDomain.OnDemand) << 32) | 42, // 5_42
+
         #endregion
 
         #region FileItem
