@@ -1038,6 +1038,14 @@ namespace Cloud.REST
                     {
                         throw new CLInvalidOperationException(CLExceptionCode.OnDemand_NotCreatedInThisSyncbox, String.Format(Resources.ExceptionOnDemandCLFileItemNotCreatedInThisSyncboxMsg0, paramIdx));
                     }
+                    if (currentParams.ItemToRename.IsFolder)
+                    {
+                        throw new CLInvalidOperationException(CLExceptionCode.OnDemand_FolderItemWhenFileItemExpected, String.Format(Resources.ExceptionOnDemandFolderItemFoundWhenFileItemExpectedMsg0, paramIdx));
+                    }
+                    if (currentParams.ItemToRename.IsDeleted)
+                    {
+                        throw new CLInvalidOperationException(CLExceptionCode.OnDemand_AlreadyDeleted, String.Format(Resources.ExceptionOnDemandItemWasPreviouslyDeletedMsg0 , paramIdx));
+                    }
                     if (String.IsNullOrEmpty(currentParams.NewName))
                     {
                         throw new CLArgumentNullException(Static.CLExceptionCode.OnDemand_MissingParameters, Resources.ExceptionOnDemandNewNameMustBeSpecified);
@@ -1328,6 +1336,14 @@ namespace Cloud.REST
                     if (currentParams.ItemToRename.Syncbox != _syncbox)
                     {
                         throw new CLInvalidOperationException(CLExceptionCode.OnDemand_NotCreatedInThisSyncbox, String.Format(Resources.ExceptionOnDemandCLFileItemNotCreatedInThisSyncboxMsg0, paramIdx));
+                    }
+                    if (!currentParams.ItemToRename.IsFolder)
+                    {
+                        throw new CLInvalidOperationException(CLExceptionCode.OnDemand_FileItemWhenFolderItemExpected, String.Format(Resources.ExceptionOnDemandFileItemFoundWhenFolderItemExpectedMsg0, paramIdx));
+                    }
+                    if (currentParams.ItemToRename.IsDeleted)
+                    {
+                        throw new CLInvalidOperationException(CLExceptionCode.OnDemand_AlreadyDeleted, String.Format(Resources.ExceptionOnDemandItemWasPreviouslyDeletedMsg0, paramIdx));
                     }
                     if (String.IsNullOrEmpty(currentParams.NewName))
                     {
@@ -1620,6 +1636,14 @@ namespace Cloud.REST
                     {
                         throw new CLInvalidOperationException(CLExceptionCode.OnDemand_NotCreatedInThisSyncbox, String.Format(Resources.ExceptionOnDemandCLFileItemNotCreatedInThisSyncboxMsg0, paramIdx));
                     }
+                    if (currentParams.ItemToMove.IsFolder)
+                    {
+                        throw new CLInvalidOperationException(CLExceptionCode.OnDemand_FolderItemWhenFileItemExpected, String.Format(Resources.ExceptionOnDemandFolderItemFoundWhenFileItemExpectedMsg0, paramIdx));
+                    }
+                    if (currentParams.ItemToMove.IsDeleted)
+                    {
+                        throw new CLInvalidOperationException(CLExceptionCode.OnDemand_AlreadyDeleted, String.Format(Resources.ExceptionOnDemandItemWasPreviouslyDeletedMsg0, paramIdx));
+                    }
                     if (currentParams.NewParentFolderItem == null)
                     {
                         throw new CLArgumentNullException(Static.CLExceptionCode.OnDemand_MoveItemParamsMissingProperties, Resources.ExceptionOnDemandNewParentFolderItemMustBeSpecified);
@@ -1908,6 +1932,14 @@ namespace Cloud.REST
                     {
                         throw new CLInvalidOperationException(CLExceptionCode.OnDemand_NotCreatedInThisSyncbox, String.Format(Resources.ExceptionOnDemandCLFileItemNotCreatedInThisSyncboxMsg0, paramIdx));
                     }
+                    if (!currentParams.ItemToMove.IsFolder)
+                    {
+                        throw new CLInvalidOperationException(CLExceptionCode.OnDemand_FileItemWhenFolderItemExpected, String.Format(Resources.ExceptionOnDemandFileItemFoundWhenFolderItemExpectedMsg0, paramIdx));
+                    }
+                    if (currentParams.ItemToMove.IsDeleted)
+                    {
+                        throw new CLInvalidOperationException(CLExceptionCode.OnDemand_AlreadyDeleted, String.Format(Resources.ExceptionOnDemandItemWasPreviouslyDeletedMsg0, paramIdx));
+                    }
                     if (currentParams.NewParentFolderItem == null)
                     {
                         throw new CLArgumentNullException(Static.CLExceptionCode.OnDemand_MoveItemParamsMissingProperties, Resources.ExceptionOnDemandNewParentFolderItemMustBeSpecified);
@@ -2193,6 +2225,14 @@ namespace Cloud.REST
                     {
                         throw new CLInvalidOperationException(CLExceptionCode.OnDemand_NotCreatedInThisSyncbox, String.Format(Resources.ExceptionOnDemandCLFileItemNotCreatedInThisSyncboxMsg0, paramIdx));
                     }
+                    if (currentFileItem.IsFolder)
+                    {
+                        throw new CLInvalidOperationException(CLExceptionCode.OnDemand_FolderItemWhenFileItemExpected, String.Format(Resources.ExceptionOnDemandFolderItemFoundWhenFileItemExpectedMsg0, paramIdx));
+                    }
+                    if (currentFileItem.IsDeleted)
+                    {
+                        throw new CLInvalidOperationException(CLExceptionCode.OnDemand_AlreadyDeleted, String.Format(Resources.ExceptionOnDemandItemWasPreviouslyDeletedMsg0, paramIdx));
+                    }
 
                     jsonContractDeletes[paramIdx] = currentFileItem.Uid;
                 }
@@ -2454,17 +2494,25 @@ namespace Cloud.REST
 
                 for (int paramIdx = 0; paramIdx < itemsToDelete.Length; paramIdx++)
                 {
-                    CLFileItem currentFileItem = itemsToDelete[paramIdx];
-                    if (currentFileItem == null)
+                    CLFileItem currentFolderItem = itemsToDelete[paramIdx];
+                    if (currentFolderItem == null)
                     {
                         throw new CLArgumentException(CLExceptionCode.OnDemand_FileRename, String.Format(Resources.ExceptionOnDemandFileItemNullAtIndexMsg0, paramIdx.ToString()));
                     }
-                    if (currentFileItem.Syncbox != _syncbox)
+                    if (currentFolderItem.Syncbox != _syncbox)
                     {
                         throw new CLInvalidOperationException(CLExceptionCode.OnDemand_NotCreatedInThisSyncbox, String.Format(Resources.ExceptionOnDemandCLFileItemNotCreatedInThisSyncboxMsg0, paramIdx));
                     }
+                    if (!currentFolderItem.IsFolder)
+                    {
+                        throw new CLInvalidOperationException(CLExceptionCode.OnDemand_FileItemWhenFolderItemExpected, String.Format(Resources.ExceptionOnDemandFileItemFoundWhenFolderItemExpectedMsg0, paramIdx));
+                    }
+                    if (currentFolderItem.IsDeleted)
+                    {
+                        throw new CLInvalidOperationException(CLExceptionCode.OnDemand_AlreadyDeleted, String.Format(Resources.ExceptionOnDemandItemWasPreviouslyDeletedMsg0, paramIdx));
+                    }
 
-                    jsonContractDeletes[paramIdx] = currentFileItem.Uid;
+                    jsonContractDeletes[paramIdx] = currentFolderItem.Uid;
                     //{
                         //DeviceId = _copiedSettings.DeviceId,
                         
@@ -2736,6 +2784,14 @@ namespace Cloud.REST
                     if (currentFolderItem.Syncbox != _syncbox)
                     {
                         throw new CLInvalidOperationException(CLExceptionCode.OnDemand_NotCreatedInThisSyncbox, String.Format(Resources.ExceptionOnDemandCLFileItemNotCreatedInThisSyncboxMsg0, paramIdx));
+                    }
+                    if (!currentFolderItem.IsFolder)
+                    {
+                        throw new CLInvalidOperationException(CLExceptionCode.OnDemand_FileItemWhenFolderItemExpected, String.Format(Resources.ExceptionOnDemandFileItemFoundWhenFolderItemExpectedMsg0, paramIdx));
+                    }
+                    if (currentFolderItem.IsDeleted)
+                    {
+                        throw new CLInvalidOperationException(CLExceptionCode.OnDemand_AlreadyDeleted, String.Format(Resources.ExceptionOnDemandItemWasPreviouslyDeletedMsg0, paramIdx));
                     }
                     if (String.IsNullOrEmpty(currentFolderName))
                     {
@@ -3110,6 +3166,14 @@ namespace Cloud.REST
                         if (fullPathAndParentAndNewName.ParentFolder.Syncbox != _syncbox)
                         {
                             throw new CLInvalidOperationException(CLExceptionCode.OnDemand_NotCreatedInThisSyncbox, String.Format(Resources.ExceptionOnDemandCLFileItemNotCreatedInThisSyncboxMsg0, currentNameAndParentIdx));
+                        }
+                        if (!fullPathAndParentAndNewName.ParentFolder.IsFolder)
+                        {
+                            throw new CLInvalidOperationException(CLExceptionCode.OnDemand_FileItemWhenFolderItemExpected, String.Format(Resources.ExceptionOnDemandFileItemFoundWhenFolderItemExpectedMsg0, currentNameAndParentIdx));
+                        }
+                        if (fullPathAndParentAndNewName.ParentFolder.IsDeleted)
+                        {
+                            throw new CLInvalidOperationException(CLExceptionCode.OnDemand_AlreadyDeleted, String.Format(Resources.ExceptionOnDemandItemWasPreviouslyDeletedMsg0, currentNameAndParentIdx));
                         }
                         if (fullPathAndParentAndNewName.ParentFolder == null)
                         {
@@ -6186,9 +6250,20 @@ namespace Cloud.REST
                 {
                     throw new ArgumentException(Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
-                if (folderItem != null && folderItem.Syncbox != _syncbox)
+                if (folderItem != null)
                 {
-                    throw new CLInvalidOperationException(CLExceptionCode.OnDemand_NotCreatedInThisSyncbox, Resources.ExceptionOnDemandCLFileItemNotCreatedInThisSyncbox);
+                    if (folderItem.Syncbox != _syncbox)
+                    {
+                        throw new CLInvalidOperationException(CLExceptionCode.OnDemand_NotCreatedInThisSyncbox, Resources.ExceptionOnDemandCLFileItemNotCreatedInThisSyncbox);
+                    }
+                    if (!folderItem.IsFolder)
+                    {
+                        throw new CLInvalidOperationException(CLExceptionCode.OnDemand_FileItemWhenFolderItemExpected, Resources.ExceptionOnDemandFileItemFoundWhenFolderItemExpected);
+                    }
+                    if (folderItem.IsDeleted)
+                    {
+                        throw new CLInvalidOperationException(CLExceptionCode.OnDemand_AlreadyDeleted, Resources.ExceptionOnDemandItemWasPreviouslyDeleted);
+                    }
                 }
 
                 // build the location of the folder contents retrieval method on the server dynamically
@@ -6534,6 +6609,14 @@ namespace Cloud.REST
                 if (folderItem != null && folderItem.Syncbox != _syncbox)
                 {
                     throw new CLInvalidOperationException(CLExceptionCode.OnDemand_NotCreatedInThisSyncbox, Resources.ExceptionOnDemandCLFileItemNotCreatedInThisSyncbox);
+                }
+                if (!folderItem.IsFolder)
+                {
+                    throw new CLInvalidOperationException(CLExceptionCode.OnDemand_FileItemWhenFolderItemExpected, Resources.ExceptionOnDemandFileItemFoundWhenFolderItemExpected);
+                }
+                if (folderItem.IsDeleted)
+                {
+                    throw new CLInvalidOperationException(CLExceptionCode.OnDemand_AlreadyDeleted, Resources.ExceptionOnDemandItemWasPreviouslyDeletedMsg0);
                 }
 
                 // build the location of the folder contents retrieval method on the server dynamically
