@@ -2979,6 +2979,10 @@
     <value>Unable to cast userState as Nullable&lt;Guid&gt;</value>
     <comment>userState and Nullable&lt;Guid&gt; should not be translated</comment>
   </data>
+  <data name="ExceptionHelpersSerializableResponseTypesKey" xml:space="preserve">
+    <value>SerializableResponseTypes contains an invalid type key</value>
+    <comment>SerializableResponseTypes should not be translated</comment>
+  </data>
   <data name="ExceptionOnDemandCLFileItemNotCreatedInThisSyncbox" xml:space="preserve">
     <value>The input CLFileItem was not created in this syncbox</value>
     <comment>"CLFileItem" should not be translated</comment>

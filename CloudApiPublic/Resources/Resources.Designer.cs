@@ -2637,6 +2637,15 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to SerializableResponseTypes contains an invalid type key.
+        /// </summary>
+        internal static string ExceptionHelpersSerializableResponseTypesKey {
+            get {
+                return ResourceManager.GetString("ExceptionHelpersSerializableResponseTypesKey", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to This ListRemoveAllEnumerator has already been disposed.
         /// </summary>
         internal static string ExceptionListRemoveAllEnumeratorDisposed {
