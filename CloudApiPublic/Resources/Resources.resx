@@ -2899,10 +2899,6 @@
     <value>Error deleting syncbox: {0}</value>
     <comment>"{0}" shoud not be translated</comment>
   </data>
-  <data name="Slash" xml:space="preserve">
-    <value>/</value>
-    <comment>"/" should not be translated</comment>
-  </data>
   <data name="IconOverlayRenameBadgePathRemoveBadgeOldPath0" xml:space="preserve">
     <value>IconOverlay: RenameBadgePath. Remove badge at oldPath: {0}.</value>
     <comment>"IconOverlay" and "oldPath" should not be translated.</comment>
@@ -2978,5 +2974,9 @@
   </data>
   <data name="ExceptionOnDemandDownloadFileTempFileDidNotExistAfterSuccessfulDownload" xml:space="preserve">
     <value>The temp download file did not exist on the disk after a successful download</value>
+  </data>
+  <data name="ExceptionSyncEngineFileTransferStatusUpdateCastUserstate" xml:space="preserve">
+    <value>Unable to cast userState as Nullable&lt;Guid&gt;</value>
+    <comment>userState and Nullable&lt;Guid&gt; should not be translated</comment>
   </data>
 </root>

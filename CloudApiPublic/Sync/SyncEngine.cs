@@ -1067,22 +1067,34 @@ namespace Cloud.Sync
             {
                 lock (StatusChangesQueue)
                 {
-                    GenericHolder<Guid> threadIdHolder = userState as GenericHolder<Guid>;
-                    Guid threadId = threadIdHolder.Value;
-                    StatusChangesQueue.Enqueue(new KeyValuePair<Guid, ThreadStatus>(
-                        threadId,
-                        new ThreadStatus()
-                        {
-                            ByteProgress = byteProgress,
-                            Direction = direction,
-                            EventID = eventId,
-                            LastUpdateTime = DateTime.UtcNow,
-                            RelativePath = relativePath,
-                            TotalByteSize = totalByteSize,
-                            IsError = isError
-                        }));
+                    Nullable<Guid> castState = userState as Nullable<Guid>;
 
-                    StartStatusAggregatorIfNotStarted();
+                    if (castState == null)
+                    {
+                        MessageEvents.FireNewEventMessage(
+                            Resources.ExceptionSyncEngineFileTransferStatusUpdateCastUserstate,
+                            EventMessageLevel.Important,
+                            new HaltAllOfCloudSDKErrorInfo());
+
+                        throw new CLNullReferenceException(CLExceptionCode.Syncing_LiveSyncEngine, Resources.ExceptionSyncEngineFileTransferStatusUpdateCastUserstate);
+                    }
+                    else
+                    {
+                        StatusChangesQueue.Enqueue(new KeyValuePair<Guid, ThreadStatus>(
+                            (Guid)castState,
+                            new ThreadStatus()
+                            {
+                                ByteProgress = byteProgress,
+                                Direction = direction,
+                                EventID = eventId,
+                                LastUpdateTime = DateTime.UtcNow,
+                                RelativePath = relativePath,
+                                TotalByteSize = totalByteSize,
+                                IsError = isError
+                            }));
+
+                        StartStatusAggregatorIfNotStarted();
+                    }
                 }
             }
             catch
@@ -5093,7 +5105,7 @@ namespace Cloud.Sync
                                     {
                                         // Properties function as named:
 
-                                        StatusUpdateUserState = new GenericHolder<Guid>(asyncTaskThreadId),
+                                        ThreadIdForStatusUpdate = asyncTaskThreadId,
                                         StatusUpdate = FileTransferStatusUpdate,
                                         FailureTimer = FailureTimer,
                                         FileToDownload = toComplete.FileChange,
@@ -5173,7 +5185,7 @@ namespace Cloud.Sync
                             {
                                 // Properties are purposed as named
 
-                                StatusUpdateUserState = new GenericHolder<Guid>(asyncTaskThreadId),
+                                ThreadIdForStatusUpdate = asyncTaskThreadId,
                                 StatusUpdate = FileTransferStatusUpdate,
                                 FailureTimer = FailureTimer,
                                 FileToUpload = toComplete.FileChange,
@@ -5369,7 +5381,7 @@ namespace Cloud.Sync
                         out hashMismatchFound,
                         castState.ShutdownToken, // pass in the shutdown token for the optional parameter so it can be cancelled
                         castState.StatusUpdate,
-                        castState.StatusUpdateUserState);
+                        castState.ThreadIdForStatusUpdate);
 
                     // depending on whether the communication status is a connection failure or not, either increment the failure count or clear it, respectively
                     if (uploadError != null)
@@ -5417,7 +5429,7 @@ namespace Cloud.Sync
                                     && castState.FileToUpload.Metadata.HashableProperties.Size != null)
                                 {
                                     castState.StatusUpdate(
-                                        castState.StatusUpdateUserState, // threadId
+                                        castState.ThreadIdForStatusUpdate, // threadId
                                         castState.FileToUpload.EventId, // eventId
                                         SyncDirection.To, // direction
                                         castState.FileToUpload.NewPath.GetRelativePath(castState.Syncbox.Path, false), // relativePath
@@ -5490,7 +5502,7 @@ namespace Cloud.Sync
                         && castState.FileToUpload.Metadata.HashableProperties.Size != null)
                     {
                         castState.StatusUpdate(
-                            castState.StatusUpdateUserState, // threadId
+                            castState.ThreadIdForStatusUpdate, // threadId
                             castState.FileToUpload.EventId, // eventId
                             SyncDirection.To, // direction
                             castState.FileToUpload.NewPath.GetRelativePath(castState.Syncbox.Path, false), // relativePath
@@ -6089,7 +6101,7 @@ namespace Cloud.Sync
                         castState.ShutdownToken, // the cancellation token which can cause the download to stop in the middle
                         castState.TempDownloadFolderPath, // the full path to the folder which will contain all the temporary-downloaded files
                         castState.StatusUpdate,
-                        castState.StatusUpdateUserState);
+                        castState.ThreadIdForStatusUpdate);
 
                     // depending on whether the communication status is a connection failure or not, either increment the failure count or clear it, respectively
                     if (downloadError != null)
@@ -6189,7 +6201,7 @@ namespace Cloud.Sync
                     {
                         _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: DownloadForTask: Call StatusUpdate."));
                         castState.StatusUpdate(
-                            castState.StatusUpdateUserState, // threadId
+                            castState.ThreadIdForStatusUpdate, // threadId
                             castState.FileToDownload.EventId, // eventId
                             SyncDirection.From, // direction
                             castState.FileToDownload.NewPath.GetRelativePath(castState.Syncbox.Path, false), // relativePath
@@ -6710,7 +6722,7 @@ namespace Cloud.Sync
         /// </summary>
         private sealed class DownloadTaskState : ITransferTaskState
         {
-            public object StatusUpdateUserState { get; set; }
+            public Guid ThreadIdForStatusUpdate { get; set; }
             public FileTransferStatusUpdateDelegate StatusUpdate { get; set; }
             public FileChange FileToDownload { get; set; }
             public string ServerUid { get; set; }
@@ -6735,7 +6747,7 @@ namespace Cloud.Sync
         /// </summary>
         private sealed class UploadTaskState : ITransferTaskState
         {
-            public object StatusUpdateUserState { get; set; }
+            public Guid ThreadIdForStatusUpdate { get; set; }
             public FileTransferStatusUpdateDelegate StatusUpdate { get; set; }
             public FileChange FileToUpload { get; set; }
             public StreamContext StreamContext { get; set; }
@@ -11758,7 +11770,7 @@ namespace Cloud.Sync
     /// <summary>
     /// Delegate to FileTransferStatusUpdate in SyncEngine which fires status change callbacks to CLSyncEngine
     /// </summary>
-    /// <param name="threadId">User state to be passed to the delegate when firing.</param>
+    /// <param name="threadId">Unique id of the running thread calling back for status change</param>
     /// <param name="eventId">The unique ID of the event being transferred</param>
     /// <param name="direction">Direction of the event (To the server of From the server)</param>
     /// <param name="relativePath">Relative path of the file being transferred</param>

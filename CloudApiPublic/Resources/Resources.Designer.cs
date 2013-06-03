@@ -3159,6 +3159,15 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Unable to cast userState as Nullable&lt;Guid&gt;.
+        /// </summary>
+        internal static string ExceptionSyncEngineFileTransferStatusUpdateCastUserstate {
+            get {
+                return ResourceManager.GetString("ExceptionSyncEngineFileTransferStatusUpdateCastUserstate", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to {0}. Http status code: {1}.
         /// </summary>
         internal static string ExceptionSyncEngineHttpStatus {
@@ -6489,15 +6498,6 @@ namespace Cloud.Static {
         internal static string SetBadgePathToBadgeCannotBeNull {
             get {
                 return ResourceManager.GetString("SetBadgePathToBadgeCannotBeNull", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to /.
-        /// </summary>
-        internal static string Slash {
-            get {
-                return ResourceManager.GetString("Slash", resourceCulture);
             }
         }
         

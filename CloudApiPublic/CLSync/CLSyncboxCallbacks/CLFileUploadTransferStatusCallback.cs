@@ -1,5 +1,5 @@
 ﻿//
-// FileUploadTransferStatusCallback.cs
+// CLFileUploadTransferStatusCallback.cs
 // Cloud Windows
 //
 // Created By DavidBruck.
@@ -19,5 +19,5 @@ namespace Cloud.CLSync
     /// <param name="byteProgress">Bytes already transferred for the file</param>
     /// <param name="totalByteSize">Total byte size of the file</param>
     /// <param name="userState">A user-provided state which will be passed whenever the status callback fires</param>
-    public delegate void FileUploadTransferStatusCallback(int inputItemIndex, long byteProgress, long totalByteSize, object userState);
+    public delegate void CLFileUploadTransferStatusCallback(int inputItemIndex, long byteProgress, long totalByteSize, object userState);
 }

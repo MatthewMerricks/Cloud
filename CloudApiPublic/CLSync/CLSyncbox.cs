@@ -180,12 +180,12 @@ namespace Cloud
 
         #endregion  // end Private Fields
 
-        #region Internal Properties
+        #region Internal properties
 
         /// <summary>
-        /// true: The user is busy in a public API call that is modifying the syncbox.
+        /// Internal client for passing HTTP REST calls to the server
         /// </summary>
-        internal bool IsModifyingSyncboxViaPublicAPICalls
+        internal CLHttpRest HttpRestClient
         {
             get
             {
@@ -197,9 +197,9 @@ namespace Cloud
                 {
                     if (setPathHolder == null)
                     {
-                        return false;
+                        return null;
                     }
-                    return setPathHolder.HttpRestClient.IsModifyingSyncboxViaPublicAPICalls;
+                    return setPathHolder.HttpRestClient;
                 }
                 finally
                 {
@@ -211,7 +211,7 @@ namespace Cloud
             }
         }
 
-        #endregion  // end Internal Properties
+        #endregion
 
         #region Public Properties
 
@@ -303,41 +303,12 @@ namespace Cloud
         }
 
         /// <summary>
-        /// Internal client for passing HTTP REST calls to the server
-        /// </summary>
-        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-        public CLHttpRest HttpRestClient
-        {
-            get
-            {
-                if (setPathLocker != null)
-                {
-                    Monitor.Enter(setPathLocker);
-                }
-                try
-                {
-                    if (setPathHolder == null)
-                    {
-                        return null;
-                    }
-                    return setPathHolder.HttpRestClient;
-                }
-                finally
-                {
-                    if (setPathLocker != null)
-                    {
-                        Monitor.Exit(setPathLocker);
-                    }
-                }
-            }
-        }
-
-        /// <summary>
         /// lock on _startLocker for modifications or retrieval
         /// </summary>
         private CLSyncEngine _syncEngine = null;
 
-        private SetPathProperties setPathHolder;
+        // this effectively sets path as null and sets the rest client as null
+        private SetPathProperties setPathHolder = null;
 
         private sealed class SetPathProperties
         {
@@ -544,16 +515,18 @@ namespace Cloud
                 this._getNewCredentialsCallback = getNewCredentialsCallback;
                 this._getNewCredentialsCallbackUserState = getNewCredentialsCallbackUserState;
 
-                if (String.IsNullOrEmpty(path))
-                {
-                    setPathLocker = new object();
-                }
-                else
-                {
+                //// calling UpdatePathInternal now occurs regardless of whether path was set, therefore no need to allow updating the path later (with a locker)
+                //
+                //if (String.IsNullOrEmpty(path))
+                //{
+                //    setPathLocker = new object();
+                //}
+                //else
+                //{
                     setPathLocker = null;
-                }
+                //}
 
-                CLError setPathError = UpdatePathInternal(path, shouldUpdateSyncboxStatusFromServer: true);
+                CLError setPathError = InitializeInternal(path, shouldUpdateSyncboxStatusFromServer: true);
                 if (setPathError != null)
                 {
                     throw new CLException(CLExceptionCode.Syncbox_Initializing, "Error initializing the syncbox", setPathError.Exceptions);
@@ -566,14 +539,12 @@ namespace Cloud
         /// </summary>
         /// <param name="syncboxContract">The syncbox contract to use.</param>
         /// <param name="credentials">The credentials to use.</param>
-        /// <param name="path">(optional) The full path on the local disk of the folder to associate with this syncbox.  The path is used for live sync only.</param>
         /// <param name="settings">(optional) The settings to use.</param>
         /// <param name="getNewCredentialsCallback">(optional) The delegate to call for getting new temporary credentials.</param>
         /// <param name="getNewCredentialsCallbackUserState">(optional) The user state to pass to the delegate above.</param>
         private CLSyncbox(
             JsonContracts.Syncbox syncboxContract,
             CLCredentials credentials,
-            string path = null,
             ICLSyncSettings settings = null,
             Helpers.ReplaceExpiredCredentials getNewCredentialsCallback = null,
             object getNewCredentialsCallbackUserState = null)
@@ -581,12 +552,6 @@ namespace Cloud
             CheckDisposed();
 
             // check input parameters
-
-            // Fix up the path.  Use String.Empty if the user passed null.
-            if (path == null)
-            {
-                path = String.Empty;
-            }
 
             if (syncboxContract == null)
             {
@@ -630,20 +595,7 @@ namespace Cloud
                 this._getNewCredentialsCallback = getNewCredentialsCallback;
                 this._getNewCredentialsCallbackUserState = getNewCredentialsCallbackUserState;
 
-                if (String.IsNullOrEmpty(path))
-                {
-                    setPathLocker = new object();
-                }
-                else
-                {
-                    setPathLocker = null;
-                    CLError setPathError = UpdatePathInternal(path, shouldUpdateSyncboxStatusFromServer: false);  // the information in the server response filled in the current syncbox status.
-                    if (setPathError != null)
-                    {
-                        //&&&& Put all strings in resources.
-                        throw new CLException(CLExceptionCode.Syncbox_Initializing, "Error initializing the syncbox", setPathError.Exceptions);
-                    }
-                }
+                setPathLocker = new object();
             }
         }
 
@@ -1269,12 +1221,6 @@ namespace Cloud
             // try/catch to process the metadata query, on catch return the error
             try
             {
-                // Fix up the path.  Use String.Empty if the user passed null.
-                if (path == null)
-                {
-                    path = String.Empty;
-                }
-
                 // Check the input parameters.
                 if (plan == null)
                 {
@@ -1330,10 +1276,14 @@ namespace Cloud
                 syncbox =  new CLSyncbox(
                     syncboxContract: responseFromServer.Syncbox,
                     credentials: credentials,
-                    path: path,
                     settings: copiedSettings,
                     getNewCredentialsCallback: getNewCredentialsCallback,
                     getNewCredentialsCallbackUserState: getNewCredentialsCallbackUserState);
+
+                // CreateSyncbox call both creates a CLSyncbox via data from the server (like ListAllSyncboxes) (via the call immediately above),
+                // and this CreateSyncbox call also takes a path from the user to start initialized,
+                // so the following call was added to finish this initilization (unlike ListAllSyncboxes)
+                syncbox.InitWithPath(path);
             }
             catch (Exception ex)
             {
@@ -1622,7 +1572,12 @@ namespace Cloud
                     {
                         if (syncbox != null)
                         {
-                            listSyncboxes.Add(new CLSyncbox(syncbox, credentials, null, copiedSettings, getNewCredentialsCallback, getNewCredentialsCallbackUserState));
+                            listSyncboxes.Add(
+                                new CLSyncbox(syncbox,
+                                    credentials,
+                                    copiedSettings,
+                                    getNewCredentialsCallback,
+                                    getNewCredentialsCallbackUserState));
                         }
                         else
                         {
@@ -1681,7 +1636,7 @@ namespace Cloud
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.BeginItemForPath(asyncCallback, asyncCallbackUserState, Resources.Slash);
+            return httpRestClient.BeginItemForPath(asyncCallback, asyncCallbackUserState, (/* '/' */ ((char)0x2f)).ToString());
         }
 
         /// <summary>
@@ -1712,7 +1667,7 @@ namespace Cloud
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.ItemForPath(Resources.Slash, out item);
+            return httpRestClient.ItemForPath((/* '/' */ ((char)0x2f)).ToString(), out item);
         }
 
         #endregion  // end RootFolder (Queries the syncbox for the item at the root path)
@@ -2434,7 +2389,7 @@ namespace Cloud
             object asyncCallbackUserState,
             CLFileItemCompletionCallback itemCompletionCallback,
             object itemCompletionCallbackUserState,
-            FileUploadTransferStatusCallback transferStatusCallback,
+            CLFileUploadTransferStatusCallback transferStatusCallback,
             object transferStatusCallbackUserState,
             CancellationTokenSource cancellationSource,
             params AddFileItemParams[] filesToAdd)
@@ -2475,7 +2430,7 @@ namespace Cloud
         public CLError AddFiles(
             CLFileItemCompletionCallback itemCompletionCallback,
             object itemCompletionCallbackUserState,
-            FileUploadTransferStatusCallback transferStatusCallback,
+            CLFileUploadTransferStatusCallback transferStatusCallback,
             object transferStatusCallbackUserState,
             CancellationTokenSource cancellationSource,
             params AddFileItemParams[] filesToAdd)
@@ -3756,15 +3711,22 @@ namespace Cloud
         #endregion  // end GetCurrentStatus (update the status of this syncbox from the cloud)
 
         /// <summary>
-        /// Sets the full path on the local disk that is associated with this Syncbox.  This method does not communicate with the server.
+        /// Initializes a CLSyncbox which was created by the SDK. For example, ListAllSyncboxes allocates instances of CLSyncbox, but does not initialize them for usage.
         /// </summary>
+        /// <param name="path">(optional) The full path of the folder on disk to associate with this syncbox.  The path is used only for live sync.</param>
         /// <returns>Returns any error that occurred, or null</returns>
-        /// <remarks>The path may be set only once.</remarks>
-        public CLError UpdatePath(string path)
+        /// <remarks>Each instance of CLSyncbox can only be initialized once, either by AllocAndInit or by InitWithPath.</remarks>
+        public CLError InitWithPath(string path = null)
         {
             CheckDisposed();
 
-            CLError errorFromSet = UpdatePathInternal(path, shouldUpdateSyncboxStatusFromServer: true);
+            // Fix up the path.  Use String.Empty if the user passed null.
+            if (path == null)
+            {
+                path = String.Empty;
+            }
+
+            CLError errorFromSet = InitializeInternal(path, shouldUpdateSyncboxStatusFromServer: true);
             return errorFromSet;
         }
 
@@ -3852,10 +3814,7 @@ namespace Cloud
         /// if called by constructors to create the CLHttpRest client, fill in missing information from the server, and to create an instance of CLSyncEngine that will
         /// be used by this syncbox instance.
         /// </summary>
-        /// <param name="path"></param>
-        /// <param name="shouldUpdateSyncboxStatusFromServer"></param>
-        /// <returns></returns>
-        private CLError UpdatePathInternal(string path, bool shouldUpdateSyncboxStatusFromServer)
+        private CLError InitializeInternal(string path, bool shouldUpdateSyncboxStatusFromServer)
         {
             if (path == null)
             {
@@ -3866,13 +3825,22 @@ namespace Cloud
             {
                 Monitor.Enter(setPathLocker);
             }
+
+            // seperate this try/catch just for throwing the Syncbox_PathAlreadySet code since cleanup on the following try/catch should not cleanup an already initialized syncbox
             try
             {
-                if (setPathHolder != null  && !string.IsNullOrEmpty(setPathHolder.Path))
+                if (setPathHolder != null)
                 {
                     throw new CLException(CLExceptionCode.Syncbox_PathAlreadySet, Resources.ExceptionOnDemandSyncboxPathAlreadySet);
                 }
+            }
+            catch (Exception ex)
+            {
+                return ex;
+            }
 
+            try
+            {
                 //TODO: Remove this when the sync engine support case insensitive paths.
                 // This was required because OSD code was providing paths that started with a lower case drive letter.
                 if (path.Length >= 2 && path[1] == ':')
@@ -3947,6 +3915,9 @@ namespace Cloud
             }
             catch (Exception ex)
             {
+                // cleanup to allow a repeated attempt to initialize
+                setPathHolder = null;
+
                 return ex;
             }
             finally

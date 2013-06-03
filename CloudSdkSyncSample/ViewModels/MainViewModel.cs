@@ -1247,8 +1247,8 @@ namespace SampleLiveSync.ViewModels
                                     credentials: syncCredentials,
                                     syncbox: out _syncbox,
                                     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@  DEBUG REMOVE  @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-                                    path: null,
-                                    //path: SettingsAdvancedImpl.Instance.SyncRoot,
+                                    //path: null,
+                                    path: SettingsAdvancedImpl.Instance.SyncRoot,
                                     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@  DEBUG REMOVE  @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
                                     settings: SettingsAdvancedImpl.Instance,
                                     getNewCredentialsCallback: ReplaceExpiredCredentialsCallback,

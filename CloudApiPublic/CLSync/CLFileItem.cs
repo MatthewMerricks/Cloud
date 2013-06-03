@@ -64,6 +64,9 @@ namespace Cloud.CLSync
         }
         private readonly string _relativePath;
 
+        /// <summary>
+        /// The absolute path represented by the syncbox path plus this item's relative path. Will be null if relative path or the syncbox path is null or empty.
+        /// </summary>
         public string FullPath
         {
             get
@@ -317,7 +320,9 @@ namespace Cloud.CLSync
 
             this._fullPath = (coallescedRelativePath == null
                 ? null
-                : (syncbox.Path + "\\" + this._relativePath));
+                : (string.IsNullOrEmpty(syncbox.Path)
+                    ? null
+                    : (syncbox.Path + "\\" + this._relativePath)));
 
             this._revision = response.Revision;
             this._size = response.Size;
@@ -359,7 +364,7 @@ namespace Cloud.CLSync
         public IAsyncResult BeginDownloadFile(
             AsyncCallback asyncCallback, 
             object asyncCallbackUserState,
-            FileDownloadTransferStatusCallback transferStatusCallback,
+            CLFileDownloadTransferStatusCallback transferStatusCallback,
             object transferStatusCallbackUserState,
             CancellationTokenSource cancellationSource)
         {
@@ -438,7 +443,7 @@ namespace Cloud.CLSync
         /// <returns>CLError: Any error, or null.</returns>
         public CLError DownloadFile(
             out string fullPathDownloadedTempFile, 
-            FileDownloadTransferStatusCallback transferStatusCallback, 
+            CLFileDownloadTransferStatusCallback transferStatusCallback, 
             object transferStatusCallbackUserState,
             CancellationTokenSource cancellationSource)
         {
@@ -451,7 +456,7 @@ namespace Cloud.CLSync
             };
 
             // Make a holder for the callers transfer status callback and user state.
-            Tuple<FileDownloadTransferStatusCallback, object> userTransferStatusParamHolder = new Tuple<FileDownloadTransferStatusCallback, object>(transferStatusCallback, transferStatusCallbackUserState);
+            Tuple<CLFileDownloadTransferStatusCallback, object> userTransferStatusParamHolder = new Tuple<CLFileDownloadTransferStatusCallback, object>(transferStatusCallback, transferStatusCallbackUserState);
 
             // Build a holder to receive the full path of the downloaded temp file.
             GenericHolder<string> fullPathDownloadedTempFileHolder = new GenericHolder<string>(null);
@@ -489,13 +494,13 @@ namespace Cloud.CLSync
         /// </summary>
         private void TransferStatusCallback(object userState, long eventId, SyncDirection direction, string relativePath, long byteProgress, long totalByteSize, bool isError)
         {
-            Tuple<FileDownloadTransferStatusCallback, object> castState = userState as Tuple<FileDownloadTransferStatusCallback, object>;
+            Tuple<CLFileDownloadTransferStatusCallback, object> castState = userState as Tuple<CLFileDownloadTransferStatusCallback, object>;
             if (castState == null)
             {
                 throw new CLNullReferenceException(CLExceptionCode.OnDemand_Download, Resources.ExceptionOnDemandDownloadFileIncorrectUserState);
             }
 
-            FileDownloadTransferStatusCallback transferStatusCallback = castState.Item1;
+            CLFileDownloadTransferStatusCallback transferStatusCallback = castState.Item1;
             object transferStatusCallbackUserState = castState.Item2;
 
             if (transferStatusCallback != null)
