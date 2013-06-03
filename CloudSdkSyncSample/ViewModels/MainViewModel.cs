@@ -1620,6 +1620,10 @@ namespace SampleLiveSync.ViewModels
 
                     // Kill constant scheduling threads which run forever and prevent application shutdown.
                     CLSyncbox.Shutdown();
+                    if (_syncbox != null)
+                    {
+                        _syncbox.Dispose();
+                    }
                     _syncbox = null;
 
                     // Close the window

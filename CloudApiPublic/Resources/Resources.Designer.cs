@@ -2646,6 +2646,15 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to SerializableResponseTypes contains an invalid type key.
+        /// </summary>
+        internal static string ExceptionHelpersSerializableResponseTypesKey {
+            get {
+                return ResourceManager.GetString("ExceptionHelpersSerializableResponseTypesKey", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to This ListRemoveAllEnumerator has already been disposed.
         /// </summary>
         internal static string ExceptionListRemoveAllEnumeratorDisposed {
@@ -2799,6 +2808,24 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The input CLFileItem was not created in this syncbox.
+        /// </summary>
+        internal static string ExceptionOnDemandCLFileItemNotCreatedInThisSyncbox {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandCLFileItemNotCreatedInThisSyncbox", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The input CLFileItem at index {0} was not created in this syncbox.
+        /// </summary>
+        internal static string ExceptionOnDemandCLFileItemNotCreatedInThisSyncboxMsg0 {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandCLFileItemNotCreatedInThisSyncboxMsg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Destination item already exists.
         /// </summary>
         internal static string ExceptionOnDemandConflict {
@@ -2844,11 +2871,38 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The input CLFileItem was a file when a folder item was expected.
+        /// </summary>
+        internal static string ExceptionOnDemandFileItemFoundWhenFolderItemExpected {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandFileItemFoundWhenFolderItemExpected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The input CLFileItem at index {0} was a file when a folder item was expected.
+        /// </summary>
+        internal static string ExceptionOnDemandFileItemFoundWhenFolderItemExpectedMsg0 {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandFileItemFoundWhenFolderItemExpectedMsg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to File item must not be null at item index {0}.
         /// </summary>
         internal static string ExceptionOnDemandFileItemNullAtIndexMsg0 {
             get {
                 return ResourceManager.GetString("ExceptionOnDemandFileItemNullAtIndexMsg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The input CLFileItem at index {0} was a folder when a file item was expected.
+        /// </summary>
+        internal static string ExceptionOnDemandFolderItemFoundWhenFileItemExpectedMsg0 {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandFolderItemFoundWhenFileItemExpectedMsg0", resourceCulture);
             }
         }
         
@@ -2948,6 +3002,24 @@ namespace Cloud.Static {
         internal static string ExceptionOnDemandItemUidMustNotBeNull {
             get {
                 return ResourceManager.GetString("ExceptionOnDemandItemUidMustNotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The input CLFileItem was previously deleted.
+        /// </summary>
+        internal static string ExceptionOnDemandItemWasPreviouslyDeleted {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandItemWasPreviouslyDeleted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The input CLFileItem at index {0} was previously deleted.
+        /// </summary>
+        internal static string ExceptionOnDemandItemWasPreviouslyDeletedMsg0 {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandItemWasPreviouslyDeletedMsg0", resourceCulture);
             }
         }
         

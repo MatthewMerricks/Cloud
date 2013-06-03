@@ -45,6 +45,18 @@ namespace Cloud.Static
     /// </summary>
     public static class Helpers
     {
+        #region static constructor to check Helpers values
+        static Helpers()
+        {
+            foreach (Action currentValueCheck in HelpersValueChecks)
+            {
+                // the following will throw an exception which may bubble, only should be used for serious errors
+                currentValueCheck();
+            }
+        }
+        private static readonly List<Action> HelpersValueChecks = new List<Action>();
+        #endregion
+
         private static CLTrace _trace = CLTrace.Instance;
 
         /// <summary>
@@ -2820,6 +2832,22 @@ namespace Cloud.Static
             { typeof(JsonContracts.SyncboxGetAllTextItemsResponse), JsonContractHelpers.SyncboxGetAllTextItemsResponseSerializer},
             { typeof(JsonContracts.SyncboxAddFilesResponse), JsonContractHelpers.SyncboxAddFilesResponseSerializer},
         };
+
+        private static bool checkSerializableResponseTypes = ((Func<bool>)(() =>
+        {
+            HelpersValueChecks.Add(() =>
+                {
+                    if (SerializableResponseTypes.Any(
+                        currentResponseType => currentResponseType.Key == typeof(object)
+                            || currentResponseType.Key == typeof(string)
+                            || currentResponseType.Key == typeof(Stream)))
+                    {
+                        throw new CLException(CLExceptionCode.General_Invalid, Resources.ExceptionHelpersSerializableResponseTypesKey);
+                    }
+                });
+
+            return true;
+        }))();
         #endregion
 
         /// <summary>
@@ -3666,7 +3694,8 @@ namespace Cloud.Static
                     || (uploadDownload == null // also, error for non-upload\downloads which cannot be serialized
                         && !pulledOutSerializer // no serializer for this type found
                         && typeof(T) != typeof(string) // don't need serializer for direct string output
-                        && typeof(T) != typeof(object))) // don't need serializer for direct object output (will output as string)
+                        && typeof(T) != typeof(object) // don't need serializer for direct object output (will output as string)
+                        && typeof(T) != typeof(Stream))) // don't need serializer for direct Stream output
                 {
                     CLExceptionCode status;
 
@@ -4258,7 +4287,7 @@ namespace Cloud.Static
                     // else if the output type is not in the dictionary of those serializable and if the output type is either object or string,
                     // then process the response content as a string to output directly
                     else if (typeof(T) == typeof(string)
-                        || (typeof(T) == typeof(object)))
+                        || typeof(T) == typeof(object))
                     {
                         // grab the stream from the response content
                         responseStream = httpResponse.GetResponseStream();
@@ -4269,6 +4298,16 @@ namespace Cloud.Static
                             // set the error string from the response
                             toReturn = (T)((object)purgeResponseStreamReader.ReadToEnd());
                         }
+                    }
+                    // else if the output type is not in the dictionary of those serializable and if the output type is Stream,
+                    // then the implementing application will process the response (give them a MemoryStream copy)
+                    else if (typeof(T) == typeof(Stream))
+                    {
+                        // grab the stream for response content
+                        responseStream = httpResponse.GetResponseStream();
+
+                        // copy the stream as a MemoryStream for return
+                        toReturn = (T)((object)Helpers.CopyHttpWebResponseStreamAndClose(responseStream));
                     }
                     // else if the output type is not in the dictionary of those serializable and if the output type is also neither object nor string,
                     // then we should have handled this condition earlier in invalid status code processing: process as unrecoverable error
@@ -4357,7 +4396,8 @@ namespace Cloud.Static
                 if ((CopiedSettings.TraceType & TraceType.Communication) == TraceType.Communication)
                 {
                     // if there was no stream set for deserialization, then the response was handled as a string and needs to be logged here as such
-                    if (serializationStream == null)
+                    if (serializationStream == null
+                        && typeof(T) != typeof(Stream)) // when the Stream is returned for direct access by the implementing application, do not log the whole response (could be large)
                     {
                         if (httpResponse != null)
                         {

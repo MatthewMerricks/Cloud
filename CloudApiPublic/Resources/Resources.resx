@@ -2991,4 +2991,36 @@
     <value>One or more FileChange instances failed to add or update in the database in AssignDependencies</value>
     <comment>FileChange and AssignDependencies should not be translated</comment>
   </data>
+  <data name="ExceptionHelpersSerializableResponseTypesKey" xml:space="preserve">
+    <value>SerializableResponseTypes contains an invalid type key</value>
+    <comment>SerializableResponseTypes should not be translated</comment>
+  </data>
+  <data name="ExceptionOnDemandCLFileItemNotCreatedInThisSyncbox" xml:space="preserve">
+    <value>The input CLFileItem was not created in this syncbox</value>
+    <comment>"CLFileItem" should not be translated</comment>
+  </data>
+  <data name="ExceptionOnDemandCLFileItemNotCreatedInThisSyncboxMsg0" xml:space="preserve">
+    <value>The input CLFileItem at index {0} was not created in this syncbox</value>
+    <comment>"CLFileItem" and "{0}" should not be translated</comment>
+  </data>
+  <data name="ExceptionOnDemandFileItemFoundWhenFolderItemExpected" xml:space="preserve">
+    <value>The input CLFileItem was a file when a folder item was expected</value>
+    <comment>"CLFileItem" should not be translated</comment>
+  </data>
+  <data name="ExceptionOnDemandFileItemFoundWhenFolderItemExpectedMsg0" xml:space="preserve">
+    <value>The input CLFileItem at index {0} was a file when a folder item was expected</value>
+    <comment>"CLFileItem" should not be translated</comment>
+  </data>
+  <data name="ExceptionOnDemandFolderItemFoundWhenFileItemExpectedMsg0" xml:space="preserve">
+    <value>The input CLFileItem at index {0} was a folder when a file item was expected</value>
+    <comment>"CLFileItem" should not be translated</comment>
+  </data>
+  <data name="ExceptionOnDemandItemWasPreviouslyDeleted" xml:space="preserve">
+    <value>The input CLFileItem was previously deleted</value>
+    <comment>"CLFileItem" should not be translated</comment>
+  </data>
+  <data name="ExceptionOnDemandItemWasPreviouslyDeletedMsg0" xml:space="preserve">
+    <value>The input CLFileItem at index {0} was previously deleted</value>
+    <comment>"CLFileItem" should not be translated</comment>
+  </data>
 </root>

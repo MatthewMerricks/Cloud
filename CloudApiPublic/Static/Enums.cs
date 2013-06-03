@@ -536,6 +536,26 @@ namespace Cloud.Static
         /// </summary>
         OnDemand_DownloadTempDownloadFileNotFoundAfterSuccessfulDownload = (((ulong)CLExceptionDomain.OnDemand) << 32) | 38, // 5_38
 
+        /// <summary>
+        /// Live sync is active for this syncbox, and this method would modify the syncbox.
+        /// </summary>
+        OnDemand_LiveSyncIsActive = (((ulong)CLExceptionDomain.OnDemand) << 32) | 39, // 5_39
+
+        /// <summary>
+        /// CLFileItem was not created in this synbox.
+        /// </summary>
+        OnDemand_NotCreatedInThisSyncbox = (((ulong)CLExceptionDomain.OnDemand) << 32) | 40, // 5_40
+
+        /// <summary>
+        /// CLFileItem was a folder when a file type was expected.
+        /// </summary>
+        OnDemand_FolderItemWhenFileItemExpected = (((ulong)CLExceptionDomain.OnDemand) << 32) | 41, // 5_41
+
+        /// <summary>
+        /// CLFileItem was a file when a folder type was expected.
+        /// </summary>
+        OnDemand_FileItemWhenFolderItemExpected = (((ulong)CLExceptionDomain.OnDemand) << 32) | 42, // 5_42
+
         #endregion
 
         #region FileItem
