@@ -6606,17 +6606,20 @@ namespace Cloud.REST
                 {
                     throw new ArgumentException(Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
-                if (folderItem != null && folderItem.Syncbox != _syncbox)
+                if (folderItem != null)
                 {
-                    throw new CLInvalidOperationException(CLExceptionCode.OnDemand_NotCreatedInThisSyncbox, Resources.ExceptionOnDemandCLFileItemNotCreatedInThisSyncbox);
-                }
-                if (!folderItem.IsFolder)
-                {
-                    throw new CLInvalidOperationException(CLExceptionCode.OnDemand_FileItemWhenFolderItemExpected, Resources.ExceptionOnDemandFileItemFoundWhenFolderItemExpected);
-                }
-                if (folderItem.IsDeleted)
-                {
-                    throw new CLInvalidOperationException(CLExceptionCode.OnDemand_AlreadyDeleted, Resources.ExceptionOnDemandItemWasPreviouslyDeletedMsg0);
+                    if (folderItem.Syncbox != _syncbox)
+                    {
+                        throw new CLInvalidOperationException(CLExceptionCode.OnDemand_NotCreatedInThisSyncbox, Resources.ExceptionOnDemandCLFileItemNotCreatedInThisSyncbox);
+                    }
+                    if (!folderItem.IsFolder)
+                    {
+                        throw new CLInvalidOperationException(CLExceptionCode.OnDemand_FileItemWhenFolderItemExpected, Resources.ExceptionOnDemandFileItemFoundWhenFolderItemExpected);
+                    }
+                    if (folderItem.IsDeleted)
+                    {
+                        throw new CLInvalidOperationException(CLExceptionCode.OnDemand_AlreadyDeleted, Resources.ExceptionOnDemandItemWasPreviouslyDeletedMsg0);
+                    }
                 }
 
                 // build the location of the folder contents retrieval method on the server dynamically
@@ -7300,9 +7303,9 @@ namespace Cloud.REST
                 {
                     throw new ArgumentException(Resources.CLMSTimeoutMustBeGreaterThanZero);  //&&&& fix this
                 }
-                if (friendlyName == null)
+                if (String.IsNullOrEmpty(friendlyName))
                 {
-                    throw new ArgumentException("friendlyName must not be null");  //&&&& fix this
+                    throw new ArgumentException("friendlyName must be specified");  //&&&& fix this
                 }
 
                 // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
