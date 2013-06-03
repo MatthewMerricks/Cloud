@@ -549,7 +549,7 @@ namespace Cloud
             Helpers.ReplaceExpiredCredentials getNewCredentialsCallback = null,
             object getNewCredentialsCallbackUserState = null)
         {
-            CheckDisposed();
+            Helpers.CheckHalted();
 
             // check input parameters
 
@@ -1632,7 +1632,7 @@ namespace Cloud
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginRootFolder(AsyncCallback asyncCallback, object asyncCallbackUserState)
         {
-            CheckDisposed();
+            CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
@@ -1648,7 +1648,7 @@ namespace Cloud
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndRootFolder(IAsyncResult asyncResult, out SyncboxGetItemAtPathResult result)
         {
-            CheckDisposed();
+            CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
@@ -1686,7 +1686,7 @@ namespace Cloud
             object asyncCallbackUserState,
             string itemUid)
         {
-            CheckDisposed();
+            CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
@@ -1702,7 +1702,7 @@ namespace Cloud
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndItemForItemUid(IAsyncResult asyncResult, out SyncboxGetItemAtItemUidResult result)
         {
-            CheckDisposed();
+            CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
@@ -1739,7 +1739,7 @@ namespace Cloud
             object asyncCallbackUserState, 
             string relativePath)
         {
-            CheckDisposed();
+            CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
@@ -1755,7 +1755,7 @@ namespace Cloud
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndItemForPath(IAsyncResult asyncResult, out SyncboxGetItemAtPathResult result)
         {
-            CheckDisposed();
+            CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
@@ -1792,7 +1792,7 @@ namespace Cloud
             object asyncCallbackUserState,
             string relativePath)
         {
-            CheckDisposed();
+            CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
@@ -1808,7 +1808,7 @@ namespace Cloud
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndItemsForPath(IAsyncResult asyncResult, out SyncboxItemsAtPathResult result)
         {
-            CheckDisposed();
+            CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
@@ -1845,7 +1845,7 @@ namespace Cloud
             object asyncCallbackUserState,
             CLFileItem folderItem)
         {
-            CheckDisposed();
+            CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
@@ -1861,7 +1861,7 @@ namespace Cloud
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndItemsForFolderItem(IAsyncResult asyncResult, out SyncboxItemsForFolderItemResult result)
         {
-            CheckDisposed();
+            CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
@@ -1898,7 +1898,7 @@ namespace Cloud
             object asyncCallbackUserState,
             string relativePath = null)
         {
-            CheckDisposed();
+            CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
@@ -1914,7 +1914,7 @@ namespace Cloud
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndHierarchyOfFolderAtPath(IAsyncResult asyncResult, out SyncboxHierarchyOfFolderAtPathResult result)
         {
-            CheckDisposed();
+            CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
@@ -1953,7 +1953,7 @@ namespace Cloud
             object asyncCallbackUserState,
             CLFileItem folderItem)
         {
-            CheckDisposed();
+            CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
@@ -1969,7 +1969,7 @@ namespace Cloud
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndHierarchyOfFolderAtFolderItem(IAsyncResult asyncResult, out SyncboxHierarchyOfFolderAtFolderItemResult result)
         {
-            CheckDisposed();
+            CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
@@ -2007,7 +2007,7 @@ namespace Cloud
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginRenameFiles(AsyncCallback asyncCallback, object asyncCallbackUserState, CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, params RenameItemParams[] itemsToRename)
         {
-            CheckDisposed(true);
+            CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
@@ -2023,7 +2023,7 @@ namespace Cloud
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndRenameFiles(IAsyncResult asyncResult, out SyncboxRenameFilesResult result)
         {
-            CheckDisposed(true);
+            CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
@@ -2039,7 +2039,7 @@ namespace Cloud
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError RenameFiles(CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, params RenameItemParams[] itemsToRename)
         {
-            CheckDisposed(true);
+            CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
@@ -2060,7 +2060,7 @@ namespace Cloud
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginRenameFolders(AsyncCallback asyncCallback, object asyncCallbackUserState, CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, params RenameItemParams[] itemsToRename)
         {
-            CheckDisposed(true);
+            CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
@@ -2076,7 +2076,7 @@ namespace Cloud
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndRenameFolders(IAsyncResult asyncResult, out SyncboxRenameFoldersResult result)
         {
-            CheckDisposed(true);
+            CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
@@ -2092,7 +2092,7 @@ namespace Cloud
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError RenameFolders(CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, params RenameItemParams[] itemsToRename)
         {
-            CheckDisposed(true);
+            CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
@@ -2118,7 +2118,7 @@ namespace Cloud
             object itemCompletionCallbackUserState, 
             params MoveItemParams[] itemsToMove)
         {
-            CheckDisposed(true);
+            CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
@@ -2134,7 +2134,7 @@ namespace Cloud
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndMoveFiles(IAsyncResult asyncResult, out SyncboxMoveFilesResult result)
         {
-            CheckDisposed(true);
+            CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
@@ -2150,7 +2150,7 @@ namespace Cloud
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError MoveFiles(CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, params MoveItemParams[] itemsToMove)
         {
-            CheckDisposed(true);
+            CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
@@ -2171,7 +2171,7 @@ namespace Cloud
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginMoveFolders(AsyncCallback asyncCallback, object asyncCallbackUserState, CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, params MoveItemParams[] itemsToMove)
         {
-            CheckDisposed(true);
+            CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
@@ -2187,7 +2187,7 @@ namespace Cloud
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndMoveFolders(IAsyncResult asyncResult, out SyncboxMoveFoldersResult result)
         {
-            CheckDisposed(true);
+            CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
@@ -2203,7 +2203,7 @@ namespace Cloud
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError MoveFolders(CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, params MoveItemParams[] itemsToMove)
         {
-            CheckDisposed(true);
+            CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
@@ -2224,7 +2224,7 @@ namespace Cloud
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginDeleteFiles(AsyncCallback asyncCallback, object asyncCallbackUserState, CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, params CLFileItem[] itemsToDelete)
         {
-            CheckDisposed(true);
+            CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
@@ -2240,7 +2240,7 @@ namespace Cloud
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndDeleteFiles(IAsyncResult asyncResult, out SyncboxDeleteFilesResult result)
         {
-            CheckDisposed(true);
+            CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
@@ -2256,7 +2256,7 @@ namespace Cloud
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError DeleteFiles(CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, params CLFileItem[] itemsToDelete)
         {
-            CheckDisposed(true);
+            CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
@@ -2277,7 +2277,7 @@ namespace Cloud
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginDeleteFolders(AsyncCallback asyncCallback, object asyncCallbackUserState, CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, params CLFileItem[] itemsToDelete)
         {
-            CheckDisposed(true);
+            CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
@@ -2293,7 +2293,7 @@ namespace Cloud
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndDeleteFolders(IAsyncResult asyncResult, out SyncboxDeleteFoldersResult result)
         {
-            CheckDisposed(true);
+            CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
@@ -2309,7 +2309,7 @@ namespace Cloud
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError DeleteFolders(CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, params CLFileItem[] itemsToDelete)
         {
-            CheckDisposed(true);
+            CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
@@ -2330,7 +2330,7 @@ namespace Cloud
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginAddFolders(AsyncCallback asyncCallback, object asyncCallbackUserState, CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, params AddFolderItemParams[] folderItemsToAdd)
         {
-            CheckDisposed(true);
+            CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
@@ -2346,7 +2346,7 @@ namespace Cloud
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndAddFolders(IAsyncResult asyncResult, out SyncboxAddFoldersResult result)
         {
-            CheckDisposed(true);
+            CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
@@ -2362,7 +2362,7 @@ namespace Cloud
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError AddFolders(CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, params AddFolderItemParams[] folderItemsToAdd)
         {
-            CheckDisposed(true);
+            CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
@@ -2394,7 +2394,7 @@ namespace Cloud
             CancellationTokenSource cancellationSource,
             params AddFileItemParams[] filesToAdd)
         {
-            CheckDisposed(true);
+            CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
@@ -2410,7 +2410,7 @@ namespace Cloud
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndAddFiles(IAsyncResult asyncResult, out SyncboxAddFilesResult result)
         {
-            CheckDisposed(true);
+            CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
@@ -2435,7 +2435,7 @@ namespace Cloud
             CancellationTokenSource cancellationSource,
             params AddFileItemParams[] filesToAdd)
         {
-            CheckDisposed(true);
+            CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
@@ -2457,7 +2457,7 @@ namespace Cloud
             object asyncCallbackState,
             int timeoutMilliseconds)
         {
-            CheckDisposed(true);
+            CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
@@ -2474,7 +2474,7 @@ namespace Cloud
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndGetAllPending(IAsyncResult asyncResult, out GetAllPendingResult result)
         {
-            CheckDisposed(true);
+            CheckDisposed(isOneOff: true);
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
             return httpRestClient.EndGetAllPending(asyncResult, out result);
@@ -2489,7 +2489,7 @@ namespace Cloud
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError GetAllPending(int timeoutMilliseconds, out JsonContracts.PendingResponse response)
         {
-            CheckDisposed(true);
+            CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
@@ -2512,7 +2512,7 @@ namespace Cloud
             string fileServerId,
             int timeoutMilliseconds)
         {
-            CheckDisposed();
+            CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
@@ -2538,7 +2538,7 @@ namespace Cloud
             int timeoutMilliseconds,
             bool includeDeletedVersions)
         {
-            CheckDisposed();
+            CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
@@ -2564,7 +2564,7 @@ namespace Cloud
             int timeoutMilliseconds,
             FilePath pathToFile)
         {
-            CheckDisposed();
+            CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
@@ -2588,7 +2588,7 @@ namespace Cloud
             FilePath pathToFile,
             bool includeDeletedVersions)
         {
-            CheckDisposed();
+            CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
@@ -2611,7 +2611,7 @@ namespace Cloud
             int timeoutMilliseconds,
             FilePath pathToFile)
         {
-            CheckDisposed();
+            CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
@@ -2636,7 +2636,7 @@ namespace Cloud
             FilePath pathToFile,
             bool includeDeletedVersions)
         {
-            CheckDisposed();
+            CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
@@ -2653,7 +2653,7 @@ namespace Cloud
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndGetFileVersions(IAsyncResult asyncResult, out GetFileVersionsResult result)
         {
-            CheckDisposed();
+            CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
@@ -2670,7 +2670,7 @@ namespace Cloud
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError GetFileVersions(string fileServerId, int timeoutMilliseconds, out JsonContracts.FileVersions response)
         {
-            CheckDisposed();
+            CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
@@ -2688,7 +2688,7 @@ namespace Cloud
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError GetFileVersions(string fileServerId, int timeoutMilliseconds, out JsonContracts.FileVersions response, bool includeDeletedVersions)
         {
-            CheckDisposed();
+            CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
@@ -2705,7 +2705,7 @@ namespace Cloud
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError GetFileVersions(int timeoutMilliseconds, FilePath pathToFile, out JsonContracts.FileVersions response)
         {
-            CheckDisposed();
+            CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
@@ -2723,7 +2723,7 @@ namespace Cloud
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError GetFileVersions(int timeoutMilliseconds, FilePath pathToFile, out JsonContracts.FileVersions response, bool includeDeletedVersions)
         {
-            CheckDisposed();
+            CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
@@ -2741,7 +2741,7 @@ namespace Cloud
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError GetFileVersions(string fileServerId, int timeoutMilliseconds, FilePath pathToFile, out JsonContracts.FileVersions response)
         {
-            CheckDisposed();
+            CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
@@ -2760,7 +2760,7 @@ namespace Cloud
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError GetFileVersions(string fileServerId, int timeoutMilliseconds, FilePath pathToFile, out JsonContracts.FileVersions response, bool includeDeletedVersions)
         {
-            CheckDisposed();
+            CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
@@ -2781,7 +2781,7 @@ namespace Cloud
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginAllImageItems(AsyncCallback asyncCallback, object asyncCallbackUserState, long pageNumber, long itemsPerPage)
         {
-            CheckDisposed(true);
+            CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
@@ -2797,7 +2797,7 @@ namespace Cloud
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndAllImageItems(IAsyncResult asyncResult, out SyncboxAllImageItemsResult result)
         {
-            CheckDisposed(true);
+            CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
@@ -2813,7 +2813,7 @@ namespace Cloud
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError AllImageItems(long pageNumber, long itemsPerPage, out CLFileItem[] items)
         {
-            CheckDisposed(true);
+            CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
@@ -2835,7 +2835,7 @@ namespace Cloud
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginAllVideoItems(AsyncCallback asyncCallback, object asyncCallbackUserState, long pageNumber, long itemsPerPage)
         {
-            CheckDisposed(true);
+            CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
@@ -2851,7 +2851,7 @@ namespace Cloud
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndAllVideoItems(IAsyncResult asyncResult, out SyncboxAllVideoItemsResult result)
         {
-            CheckDisposed(true);
+            CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
@@ -2867,7 +2867,7 @@ namespace Cloud
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError AllVideoItems(long pageNumber, long itemsPerPage, out CLFileItem[] items)
         {
-            CheckDisposed(true);
+            CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
@@ -2889,7 +2889,7 @@ namespace Cloud
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginAllAudioItems(AsyncCallback asyncCallback, object asyncCallbackUserState, long pageNumber, long itemsPerPage)
         {
-            CheckDisposed(true);
+            CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
@@ -2905,7 +2905,7 @@ namespace Cloud
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndAllAudioItems(IAsyncResult asyncResult, out SyncboxAllAudioItemsResult result)
         {
-            CheckDisposed(true);
+            CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
@@ -2921,7 +2921,7 @@ namespace Cloud
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError AllAudioItems(long pageNumber, long itemsPerPage, out CLFileItem[] items)
         {
-            CheckDisposed(true);
+            CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
@@ -2943,7 +2943,7 @@ namespace Cloud
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginAllDocumentItems(AsyncCallback asyncCallback, object asyncCallbackUserState, long pageNumber, long itemsPerPage)
         {
-            CheckDisposed(true);
+            CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
@@ -2959,7 +2959,7 @@ namespace Cloud
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndAllDocumentItems(IAsyncResult asyncResult, out SyncboxAllDocumentItemsResult result)
         {
-            CheckDisposed(true);
+            CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
@@ -2977,7 +2977,7 @@ namespace Cloud
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError AllDocumentItems(long pageNumber, long itemsPerPage, out CLFileItem[] items)
         {
-            CheckDisposed(true);
+            CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
@@ -2999,7 +2999,7 @@ namespace Cloud
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginAllPresentationItems(AsyncCallback asyncCallback, object asyncCallbackUserState, long pageNumber, long itemsPerPage)
         {
-            CheckDisposed(true);
+            CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
@@ -3015,7 +3015,7 @@ namespace Cloud
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndAllPresentationItems(IAsyncResult asyncResult, out SyncboxAllPresentationItemsResult result)
         {
-            CheckDisposed(true);
+            CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
@@ -3031,7 +3031,7 @@ namespace Cloud
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError AllPresentationItems(long pageNumber, long itemsPerPage, out CLFileItem[] items)
         {
-            CheckDisposed(true);
+            CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
@@ -3053,7 +3053,7 @@ namespace Cloud
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginAllPlainTextItems(AsyncCallback asyncCallback, object asyncCallbackUserState, long pageNumber, long itemsPerPage)
         {
-            CheckDisposed(true);
+            CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
@@ -3069,7 +3069,7 @@ namespace Cloud
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndAllPlainTextItems(IAsyncResult asyncResult, out SyncboxAllTextItemsResult result)
         {
-            CheckDisposed(true);
+            CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
@@ -3085,7 +3085,7 @@ namespace Cloud
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError AllPlainTextItems(long pageNumber, long itemsPerPage, out CLFileItem[] items)
         {
-            CheckDisposed(true);
+            CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
@@ -3107,7 +3107,7 @@ namespace Cloud
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginAllArchivetItems(AsyncCallback asyncCallback, object asyncCallbackUserState, long pageNumber, long itemsPerPage)
         {
-            CheckDisposed(true);
+            CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
@@ -3123,7 +3123,7 @@ namespace Cloud
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndAllArchiveItems(IAsyncResult asyncResult, out SyncboxAllArchiveItemsResult result)
         {
-            CheckDisposed(true);
+            CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
@@ -3139,7 +3139,7 @@ namespace Cloud
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError AllArchiveItems(long pageNumber, long itemsPerPage, out CLFileItem[] items)
         {
-            CheckDisposed(true);
+            CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
@@ -3166,7 +3166,7 @@ namespace Cloud
             long itemsPerPage,
             params string[] extensions)
         {
-            CheckDisposed(true);
+            CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
@@ -3183,7 +3183,7 @@ namespace Cloud
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndAllItemsOfTypes(IAsyncResult asyncResult, out SyncboxAllItemsOfTypesResult result)
         {
-            CheckDisposed(true);
+            CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
@@ -3200,7 +3200,7 @@ namespace Cloud
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError AllItemsOfTypes(long pageNumber, long itemsPerPage, out CLFileItem[] items, params string[] extensions)
         {
-            CheckDisposed(true);
+            CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
@@ -3226,7 +3226,7 @@ namespace Cloud
             long itemsPerPage,
             Nullable<DateTime> sinceDate = null)
         {
-            CheckDisposed(true);
+            CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
@@ -3242,7 +3242,7 @@ namespace Cloud
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndRecentFilesSinceDate(IAsyncResult asyncResult, out SyncboxRecentFilesSinceDateResult result)
         {
-            CheckDisposed(true);
+            CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
@@ -3259,7 +3259,7 @@ namespace Cloud
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError RecentFilesSinceDate(long pageNumber, long itemsPerPage, out CLFileItem[] items, Nullable<DateTime> sinceDate = null)
         {
-            CheckDisposed(true);
+            CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
@@ -3281,7 +3281,7 @@ namespace Cloud
             object asyncCallbackUserState,
             long returnLimit)
         {
-            CheckDisposed(true);
+            CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
@@ -3297,7 +3297,7 @@ namespace Cloud
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndRecentFiles(IAsyncResult asyncResult, out SyncboxRecentFilesResult result)
         {
-            CheckDisposed(true);
+            CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
@@ -3312,7 +3312,7 @@ namespace Cloud
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError RecentFiles(long returnLimit, out CLFileItem[] items)
         {
-            CheckDisposed(true);
+            CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
@@ -3330,7 +3330,7 @@ namespace Cloud
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginGetDataUsage(AsyncCallback asyncCallback, object asyncCallbackUserState)
         {
-            CheckDisposed(true);
+            CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
@@ -3350,7 +3350,7 @@ namespace Cloud
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndGetDataUsage(IAsyncResult asyncResult, out SyncboxUsageResult result)
         {
-            CheckDisposed(true);
+            CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
@@ -3363,7 +3363,7 @@ namespace Cloud
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError GetDataUsage()
         {
-            CheckDisposed(true);
+            CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
@@ -3405,7 +3405,7 @@ namespace Cloud
             IDictionary<string, T> metadata,
             int timeoutMilliseconds)
         {
-            CheckDisposed(true);
+            CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
@@ -3425,7 +3425,7 @@ namespace Cloud
             JsonContracts.MetadataDictionary metadata,
             int timeoutMilliseconds)
         {
-            CheckDisposed(true);
+            CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
@@ -3441,7 +3441,7 @@ namespace Cloud
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         internal CLError EndUpdateSyncboxExtendedMetadata(IAsyncResult asyncResult, out SyncboxUpdateExtendedMetadataResult result)
         {
-            CheckDisposed(true);
+            CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
@@ -3457,7 +3457,7 @@ namespace Cloud
         /// <returns>Returns any error that occurred during communication, if any</returns>
         internal CLError UpdateSyncboxExtendedMetadata<T>(IDictionary<string, T> metadata, int timeoutMilliseconds, out JsonContracts.SyncboxResponse response)
         {
-            CheckDisposed(true);
+            CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
@@ -3473,7 +3473,7 @@ namespace Cloud
         /// <returns>Returns any error that occurred during communication, if any</returns>
         internal CLError SyncboxUpdateExtendedMetadata(JsonContracts.MetadataDictionary metadata, int timeoutMilliseconds, out JsonContracts.SyncboxResponse response)
         {
-            CheckDisposed(true);
+            CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
@@ -3492,7 +3492,7 @@ namespace Cloud
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginUpdateStoragePlan(AsyncCallback asyncCallback, object asyncCallbackUserState, CLStoragePlan storagePlan)
         {
-            CheckDisposed(true);
+            CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
@@ -3514,7 +3514,7 @@ namespace Cloud
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndUpdateStoragePlan(IAsyncResult asyncResult, out SyncboxUpdateStoragePlanResult result)
         {
-            CheckDisposed(true);
+            CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
@@ -3529,7 +3529,7 @@ namespace Cloud
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError UpdateStoragePlan(CLStoragePlan storagePlan)
         {
-            CheckDisposed(true);
+            CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
@@ -3574,7 +3574,7 @@ namespace Cloud
             object asyncCallbackUserState,
             string friendlyName)
         {
-            CheckDisposed(true);
+            CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
@@ -3596,7 +3596,7 @@ namespace Cloud
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndUpdateFriendlyName(IAsyncResult asyncResult, out SyncboxUpdateFriendlyNameResult result)
         {
-            CheckDisposed(true);
+            CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
@@ -3611,7 +3611,7 @@ namespace Cloud
         public CLError UpdateFriendlyName<T>(
             string friendlyName)
         {
-            CheckDisposed(true);
+            CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
@@ -3651,7 +3651,7 @@ namespace Cloud
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginGetCurrentStatus(AsyncCallback asyncCallback, object asyncCallbackUserState)
         {
-            CheckDisposed(true);
+            CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
@@ -3668,7 +3668,7 @@ namespace Cloud
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndGetCurrentStatus(IAsyncResult asyncResult, out SyncboxStatusResult result)
         {
-            CheckDisposed(true);
+            CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
@@ -3682,7 +3682,7 @@ namespace Cloud
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError GetCurrentStatus()
         {
-            CheckDisposed(true);
+            CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
@@ -4063,7 +4063,7 @@ namespace Cloud
         }
 
         // Standard IDisposable implementation based on MSDN System.IDisposable
-        void IDisposable.Dispose()
+        public void Dispose()
         {
             this.Dispose(true);
             GC.SuppressFinalize(this);

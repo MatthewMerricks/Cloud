@@ -1568,6 +1568,7 @@ namespace SampleLiveSync.ViewModels
                         SetSyncboxStartedState(isStartedStateToSet: false);
                         _syncStarted = false;
                         _syncbox.StopLiveSync();
+                        _syncbox.Dispose();
                     }
                 }
             }

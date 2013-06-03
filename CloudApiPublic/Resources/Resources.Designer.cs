@@ -2772,6 +2772,24 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The input CLFileItem was not created in this syncbox.
+        /// </summary>
+        internal static string ExceptionOnDemandCLFileItemNotCreatedInThisSyncbox {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandCLFileItemNotCreatedInThisSyncbox", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The input CLFileItem at index {0} was not created in this syncbox.
+        /// </summary>
+        internal static string ExceptionOnDemandCLFileItemNotCreatedInThisSyncboxMsg0 {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandCLFileItemNotCreatedInThisSyncboxMsg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Destination item already exists.
         /// </summary>
         internal static string ExceptionOnDemandConflict {
