@@ -512,6 +512,7 @@ namespace Cloud.FileMonitor
         // Field to store timer for queue processing,
         // initialized on construction
         private ProcessingQueuesTimer QueuesTimer;
+        private GenericHolder<bool> pushNotificationQueued = new GenericHolder<bool>(false);
 
         // Stores FileChanges that come off ProcessFileChange so they can be batched for merge
         private readonly Queue<FileChange> NeedsMergeToSql = new Queue<FileChange>();
@@ -788,17 +789,21 @@ namespace Cloud.FileMonitor
                         object[] castState = state as object[];
                         bool parametersMatched = false;
 
-                        if (castState.Length == 2)
+                        if (castState.Length == 3)
                         {
                             Action<bool> ProcessQueuesAfterTimer = castState[0] as Action<bool>;
                             LinkedList<FileChange> ProcessingChanges = castState[1] as LinkedList<FileChange>;
+                            GenericHolder<bool> pushNotificationQueued = castState[2] as GenericHolder<bool>;
 
                             if (ProcessQueuesAfterTimer != null
-                                && ProcessingChanges != null)
+                                && ProcessingChanges != null
+                                && pushNotificationQueued != null)
                             {
                                 parametersMatched = true;
 
-                                ProcessQueuesAfterTimer(ProcessingChanges.Count == 0);
+                                ProcessQueuesAfterTimer(pushNotificationQueued.Value);
+
+                                pushNotificationQueued.Value = false;
                             }
                         }
 
@@ -809,7 +814,7 @@ namespace Cloud.FileMonitor
                     },
                     1000, // Collect items in queue for 1 second before batch processing
                     out newAgent.QueuesTimer,
-                    new object[] { (Action<bool>)newAgent.ProcessQueuesAfterTimer, newAgent.ProcessingChanges });
+                    new object[] { (Action<bool>)newAgent.ProcessQueuesAfterTimer, newAgent.ProcessingChanges, newAgent.pushNotificationQueued });
                 if (queueTimerError != null)
                 {
                     return queueTimerError;
@@ -871,6 +876,8 @@ namespace Cloud.FileMonitor
                 {
                     lock (QueuesTimer.TimerRunningLocker)
                     {
+                        pushNotificationQueued.Value = true;
+
                         QueuesTimer.StartTimerIfNotRunning();
                     }
                 }
