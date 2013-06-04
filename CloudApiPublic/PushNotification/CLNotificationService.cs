@@ -608,7 +608,7 @@ namespace Cloud.PushNotification
             }
         }
 
-        void CreateEngineTimer(object userState)
+        private void CreateEngineTimer(object userState)
         {
             try
             {
@@ -626,7 +626,7 @@ namespace Cloud.PushNotification
             }
         }
 
-        void StartEngineTimeoutCallback(int timeoutMilliseconds)
+        private void StartEngineTimeoutCallback(int timeoutMilliseconds)
         {
             try
             {
@@ -644,7 +644,7 @@ namespace Cloud.PushNotification
             }
         }
 
-        void TimerCallback(object userState)
+        private void TimerCallback(object userState)
         {
             try
             {
@@ -675,7 +675,7 @@ namespace Cloud.PushNotification
             }
         }
 
-        void CancelEngineTimeoutCallback()
+        private void CancelEngineTimeoutCallback()
         {
             try
             {
@@ -693,7 +693,7 @@ namespace Cloud.PushNotification
             }
         }
 
-        void DisposeEngineTimer()
+        private void DisposeEngineTimer()
         {
             bool wasThreadAborted = false;
 
@@ -729,7 +729,7 @@ namespace Cloud.PushNotification
         /// Deserialize the JSON to a class and send the message on to its destination.
         /// </summary>
         /// <param name="evt"></param>
-        void SendNotificationEventCallback(CLNotificationEvent evt)
+        private void SendNotificationEventCallback(CLNotificationEvent evt)
         {
             try
             {

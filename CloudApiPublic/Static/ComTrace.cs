@@ -24,7 +24,7 @@ namespace Cloud.Static
     public static class ComTrace
     {
         #region public methods
-        public static void LogCommunication(string traceLocation, string UserDeviceId, Nullable<long> SyncboxId, CommunicationEntryDirection Direction, string DomainAndMethodUri, bool traceEnabled = false, WebHeaderCollection headers = null, Stream body = null, Nullable<int> statusCode = null, bool excludeAuthorization = true, string hostHeader = null, string contentLengthHeader = null, string expectHeader = null, string connectionHeader = null)
+        public static void LogCommunication(string traceLocation, string UserDeviceId, Nullable<long> SyncboxId, CommunicationEntryDirection Direction, string DomainAndMethodUriPlusQuery, bool traceEnabled = false, WebHeaderCollection headers = null, Stream body = null, Nullable<int> statusCode = null, bool excludeAuthorization = true, string hostHeader = null, string contentLengthHeader = null, string expectHeader = null, string connectionHeader = null)
         {
             string bodyString = null;
             if (traceEnabled
@@ -47,7 +47,7 @@ namespace Cloud.Static
                 UserDeviceId,
                 SyncboxId,
                 Direction,
-                DomainAndMethodUri,
+                DomainAndMethodUriPlusQuery,
                 traceEnabled,
                 headers,
                 bodyString,
@@ -59,11 +59,11 @@ namespace Cloud.Static
                 connectionHeader);
         }
 
-        public static void LogCommunication(string traceLocation, string UserDeviceId, Nullable<long> SyncboxId, CommunicationEntryDirection Direction, string DomainAndMethodUri, bool traceEnabled = false, WebHeaderCollection headers = null, string body = null, Nullable<int> statusCode = null, bool excludeAuthorization = true, string hostHeader = null, string contentLengthHeader = null, string expectHeader = null, string connectionHeader = null)
+        public static void LogCommunication(string traceLocation, string UserDeviceId, Nullable<long> SyncboxId, CommunicationEntryDirection Direction, string DomainAndMethodUriPlusQuery, bool traceEnabled = false, WebHeaderCollection headers = null, string body = null, Nullable<int> statusCode = null, bool excludeAuthorization = true, string hostHeader = null, string contentLengthHeader = null, string expectHeader = null, string connectionHeader = null)
         {
             if (traceEnabled
                 && !string.IsNullOrWhiteSpace(UserDeviceId)
-                && !string.IsNullOrWhiteSpace(DomainAndMethodUri))
+                && !string.IsNullOrWhiteSpace(DomainAndMethodUriPlusQuery))
             {
                 try
                 {
@@ -75,7 +75,7 @@ namespace Cloud.Static
                         UDid,
                         SyncboxId,
                         Direction,
-                        DomainAndMethodUri,
+                        DomainAndMethodUriPlusQuery,
                         (headers == null
                             ? null
                             : headers.Keys.OfType<object>()
@@ -104,10 +104,10 @@ namespace Cloud.Static
             }
         }
 
-        public static void LogCommunication(string traceLocation, string UserDeviceId, Nullable<long> SyncboxId, CommunicationEntryDirection Direction, string DomainAndMethodUri, bool traceEnabled = false, HttpHeaders defaultHeaders = null, HttpHeaders messageHeaders = null, HttpContent body = null, Nullable<int> statusCode = null, bool excludeAuthorization = true)
+        public static void LogCommunication(string traceLocation, string UserDeviceId, Nullable<long> SyncboxId, CommunicationEntryDirection Direction, string DomainAndMethodUriPlusQuery, bool traceEnabled = false, HttpHeaders defaultHeaders = null, HttpHeaders messageHeaders = null, HttpContent body = null, Nullable<int> statusCode = null, bool excludeAuthorization = true)
         {
             if (traceEnabled
-                && !string.IsNullOrWhiteSpace(DomainAndMethodUri))
+                && !string.IsNullOrWhiteSpace(DomainAndMethodUriPlusQuery))
             {
                 try
                 {
@@ -876,7 +876,7 @@ namespace Cloud.Static
                         UDid,
                         SyncboxId,
                         Direction,
-                        DomainAndMethodUri,
+                        DomainAndMethodUriPlusQuery,
                         ((defaultHeaders == null && messageHeaders == null)
                             ? null
                             : (defaultHeaders ?? Enumerable.Empty<KeyValuePair<string, IEnumerable<string>>>())
@@ -1047,7 +1047,7 @@ namespace Cloud.Static
 
         #region private methods
         // the calling method should wrap this private helper in a try/catch
-        private static void LogCommunication(string traceLocation, string UserDeviceId, Nullable<long> SyncboxId, CommunicationEntryDirection Direction, string DomainAndMethodUri, IEnumerable<KeyValuePair<string, string>> headers = null, string body = null, Nullable<int> statusCode = null, bool excludeAuthorization = true)
+        private static void LogCommunication(string traceLocation, string UserDeviceId, Nullable<long> SyncboxId, CommunicationEntryDirection Direction, string DomainAndMethodUriPlusQuery, IEnumerable<KeyValuePair<string, string>> headers = null, string body = null, Nullable<int> statusCode = null, bool excludeAuthorization = true)
         {
             if (!string.IsNullOrEmpty(body)
                 && excludeAuthorization)
@@ -1082,7 +1082,7 @@ namespace Cloud.Static
                 SyncboxId = SyncboxId ?? 0,
                 SyncboxIdSpecified = SyncboxId != null,
                 Direction = Direction,
-                Uri = DomainAndMethodUri,
+                Uri = DomainAndMethodUriPlusQuery,
                 Headers = (headers == null
                     ? null
                     : headers
