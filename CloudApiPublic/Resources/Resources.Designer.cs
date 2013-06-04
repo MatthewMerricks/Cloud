@@ -6241,6 +6241,15 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Notification Engine.
+        /// </summary>
+        internal static string NotTranslatedCLNotificationServiceThreadName {
+            get {
+                return ResourceManager.GetString("NotTranslatedCLNotificationServiceThreadName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to CommonStartMenuParentFolderNameVista.
         /// </summary>
         internal static string NotTranslatedCommonStartMenuParentFolderNameVistaName {

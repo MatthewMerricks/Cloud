@@ -360,7 +360,7 @@ namespace Cloud.PushNotification
                 {
                     _trace.writeToLog(9, Resources.CLNotificationServiceStartServiceManagerThreadStartTheManagerThread);
                     _serviceManagerThread.Value = new Thread(new ParameterizedThreadStart(this.ServiceManagerThreadProc));
-                    _serviceManagerThread.Value.Name = "Notification Engine";
+                    _serviceManagerThread.Value.Name = Resources.NotTranslatedCLNotificationServiceThreadName;
                     _serviceManagerThread.Value.IsBackground = true;
                     _serviceManagerThread.Value.Start(this);
                 }

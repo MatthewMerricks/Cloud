@@ -3023,4 +3023,8 @@
     <value>The input CLFileItem at index {0} was previously deleted</value>
     <comment>"CLFileItem" should not be translated</comment>
   </data>
+  <data name="NotTranslatedCLNotificationServiceThreadName" xml:space="preserve">
+    <value>Notification Engine</value>
+    <comment>Do not translate</comment>
+  </data>
 </root>
