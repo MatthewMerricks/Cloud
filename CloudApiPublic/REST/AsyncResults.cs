@@ -158,36 +158,6 @@ namespace Cloud.REST
     /// <summary>
     /// Holds result properties
     /// </summary>
-    public sealed class GetArchivesResult : BaseCLHttpRestResult<JsonContracts.Archives>
-    {
-        // construct with all readonly properties
-        internal GetArchivesResult(CLError Error, JsonContracts.Archives Response)
-            : base(Error, Response) { }
-    }
-
-    /// <summary>
-    /// Holds result properties
-    /// </summary>
-    public sealed class GetFolderHierarchyResult : BaseCLHttpRestResult<JsonContracts.FoldersResponse>
-    {
-        // construct with all readonly properties
-        internal GetFolderHierarchyResult(CLError Error, JsonContracts.FoldersResponse Response)
-            : base(Error, Response) { }
-    }
-
-    /// <summary>
-    /// Holds result properties
-    /// </summary>
-    public sealed class GetFolderContentsResult : BaseCLHttpRestResult<JsonContracts.SyncboxFolderContentsResponse>
-    {
-        // construct with all readonly properties
-        internal GetFolderContentsResult(CLError Error, JsonContracts.SyncboxFolderContentsResponse Response)
-            : base(Error, Response) { }
-    }
-
-    /// <summary>
-    /// Holds result properties
-    /// </summary>
     public sealed class PurgePendingResult : BaseCLHttpRestResult<JsonContracts.PendingResponse>
     {
         // construct with all readonly properties
@@ -451,80 +421,6 @@ namespace Cloud.REST
         {
             this._error = error;
             this._credentials = credentials;
-        }
-    }
-
-    /// <summary>
-    /// Holds result properties
-    /// </summary>
-    public sealed class SyncboxRenameFileResult
-    {
-        /// <summary>
-        /// The result returned from the server
-        /// </summary>
-        public CLFileItem FileItem
-        {
-            get
-            {
-                return _fileItem;
-            }
-        }
-        private readonly CLFileItem _fileItem;
-
-        /// <summary>
-        /// Any error which may have occurred during communication
-        /// </summary>
-        public CLError Error
-        {
-            get
-            {
-                return _error;
-            }
-        }
-        private readonly CLError _error;
-
-        // construct with all readonly properties
-        internal SyncboxRenameFileResult(CLError error, CLFileItem _fileItem)
-        {
-            this._error = error;
-            this._fileItem = _fileItem;
-        }
-    }
-
-    /// <summary>
-    /// Holds result properties
-    /// </summary>
-    public sealed class SyncboxMoveFileResult
-    {
-        /// <summary>
-        /// The result returned from the server
-        /// </summary>
-        public CLFileItem FileItem
-        {
-            get
-            {
-                return _fileItem;
-            }
-        }
-        private readonly CLFileItem _fileItem;
-
-        /// <summary>
-        /// Any error which may have occurred during communication
-        /// </summary>
-        public CLError Error
-        {
-            get
-            {
-                return _error;
-            }
-        }
-        private readonly CLError _error;
-
-        // construct with all readonly properties
-        internal SyncboxMoveFileResult(CLError error, CLFileItem fileItem)
-        {
-            this._error = error;
-            this._fileItem = fileItem;
         }
     }
 
@@ -868,30 +764,6 @@ namespace Cloud.REST
         {
             this._error = error;
             this._items = items;
-        }
-    }
-
-    /// <summary>
-    /// Holds result properties
-    /// </summary>
-    public sealed class SyncboxGetCurrentStatusResult
-    {
-        /// <summary>
-        /// Any overall error which may have occurred during communication
-        /// </summary>
-        public CLError Error
-        {
-            get
-            {
-                return _error;
-            }
-        }
-        private readonly CLError _error;
-
-        // construct with all readonly properties
-        internal SyncboxGetCurrentStatusResult(CLError error)
-        {
-            this._error = error;
         }
     }
 
@@ -1521,16 +1393,6 @@ namespace Cloud.REST
     /// <summary>
     /// Holds result properties
     /// </summary>
-    public sealed class SessionShowResult : BaseCLHttpRestResult<JsonContracts.CredentialsSessionGetForKeyResponse>
-    {
-        // construct with all readonly properties
-        internal SessionShowResult(CLError Error, JsonContracts.CredentialsSessionGetForKeyResponse Response)
-            : base(Error, Response) { }
-    }
-
-    /// <summary>
-    /// Holds result properties
-    /// </summary>
     public sealed class SyncboxUpdateExtendedMetadataResult : BaseCLHttpRestResult<JsonContracts.SyncboxResponse>
     {
         // construct with all readonly properties
@@ -1567,17 +1429,4 @@ namespace Cloud.REST
         internal UnlinkDeviceResult(CLError Error, JsonContracts.UnlinkDeviceResponse Response)
             : base(Error, Response) { }
     }
-
-    #region UpdateSyncboxQuota (deprecated)
-    ///// <summary>
-    ///// Holds result properties
-    ///// </summary>
-    //public sealed class UpdateSyncboxQuotaResult : BaseCLHttpRestResult<JsonContracts.SyncboxHolder>
-    //{
-    //    // construct with all readonly properties
-    //    internal UpdateSyncboxQuotaResult(CLError Error, JsonContracts.SyncboxHolder Response)
-    //        : base(Error, Response) { }
-    //}
-    #endregion
-
 }
