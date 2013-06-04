@@ -39,6 +39,7 @@ namespace Cloud.Static
 {
     extern alias SimpleJsonBase;
     using System.Security.AccessControl;
+    using Cloud.CLSync;
 
     /// <summary>
     /// Class containing commonly usable static helper methods
@@ -620,21 +621,73 @@ namespace Cloud.Static
         /// </summary>
         /// <param name="inputStream">Stream to copy and then close</param>
         /// <returns>Returns the copied Stream</returns>
-        internal static Stream CopyHttpWebResponseStreamAndClose(Stream inputStream)
+        internal static Stream CopyHttpWebResponseStreamAndClose(Stream inputStream, CLFileDownloadTransferStatusCallback transferStatusCallback = null, object transferStatusCallbackUserState = null, Nullable<long> contentLength = null)
         {
             byte[] buffer = new byte[FileConstants.BufferSize];
-            MemoryStream ms = new MemoryStream();
+            MemoryStream toReturn = new MemoryStream();
 
-            int count = inputStream.Read(buffer, 0, FileConstants.BufferSize);
-            while (count > 0)
+            try
             {
-                ms.Write(buffer, 0, count);
-                count = inputStream.Read(buffer, 0, FileConstants.BufferSize);
-            }
-            ms.Position = 0;
-            inputStream.Close();
+                int currentReadSize = 0;
+                long readByteCount = 0;
+                bool maxBytesRead = false;
+                do
+                {
+                    readByteCount += currentReadSize;
 
-            return ms;
+                    if (!maxBytesRead)
+                    {
+                        if (readByteCount >= ((long)contentLength))
+                        {
+                            maxBytesRead = true;
+
+                            readByteCount = ((long)contentLength);
+                        }
+
+                        if (transferStatusCallback != null
+                            && contentLength != null)
+                        {
+                            try
+                            {
+                                transferStatusCallback(byteProgress: readByteCount, totalByteSize: (long)contentLength, userState: transferStatusCallbackUserState);
+                            }
+                            catch
+                            {
+                            }
+                        }
+                    }
+
+                    if (currentReadSize > 0)
+                    {
+                        toReturn.Write(buffer, 0, FileConstants.BufferSize);
+                    }
+                }
+                while ((currentReadSize = inputStream.Read(buffer, 0, FileConstants.BufferSize)) > 0);
+
+                if (readByteCount > 0)
+                {
+                    toReturn.Position = 0;
+                }
+
+                inputStream.Close();
+
+                return toReturn;
+            }
+            catch
+            {
+                if (toReturn != null)
+                {
+                    try
+                    {
+                        toReturn.Dispose();
+                    }
+                    catch
+                    {
+                    }
+                }
+
+                throw;
+            }
         }
 
         /// <summary>
@@ -2830,7 +2883,9 @@ namespace Cloud.Static
             { typeof(JsonContracts.SyncboxGetAllDocumentItemsResponse), JsonContractHelpers.SyncboxGetAllDocumentItemsResponseSerializer},
             { typeof(JsonContracts.SyncboxGetAllPresentationItemsResponse), JsonContractHelpers.SyncboxGetAllPresentationItemsResponseSerializer},
             { typeof(JsonContracts.SyncboxGetAllTextItemsResponse), JsonContractHelpers.SyncboxGetAllTextItemsResponseSerializer},
-            { typeof(JsonContracts.SyncboxAddFilesResponse), JsonContractHelpers.SyncboxAddFilesResponseSerializer},
+            { typeof(JsonContracts.SyncboxAddFilesResponse), JsonContractHelpers.SyncboxAddFilesResponseSerializer}
+
+            // do NOT add types for string nor object nor HttpWebResponse since those are not meant to be deserialized
         };
 
         private static bool checkSerializableResponseTypes = ((Func<bool>)(() =>
@@ -2840,7 +2895,7 @@ namespace Cloud.Static
                     if (SerializableResponseTypes.Any(
                         currentResponseType => currentResponseType.Key == typeof(object)
                             || currentResponseType.Key == typeof(string)
-                            || currentResponseType.Key == typeof(Stream)))
+                            || currentResponseType.Key == typeof(HttpWebResponse)))
                     {
                         throw new CLException(CLExceptionCode.General_Invalid, Resources.ExceptionHelpersSerializableResponseTypesKey);
                     }
@@ -2882,7 +2937,7 @@ namespace Cloud.Static
         }
 
         /// <summary>
-        /// forwards to the main HTTP REST routine helper method which processes the actual communication, but only where the return type is object
+        /// forwards to the main HTTP REST routine helper method which processes the actual communication, but only where the return type is not a Stream
         /// </summary>
         internal static T ProcessHttp<T>(object requestContent, // JSON contract object to serialize and send up as the request content, if any
             string serverUrl, // the server URL
@@ -2908,6 +2963,73 @@ namespace Cloud.Static
                 Credentials,
                 SyncboxId,
                 isOneOff);
+        }
+
+        // delegate here is only used to grab the name of the method it's wrapping; needs to match ProcessHttpRawStreamCopy signature (you'll notice build errors otherwise)
+        private delegate Stream ProcessHttpRawStreamCopyDelegate(object requestContent, string serverUrl, string serverMethodPath, requestMethod method,
+            int timeoutMilliseconds, HashSet<HttpStatusCode> validStatusCodes, ICLSyncSettingsAdvanced CopiedSettings, CLCredentials Credentials,
+            Nullable<long> SyncboxId, bool isOneOff, CLFileDownloadTransferStatusCallback transferStatusCallback, object transferStatusCallbackUserState);
+        // Make sure this method's name is unique!!
+        /// <summary>
+        /// forwards to the main HTTP REST routine helper method (but specifically for Streams) which processes the actual communication, but only where the return type is Stream
+        /// </summary>
+        internal static Stream ProcessHttpRawStreamCopy(object requestContent, // JSON contract object to serialize and send up as the request content, if any
+            string serverUrl, // the server URL
+            string serverMethodPath, // the server method path
+            requestMethod method, // type of HTTP method (get vs. put vs. post)
+            int timeoutMilliseconds, // time before communication timeout (does not restrict time for the upload or download of files)
+            HashSet<HttpStatusCode> validStatusCodes, // a HashSet with HttpStatusCodes which should be considered all possible successful return codes from the server
+            ICLSyncSettingsAdvanced CopiedSettings, // used for device id, trace settings, and client version
+            CLCredentials Credentials, // contains key/secret for authorization
+            Nullable<long> SyncboxId, // unique id for the sync box on the server
+            bool isOneOff, // one-offs bypass the halt all check
+            CLFileDownloadTransferStatusCallback transferStatusCallback,
+            object transferStatusCallbackUserState)
+        {
+            Stream responseStream = null;
+
+            HttpWebResponse response = ProcessHttpInner<HttpWebResponse>(requestContent,
+                serverUrl,
+                serverMethodPath,
+                method,
+                timeoutMilliseconds,
+                /* uploadDownload: */ null,
+                validStatusCodes,
+                CopiedSettings,
+                Credentials,
+                SyncboxId,
+                isOneOff);
+
+            try
+            {
+                responseStream = response.GetResponseStream();
+
+                return Helpers.CopyHttpWebResponseStreamAndClose(responseStream, transferStatusCallback, transferStatusCallbackUserState, response.ContentLength);
+            }
+            finally
+            {
+                if (responseStream != null)
+                {
+                    try
+                    {
+                        responseStream.Dispose();
+                    }
+                    catch
+                    {
+                    }
+                }
+
+                if (response != null)
+                {
+                    try
+                    {
+                        response.Close();
+                    }
+                    catch
+                    {
+                    }
+                }
+            }
         }
 
         /// <summary>
@@ -3123,12 +3245,19 @@ namespace Cloud.Static
             ICLSyncSettingsAdvanced CopiedSettings, // used for device id, trace settings, and client version
             CLCredentials Credentials, // contains key/secret for authorization
             Nullable<long> SyncboxId, // unique id for the sync box on the server
-            bool isOneOff) // one-offs bypass the halt all check
+            bool isOneOff, // one-offs bypass the halt all check
+            [CallerMemberName] string callerName = null) // pull the caller method to determine if it's the one which supports the Stream type
             where T : class // restrict T to an object type to allow default null return
         {
             if (AllHaltedOnUnrecoverableError && !isOneOff)
             {
                 throw new CLInvalidOperationException(CLExceptionCode.Http_BadRequest, Resources.ExceptionHelpersProcessHttpInnerAllHaltedOnUnrecoverableError);
+            }
+
+            if (typeof(T) == typeof(HttpWebResponse)
+                && (new ProcessHttpRawStreamCopyDelegate(Helpers.ProcessHttpRawStreamCopy)).Method.Name != callerName) // delegate created from the method should have a Method name of the method itself (hopefuly obfuscation-proof)
+            {
+                throw new CLInvalidOperationException(CLExceptionCode.Http_BadRequest, Resources.ExceptionHelpersProcessHttpInnerStreamCaller);
             }
 
             // check that the temp download folder exists, if not, create it
@@ -3149,7 +3278,7 @@ namespace Cloud.Static
             // create the main request object for the provided uri location
             HttpWebRequest httpRequest = (HttpWebRequest)HttpWebRequest.Create(serverUrl + serverMethodPath);
 
-            // downgrade to HTTP 1.0 protocol
+            // use the default HTTP 1.1 protocol version
             httpRequest.ProtocolVersion = HttpVersion.Version11;
 
             #region set request parameters
@@ -3605,6 +3734,7 @@ namespace Cloud.Static
             string responseBody = null; // string body content of response (for a string output is used instead of the response stream itself)
             Stream responseStream = null; // response stream (when the communication output is a deserialized object instead of a simple string representation)
             Stream serializationStream = null; // a possible copy of the response stream for when the stream has to be used both for trace and for deserializing a return object
+            bool leaveClosingResponseTillAfterReturnWrapping = false; // for typeof(T) == typeof(HttpWebResponse)
 
             // declare the serializer which will be used to deserialize the response content for output
             DataContractJsonSerializer outSerializer;
@@ -3695,7 +3825,7 @@ namespace Cloud.Static
                         && !pulledOutSerializer // no serializer for this type found
                         && typeof(T) != typeof(string) // don't need serializer for direct string output
                         && typeof(T) != typeof(object) // don't need serializer for direct object output (will output as string)
-                        && typeof(T) != typeof(Stream))) // don't need serializer for direct Stream output
+                        && typeof(T) != typeof(HttpWebResponse))) // don't need serializer for direct Stream output
                 {
                     CLExceptionCode status;
 
@@ -4301,13 +4431,16 @@ namespace Cloud.Static
                     }
                     // else if the output type is not in the dictionary of those serializable and if the output type is Stream,
                     // then the implementing application will process the response (give them a MemoryStream copy)
-                    else if (typeof(T) == typeof(Stream))
+                    else if (typeof(T) == typeof(HttpWebResponse))
                     {
-                        // grab the stream for response content
-                        responseStream = httpResponse.GetResponseStream();
+                        // the caller needs to copy the stream as a MemoryStream, return response as-is
+                        toReturn = (T)((object)httpResponse);
 
-                        // copy the stream as a MemoryStream for return
-                        toReturn = (T)((object)Helpers.CopyHttpWebResponseStreamAndClose(responseStream));
+                        // set a body for communication logging (even though communication does not actually complete until the Stream is closed)
+                        responseBody = Resources.HelpersProcessHttpInnerStreamWrappedResponseBody;
+
+                        // skips closing the response (leaving it up to the caller to handle)
+                        leaveClosingResponseTillAfterReturnWrapping = true;
                     }
                     // else if the output type is not in the dictionary of those serializable and if the output type is also neither object nor string,
                     // then we should have handled this condition earlier in invalid status code processing: process as unrecoverable error
@@ -4396,8 +4529,7 @@ namespace Cloud.Static
                 if ((CopiedSettings.TraceType & TraceType.Communication) == TraceType.Communication)
                 {
                     // if there was no stream set for deserialization, then the response was handled as a string and needs to be logged here as such
-                    if (serializationStream == null
-                        && typeof(T) != typeof(Stream)) // when the Stream is returned for direct access by the implementing application, do not log the whole response (could be large)
+                    if (serializationStream == null)
                     {
                         if (httpResponse != null)
                         {
@@ -4440,7 +4572,9 @@ namespace Cloud.Static
                 }
 
                 // if there was a response retrieved then try to close it
-                if (httpResponse != null)
+                if (httpResponse != null
+
+                    && !leaveClosingResponseTillAfterReturnWrapping) // for copying the raw Stream prevent closing the response, which would dispose the inner Stream: for typeof(T) == typeof(HttpWebResponse)
                 {
                     try
                     {
@@ -4452,7 +4586,6 @@ namespace Cloud.Static
                 }
             }
         }
-
 
         /// <summary>
         /// Set the attributes of the temp download file.
@@ -5369,7 +5502,7 @@ namespace Cloud.Static
                 // if trying to cast the asynchronous result failed, then throw an error
                 if (castAResult == null)
                 {
-                    throw new CLInvalidOperationException(CLExceptionCode.General_Invalid, Resources.CLAsyncResultInternalTypeMismatch);
+                    throw new CLInvalidOperationException(CLExceptionCode.General_ObjectNotExpectedType, Resources.CLAsyncResultInternalTypeMismatch);
                 }
 
                 // pull the result for output (may not yet be complete)

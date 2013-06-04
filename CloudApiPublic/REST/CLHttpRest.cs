@@ -105,24 +105,24 @@ namespace Cloud.REST
         {
             if (syncbox == null)
             {
-                throw new NullReferenceException(Resources.SyncboxMustNotBeNull);
+                throw new CLNullReferenceException(CLExceptionCode.General_Arguments, Resources.SyncboxMustNotBeNull);
             }
 
             if (syncbox.Path == null)
             {
-                throw new NullReferenceException(Resources.CLHttpRestSyncboxPathCannotBeNull);
+                throw new CLNullReferenceException(CLExceptionCode.General_Arguments, Resources.CLHttpRestSyncboxPathCannotBeNull);
             }
 
             if (syncbox.Credentials == null)
             {
-                throw new NullReferenceException(Resources.CLHttpRestsyncboxCredentialCannotBeNull);
+                throw new CLNullReferenceException(CLExceptionCode.General_Arguments, Resources.CLHttpRestsyncboxCredentialCannotBeNull);
             }
 
             this._syncbox = syncbox;
 
             if (settings == null)
             {
-                throw new NullReferenceException(Resources.CLSyncSettingsMustNotBeNull);
+                throw new CLNullReferenceException(CLExceptionCode.General_Arguments, Resources.CLSyncSettingsMustNotBeNull);
             }
 
             AdvancedSyncSettings alreadyReadonlySettings = settings as AdvancedSyncSettings;
@@ -137,7 +137,7 @@ namespace Cloud.REST
 
             if (string.IsNullOrEmpty(this._copiedSettings.DeviceId))
             {
-                throw new NullReferenceException(Resources.CLHttpRestDeviceIDCannotBeNull);
+                throw new CLNullReferenceException(CLExceptionCode.General_Arguments, Resources.CLHttpRestDeviceIDCannotBeNull);
             }
 
             _getNewCredentialsCallback = getNewCredentialsCallback;
@@ -306,6 +306,7 @@ namespace Cloud.REST
             return toReturn;
         }
 
+        // This is not currently used, but it could be used by forwarding it in CLFileItem to poll the progress of a Begin/EndDownload async operation.
         /// <summary>
         /// Outputs the latest progress from a file download, returning any error that occurs in the retrieval
         /// </summary>
@@ -323,7 +324,7 @@ namespace Cloud.REST
                 // if try casting the asynchronous result failed, throw an error
                 if (castAResult == null)
                 {
-                    throw new NullReferenceException(Resources.CLAsyncResultInternalTypeMismatch);
+                    throw new CLNullReferenceException(CLExceptionCode.General_ObjectNotExpectedType, Resources.CLAsyncResultInternalTypeMismatch);
                 }
 
                 // try to cast the asynchronous result internal state as the holder for the progress
@@ -332,7 +333,7 @@ namespace Cloud.REST
                 // if trying to cast the internal state as the holder for progress failed, then throw an error (non-descriptive since it's our error)
                 if (iState == null)
                 {
-                    throw new Exception(Resources.CLHttpRestInternalProgressRetrievalFailure1);
+                    throw new CLNullReferenceException(CLExceptionCode.General_ObjectNotExpectedType, Resources.CLHttpRestInternalProgressRetrievalFailure1);
                 }
 
                 // lock on the holder and retrieve the progress for output
@@ -358,56 +359,7 @@ namespace Cloud.REST
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndDownloadFile(IAsyncResult asyncResult, out DownloadFileResult result)
         {
-            // declare the specific type of asynchronous result for file downloads
-            GenericAsyncResult<DownloadFileResult> castAResult;
-
-            // try/catch to try casting the asynchronous result as the type for file downloads and pull the result (possibly incomplete), on catch default the output and return the error
-            try
-            {
-                // try cast the asynchronous result as the type for file downloads
-                castAResult = asyncResult as GenericAsyncResult<DownloadFileResult>;
-
-                // if trying to cast the asynchronous result failed, then throw an error
-                if (castAResult == null)
-                {
-                    throw new NullReferenceException(Resources.CLAsyncResultInternalTypeMismatch);
-                }
-
-                // pull the result for output (may not yet be complete)
-                result = castAResult.Result;
-            }
-            catch (Exception ex)
-            {
-                result = Helpers.DefaultForType<DownloadFileResult>();
-                return ex;
-            }
-
-            // try/catch to finish the asynchronous operation if necessary, re-pull the result for output, and rethrow any exception which may have occurred; on catch, return the error
-            try
-            {
-                // This method assumes that only 1 thread calls EndInvoke 
-                // for this object
-                if (!castAResult.IsCompleted)
-                {
-                    // If the operation isn't done, wait for it
-                    castAResult.AsyncWaitHandle.WaitOne();
-                    castAResult.AsyncWaitHandle.Close();
-                }
-
-                // re-pull the result for output in case it was not completed when it was pulled before
-                result = castAResult.Result;
-
-                // Operation is done: if an exception occurred, return it
-                if (castAResult.Exception != null)
-                {
-                    return castAResult.Exception;
-                }
-            }
-            catch (Exception ex)
-            {
-                return ex;
-            }
-            return null;
+            return Helpers.EndAsyncOperation<DownloadFileResult>(asyncResult, out result);
         }
 
         /// <summary>
@@ -505,9 +457,10 @@ namespace Cloud.REST
             {
                 // check input parameters (other checks are done on constructing the private download class upon Helpers.ProcessHttp)
 
+                //&&&&RKS Here.
                 if (timeoutMilliseconds <= 0)
                 {
-                    throw new ArgumentException(Resources.CLMSTimeoutMustBeGreaterThanZero);
+                    throw new CLArgumentException(CLExceptionCode.General_Arguments, Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
 
                 if (serverUid == null)

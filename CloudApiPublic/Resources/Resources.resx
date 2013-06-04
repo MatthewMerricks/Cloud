@@ -3011,4 +3011,12 @@
     <value>The input CLFileItem at index {0} was previously deleted</value>
     <comment>"CLFileItem" should not be translated</comment>
   </data>
+  <data name="ExceptionHelpersProcessHttpInnerStreamCaller" xml:space="preserve">
+    <value>Stream can only be returned from ProcessHttpInner when called by ProcessHttpRawStreamCopy</value>
+    <comment>Stream, ProcessHttpInner, and ProcessHttpRawStreamCopy should not be translated</comment>
+  </data>
+  <data name="HelpersProcessHttpInnerStreamWrappedResponseBody" xml:space="preserve">
+    <value>---HttpWebResponse returned as-is to be wrapped by caller---</value>
+    <comment>HttpWebResponse shoudl not be translated</comment>
+  </data>
 </root>

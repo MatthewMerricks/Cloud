@@ -2547,6 +2547,15 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Stream can only be returned from ProcessHttpInner when called by ProcessHttpRawStreamCopy.
+        /// </summary>
+        internal static string ExceptionHelpersProcessHttpInnerStreamCaller {
+            get {
+                return ResourceManager.GetString("ExceptionHelpersProcessHttpInnerStreamCaller", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to uploadDownload TempDownloadFolderPath cannot be null.
         /// </summary>
         internal static string ExceptionHelpersProcessHttpInnerTempDownloadFolderPath {
@@ -3318,6 +3327,15 @@ namespace Cloud.Static {
         internal static string HaveNotHandledBadgingWhenTwoEventsMergedTogether {
             get {
                 return ResourceManager.GetString("HaveNotHandledBadgingWhenTwoEventsMergedTogether", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ---HttpWebResponse returned as-is to be wrapped by caller---.
+        /// </summary>
+        internal static string HelpersProcessHttpInnerStreamWrappedResponseBody {
+            get {
+                return ResourceManager.GetString("HelpersProcessHttpInnerStreamWrappedResponseBody", resourceCulture);
             }
         }
         

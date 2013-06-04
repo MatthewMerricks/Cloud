@@ -258,7 +258,7 @@ namespace Cloud.PushNotification
                 sseRequest.KeepAlive = true; // <-- Connection
                 sseRequest.UserAgent = CLDefinitions.HeaderAppendCloudClient; // set client
 
-                // this fix was applied for requests made through ProcessHttp in Helpers, so it should also match the version here
+                // use the default HTTP 1.1 protocol version
                 sseRequest.ProtocolVersion = HttpVersion.Version11;
 
                 // Send a Last-Event-ID header on a reconnect.

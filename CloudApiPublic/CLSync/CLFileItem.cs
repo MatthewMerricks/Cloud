@@ -10,7 +10,7 @@ using Cloud.Model;
 using Cloud.REST;
 using Cloud.Static;
 using System;
-using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Threading;
 
@@ -27,19 +27,14 @@ namespace Cloud.CLSync
         private readonly ICLSyncSettingsAdvanced _copiedSettings;
 
         #endregion
-        #region Public Delegates
-
-        public delegate void DownloadFileProgress(int downloadedBytes, int totalDownloadedBytes, int totalExpectedBytes);		 
-
-    	#endregion
-
         #region Public Enums
 
         public enum CLFileItemImageSize
         {
             CLFileItemImageSizeSmall = 0,
             CLFileItemImageSizeMedium,
-            CLFileItemImageSizeLarge
+            CLFileItemImageSizeLarge,
+            CLFileItemImageSizeThumbnail,
         }
 
         #endregion
@@ -360,6 +355,9 @@ namespace Cloud.CLSync
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when the async operation completes.  Can be null.</param>
         /// <param name="asyncCallbackUserState">User state to pass to the async callback when it is fired.  Can be null.</param>
+        /// <param name="transferStatusCallback">The callback to fire with tranfer status updates.  May be null.</param>
+        /// <param name="transferStatusCallbackUserState">The user state to pass to the transfer status callback above.  May be null.</param>
+        /// <param name="cancellationSource">A cancellation token source object that can be used to cancel the download operation.  May be null</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
         public IAsyncResult BeginDownloadFile(
             AsyncCallback asyncCallback, 
@@ -425,9 +423,10 @@ namespace Cloud.CLSync
         /// <param name="asyncResult">The asynchronous result provided upon starting creating the syncbox</param>
         /// <param name="result">(output) The result from the asynchronous operation.</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public static CLError EndDownloadFile(IAsyncResult asyncResult, out FileItemDownloadFileResult result)
+        public CLError EndDownloadFile(IAsyncResult asyncResult, out DownloadFileResult result)
         {
-            return Helpers.EndAsyncOperation<FileItemDownloadFileResult>(asyncResult, out result);
+            Helpers.CheckHalted();
+            return _httpRestClient.EndDownloadFile(asyncResult, out result);
         }
 
         /// <summary>
@@ -442,11 +441,13 @@ namespace Cloud.CLSync
         /// <param name="cancellationSource">A cancellation token source object that can be used to cancel the download operation.  May be null</param>
         /// <returns>CLError: Any error, or null.</returns>
         public CLError DownloadFile(
-            out string fullPathDownloadedTempFile, 
-            CLFileDownloadTransferStatusCallback transferStatusCallback, 
+            out string fullPathDownloadedTempFile,
+            CLFileDownloadTransferStatusCallback transferStatusCallback,
             object transferStatusCallbackUserState,
             CancellationTokenSource cancellationSource)
         {
+            Helpers.CheckHalted();
+
             // Build the file change to represent the file to download.
             FileChange fcToDownload = new FileChange()
             {
@@ -505,7 +506,13 @@ namespace Cloud.CLSync
 
             if (transferStatusCallback != null)
             {
-                transferStatusCallback(byteProgress, totalByteSize, transferStatusCallbackUserState);
+                try
+                {
+                    transferStatusCallback(byteProgress, totalByteSize, transferStatusCallbackUserState);
+                }
+                catch
+                {
+                }
             }
         }
 
@@ -547,49 +554,50 @@ namespace Cloud.CLSync
         /// <summary>
         /// Load a thumbnail image from the cloud file represented by this CLFileItem object.
         /// </summary>
-        /// <param name="thumbnail">(output) The thumbnail image loaded from the cloud file.</param>
-        /// <param name="callback">(optional) The load progress delegate to call.</param>
-        /// <param name="callbackUserState">(optional) The user state to pass to the load progress delegate above.</param>
+        /// <param name="thumbnailStream">(output) An open Stream containing the data for the thumbnail image loaded from the cloud file.</param>
+        /// <param name="completionCallback">(optional) The load progress delegate to call.  Can be null.</param>
+        /// <param name="completionCallbackUserState">(optional) The user state to pass to the load progress delegate above.  Can be null.</param>
         /// <returns>Any error, or null.</returns>
-        public CLError LoadThumbnail(out Image thumbnail, DownloadFileProgress callback = null, object callbackUserState = null)
+        public CLError LoadThumbnail(out Stream thumbnailStream, CLFileDownloadTransferStatusCallback completionCallback, object completionCallbackUserState)
         {
-            thumbnail = null;
-            return null;
+            return LoadImageWithSize(out thumbnailStream, CLFileItemImageSize.CLFileItemImageSizeThumbnail, completionCallback, completionCallbackUserState);
         }
 
         /// <summary>
         /// Load an image from a cloud file represented by this CLFileItem object, selecting the size of the image to load.
         /// </summary>
-        /// <param name="image">(output) The image loaded from the cloud file.</param>
+        /// <param name="imageStream">(output) An open Stream containing the data for the image loaded from the cloud file.</param>
         /// <param name="imageSize">The size of the image to load.</param>
-        /// <param name="callback">(optional) The load progress delegate to call.</param>
-        /// <param name="callbackUserState">(optional) The user state to pass to the load progress delegate above.</param>
+        /// <param name="completionCallback">(optional) The load progress delegate to call.</param>
+        /// <param name="completionCallbackUserState">(optional) The user state to pass to the load progress delegate above.</param>
         /// <returns>Any error, or null.</returns>
-        public CLError LoadImageWithSize(out Image image, CLFileItemImageSize imageSize, DownloadFileProgress callback = null, object callbackUserState = null)
+        public CLError LoadImageWithSize(out Stream imageStream, CLFileItemImageSize imageSize, CLFileDownloadTransferStatusCallback completionCallback, object completionCallbackUserState)
         {
-            image = null;
+            Helpers.CheckHalted();
+
+            imageStream = null;
             return null;
         }
-
-        
 
         #endregion  // end Image Files
 
-        #region Folder Contents
+        //// we don't keep track of children of CLFileItems internally
+        //
+        //#region Folder Contents
 
-        /// <summary>
-        /// Gets the children of the Cloud folder represented by this CLFileItem object.  The ChildrenCount property will be updated with the number of children returned.
-        /// </summary>
-        /// <param name="children">(output) The array of CLFileItem objects representing the children of this folder object in the cloud, or null.</param>
-        /// <returns></returns>
-        /// <remarks>This method will return an error if called when IsFolder is false.</remarks>
-        CLError Children(out CLFileItem[] children)
-        {
-            children = null;
-            return null;
-        }
+        ///// <summary>
+        ///// Gets the children of the Cloud folder represented by this CLFileItem object.  The ChildrenCount property will be updated with the number of children returned.
+        ///// </summary>
+        ///// <param name="children">(output) The array of CLFileItem objects representing the children of this folder object in the cloud, or null.</param>
+        ///// <returns></returns>
+        ///// <remarks>This method will return an error if called when IsFolder is false.</remarks>
+        //CLError Children(out CLFileItem[] children)
+        //{
+        //    children = null;
+        //    return null;
+        //}
 
-        #endregion  // end Folder Contents
+        //#endregion  // end Folder Contents
         #endregion  // end Public Methods
 
         #region Private Methods
