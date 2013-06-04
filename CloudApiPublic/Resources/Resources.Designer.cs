@@ -2853,6 +2853,33 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Image file not found.
+        /// </summary>
+        internal static string ExceptionOnDemandDownloadImageOfSizeFileNotFound {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandDownloadImageOfSizeFileNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid imageSize value.
+        /// </summary>
+        internal static string ExceptionOnDemandDownloadImageOfSizeInvalidImageSizeValue {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandDownloadImageOfSizeInvalidImageSizeValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to User requested cancellation.
+        /// </summary>
+        internal static string ExceptionOnDemandDownloadImageOfSizeUserCancelled {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandDownloadImageOfSizeUserCancelled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The input CLFileItem was a file when a folder item was expected.
         /// </summary>
         internal static string ExceptionOnDemandFileItemFoundWhenFolderItemExpected {

@@ -3019,4 +3019,16 @@
     <value>---HttpWebResponse returned as-is to be wrapped by caller---</value>
     <comment>HttpWebResponse shoudl not be translated</comment>
   </data>
+  <data name="ExceptionOnDemandDownloadImageOfSizeFileNotFound" xml:space="preserve">
+    <value>Image file not found</value>
+    <comment>Translate</comment>
+  </data>
+  <data name="ExceptionOnDemandDownloadImageOfSizeInvalidImageSizeValue" xml:space="preserve">
+    <value>Invalid imageSize value</value>
+    <comment>"imageSize" should not be translated</comment>
+  </data>
+  <data name="ExceptionOnDemandDownloadImageOfSizeUserCancelled" xml:space="preserve">
+    <value>User requested cancellation</value>
+    <comment>Translate</comment>
+  </data>
 </root>

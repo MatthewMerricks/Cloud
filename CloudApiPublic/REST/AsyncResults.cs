@@ -10,6 +10,7 @@ using Cloud.Model;
 using Cloud.Static;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 
@@ -579,6 +580,43 @@ namespace Cloud.REST
         {
             this._error = error;
             this._item = item;
+        }
+    }
+
+    /// <summary>
+    /// Holds result properties
+    /// </summary>
+    public sealed class FileItemDownloadImageResult
+    {
+        /// <summary>
+        /// The returned file or folder item.
+        /// </summary>
+        public Stream Stream
+        {
+            get
+            {
+                return _stream;
+            }
+        }
+        private readonly Stream _stream;
+
+        /// <summary>
+        /// Any overall error which may have occurred during communication
+        /// </summary>
+        public CLError Error
+        {
+            get
+            {
+                return _error;
+            }
+        }
+        private readonly CLError _error;
+
+        // construct with all readonly properties
+        internal FileItemDownloadImageResult(CLError error, Stream stream)
+        {
+            this._error = error;
+            this._stream = stream;
         }
     }
 

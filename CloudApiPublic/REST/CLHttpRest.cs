@@ -457,7 +457,6 @@ namespace Cloud.REST
             {
                 // check input parameters (other checks are done on constructing the private download class upon Helpers.ProcessHttp)
 
-                //&&&&RKS Here.
                 if (timeoutMilliseconds <= 0)
                 {
                     throw new CLArgumentException(CLExceptionCode.General_Arguments, Resources.CLMSTimeoutMustBeGreaterThanZero);
@@ -575,6 +574,190 @@ namespace Cloud.REST
             return null;
         }
         #endregion
+
+        #region DownloadImageOfSize (Download an image file and return a Stream with the data)
+        /// <summary>
+        /// Asynchronously starts downloading an image file in the desired size.  Outputs a Stream.
+        /// </summary>
+        /// <param name="asyncCallback">Callback method to fire when the async operation completes</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing async callback</param>
+        /// <param name="fileItem">The file item to download.</param>
+        /// <param name="imageSize">The size of the image to download (small, medium, large or thumbnail).</param>
+        /// <param name="transferStatusCallback">(optional) The transfer progress delegate to call.  May be null.</param>
+        /// <param name="transferStatusCallbackUserState">(optional) The user state to pass to the transfer progress delegate above.  May be null.</param>
+        /// <param name="cancellationSource">A cancellation token source object that can be used to cancel the download operation.  May be null</param>
+        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        internal IAsyncResult BeginDownloadImageOfSize(
+            AsyncCallback asyncCallback,
+            object asyncCallbackUserState,
+            CLFileItem fileItem,
+            Cloud.CLSync.CLFileItem.CLFileItemImageSize imageSize,
+            CLFileDownloadTransferStatusCallback transferStatusCallback, 
+            object transferStatusCallbackUserState,
+            CancellationTokenSource cancellationSource)
+        {
+            var asyncThread = DelegateAndDataHolderBase.Create(
+                // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
+                new
+                {
+                    // create the asynchronous result to return
+                    toReturn = new GenericAsyncResult<FileItemDownloadImageResult>(
+                        asyncCallback,
+                        asyncCallbackUserState),
+                        fileItem = fileItem,
+                        imageSize = imageSize,
+                        transferStatusCallback = transferStatusCallback,
+                        transferStatusCallbackUserState = transferStatusCallbackUserState,
+                        cancellationSource = cancellationSource,
+                },
+                (Data, errorToAccumulate) =>
+                {
+                    // The ThreadProc.
+                    // try/catch to process with the input parameters, on catch set the exception in the asyncronous result
+                    try
+                    {
+                        // alloc and init the syncbox with the passed parameters, storing any error that occurs
+                        Stream stream;
+                        CLError overallError = DownloadImageOfSize(
+                            Data.fileItem,
+                            Data.imageSize,
+                            out stream,
+                            Data.transferStatusCallback,
+                            Data.transferStatusCallbackUserState,
+                            Data.cancellationSource);
+
+                        Data.toReturn.Complete(
+                            new FileItemDownloadImageResult(overallError, stream),  // the result to return
+                            sCompleted: false); // processing did not complete synchronously
+                    }
+                    catch (Exception ex)
+                    {
+                        Data.toReturn.HandleException(
+                            ex, // the exception which was not handled correctly by the CLError wrapping
+                            sCompleted: false); // processing did not complete synchronously
+                    }
+                },
+                null);
+
+            // create the thread from a void (object) parameterized start which wraps the synchronous method call
+            (new Thread(new ThreadStart(asyncThread.VoidProcess))).Start(); // start the asynchronous processing thread which is attached to its data
+
+            // return the asynchronous result
+            return asyncThread.TypedData.toReturn;
+        }
+
+        /// <summary>
+        /// Finishes downloading the image file, if it has not already finished via its asynchronous result, and outputs the result,
+        /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
+        /// </summary>
+        /// <param name="asyncResult">The asynchronous result provided upon starting the request</param>
+        /// <param name="result">(output) An overall error which occurred during processing, if any</param>
+        /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
+        internal CLError EndDownloadImageOfSize(IAsyncResult asyncResult, out FileItemDownloadImageResult result)
+        {
+            return Helpers.EndAsyncOperation<FileItemDownloadImageResult>(asyncResult, out result);
+        }
+
+        /// <summary>
+        /// Download an image file in the desired size.  Outputs a Stream.
+        /// </summary>
+        /// <param name="fileItem">The file item to download.</param>
+        /// <param name="imageSize">The size of the image to download (small, medium, large or thumbnail).</param>
+        /// <param name="imageStream">(Output) The returned Stream representing the image data.</param>
+        /// <param name="transferStatusCallback">(optional) The transfer progress delegate to call.  May be null.</param>
+        /// <param name="transferStatusCallbackUserState">(optional) The user state to pass to the transfer progress delegate above.  May be null.</param>
+        /// <param name="cancellationSource">A cancellation token source object that can be used to cancel the download operation.  May be null</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        internal CLError DownloadImageOfSize(
+            CLFileItem fileItem,
+            Cloud.CLSync.CLFileItem.CLFileItemImageSize imageSize,
+            out Stream imageStream, 
+            CLFileDownloadTransferStatusCallback transferStatusCallback, 
+            object transferStatusCallbackUserState,
+            CancellationTokenSource cancellationSource)
+        {
+            // try/catch to process the request,  On catch return the error
+            try
+            {
+                // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
+                Helpers.RequestNewCredentialsInfo requestNewCredentialsInfo = new Helpers.RequestNewCredentialsInfo()
+                {
+                    ProcessingStateByThreadId = _processingStateByThreadId,
+                    GetNewCredentialsCallback = _getNewCredentialsCallback,
+                    GetNewCredentialsCallbackUserState = _getNewCredentialsCallbackUserState,
+                    GetCurrentCredentialsCallback = GetCurrentCredentialsCallback,
+                    SetCurrentCredentialsCallback = SetCurrentCredentialCallback,
+                };
+
+                // Determine the size to use
+                char charSize;
+                string generate = CLDefinitions.CLMetadataFalse;
+                switch (imageSize)
+                {
+                    case CLFileItem.CLFileItemImageSize.CLFileItemImageSizeSmall:
+                        charSize = (char)0x73 /* 's' */;
+                        break;
+                    case CLFileItem.CLFileItemImageSize.CLFileItemImageSizeMedium:
+                        charSize = (char)0x6D /* 'm' */;
+                        break;
+                    case CLFileItem.CLFileItemImageSize.CLFileItemImageSizeLarge:
+                        charSize = (char)0x6C /* 'l' */;
+                        break;
+                    case CLFileItem.CLFileItemImageSize.CLFileItemImageSizeFull:
+                        charSize = (char)0x6F /* 'o' */;
+                        break;
+                    case CLFileItem.CLFileItemImageSize.CLFileItemImageSizeThumbnail:
+                        charSize = (char)0x74 /* 't' */;
+                        generate = CLDefinitions.CLMetadataInline;
+                        break;
+                    default:
+                        throw new CLArgumentException(CLExceptionCode.OnDemand_InvalidParameters, Resources.ExceptionOnDemandDownloadImageOfSizeInvalidImageSizeValue);
+                }
+
+                // Now make the REST request content.
+                object requestContent = new JsonContracts.ImageRequest()
+                {
+                    SyncboxId = _syncbox.SyncboxId,
+                    ServerUid = fileItem.Uid,
+                    Revision = fileItem.Revision,
+                    Generate = generate,
+                };
+
+                // server method path
+                string serverMethodPath = CLDefinitions.MethodPathImage + ((char)0x2F /* '/' */) + charSize;
+
+                imageStream = Helpers.ProcessHttpRawStreamCopy(
+                    requestContent, // JSON contract object to serialize and send up as the request content, if any
+                    CLDefinitions.CLMetaDataServerURL, // base domain is the MDS server
+                    serverMethodPath, // the server method path
+                    Helpers.requestMethod.post, // one-off methods are all posts
+                    _copiedSettings.HttpTimeoutMilliseconds, // time before communication timeout
+                    /* uploadDownload */ null,  // not an upload or download
+                    Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
+                    _copiedSettings, // pass the copied settings
+                    _syncbox.SyncboxId, // pass the unique id of the sync box on the server
+                    requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
+                    isOneOff: true,  // On Demand call
+                    transferStatusCallback: transferStatusCallback,  // the transfer progress callback
+                    transferStatusCallbackUserState: transferStatusCallbackUserState,  // the transfer progress callback user state
+                    cancellationSource: cancellationSource);  // the token to request cancellation
+
+                // make sure response was returned
+                if (imageStream == null)
+                {
+                    throw new CLNullReferenceException(CLExceptionCode.OnDemand_NotFound, Resources.ExceptionOnDemandDownloadImageOfSizeFileNotFound);
+                }
+            }
+            catch (Exception ex)
+            {
+                imageStream = Helpers.DefaultForType<Stream>();
+                return ex;
+            }
+
+            return null;
+        }
+
+        #endregion  // end DownloadImageOfSize (Download an image file and return a Stream with the data)
 
         #region ItemForPath (Gets the metedata at a particular server syncbox path)
         /// <summary>
