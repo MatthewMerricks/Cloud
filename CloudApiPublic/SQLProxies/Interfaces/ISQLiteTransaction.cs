@@ -12,10 +12,11 @@ using System.Text;
 
 namespace Cloud.SQLProxies
 {
+    // \cond
     /// <summary>
     /// SQLite implementation of DbTransaction.
     /// </summary>
-    internal interface ISQLiteTransaction : IDisposable
+    public interface ISQLiteTransaction : IDisposable
     {
         /// <summary>
         /// Commits the current transaction.
@@ -27,4 +28,5 @@ namespace Cloud.SQLProxies
         /// </summary>
         void Rollback();
     }
+    // \endcond
 }

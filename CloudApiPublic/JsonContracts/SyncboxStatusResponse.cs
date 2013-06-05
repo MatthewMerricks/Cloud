@@ -12,14 +12,17 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
+using System.Reflection;
 
 namespace Cloud.JsonContracts
 {
+    // \cond
     /// <summary>
     /// Result from <see cref="Cloud.CLSyncbox.BeginGetCurrentStatus"/>
     /// </summary>
     [DataContract]
     [ContainsMetadataDictionary] // within Syncbox Syncbox
+    [Obfuscation(Feature = "preserve-name-binding")]
     public sealed class SyncboxStatusResponse
     {
         [DataMember(Name = CLDefinitions.RESTResponseStatus, IsRequired = false)]
@@ -31,4 +34,5 @@ namespace Cloud.JsonContracts
         [DataMember(Name = CLDefinitions.RESTResponseSyncbox, IsRequired = false)]
         public Syncbox Syncbox { get; set; }
     }
+    // \endcond
 }

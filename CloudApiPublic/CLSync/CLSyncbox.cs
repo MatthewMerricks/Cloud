@@ -20,6 +20,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using System.ComponentModel;
 
 namespace Cloud
 {
@@ -202,7 +203,9 @@ namespace Cloud
         /// <summary>
         /// true: The user is busy in a public API call that is modifying the syncbox.
         /// </summary>
-        internal bool IsModifyingSyncboxViaPublicAPICalls
+        // \cond
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)] //Hide From Intellisense
+        public bool IsModifyingSyncboxViaPublicAPICalls
         {
             get
             {
@@ -227,7 +230,7 @@ namespace Cloud
                 }
             }
         }
-
+        // \endcond
         #endregion  // end Internal Properties
 
         #region Public Properties
@@ -4013,8 +4016,9 @@ namespace Cloud
 
             return null;
         }
-
-        internal bool ReservedForActiveSync
+        // \cond
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)] //Hide From Intellisense
+        public bool ReservedForActiveSync
         {
             get
             {
@@ -4024,7 +4028,11 @@ namespace Cloud
                 }
             }
         }
-        internal bool TryReserveForActiveSync()
+        // \endcond
+
+        // \cond
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)] //Hide From Intellisense
+        public bool TryReserveForActiveSync()
         {
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
@@ -4041,7 +4049,11 @@ namespace Cloud
             }
             return false;
         }
-        internal void ResetReserveForActiveSync()
+        // \endcond
+        
+        // \cond
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)] //Hide From Intellisense
+        public void ResetReserveForActiveSync()
         {
             lock (_reservedForActiveSync)
             {
@@ -4055,7 +4067,11 @@ namespace Cloud
         /// </summary>
         /// <param name="sender">The sending object.</param>
         /// <param name="e">Arguments including the manual poll and/or web sockets errors (possibly aggregated).</param>
-        internal void OnPushNotificationConnectionError(object sender, NotificationErrorEventArgs e)
+        // \endcond
+
+        // \cond
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)] //Hide From Intellisense
+        public void OnPushNotificationConnectionError(object sender, NotificationErrorEventArgs e)
         {
             try
             {
@@ -4102,7 +4118,7 @@ namespace Cloud
             {
             }
         }
-
+        // \endcond
         #endregion  // end Private Instance Support Functions
 
         #region IDisposable Support

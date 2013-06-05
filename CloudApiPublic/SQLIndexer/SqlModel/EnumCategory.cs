@@ -13,9 +13,9 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Cloud.SQLIndexer.SqlModel
-{
+{   // \cond
     [SqlAccess.Class(CLDefinitions.EnumCategory_EnumCategories)]
-    internal sealed class EnumCategory
+    public sealed class EnumCategory
     {
         [SqlAccess.Property]
         public long EnumCategoryId { get; set; }
@@ -26,4 +26,5 @@ namespace Cloud.SQLIndexer.SqlModel
         [SqlAccess.Property(Constants.SqlEnumName, SqlAccess.FieldType.JoinedTable)]
         public SqlEnum SqlEnum { get; set; }
     }
+    // \endcond
 }

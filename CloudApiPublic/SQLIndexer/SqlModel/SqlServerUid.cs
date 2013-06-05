@@ -5,8 +5,9 @@ using System.Text;
 
 namespace Cloud.SQLIndexer.SqlModel
 {
+    // \cond
     [SqlAccess.Class("ServerUids")]
-    internal sealed class SqlServerUid
+    public sealed class SqlServerUid
     {
         [SqlAccess.Property]
         public long ServerUidId { get; set; }
@@ -17,4 +18,5 @@ namespace Cloud.SQLIndexer.SqlModel
         [SqlAccess.Property]
         public string Revision { get; set; }
     }
+    // \endcond
 }

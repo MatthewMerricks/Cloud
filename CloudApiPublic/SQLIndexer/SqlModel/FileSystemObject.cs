@@ -14,9 +14,10 @@ using System.Text;
 using Cloud.Static;
 
 namespace Cloud.SQLIndexer.SqlModel
+// \cond
 {
     [SqlAccess.Class(CLDefinitions.FileSystemObjects)]
-    internal sealed class FileSystemObject : IBeforeDeleteTrigger
+    public sealed class FileSystemObject : IBeforeDeleteTrigger
     {
         #region IBeforeDeleteTrigger member
 
@@ -151,4 +152,5 @@ namespace Cloud.SQLIndexer.SqlModel
         [SqlAccess.Property(Constants.SqlServerUidName, SqlAccess.FieldType.JoinedTable)]
         public SqlServerUid ServerUid { get; set; }
     }
+    // \endcond
 }

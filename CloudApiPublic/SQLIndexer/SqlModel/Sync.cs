@@ -13,8 +13,9 @@ using Cloud.Static;
 
 namespace Cloud.SQLIndexer.SqlModel
 {
+    // \cond
     [SqlAccess.Class(CLDefinitions.Sync_Syncs)]
-    internal sealed class Sync
+    public sealed class Sync
     {
         [SqlAccess.Property]
         public long SyncCounter { get; set; }
@@ -25,4 +26,5 @@ namespace Cloud.SQLIndexer.SqlModel
         [SqlAccess.Property(SqlAccess.FieldType.JoinedTable)]
         public FileSystemObject FileSystemObject { get; set; }
     }
+    // \endcond
 }

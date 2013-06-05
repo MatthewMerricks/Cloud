@@ -13,8 +13,9 @@ using Cloud.Static;
 
 namespace Cloud.SQLIndexer.SqlModel
 {
+    // \cond
     [SqlAccess.Class(CLDefinitions.SqlEnum_Events)]
-    internal sealed class Event
+    public sealed class Event
     {
         [SqlAccess.Property]
         public long EventId { get; set; }
@@ -49,4 +50,5 @@ namespace Cloud.SQLIndexer.SqlModel
         [SqlAccess.Property(SqlAccess.FieldType.JoinedTable)]
         public FileSystemObject FileSystemObject { get; set; }
     }
+    // \endcond
 }

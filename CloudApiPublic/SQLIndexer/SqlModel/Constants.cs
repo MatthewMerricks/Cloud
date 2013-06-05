@@ -12,11 +12,13 @@ using System.Text;
 
 namespace Cloud.SQLIndexer.SqlModel
 {
-    internal static class Constants
+    // \cond
+    public static class Constants
     {
         public const string SqlEnumName = "Enum";
         public const string FileSystemObjectName = "FileSystemObject";
         public const string SpecialNameRoot = "\\";
         public const string SqlServerUidName = "ServerUid";
     }
+    // \endcond
 }
