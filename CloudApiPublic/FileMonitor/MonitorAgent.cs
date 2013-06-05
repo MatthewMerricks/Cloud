@@ -717,7 +717,6 @@ namespace Cloud.FileMonitor
             Action<MonitorAgent, FileChange> onQueueingCallback = null,
             bool logProcessing = false)
         {
-
             try
             {
                 newAgent = new MonitorAgent(indexer, syncbox, debugMemory, DependencyDebugging);
@@ -3753,11 +3752,17 @@ namespace Cloud.FileMonitor
                             }
                         }
 
+                        // condition for whether parent is being checked for existance to add a child item, but parent is not found: clear list to cause child event to cleanup
+                        if (swapMemoryOrderListOnParentsNotFound != null
+                            && !exists)
+                        {
+                            swapMemoryOrderListOnParentsNotFound.Clear(); // causes child events to cleanup in QueueFileChange
+                        }
+
                         // folder move handling: both delete then create or create then delete, we only check on the first event that comes in, the next one should short the more complex processing
                         // move is accomplished by changing the input param references so we now have a renamed change with their required oldpath\newpath combination
                         if (isFolder)
                         {
-                            bool changeTypeStartedAsNotRename = changeType != WatcherChangeTypes.Renamed;
                             switch (changeType)
                             {
                                 case WatcherChangeTypes.Created:
@@ -3873,8 +3878,8 @@ namespace Cloud.FileMonitor
                                     }
                                     break;
                             }
-                            if (changeTypeStartedAsNotRename
-                                && changeType == WatcherChangeTypes.Renamed)
+
+                            if (changeType == WatcherChangeTypes.Renamed)
                             {
                                 bool rootError;
                                 IList<SQLIndexer.Model.FindFileResult> fireAllModifies = SQLIndexer.Model.FindFileResult.RecursiveDirectorySearch(
@@ -4811,135 +4816,315 @@ namespace Cloud.FileMonitor
                 }
             }
 
-            if ((_syncbox.CopiedSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
+            if (swapMemoryOrderListOnParentsNotFound != null
+                && swapMemoryOrderListOnParentsNotFound.Count == 0) // count is set to zero if parent cannot be confirmed, this is used to prevent the child from being created without the parent first existing
             {
-                ComTrace.LogFileChangeFlow(_syncbox.CopiedSettings.TraceLocation, _syncbox.CopiedSettings.DeviceId, _syncbox.SyncboxId, FileChangeFlowEntryPositionInFlow.FileMonitorAddingToQueuedChanges, Helpers.EnumerateSingleItem(toChange));
+                // only cleanup if there isn't still a change processing which would leave an item at the same path in AllPaths
+                FileChange foundChange;
+                if (!QueuedChanges.TryGetValue(toChange.NewPath, out foundChange)
+                    || foundChange.Type == FileChangeType.Deleted) // specifically include deleted since that should cause nothing to remain in AllPaths
+                {
+                    ChangeAllPathsBase.Remove(this, toChange.NewPath); // cleanup the item which will not continue to processing
+                }
             }
-
-            // lock on queue to prevent conflicting updates/reads
-            lock (QueuedChanges)
+            // else continue normal processing
+            else
             {
-                // define FileChange for rename if a previous change needs to be compared
-                FileChange matchedFileChangeForRename;
-
-                // function to move the file change to the metadata-keyed queue and start the delayed processing
-                Action<FileChange, GenericHolder<Nullable<KeyValuePair<Action<DisposeCheckingHolder>, DisposeCheckingHolder>>>> StartDelay = (toDelay, runActionExternal) =>
+                if ((_syncbox.CopiedSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
                 {
-                    // move the file change to the metadata-keyed queue if it does not already exist
-                    if (!QueuedChangesByMetadata.ContainsKey(toDelay.Metadata.HashableProperties))
-                    {
-                        // add file change to metadata-keyed queue
-                        QueuedChangesByMetadata.Add(toDelay.Metadata.HashableProperties, toDelay);
-                    }
+                    ComTrace.LogFileChangeFlow(_syncbox.CopiedSettings.TraceLocation, _syncbox.CopiedSettings.DeviceId, _syncbox.SyncboxId, FileChangeFlowEntryPositionInFlow.FileMonitorAddingToQueuedChanges, Helpers.EnumerateSingleItem(toChange));
+                }
 
-                    // If onQueueingCallback was set on initialization of the monitor agent, fire the callback with the new FileChange
-                    if (OnQueueing != null)
-                    {
-                        OnQueueing(this, toDelay);
-                    }
-
-                    if (runActionExternal != null)
-                    {
-                        runActionExternal.Value = new KeyValuePair<Action<DisposeCheckingHolder>, DisposeCheckingHolder>(state =>
-                            {
-                                Tuple<FileChange,
-                                    Action<FileChange, object, int>,
-                                    int,
-                                    int> castState = state.Value as Tuple<FileChange, Action<FileChange, object, int>, int, int>;
-
-                                if (castState != null)
-                                {
-                                    // start delayed processing of file change
-                                    castState.Item1.ProcessAfterDelay(
-                                        castState.Item2,// Callback which fires on process timer completion (on a new thread)
-                                        null,// User state if needed on callback (unused)
-                                        castState.Item3,// processing delay to wait for more events on this file
-                                        castState.Item4);// number of processing delay resets before it will process the file anyways
-                                }
-                            }, new DisposeCheckingHolder(() => toDelay.DelayCompleted,
-                                new Tuple<FileChange,
-                                    Action<FileChange, object, int>,
-                                    int,
-                                    int>(toDelay, // file change to delay-process
-                                    ProcessFileChange,// Callback which fires on process timer completion (on a new thread)
-                                    ProcessingDelayInMilliseconds,// processing delay to wait for more events on this file
-                                    ProcessingDelayMaxResets)));// number of processing delay resets before it will process the file anyways
-                    }
-                    else
-                    {
-                        // start delayed processing of file change
-                        toDelay.ProcessAfterDelay(
-                            ProcessFileChange,// Callback which fires on process timer completion (on a new thread)
-                            null,// User state if needed on callback (unused)
-                            ProcessingDelayInMilliseconds,// processing delay to wait for more events on this file
-                            ProcessingDelayMaxResets);// number of processing delay resets before it will process the file anyways
-                    }
-                };
-                // if queue already contains a file change at the same path,
-                // either replace change and start the new one if the old one is currently processing
-                // otherwise change the existing file change properties to match the new ones and restart the delay timer
-                if (QueuedChanges.ContainsKey(toChange.NewPath))
+                // lock on queue to prevent conflicting updates/reads
+                lock (QueuedChanges)
                 {
-                    // grab existing file change from the queue
-                    FileChange previousChange = QueuedChanges[toChange.NewPath];
-                    // DoNotAddToSQLIndex should only be true for events already in the SQL index,
-                    // and existing events from the index only reprocess once therefore second events
-                    // mean a new change has occurred to add to database
-                    toChange.DoNotAddToSQLIndex = previousChange.DoNotAddToSQLIndex = false;
-                    // if the file change is already marked that it started processing,
-                    // need to replace the file change in the queue (which will start it's own processing later on a new delay)
-                    if (previousChange.DelayCompleted)
+                    // define FileChange for rename if a previous change needs to be compared
+                    FileChange matchedFileChangeForRename;
+
+                    // function to move the file change to the metadata-keyed queue and start the delayed processing
+                    Action<FileChange, GenericHolder<Nullable<KeyValuePair<Action<DisposeCheckingHolder>, DisposeCheckingHolder>>>> StartDelay = (toDelay, runActionExternal) =>
                     {
-                        QueuedChangesForceProcessing.Add(previousChange);
-
-                        // replace file change in the queue at the same location with the new change
-                        QueuedChanges[toChange.NewPath] = toChange;
-
-                        // add old/new path pairs for recursive rename processing
-                        if (previousChange.Type == FileChangeType.Renamed)
+                        // move the file change to the metadata-keyed queue if it does not already exist
+                        if (!QueuedChangesByMetadata.ContainsKey(toDelay.Metadata.HashableProperties))
                         {
-                            if (toChange.Type == FileChangeType.Renamed)
-                            {
-                                if (!FilePathComparer.Instance.Equals(previousChange.OldPath, toChange.OldPath)
-                                    || !FilePathComparer.Instance.Equals(previousChange.NewPath, toChange.NewPath))
+                            // add file change to metadata-keyed queue
+                            QueuedChangesByMetadata.Add(toDelay.Metadata.HashableProperties, toDelay);
+                        }
+
+                        // If onQueueingCallback was set on initialization of the monitor agent, fire the callback with the new FileChange
+                        if (OnQueueing != null)
+                        {
+                            OnQueueing(this, toDelay);
+                        }
+
+                        if (runActionExternal != null)
+                        {
+                            runActionExternal.Value = new KeyValuePair<Action<DisposeCheckingHolder>, DisposeCheckingHolder>(state =>
                                 {
-                                    OldToNewPathRenames[toChange.OldPath] = toChange.NewPath;
+                                    Tuple<FileChange,
+                                        Action<FileChange, object, int>,
+                                        int,
+                                        int> castState = state.Value as Tuple<FileChange, Action<FileChange, object, int>, int, int>;
+
+                                    if (castState != null)
+                                    {
+                                        // start delayed processing of file change
+                                        castState.Item1.ProcessAfterDelay(
+                                            castState.Item2,// Callback which fires on process timer completion (on a new thread)
+                                            null,// User state if needed on callback (unused)
+                                            castState.Item3,// processing delay to wait for more events on this file
+                                            castState.Item4);// number of processing delay resets before it will process the file anyways
+                                    }
+                                }, new DisposeCheckingHolder(() => toDelay.DelayCompleted,
+                                    new Tuple<FileChange,
+                                        Action<FileChange, object, int>,
+                                        int,
+                                        int>(toDelay, // file change to delay-process
+                                        ProcessFileChange,// Callback which fires on process timer completion (on a new thread)
+                                        ProcessingDelayInMilliseconds,// processing delay to wait for more events on this file
+                                        ProcessingDelayMaxResets)));// number of processing delay resets before it will process the file anyways
+                        }
+                        else
+                        {
+                            // start delayed processing of file change
+                            toDelay.ProcessAfterDelay(
+                                ProcessFileChange,// Callback which fires on process timer completion (on a new thread)
+                                null,// User state if needed on callback (unused)
+                                ProcessingDelayInMilliseconds,// processing delay to wait for more events on this file
+                                ProcessingDelayMaxResets);// number of processing delay resets before it will process the file anyways
+                        }
+                    };
+                    // if queue already contains a file change at the same path,
+                    // either replace change and start the new one if the old one is currently processing
+                    // otherwise change the existing file change properties to match the new ones and restart the delay timer
+                    if (QueuedChanges.ContainsKey(toChange.NewPath))
+                    {
+                        // grab existing file change from the queue
+                        FileChange previousChange = QueuedChanges[toChange.NewPath];
+                        // DoNotAddToSQLIndex should only be true for events already in the SQL index,
+                        // and existing events from the index only reprocess once therefore second events
+                        // mean a new change has occurred to add to database
+                        toChange.DoNotAddToSQLIndex = previousChange.DoNotAddToSQLIndex = false;
+                        // if the file change is already marked that it started processing,
+                        // need to replace the file change in the queue (which will start it's own processing later on a new delay)
+                        if (previousChange.DelayCompleted)
+                        {
+                            QueuedChangesForceProcessing.Add(previousChange);
+
+                            // replace file change in the queue at the same location with the new change
+                            QueuedChanges[toChange.NewPath] = toChange;
+
+                            // add old/new path pairs for recursive rename processing
+                            if (previousChange.Type == FileChangeType.Renamed)
+                            {
+                                if (toChange.Type == FileChangeType.Renamed)
+                                {
+                                    if (!FilePathComparer.Instance.Equals(previousChange.OldPath, toChange.OldPath)
+                                        || !FilePathComparer.Instance.Equals(previousChange.NewPath, toChange.NewPath))
+                                    {
+                                        OldToNewPathRenames[toChange.OldPath] = toChange.NewPath;
+                                    }
                                 }
                             }
-                        }
-                        else if (toChange.Type == FileChangeType.Renamed)
-                        {
-                            OldToNewPathRenames[toChange.OldPath] = toChange.NewPath;
-                        }
+                            else if (toChange.Type == FileChangeType.Renamed)
+                            {
+                                OldToNewPathRenames[toChange.OldPath] = toChange.NewPath;
+                            }
 
-                        // call method that starts the FileChange delayed-processing
-                        StartDelay(toChange, startProcessingAction);
+                            // call method that starts the FileChange delayed-processing
+                            StartDelay(toChange, startProcessingAction);
 
-                        if (debugMemory)
-                        {
-                            memoryDebugger.Instance.AddSettingFileChangeTimer(toChange, true);
+                            if (debugMemory)
+                            {
+                                memoryDebugger.Instance.AddSettingFileChangeTimer(toChange, true);
+                            }
                         }
-                    }
-                    // file change has not already started processing
-                    else
-                    {
-                        // FileChange already exists
-                        // Instead of starting a new processing delay, update the FileChange information
-                        // Then restart the delay timer
-
-                        #region state flow of how to modify existing file changes when a new change comes in
-                        switch (toChange.Type)
+                        // file change has not already started processing
+                        else
                         {
-                            case FileChangeType.Created:
-                                switch (previousChange.Type)
-                                {
-                                    case FileChangeType.Created:
-                                        // error condition
-                                        break;
-                                    case FileChangeType.Deleted:
-                                        // if the path represents a folder, the delete and create must both be processed because their contents might differ
-                                        if (previousChange.Metadata.HashableProperties.IsFolder)
-                                        {
+                            // FileChange already exists
+                            // Instead of starting a new processing delay, update the FileChange information
+                            // Then restart the delay timer
+
+                            #region state flow of how to modify existing file changes when a new change comes in
+                            switch (toChange.Type)
+                            {
+                                case FileChangeType.Created:
+                                    switch (previousChange.Type)
+                                    {
+                                        case FileChangeType.Created:
+                                            // error condition
+                                            break;
+                                        case FileChangeType.Deleted:
+                                            // if the path represents a folder, the delete and create must both be processed because their contents might differ
+                                            if (previousChange.Metadata.HashableProperties.IsFolder)
+                                            {
+                                                FileChange changeForPreviousMetadata;
+                                                if (QueuedChangesByMetadata.TryGetValue(previousChange.Metadata.HashableProperties, out changeForPreviousMetadata)
+                                                    && changeForPreviousMetadata.Equals(previousChange))
+                                                {
+                                                    QueuedChangesByMetadata.Remove(previousChange.Metadata.HashableProperties); // the previous change will be allowed to process as-is, clear out its metadata for future checking
+                                                }
+
+                                                FileChange toCompareForNewMetadata;
+                                                if (!QueuedChangesByMetadata.TryGetValue(toChange.Metadata.HashableProperties, out toCompareForNewMetadata)
+                                                    || !toCompareForNewMetadata.Equals(toChange))
+                                                {
+                                                    QueuedChangesByMetadata[toChange.Metadata.HashableProperties] = toChange;
+                                                }
+
+                                                QueuedChangesForceProcessing.Add(previousChange);
+
+                                                QueuedChanges[toChange.NewPath] = toChange; // the previous folder deletion change will now be removed from the queued changes queue, and nothing will stop it from continuing to process
+
+                                                StartDelay(toChange, startProcessingAction);
+
+                                                if (debugMemory)
+                                                {
+                                                    memoryDebugger.Instance.AddSettingFileChangeTimer(toChange, true);
+                                                }
+                                            }
+                                            // else if the path does not represent a folder,
+                                            // discard the deletion change for files which have been deleted and created again with the same metadata
+                                            else if (QueuedChangesMetadataComparer.Equals(previousChange.Metadata.HashableProperties, toChange.Metadata.HashableProperties))
+                                            {
+                                                FileChange toCompare;
+                                                if (QueuedChangesByMetadata.TryGetValue(previousChange.Metadata.HashableProperties, out toCompare)
+                                                    && toCompare.Equals(previousChange))
+                                                {
+                                                    QueuedChangesByMetadata.Remove(previousChange.Metadata.HashableProperties);
+                                                }
+                                                QueuedChanges.Remove(previousChange.NewPath);
+                                                previousChange.Dispose();
+
+                                                // delete caused AllPaths to lose metadata fields, but since we're cancelling the delete, they need to be put back
+                                                // since all cases from CheckMetadataAgainstFile which led to this creation change assigned Metadata directly from AllPaths, we can change the fields here to propagate back
+
+                                                //&&&& new code
+                                                toChange.Metadata = toChange.Metadata.CopyWithNewServerUidId(previousChange.Metadata.ServerUidId);
+                                                ChangeAllPathsBase.IndexSet(this, toChange.NewPath, toChange.Metadata);
+                                                //toChange.Metadata = toChange.Metadata.CopyWithDifferentRevisionChanger(previousChange.Metadata.RevisionChanger, Helpers.CreateFileChangeRevisionChangedHandler(toChange, _syncData));
+                                                toChange.Metadata.MimeType = previousChange.Metadata.MimeType;
+                                                //toChange.Metadata.Revision = previousChange.Metadata.Revision;
+                                                //toChange.Metadata.ServerUid = previousChange.Metadata.ServerUid;
+                                                toChange.Metadata.StorageKey = previousChange.Metadata.StorageKey;
+                                            }
+                                            // For files with different metadata, process as a modify
+                                            else
+                                            {
+                                                previousChange.Type = FileChangeType.Modified;
+                                                FileMetadata toSetTwice = toChange.Metadata.CopyWithNewServerUidId(previousChange.Metadata.ServerUidId);
+                                                toChange.Metadata = toSetTwice;
+                                                previousChange.Metadata = toSetTwice;
+                                                previousChange.SetDelayBackToInitialValue();
+
+                                                if (debugMemory)
+                                                {
+                                                    memoryDebugger.Instance.AddSettingFileChangeTimer(previousChange, false);
+                                                }
+
+                                                FileChange.SwapInMemoryIds(previousChange, toChange);
+
+                                                // delete caused AllPaths to lose metadata fields, but since we're cancelling the delete, they need to be put back
+                                                // since all cases from CheckMetadataAgainstFile which led to this creation change assigned Metadata directly from AllPaths, we can change the fields here to propagate back
+
+                                                //&&&& new code
+                                                ChangeAllPathsBase.IndexSet(this, toChange.NewPath, toChange.Metadata);
+                                                //toChange.Metadata = toChange.Metadata.CopyWithDifferentRevisionChanger(previousChange.Metadata.RevisionChanger, Helpers.CreateFileChangeRevisionChangedHandler(toChange, _syncData));
+                                                toChange.Metadata.MimeType = previousChange.Metadata.MimeType;
+                                                //toChange.Metadata.Revision = previousChange.Metadata.Revision;
+                                                //toChange.Metadata.ServerUid = previousChange.Metadata.ServerUid;
+                                                toChange.Metadata.StorageKey = previousChange.Metadata.StorageKey;
+                                            }
+                                            break;
+                                        case FileChangeType.Modified:
+                                            // error condition
+                                            break;
+                                        case FileChangeType.Renamed:
+                                            // error condition
+                                            break;
+                                    }
+                                    break;
+                                case FileChangeType.Deleted:
+                                    switch (previousChange.Type)
+                                    {
+                                        case FileChangeType.Created:
+                                            FileChange toCompare;
+                                            if (QueuedChangesByMetadata.TryGetValue(previousChange.Metadata.HashableProperties, out toCompare)
+                                                && toCompare.Equals(previousChange))
+                                            {
+                                                QueuedChangesByMetadata.Remove(previousChange.Metadata.HashableProperties);
+                                            }
+                                            QueuedChanges.Remove(toChange.NewPath);
+                                            previousChange.Dispose();
+                                            break;
+                                        case FileChangeType.Deleted:
+                                            // error condition
+                                            break;
+                                        case FileChangeType.Modified:
+                                            previousChange.PreviouslyModified = true;
+
+                                            previousChange.Type = FileChangeType.Deleted;
+                                            previousChange.Metadata = toChange.Metadata;
+                                            previousChange.SetDelayBackToInitialValue();
+
+                                            if (debugMemory)
+                                            {
+                                                memoryDebugger.Instance.AddSettingFileChangeTimer(previousChange, false);
+                                            }
+
+                                            FileChange.SwapInMemoryIds(previousChange, toChange);
+                                            break;
+                                        case FileChangeType.Renamed:
+                                            previousChange.NewPath = previousChange.OldPath;
+                                            previousChange.OldPath = null;
+                                            previousChange.Type = FileChangeType.Deleted;
+                                            previousChange.Metadata = toChange.Metadata;
+                                            previousChange.SetDelayBackToInitialValue();
+
+                                            if (debugMemory)
+                                            {
+                                                memoryDebugger.Instance.AddSettingFileChangeTimer(previousChange, false);
+                                            }
+                                            // remove the old/new path pair for a rename
+                                            OldToNewPathRenames.Remove(previousChange.NewPath);
+
+                                            FileChange.SwapInMemoryIds(previousChange, toChange);
+                                            break;
+                                    }
+                                    break;
+                                case FileChangeType.Modified:
+                                    switch (previousChange.Type)
+                                    {
+                                        case FileChangeType.Created:
+                                            previousChange.Metadata = toChange.Metadata;
+                                            previousChange.SetDelayBackToInitialValue();
+
+                                            if (debugMemory)
+                                            {
+                                                memoryDebugger.Instance.AddSettingFileChangeTimer(previousChange, false);
+                                            }
+
+                                            FileChange.SwapInMemoryIds(previousChange, toChange);
+                                            break;
+                                        case FileChangeType.Deleted:
+                                            // error condition
+                                            break;
+                                        case FileChangeType.Modified:
+                                            previousChange.Metadata = toChange.Metadata;
+                                            previousChange.SetDelayBackToInitialValue();
+
+                                            if (debugMemory)
+                                            {
+                                                memoryDebugger.Instance.AddSettingFileChangeTimer(previousChange, false);
+                                            }
+
+                                            FileChange.SwapInMemoryIds(previousChange, toChange);
+                                            break;
+                                        case FileChangeType.Renamed:
+                                            // updating a rename with new metadata will not cause the server to process both modification and rename,
+                                            // so need to split the changes into two
+
                                             FileChange changeForPreviousMetadata;
                                             if (QueuedChangesByMetadata.TryGetValue(previousChange.Metadata.HashableProperties, out changeForPreviousMetadata)
                                                 && changeForPreviousMetadata.Equals(previousChange))
@@ -4956,7 +5141,7 @@ namespace Cloud.FileMonitor
 
                                             QueuedChangesForceProcessing.Add(previousChange);
 
-                                            QueuedChanges[toChange.NewPath] = toChange; // the previous folder deletion change will now be removed from the queued changes queue, and nothing will stop it from continuing to process
+                                            QueuedChanges[toChange.NewPath] = toChange; // the previous file rename change will now be removed from the queued changes queue, and nothing will stop it from continuing to process
 
                                             StartDelay(toChange, startProcessingAction);
 
@@ -4964,332 +5149,209 @@ namespace Cloud.FileMonitor
                                             {
                                                 memoryDebugger.Instance.AddSettingFileChangeTimer(toChange, true);
                                             }
-                                        }
-                                        // else if the path does not represent a folder,
-                                        // discard the deletion change for files which have been deleted and created again with the same metadata
-                                        else if (QueuedChangesMetadataComparer.Equals(previousChange.Metadata.HashableProperties, toChange.Metadata.HashableProperties))
-                                        {
-                                            FileChange toCompare;
-                                            if (QueuedChangesByMetadata.TryGetValue(previousChange.Metadata.HashableProperties, out toCompare)
-                                                && toCompare.Equals(previousChange))
+                                            break;
+                                    }
+                                    break;
+                                case FileChangeType.Renamed:
+                                    switch (previousChange.Type)
+                                    {
+                                        case FileChangeType.Created:
+                                            // error condition
+                                            break;
+                                        case FileChangeType.Deleted:
+                                            // TODO: check if this condition requires setting the ServerUid and Revision fields in toChange.Metadata back to the values from
+                                            // previous change like we did with delete followed by create (which in turn sets the fields back appropriately in AllPaths)
+
+                                            if (QueuedChangesMetadataComparer.Equals(previousChange.Metadata.HashableProperties, toChange.Metadata.HashableProperties))
                                             {
-                                                QueuedChangesByMetadata.Remove(previousChange.Metadata.HashableProperties);
-                                            }
-                                            QueuedChanges.Remove(previousChange.NewPath);
-                                            previousChange.Dispose();
-
-                                            // delete caused AllPaths to lose metadata fields, but since we're cancelling the delete, they need to be put back
-                                            // since all cases from CheckMetadataAgainstFile which led to this creation change assigned Metadata directly from AllPaths, we can change the fields here to propagate back
-
-                                            //&&&& new code
-                                            toChange.Metadata = toChange.Metadata.CopyWithNewServerUidId(previousChange.Metadata.ServerUidId);
-                                            ChangeAllPathsBase.IndexSet(this, toChange.NewPath, toChange.Metadata);
-                                            //toChange.Metadata = toChange.Metadata.CopyWithDifferentRevisionChanger(previousChange.Metadata.RevisionChanger, Helpers.CreateFileChangeRevisionChangedHandler(toChange, _syncData));
-                                            toChange.Metadata.MimeType = previousChange.Metadata.MimeType;
-                                            //toChange.Metadata.Revision = previousChange.Metadata.Revision;
-                                            //toChange.Metadata.ServerUid = previousChange.Metadata.ServerUid;
-                                            toChange.Metadata.StorageKey = previousChange.Metadata.StorageKey;
-                                        }
-                                        // For files with different metadata, process as a modify
-                                        else
-                                        {
-                                            previousChange.Type = FileChangeType.Modified;
-                                            FileMetadata toSetTwice = toChange.Metadata.CopyWithNewServerUidId(previousChange.Metadata.ServerUidId);
-                                            toChange.Metadata = toSetTwice;
-                                            previousChange.Metadata = toSetTwice;
-                                            previousChange.SetDelayBackToInitialValue();
-
-                                            if (debugMemory)
-                                            {
-                                                memoryDebugger.Instance.AddSettingFileChangeTimer(previousChange, false);
-                                            }
-
-                                            FileChange.SwapInMemoryIds(previousChange, toChange);
-
-                                            // delete caused AllPaths to lose metadata fields, but since we're cancelling the delete, they need to be put back
-                                            // since all cases from CheckMetadataAgainstFile which led to this creation change assigned Metadata directly from AllPaths, we can change the fields here to propagate back
-
-                                            //&&&& new code
-                                            ChangeAllPathsBase.IndexSet(this, toChange.NewPath, toChange.Metadata);
-                                            //toChange.Metadata = toChange.Metadata.CopyWithDifferentRevisionChanger(previousChange.Metadata.RevisionChanger, Helpers.CreateFileChangeRevisionChangedHandler(toChange, _syncData));
-                                            toChange.Metadata.MimeType = previousChange.Metadata.MimeType;
-                                            //toChange.Metadata.Revision = previousChange.Metadata.Revision;
-                                            //toChange.Metadata.ServerUid = previousChange.Metadata.ServerUid;
-                                            toChange.Metadata.StorageKey = previousChange.Metadata.StorageKey;
-                                        }
-                                        break;
-                                    case FileChangeType.Modified:
-                                        // error condition
-                                        break;
-                                    case FileChangeType.Renamed:
-                                        // error condition
-                                        break;
-                                }
-                                break;
-                            case FileChangeType.Deleted:
-                                switch (previousChange.Type)
-                                {
-                                    case FileChangeType.Created:
-                                        FileChange toCompare;
-                                        if (QueuedChangesByMetadata.TryGetValue(previousChange.Metadata.HashableProperties, out toCompare)
-                                            && toCompare.Equals(previousChange))
-                                        {
-                                            QueuedChangesByMetadata.Remove(previousChange.Metadata.HashableProperties);
-                                        }
-                                        QueuedChanges.Remove(toChange.NewPath);
-                                        previousChange.Dispose();
-                                        break;
-                                    case FileChangeType.Deleted:
-                                        // error condition
-                                        break;
-                                    case FileChangeType.Modified:
-                                        previousChange.PreviouslyModified = true;
-
-                                        previousChange.Type = FileChangeType.Deleted;
-                                        previousChange.Metadata = toChange.Metadata;
-                                        previousChange.SetDelayBackToInitialValue();
-
-                                        if (debugMemory)
-                                        {
-                                            memoryDebugger.Instance.AddSettingFileChangeTimer(previousChange, false);
-                                        }
-
-                                        FileChange.SwapInMemoryIds(previousChange, toChange);
-                                        break;
-                                    case FileChangeType.Renamed:
-                                        previousChange.NewPath = previousChange.OldPath;
-                                        previousChange.OldPath = null;
-                                        previousChange.Type = FileChangeType.Deleted;
-                                        previousChange.Metadata = toChange.Metadata;
-                                        previousChange.SetDelayBackToInitialValue();
-
-                                        if (debugMemory)
-                                        {
-                                            memoryDebugger.Instance.AddSettingFileChangeTimer(previousChange, false);
-                                        }
-                                        // remove the old/new path pair for a rename
-                                        OldToNewPathRenames.Remove(previousChange.NewPath);
-
-                                        FileChange.SwapInMemoryIds(previousChange, toChange);
-                                        break;
-                                }
-                                break;
-                            case FileChangeType.Modified:
-                                switch (previousChange.Type)
-                                {
-                                    case FileChangeType.Created:
-                                        previousChange.Metadata = toChange.Metadata;
-                                        previousChange.SetDelayBackToInitialValue();
-
-                                        if (debugMemory)
-                                        {
-                                            memoryDebugger.Instance.AddSettingFileChangeTimer(previousChange, false);
-                                        }
-
-                                        FileChange.SwapInMemoryIds(previousChange, toChange);
-                                        break;
-                                    case FileChangeType.Deleted:
-                                        // error condition
-                                        break;
-                                    case FileChangeType.Modified:
-                                        previousChange.Metadata = toChange.Metadata;
-                                        previousChange.SetDelayBackToInitialValue();
-
-                                        if (debugMemory)
-                                        {
-                                            memoryDebugger.Instance.AddSettingFileChangeTimer(previousChange, false);
-                                        }
-
-                                        FileChange.SwapInMemoryIds(previousChange, toChange);
-                                        break;
-                                    case FileChangeType.Renamed:
-                                        // updating a rename with new metadata will not cause the server to process both modification and rename,
-                                        // so need to split the changes into two
-                                        
-                                        FileChange changeForPreviousMetadata;
-                                        if (QueuedChangesByMetadata.TryGetValue(previousChange.Metadata.HashableProperties, out changeForPreviousMetadata)
-                                            && changeForPreviousMetadata.Equals(previousChange))
-                                        {
-                                            QueuedChangesByMetadata.Remove(previousChange.Metadata.HashableProperties); // the previous change will be allowed to process as-is, clear out its metadata for future checking
-                                        }
-
-                                        FileChange toCompareForNewMetadata;
-                                        if (!QueuedChangesByMetadata.TryGetValue(toChange.Metadata.HashableProperties, out toCompareForNewMetadata)
-                                            || !toCompareForNewMetadata.Equals(toChange))
-                                        {
-                                            QueuedChangesByMetadata[toChange.Metadata.HashableProperties] = toChange;
-                                        }
-
-                                        QueuedChangesForceProcessing.Add(previousChange);
-
-                                        QueuedChanges[toChange.NewPath] = toChange; // the previous file rename change will now be removed from the queued changes queue, and nothing will stop it from continuing to process
-
-                                        StartDelay(toChange, startProcessingAction);
-
-                                        if (debugMemory)
-                                        {
-                                            memoryDebugger.Instance.AddSettingFileChangeTimer(toChange, true);
-                                        }
-                                        break;
-                                }
-                                break;
-                            case FileChangeType.Renamed:
-                                switch (previousChange.Type)
-                                {
-                                    case FileChangeType.Created:
-                                        // error condition
-                                        break;
-                                    case FileChangeType.Deleted:
-                                        // TODO: check if this condition requires setting the ServerUid and Revision fields in toChange.Metadata back to the values from
-                                        // previous change like we did with delete followed by create (which in turn sets the fields back appropriately in AllPaths)
-
-                                        if (QueuedChangesMetadataComparer.Equals(previousChange.Metadata.HashableProperties, toChange.Metadata.HashableProperties))
-                                        {
-                                            previousChange.NewPath = toChange.OldPath;
-                                            previousChange.Metadata = toChange.Metadata;
-                                            previousChange.SetDelayBackToInitialValue();
-
-                                            if (debugMemory)
-                                            {
-                                                memoryDebugger.Instance.AddSettingFileChangeTimer(previousChange, false);
-                                            }
-
-                                            FileChange.SwapInMemoryIds(previousChange, toChange);
-                                        }
-                                        else
-                                        {
-                                            previousChange.Metadata = toChange.Metadata;
-                                            previousChange.Type = FileChangeType.Modified;
-                                            previousChange.SetDelayBackToInitialValue();
-
-                                            if (debugMemory)
-                                            {
-                                                memoryDebugger.Instance.AddSettingFileChangeTimer(previousChange, false);
-                                            }
-
-                                            FileChange.SwapInMemoryIds(previousChange, toChange);
-
-                                            FileChange oldLocationDelete = new FileChange(QueuedChanges)
-                                                {
-                                                    NewPath = toChange.OldPath,
-                                                    Type = FileChangeType.Deleted,
-                                                    Direction = SyncDirection.To, // detected that a file or folder was deleted locally, so Sync To to update server
-                                                    Metadata = toChange.Metadata
-                                                };
-
-                                            if (QueuedChanges.ContainsKey(toChange.OldPath))
-                                            {
-                                                FileChange previousOldPathChange = QueuedChanges[toChange.OldPath];
-
-                                                FileChange toCompare;
-                                                if (!QueuedChangesByMetadata.TryGetValue(previousOldPathChange.Metadata.HashableProperties, out toCompare)
-                                                    || !toCompare.Equals(previousOldPathChange))
-                                                {
-                                                    QueuedChangesByMetadata[previousOldPathChange.Metadata.HashableProperties] = previousOldPathChange;
-                                                }
-
-                                                previousOldPathChange.Metadata = toChange.Metadata;
-                                                previousOldPathChange.Type = FileChangeType.Deleted;
-                                                previousOldPathChange.SetDelayBackToInitialValue();
+                                                previousChange.NewPath = toChange.OldPath;
+                                                previousChange.Metadata = toChange.Metadata;
+                                                previousChange.SetDelayBackToInitialValue();
 
                                                 if (debugMemory)
                                                 {
-                                                    memoryDebugger.Instance.AddSettingFileChangeTimer(previousOldPathChange, false);
+                                                    memoryDebugger.Instance.AddSettingFileChangeTimer(previousChange, false);
                                                 }
 
-                                                FileChange.SwapInMemoryIds(previousOldPathChange, toChange);
+                                                FileChange.SwapInMemoryIds(previousChange, toChange);
                                             }
                                             else
                                             {
-                                                QueuedChanges.Add(toChange.OldPath,
-                                                    oldLocationDelete);
-                                            }
-                                            StartDelay(oldLocationDelete, startProcessingAction);
+                                                previousChange.Metadata = toChange.Metadata;
+                                                previousChange.Type = FileChangeType.Modified;
+                                                previousChange.SetDelayBackToInitialValue();
 
-                                            if (debugMemory)
-                                            {
-                                                memoryDebugger.Instance.AddSettingFileChangeTimer(oldLocationDelete, true);
+                                                if (debugMemory)
+                                                {
+                                                    memoryDebugger.Instance.AddSettingFileChangeTimer(previousChange, false);
+                                                }
+
+                                                FileChange.SwapInMemoryIds(previousChange, toChange);
+
+                                                FileChange oldLocationDelete = new FileChange(QueuedChanges)
+                                                    {
+                                                        NewPath = toChange.OldPath,
+                                                        Type = FileChangeType.Deleted,
+                                                        Direction = SyncDirection.To, // detected that a file or folder was deleted locally, so Sync To to update server
+                                                        Metadata = toChange.Metadata
+                                                    };
+
+                                                if (QueuedChanges.ContainsKey(toChange.OldPath))
+                                                {
+                                                    FileChange previousOldPathChange = QueuedChanges[toChange.OldPath];
+
+                                                    FileChange toCompare;
+                                                    if (!QueuedChangesByMetadata.TryGetValue(previousOldPathChange.Metadata.HashableProperties, out toCompare)
+                                                        || !toCompare.Equals(previousOldPathChange))
+                                                    {
+                                                        QueuedChangesByMetadata[previousOldPathChange.Metadata.HashableProperties] = previousOldPathChange;
+                                                    }
+
+                                                    previousOldPathChange.Metadata = toChange.Metadata;
+                                                    previousOldPathChange.Type = FileChangeType.Deleted;
+                                                    previousOldPathChange.SetDelayBackToInitialValue();
+
+                                                    if (debugMemory)
+                                                    {
+                                                        memoryDebugger.Instance.AddSettingFileChangeTimer(previousOldPathChange, false);
+                                                    }
+
+                                                    FileChange.SwapInMemoryIds(previousOldPathChange, toChange);
+                                                }
+                                                else
+                                                {
+                                                    QueuedChanges.Add(toChange.OldPath,
+                                                        oldLocationDelete);
+                                                }
+                                                StartDelay(oldLocationDelete, startProcessingAction);
+
+                                                if (debugMemory)
+                                                {
+                                                    memoryDebugger.Instance.AddSettingFileChangeTimer(oldLocationDelete, true);
+                                                }
                                             }
-                                        }
-                                        break;
-                                    case FileChangeType.Modified:
-                                        // error condition
-                                        break;
-                                    case FileChangeType.Renamed:
-                                        // error condition
-                                        break;
-                                }
-                                break;
+                                            break;
+                                        case FileChangeType.Modified:
+                                            // error condition
+                                            break;
+                                        case FileChangeType.Renamed:
+                                            // error condition
+                                            break;
+                                    }
+                                    break;
+                            }
+                            #endregion
                         }
-                        #endregion
                     }
-                }
 
-                // System does not generate proper rename WatcherTypes if a file/folder is moved
-                // The following two 'else ifs' checks for matching metadata between creation/deletion events to associate together as a rename
+                    // System does not generate proper rename WatcherTypes if a file/folder is moved
+                    // The following two 'else ifs' checks for matching metadata between creation/deletion events to associate together as a rename
 
-                // Existing FileChange is a Deleted event and the incoming event is a matching Created event which has not yet completed
-                else if (toChange.Type == FileChangeType.Created
-                        && QueuedChangesByMetadata.ContainsKey(toChange.Metadata.HashableProperties)
-                        && (matchedFileChangeForRename = QueuedChangesByMetadata[toChange.Metadata.HashableProperties]).Type == FileChangeType.Deleted
-                        && !matchedFileChangeForRename.DelayCompleted)
-                {
-                    // PreviouslyModified means that order was modify then delete then create; need to keep both the modify and the "move",
-                    // otherwise ignore the more recent event and process the delete as a move instead
-                    //
-                    // recent event: toChange
-                    // previous event: matchedFileChangeForRename
-                    //
-                    // in both cases, the ServerUidId was lost upon removing the item from AllPaths from the previous deletion,
-                    // so reset the metadata on the later change with the previous ServerUidId and set that metadata in AllPaths over the create
-
-                    FilePath removeFromQueuedChanges = matchedFileChangeForRename.NewPath;
-                    if (matchedFileChangeForRename.PreviouslyModified)
+                    // Existing FileChange is a Deleted event and the incoming event is a matching Created event which has not yet completed
+                    else if (toChange.Type == FileChangeType.Created
+                            && QueuedChangesByMetadata.ContainsKey(toChange.Metadata.HashableProperties)
+                            && (matchedFileChangeForRename = QueuedChangesByMetadata[toChange.Metadata.HashableProperties]).Type == FileChangeType.Deleted
+                            && !matchedFileChangeForRename.DelayCompleted)
                     {
-                        matchedFileChangeForRename.Type = FileChangeType.Modified;
+                        // PreviouslyModified means that order was modify then delete then create; need to keep both the modify and the "move",
+                        // otherwise ignore the more recent event and process the delete as a move instead
+                        //
+                        // recent event: toChange
+                        // previous event: matchedFileChangeForRename
+                        //
+                        // in both cases, the ServerUidId was lost upon removing the item from AllPaths from the previous deletion,
+                        // so reset the metadata on the later change with the previous ServerUidId and set that metadata in AllPaths over the create
 
-                        toChange.Type = FileChangeType.Renamed;
-                        toChange.OldPath = matchedFileChangeForRename.NewPath;
+                        FilePath removeFromQueuedChanges = matchedFileChangeForRename.NewPath;
+                        if (matchedFileChangeForRename.PreviouslyModified)
+                        {
+                            matchedFileChangeForRename.Type = FileChangeType.Modified;
+
+                            toChange.Type = FileChangeType.Renamed;
+                            toChange.OldPath = matchedFileChangeForRename.NewPath;
+                        }
+                        else
+                        {
+                            // FileChange already exists
+                            // Instead of starting a new processing delay, update the FileChange information
+                            // Then restart the delay timer
+                            matchedFileChangeForRename.Type = FileChangeType.Renamed;
+                            matchedFileChangeForRename.OldPath = matchedFileChangeForRename.NewPath;
+                            matchedFileChangeForRename.NewPath = toChange.NewPath;
+                        }
+
+                        // if the new created change is missing required fields to process a rename (such as ServerUid and maybe Revision),
+                        // then try and pull them from the previous deletion change before replacing the metadata
+                        if (toChange.Metadata != null
+                            && matchedFileChangeForRename.Metadata != null)
+                        {
+                            toChange.Metadata = toChange.Metadata.CopyWithNewServerUidId(matchedFileChangeForRename.Metadata.ServerUidId);
+
+                            ChangeAllPathsBase.IndexSet(this, toChange.NewPath, toChange.Metadata);
+                        }
+
+                        matchedFileChangeForRename.Metadata = toChange.Metadata;
+
+                        QueuedChanges.Remove(removeFromQueuedChanges);
+
+                        if (matchedFileChangeForRename.PreviouslyModified)
+                        {
+                            StartDelay(toChange, startProcessingAction);
+
+                            if (debugMemory)
+                            {
+                                memoryDebugger.Instance.AddSettingFileChangeTimer(toChange, true);
+                            }
+
+                            QueuedChanges.Add(toChange.NewPath, toChange); // toChange is now the rename of the modified file to a new path
+
+                            // matchedFileChangeForRename was left alone in QueuedChanges to continue processing as a modify first
+                        }
+                        else
+                        {
+                            matchedFileChangeForRename.SetDelayBackToInitialValue();
+
+                            if (debugMemory)
+                            {
+                                memoryDebugger.Instance.AddSettingFileChangeTimer(matchedFileChangeForRename, false);
+                            }
+
+                            FileChange.SwapInMemoryIds(matchedFileChangeForRename, toChange);
+
+                            // matchedFileChangeForRename was converted into a rename and needs to be placed at the new path and possibly have its old path index removed
+                            QueuedChanges.Add(matchedFileChangeForRename.NewPath,
+                                matchedFileChangeForRename);
+                            FileChange changeAtOldPath;
+                            if (QueuedChanges.TryGetValue(matchedFileChangeForRename.OldPath, out changeAtOldPath)
+                                && changeAtOldPath == matchedFileChangeForRename)
+                            {
+                                QueuedChanges.Remove(matchedFileChangeForRename.OldPath);
+                            }
+
+                            // toChange will not be processed since it was merged to form the rename
+                        }
+
+                        // add old/new path pairs for recursive rename processing
+                        OldToNewPathRenames[removeFromQueuedChanges] = toChange.NewPath;
                     }
-                    else
+                    // Existing FileChange is a Created event and the incoming event is a matching Deleted event which has not yet completed
+                    else if (toChange.Type == FileChangeType.Deleted
+                            && QueuedChangesByMetadata.ContainsKey(toChange.Metadata.HashableProperties)
+                            && (matchedFileChangeForRename = QueuedChangesByMetadata[toChange.Metadata.HashableProperties]).Type == FileChangeType.Created
+                            && !matchedFileChangeForRename.DelayCompleted)
                     {
                         // FileChange already exists
                         // Instead of starting a new processing delay, update the FileChange information
                         // Then restart the delay timer
                         matchedFileChangeForRename.Type = FileChangeType.Renamed;
-                        matchedFileChangeForRename.OldPath = matchedFileChangeForRename.NewPath;
-                        matchedFileChangeForRename.NewPath = toChange.NewPath;
-                    }
+                        matchedFileChangeForRename.OldPath = toChange.NewPath;
 
-                    // if the new created change is missing required fields to process a rename (such as ServerUid and maybe Revision),
-                    // then try and pull them from the previous deletion change before replacing the metadata
-                    if (toChange.Metadata != null
-                        && matchedFileChangeForRename.Metadata != null)
-                    {
-                        toChange.Metadata = toChange.Metadata.CopyWithNewServerUidId(matchedFileChangeForRename.Metadata.ServerUidId);
+                        matchedFileChangeForRename.Metadata = matchedFileChangeForRename.Metadata.CopyWithNewServerUidId(toChange.Metadata.ServerUidId);
+                        // the later deletion caused the metatadata to be lost in AllPaths,
+                        // so need to add it back here;
+                        // already under a lock on AllPaths since QueueFileChange must be called under such lock
+                        ChangeAllPathsBase.IndexSet(this, matchedFileChangeForRename.NewPath, matchedFileChangeForRename.Metadata); // no reason to try rename since the delete should have wiped the metadata from AllPaths
 
-                        ChangeAllPathsBase.IndexSet(this, toChange.NewPath, toChange.Metadata);
-                    }
-
-                    matchedFileChangeForRename.Metadata = toChange.Metadata;
-
-                    QueuedChanges.Remove(removeFromQueuedChanges);
-
-                    if (matchedFileChangeForRename.PreviouslyModified)
-                    {
-                        StartDelay(toChange, startProcessingAction);
-
-                        if (debugMemory)
-                        {
-                            memoryDebugger.Instance.AddSettingFileChangeTimer(toChange, true);
-                        }
-
-                        QueuedChanges.Add(toChange.NewPath, toChange); // toChange is now the rename of the modified file to a new path
-
-                        // matchedFileChangeForRename was left alone in QueuedChanges to continue processing as a modify first
-                    }
-                    else
-                    {
                         matchedFileChangeForRename.SetDelayBackToInitialValue();
 
                         if (debugMemory)
@@ -5299,73 +5361,31 @@ namespace Cloud.FileMonitor
 
                         FileChange.SwapInMemoryIds(matchedFileChangeForRename, toChange);
 
-                        // matchedFileChangeForRename was converted into a rename and needs to be placed at the new path and possibly have its old path index removed
-                        QueuedChanges.Add(matchedFileChangeForRename.NewPath,
-                            matchedFileChangeForRename);
-                        FileChange changeAtOldPath;
-                        if (QueuedChanges.TryGetValue(matchedFileChangeForRename.OldPath, out changeAtOldPath)
-                            && changeAtOldPath == matchedFileChangeForRename)
-                        {
-                            QueuedChanges.Remove(matchedFileChangeForRename.OldPath);
-                        }
+                        // add old/new path pairs for recursive rename processing
+                        OldToNewPathRenames[matchedFileChangeForRename.OldPath] = matchedFileChangeForRename.NewPath;
 
+                        // matchedFileChangeForRename was already in QueuedChanges at its correct NewPath
                         // toChange will not be processed since it was merged to form the rename
                     }
 
-                    // add old/new path pairs for recursive rename processing
-                    OldToNewPathRenames[removeFromQueuedChanges] = toChange.NewPath;
-                }
-                // Existing FileChange is a Created event and the incoming event is a matching Deleted event which has not yet completed
-                else if (toChange.Type == FileChangeType.Deleted
-                        && QueuedChangesByMetadata.ContainsKey(toChange.Metadata.HashableProperties)
-                        && (matchedFileChangeForRename = QueuedChangesByMetadata[toChange.Metadata.HashableProperties]).Type == FileChangeType.Created
-                        && !matchedFileChangeForRename.DelayCompleted)
-                {
-                    // FileChange already exists
-                    // Instead of starting a new processing delay, update the FileChange information
-                    // Then restart the delay timer
-                    matchedFileChangeForRename.Type = FileChangeType.Renamed;
-                    matchedFileChangeForRename.OldPath = toChange.NewPath;
-
-                    matchedFileChangeForRename.Metadata = matchedFileChangeForRename.Metadata.CopyWithNewServerUidId(toChange.Metadata.ServerUidId);
-                    // the later deletion caused the metatadata to be lost in AllPaths,
-                    // so need to add it back here;
-                    // already under a lock on AllPaths since QueueFileChange must be called under such lock
-                    ChangeAllPathsBase.IndexSet(this, matchedFileChangeForRename.NewPath, matchedFileChangeForRename.Metadata); // no reason to try rename since the delete should have wiped the metadata from AllPaths
-
-                    matchedFileChangeForRename.SetDelayBackToInitialValue();
-
-                    if (debugMemory)
+                    // if file change does not exist in the queue at the same file path and the change was not marked to be converted to a rename
+                    else
                     {
-                        memoryDebugger.Instance.AddSettingFileChangeTimer(matchedFileChangeForRename, false);
-                    }
+                        // add file change to the queue
+                        QueuedChanges.Add(toChange.NewPath, toChange);
 
-                    FileChange.SwapInMemoryIds(matchedFileChangeForRename, toChange);
+                        StartDelay(toChange, startProcessingAction);
 
-                    // add old/new path pairs for recursive rename processing
-                    OldToNewPathRenames[matchedFileChangeForRename.OldPath] = matchedFileChangeForRename.NewPath;
+                        if (debugMemory)
+                        {
+                            memoryDebugger.Instance.AddSettingFileChangeTimer(toChange, true);
+                        }
 
-                    // matchedFileChangeForRename was already in QueuedChanges at its correct NewPath
-                    // toChange will not be processed since it was merged to form the rename
-                }
-
-                // if file change does not exist in the queue at the same file path and the change was not marked to be converted to a rename
-                else
-                {
-                    // add file change to the queue
-                    QueuedChanges.Add(toChange.NewPath, toChange);
-
-                    StartDelay(toChange, startProcessingAction);
-
-                    if (debugMemory)
-                    {
-                        memoryDebugger.Instance.AddSettingFileChangeTimer(toChange, true);
-                    }
-
-                    if (toChange.Type == FileChangeType.Renamed)
-                    {
-                        // add old/new path pairs for recursive rename processing
-                        OldToNewPathRenames[toChange.OldPath] = toChange.NewPath;
+                        if (toChange.Type == FileChangeType.Renamed)
+                        {
+                            // add old/new path pairs for recursive rename processing
+                            OldToNewPathRenames[toChange.OldPath] = toChange.NewPath;
+                        }
                     }
                 }
             }

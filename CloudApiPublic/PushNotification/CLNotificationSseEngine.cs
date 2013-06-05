@@ -503,13 +503,12 @@ namespace Cloud.PushNotification
                         {
                             using (Stream responseStream = response.GetResponseStream())
                             {
-
                                 ComTrace.LogCommunication(
                                     traceLocation: _syncbox.CopiedSettings.TraceLocation,
                                     UserDeviceId: _syncbox.CopiedSettings.DeviceId,
                                     SyncboxId: _syncbox.SyncboxId,
                                     Direction: CommunicationEntryDirection.Response,
-                                    DomainAndMethodUriPlusQuery: CLDefinitions.CLNotificationServerSseURL + CLDefinitions.MethodPathPushSubscribe + query,
+                                    DomainAndMethodUriPlusQuery: domainMethodQuery,
                                     traceEnabled: true,
                                     headers: (WebHeaderCollection)null,
                                     body: responseStream,
@@ -537,7 +536,7 @@ namespace Cloud.PushNotification
                                     UserDeviceId: _syncbox.CopiedSettings.DeviceId,
                                     SyncboxId: _syncbox.SyncboxId,
                                     Direction: CommunicationEntryDirection.Response,
-                                    DomainAndMethodUriPlusQuery: CLDefinitions.CLNotificationServerSseURL + CLDefinitions.MethodPathPushSubscribe + query,
+                                    DomainAndMethodUriPlusQuery: domainMethodQuery,
                                     traceEnabled: true,
                                     headers: (WebHeaderCollection)null,
                                     body: responseStream,
