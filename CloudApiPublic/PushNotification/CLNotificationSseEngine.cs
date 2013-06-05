@@ -260,7 +260,7 @@ namespace Cloud.PushNotification
                 sseRequest.KeepAlive = true; // <-- Connection
                 sseRequest.UserAgent = CLDefinitions.HeaderAppendCloudClient; // set client
 
-                // this fix was applied for requests made through ProcessHttp in Helpers, so it should also match the version here
+                // use the default HTTP 1.1 protocol version
                 sseRequest.ProtocolVersion = HttpVersion.Version11;
 
                 // Send a Last-Event-ID header on a reconnect.
@@ -503,13 +503,12 @@ namespace Cloud.PushNotification
                         {
                             using (Stream responseStream = response.GetResponseStream())
                             {
-
                                 ComTrace.LogCommunication(
                                     traceLocation: _syncbox.CopiedSettings.TraceLocation,
                                     UserDeviceId: _syncbox.CopiedSettings.DeviceId,
                                     SyncboxId: _syncbox.SyncboxId,
                                     Direction: CommunicationEntryDirection.Response,
-                                    DomainAndMethodUriPlusQuery: CLDefinitions.CLNotificationServerSseURL + CLDefinitions.MethodPathPushSubscribe + query,
+                                    DomainAndMethodUriPlusQuery: domainMethodQuery,
                                     traceEnabled: true,
                                     headers: (WebHeaderCollection)null,
                                     body: responseStream,
@@ -537,7 +536,7 @@ namespace Cloud.PushNotification
                                     UserDeviceId: _syncbox.CopiedSettings.DeviceId,
                                     SyncboxId: _syncbox.SyncboxId,
                                     Direction: CommunicationEntryDirection.Response,
-                                    DomainAndMethodUriPlusQuery: CLDefinitions.CLNotificationServerSseURL + CLDefinitions.MethodPathPushSubscribe + query,
+                                    DomainAndMethodUriPlusQuery: domainMethodQuery,
                                     traceEnabled: true,
                                     headers: (WebHeaderCollection)null,
                                     body: responseStream,

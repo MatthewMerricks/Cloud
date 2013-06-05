@@ -3027,4 +3027,28 @@
     <value>Notification Engine</value>
     <comment>Do not translate</comment>
   </data>
+  <data name="ExceptionHelpersProcessHttpInnerStreamCaller" xml:space="preserve">
+    <value>Stream can only be returned from ProcessHttpInner when called by ProcessHttpRawStreamCopy</value>
+    <comment>Stream, ProcessHttpInner, and ProcessHttpRawStreamCopy should not be translated</comment>
+  </data>
+  <data name="HelpersProcessHttpInnerStreamWrappedResponseBody" xml:space="preserve">
+    <value>---HttpWebResponse returned as-is to be wrapped by caller---</value>
+    <comment>HttpWebResponse shoudl not be translated</comment>
+  </data>
+  <data name="ExceptionOnDemandDownloadImageOfSizeFileNotFound" xml:space="preserve">
+    <value>Image file not found</value>
+    <comment>Translate</comment>
+  </data>
+  <data name="ExceptionOnDemandDownloadImageOfSizeInvalidImageSizeValue" xml:space="preserve">
+    <value>Invalid imageSize value</value>
+    <comment>"imageSize" should not be translated</comment>
+  </data>
+  <data name="ExceptionOnDemandDownloadImageOfSizeUserCancelled" xml:space="preserve">
+    <value>User requested cancellation</value>
+    <comment>Translate</comment>
+  </data>
+  <data name="ExceptionOnDemandHttpNoContentLengthHeaderInResponse" xml:space="preserve">
+    <value>No Content-Length header in the response</value>
+    <comment>"Content-Length" should not be translated</comment>
+  </data>
 </root>

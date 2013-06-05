@@ -56,6 +56,11 @@ namespace Cloud.Static
         /// </summary>
         General_SeeFirstException = (((ulong)CLExceptionDomain.General) << 32) | 4, // 0_4
 
+        /// <summary>
+        /// An object was not the expected type.
+        /// </summary>
+        General_ObjectNotExpectedType = (((ulong)CLExceptionDomain.General) << 32) | 5, // 0_5
+
         #endregion
 
         #region Http
@@ -119,6 +124,11 @@ namespace Cloud.Static
         /// Internal completion routine failed
         /// </summary>
         Http_CompletionFailure = (((ulong)CLExceptionDomain.Http) << 32) | 11, // 1_11
+
+        /// <summary>
+        /// (Internal)Content-Length response header expected.
+        /// </summary>
+        Http_NoContentLengthResponseHeader = (((ulong)CLExceptionDomain.Http) << 32) | 12, // 1_12
 
         #endregion
 
@@ -586,22 +596,22 @@ namespace Cloud.Static
 
         /// <summary>
         /// Credentials: Key is null.
-        /// </summary
+        /// </summary>
         Credentials_NullKey = (((ulong)CLExceptionDomain.Credentials) << 32) | 1, // 7_0
 
         /// <summary>
         /// Credentials: Secret is null.
-        /// </summary
+        /// </summary>
         Credentials_NullSecret = (((ulong)CLExceptionDomain.Credentials) << 32) | 1, // 7_1
 
         /// <summary>
         /// Credentials: Not session credentials.
-        /// </summary
+        /// </summary>
         Credentials_NotSessionCredentials = (((ulong)CLExceptionDomain.Credentials) << 32) | 2, // 7_2
 
         /// <summary>
         /// Credentials: Not session credentials.
-        /// </summary
+        /// </summary>
         Credentials_ExpirationDateMustNotBeNull = (((ulong)CLExceptionDomain.Credentials) << 32) | 3, // 7_3
 
         #endregion
