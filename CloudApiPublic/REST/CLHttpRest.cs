@@ -725,7 +725,7 @@ namespace Cloud.REST
                     Helpers.QueryStringBuilder(new[] // the method grabs its parameters by query string (since this method is an HTTP GET)
                     {
                         // query string parameter for the path to query, built by turning the full path location into a relative path from the cloud root and then escaping the whole thing for a url
-                        new KeyValuePair<string, string>(CLDefinitions.CLMetadataCloudPath, Uri.EscapeDataString(relativePath)),
+                        new KeyValuePair<string, string>(CLDefinitions.CLMetadataCloudPath, Uri.EscapeDataString(relativePath.Replace("\\", "/"))),
 
                         // query string parameter for the current sync box id, should not need escaping since it should be an integer in string format
                         new KeyValuePair<string, string>(CLDefinitions.QueryStringSyncboxId, _syncbox.SyncboxId.ToString())
