@@ -2556,6 +2556,15 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Stream can only be returned from ProcessHttpInner when called by ProcessHttpRawStreamCopy.
+        /// </summary>
+        internal static string ExceptionHelpersProcessHttpInnerStreamCaller {
+            get {
+                return ResourceManager.GetString("ExceptionHelpersProcessHttpInnerStreamCaller", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to uploadDownload TempDownloadFolderPath cannot be null.
         /// </summary>
         internal static string ExceptionHelpersProcessHttpInnerTempDownloadFolderPath {
@@ -2871,6 +2880,33 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Image file not found.
+        /// </summary>
+        internal static string ExceptionOnDemandDownloadImageOfSizeFileNotFound {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandDownloadImageOfSizeFileNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid imageSize value.
+        /// </summary>
+        internal static string ExceptionOnDemandDownloadImageOfSizeInvalidImageSizeValue {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandDownloadImageOfSizeInvalidImageSizeValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to User requested cancellation.
+        /// </summary>
+        internal static string ExceptionOnDemandDownloadImageOfSizeUserCancelled {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandDownloadImageOfSizeUserCancelled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The input CLFileItem was a file when a folder item was expected.
         /// </summary>
         internal static string ExceptionOnDemandFileItemFoundWhenFolderItemExpected {
@@ -2912,6 +2948,15 @@ namespace Cloud.Static {
         internal static string ExceptionOnDemandFolderItemNullAtIndexMsg0 {
             get {
                 return ResourceManager.GetString("ExceptionOnDemandFolderItemNullAtIndexMsg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No Content-Length header in the response.
+        /// </summary>
+        internal static string ExceptionOnDemandHttpNoContentLengthHeaderInResponse {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandHttpNoContentLengthHeaderInResponse", resourceCulture);
             }
         }
         
@@ -3345,6 +3390,15 @@ namespace Cloud.Static {
         internal static string HaveNotHandledBadgingWhenTwoEventsMergedTogether {
             get {
                 return ResourceManager.GetString("HaveNotHandledBadgingWhenTwoEventsMergedTogether", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ---HttpWebResponse returned as-is to be wrapped by caller---.
+        /// </summary>
+        internal static string HelpersProcessHttpInnerStreamWrappedResponseBody {
+            get {
+                return ResourceManager.GetString("HelpersProcessHttpInnerStreamWrappedResponseBody", resourceCulture);
             }
         }
         
