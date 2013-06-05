@@ -2925,6 +2925,15 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to No Content-Length header in the response.
+        /// </summary>
+        internal static string ExceptionOnDemandHttpNoContentLengthHeaderInResponse {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandHttpNoContentLengthHeaderInResponse", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to extensions must not be null.
         /// </summary>
         internal static string ExceptionOnDemandInvalidExtension {

@@ -655,29 +655,31 @@ namespace Cloud.Static
 
                     if (!maxBytesRead)
                     {
-                        if (readByteCount >= ((long)contentLength))
+                        if (contentLength != null)
                         {
-                            maxBytesRead = true;
-
-                            readByteCount = ((long)contentLength);
-                        }
-
-                        if (transferStatusCallback != null
-                            && contentLength != null)
-                        {
-                            try
+                            if (readByteCount >= ((long)contentLength))
                             {
-                                transferStatusCallback(byteProgress: readByteCount, totalByteSize: (long)contentLength, userState: transferStatusCallbackUserState);
+                                maxBytesRead = true;
+
+                                readByteCount = ((long)contentLength);
                             }
-                            catch
+
+                            if (transferStatusCallback != null)
                             {
+                                try
+                                {
+                                    transferStatusCallback(byteProgress: readByteCount, totalByteSize: (long)contentLength, userState: transferStatusCallbackUserState);
+                                }
+                                catch
+                                {
+                                }
                             }
                         }
                     }
 
                     if (currentReadSize > 0)
                     {
-                        toReturn.Write(buffer, 0, FileConstants.BufferSize);
+                        toReturn.Write(buffer, 0, currentReadSize);
                     }
                 }
                 while ((currentReadSize = inputStream.Read(buffer, 0, FileConstants.BufferSize)) > 0);
@@ -2852,6 +2854,7 @@ namespace Cloud.Static
             { typeof(JsonContracts.LinkDeviceFirstTimeRequest), JsonContractHelpers.LinkDeviceFirstTimeRequestSerializer},
             { typeof(JsonContracts.LinkDeviceRequest), JsonContractHelpers.LinkDeviceRequestSerializer},
             { typeof(JsonContracts.UnlinkDeviceRequest), JsonContractHelpers.UnlinkDeviceRequestSerializer},
+            { typeof(JsonContracts.ImageRequest), JsonContractHelpers.ImageRequestSerializer},
             #endregion
         };
 
@@ -3061,6 +3064,12 @@ namespace Cloud.Static
                 }
 
                 responseStream = response.GetResponseStream();
+
+                // The total length of the bytes in the stream should be provided in the Content-Length response header.
+                if (response.ContentLength == null || response.ContentLength < 0)
+                {
+                    throw new CLException(CLExceptionCode.Http_NoContentLengthResponseHeader, Resources.ExceptionOnDemandHttpNoContentLengthHeaderInResponse);
+                }
 
                 return Helpers.CopyHttpWebResponseStreamAndClose(responseStream, transferStatusCallback, transferStatusCallbackUserState, response.ContentLength);
             }

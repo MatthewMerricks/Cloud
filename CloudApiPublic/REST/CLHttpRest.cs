@@ -724,7 +724,13 @@ namespace Cloud.REST
                 };
 
                 // server method path
-                string serverMethodPath = CLDefinitions.MethodPathImage + ((char)0x2F /* '/' */) + charSize;
+                string serverMethodPath = CLDefinitions.MethodPathImage + ((char)0x2F /* '/' */) + charSize +
+                    Helpers.QueryStringBuilder(new[] // the method grabs its parameters by query string (since this method is an HTTP GET)
+                    {
+                        // query string parameter for the current sync box id, should not need escaping since it should be an integer in string format
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringSyncboxId, _syncbox.SyncboxId.ToString())
+                    });
+
 
                 imageStream = Helpers.ProcessHttpRawStreamCopy(
                     requestContent, // JSON contract object to serialize and send up as the request content, if any
@@ -861,7 +867,7 @@ namespace Cloud.REST
                     Helpers.QueryStringBuilder(new[] // the method grabs its parameters by query string (since this method is an HTTP GET)
                     {
                         // query string parameter for the path to query, built by turning the full path location into a relative path from the cloud root and then escaping the whole thing for a url
-                        new KeyValuePair<string, string>(CLDefinitions.CLMetadataCloudPath, Uri.EscapeDataString(relativePath)),
+                        new KeyValuePair<string, string>(CLDefinitions.CLMetadataCloudPath, Uri.EscapeDataString(relativePath.Replace(((char)0x5C /* '\' */), ((char)0x2F /* '/' */)))),
 
                         // query string parameter for the current sync box id, should not need escaping since it should be an integer in string format
                         new KeyValuePair<string, string>(CLDefinitions.QueryStringSyncboxId, _syncbox.SyncboxId.ToString())
@@ -6231,7 +6237,7 @@ namespace Cloud.REST
 
                         new KeyValuePair<string, string>(CLDefinitions.QueryStringDepth, ((byte)0).ToString()), // query string parameter for optional depth limit
 
-                        new KeyValuePair<string, string>(CLDefinitions.CLMetadataCloudPath, Uri.EscapeDataString(relativePath.Replace('\\', '/'))), // query string parameter for optional path with escaped value
+                        new KeyValuePair<string, string>(CLDefinitions.CLMetadataCloudPath, Uri.EscapeDataString(relativePath.Replace(((char)0x5C /* '\' */), ((char)0x2F /* '/' */)))), // query string parameter for optional path with escaped value
 
                         new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeDeleted, "false"), // query string parameter for not including deleted objects
 
@@ -6587,7 +6593,7 @@ namespace Cloud.REST
 
                         new KeyValuePair<string, string>(CLDefinitions.QueryStringDepth, ((byte)0).ToString()), // query string parameter for optional depth limit
 
-                        new KeyValuePair<string, string>(CLDefinitions.CLMetadataCloudPath, Uri.EscapeDataString(relativePath.Replace('\\', '/'))), // query string parameter for optional path with escaped value
+                        new KeyValuePair<string, string>(CLDefinitions.CLMetadataCloudPath, Uri.EscapeDataString(relativePath.Replace(((char)0x5C /* '\' */), ((char)0x2F /* '/' */)))), // query string parameter for optional path with escaped value
 
                         new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeDeleted, "false"), // query string parameter for not including deleted objects
 
@@ -8129,7 +8135,7 @@ namespace Cloud.REST
                     {
                         (string.IsNullOrEmpty(serverUid)
                             ? // query string parameter for the path to query, built by turning the full path location into a relative path from the cloud root and then escaping the whole thing for a url
-                                new KeyValuePair<string, string>(CLDefinitions.CLMetadataCloudPath, Uri.EscapeDataString(fullPath.GetRelativePath((_syncbox.Path ?? string.Empty), true) + (isFolder ? "/" : string.Empty)))
+                                new KeyValuePair<string, string>(CLDefinitions.CLMetadataCloudPath, Uri.EscapeDataString(fullPath.GetRelativePath((_syncbox.Path ?? string.Empty), true) + (isFolder ? ((char)0x2F).ToString() /* '/' */ : string.Empty)))
 
                             : // query string parameter for the unique id to the file or folder on the server, escaped since it is a server opaque field of undefined format
                                 new KeyValuePair<string, string>(CLDefinitions.CLMetadataServerId, Uri.EscapeDataString(serverUid))),
@@ -8939,7 +8945,7 @@ namespace Cloud.REST
                             {
                                 CreatedDate = toCommunicate.Metadata.HashableProperties.CreationTime,
                                 DeviceId = _copiedSettings.DeviceId,
-                                RelativePath = toCommunicate.NewPath.GetRelativePath(_syncbox.Path, true) + "/",
+                                RelativePath = toCommunicate.NewPath.GetRelativePath(_syncbox.Path, true) + ((char)0x2F /* '/' */),
                                 SyncboxId = _syncbox.SyncboxId,
                                 Name = (string.IsNullOrEmpty(toCommunicate.Metadata.ParentFolderServerUid) ? null : toCommunicate.NewPath.Name),
                                 ParentUid = (string.IsNullOrEmpty(toCommunicate.Metadata.ParentFolderServerUid) ? null : toCommunicate.Metadata.ParentFolderServerUid)

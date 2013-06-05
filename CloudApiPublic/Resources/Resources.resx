@@ -3031,4 +3031,8 @@
     <value>User requested cancellation</value>
     <comment>Translate</comment>
   </data>
+  <data name="ExceptionOnDemandHttpNoContentLengthHeaderInResponse" xml:space="preserve">
+    <value>No Content-Length header in the response</value>
+    <comment>"Content-Length" should not be translated</comment>
+  </data>
 </root>

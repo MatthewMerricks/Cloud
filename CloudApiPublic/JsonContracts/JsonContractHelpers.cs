@@ -1057,6 +1057,20 @@ namespace Cloud.JsonContracts
         private static DataContractJsonSerializer _unlinkDeviceRequestSerializer = null;
         private static readonly object UnlinkDeviceRequestSerializerLocker = new object();
 
+        public static DataContractJsonSerializer ImageRequestSerializer
+        {
+            get
+            {
+                lock (ImageRequestSerializerLocker)
+                {
+                    return _imageRequestSerializer
+                        ?? (_imageRequestSerializer = new DataContractJsonSerializer(typeof(JsonContracts.ImageRequest)));
+                }
+            }
+        }
+        private static DataContractJsonSerializer _imageRequestSerializer = null;
+        private static readonly object ImageRequestSerializerLocker = new object();
+
         public static DataContractJsonSerializer UnlinkDeviceResponseSerializer
         {
             get

@@ -125,6 +125,11 @@ namespace Cloud.Static
         /// </summary>
         Http_CompletionFailure = (((ulong)CLExceptionDomain.Http) << 32) | 11, // 1_11
 
+        /// <summary>
+        /// (Internal)Content-Length response header expected.
+        /// </summary>
+        Http_NoContentLengthResponseHeader = (((ulong)CLExceptionDomain.Http) << 32) | 12, // 1_12
+
         #endregion
 
         #region Syncbox
