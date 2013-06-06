@@ -2223,6 +2223,15 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Folder changes cannot have a FileChangeType of Modified.
+        /// </summary>
+        internal static string ExceptionFileChangeFolderModified {
+            get {
+                return ResourceManager.GetString("ExceptionFileChangeFolderModified", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to MD5 must be 128 bits (a byte array of length 16).
         /// </summary>
         internal static string ExceptionFileChangeSetMD5ByteLength {
@@ -4313,7 +4322,7 @@ namespace Cloud.Static {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Path: &lt;{0}&gt;..
+        ///   Looks up a localized string similar to       Path: &lt;{0}&gt;..
         /// </summary>
         internal static string IconOverlayPath0 {
             get {
