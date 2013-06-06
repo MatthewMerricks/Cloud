@@ -40,6 +40,7 @@ BEGIN
   --);
 
   UPDATE FileSystemObjects
-  SET CalculatedFullPath = NEW.CalculatedFullPath || '\' || Name
+  SET CalculatedFullPathCIHashes = NEW.CalculatedFullPathCIHashes || '\' || CAST(NameCIHash AS TEXT),
+    CalculatedFullPath = NEW.CalculatedFullPath || '\' || Name
   WHERE ParentFolderId = NEW.FileSystemObjectId;
 END

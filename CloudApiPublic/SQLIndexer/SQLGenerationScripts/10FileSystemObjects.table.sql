@@ -11,6 +11,8 @@ CREATE TABLE FileSystemObjects
     FileSystemObjectId INTEGER NOT NULL,
     Name TEXT NOT NULL CONSTRAINT CHK_FileSystemObjects_Name_TEXT
       CHECK (TYPEOF(Name) = 'text' AND Name <> ''),
+	NameCIHash INTEGER NOT NULL CONSTRAINT CHK_FileSystemObjects_NameCIHash_INTEGER
+	  CHECK (TYPEOF(NameCIHash) = 'integer'),
     ParentFolderId INTEGER,
     LastTimeUTCTicks INTEGER CONSTRAINT CHK_FileSystemObjects_LastTimeUTCTicks_INTEGER
       CHECK (LastTimeUTCTicks IS NULL OR TYPEOF(LastTimeUTCTicks) = 'integer'),
@@ -44,6 +46,8 @@ CREATE TABLE FileSystemObjects
       CHECK (TYPEOF(EventTimeUTCTicks) = 'integer'),
     CalculatedFullPath TEXT CONSTRAINT CHK_FileSystemObjects_CalculatedFullPath_TEXT
       CHECK (CalculatedFullPath IS NULL OR TYPEOF(CalculatedFullPath) = 'text'),
+    CalculatedFullPathCIHashes TEXT CONSTRAINT CHK_FileSystemObjects_CalculatedFullPath_TEXT
+      CHECK (CalculatedFullPathCIHashes IS NULL OR TYPEOF(CalculatedFullPathCIHashes) = 'text'),
     PRIMARY KEY (FileSystemObjectId ASC),
     CONSTRAINT FK_FileSystemObjects_ParentFolderId__FileSystemObjects_FileSystemObjectId
       FOREIGN KEY (ParentFolderId)

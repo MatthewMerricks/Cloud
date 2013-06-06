@@ -77,6 +77,9 @@ namespace Cloud.SQLIndexer.SqlModel
         public string Name { get; set; }
 
         [SqlAccess.Property]
+        public int NameCIHash { get; set; }
+
+        [SqlAccess.Property]
         public Nullable<long> ParentFolderId { get; set; }
 
         [SqlAccess.Property]
@@ -132,6 +135,9 @@ namespace Cloud.SQLIndexer.SqlModel
 
         [SqlAccess.Property(SqlAccess.FieldType.ReadOnly)]
         public string CalculatedFullPath { get; set; }
+
+        [SqlAccess.Property(SqlAccess.FieldType.ReadOnly)]
+        public string CalculatedFullPathCIHashes { get; set; }
 
         [SqlAccess.Property(SqlAccess.FieldType.JoinedTable)]
         public FileSystemObject Parent { get; set; }

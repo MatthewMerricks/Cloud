@@ -431,7 +431,7 @@
     <EmbeddedResource Include="SQLIndexer\IndexDBScripts\16FileSystemObjects_EventTimeUTCTicks.index.sql" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\11FileSystemObjects_Name.index.sql" />
+    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\11FileSystemObjects_NameCIHash.index.sql" />
     <EmbeddedResource Include="SQLIndexer\IndexDBScripts\12FileSystemObjects_ParentFolderId.index.sql" />
     <EmbeddedResource Include="SQLIndexer\IndexDBScripts\13FileSystemObjects_EventId.index.sql" />
     <EmbeddedResource Include="SQLIndexer\IndexDBScripts\14ServerUids_ServerUid.index.sql" />
@@ -448,7 +448,7 @@
     <EmbeddedResource Include="SQLIndexer\IndexDBScripts\18FileSystemObjects_ParentFolderId_Update.trigger.sql" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\17FileSystemObjects_CalculatedFullPath.index.sql" />
+    <EmbeddedResource Include="SQLIndexer\IndexDBScripts\17FileSystemObjects_CalculatedFullPathCIHashes.index.sql" />
     <EmbeddedResource Include="SQLIndexer\IndexDBScripts\19FileSystemObjects_Name_Update.trigger.sql" />
     <EmbeddedResource Include="SQLIndexer\IndexDBScripts\20FileSystemObjects_CalculatedFullPath_Incorrect_Update.trigger.sql" />
     <EmbeddedResource Include="SQLIndexer\IndexDBScripts\21FileSystemObjects_CalculatedFullPath_Correct_Update.trigger.sql" />

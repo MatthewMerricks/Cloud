@@ -37,7 +37,20 @@ BEGIN
   --);
 
   UPDATE FileSystemObjects
-  SET CalculatedFullPath =
+  SET CalculatedFullPathCIHashes =
+    ((
+      SELECT ParentNameCIHashes
+      FROM
+      (
+        SELECT Parent.CalculatedFullPathCIHashes || '\' AS ParentNameCIHashes
+        FROM FileSystemObjects Parent
+        WHERE Parent.FileSystemObjectId = NEW.ParentFolderId
+        UNION SELECT ''
+      )
+      ORDER BY ParentNameCIHashes = ''
+      LIMIT 1
+    ) || CAST(NameCIHash AS TEXT)),
+    CalculatedFullPath =
     ((
       SELECT ParentName
       FROM

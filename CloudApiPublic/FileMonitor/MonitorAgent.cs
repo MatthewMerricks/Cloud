@@ -3542,7 +3542,7 @@ namespace Cloud.FileMonitor
                 }
             }
         }
-        delegate void watcher_ChangedDelegate(object sender, FileSystemEventArgs e, bool folderOnly);
+        private delegate void watcher_ChangedDelegate(object sender, FileSystemEventArgs e, bool folderOnly);
 
         /// <summary>
         /// Refactored processing logic for watcher_Changed eventhandler so it can process on a seperate reader thread (thus clearing out the FileSystemWatcher buffer quicker)

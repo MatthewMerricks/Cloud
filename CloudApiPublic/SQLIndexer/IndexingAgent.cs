@@ -26,6 +26,7 @@ using Cloud.Interfaces;
 using Cloud.Support;
 using Cloud.Model.EventMessages.ErrorInfo;
 using Cloud.SQLProxies;
+using System.Data;
 
 namespace Cloud.SQLIndexer
 {
@@ -956,25 +957,54 @@ namespace Cloud.SQLIndexer
                     throw new NullReferenceException("newPath cannot be null");
                 }
 
+                FilePath pathObject = newPath;
+
+                List<string> namePortions = new List<string>();
+
+                while (!FilePathComparer.Instance.Equals(pathObject, indexedPath))
+                {
+                    namePortions.Add(pathObject.Name);
+
+                    pathObject = pathObject.Parent;
+                }
+
+                namePortions.Add(indexedPath);
+
+                namePortions.Reverse();
+
+                string pathCIHashes = string.Join("\\",
+                    namePortions.Select(currentPortion => StringComparer.OrdinalIgnoreCase.GetHashCode(currentPortion).ToString()));
+
                 using (ISQLiteConnection indexDB = CreateAndOpenCipherConnection())
                 {
-                    // prefers latest event even if pending
-                    if (!SqlAccessor<object>.TrySelectScalar<string>(
-                        indexDB,
-                        "SELECT ServerUids.ServerUid " +
-                        "FROM FileSystemObjects " +
-                        "INNER JOIN ServerUids ON FileSystemObjects.ServerUidId = ServerUids.ServerUidID " +
-                        "WHERE FileSystemObjects.CalculatedFullPath = ? " +
-                        "ORDER BY " +
-                        "CASE WHEN FileSystemObjects.EventOrder IS NULL " +
-                        "THEN 0 " +
-                        "ELSE FileSystemObjects.EventOrder " +
-                        "END DESC " +
-                        "LIMIT 1",
-                        out serverUid,
-                        selectParameters: Helpers.EnumerateSingleItem(newPath)))
+                    using (ISQLiteCommand existingUidCommand = indexDB.CreateCommand())
                     {
-                        serverUid = null;
+                        existingUidCommand.CommandText = "SELECT ServerUids.ServerUid, FileSystemObjects.CalculatedFullPath " +
+                            "FROM FileSystemObjects " +
+                            "INNER JOIN ServerUids ON FileSystemObjects.ServerUidId = ServerUids.ServerUidID " +
+                            "WHERE FileSystemObjects.CalculatedFullPathCIHashes = ? " + // <-- parameter 1
+                            "ORDER BY " +
+                            "CASE WHEN FileSystemObjects.EventOrder IS NULL " +
+                            "THEN 0 " +
+                            "ELSE FileSystemObjects.EventOrder " +
+                            "END DESC";
+
+                        ISQLiteParameter pathCIHashesParam = existingUidCommand.CreateParameter();
+                        pathCIHashesParam.Value = pathCIHashes;
+                        existingUidCommand.Parameters.Add(pathCIHashesParam);
+
+                        using (ISQLiteDataReader existingObjectReader = existingUidCommand.ExecuteReader(CommandBehavior.SingleResult))
+                        {
+                            serverUid = null;
+
+                            while (existingObjectReader.Read())
+                            {
+                                if (StringComparer.OrdinalIgnoreCase.Equals(Convert.ToString(existingObjectReader["CalculatedFullPath"]), newPath))
+                                {
+                                    serverUid = Convert.ToString(existingObjectReader["ServerUid"]);
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -1129,6 +1159,24 @@ namespace Cloud.SQLIndexer
                     throw new NullReferenceException("path cannot be null");
                 }
 
+                FilePath pathObject = path;
+
+                List<string> namePortions = new List<string>();
+
+                while (!FilePathComparer.Instance.Equals(pathObject, indexedPath))
+                {
+                    namePortions.Add(pathObject.Name);
+
+                    pathObject = pathObject.Parent;
+                }
+
+                namePortions.Add(indexedPath);
+
+                namePortions.Reverse();
+
+                string pathCIHashes = string.Join("\\",
+                    namePortions.Select(currentPortion => StringComparer.OrdinalIgnoreCase.GetHashCode(currentPortion).ToString()));
+
                 using (ISQLiteConnection indexDB = CreateAndOpenCipherConnection())
                 {
                     FileSystemObject existingNonPending = SqlAccessor<FileSystemObject>.SelectResultSet(
@@ -1136,7 +1184,7 @@ namespace Cloud.SQLIndexer
                             "SELECT * " +
                                 "FROM FileSystemObjects " +
                                 "INNER JOIN ServerUids ON FileSystemObjects.ServerUidId = ServerUids.ServerUidId " +
-                                "WHERE CalculatedFullPath = ? " + // <-- parameter 1
+                                "WHERE CalculatedFullPathCIHashes = ? " + // <-- parameter 1
                                 (revision == null
                                     ? string.Empty
                                     : "AND ServerUids.Revision = ? ") + // <-- conditional parameter 2
@@ -1144,10 +1192,9 @@ namespace Cloud.SQLIndexer
                                 "CASE WHEN FileSystemObjects.EventOrder IS NULL " +
                                 "THEN 0 " +
                                 "ELSE FileSystemObjects.EventOrder " +
-                                "END DESC " +
-                                "LIMIT 1",
-                                selectParameters: (revision == null ? Helpers.EnumerateSingleItem(path) : new[] { path, revision }))
-                        .SingleOrDefault();
+                                "END DESC",
+                                selectParameters: (revision == null ? Helpers.EnumerateSingleItem(pathCIHashes) : new[] { pathCIHashes, revision }))
+                        .FirstOrDefault(currentNonPending => StringComparer.OrdinalIgnoreCase.Equals(currentNonPending.CalculatedFullPath, path));
 
                     if (existingNonPending == null)
                     {
@@ -1405,10 +1452,10 @@ namespace Cloud.SQLIndexer
                             // otherwise prefers non-pending,
                             // last take most recent event
                             const string objectIdByPathSelectPart1 =
-                                "SELECT FileSystemObjects.FileSystemObjectId " +
+                                "SELECT FileSystemObjects.FileSystemObjectId, FileSystemObjects.CalculatedFullPath " +
                                     "FROM FileSystemObjects " +
                                     "LEFT OUTER JOIN Events ON FileSystemObjects.EventId = Events.EventId " +
-                                    "WHERE FileSystemObjects.CalculatedFullPath = ? " + // <-- parameter 1
+                                    "WHERE FileSystemObjects.CalculatedFullPathCIHashes = ? " + // <-- parameter 1
                                     "ORDER BY " +
                                     "CASE WHEN FileSystemObjects.EventId IS NOT NULL " +
                                     "AND Events.FileChangeTypeEnumId = ";
@@ -1422,8 +1469,52 @@ namespace Cloud.SQLIndexer
                                     "CASE WHEN FileSystemObjects.EventOrder IS NULL " +
                                     "THEN 0 " +
                                     "ELSE FileSystemObjects.EventOrder " +
-                                    "END DESC " +
-                                    "LIMIT 1";
+                                    "END DESC";
+
+                            Func<SQLTransactionalImplementation, FilePath, Nullable<long>> objectIdByPathSelect = (innerCastTransaction, pathToSearch) =>
+                            {
+                                List<string> namePortions = new List<string>();
+
+                                FilePath currentParentPath = pathToSearch;
+
+                                while (!FilePathComparer.Instance.Equals(currentParentPath, indexedPathObject))
+                                {
+                                    namePortions.Add(currentParentPath.Name);
+
+                                    currentParentPath = currentParentPath.Parent;
+                                }
+
+                                namePortions.Add(indexedPath);
+
+                                namePortions.Reverse();
+
+                                string pathCIHashes = string.Join("\\",
+                                    namePortions.Select(currentPortion => StringComparer.OrdinalIgnoreCase.GetHashCode(currentPortion).ToString()));
+
+                                using (ISQLiteCommand objectIdSearchCommand = innerCastTransaction.sqlConnection.CreateCommand())
+                                {
+                                    objectIdSearchCommand.Transaction = innerCastTransaction.sqlTransaction;
+
+                                    objectIdSearchCommand.CommandText = objectIdByPathSelectPart1 + changeEnumsBackward[FileChangeType.Renamed].ToString() + objectIdByPathSelectPart2;
+
+                                    ISQLiteParameter pathHashesParam = objectIdSearchCommand.CreateParameter();
+                                    pathHashesParam.Value = pathCIHashes;
+                                    objectIdSearchCommand.Parameters.Add(pathHashesParam);
+
+                                    using (ISQLiteDataReader objectIdReader = objectIdSearchCommand.ExecuteReader(CommandBehavior.SingleResult))
+                                    {
+                                        while (objectIdReader.Read())
+                                        {
+                                            if (StringComparer.OrdinalIgnoreCase.Equals(Convert.ToString(objectIdReader["CalculatedFullPath"]), pathToSearch.ToString()))
+                                            {
+                                                return Convert.ToInt64(objectIdReader["FileSystemObjectId"]);
+                                            }
+                                        }
+                                    }
+                                }
+
+                                return null;
+                            };
 
                             const string missingParentErrorMessage =
                                 "Unable to add a new FileSystemObject without a parent folder ID";
@@ -1452,6 +1543,7 @@ namespace Cloud.SQLIndexer
                                 currentObjectParentPathSearch = currentObjectParentPathSearch.Parent;
                             }
 
+                            Nullable<long> parentFolderIdTemp;
                             if (foundExistingPathInSearch)
                             {
                                 // existing event along the current change's parent paths has not yet been committed to database so we break this batch until the previous batch is added
@@ -1482,14 +1574,13 @@ namespace Cloud.SQLIndexer
                                 //    }
                                 //}
                             }
-                            else if (!SqlAccessor<object>.TrySelectScalar(
-                                castTransaction.sqlConnection,
-                                objectIdByPathSelectPart1 + changeEnumsBackward[FileChangeType.Renamed].ToString() + objectIdByPathSelectPart2,
-                                out parentFolderId,
-                                castTransaction.sqlTransaction,
-                                selectParameters: Helpers.EnumerateSingleItem(currentObjectToBatch.NewPath.Parent.ToString())))
+                            else if ((parentFolderIdTemp = objectIdByPathSelect(castTransaction, currentObjectToBatch.NewPath.Parent)) == null)
                             {
                                 throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, missingParentErrorMessage);
+                            }
+                            else
+                            {
+                                parentFolderId = (long)parentFolderIdTemp;
                             }
 
                             if (currentObjectToBatch.OldPath == null)
@@ -1518,8 +1609,6 @@ namespace Cloud.SQLIndexer
 
                                     currentObjectParentPathSearch = currentObjectParentPathSearch.Parent;
                                 }
-
-                                long previousIdNotNull;
 
                                 if (foundExistingPathInSearch)
                                 {
@@ -1553,22 +1642,12 @@ namespace Cloud.SQLIndexer
                                     //    previousId = previousIdNotNull;
                                     //}
                                 }
-                                else if (!SqlAccessor<object>.TrySelectScalar(
-                                    castTransaction.sqlConnection,
-                                    objectIdByPathSelectPart1 + changeEnumsBackward[FileChangeType.Renamed].ToString() + objectIdByPathSelectPart2,
-                                    out previousIdNotNull,
-                                    castTransaction.sqlTransaction,
-                                    selectParameters: Helpers.EnumerateSingleItem(currentObjectToBatch.OldPath.ToString())))
+                                else if ((previousId = objectIdByPathSelect(castTransaction, currentObjectToBatch.OldPath)) == null)
                                 {
                                     if (addCreateAtOldPathIfNotFound) // added condition when the first event on a file is a sync to conflict and the file has to be renamed to the conflict path without another existing event
                                     {
-                                        long oldPathParentId;
-                                        if (!SqlAccessor<object>.TrySelectScalar(
-                                            castTransaction.sqlConnection,
-                                            objectIdByPathSelectPart1 + changeEnumsBackward[FileChangeType.Renamed].ToString() + objectIdByPathSelectPart2,
-                                            out oldPathParentId,
-                                            castTransaction.sqlTransaction,
-                                            selectParameters: Helpers.EnumerateSingleItem(currentObjectToBatch.NewPath.Parent.ToString())))
+                                        Nullable<long> oldPathParentId;
+                                        if ((oldPathParentId = objectIdByPathSelect(castTransaction, currentObjectToBatch.NewPath.Parent)) == null)
                                         {
                                             throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, missingParentErrorMessage);
                                         }
@@ -1579,6 +1658,7 @@ namespace Cloud.SQLIndexer
                                             {
                                                 IsFolder = currentObjectToBatch.Metadata.HashableProperties.IsFolder,
                                                 Name = currentObjectToBatch.OldPath.Name,
+                                                NameCIHash = StringComparer.OrdinalIgnoreCase.GetHashCode(currentObjectToBatch.OldPath.Name),
                                                 ParentFolderId = oldPathParentId,
                                                 Pending = false,
                                                 ServerUidId = currentObjectToBatch.Metadata.ServerUidId,
@@ -1590,10 +1670,6 @@ namespace Cloud.SQLIndexer
                                     {
                                         throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, missingPreviousErrorMessage);
                                     }
-                                }
-                                else
-                                {
-                                    previousId = previousIdNotNull;
                                 }
                             }
 
@@ -1691,6 +1767,7 @@ namespace Cloud.SQLIndexer
                                 MD5 = getMD5,
                                 MimeType = newEvent.change.Metadata.MimeType,
                                 Name = newEvent.change.NewPath.Name,
+                                NameCIHash = StringComparer.OrdinalIgnoreCase.GetHashCode(newEvent.change.NewPath.Name),
                                 ParentFolderId = newEvent.parentFolderId,
                                 Pending = true,
                                 Permissions = (newEvent.change.Metadata.Permissions == null ? (Nullable<int>)null : (int)((POSIXPermissions)newEvent.change.Metadata.Permissions)),
@@ -2797,30 +2874,71 @@ namespace Cloud.SQLIndexer
                                                             throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Existing FileSystemObject to update did not have a parent folder");
                                                         }
 
-                                                        long toUpdateParentFolderId;
+                                                        Nullable<long> toUpdateParentFolderId;
                                                         Nullable<long> toUpdatePreviousId;
 
                                                         FilePath previousRowPath = existingRow.CalculatedFullPath;
                                                         if (previousRowPath != null
                                                             && FilePathComparer.Instance.Equals(previousRowPath.Parent, toUpdate.NewPath.Parent))
                                                         {
-                                                            toUpdateParentFolderId = (long)existingRow.ParentFolderId;
+                                                            toUpdateParentFolderId = existingRow.ParentFolderId;
                                                         }
                                                         // prefer latest event even if pending
-                                                        else if (!SqlAccessor<object>.TrySelectScalar(
-                                                            castTransaction.sqlConnection,
-                                                            "SELECT FileSystemObjects.FileSystemObjectId " +
-                                                                "FROM FileSystemObjects " +
-                                                                "WHERE CalculatedFullPath = ? " + // <-- parameter 1
-                                                                "ORDER BY " +
-                                                                "CASE WHEN FileSystemObjects.EventOrder IS NULL " +
-                                                                "THEN 0 " +
-                                                                "ELSE FileSystemObjects.EventOrder " +
-                                                                "END DESC " +
-                                                                "LIMIT 1",
-                                                            out toUpdateParentFolderId,
-                                                            castTransaction.sqlTransaction,
-                                                            selectParameters: Helpers.EnumerateSingleItem(toUpdate.NewPath.Parent.ToString())))
+                                                        else
+                                                        {
+                                                            using (ISQLiteCommand findParentCommand = castTransaction.sqlConnection.CreateCommand())
+                                                            {
+                                                                findParentCommand.Transaction = castTransaction.sqlTransaction;
+
+                                                                findParentCommand.CommandText = "SELECT FileSystemObjects.FileSystemObjectId, FileSystemObjects.CalculatedFullPath " +
+                                                                    "FROM FileSystemObjects " +
+                                                                    "WHERE CalculatedFullPathCIHashes = ? " + // <-- parameter 1
+                                                                    "ORDER BY " +
+                                                                    "CASE WHEN FileSystemObjects.EventOrder IS NULL " +
+                                                                    "THEN 0 " +
+                                                                    "ELSE FileSystemObjects.EventOrder " +
+                                                                    "END DESC";
+
+                                                                FilePath currentParentPath = toUpdate.NewPath.Parent;
+
+                                                                List<string> namePortions = new List<string>();
+
+                                                                while (!FilePathComparer.Instance.Equals(currentParentPath, indexedPath))
+                                                                {
+                                                                    namePortions.Add(currentParentPath.Name);
+
+                                                                    currentParentPath = currentParentPath.Parent;
+                                                                }
+
+                                                                namePortions.Add(indexedPath);
+
+                                                                namePortions.Reverse();
+
+                                                                string pathCIHashes = string.Join("\\",
+                                                                    namePortions.Select(currentPortion => StringComparer.OrdinalIgnoreCase.GetHashCode(currentPortion).ToString()));
+
+                                                                ISQLiteParameter previousHashesParam = findParentCommand.CreateParameter();
+                                                                previousHashesParam.Value = pathCIHashes;
+                                                                findParentCommand.Parameters.Add(previousHashesParam);
+
+                                                                using (ISQLiteDataReader previousObjectReader = findParentCommand.ExecuteReader(CommandBehavior.SingleResult))
+                                                                {
+                                                                    toUpdateParentFolderId = null;
+
+                                                                    while (previousObjectReader.Read())
+                                                                    {
+                                                                        if (StringComparer.OrdinalIgnoreCase.Equals(Convert.ToString(previousObjectReader["CalculatedFullPath"]), toUpdate.NewPath.Parent.ToString()))
+                                                                        {
+                                                                            toUpdateParentFolderId = Convert.ToInt64(previousObjectReader["FileSystemObjectId"]);
+
+                                                                            break;
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+
+                                                        if (toUpdateParentFolderId == null)
                                                         {
                                                             throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Unable to find FileSystemObject with path of parent folder to use as containing folder");
                                                         }
@@ -2832,17 +2950,18 @@ namespace Cloud.SQLIndexer
                                                         else if (existingRow.Event.Previous == null
                                                             || !FilePathComparer.Instance.Equals(existingRow.Event.Previous.CalculatedFullPath, toUpdate.OldPath))
                                                         {
-                                                            long previousIdNotNull;
-
                                                             // prefers the latest rename which is pending,
                                                             // otherwise prefers non-pending,
                                                             // last take most recent event
-                                                            if (!SqlAccessor<object>.TrySelectScalar(
-                                                                castTransaction.sqlConnection,
-                                                                "SELECT FileSystemObjects.FileSystemObjectId " +
+
+                                                            using (ISQLiteCommand findPreviousCommand = castTransaction.sqlConnection.CreateCommand())
+                                                            {
+                                                                findPreviousCommand.Transaction = castTransaction.sqlTransaction;
+
+                                                                findPreviousCommand.CommandText = "SELECT FileSystemObjects.FileSystemObjectId, FileSystemObjects.CalculatedFullPath " +
                                                                     "FROM FileSystemObjects " +
                                                                     "LEFT OUTER JOIN Events ON FileSystemObjects.EventId = Events.EventId " +
-                                                                    "WHERE FileSystemObjects.CalculatedFullPath = ? " + // <-- parameter 1
+                                                                    "WHERE FileSystemObjects.CalculatedFullPathCIHashes = ? " + // <-- parameter 1
                                                                     "ORDER BY " +
                                                                     "CASE WHEN FileSystemObjects.EventId IS NOT NULL " +
                                                                     "AND Events.FileChangeTypeEnumId = " + changeEnumsBackward[FileChangeType.Renamed].ToString() +
@@ -2854,16 +2973,50 @@ namespace Cloud.SQLIndexer
                                                                     "CASE WHEN FileSystemObjects.EventOrder IS NULL " +
                                                                     "THEN 0 " +
                                                                     "ELSE FileSystemObjects.EventOrder " +
-                                                                    "END DESC " +
-                                                                    "LIMIT 1",
-                                                                result: out previousIdNotNull,
-                                                                transaction: castTransaction.sqlTransaction,
-                                                                selectParameters: Helpers.EnumerateSingleItem(toUpdate.OldPath.ToString())))
-                                                            {
-                                                                throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Unable to find FileSystemObject with old path of toUpdate before rename\\move operation");
-                                                            }
+                                                                    "END DESC";
 
-                                                            toUpdatePreviousId = previousIdNotNull;
+                                                                FilePath currentOldPath = toUpdate.OldPath;
+
+                                                                List<string> namePortions = new List<string>();
+
+                                                                while (!FilePathComparer.Instance.Equals(currentOldPath, indexedPath))
+                                                                {
+                                                                    namePortions.Add(currentOldPath.Name);
+
+                                                                    currentOldPath = currentOldPath.Parent;
+                                                                }
+
+                                                                namePortions.Add(indexedPath);
+
+                                                                namePortions.Reverse();
+
+                                                                string pathCIHashes = string.Join("\\",
+                                                                    namePortions.Select(currentPortion => StringComparer.OrdinalIgnoreCase.GetHashCode(currentPortion).ToString()));
+
+                                                                ISQLiteParameter previousHashesParam = findPreviousCommand.CreateParameter();
+                                                                previousHashesParam.Value = pathCIHashes;
+                                                                findPreviousCommand.Parameters.Add(previousHashesParam);
+
+                                                                using (ISQLiteDataReader previousObjectReader = findPreviousCommand.ExecuteReader(CommandBehavior.SingleResult))
+                                                                {
+                                                                    toUpdatePreviousId = null;
+
+                                                                    while (previousObjectReader.Read())
+                                                                    {
+                                                                        if (StringComparer.OrdinalIgnoreCase.Equals(Convert.ToString(previousObjectReader["CalculatedFullPath"]), toUpdate.OldPath.ToString()))
+                                                                        {
+                                                                            toUpdatePreviousId = Convert.ToInt64(previousObjectReader["FileSystemObjectId"]);
+
+                                                                            break;
+                                                                        }
+                                                                    }
+
+                                                                    if (toUpdatePreviousId == null)
+                                                                    {
+                                                                        throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Unable to find FileSystemObject with old path of toUpdate before rename\\move operation");
+                                                                    }
+                                                                }
+                                                            }
                                                         }
                                                         else
                                                         {
@@ -2909,6 +3062,7 @@ namespace Cloud.SQLIndexer
                                                         existingRow.MD5 = getMD5;
                                                         existingRow.MimeType = toUpdate.Metadata.MimeType;
                                                         existingRow.Name = toUpdate.NewPath.Name;
+                                                        existingRow.NameCIHash = StringComparer.OrdinalIgnoreCase.GetHashCode(toUpdate.NewPath.Name);
                                                         existingRow.ParentFolderId = toUpdateParentFolderId;
                                                         //existingRow.Pending = true; // <-- true on insert, no need to update here
                                                         existingRow.Permissions = (toUpdate.Metadata.Permissions == null
@@ -3243,78 +3397,98 @@ namespace Cloud.SQLIndexer
                 storeOldPath = (existingEventObject.Event.Previous == null ? null : existingEventObject.Event.Previous.CalculatedFullPath);
                 storeWhetherEventIsASyncFrom = existingEventObject.Event.SyncFrom;
 
-                long existingNonPendingIdToMerge;
-                if (SqlAccessor<object>.TrySelectScalar(
-                    castTransaction.sqlConnection,
-                    "SELECT FileSystemObjects.FileSystemObjectId " +
-                    "FROM FileSystemObjects " +
-                    "WHERE FileSystemObjects.ParentFolderId = ? " + // <-- parameter 1
-                    "AND FileSystemObjects.Name = ? " + // <-- parameter 2
-                    "AND FileSystemObjects.Pending = 0 " +
-                    "ORDER BY FileSystemObjects.FileSystemObjectId DESC " +
-                    "LIMIT 1",
-                    out existingNonPendingIdToMerge,
-                    castTransaction.sqlTransaction,
-                    (new[] { (long)existingEventObject.ParentFolderId, (object)existingEventObject.Name })))
+                using (ISQLiteCommand existingObjectCommand = castTransaction.sqlConnection.CreateCommand())
                 {
-                    //// The following cases below seemed to happen under normal use and we don't wish to kill the sync engine,
-                    //// it would be better if we fixed the causes of the conditions below from happening
-                    //
-                    //switch (storeExistingChangeType)
-                    //{
-                    //    case FileChangeType.Created:
-                    //        throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Should not have an existing object with the same name under the same parent already not pending if this pending event represents a create");
+                    existingObjectCommand.Transaction = castTransaction.sqlTransaction;
 
-                    //    case FileChangeType.Renamed:
-                    //        throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Should not have an existing object with the same name under the same parent already not pending if this pending event represents a rename");
-                    //}
+                    existingObjectCommand.CommandText = "SELECT FileSystemObjects.FileSystemObjectId, FileSystemObjects.Name " +
+                        "FROM FileSystemObjects " +
+                        "WHERE FileSystemObjects.ParentFolderId = ? " + // <-- parameter 1
+                        "AND FileSystemObjects.NameCIHash = ? " + // <-- parameter 2
+                        "AND FileSystemObjects.Pending = 0 " +
+                        "ORDER BY FileSystemObjects.FileSystemObjectId DESC";
 
-                    moveObjectsToNewParent.TypedData.oldId.Value = existingNonPendingIdToMerge;
-                    moveObjectsToNewParent.TypedData.newId.Value = existingEventObject.FileSystemObjectId;
-                    moveObjectsToNewParent.Process();
-                    if (moveObjectsToNewParentError.Value != null)
+                    ISQLiteParameter existingParentParam = existingObjectCommand.CreateParameter();
+                    existingParentParam.Value = (long)existingEventObject.ParentFolderId;
+                    existingObjectCommand.Parameters.Add(existingParentParam);
+
+                    ISQLiteParameter existingNameCIHashParam = existingObjectCommand.CreateParameter();
+                    existingNameCIHashParam.Value = existingEventObject.NameCIHash;
+                    existingObjectCommand.Parameters.Add(existingNameCIHashParam);
+
+                    using (ISQLiteDataReader existingObjectReader = existingObjectCommand.ExecuteReader(CommandBehavior.SingleResult))
                     {
-                        throw new AggregateException("An error occurred moving objects to new parent", moveObjectsToNewParentError.Value.Exceptions);
-                    }
-
-                    using (ISQLiteCommand movePreviousesCommand = castTransaction.sqlConnection.CreateCommand())
-                    {
-                        movePreviousesCommand.Transaction = castTransaction.sqlTransaction;
-                        movePreviousesCommand.CommandText = "UPDATE Events " +
-                            "SET PreviousId = ? " +
-                            "WHERE PreviousId = ?";
-
-                        ISQLiteParameter newPreviousId = movePreviousesCommand.CreateParameter();
-                        newPreviousId.Value = existingEventObject.FileSystemObjectId;
-                        movePreviousesCommand.Parameters.Add(newPreviousId);
-
-                        ISQLiteParameter oldPreviousId = movePreviousesCommand.CreateParameter();
-                        oldPreviousId.Value = existingNonPendingIdToMerge;
-                        movePreviousesCommand.Parameters.Add(oldPreviousId);
-                    }
-
-                    SqlAccessor<FileSystemObject>.DeleteRow(
-                        castTransaction.sqlConnection,
-                        new FileSystemObject()
+                        while (existingObjectReader.Read())
                         {
-                            FileSystemObjectId = existingNonPendingIdToMerge
-                        },
-                        castTransaction.sqlTransaction);
-                }
-                //// The following cases below seemed to happen under normal use and we don't wish to kill the sync engine,
-                //// it would be better if we fixed the causes of the conditions below from happening
-                //
-                //else
-                //{
-                //    switch (storeExistingChangeType)
-                //    {
-                //        case FileChangeType.Modified:
-                //            throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Must have an existing object with the same name under the same parent already not pending if this pending event represents a modify");
+                            if (StringComparer.OrdinalIgnoreCase.Equals(Convert.ToString(existingObjectReader["Name"]), existingEventObject.Name))
+                            {
+                                long existingNonPendingIdToMerge = Convert.ToInt64(existingObjectReader["FileSystemObjectId"]);
 
-                //        case FileChangeType.Deleted:
-                //            throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Must have an existing object with the same name under the same parent already not pending if this pending event represents a delete");
-                //    }
-                //}
+                                //// The following cases below seemed to happen under normal use and we don't wish to kill the sync engine,
+                                //// it would be better if we fixed the causes of the conditions below from happening
+                                //
+                                //switch (storeExistingChangeType)
+                                //{
+                                //    case FileChangeType.Created:
+                                //        throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Should not have an existing object with the same name under the same parent already not pending if this pending event represents a create");
+
+                                //    case FileChangeType.Renamed:
+                                //        throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Should not have an existing object with the same name under the same parent already not pending if this pending event represents a rename");
+                                //}
+
+                                moveObjectsToNewParent.TypedData.oldId.Value = existingNonPendingIdToMerge;
+                                moveObjectsToNewParent.TypedData.newId.Value = existingEventObject.FileSystemObjectId;
+                                moveObjectsToNewParent.Process();
+                                if (moveObjectsToNewParentError.Value != null)
+                                {
+                                    throw new AggregateException("An error occurred moving objects to new parent", moveObjectsToNewParentError.Value.Exceptions);
+                                }
+
+                                using (ISQLiteCommand movePreviousesCommand = castTransaction.sqlConnection.CreateCommand())
+                                {
+                                    movePreviousesCommand.Transaction = castTransaction.sqlTransaction;
+                                    movePreviousesCommand.CommandText = "UPDATE Events " +
+                                        "SET PreviousId = ? " +
+                                        "WHERE PreviousId = ?";
+
+                                    ISQLiteParameter newPreviousId = movePreviousesCommand.CreateParameter();
+                                    newPreviousId.Value = existingEventObject.FileSystemObjectId;
+                                    movePreviousesCommand.Parameters.Add(newPreviousId);
+
+                                    ISQLiteParameter oldPreviousId = movePreviousesCommand.CreateParameter();
+                                    oldPreviousId.Value = existingNonPendingIdToMerge;
+                                    movePreviousesCommand.Parameters.Add(oldPreviousId);
+
+                                    movePreviousesCommand.ExecuteNonQuery();
+                                }
+
+                                SqlAccessor<FileSystemObject>.DeleteRow(
+                                    castTransaction.sqlConnection,
+                                    new FileSystemObject()
+                                    {
+                                        FileSystemObjectId = existingNonPendingIdToMerge
+                                    },
+                                    castTransaction.sqlTransaction);
+
+                                break;
+                            }
+                            //// The following cases below seemed to happen under normal use and we don't wish to kill the sync engine,
+                            //// it would be better if we fixed the causes of the conditions below from happening
+                            //
+                            //else if ([no more rows left])
+                            //{
+                            //    switch (storeExistingChangeType)
+                            //    {
+                            //        case FileChangeType.Modified:
+                            //            throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Must have an existing object with the same name under the same parent already not pending if this pending event represents a modify");
+
+                            //        case FileChangeType.Deleted:
+                            //            throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Must have an existing object with the same name under the same parent already not pending if this pending event represents a delete");
+                            //    }
+                            //}
+                        }
+                    }
+                }
 
                 switch (storeExistingChangeType)
                 {
@@ -3378,27 +3552,17 @@ namespace Cloud.SQLIndexer
 
                         long storePreviousId = (long)existingEventObject.Event.PreviousId; // store previous id, since we are about to nullify the event value but still need it to delete\move children
 
-                        using (ISQLiteCommand moveOtherMatchingOldNames = castTransaction.sqlConnection.CreateCommand())
+                        List<long> objectIdsToMove = null;
+
+                        using (ISQLiteCommand findObjectIdsToMove = castTransaction.sqlConnection.CreateCommand())
                         {
-                            moveOtherMatchingOldNames.Transaction = castTransaction.sqlTransaction;
+                            findObjectIdsToMove.Transaction = castTransaction.sqlTransaction;
 
-                            //// initial attempt to move all the other events at the same location to follow the rename to its new path
-                            //
-                            //moveOtherMatchingOldNames.CommandText = "UPDATE FileSystemObjects " +
-                            //    "SET ParentFolderId = ?, " + // <-- parameter 1
-                            //    "Name = ? " + // <-- parameter 2
-                            //    "WHERE ParentFolderId = ? " + // <-- parameter 3
-                            //    "AND Name = ?"; // <-- parameter 4
-
-                            // find lowest EventOrder with same ParentFolderId and Name with a greater EventOrder than the current object which also has an Event with a FileChangeTypeEnumId which represents either "created" or "renamed", if any
-                            // if this EventOrder is found, limit the above query by "AND EventOrder < [lowest EventOrder of create\rename]"
-
-                            moveOtherMatchingOldNames.CommandText = "UPDATE FileSystemObjects " +
-                                "SET ParentFolderId = ?, " + // <-- parameter 1
-                                "Name = ? " + // <-- parameter 2
-                                "WHERE ParentFolderId = ? " + // <-- parameter 3
-                                "AND Name = ? " + // <-- parameter 4
-                                "AND EventOrder < " +
+                            findObjectIdsToMove.CommandText = "SELECT FileSystemObjects.FileSystemObjectId, FileSystemObjects.Name " +
+                                "FROM FileSystemObjects " +
+                                "WHERE FileSystemObjects.ParentFolderId = ? " + // <-- parameter 1
+                                "AND FileSystemObjects.NameCIHash = ? " + // <-- parameter 2
+                                "AND FileSystemObjects.EventOrder < " +
                                 "(" +
                                     "SELECT UpperExclusiveOrder " +
                                     "FROM " +
@@ -3409,7 +3573,7 @@ namespace Cloud.SQLIndexer
                                         "UNION SELECT MIN(InnerObjects.EventOrder) " +
                                         "FROM FileSystemObjects InnerObjects " +
                                         "INNER JOIN Events ON InnerObjects.EventId = Events.EventId " +
-                                        "WHERE InnerObjects.EventOrder > ? " + // <-- parameter 5
+                                        "WHERE InnerObjects.EventOrder > ? " + // <-- parameter 3
                                         "AND Events.FileChangeTypeEnumId IN (" + changeEnumsBackward[FileChangeType.Created].ToString() + ", " + changeEnumsBackward[FileChangeType.Renamed].ToString() + ")" +
                                     ") " +
 
@@ -3427,27 +3591,85 @@ namespace Cloud.SQLIndexer
                                     "LIMIT 1" +
                                 ")";
 
-                            ISQLiteParameter newParentParam = moveOtherMatchingOldNames.CreateParameter();
-                            newParentParam.Value = existingEventObject.ParentFolderId;
-                            moveOtherMatchingOldNames.Parameters.Add(newParentParam);
+                            ISQLiteParameter previousParentParam = findObjectIdsToMove.CreateParameter();
+                            previousParentParam.Value = (long)existingEventObject.Event.Previous.ParentFolderId;
+                            findObjectIdsToMove.Parameters.Add(previousParentParam);
 
-                            ISQLiteParameter newNameParam = moveOtherMatchingOldNames.CreateParameter();
-                            newNameParam.Value = existingEventObject.Name;
-                            moveOtherMatchingOldNames.Parameters.Add(newNameParam);
+                            ISQLiteParameter previousNameCIHashParam = findObjectIdsToMove.CreateParameter();
+                            previousNameCIHashParam.Value = existingEventObject.Event.Previous.NameCIHash;
+                            findObjectIdsToMove.Parameters.Add(previousNameCIHashParam);
 
-                            ISQLiteParameter oldParentParam = moveOtherMatchingOldNames.CreateParameter();
-                            oldParentParam.Value = existingEventObject.Event.Previous.ParentFolderId;
-                            moveOtherMatchingOldNames.Parameters.Add(oldParentParam);
-
-                            ISQLiteParameter oldNameParam = moveOtherMatchingOldNames.CreateParameter();
-                            oldNameParam.Value = existingEventObject.Event.Previous.Name;
-                            moveOtherMatchingOldNames.Parameters.Add(oldNameParam);
-
-                            ISQLiteParameter renameEventOrderParam = moveOtherMatchingOldNames.CreateParameter();
+                            ISQLiteParameter renameEventOrderParam = findObjectIdsToMove.CreateParameter();
                             renameEventOrderParam.Value = existingEventObject.EventOrder;
-                            moveOtherMatchingOldNames.Parameters.Add(renameEventOrderParam);
+                            findObjectIdsToMove.Parameters.Add(renameEventOrderParam);
 
-                            moveOtherMatchingOldNames.ExecuteNonQuery();
+                            using (ISQLiteDataReader existingObjectReader = findObjectIdsToMove.ExecuteReader(CommandBehavior.SingleResult))
+                            {
+                                while (existingObjectReader.Read())
+                                {
+                                    if (StringComparer.OrdinalIgnoreCase.Equals(Convert.ToString(existingObjectReader["Name"]), existingEventObject.Name))
+                                    {
+                                        long previousObjectId = Convert.ToInt64(existingObjectReader["FileSystemObjectId"]);
+
+                                        if (objectIdsToMove == null)
+                                        {
+                                            objectIdsToMove = new List<long>(Helpers.EnumerateSingleItem(previousObjectId));
+                                        }
+                                        else
+                                        {
+                                            objectIdsToMove.Add(previousObjectId);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        if (objectIdsToMove != null)
+                        {
+                            using (ISQLiteCommand moveOtherMatchingOldNames = castTransaction.sqlConnection.CreateCommand())
+                            {
+                                moveOtherMatchingOldNames.Transaction = castTransaction.sqlTransaction;
+
+                                //// initial attempt to move all the other events at the same location to follow the rename to its new path
+                                //
+                                //moveOtherMatchingOldNames.CommandText = "UPDATE FileSystemObjects " +
+                                //    "SET ParentFolderId = ?, " + // <-- parameter 1
+                                //    "Name = ? " + // <-- parameter 2
+                                //    "WHERE ParentFolderId = ? " + // <-- parameter 3
+                                //    "AND Name = ?"; // <-- parameter 4
+
+                                // find lowest EventOrder with same ParentFolderId and Name with a greater EventOrder than the current object which also has an Event with a FileChangeTypeEnumId which represents either "created" or "renamed", if any
+                                // if this EventOrder is found, limit the above query by "AND EventOrder < [lowest EventOrder of create\rename]"
+
+                                moveOtherMatchingOldNames.CommandText = "UPDATE FileSystemObjects " +
+                                    "SET ParentFolderId = ?, " + // <-- parameter 1
+                                    "Name = ?, " + // <-- parameter 2
+                                    "NameCIHash = ? " + // <-- parameter 3
+                                    "WHERE FileSystemObjectId IN (" +
+                                    string.Join(", ", Enumerable.Repeat("?", objectIdsToMove.Count)) + // <-- parameter 4 through 'n + 3' where 'n' is the number of ids to move
+                                    ")";
+
+                                ISQLiteParameter newParentParam = moveOtherMatchingOldNames.CreateParameter();
+                                newParentParam.Value = existingEventObject.ParentFolderId;
+                                moveOtherMatchingOldNames.Parameters.Add(newParentParam);
+
+                                ISQLiteParameter newNameParam = moveOtherMatchingOldNames.CreateParameter();
+                                newNameParam.Value = existingEventObject.Name;
+                                moveOtherMatchingOldNames.Parameters.Add(newNameParam);
+
+                                ISQLiteParameter newNameCIHashParam = moveOtherMatchingOldNames.CreateParameter();
+                                newNameCIHashParam.Value = existingEventObject.NameCIHash;
+                                moveOtherMatchingOldNames.Parameters.Add(newNameCIHashParam);
+
+                                foreach (long objectIdToMove in objectIdsToMove)
+                                {
+                                    ISQLiteParameter objectIdParam = moveOtherMatchingOldNames.CreateParameter();
+                                    objectIdParam.Value = objectIdToMove;
+                                    moveOtherMatchingOldNames.Parameters.Add(objectIdParam);
+                                }
+
+                                moveOtherMatchingOldNames.ExecuteNonQuery();
+                            }
                         }
 
                         existingEventObject.Event.PreviousId = null; // allows us to delete the FileSystemObject for the previous location so we don't have two of them non-pending to represent the same item
@@ -3492,21 +3714,38 @@ namespace Cloud.SQLIndexer
                         throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Existing event object had a FileChangeTypeEnumId which did not match to a known FileChangeType");
                 }
 
-                if (!SqlAccessor<object>.TrySelectScalar<bool>(
-                    castTransaction.sqlConnection,
-                    "SELECT EXISTS" +
-                    "(" +
-                        "SELECT NULL " +
-                        "FROM FileSystemObjects " +
-                        "WHERE FileSystemObjects.Name = ? " +
-                        "AND FileSystemObjects.ParentFolderId = ? " +
-                        "AND FileSystemObjects.Pending = 1" +
-                    ") AS EXIST",
-                    out foundOtherPendingAtCompletedPath,
-                    castTransaction.sqlTransaction,
-                    new[] { (object)existingEventObject.Name, ((long)existingEventObject.ParentFolderId) }))
+                using (ISQLiteCommand pendingEventsCommand = castTransaction.sqlConnection.CreateCommand())
                 {
-                    throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Unable to determine whether other events are pending at the current completion path");
+                    pendingEventsCommand.Transaction = castTransaction.sqlTransaction;
+
+                    pendingEventsCommand.CommandText = "SELECT FileSystemObjects.Name " +
+                            "FROM FileSystemObjects " +
+                            "WHERE FileSystemObjects.NameCIHash = ? " + // <-- parameter 1
+                            "AND FileSystemObjects.ParentFolderId = ? " + // <-- parameter 2
+                            "AND FileSystemObjects.Pending = 1";
+
+                    ISQLiteParameter existingParentParam = pendingEventsCommand.CreateParameter();
+                    existingParentParam.Value = (long)existingEventObject.ParentFolderId;
+                    pendingEventsCommand.Parameters.Add(existingParentParam);
+
+                    ISQLiteParameter existingNameCIHashParam = pendingEventsCommand.CreateParameter();
+                    existingNameCIHashParam.Value = existingEventObject.NameCIHash;
+                    pendingEventsCommand.Parameters.Add(existingNameCIHashParam);
+
+                    using (ISQLiteDataReader pendingEventsReader = pendingEventsCommand.ExecuteReader(CommandBehavior.SingleResult))
+                    {
+                        foundOtherPendingAtCompletedPath = false;
+
+                        while (pendingEventsReader.Read())
+                        {
+                            if (StringComparer.OrdinalIgnoreCase.Equals(Convert.ToString(pendingEventsReader["Name"]), existingEventObject.Name))
+                            {
+                                foundOtherPendingAtCompletedPath = true;
+
+                                break;
+                            }
+                        }
+                    }
                 }
 
                 if (!inputTransactionSet
@@ -3735,6 +3974,7 @@ namespace Cloud.SQLIndexer
                                                     EventTimeUTCTicks = 0, // never need to show the root folder in recents, so it should have the oldest event time
                                                     IsFolder = true,
                                                     Name = syncRoot,
+                                                    NameCIHash = StringComparer.OrdinalIgnoreCase.GetHashCode(syncRoot),
                                                     Pending = false,
                                                     ServerUidId = rootFileSystemObjectServerUidId
                                                 });
