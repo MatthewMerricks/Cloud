@@ -272,6 +272,30 @@ namespace Cloud
 
                 reservedSyncbox = true;
 
+                object ObCaseInsensitiveValue = null;
+                try
+                {
+                    const string systemKeyString = "SYSTEM";
+                    const string controlSetKeyString = "CurrentControlSet";
+                    const string controlKeyString = "Control";
+                    const string sessionManagerKeyString = "Session Manager";
+                    const string kernelKeyString = "kernel";
+                    const string ObCaseInsensitiveValueString = "obcaseinsensitive";
+                    Microsoft.Win32.RegistryKey systemKey = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(systemKeyString);
+                    Microsoft.Win32.RegistryKey controlSetKey = systemKey.OpenSubKey(controlSetKeyString);
+                    Microsoft.Win32.RegistryKey controlKey = controlSetKey.OpenSubKey(controlKeyString);
+                    Microsoft.Win32.RegistryKey sessionManagerKey = controlKey.OpenSubKey(sessionManagerKeyString);
+                    Microsoft.Win32.RegistryKey kernelKey = sessionManagerKey.OpenSubKey(kernelKeyString);
+                    ObCaseInsensitiveValue = kernelKey.GetValue(ObCaseInsensitiveValueString);
+                }
+                catch
+                {
+                }
+                if (ObCaseInsensitiveValue != null && ObCaseInsensitiveValue.GetType() == typeof(int) && ((int)ObCaseInsensitiveValue) == 0)
+                {
+                    throw new CLInvalidOperationException(CLExceptionCode.Syncbox_GeneralStart, Resources.ExceptionCLSyncEngineObCaseInsensitive);
+                }
+
                 if (string.IsNullOrEmpty(_syncbox.CopiedSettings.DeviceId))
                 {
                     const string settingsError = "syncbox CopiedSettings DeviceId cannot be null";
@@ -309,7 +333,7 @@ namespace Cloud
                 {
                     FilePath fpDatabase = this._syncbox.CopiedSettings.DatabaseFolder;
                     FilePath fpSyncbox = this._syncbox.Path;
-                    if (fpDatabase.Contains(fpSyncbox, insensitiveNameSearch: true))
+                    if (fpDatabase.Contains(fpSyncbox))
                     {
                         const string verifyDatabaseError = "Syncbox settings DatabaseFolder cannot be inside the Syncbox path";
                         _trace.writeToLog(1, Resources.CLSyncEngineError0, verifyDatabaseError);
@@ -321,7 +345,7 @@ namespace Cloud
                 {
                     FilePath fpTraceLocation = this._syncbox.CopiedSettings.TraceLocation;
                     FilePath fpSyncbox = this._syncbox.Path;
-                    if (fpTraceLocation.Contains(fpSyncbox, insensitiveNameSearch: true))
+                    if (fpTraceLocation.Contains(fpSyncbox))
                     {
                         const string verifyTraceLocationError = "Syncbox settings TraceLocation cannot be inside the Syncbox path";
                         _trace.writeToLog(1, Resources.CLSyncEngineError0, verifyTraceLocationError);
@@ -333,7 +357,7 @@ namespace Cloud
                 {
                     FilePath fpTemp = this._syncbox.CopiedSettings.TempDownloadFolderFullPath;
                     FilePath fpSyncbox = this._syncbox.Path;
-                    if (fpTemp.Contains(fpSyncbox, insensitiveNameSearch: true))
+                    if (fpTemp.Contains(fpSyncbox))
                     {
                         const string verifyTempDownloadFolderError = "Syncbox settings TempDownloadFolderFullPath cannot be inside the Syncbox path";
                         _trace.writeToLog(1, Resources.CLSyncEngineError0, verifyTempDownloadFolderError);
@@ -425,28 +449,6 @@ namespace Cloud
                         _trace.writeToLog(1, Resources.ExceptionSyncboxLockPathTrace, ex.Message);
                         throw new CLArgumentException(CLExceptionCode.Syncbox_PathNotFound, Resources.ExceptionSyncboxLockPath, ex);
                     }
-                }
-
-                bool caseMatches;
-                CLError caseCheckError = Helpers.DirectoryMatchesCaseWithDisk(_syncbox.Path,
-                    out caseMatches);
-
-                if (caseCheckError != null)
-                {
-                    _trace.writeToLog(1, Resources.CLSyncEngineError0, checkBadPath.PrimaryException.Message);
-                    throw new CLArgumentException(CLExceptionCode.Syncbox_BadPath, Resources.CLSyncEngineSyncboxPathRepresentsAPathThatCannotBeQueried, caseCheckError.Exceptions);
-                }
-
-                if (!caseMatches)
-                {
-                    const string badCaseErrorCreated = "A new directory was created on disk at the specified syncbox path, but its resulting path does not match case";
-                    const string badCaseErrorExists = "An existing directory was found at the specified syncbox path, but its path does not match case";
-                    _trace.writeToLog(1, Resources.CLSyncEngineErrorBadCase, (alreadyExists ? badCaseErrorExists : badCaseErrorCreated));
-
-                    throw new CLException(CLExceptionCode.Syncbox_BadPath,
-                        (alreadyExists
-                            ? badCaseErrorExists
-                            : badCaseErrorCreated));
                 }
 
                 // Start badging

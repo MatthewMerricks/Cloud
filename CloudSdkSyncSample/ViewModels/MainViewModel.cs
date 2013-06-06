@@ -725,22 +725,6 @@ namespace SampleLiveSync.ViewModels
                     return;
                 }
 
-                // Validate that the SyncRoot matches case perfectly with disk.
-                bool syncPathMatches;
-                CLError checkCaseError = Cloud.Static.Helpers.DirectoryMatchesCaseWithDisk(SyncRoot, out syncPathMatches);
-                if (checkCaseError != null)
-                {
-                    NotifyException(this, new NotificationEventArgs<CLError>() { Data = null, Message = "There was an error checking whether the Syncbox Folder matches case with an existing directory on disk: " + checkCaseError.PrimaryException.Message });
-                    this.IsSyncboxIdFocused = true;
-                    return;
-                }
-                if (!syncPathMatches)
-                {
-                    NotifyException(this, new NotificationEventArgs<CLError>() { Data = null, Message = "The Syncbox Folder does not match case perfectly with an existing folder on disk. Please check the case of the directory string."});
-                    this.IsSyncboxIdFocused = true;
-                    return;
-                }
-
                 // Validate the length of the Syncbox full path.
                 int tooLongChars;
                 CLError errorFromLengthCheck = Cloud.Static.Helpers.CheckSyncboxPathLength(SyncRoot, out tooLongChars);

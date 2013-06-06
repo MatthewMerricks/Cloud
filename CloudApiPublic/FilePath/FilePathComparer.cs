@@ -32,36 +32,20 @@ namespace Cloud.Model
                 }
             }
 
-            return RecursiveEqualityCheck(x, y, false);
+            return RecursiveEqualityCheck(x, y);
         }
-        public bool CaseInsensitiveEquals(FilePath x, FilePath y)
-        {
-            if (x == null)
-            {
-                if (y == null)
-                {
-                    return true;
-                }
-                else
-                {
-                    return false;
-                }
-            }
-
-            return RecursiveEqualityCheck(x, y, true);
-        }
-        private static bool RecursiveEqualityCheck(FilePath x, FilePath y, bool insensitiveNameSearch)
+        private static bool RecursiveEqualityCheck(FilePath x, FilePath y)
         {
             // check local Name property first
             // if Parents are null then both are roots and along with equal name represents equality
             // otherwise if both Parents are not null but running Equals recursively returns true then FilePaths are also equal
             return x.Equals(y)// if object references are equal we're sure the FilePaths match, otherwise continue on to deep level compare
-                || (string.Equals(x.Name, y.Name, (insensitiveNameSearch ? StringComparison.InvariantCultureIgnoreCase : StringComparison.InvariantCulture))
+                || (StringComparer.OrdinalIgnoreCase.Equals(x.Name, y.Name)
                     && ((x.Parent == null
                             && y.Parent == null)
                         || (x.Parent != null
                             && y.Parent != null
-                            && RecursiveEqualityCheck((FilePath)x.Parent, (FilePath)y.Parent, insensitiveNameSearch))));
+                            && RecursiveEqualityCheck((FilePath)x.Parent, (FilePath)y.Parent))));
         }
         /// <summary>
         /// Overridden GetHashCode that gets a hash from the underlying full path string,
@@ -72,7 +56,7 @@ namespace Cloud.Model
         public override int GetHashCode(FilePath obj)
         {
             // Grabs the full path string representing a FilePath object and uses that to return a hashcode
-            return obj.ToString().GetHashCode();
+            return StringComparer.OrdinalIgnoreCase.GetHashCode(obj.ToString());
         }
         /// <summary>
         /// Public static instance to be used everywhere the FilePathComparer is needed

@@ -3051,4 +3051,8 @@
     <value>No Content-Length header in the response</value>
     <comment>"Content-Length" should not be translated</comment>
   </data>
+  <data name="ExceptionCLSyncEngineObCaseInsensitive" xml:space="preserve">
+    <value>Registry value obcaseinsensitive in kernel key cannot be zero; Cloud SDK only supports case-insensitive file systems</value>
+    <comment>obcaseinsensitive and Cloud SDK should not be translated</comment>
+  </data>
 </root>

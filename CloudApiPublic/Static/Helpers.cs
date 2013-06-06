@@ -1395,7 +1395,7 @@ namespace Cloud.Static
                 string usersDirectory = userProfile.Substring(0, userProfile.LastIndexOf(/* '\\' */ (char)0x005c)); // \Users
                 FilePath usersDirectoryObject = usersDirectory;
 
-                if (rootPathObject.Contains(usersDirectoryObject, true))
+                if (rootPathObject.Contains(usersDirectoryObject))
                 {
                     if (usersDirectory.EndsWith(DocumentsAndSettingsVista, StringComparison.InvariantCultureIgnoreCase)) // Vista and up
                     {
@@ -1606,8 +1606,8 @@ namespace Cloud.Static
                 }
                 else if (usersDirectory.EndsWith(DocumentsAndSettingsVista, StringComparison.InvariantCultureIgnoreCase)) // Vista and up
                 {
-                    if (rootPathObject.Contains(Environment.GetFolderPath(Environment.SpecialFolder.CommonStartMenu), true)
-                        || rootPathObject.Contains(Environment.GetFolderPath(Environment.SpecialFolder.CommonTemplates), true))
+                    if (rootPathObject.Contains(Environment.GetFolderPath(Environment.SpecialFolder.CommonStartMenu))
+                        || rootPathObject.Contains(Environment.GetFolderPath(Environment.SpecialFolder.CommonTemplates)))
                     {
                         int CommonStartMenuParentRestrictionLength = baseLengthRestriction - LengthDifferenceCommonStartMenuParentXPMinusVista; // 3 characters more restrictive: LEN("Documents and Settings\All Users") - LEN("ProgramData\Microsoft\Windows") !! note: ProgramData could also contain Start Menu and Templates before but we calculate by most restriction
 
@@ -2477,52 +2477,6 @@ namespace Cloud.Static
                 CLTrace.Instance.writeToLog(1, "Helpers: GetTempFileDownloadPath: ERROR. Exception.  Msg: <{0}>.", ex.Message);
                 throw ex;
             }
-        }
-
-        /// <summary>
-        /// Validates a directory path's case-sensitivity with an existing folder on disk
-        /// </summary>
-        /// <param name="path">Path to query</param>
-        /// <param name="matches">Whether the path matches perfectly (including case-sensitivity) with a path on disk</param>
-        /// <returns>Any error which occurred while checking the disk</returns>
-        public static CLError DirectoryMatchesCaseWithDisk(FilePath path, out bool matches)
-        {
-            try
-            {
-                if (path == null)
-                {
-                    throw new NullReferenceException("path cannot be null");
-                }
-
-                NativeMethods.WIN32_FIND_DATA fileData;
-                SafeSearchHandle searchHandle = null;
-                try
-                {
-                    searchHandle = NativeMethods.FindFirstFileEx(//"\\\\?\\" + // Allows searching paths up to 32,767 characters in length, but not supported on XP
-                        path.ToString(),
-                        NativeMethods.FINDEX_INFO_LEVELS.FindExInfoStandard,// Basic would be optimal but it's only supported in Windows 7 on up
-                        out fileData,
-                        NativeMethods.FINDEX_SEARCH_OPS.FindExSearchLimitToDirectories,
-                        IntPtr.Zero,
-                        NativeMethods.FINDEX_ADDITIONAL_FLAGS.FIND_FIRST_EX_CASE_SENSITIVE);
-
-                    matches = !searchHandle.IsInvalid;
-                }
-                finally
-                {
-                    if (searchHandle != null
-                        && !searchHandle.IsInvalid)
-                    {
-                        searchHandle.Dispose();
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                matches = Helpers.DefaultForType<bool>();
-                return ex;
-            }
-            return null;
         }
 
         /// <summary>

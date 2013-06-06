@@ -4643,7 +4643,7 @@ namespace Cloud.SQLIndexer
                 foreach (string deletedPath in
                     indexPaths.Select(currentIndex => currentIndex.Key.ToString())
                         .Except(recursedIndexes,
-                            StringComparer.InvariantCulture))
+                            StringComparer.OrdinalIgnoreCase))
                 {
                     FilePath deletedPathObject = deletedPath;
 

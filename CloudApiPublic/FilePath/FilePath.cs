@@ -326,7 +326,7 @@ namespace Cloud.Model
         /// <param name="outerPath">First path that may contain the second path</param>
         /// <param name="innerPath">Second path which may be contained in the first path</param>
         /// <returns>Returns true if the second path is contained within the first path, otherwise false</returns>
-        public static bool Contains(FilePath outerPath, FilePath innerPath, bool insensitiveNameSearch = false)
+        public static bool Contains(FilePath outerPath, FilePath innerPath)
         {
             if (innerPath == null)
             {
@@ -334,9 +334,7 @@ namespace Cloud.Model
             }
             while (outerPath != null)
             {
-                if (insensitiveNameSearch
-                    ? FilePathComparer.Instance.CaseInsensitiveEquals(outerPath, innerPath)
-                    : FilePathComparer.Instance.Equals(outerPath, innerPath))
+                if (FilePathComparer.Instance.Equals(outerPath, innerPath))
                 {
                     return true;
                 }
@@ -351,9 +349,9 @@ namespace Cloud.Model
         /// </summary>
         /// <param name="innerPath">The inner path which may be contained in the current path</param>
         /// <returns>Returns true if the inner path is contained within the current path, otherwise false</returns>
-        public bool Contains(FilePath innerPath, bool insensitiveNameSearch = false)
+        public bool Contains(FilePath innerPath)
         {
-            return Contains(this, innerPath, insensitiveNameSearch);
+            return Contains(this, innerPath);
         }
 
         /// <summary>

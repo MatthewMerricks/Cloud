@@ -1216,7 +1216,7 @@ namespace Cloud.FileMonitor
 
                                     // check if move old path is outside of the cloud directory (temp download directory) in order to bypass updown checking and locking
                                     if (toApply.Metadata.HashableProperties.IsFolder
-                                        || toApply.OldPath.Contains(rootPath, insensitiveNameSearch: true))
+                                        || toApply.OldPath.Contains(rootPath))
                                     {
                                         FilePathDictionary<List<FileChange>> upDownsForRenamed = fillAndReturnUpDowns.TypedProcess();
 

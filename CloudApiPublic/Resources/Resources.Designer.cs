@@ -2178,6 +2178,15 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Registry value obcaseinsensitive in kernel key cannot be zero; Cloud SDK only supports case-insensitive file systems.
+        /// </summary>
+        internal static string ExceptionCLSyncEngineObCaseInsensitive {
+            get {
+                return ResourceManager.GetString("ExceptionCLSyncEngineObCaseInsensitive", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Oops. We&apos;re sorry, it seems like something went wrong while creating your account.  The error code is {0}..
         /// </summary>
         internal static string ExceptionCreatingUserRegistrationWithCode {
