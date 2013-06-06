@@ -50,15 +50,6 @@ namespace Cloud.CLSync.CLSyncboxParameters
         /// <param name="name">Name of the new folder item being added.</param>
         public AddFolderItemParams(CLFileItem parent, string name)
         {
-            if (parent == null)
-            {
-                throw new CLArgumentNullException(Static.CLExceptionCode.OnDemand_MissingParameters, Resources.ExceptionOnDemandAddItemItemMustNotBeNull);
-            }
-            if (String.IsNullOrEmpty(name))
-            {
-                throw new CLArgumentNullException(Static.CLExceptionCode.OnDemand_MissingParameters, Resources.ExceptionOnDemandAddItemNameMustBeSpecified);
-            }
-
             this._parent = parent;
             this._name = name;
         }

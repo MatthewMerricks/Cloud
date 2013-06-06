@@ -39,12 +39,25 @@ namespace Cloud.Static
 {
     extern alias SimpleJsonBase;
     using System.Security.AccessControl;
+    using Cloud.CLSync;
 
     /// <summary>
     /// Class containing commonly usable static helper methods
     /// </summary>
     public static class Helpers
     {
+        #region static constructor to check Helpers values
+        static Helpers()
+        {
+            foreach (Action currentValueCheck in HelpersValueChecks)
+            {
+                // the following will throw an exception which may bubble, only should be used for serious errors
+                currentValueCheck();
+            }
+        }
+        private static readonly List<Action> HelpersValueChecks = new List<Action>();
+        #endregion
+
         private static CLTrace _trace = CLTrace.Instance;
 
         /// <summary>
@@ -148,6 +161,132 @@ namespace Cloud.Static
             return (string.IsNullOrEmpty(settingsDatabaseFolder)
                 ? Helpers.GetDefaultDatabasePath(settingsDeviceId, syncboxId) + "\\" + CLDefinitions.kSyncDatabaseFileName
                 : settingsDatabaseFolder + "\\" + CLDefinitions.kSyncDatabaseFileName);
+        }
+
+        internal static void OpenFileStreamAndCalculateHashes(out FileStream OutputStream, out byte[][] intermediateHashes, out byte[] newMD5Bytes, out Nullable<long> finalFileSize, FileChange dependencyFileChange, out bool dependencyFileChangeNotFound, Action<FileChange, object> onDependencyFileChangeDifferenceDetected = null, object onDependencyFileChangeDifferenceDetectedState = null)
+        {
+            if (dependencyFileChange == null)
+            {
+                throw new CLArgumentNullException(CLExceptionCode.General_Arguments, Resources.ExceptionHelpersOpenFileStreamAndCalculateHashesNullDependencyFileChange);
+            }
+            if (dependencyFileChange.Metadata == null)
+            {
+                throw new CLArgumentNullException(CLExceptionCode.General_Arguments, Resources.ExceptionHelpersOpenFileStreamAndCalculateHashesNullDependencyFileChangeMetadata);
+            }
+
+            // had to extend try to outside of the max size calculation because it uses a FileInfo on the possibly non-existing file
+            try
+            {
+                if (FileConstants.MaxUploadFileSize != -1) // there is a max upload file size threshold
+                {
+                    // Note: file size can change during hashing since the file is open with share write
+                    long initialFileSize = new FileInfo(dependencyFileChange.NewPath.ToString()).Length;
+
+                    if (FileConstants.MaxUploadFileSize < initialFileSize)
+                    {
+                        String MaxUploadFileSizeText = (FileConstants.MaxUploadFileSize > (1024 * 1024)
+                            ? String.Format("{0}M", FileConstants.MaxUploadFileSize / (1024 * 1024))
+                            : (FileConstants.MaxUploadFileSize > 1024
+                                ? String.Format("{0}K", FileConstants.MaxUploadFileSize / 1024)
+                                : String.Format("{0} bytes", FileConstants.MaxUploadFileSize)));
+
+                        throw new AggregateException(String.Format(Resources.MonitorAgentFilesBiggerThan0AreNotYetSupportedFile1Size2,
+                            FileConstants.MaxUploadFileSize, dependencyFileChange.NewPath.ToString(), initialFileSize));
+                    }
+                }
+
+                OutputStream = new FileStream(dependencyFileChange.NewPath.ToString(), FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Write | FileShare.Delete);
+
+                dependencyFileChangeNotFound = false;
+            }
+            catch (FileNotFoundException)
+            {
+                dependencyFileChangeNotFound = true;
+                throw;
+            }
+
+            try
+            {
+                byte[] previousMD5Bytes = dependencyFileChange.MD5;
+
+                Model.Md5Hasher hasher = new Model.Md5Hasher(FileConstants.MaxUploadIntermediateHashBytesSize);
+
+                try
+                {
+                    byte[] fileBuffer = new byte[FileConstants.BufferSize];
+                    int fileReadBytes;
+                    long countFileSize = 0;
+
+                    while ((fileReadBytes = OutputStream.Read(fileBuffer, 0, FileConstants.BufferSize)) > 0)
+                    {
+                        countFileSize += fileReadBytes;
+
+                        hasher.Update(fileBuffer, fileReadBytes);
+                    }
+
+                    hasher.FinalizeHashes();
+                    newMD5Bytes = hasher.Hash;
+                    intermediateHashes = hasher.IntermediateHashes;
+                    finalFileSize = countFileSize; // file size as counted through a successfull hashing
+
+                    string pathString = dependencyFileChange.NewPath.ToString();
+                    FileInfo uploadInfo = new FileInfo(pathString);
+                    DateTime newCreationTime = uploadInfo.CreationTimeUtc.DropSubSeconds();
+                    DateTime newWriteTime = uploadInfo.LastWriteTimeUtc.DropSubSeconds();
+
+                    if (newCreationTime.CompareTo(dependencyFileChange.Metadata.HashableProperties.CreationTime) != 0 // creation time changed
+                        || newWriteTime.CompareTo(dependencyFileChange.Metadata.HashableProperties.LastTime) != 0 // or last write time changed
+                        || dependencyFileChange.Metadata.HashableProperties.Size == null // or previous size was not set
+                        || ((long)dependencyFileChange.Metadata.HashableProperties.Size) == countFileSize // or size changed
+                        || !Helpers.IsEqualHashes(previousMD5Bytes, newMD5Bytes))
+                    {
+                        CLError setMD5Error = dependencyFileChange.SetMD5(newMD5Bytes);
+                        if (setMD5Error != null)
+                        {
+                            throw new AggregateException(Resources.MonitorAgentDependencyFileChangeMD5, setMD5Error.Exceptions);
+                        }
+
+                        dependencyFileChange.Metadata.HashableProperties = new FileMetadataHashableProperties(false,
+                            newWriteTime,
+                            newCreationTime,
+                            countFileSize);
+
+                        if (onDependencyFileChangeDifferenceDetected != null)
+                        {
+                            onDependencyFileChangeDifferenceDetected(dependencyFileChange, onDependencyFileChangeDifferenceDetectedState);
+                        }
+                    }
+                }
+                finally
+                {
+                    try
+                    {
+                        if (OutputStream != null)
+                        {
+                            OutputStream.Seek(0, SeekOrigin.Begin);
+                        }
+                    }
+                    catch
+                    {
+                    }
+
+                    hasher.Dispose();
+                }
+            }
+            catch
+            {
+                if (OutputStream != null)
+                {
+                    try
+                    {
+                        OutputStream.Dispose();
+                    }
+                    catch
+                    {
+                    }
+                }
+                throw;
+            }
         }
 
         /// <summary>
@@ -482,21 +621,93 @@ namespace Cloud.Static
         /// </summary>
         /// <param name="inputStream">Stream to copy and then close</param>
         /// <returns>Returns the copied Stream</returns>
-        internal static Stream CopyHttpWebResponseStreamAndClose(Stream inputStream)
+        internal static Stream CopyHttpWebResponseStreamAndClose(
+            Stream inputStream, 
+            CLFileDownloadTransferStatusCallback transferStatusCallback = null, 
+            object transferStatusCallbackUserState = null, 
+            Nullable<long> contentLength = null,
+            CancellationTokenSource cancellationSource = null)
         {
             byte[] buffer = new byte[FileConstants.BufferSize];
-            MemoryStream ms = new MemoryStream();
+            MemoryStream toReturn = new MemoryStream();
 
-            int count = inputStream.Read(buffer, 0, FileConstants.BufferSize);
-            while (count > 0)
+            try
             {
-                ms.Write(buffer, 0, count);
-                count = inputStream.Read(buffer, 0, FileConstants.BufferSize);
-            }
-            ms.Position = 0;
-            inputStream.Close();
+                int currentReadSize = 0;
+                long readByteCount = 0;
+                bool maxBytesRead = false;
+                do
+                {
+                    // Cancel if we have been requested to do so.
+                    if (cancellationSource != null)
+                    {
+                        if (cancellationSource.IsCancellationRequested)
+                        {
+                            throw new CLHttpException(
+                                status: null,
+                                response: null,
+                                code: CLExceptionCode.Http_Cancelled,
+                                message: Resources.ExceptionOnDemandDownloadImageOfSizeUserCancelled);
+                        }
+                    }
 
-            return ms;
+                    readByteCount += currentReadSize;
+
+                    if (!maxBytesRead)
+                    {
+                        if (contentLength != null)
+                        {
+                            if (readByteCount >= ((long)contentLength))
+                            {
+                                maxBytesRead = true;
+
+                                readByteCount = ((long)contentLength);
+                            }
+
+                            if (transferStatusCallback != null)
+                            {
+                                try
+                                {
+                                    transferStatusCallback(byteProgress: readByteCount, totalByteSize: (long)contentLength, userState: transferStatusCallbackUserState);
+                                }
+                                catch
+                                {
+                                }
+                            }
+                        }
+                    }
+
+                    if (currentReadSize > 0)
+                    {
+                        toReturn.Write(buffer, 0, currentReadSize);
+                    }
+                }
+                while ((currentReadSize = inputStream.Read(buffer, 0, FileConstants.BufferSize)) > 0);
+
+                if (readByteCount > 0)
+                {
+                    toReturn.Position = 0;
+                }
+
+                inputStream.Close();
+
+                return toReturn;
+            }
+            catch
+            {
+                if (toReturn != null)
+                {
+                    try
+                    {
+                        toReturn.Dispose();
+                    }
+                    catch
+                    {
+                    }
+                }
+
+                throw;
+            }
         }
 
         /// <summary>
@@ -2430,81 +2641,10 @@ namespace Cloud.Static
                             //noop;
                         }
 
-                        FileInfo oldPathInfo = new FileInfo(fileMoveState.oldPathString);
-                        FileInfo newPathInfo = new FileInfo(fileMoveState.newPathString);
-                        DateTime oldPathCreation = oldPathInfo.CreationTimeUtc;
-                        DateTime oldPathWrite = oldPathInfo.LastWriteTimeUtc;
-                        long oldPathSize = oldPathInfo.Length;
-
-                        try
-                        {
-                            if (newPathInfo.Exists)
-                            {
-                                try
-                                {
-                                    oldPathInfo.Replace(
-                                        fileMoveState.newPathString,
-                                        fileMoveState.backupLocation,
-                                        ignoreMetadataErrors: true);
-                                    try
-                                    {
-                                        if (File.Exists(fileMoveState.backupLocation))
-                                        {
-                                            File.Delete(fileMoveState.backupLocation);
-                                        }
-                                    }
-                                    catch
-                                    {
-                                    }
-                                }
-                                // File.Replace not supported on non-NTFS drives, must use traditional move
-                                catch (PlatformNotSupportedException)
-                                {
-                                    if (newPathInfo.Exists)
-                                    {
-                                        newPathInfo.Delete();
-                                    }
-                                    oldPathInfo.MoveTo(fileMoveState.newPathString);
-                                }
-                                // Some strange condition on specific files which does not make sense can throw an error on replace but may still succeed on move
-                                catch (IOException)
-                                {
-                                    if (newPathInfo.Exists)
-                                    {
-                                        newPathInfo.Delete();
-                                    }
-                                    oldPathInfo.MoveTo(fileMoveState.newPathString);
-                                }
-                            }
-                            else
-                            {
-                                oldPathInfo.MoveTo(fileMoveState.newPathString);
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            if (oldPathCreation.Ticks != FileConstants.InvalidUtcTimeTicks
-                                && oldPathCreation.ToUniversalTime().Ticks != FileConstants.InvalidUtcTimeTicks
-
-                                && oldPathWrite.Ticks != FileConstants.InvalidUtcTimeTicks
-                                && oldPathWrite.ToUniversalTime().Ticks != FileConstants.InvalidUtcTimeTicks
-
-                                && newPathInfo.Exists
-
-                                && DateTime.Compare(newPathInfo.CreationTimeUtc, oldPathCreation) == 0
-
-                                && DateTime.Compare(newPathInfo.LastWriteTimeUtc, oldPathWrite) == 0
-
-                                && oldPathSize == newPathInfo.Length)
-                            {
-                                // file move (or replace) actually worked even though it threw an exception
-                                // silence exception
-                            }
-                            else
-                            {
-                                throw ex;
-                            }
-                        }
+                        FileMoveOrReplace(
+                            fileMoveState.oldPathString,
+                            fileMoveState.newPathString,
+                            fileMoveState.backupLocation);
 
                         FileSecurity fileSecurity = new FileSecurity(fileMoveState.newPathString, AccessControlSections.Access);
                         if (tempExplicitRules != null && tempExplicitRules.Count > 0)
@@ -2557,6 +2697,85 @@ namespace Cloud.Static
             return null;
         }
 
+        internal static void FileMoveOrReplace(string fileMoveOldPathString, string fileMoveNewPathString, string fileMoveBackupLocation)
+        {
+            FileInfo oldPathInfo = new FileInfo(fileMoveOldPathString);
+            FileInfo newPathInfo = new FileInfo(fileMoveNewPathString);
+            DateTime oldPathCreation = oldPathInfo.CreationTimeUtc;
+            DateTime oldPathWrite = oldPathInfo.LastWriteTimeUtc;
+            long oldPathSize = oldPathInfo.Length;
+
+            try
+            {
+                if (newPathInfo.Exists)
+                {
+                    try
+                    {
+                        oldPathInfo.Replace(
+                            fileMoveNewPathString,
+                            fileMoveBackupLocation,
+                            ignoreMetadataErrors: true);
+                        try
+                        {
+                            if (File.Exists(fileMoveBackupLocation))
+                            {
+                                File.Delete(fileMoveBackupLocation);
+                            }
+                        }
+                        catch
+                        {
+                        }
+                    }
+                    // File.Replace not supported on non-NTFS drives, must use traditional move
+                    catch (PlatformNotSupportedException)
+                    {
+                        if (newPathInfo.Exists)
+                        {
+                            newPathInfo.Delete();
+                        }
+                        oldPathInfo.MoveTo(fileMoveNewPathString);
+                    }
+                    // Some strange condition on specific files which does not make sense can throw an error on replace but may still succeed on move
+                    catch (IOException)
+                    {
+                        if (newPathInfo.Exists)
+                        {
+                            newPathInfo.Delete();
+                        }
+                        oldPathInfo.MoveTo(fileMoveNewPathString);
+                    }
+                }
+                else
+                {
+                    oldPathInfo.MoveTo(fileMoveNewPathString);
+                }
+            }
+            catch (Exception ex)
+            {
+                if (oldPathCreation.Ticks != FileConstants.InvalidUtcTimeTicks
+                    && oldPathCreation.ToUniversalTime().Ticks != FileConstants.InvalidUtcTimeTicks
+
+                    && oldPathWrite.Ticks != FileConstants.InvalidUtcTimeTicks
+                    && oldPathWrite.ToUniversalTime().Ticks != FileConstants.InvalidUtcTimeTicks
+
+                    && newPathInfo.Exists
+
+                    && DateTime.Compare(newPathInfo.CreationTimeUtc, oldPathCreation) == 0
+
+                    && DateTime.Compare(newPathInfo.LastWriteTimeUtc, oldPathWrite) == 0
+
+                    && oldPathSize == newPathInfo.Length)
+                {
+                    // file move (or replace) actually worked even though it threw an exception
+                    // silence exception
+                }
+                else
+                {
+                    throw ex;
+                }
+            }
+        }
+
         #endregion
 
         #region ProcessHttp
@@ -2607,6 +2826,7 @@ namespace Cloud.Static
             { typeof(JsonContracts.FolderAddRequest), JsonContractHelpers.FolderAddSerializer },
             { typeof(JsonContracts.FolderAddsRequest), JsonContractHelpers.FolderAddsSerializer },
             { typeof(JsonContracts.FileAdd), JsonContractHelpers.FileAddSerializer },
+            { typeof(JsonContracts.FileAdds), JsonContractHelpers.FileAddsSerializer },
             { typeof(JsonContracts.FileModify), JsonContractHelpers.FileModifySerializer },
 
             { typeof(JsonContracts.FileOrFolderDeleteRequest), JsonContractHelpers.FileOrFolderDeleteSerializer },
@@ -2634,6 +2854,7 @@ namespace Cloud.Static
             { typeof(JsonContracts.LinkDeviceFirstTimeRequest), JsonContractHelpers.LinkDeviceFirstTimeRequestSerializer},
             { typeof(JsonContracts.LinkDeviceRequest), JsonContractHelpers.LinkDeviceRequestSerializer},
             { typeof(JsonContracts.UnlinkDeviceRequest), JsonContractHelpers.UnlinkDeviceRequestSerializer},
+            { typeof(JsonContracts.ImageRequest), JsonContractHelpers.ImageRequestSerializer},
             #endregion
         };
 
@@ -2683,7 +2904,26 @@ namespace Cloud.Static
             { typeof(JsonContracts.SyncboxGetAllDocumentItemsResponse), JsonContractHelpers.SyncboxGetAllDocumentItemsResponseSerializer},
             { typeof(JsonContracts.SyncboxGetAllPresentationItemsResponse), JsonContractHelpers.SyncboxGetAllPresentationItemsResponseSerializer},
             { typeof(JsonContracts.SyncboxGetAllTextItemsResponse), JsonContractHelpers.SyncboxGetAllTextItemsResponseSerializer},
+            { typeof(JsonContracts.SyncboxAddFilesResponse), JsonContractHelpers.SyncboxAddFilesResponseSerializer}
+
+            // do NOT add types for string nor object nor HttpWebResponse since those are not meant to be deserialized
         };
+
+        private static bool checkSerializableResponseTypes = ((Func<bool>)(() =>
+        {
+            HelpersValueChecks.Add(() =>
+                {
+                    if (SerializableResponseTypes.Any(
+                        currentResponseType => currentResponseType.Key == typeof(object)
+                            || currentResponseType.Key == typeof(string)
+                            || currentResponseType.Key == typeof(HttpWebResponse)))
+                    {
+                        throw new CLException(CLExceptionCode.General_Invalid, Resources.ExceptionHelpersSerializableResponseTypesKey);
+                    }
+                });
+
+            return true;
+        }))();
         #endregion
 
         /// <summary>
@@ -2718,7 +2958,7 @@ namespace Cloud.Static
         }
 
         /// <summary>
-        /// forwards to the main HTTP REST routine helper method which processes the actual communication, but only where the return type is object
+        /// forwards to the main HTTP REST routine helper method which processes the actual communication, but only where the return type is not a Stream
         /// </summary>
         internal static T ProcessHttp<T>(object requestContent, // JSON contract object to serialize and send up as the request content, if any
             string serverUrl, // the server URL
@@ -2730,7 +2970,7 @@ namespace Cloud.Static
             ICLSyncSettingsAdvanced CopiedSettings, // used for device id, trace settings, and client version
             CLCredentials Credentials, // contains key/secret for authorization
             Nullable<long> SyncboxId, // unique id for the sync box on the server
-            bool isOneOff)
+            bool isOneOff) // one-offs bypass the halt all check
             where T : class // restrict T to an object type to allow default null return
         {
             return ProcessHttpInner<T>(requestContent,
@@ -2744,6 +2984,119 @@ namespace Cloud.Static
                 Credentials,
                 SyncboxId,
                 isOneOff);
+        }
+
+
+        // delegate here is only used to grab the name of the method it's wrapping; needs to match ProcessHttpRawStreamCopy signature (you'll notice build errors otherwise)
+        private delegate Stream ProcessHttpRawStreamCopyDelegate(
+            object requestContent,
+            string serverUrl,
+            string serverMethodPath,
+            requestMethod method,
+            int timeoutMilliseconds,
+            uploadDownloadParams uploadDownload, // parameters if the method is for a file upload or download, or null otherwise
+            HashSet<HttpStatusCode> validStatusCodes,
+            ICLSyncSettingsAdvanced CopiedSettings,
+            Nullable<long> SyncboxId,
+            RequestNewCredentialsInfo RequestNewCredentialsInfo, // gets the credentials and renews the credentials if needed
+            bool isOneOff,
+            CLFileDownloadTransferStatusCallback transferStatusCallback,
+            object transferStatusCallbackUserState,
+            CancellationTokenSource cancellationSource);
+        // Make sure this method's name is unique!!
+        /// <summary>
+        /// forwards to the main HTTP REST routine helper method (but specifically for Streams) which processes the actual communication, but only where the return type is Stream
+        /// </summary>
+        internal static Stream ProcessHttpRawStreamCopy(
+            object requestContent, // JSON contract object to serialize and send up as the request content, if any
+            string serverUrl, // the server URL
+            string serverMethodPath, // the server method path
+            requestMethod method, // type of HTTP method (get vs. put vs. post)
+            int timeoutMilliseconds, // time before communication timeout (does not restrict time for the upload or download of files)
+            uploadDownloadParams uploadDownload, // parameters if the method is for a file upload or download, or null otherwise
+            HashSet<HttpStatusCode> validStatusCodes, // a HashSet with HttpStatusCodes which should be considered all possible successful return codes from the server
+            ICLSyncSettingsAdvanced CopiedSettings, // used for device id, trace settings, and client version
+            Nullable<long> SyncboxId,  // unique id for the sync box on the server
+            RequestNewCredentialsInfo RequestNewCredentialsInfo, // gets the credentials and renews the credentials if needed
+            bool isOneOff, // one-offs bypass the halt all check
+            CLFileDownloadTransferStatusCallback transferStatusCallback,
+            object transferStatusCallbackUserState,
+            CancellationTokenSource cancellationSource)
+        {
+            Stream responseStream = null;
+            HttpWebResponse response = null;
+
+            try
+            {
+                // Part 1: Get the current credentials via a callback, and also get the thread ID.
+                int threadId;
+                CLCredentials Credentials;
+                RequestNewCredentialsPart1GetCredentialsAndThreadId(RequestNewCredentialsInfo, out threadId, out Credentials);
+
+                try
+                {
+                    // Now call the original core processHttp.
+                    response = ProcessHttpInner<HttpWebResponse>(
+                        requestContent,
+                        serverUrl,
+                        serverMethodPath,
+                        method,
+                        timeoutMilliseconds,
+                        uploadDownload,
+                        validStatusCodes,
+                        CopiedSettings,
+                        Credentials,
+                        SyncboxId,
+                        isOneOff);
+
+                    if (RequestNewCredentialsInfo.GetNewCredentialsCallback != null)
+                    {
+                        lock (RequestNewCredentialsInfo.ProcessingStateByThreadId)
+                        {
+                            // Remove this thread's entry from the ProcessingStateByThreadId dictionary
+                            RequestNewCredentialsInfo.ProcessingStateByThreadId.Remove(threadId);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    response = RequestNewCredentialsPart2<HttpWebResponse>(requestContent, serverUrl, serverMethodPath, method, timeoutMilliseconds, uploadDownload, validStatusCodes, CopiedSettings, SyncboxId, RequestNewCredentialsInfo, isOneOff, threadId, Credentials, ex);
+                }
+
+                responseStream = response.GetResponseStream();
+
+                // The total length of the bytes in the stream should be provided in the Content-Length response header.
+                if (response.ContentLength == null || response.ContentLength < 0)
+                {
+                    throw new CLException(CLExceptionCode.Http_NoContentLengthResponseHeader, Resources.ExceptionOnDemandHttpNoContentLengthHeaderInResponse);
+                }
+
+                return Helpers.CopyHttpWebResponseStreamAndClose(responseStream, transferStatusCallback, transferStatusCallbackUserState, response.ContentLength);
+            }
+            finally
+            {
+                if (responseStream != null)
+                {
+                    try
+                    {
+                        responseStream.Dispose();
+                    }
+                    catch
+                    {
+                    }
+                }
+
+                if (response != null)
+                {
+                    try
+                    {
+                        response.Close();
+                    }
+                    catch
+                    {
+                    }
+                }
+            }
         }
 
         /// <summary>
@@ -2760,57 +3113,13 @@ namespace Cloud.Static
             ICLSyncSettingsAdvanced CopiedSettings, // used for device id, trace settings, and client version
             Nullable<long> SyncboxId,  // unique id for the sync box on the server
             RequestNewCredentialsInfo RequestNewCredentialsInfo, // gets the credentials and renews the credentials if needed
-            bool isOneOff)
+            bool isOneOff) // one-offs bypass the halt all check
             where T : class // restrict T to an object type to allow default null return
         {
-            // Part 1 of the "request new credentials" processing.  This processing is invoked when temporary token credentials time out.
-            // In Part 1, we validate the caller's extra parameters, and we add this thread to a dictionary provided by the caller.
-            // The information added to the dictionary will be used in parrt 2 below.
-            int threadId = Thread.CurrentThread.ManagedThreadId;
-
-            if (RequestNewCredentialsInfo == null)
-            {
-                throw new CLArgumentNullException(CLExceptionCode.Http_BadRequest, Resources.ExceptionHelpersProcessHttpNullRequestNewCredentialsInfo);
-            }
-
-            // The caller wants to handle requests for new temporary credentials.  Validate the parameters.
-            if (RequestNewCredentialsInfo.GetCurrentCredentialsCallback == null)
-            {
-                throw new CLArgumentNullException(CLExceptionCode.Http_BadRequest, Resources.ExceptionHelpersProcessHttpNullGetCurrentCredentialsCallback);
-            }
-            if (RequestNewCredentialsInfo.GetNewCredentialsCallback == null)
-            {
-                //// allow get new credentials callback to be null if user only uses one set of credentials ever.
-                //throw new ArgumentNullException("RequestNewCredentialsInfo GetNewCredentialsCallback must not be null");
-            }
-            else
-            {
-                if (RequestNewCredentialsInfo.ProcessingStateByThreadId == null)
-                {
-                    throw new CLArgumentNullException(CLExceptionCode.Http_BadRequest, Resources.ExceptionHelpersProcessHttpNullProcessingStateByThreadId);
-                }
-            }
-            if (RequestNewCredentialsInfo.SetCurrentCredentialsCallback == null)
-            {
-                throw new CLArgumentNullException(CLExceptionCode.Http_BadRequest, Resources.ExceptionHelpersProcessHttpNullSetNewCredentialsCallback);
-            }
-            
+            // Part 1: Get the current credentials via a callback, and also get the thread ID.
+            int threadId;
             CLCredentials Credentials;
-            if (RequestNewCredentialsInfo.GetNewCredentialsCallback != null)
-            {
-                lock (RequestNewCredentialsInfo.ProcessingStateByThreadId)
-                {
-                    // Get the current credentials under the lock.  They may have changed.
-                    Credentials = RequestNewCredentialsInfo.GetCurrentCredentialsCallback();
-
-                    // Add this thread to the dictionary provided by the caller.
-                    RequestNewCredentialsInfo.ProcessingStateByThreadId[threadId] = EnumRequestNewCredentialsStates.RequestNewCredentials_NotSet;
-                }
-            }
-            else
-            {
-                Credentials = RequestNewCredentialsInfo.GetCurrentCredentialsCallback();
-            }
+            RequestNewCredentialsPart1GetCredentialsAndThreadId(RequestNewCredentialsInfo, out threadId, out Credentials);
 
             try
             {
@@ -2840,109 +3149,187 @@ namespace Cloud.Static
             }
             catch (Exception ex)
             {
-                // Part 2 of the "request new credentials" processing.  This processing is invoked when temporary token credentials time out.
-                // Here we watch for the "token expired" error.  We will ask the caller for new temporary credentials. 
-                EnumRequestNewCredentialsStates localThreadState;
+                return RequestNewCredentialsPart2<T>(requestContent, serverUrl, serverMethodPath, method, timeoutMilliseconds, uploadDownload, validStatusCodes, CopiedSettings, SyncboxId, RequestNewCredentialsInfo, isOneOff, threadId, Credentials, ex);
+            } // <-- end catch
+        }
 
-                if (RequestNewCredentialsInfo.GetNewCredentialsCallback == null)
+
+        /// <summary>
+        /// Part 2 of the request new credentials processing.  This method executes in a "catch" when timed-out session credentials are detected.
+        /// </summary>
+        private static T RequestNewCredentialsPart2<T>(
+            object requestContent, 
+            string serverUrl, 
+            string serverMethodPath, 
+            requestMethod method, 
+            int timeoutMilliseconds, 
+            uploadDownloadParams uploadDownload, 
+            HashSet<HttpStatusCode> validStatusCodes, 
+            ICLSyncSettingsAdvanced CopiedSettings, 
+            Nullable<long> SyncboxId, 
+            RequestNewCredentialsInfo RequestNewCredentialsInfo, 
+            bool isOneOff, 
+            int threadId, 
+            CLCredentials Credentials, 
+            Exception ex) where T : class
+        {
+            // Part 2 of the "request new credentials" processing.  This processing is invoked when temporary token credentials time out.
+            // Here we watch for the "token expired" error.  We will ask the caller for new temporary credentials. 
+            EnumRequestNewCredentialsStates localThreadState;
+
+            if (RequestNewCredentialsInfo.GetNewCredentialsCallback == null)
+            {
+                throw ex;
+            }
+            else
+            {
+                CLException castEx;
+
+                lock (RequestNewCredentialsInfo.ProcessingStateByThreadId)
                 {
-                    throw ex;
+                    // Get this thread's value entry in ProcessingStateByThreadId
+                    localThreadState = RequestNewCredentialsInfo.ProcessingStateByThreadId[threadId];
+
+                    // Remove this thread's entry from the ProcessingStateByThreadId dictionary
+                    RequestNewCredentialsInfo.ProcessingStateByThreadId.Remove(threadId);
+
+                    castEx = ex as CLException;
+
+                    // Special handling if this is a 401 NotAuthorized code with the "expired credentials" error enumeration.
+                    if (castEx != null
+                        && castEx.Code == CLExceptionCode.Http_NotAuthorizedExpiredCredentials)
+                    {
+                        switch (localThreadState)
+                        {
+                            // If this thread's state is RequestNewCredentials_NotSet, then this thread is the first in under the
+                            // lock to handle these expired credentials.
+                            case EnumRequestNewCredentialsStates.RequestNewCredentials_NotSet:
+                                // We will call back to the caller to have them go off to a server and produce new credentials.
+                                bool fErrorOccured = false;
+                                try
+                                {
+                                    // Call back to the caller to get new credentials.
+                                    Credentials = RequestNewCredentialsInfo.GetNewCredentialsCallback(RequestNewCredentialsInfo.GetNewCredentialsCallbackUserState);
+
+                                    // Set the credentials back to the caller.
+                                    RequestNewCredentialsInfo.SetCurrentCredentialsCallback(Credentials);
+                                }
+                                catch (Exception innerEx)
+                                {
+                                    CLTrace.Instance.writeToLog(1, "Helpers: ProcessHttp<>: ERROR. Exception from GetNewCredentialsCallback.  Msg: <{0}>.", innerEx.Message);
+                                    fErrorOccured = true;
+                                }
+
+                                // If an error occurred, we will bubble the original 401 status back to the caller.  We will also tell all other threads
+                                // to bubble their statuses back to the caller as well.
+                                EnumRequestNewCredentialsStates newStateToSet;
+                                if (fErrorOccured || Credentials == null)
+                                {
+                                    newStateToSet = EnumRequestNewCredentialsStates.RequestNewCredentials_BubbleResult;
+                                }
+                                // Otherwise, we retrieved new credentials successfully.  We will retry ourselves, and we will tell all other threads to retry as well.
+                                else
+                                {
+                                    newStateToSet = EnumRequestNewCredentialsStates.RequestNewCredentials_Retry;
+                                }
+
+                                // Set this new state for everyone.
+                                localThreadState = newStateToSet;
+                                foreach (int currentKey in RequestNewCredentialsInfo.ProcessingStateByThreadId.Keys.ToArray())
+                                {
+                                    RequestNewCredentialsInfo.ProcessingStateByThreadId[currentKey] = newStateToSet;
+                                }
+                                break;
+
+                            case EnumRequestNewCredentialsStates.RequestNewCredentials_Retry:
+                                // another thread updated the credentials and marked this thread available to retry, use the new credentials
+                                Credentials = RequestNewCredentialsInfo.GetCurrentCredentialsCallback();
+                                break;
+                        }
+                    }
+                }
+
+                // Here we will retry the original operation if we decided to do that under the lock.
+                //
+                // Also, need to make sure the reason to retry was because you had expired credentials and this or another thread renewed the credentials,
+                // this allows all other errors to bubble normally immediately without retrying
+                if (localThreadState == EnumRequestNewCredentialsStates.RequestNewCredentials_Retry
+                    && castEx != null
+                    && castEx.Code == CLExceptionCode.Http_NotAuthorizedExpiredCredentials)
+                {
+                    // Retry the original operation.
+                    return ProcessHttpInner<T>(requestContent,
+                        serverUrl,
+                        serverMethodPath,
+                        method,
+                        timeoutMilliseconds,
+                        uploadDownload,
+                        validStatusCodes,
+                        CopiedSettings,
+                        Credentials,
+                        SyncboxId,
+                        isOneOff);
                 }
                 else
                 {
-                    CLException castEx;
-
-                    lock (RequestNewCredentialsInfo.ProcessingStateByThreadId)
-                    {
-                        // Get this thread's value entry in ProcessingStateByThreadId
-                        localThreadState = RequestNewCredentialsInfo.ProcessingStateByThreadId[threadId];
-
-                        // Remove this thread's entry from the ProcessingStateByThreadId dictionary
-                        RequestNewCredentialsInfo.ProcessingStateByThreadId.Remove(threadId);
-
-                        castEx = ex as CLException;
-
-                        // Special handling if this is a 401 NotAuthorized code with the "expired credentials" error enumeration.
-                        if (castEx != null
-                            && castEx.Code == CLExceptionCode.Http_NotAuthorizedExpiredCredentials)
-                        {
-                            switch (localThreadState)
-                            {
-                                // If this thread's state is RequestNewCredentials_NotSet, then this thread is the first in under the
-                                // lock to handle these expired credentials.
-                                case EnumRequestNewCredentialsStates.RequestNewCredentials_NotSet:
-                                    // We will call back to the caller to have them go off to a server and produce new credentials.
-                                    bool fErrorOccured = false;
-                                    try
-                                    {
-                                        // Call back to the caller to get new credentials.
-                                        Credentials = RequestNewCredentialsInfo.GetNewCredentialsCallback(RequestNewCredentialsInfo.GetNewCredentialsCallbackUserState);
-
-                                        // Set the credentials back to the caller.
-                                        RequestNewCredentialsInfo.SetCurrentCredentialsCallback(Credentials);
-                                    }
-                                    catch (Exception innerEx)
-                                    {
-                                        CLTrace.Instance.writeToLog(1, "Helpers: ProcessHttp<>: ERROR. Exception from GetNewCredentialsCallback.  Msg: <{0}>.", innerEx.Message);
-                                        fErrorOccured = true;
-                                    }
-
-                                    // If an error occurred, we will bubble the original 401 status back to the caller.  We will also tell all other threads
-                                    // to bubble their statuses back to the caller as well.
-                                    EnumRequestNewCredentialsStates newStateToSet;
-                                    if (fErrorOccured || Credentials == null)
-                                    {
-                                        newStateToSet = EnumRequestNewCredentialsStates.RequestNewCredentials_BubbleResult;
-                                    }
-                                    // Otherwise, we retrieved new credentials successfully.  We will retry ourselves, and we will tell all other threads to retry as well.
-                                    else
-                                    {
-                                        newStateToSet = EnumRequestNewCredentialsStates.RequestNewCredentials_Retry;
-                                    }
-
-                                    // Set this new state for everyone.
-                                    localThreadState = newStateToSet;
-                                    foreach (int currentKey in RequestNewCredentialsInfo.ProcessingStateByThreadId.Keys.ToArray())
-                                    {
-                                        RequestNewCredentialsInfo.ProcessingStateByThreadId[currentKey] = newStateToSet;
-                                    }
-                                    break;
-
-                                case EnumRequestNewCredentialsStates.RequestNewCredentials_Retry:
-                                    // another thread updated the credentials and marked this thread available to retry, use the new credentials
-                                    Credentials = RequestNewCredentialsInfo.GetCurrentCredentialsCallback();
-                                    break;
-                            }
-                        }
-                    }
-
-                    // Here we will retry the original operation if we decided to do that under the lock.
-                    //
-                    // Also, need to make sure the reason to retry was because you had expired credentials and this or another thread renewed the credentials,
-                    // this allows all other errors to bubble normally immediately without retrying
-                    if (localThreadState == EnumRequestNewCredentialsStates.RequestNewCredentials_Retry
-                        && castEx != null
-                        && castEx.Code == CLExceptionCode.Http_NotAuthorizedExpiredCredentials)
-                    {
-                        // Retry the original operation.
-                        return ProcessHttpInner<T>(requestContent,
-                            serverUrl,
-                            serverMethodPath,
-                            method,
-                            timeoutMilliseconds,
-                            uploadDownload,
-                            validStatusCodes,
-                            CopiedSettings,
-                            Credentials,
-                            SyncboxId,
-                            isOneOff);
-                    }
-                    else
-                    {
-                        throw ex;
-                    }
+                    throw ex;
                 }
-            } // <-- end catch
+            }
+        }
+
+        /// <summary>
+        /// Part 1 of the request new credentials processing.  Queries the current credentials via a callback.  Returns the current credentials and the thread ID of the executing thread.
+        /// </summary>
+        private static void RequestNewCredentialsPart1GetCredentialsAndThreadId(RequestNewCredentialsInfo RequestNewCredentialsInfo, out int threadId, out CLCredentials Credentials)
+        {
+            // Part 1 of the "request new credentials" processing.  This processing is invoked when temporary token credentials time out.
+            // In Part 1, we validate the caller's extra parameters, and we add this thread to a dictionary provided by the caller.
+            // The information added to the dictionary will be used in parrt 2 below.
+            threadId = Thread.CurrentThread.ManagedThreadId;
+
+            if (RequestNewCredentialsInfo == null)
+            {
+                throw new CLArgumentNullException(CLExceptionCode.Http_BadRequest, Resources.ExceptionHelpersProcessHttpNullRequestNewCredentialsInfo);
+            }
+
+            // The caller wants to handle requests for new temporary credentials.  Validate the parameters.
+            if (RequestNewCredentialsInfo.GetCurrentCredentialsCallback == null)
+            {
+                throw new CLArgumentNullException(CLExceptionCode.Http_BadRequest, Resources.ExceptionHelpersProcessHttpNullGetCurrentCredentialsCallback);
+            }
+            if (RequestNewCredentialsInfo.GetNewCredentialsCallback == null)
+            {
+                //// allow get new credentials callback to be null if user only uses one set of credentials ever.
+                //throw new ArgumentNullException("RequestNewCredentialsInfo GetNewCredentialsCallback must not be null");
+            }
+            else
+            {
+                if (RequestNewCredentialsInfo.ProcessingStateByThreadId == null)
+                {
+                    throw new CLArgumentNullException(CLExceptionCode.Http_BadRequest, Resources.ExceptionHelpersProcessHttpNullProcessingStateByThreadId);
+                }
+            }
+            if (RequestNewCredentialsInfo.SetCurrentCredentialsCallback == null)
+            {
+                throw new CLArgumentNullException(CLExceptionCode.Http_BadRequest, Resources.ExceptionHelpersProcessHttpNullSetNewCredentialsCallback);
+            }
+
+
+            if (RequestNewCredentialsInfo.GetNewCredentialsCallback != null)
+            {
+                lock (RequestNewCredentialsInfo.ProcessingStateByThreadId)
+                {
+                    // Get the current credentials under the lock.  They may have changed.
+                    Credentials = RequestNewCredentialsInfo.GetCurrentCredentialsCallback();
+
+                    // Add this thread to the dictionary provided by the caller.
+                    RequestNewCredentialsInfo.ProcessingStateByThreadId[threadId] = EnumRequestNewCredentialsStates.RequestNewCredentials_NotSet;
+                }
+            }
+            else
+            {
+                Credentials = RequestNewCredentialsInfo.GetCurrentCredentialsCallback();
+            }
         }
 
         /// <summary>
@@ -2959,12 +3346,19 @@ namespace Cloud.Static
             ICLSyncSettingsAdvanced CopiedSettings, // used for device id, trace settings, and client version
             CLCredentials Credentials, // contains key/secret for authorization
             Nullable<long> SyncboxId, // unique id for the sync box on the server
-            bool isOneOff)
+            bool isOneOff, // one-offs bypass the halt all check
+            [CallerMemberName] string callerName = null) // pull the caller method to determine if it's the one which supports the Stream type
             where T : class // restrict T to an object type to allow default null return
         {
             if (AllHaltedOnUnrecoverableError && !isOneOff)
             {
                 throw new CLInvalidOperationException(CLExceptionCode.Http_BadRequest, Resources.ExceptionHelpersProcessHttpInnerAllHaltedOnUnrecoverableError);
+            }
+
+            if (typeof(T) == typeof(HttpWebResponse)
+                && (new ProcessHttpRawStreamCopyDelegate(Helpers.ProcessHttpRawStreamCopy)).Method.Name != callerName) // delegate created from the method should have a Method name of the method itself (hopefuly obfuscation-proof)
+            {
+                throw new CLInvalidOperationException(CLExceptionCode.Http_BadRequest, Resources.ExceptionHelpersProcessHttpInnerStreamCaller);
             }
 
             // check that the temp download folder exists, if not, create it
@@ -2984,6 +3378,9 @@ namespace Cloud.Static
 
             // create the main request object for the provided uri location
             HttpWebRequest httpRequest = (HttpWebRequest)HttpWebRequest.Create(serverUrl + serverMethodPath);
+
+            // use the default HTTP 1.1 protocol version
+            httpRequest.ProtocolVersion = HttpVersion.Version11;
 
             #region set request parameters
             // switch case to set the HTTP method (GET vs. POST vs. PUT); throw exception if not supported yet
@@ -3198,11 +3595,11 @@ namespace Cloud.Static
                     if (uploadDownload is uploadParams)
                     {
                         if (uploadDownload.StatusUpdate != null
-                            && uploadDownload.StatusUpdateId != null)
+                            && uploadDownload.StatusUpdateUserState != null)
                         {
                             try
                             {
-                                uploadDownload.StatusUpdate((Guid)uploadDownload.StatusUpdateId,
+                                uploadDownload.StatusUpdate(uploadDownload.StatusUpdateUserState,
                                     uploadDownload.ChangeToTransfer.EventId,
                                     uploadDownload.ChangeToTransfer.Direction,
                                     uploadDownload.RelativePathForStatus,
@@ -3329,11 +3726,11 @@ namespace Cloud.Static
                                     CopiedSettings.DeviceId); // pass in device id to allow filtering
 
                                 if (uploadDownload.StatusUpdate != null
-                                    && uploadDownload.StatusUpdateId != null)
+                                    && uploadDownload.StatusUpdateUserState != null)
                                 {
                                     try
                                     {
-                                        uploadDownload.StatusUpdate((Guid)uploadDownload.StatusUpdateId,
+                                        uploadDownload.StatusUpdate(uploadDownload.StatusUpdateUserState,
                                             uploadDownload.ChangeToTransfer.EventId,
                                             uploadDownload.ChangeToTransfer.Direction,
                                             uploadDownload.RelativePathForStatus,
@@ -3438,6 +3835,7 @@ namespace Cloud.Static
             string responseBody = null; // string body content of response (for a string output is used instead of the response stream itself)
             Stream responseStream = null; // response stream (when the communication output is a deserialized object instead of a simple string representation)
             Stream serializationStream = null; // a possible copy of the response stream for when the stream has to be used both for trace and for deserializing a return object
+            bool leaveClosingResponseTillAfterReturnWrapping = false; // for typeof(T) == typeof(HttpWebResponse)
 
             // declare the serializer which will be used to deserialize the response content for output
             DataContractJsonSerializer outSerializer;
@@ -3546,7 +3944,8 @@ namespace Cloud.Static
                     || (uploadDownload == null // also, error for non-upload\downloads which cannot be serialized
                         && !pulledOutSerializer // no serializer for this type found
                         && typeof(T) != typeof(string) // don't need serializer for direct string output
-                        && typeof(T) != typeof(object))) // don't need serializer for direct object output (will output as string)
+                        && typeof(T) != typeof(object) // don't need serializer for direct object output (will output as string)
+                        && typeof(T) != typeof(HttpWebResponse))) // don't need serializer for direct Stream output
                 {
                     CLExceptionCode status;
 
@@ -3771,13 +4170,13 @@ namespace Cloud.Static
                         try
                         {
                             if (uploadDownload.StatusUpdate != null
-                                && uploadDownload.StatusUpdateId != null)
+                                && uploadDownload.StatusUpdateUserState != null)
                             {
                                 if (uploadDownload.RelativePathForStatus != null)
                                 {
                                     try
                                     {
-                                        uploadDownload.StatusUpdate((Guid)uploadDownload.StatusUpdateId,
+                                        uploadDownload.StatusUpdate(uploadDownload.StatusUpdateUserState,
                                             uploadDownload.ChangeToTransfer.EventId,
                                             uploadDownload.ChangeToTransfer.Direction,
                                             uploadDownload.RelativePathForStatus,
@@ -3900,11 +4299,11 @@ namespace Cloud.Static
                                         }
 
                                         if (uploadDownload.StatusUpdate != null
-                                            && uploadDownload.StatusUpdateId != null)
+                                            && uploadDownload.StatusUpdateUserState != null)
                                         {
                                             try
                                             {
-                                                uploadDownload.StatusUpdate((Guid)uploadDownload.StatusUpdateId,
+                                                uploadDownload.StatusUpdate(uploadDownload.StatusUpdateUserState,
                                                     uploadDownload.ChangeToTransfer.EventId,
                                                     uploadDownload.ChangeToTransfer.Direction,
                                                     uploadDownload.RelativePathForStatus,
@@ -3933,58 +4332,55 @@ namespace Cloud.Static
                                 }
                             }
 
-                            // set the file attributes so when the file move triggers a change in the event source its metadata should match the current event;
-                            // also, perform each attribute change with up to 4 retries since it seems to throw errors under normal conditions (if it still fails then it rethrows the exception);
-                            // attributes to set: creation time, last modified time, and last access time
+                            //&&&&RKS Review this.
+                            // The downloadParams.AfterDownloadState may be type IAfterDownCallbackState (live sync download), or type GenericHolder<string> (On Demand download). Process accordingly.
+                            bool shouldSetFileAttributes = false;
+                            IAfterDownloadCallbackState castDownloadStateLiveSync = ((downloadParams)uploadDownload).AfterDownloadUserState as IAfterDownloadCallbackState;
+                            if (castDownloadStateLiveSync != null)
+                            {
+                                // This download is from Live Sync.
+                                _trace.writeToMemory(() => _trace.trcFmtStr(2, "Helpers: ProcessHttpInner<T>: Download is from Live Sync."));
 
-                            IAfterDownloadCallbackState castDownloadState = ((downloadParams)uploadDownload).AfterDownloadUserState as IAfterDownloadCallbackState;
-
-                            if (castDownloadState == null)
-                            {
-                                _trace.writeToMemory(() => _trace.trcFmtStr(2, "Helpers: ProcessHttpInner<T>: ERROR: castDownloadState is null."));
-                            }
-                            if (castDownloadState.LockerForDownloadedFileAccess == null)
-                            {
-                                _trace.writeToMemory(() => _trace.trcFmtStr(2, "Helpers: ProcessHttpInner<T>: ERROR: castDownloadState.LockerForDownloadedFileAccess is null."));
-                            }
-                            lock (castDownloadState == null ? new object() : (castDownloadState.LockerForDownloadedFileAccess ?? new object()))
-                            {
-                                _trace.writeToMemory(() => _trace.trcFmtStr(2, "Helpers: ProcessHttpInner<T>: In lock LockerForDownloadedFileAccess."));
-                                if (castDownloadState != null
-                                    && !File.Exists(newTempFileString))
+                                if (castDownloadStateLiveSync.LockerForDownloadedFileAccess == null)
                                 {
-                                    _trace.writeToMemory(() => _trace.trcFmtStr(2, "Helpers: ProcessHttpInner<T>: WARNING: Set file not found to trigger re-download."));
-                                    castDownloadState.SetFileNotFound();
+                                    _trace.writeToMemory(() => _trace.trcFmtStr(2, "Helpers: ProcessHttpInner<T>: ERROR: castDownloadState.LockerForDownloadedFileAccess is null."));
                                 }
-                                else
+                                lock (castDownloadStateLiveSync == null ? new object() : (castDownloadStateLiveSync.LockerForDownloadedFileAccess ?? new object()))
                                 {
-                                    // set the file attributes so when the file move triggers a change in the event source its metadata should match the current event;
-                                    // also, perform each attribute change with up to 4 retries since it seems to throw errors under normal conditions (if it still fails then it rethrows the exception);
-                                    // attributes to set: creation time, last modified time, and last access time
-
-                                    _trace.writeToMemory(() => _trace.trcFmtStr(2, "Helpers: ProcessHttpInner<T>: Set file attributes for file: {0}.", uploadDownload.ChangeToTransfer.NewPath));
-                                    _trace.writeToMemory(() => _trace.trcFmtStr(2, "Helpers: ProcessHttpInner<T>: Set the file creation time attribute. Time: {0}.", uploadDownload.ChangeToTransfer.Metadata.HashableProperties.CreationTime.ToString("G")));
-                                    Helpers.RunActionWithRetries(actionState => System.IO.File.SetCreationTimeUtc(actionState.Key, actionState.Value),
-                                        new KeyValuePair<string, DateTime>(newTempFileString, uploadDownload.ChangeToTransfer.Metadata.HashableProperties.CreationTime),
-                                        true);
-                                    _trace.writeToMemory(() => _trace.trcFmtStr(2, "Helpers: ProcessHttpInner<T>: Set the file last access time attribute. Time: {0}.", uploadDownload.ChangeToTransfer.Metadata.HashableProperties.LastTime.ToString("G")));
-                                    Helpers.RunActionWithRetries(actionState => System.IO.File.SetLastAccessTimeUtc(actionState.Key, actionState.Value),
-                                        new KeyValuePair<string, DateTime>(newTempFileString, uploadDownload.ChangeToTransfer.Metadata.HashableProperties.LastTime),
-                                        true);
-                                    _trace.writeToMemory(() => _trace.trcFmtStr(2, "Helpers: ProcessHttpInner<T>: Set the file last write time attribute. Time: {0}.", uploadDownload.ChangeToTransfer.Metadata.HashableProperties.LastTime.ToString("G")));
-                                    Helpers.RunActionWithRetries(actionState => System.IO.File.SetLastWriteTimeUtc(actionState.Key, actionState.Value),
-                                        new KeyValuePair<string, DateTime>(newTempFileString, uploadDownload.ChangeToTransfer.Metadata.HashableProperties.LastTime),
-                                        true);
-
-                                    // fire callback to perform the actual move of the temp file to the final destination
-                                    _trace.writeToMemory(() => _trace.trcFmtStr(2, "Helpers: ProcessHttpInner<T>: Call AfterDownloadCallback. Path: {0}.", newTempFileString));
-                                    ((downloadParams)uploadDownload).AfterDownloadCallback(newTempFileString, // location of temp file
-                                        uploadDownload.ChangeToTransfer,
-                                        ref responseBody, // reference to response string (sets to "---Completed file download---" on success)
-                                        ((downloadParams)uploadDownload).AfterDownloadUserState, // timer for failure queue
-                                        newTempFile); // id for the downloaded file
-                                    _trace.writeToMemory(() => _trace.trcFmtStr(2, "Helpers: ProcessHttpInner<T>: After call to AfterDownloadCallback."));
+                                    _trace.writeToMemory(() => _trace.trcFmtStr(2, "Helpers: ProcessHttpInner<T>: In lock LockerForDownloadedFileAccess."));
+                                    if (castDownloadStateLiveSync != null
+                                        && !File.Exists(newTempFileString))
+                                    {
+                                        _trace.writeToMemory(() => _trace.trcFmtStr(2, "Helpers: ProcessHttpInner<T>: WARNING: Set file not found to trigger re-download."));
+                                        castDownloadStateLiveSync.SetFileNotFound();
+                                    }
+                                    else
+                                    {
+                                        shouldSetFileAttributes = true;
+                                    }
                                 }
+                            }
+                            else
+                            {
+                                // This download is not from Live Sync.
+                                _trace.writeToMemory(() => _trace.trcFmtStr(2, "Helpers: ProcessHttpInner<T>: Download is NOT from Live Sync."));
+                                // This is an On Demand download
+                                if (!File.Exists(newTempFileString))
+                                {
+                                    throw new CLException(CLExceptionCode.OnDemand_DownloadTempDownloadFileNotFoundAfterSuccessfulDownload, Resources.ExceptionOnDemandDownloadFileTempFileDidNotExistAfterSuccessfulDownload);
+                                }
+
+                                shouldSetFileAttributes = true;
+                            }
+
+                            //// set the file attributes so when the file move triggers a change in the event source its metadata should match the current event;  //&&&&RKS Old code
+                            //// also, perform each attribute change with up to 4 retries since it seems to throw errors under normal conditions (if it still fails then it rethrows the exception);
+                            //// attributes to set: creation time, last modified time, and last access time
+
+                            // Set the attributes of the temp download file.
+                            if (shouldSetFileAttributes)
+                            {
+                                responseBody = SetTempDownloadFileAttributes(uploadDownload, responseBody, newTempFile, newTempFileString);
                             }
 
                             // if the after downloading callback set the response to null, then replace it saying it was null
@@ -4092,7 +4488,7 @@ namespace Cloud.Static
                     // else if the output type is not in the dictionary of those serializable and if the output type is either object or string,
                     // then process the response content as a string to output directly
                     else if (typeof(T) == typeof(string)
-                        || (typeof(T) == typeof(object)))
+                        || typeof(T) == typeof(object))
                     {
                         // grab the stream from the response content
                         responseStream = httpResponse.GetResponseStream();
@@ -4103,6 +4499,19 @@ namespace Cloud.Static
                             // set the error string from the response
                             toReturn = (T)((object)purgeResponseStreamReader.ReadToEnd());
                         }
+                    }
+                    // else if the output type is not in the dictionary of those serializable and if the output type is Stream,
+                    // then the implementing application will process the response (give them a MemoryStream copy)
+                    else if (typeof(T) == typeof(HttpWebResponse))
+                    {
+                        // the caller needs to copy the stream as a MemoryStream, return response as-is
+                        toReturn = (T)((object)httpResponse);
+
+                        // set a body for communication logging (even though communication does not actually complete until the Stream is closed)
+                        responseBody = Resources.HelpersProcessHttpInnerStreamWrappedResponseBody;
+
+                        // skips closing the response (leaving it up to the caller to handle)
+                        leaveClosingResponseTillAfterReturnWrapping = true;
                     }
                     // else if the output type is not in the dictionary of those serializable and if the output type is also neither object nor string,
                     // then we should have handled this condition earlier in invalid status code processing: process as unrecoverable error
@@ -4161,13 +4570,13 @@ namespace Cloud.Static
                     }
 
                     if (uploadDownload.StatusUpdate != null
-                        && uploadDownload.StatusUpdateId != null)
+                        && uploadDownload.StatusUpdateUserState != null)
                     {
                         try
                         {
                             if (uploadDownload.RelativePathForStatus != null)
                             {
-                                uploadDownload.StatusUpdate((Guid)uploadDownload.StatusUpdateId,
+                                uploadDownload.StatusUpdate(uploadDownload.StatusUpdateUserState,
                                     uploadDownload.ChangeToTransfer.EventId,
                                     uploadDownload.ChangeToTransfer.Direction,
                                     uploadDownload.RelativePathForStatus,
@@ -4234,7 +4643,9 @@ namespace Cloud.Static
                 }
 
                 // if there was a response retrieved then try to close it
-                if (httpResponse != null)
+                if (httpResponse != null
+
+                    && !leaveClosingResponseTillAfterReturnWrapping) // for copying the raw Stream prevent closing the response, which would dispose the inner Stream: for typeof(T) == typeof(HttpWebResponse)
                 {
                     try
                     {
@@ -4245,6 +4656,40 @@ namespace Cloud.Static
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// Set the attributes of the temp download file.
+        /// </summary>
+        private static string SetTempDownloadFileAttributes(uploadDownloadParams uploadDownload, string responseBody, Guid newTempFile, string newTempFileString)
+        {
+            // set the file attributes so when the file move triggers a change in the event source its metadata should match the current event;
+            // also, perform each attribute change with up to 4 retries since it seems to throw errors under normal conditions (if it still fails then it rethrows the exception);
+            // attributes to set: creation time, last modified time, and last access time
+
+            _trace.writeToMemory(() => _trace.trcFmtStr(2, "Helpers: SetTempDownloadFileAttributes: Set file attributes for file: {0}.", uploadDownload.ChangeToTransfer.NewPath));
+            _trace.writeToMemory(() => _trace.trcFmtStr(2, "Helpers: SetTempDownloadFileAttributes: Set the file creation time attribute. Time: {0}.", uploadDownload.ChangeToTransfer.Metadata.HashableProperties.CreationTime.ToString("G")));
+            Helpers.RunActionWithRetries(actionState => System.IO.File.SetCreationTimeUtc(actionState.Key, actionState.Value),
+                new KeyValuePair<string, DateTime>(newTempFileString, uploadDownload.ChangeToTransfer.Metadata.HashableProperties.CreationTime),
+                true);
+            _trace.writeToMemory(() => _trace.trcFmtStr(2, "Helpers: SetTempDownloadFileAttributes: Set the file last access time attribute. Time: {0}.", uploadDownload.ChangeToTransfer.Metadata.HashableProperties.LastTime.ToString("G")));
+            Helpers.RunActionWithRetries(actionState => System.IO.File.SetLastAccessTimeUtc(actionState.Key, actionState.Value),
+                new KeyValuePair<string, DateTime>(newTempFileString, uploadDownload.ChangeToTransfer.Metadata.HashableProperties.LastTime),
+                true);
+            _trace.writeToMemory(() => _trace.trcFmtStr(2, "Helpers: SetTempDownloadFileAttributes: Set the file last write time attribute. Time: {0}.", uploadDownload.ChangeToTransfer.Metadata.HashableProperties.LastTime.ToString("G")));
+            Helpers.RunActionWithRetries(actionState => System.IO.File.SetLastWriteTimeUtc(actionState.Key, actionState.Value),
+                new KeyValuePair<string, DateTime>(newTempFileString, uploadDownload.ChangeToTransfer.Metadata.HashableProperties.LastTime),
+                true);
+
+            // fire callback to perform the actual move of the temp file to the final destination
+            _trace.writeToMemory(() => _trace.trcFmtStr(2, "Helpers: SetTempDownloadFileAttributes: Call AfterDownloadCallback. Path: {0}.", newTempFileString));
+            ((downloadParams)uploadDownload).AfterDownloadCallback(newTempFileString, // location of temp file
+                uploadDownload.ChangeToTransfer,
+                ref responseBody, // reference to response string (sets to "---Completed file download---" on success)
+                ((downloadParams)uploadDownload).AfterDownloadUserState, // timer for failure queue
+                newTempFile); // id for the downloaded file
+            _trace.writeToMemory(() => _trace.trcFmtStr(2, "Helpers: SetTempDownloadFileAttributes: After call to AfterDownloadCallback."));
+            return responseBody;
         }
 
         private static void RemoveNullJsonFields(SimpleJsonBase.SimpleJson.JsonObject toClean)
@@ -4465,19 +4910,21 @@ namespace Cloud.Static
                             }
                         }
 
+                        //// no need to pulse because we're using the IAsyncResult's WaitHandle
+                        //
                         // if asynchronous task completed, then pulse the AsyncRequestHolder
-                        if (param1.IsCompleted)
-                        {
-                            if (!param1.CompletedSynchronously)
-                            {
-                                lock (Data)
-                                {
-                                    Monitor.Pulse(Data);
-                                }
-                            }
-                        }
+                        //if (param1.IsCompleted)
+                        //{
+                        //    if (!param1.CompletedSynchronously)
+                        //    {
+                        //        lock (Data)
+                        //        {
+                        //            Monitor.Pulse(Data);
+                        //        }
+                        //    }
+                        //}
                         // else if asychronous task is not completed, then check for cancellation
-                        else if (Data.FullShutdownToken != null)
+                        /* else */ if (Data.FullShutdownToken != null)
                         {
                             // check for cancellation
                             Monitor.Enter(Data.FullShutdownToken);
@@ -4488,13 +4935,15 @@ namespace Cloud.Static
                                 {
                                     Data.IsCancelled.Value = true;
 
-                                    if (!param1.CompletedSynchronously)
-                                    {
-                                        lock (Data)
-                                        {
-                                            Monitor.Pulse(Data);
-                                        }
-                                    }
+                                    //// no need to pulse because we're using the IAsyncResult's WaitHandle
+                                    //
+                                    //if (!param1.CompletedSynchronously)
+                                    //{
+                                    //    lock (Data)
+                                    //    {
+                                    //        Monitor.Pulse(Data);
+                                    //    }
+                                    //}
                                 }
                             }
                             finally
@@ -4507,6 +4956,10 @@ namespace Cloud.Static
                     {
                         // mark AsyncRequestHolder with error and pulse out
                         Data.Error.Value = ex;
+
+                        //// no need to pulse because we're using the IAsyncResult's WaitHandle
+                        //
+                        // [pulse code removed?]
                     }
                 },
                 null);
@@ -4684,14 +5137,14 @@ namespace Cloud.Static
             private readonly FileTransferStatusUpdateDelegate _statusUpdate;
 
 
-            public Nullable<Guid> StatusUpdateId
+            public object StatusUpdateUserState
             {
                 get
                 {
-                    return _statusUpdateId;
+                    return _statusUpdateUserState;
                 }
             }
-            private readonly Nullable<Guid> _statusUpdateId;
+            private readonly object _statusUpdateUserState;
 
             /// <summary>
             /// The constructor for this abstract base object with all parameters corresponding to all properties
@@ -4703,7 +5156,9 @@ namespace Cloud.Static
             /// <param name="ACallback">User-provided callback to fire upon asynchronous operation</param>
             /// <param name="AResult">Asynchronous result for firing async callbacks</param>
             /// <param name="ProgressHolder">Holder for a progress state which can be queried by the user</param>
-            public uploadDownloadParams(SendUploadDownloadStatus StatusCallback, FileChange ChangeToTransfer, CancellationTokenSource ShutdownToken, string SyncboxPath, AsyncCallback ACallback, IAsyncResult AResult, GenericHolder<TransferProgress> ProgressHolder, FileTransferStatusUpdateDelegate StatusUpdate, Nullable<Guid> StatusUpdateId)
+            /// <param name="StatusUpdate">A transfer status update callback for reporting upload status.  May be null.</param>
+            /// <param name="StatusUpdateUserState">The user contect to pass to the transfer status update callback above.  May be null.</param>
+            public uploadDownloadParams(SendUploadDownloadStatus StatusCallback, FileChange ChangeToTransfer, CancellationTokenSource ShutdownToken, string SyncboxPath, AsyncCallback ACallback, IAsyncResult AResult, GenericHolder<TransferProgress> ProgressHolder, FileTransferStatusUpdateDelegate StatusUpdate, object StatusUpdateUserState)
             {
                 // check for required parameters and error out if not set
 
@@ -4750,7 +5205,7 @@ namespace Cloud.Static
                 this._aResult = AResult;
                 this._progressHolder = ProgressHolder;
                 this._statusUpdate = StatusUpdate;
-                this._statusUpdateId = StatusUpdateId;
+                this._statusUpdateUserState = StatusUpdateUserState;
             }
         }
 
@@ -4832,10 +5287,12 @@ namespace Cloud.Static
             /// <param name="ACallback">User-provided callback to fire upon asynchronous operation</param>
             /// <param name="AResult">Asynchronous result for firing async callbacks</param>
             /// <param name="ProgressHolder">Holder for a progress state which can be queried by the user</param>
+            /// <param name="StatusUpdate">A transfer status update callback for reporting upload status.  May be null.</param>
+            /// <param name="StatusUpdateUserState">The user contect to pass to the transfer status update callback above.  May be null.</param>
             /// <param name="BeforeDownloadCallback">A non-required (possibly null) event handler for before a download starts</param>
             /// <param name="BeforeDownloadUserState">UserState object passed through as-is when the BeforeDownloadCallback handler is fired</param>
-            public downloadParams(AfterDownloadToTempFile AfterDownloadCallback, object AfterDownloadUserState, string TempDownloadFolderPath, SendUploadDownloadStatus StatusCallback, FileChange ChangeToTransfer, CancellationTokenSource ShutdownToken, string SyncboxPath, AsyncCallback ACallback, IAsyncResult AResult, GenericHolder<TransferProgress> ProgressHolder, FileTransferStatusUpdateDelegate StatusUpdate, Nullable<Guid> StatusUpdateId, BeforeDownloadToTempFile BeforeDownloadCallback = null, object BeforeDownloadUserState = null)
-                : base(StatusCallback, ChangeToTransfer, ShutdownToken, SyncboxPath, ACallback, AResult, ProgressHolder, StatusUpdate, StatusUpdateId)
+            public downloadParams(AfterDownloadToTempFile AfterDownloadCallback, object AfterDownloadUserState, string TempDownloadFolderPath, SendUploadDownloadStatus StatusCallback, FileChange ChangeToTransfer, CancellationTokenSource ShutdownToken, string SyncboxPath, AsyncCallback ACallback, IAsyncResult AResult, GenericHolder<TransferProgress> ProgressHolder, FileTransferStatusUpdateDelegate StatusUpdate, object StatusUpdateUserState, BeforeDownloadToTempFile BeforeDownloadCallback = null, object BeforeDownloadUserState = null)
+                : base(StatusCallback, ChangeToTransfer, ShutdownToken, SyncboxPath, ACallback, AResult, ProgressHolder, StatusUpdate, StatusUpdateUserState)
             {
                 // additional checks for parameters which were not already checked via the abstract base constructor
 
@@ -4933,6 +5390,7 @@ namespace Cloud.Static
             /// <summary>
             /// The sole constructor for this class with all parameters corresponding to all properties in this class and within its base class uploadDownloadParams
             /// </summary>
+            /// <param name="StreamContext">The stream context to represent the stream opened to the file on disk.</param>
             /// <param name="StatusCallback">A handler delegate to be fired whenever there is new status information for an upload or download (the progress of the upload/download or completion)</param>
             /// <param name="ChangeToTransfer">UserState object which is required for calling the StatusCallback for sending status information events; also used to retrieve the StorageKey and MD5 hash for upload</param>
             /// <param name="ShutdownToken">A non-required (possibly null) user-provided token source which is checked through an upload or download in order to cancel it</param>
@@ -4941,8 +5399,10 @@ namespace Cloud.Static
             /// <param name="ACallback">User-provided callback to fire upon asynchronous operation</param>
             /// <param name="AResult">Asynchronous result for firing async callbacks</param>
             /// <param name="ProgressHolder">Holder for a progress state which can be queried by the user</param>
-            public uploadParams(StreamContext StreamContext, SendUploadDownloadStatus StatusCallback, FileChange ChangeToTransfer, CancellationTokenSource ShutdownToken, string SyncboxPath, AsyncCallback ACallback, IAsyncResult AResult, GenericHolder<TransferProgress> ProgressHolder, FileTransferStatusUpdateDelegate StatusUpdate, Nullable<Guid> StatusUpdateId)
-                : base(StatusCallback, ChangeToTransfer, ShutdownToken, SyncboxPath, ACallback, AResult, ProgressHolder, StatusUpdate, StatusUpdateId)
+            /// <param name="StatusUpdate">A transfer status update callback for reporting upload status.  May be null.</param>
+            /// <param name="StatusUpdateUserState">The user contect to pass to the transfer status update callback above.  May be null.</param>
+            public uploadParams(StreamContext StreamContext, SendUploadDownloadStatus StatusCallback, FileChange ChangeToTransfer, CancellationTokenSource ShutdownToken, string SyncboxPath, AsyncCallback ACallback, IAsyncResult AResult, GenericHolder<TransferProgress> ProgressHolder, FileTransferStatusUpdateDelegate StatusUpdate, object StatusUpdateUserState)
+                : base(StatusCallback, ChangeToTransfer, ShutdownToken, SyncboxPath, ACallback, AResult, ProgressHolder, StatusUpdate, StatusUpdateUserState)
             {
                 // additional checks for parameters which were not already checked via the abstract base constructor
 
@@ -5113,7 +5573,7 @@ namespace Cloud.Static
                 // if trying to cast the asynchronous result failed, then throw an error
                 if (castAResult == null)
                 {
-                    throw new CLInvalidOperationException(CLExceptionCode.General_Invalid, Resources.CLAsyncResultInternalTypeMismatch);
+                    throw new CLInvalidOperationException(CLExceptionCode.General_ObjectNotExpectedType, Resources.CLAsyncResultInternalTypeMismatch);
                 }
 
                 // pull the result for output (may not yet be complete)

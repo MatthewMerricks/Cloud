@@ -303,6 +303,20 @@ namespace Cloud.JsonContracts
         private static DataContractJsonSerializer _fileAddSerializer = null;
         private static readonly object FileAddSerializerLocker = new object();
 
+        public static DataContractJsonSerializer FileAddsSerializer
+        {
+            get
+            {
+                lock (FileAddsSerializerLocker)
+                {
+                    return _fileAddsSerializer
+                        ?? (_fileAddsSerializer = new DataContractJsonSerializer(typeof(JsonContracts.FileAdds)));
+                }
+            }
+        }
+        private static DataContractJsonSerializer _fileAddsSerializer = null;
+        private static readonly object FileAddsSerializerLocker = new object();
+
         public static DataContractJsonSerializer FileModifySerializer
         {
             get
@@ -1043,6 +1057,20 @@ namespace Cloud.JsonContracts
         private static DataContractJsonSerializer _unlinkDeviceRequestSerializer = null;
         private static readonly object UnlinkDeviceRequestSerializerLocker = new object();
 
+        public static DataContractJsonSerializer ImageRequestSerializer
+        {
+            get
+            {
+                lock (ImageRequestSerializerLocker)
+                {
+                    return _imageRequestSerializer
+                        ?? (_imageRequestSerializer = new DataContractJsonSerializer(typeof(JsonContracts.ImageRequest)));
+                }
+            }
+        }
+        private static DataContractJsonSerializer _imageRequestSerializer = null;
+        private static readonly object ImageRequestSerializerLocker = new object();
+
         public static DataContractJsonSerializer UnlinkDeviceResponseSerializer
         {
             get
@@ -1126,6 +1154,20 @@ namespace Cloud.JsonContracts
         }
         private static DataContractJsonSerializer _syncboxGetAllTextItemsResponseSerializer = null;
         private static readonly object SyncboxGetAllTextItemsResponseSerializerLocker = new object();
+
+        public static DataContractJsonSerializer SyncboxAddFilesResponseSerializer
+        {
+            get
+            {
+                lock (SyncboxAddFilesResponseSerializerLocker)
+                {
+                    return _syncboxAddFilesResponseSerializer
+                        ?? (_syncboxAddFilesResponseSerializer = new DataContractJsonSerializer(typeof(JsonContracts.SyncboxAddFilesResponse)));
+                }
+            }
+        }
+        private static DataContractJsonSerializer _syncboxAddFilesResponseSerializer = null;
+        private static readonly object SyncboxAddFilesResponseSerializerLocker = new object();
         #endregion
     }
 }

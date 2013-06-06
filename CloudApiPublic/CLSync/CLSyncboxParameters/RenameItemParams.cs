@@ -50,15 +50,6 @@ namespace Cloud.CLSync.CLSyncboxParameters
         /// <param name="newName">New name of the item</param>
         public RenameItemParams(CLFileItem itemToRename, string newName)
         {
-            if (itemToRename == null)
-            {
-                throw new CLArgumentNullException(Static.CLExceptionCode.OnDemand_MissingParameters, Resources.ExceptionOnDemandItemToRenameMustNotBeNull);
-            }
-            if (String.IsNullOrEmpty(newName))
-            {
-                throw new CLArgumentNullException(Static.CLExceptionCode.OnDemand_MissingParameters, Resources.ExceptionOnDemandNewNameMustBeSpecified);
-            }
-
             this._itemToRename = itemToRename;
             this._newName = newName;
         }

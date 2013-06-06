@@ -10,8 +10,9 @@ using Cloud.Model;
 using Cloud.REST;
 using Cloud.Static;
 using System;
-using System.Drawing;
+using System.IO;
 using System.Linq;
+using System.Threading;
 
 namespace Cloud.CLSync
 {
@@ -26,19 +27,15 @@ namespace Cloud.CLSync
         private readonly ICLSyncSettingsAdvanced _copiedSettings;
 
         #endregion
-        #region Public Delegates
-
-        public delegate void DownloadFileProgress(int downloadedBytes, int totalDownloadedBytes, int totalExpectedBytes);		 
-
-    	#endregion
-
         #region Public Enums
 
         public enum CLFileItemImageSize
         {
             CLFileItemImageSizeSmall = 0,
             CLFileItemImageSizeMedium,
-            CLFileItemImageSizeLarge
+            CLFileItemImageSizeLarge,
+            CLFileItemImageSizeFull,
+            CLFileItemImageSizeThumbnail,
         }
 
         #endregion
@@ -54,14 +51,26 @@ namespace Cloud.CLSync
         }
         private readonly string _name;
 
-        public string Path
+        public string RelativePath
         {
             get
             {
-                return _path;
+                return _relativePath;
             }
         }
-        private readonly string _path;
+        private readonly string _relativePath;
+
+        /// <summary>
+        /// The absolute path represented by the syncbox path plus this item's relative path. Will be null if relative path or the syncbox path is null or empty.
+        /// </summary>
+        public string FullPath
+        {
+            get
+            {
+                return _fullPath;
+            }
+        }
+        private readonly string _fullPath;
 
         public string Revision
         {
@@ -144,6 +153,15 @@ namespace Cloud.CLSync
         }
         private readonly bool _isDeleted;
 
+        public bool IsPending
+        {
+            get
+            {
+                return _isPending;
+            }
+        }
+        private readonly bool _isPending;
+
         public Nullable<POSIXPermissions> Permissions
         {
             get
@@ -174,48 +192,71 @@ namespace Cloud.CLSync
 
         #endregion  // end Public Properties
 
-        #region Constructors
-        
-        // iOS is not allowing public construction of the CLFileItem, it can only be produced internally by create operations or by queries
-        internal /* public */ CLFileItem(
-            string name,
-            string path,
-            string revision,
-            Nullable<long> size,
-            string mimeType,
-            DateTime createdDate,
-            DateTime modifiedDate,
-            string uid,
-            string parentUid,
-            bool isFolder,
-            bool isDeleted,
-            Nullable<POSIXPermissions> permissions,
-            CLSyncbox syncbox)
+        #region Internal Readonly Properties
+
+        internal string StorageKey
         {
-            if (syncbox == null)
+            get
             {
-                throw new CLArgumentNullException(CLExceptionCode.FileItem_NullSyncbox, Resources.SyncboxMustNotBeNull);
+                return _storageKey;
             }
-
-            this._name = name;
-            this._path = path;
-            this._revision = revision;
-            this._size = size;
-            this._mimeType = mimeType;
-            this._createdDate = createdDate;
-            this._modifiedDate = modifiedDate;
-            this._uid = uid;
-            this._parentUid = parentUid;
-            this._isFolder = isFolder;
-            this._isDeleted = isDeleted;
-            this._permissions = permissions;
-            this._syncbox = syncbox;
-            //// in public SDK documents, but for now it's always zero, so don't expose it
-            //this._childrenCount = 0;
-
-            this._httpRestClient = syncbox.HttpRestClient;
-            this._copiedSettings = syncbox.CopiedSettings;
         }
+        private readonly string _storageKey;
+
+        #endregion
+
+        #region Constructors
+
+        //// iOS is not allowing public construction of the CLFileItem, it can only be produced internally by create operations or by queries
+        //
+        //// we aren't using this constructor and it's internal, so it's commented for now
+        //
+        //internal /* public */ CLFileItem(
+        //    string name,
+        //    string relativePath,
+        //    string revision,
+        //    Nullable<long> size,
+        //    string mimeType,
+        //    DateTime createdDate,
+        //    DateTime modifiedDate,
+        //    string uid,
+        //    string parentUid,
+        //    bool isFolder,
+        //    bool isDeleted,
+        //    bool isPending,d
+        //    Nullable<POSIXPermissions> permissions,
+        //    CLSyncbox syncbox)
+        //{
+        //    if (syncbox == null)
+        //    {
+        //        throw new CLArgumentNullException(CLExceptionCode.FileItem_NullSyncbox, Resources.SyncboxMustNotBeNull);
+        //    }
+            //if (string.IsNullOrEmpty(syncbox.Path))
+            //{
+            //    throw new CLArgumentNullException(CLExceptionCode.Syncbox_BadPath, Resources.ExceptionOnDemandCheckPathSyncboxPathNull);
+            //}
+
+        //    this._name = name;
+        //    this._relativePath = relativePath;
+        //    this._fullPath = [calculate full path here]
+        //    this._revision = revision;
+        //    this._size = size;
+        //    this._mimeType = mimeType;
+        //    this._createdDate = createdDate;
+        //    this._modifiedDate = modifiedDate;
+        //    this._uid = uid;
+        //    this._parentUid = parentUid;
+        //    this._isFolder = isFolder;
+        //    this._isDeleted = isDeleted;
+        //    this._isPending = isPending;
+        //    this._permissions = permissions;
+        //    this._syncbox = syncbox;
+        //    //// in public SDK documents, but for now it's always zero, so don't expose it
+        //    //this._childrenCount = 0;
+
+        //    this._httpRestClient = syncbox.HttpRestClient;
+        //    this._copiedSettings = syncbox.CopiedSettings;
+        //}
 
         /// <summary>
         /// Use this if the response does not have a headerAction or action.
@@ -267,7 +308,18 @@ namespace Cloud.CLSync
             }
 
             this._name = response.Name;
-            this._path = response.RelativePath;
+            string coallescedRelativePath = response.RelativeToPathWithoutEnclosingSlashes ?? response.RelativePathWithoutEnclosingSlashes;
+
+            this._relativePath = (coallescedRelativePath == null
+                ? null
+                : (coallescedRelativePath.Replace('/', '\\')));
+
+            this._fullPath = (coallescedRelativePath == null
+                ? null
+                : (string.IsNullOrEmpty(syncbox.Path)
+                    ? null
+                    : (syncbox.Path + "\\" + this._relativePath)));
+
             this._revision = response.Revision;
             this._size = response.Size;
             this._mimeType = response.MimeType;
@@ -276,8 +328,10 @@ namespace Cloud.CLSync
             this._uid = response.ServerUid;
             this._parentUid = response.ParentUid;
             this._isDeleted = response.IsDeleted ?? false;
+            this._isPending = !(response.IsNotPending ?? true);
             this._permissions = response.PermissionsEnum;
             this._syncbox = syncbox;
+            this._storageKey = response.StorageKey;
             //// in public SDK documents, but for now it's always zero, so don't expose it
             //this._childrenCount = 0;
 
@@ -300,46 +354,167 @@ namespace Cloud.CLSync
         /// <summary>
         /// Asynchronously starts downloading a file representing this CLFileItem object from the cloud.
         /// </summary>
-        /// <param name="callback">Callback method to fire when operation completes</param>
-        /// <param name="callbackUserState">Userstate to pass when firing async callback</param>
+        /// <param name="asyncCallback">Callback method to fire when the async operation completes.  Can be null.</param>
+        /// <param name="asyncCallbackUserState">User state to pass to the async callback when it is fired.  Can be null.</param>
+        /// <param name="transferStatusCallback">The callback to fire with tranfer status updates.  May be null.</param>
+        /// <param name="transferStatusCallbackUserState">The user state to pass to the transfer status callback above.  May be null.</param>
+        /// <param name="cancellationSource">A cancellation token source object that can be used to cancel the download operation.  May be null</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
-        public IAsyncResult BeginDownloadFile(AsyncCallback callback, object callbackUserState)
+        public IAsyncResult BeginDownloadFile(
+            AsyncCallback asyncCallback, 
+            object asyncCallbackUserState,
+            CLFileDownloadTransferStatusCallback transferStatusCallback,
+            object transferStatusCallbackUserState,
+            CancellationTokenSource cancellationSource)
         {
-            CheckHalted();
+            Helpers.CheckHalted();
 
-            FileChange fcToDownload = new FileChange()
-            {
-                 Direction = SyncDirection.From
-            };
-            return _httpRestClient.BeginDownloadFile(callback, callbackUserState, fcToDownload, this.Uid, this.Revision, OnAfterDownloadToTempFile, this, _copiedSettings.HttpTimeoutMilliseconds);
+            var asyncThread = DelegateAndDataHolderBase.Create(
+                // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
+                new
+                {
+                    // create the asynchronous result to return
+                    toReturn = new GenericAsyncResult<FileItemDownloadFileResult>(
+                        asyncCallback,
+                        asyncCallbackUserState),
+                    transferStatusCallback = transferStatusCallback,
+                    transferStatusCallbackUserState = transferStatusCallbackUserState,
+                    cancellationSource = cancellationSource,
+                },
+                (Data, errorToAccumulate) =>
+                {
+                    // The ThreadProc.
+                    // try/catch to process with the input parameters, on catch set the exception in the asyncronous result
+                    try
+                    {
+                        // alloc and init the syncbox with the passed parameters, storing any error that occurs
+                        string fullPathDownloadedTempFile;
+                        CLError processError = DownloadFile(
+                            out fullPathDownloadedTempFile,
+                            Data.transferStatusCallback,
+                            Data.transferStatusCallbackUserState,
+                            Data.cancellationSource);
+
+                        Data.toReturn.Complete(
+                            new FileItemDownloadFileResult(
+                                processError,  // any error that may have occurred during processing
+                                fullPathDownloadedTempFile),
+                            sCompleted: false); // processing did not complete synchronously
+                    }
+                    catch (Exception ex)
+                    {
+                        Data.toReturn.HandleException(
+                            ex, // the exception which was not handled correctly by the CLError wrapping
+                            sCompleted: false); // processing did not complete synchronously
+                    }
+                },
+                null);
+
+            // create the thread from a void (object) parameterized start which wraps the synchronous method call
+            (new Thread(new ThreadStart(asyncThread.VoidProcess))).Start(); // start the asynchronous processing thread which is attached to its data
+
+            // return the asynchronous result
+            return asyncThread.TypedData.toReturn;
         }
 
         /// <summary>
-        /// Finishes downloading a file, if it has not already finished via its asynchronous result, and outputs the result,
+        /// Finishes downloading a file from the syncbox, if it has not already finished via its asynchronous result, and outputs the result,
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
         /// </summary>
-        /// <param name="aResult">The asynchronous result provided upon starting the audios query</param>
-        /// <param name="result">(output) The result from the request</param>
+        /// <param name="asyncResult">The asynchronous result provided upon starting creating the syncbox</param>
+        /// <param name="result">(output) The result from the asynchronous operation.</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndDownloadFile(IAsyncResult aResult, out DownloadFileResult result)
+        public CLError EndDownloadFile(IAsyncResult asyncResult, out DownloadFileResult result)
         {
-            CheckHalted();
-            return _httpRestClient.EndDownloadFile(aResult, out result);
+            Helpers.CheckHalted();
+            return _httpRestClient.EndDownloadFile(asyncResult, out result);
         }
 
         /// <summary>
-        /// Download the file represented by this CLFileItem object from the cloud.
+        /// Download the file represented by this CLFileItem object from the cloud.  The file will be downloaded into a unique
+        /// file name in the temporary download directory.  Upon successful download, the full path of the temporary file will be output to the caller.
+        /// The caller is responsible for moving the temp file to its permanent location, and for ensuring that the temporary file
+        /// has been deleted.
         /// </summary>
+        /// <param name="fullPathDownloadedTempFile">(output) The full path of the downloaded file in the temp download directory.</param>
+        /// <param name="transferStatusCallback">The callback to fire with tranfer status updates.  May be null.</param>
+        /// <param name="transferStatusCallbackUserState">The user state to pass to the transfer status callback above.  May be null.</param>
+        /// <param name="cancellationSource">A cancellation token source object that can be used to cancel the download operation.  May be null</param>
         /// <returns>CLError: Any error, or null.</returns>
-        public CLError DownloadFile()
+        public CLError DownloadFile(
+            out string fullPathDownloadedTempFile,
+            CLFileDownloadTransferStatusCallback transferStatusCallback,
+            object transferStatusCallbackUserState,
+            CancellationTokenSource cancellationSource)
         {
+            Helpers.CheckHalted();
+
+            // Build the file change to represent the file to download.
             FileChange fcToDownload = new FileChange()
             {
                 Direction = SyncDirection.From,
-                Metadata = new FileMetadata()
+                Metadata = new FileMetadata(this),
+                NewPath = RelativePath,
             };
 
-            return _httpRestClient.DownloadFile(fcToDownload, this.Uid, this.Revision, OnAfterDownloadToTempFile, this, _copiedSettings.HttpTimeoutMilliseconds);
+            // Make a holder for the callers transfer status callback and user state.
+            Tuple<CLFileDownloadTransferStatusCallback, object> userTransferStatusParamHolder = new Tuple<CLFileDownloadTransferStatusCallback, object>(transferStatusCallback, transferStatusCallbackUserState);
+
+            // Build a holder to receive the full path of the downloaded temp file.
+            GenericHolder<string> fullPathDownloadedTempFileHolder = new GenericHolder<string>(null);
+
+            // Download the file.
+            CLError errorFromDownloadFile = _httpRestClient.DownloadFile(
+                fcToDownload,
+                this.Uid,
+                this.Revision,
+                moveFileUponCompletion: OnAfterDownloadToTempFile,
+                moveFileUponCompletionState: fullPathDownloadedTempFileHolder,
+                timeoutMilliseconds: _copiedSettings.HttpTimeoutMilliseconds,
+                beforeDownload: null,
+                beforeDownloadState: null,
+                shutdownToken: cancellationSource,
+                customDownloadFolderFullPath: null,
+                statusUpdate: TransferStatusCallback,
+                statusUpdateUserState: userTransferStatusParamHolder);
+
+            // Output the full path of the downloaded file on success
+            if (errorFromDownloadFile == null)
+            {
+                fullPathDownloadedTempFile = fullPathDownloadedTempFileHolder.Value;
+            }
+            else
+            {
+                fullPathDownloadedTempFile = null;
+            }
+
+            return errorFromDownloadFile;
+        }
+
+        /// <summary>
+        /// Transfer status has changed.  This is called by CLHttpRest during the download.  Forward the info to the app.
+        /// </summary>
+        private void TransferStatusCallback(object userState, long eventId, SyncDirection direction, string relativePath, long byteProgress, long totalByteSize, bool isError)
+        {
+            Tuple<CLFileDownloadTransferStatusCallback, object> castState = userState as Tuple<CLFileDownloadTransferStatusCallback, object>;
+            if (castState == null)
+            {
+                throw new CLNullReferenceException(CLExceptionCode.OnDemand_Download, Resources.ExceptionOnDemandDownloadFileIncorrectUserState);
+            }
+
+            CLFileDownloadTransferStatusCallback transferStatusCallback = castState.Item1;
+            object transferStatusCallbackUserState = castState.Item2;
+
+            if (transferStatusCallback != null)
+            {
+                try
+                {
+                    transferStatusCallback(byteProgress, totalByteSize, transferStatusCallbackUserState);
+                }
+                catch
+                {
+                }
+            }
         }
 
         /// <summary>
@@ -349,40 +524,19 @@ namespace Cloud.CLSync
         /// <param name="downloadChange">The FileChange representing the download request.</param>
         /// <param name="responseBody">The HTTP response body returned from the server.</param>
         /// <param name="UserState">The user state.</param>
-        /// <param name="tempId">The temp ID of this downloaded file (GUID).</param>
+        /// <param name="tempId">The temp ID of this downloaded file (Guid).</param>
         private void OnAfterDownloadToTempFile(string tempFileFullPath, FileChange downloadChange, ref string responseBody, object UserState, Guid tempId)
         {
             try
             {
-                CLFileItem castState = UserState as CLFileItem;
+                GenericHolder<string> castState = UserState as GenericHolder<string>;
                 if (castState == null)
                 {
-                    throw new NullReferenceException(Resources.CLFileItemCastStateMustBeACLFileItem);
-                }
-                if (castState._copiedSettings == null)
-                {
-                    throw new NullReferenceException(Resources.CLFileItemCastStateCopiedSettingsMustNotBeNull);
-                }
-                if (castState.Syncbox == null)
-                {
-                    throw new NullReferenceException("castState Syncbox must not be null");
-                }
-                if (tempFileFullPath == null)
-                {
-                    throw new NullReferenceException("tempFileFullPath must not be null");
-                }
-                if (downloadChange == null)
-                {
-                    throw new NullReferenceException("downloadChange must not be null");
+                    throw new CLNullReferenceException(CLExceptionCode.OnDemand_Download, Resources.CLFileItemCastStateMustBeAGenericHolderOfString);
                 }
 
-                // Move the downloaded file.
-                string backupFileFullPath = Helpers.GetTempFileDownloadPath(castState._copiedSettings, castState.Syncbox.SyncboxId) + /* '\\' */ (char)0x005c + Guid.NewGuid().ToString();
-                CLError errorFromMoveDownloadedFile = Helpers.MoveDownloadedFile(tempFileFullPath, Path, backupFileFullPath);
-                if (errorFromMoveDownloadedFile != null)
-                {
-                    throw new AggregateException("Error moving the downloaded file", errorFromMoveDownloadedFile.Exceptions);
-                }
+                // Output the full path of the temp file for the user to move.
+                castState.Value = tempFileFullPath;
 
                 // Success
                 responseBody = Resources.CompletedFileDownloadHttpBody;
@@ -396,54 +550,131 @@ namespace Cloud.CLSync
 
         #endregion  // end File Download
 
-        #region Image Files
+        #region DownloadImageOfSize (downloads an image for the syncbox file represented by this CLFileItem object, selecting the size of the image to load)
 
         /// <summary>
-        /// Load a thumbnail image from the cloud file represented by this CLFileItem object.
+        /// Asynchronously starts downloading an image for the syncbox file represented by this CLFileItem object, selecting the size of the image to load.
         /// </summary>
-        /// <param name="thumbnail">(output) The thumbnail image loaded from the cloud file.</param>
-        /// <param name="callback">(optional) The load progress delegate to call.</param>
-        /// <param name="callbackUserState">(optional) The user state to pass to the load progress delegate above.</param>
-        /// <returns>Any error, or null.</returns>
-        public CLError LoadThumbnail(out Image thumbnail, DownloadFileProgress callback = null, object callbackUserState = null)
-        {
-            thumbnail = null;
-            return null;
-        }
-
-        /// <summary>
-        /// Load an image from a cloud file represented by this CLFileItem object, selecting the size of the image to load.
-        /// </summary>
-        /// <param name="image">(output) The image loaded from the cloud file.</param>
+        /// <param name="asyncCallback">Callback method to fire when the async operation completes.  Can be null.</param>
+        /// <param name="asyncCallbackUserState">User state to pass to the async callback when it is fired.  Can be null.</param>
         /// <param name="imageSize">The size of the image to load.</param>
-        /// <param name="callback">(optional) The load progress delegate to call.</param>
-        /// <param name="callbackUserState">(optional) The user state to pass to the load progress delegate above.</param>
-        /// <returns>Any error, or null.</returns>
-        public CLError LoadImageWithSize(out Image image, CLFileItemImageSize imageSize, DownloadFileProgress callback = null, object callbackUserState = null)
+        /// <param name="transferStatusCallback">The callback to fire with tranfer status updates.  May be null.</param>
+        /// <param name="transferStatusCallbackUserState">The user state to pass to the transfer status callback above.  May be null.</param>
+        /// <param name="cancellationSource">A cancellation token source object that can be used to cancel the download operation.  May be null</param>
+        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        public IAsyncResult BeginDownloadImageOfSize(
+            AsyncCallback asyncCallback,
+            object asyncCallbackUserState,
+            CLFileItemImageSize imageSize,
+            CLFileDownloadTransferStatusCallback transferStatusCallback,
+            object transferStatusCallbackUserState,
+            CancellationTokenSource cancellationSource)
         {
-            image = null;
-            return null;
+            Helpers.CheckHalted();
+
+            var asyncThread = DelegateAndDataHolderBase.Create(
+                // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
+                new
+                {
+                    // create the asynchronous result to return
+                    toReturn = new GenericAsyncResult<FileItemDownloadImageResult>(
+                        asyncCallback,
+                        asyncCallbackUserState),
+                    imageSize = imageSize,
+                    transferStatusCallback = transferStatusCallback,
+                    transferStatusCallbackUserState = transferStatusCallbackUserState,
+                    cancellationSource = cancellationSource,
+                },
+                (Data, errorToAccumulate) =>
+                {
+                    // The ThreadProc.
+                    // try/catch to process with the input parameters, on catch set the exception in the asyncronous result
+                    try
+                    {
+                        // alloc and init the syncbox with the passed parameters, storing any error that occurs
+                        Stream imageStream;
+                        CLError processError = DownloadImageOfSize(
+                            Data.imageSize,
+                            out imageStream,
+                            Data.transferStatusCallback,
+                            Data.transferStatusCallbackUserState,
+                            Data.cancellationSource);
+
+                        Data.toReturn.Complete(
+                            new FileItemDownloadImageResult(
+                                processError,  // any error that may have occurred during processing
+                                imageStream),  // the output stream
+                            sCompleted: false); // processing did not complete synchronously
+                    }
+                    catch (Exception ex)
+                    {
+                        Data.toReturn.HandleException(
+                            ex, // the exception which was not handled correctly by the CLError wrapping
+                            sCompleted: false); // processing did not complete synchronously
+                    }
+                },
+                null);
+
+            // create the thread from a void (object) parameterized start which wraps the synchronous method call
+            (new Thread(new ThreadStart(asyncThread.VoidProcess))).Start(); // start the asynchronous processing thread which is attached to its data
+
+            // return the asynchronous result
+            return asyncThread.TypedData.toReturn;
         }
-
-        
-
-        #endregion  // end Image Files
-
-        #region Folder Contents
 
         /// <summary>
-        /// Gets the children of the Cloud folder represented by this CLFileItem object.  The ChildrenCount property will be updated with the number of children returned.
+        /// Finishes downloading the image for this CLFileItem object from the syncbox, if it has not already finished via its asynchronous result, and outputs the result,
+        /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
         /// </summary>
-        /// <param name="children">(output) The array of CLFileItem objects representing the children of this folder object in the cloud, or null.</param>
-        /// <returns></returns>
-        /// <remarks>This method will return an error if called when IsFolder is false.</remarks>
-        CLError Children(out CLFileItem[] children)
+        /// <param name="asyncResult">The asynchronous result provided upon completion of the async operation.</param>
+        /// <param name="result">(output) The result from the asynchronous operation.</param>
+        /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
+        public CLError EndDownloadImageOfSize(IAsyncResult asyncResult, out FileItemDownloadImageResult result)
         {
-            children = null;
-            return null;
+            Helpers.CheckHalted();
+            return _httpRestClient.EndDownloadImageOfSize(asyncResult, out result);
         }
 
-        #endregion  // end Folder Contents
+        /// <summary>
+        /// Downloads an image for the syncbox file represented by this CLFileItem object, selecting the size of the image to load.
+        /// </summary>
+        /// <param name="imageSize">The size of the image to load.</param>
+        /// <param name="imageStream">(output) An open Stream containing the data for the image loaded from the cloud file.</param>
+        /// <param name="transferStatusCallback">The transfer progress delegate to call.  May be null.</param>
+        /// <param name="transferStatusCallbackUserState">The user state to pass to the transfer progress delegate above.  May be null.</param>
+        /// <param name="cancellationSource">A cancellation token source object that can be used to cancel the download operation.  May be null</param>
+        /// <returns>Any error, or null.</returns>
+        public CLError DownloadImageOfSize(
+            CLFileItemImageSize imageSize,
+            out Stream imageStream, 
+            CLFileDownloadTransferStatusCallback transferStatusCallback, 
+            object transferStatusCallbackUserState,
+            CancellationTokenSource cancellationSource)
+        {
+            Helpers.CheckHalted();
+
+            return _httpRestClient.DownloadImageOfSize(this, imageSize, out imageStream, transferStatusCallback, transferStatusCallbackUserState, cancellationSource);
+        }
+
+        #endregion  // end DownloadImageOfSize (downloads an image for the syncbox file represented by this CLFileItem object, selecting the size of the image to load)
+
+        //// we don't keep track of children of CLFileItems internally
+        //
+        //#region Folder Contents
+
+        ///// <summary>
+        ///// Gets the children of the Cloud folder represented by this CLFileItem object.  The ChildrenCount property will be updated with the number of children returned.
+        ///// </summary>
+        ///// <param name="children">(output) The array of CLFileItem objects representing the children of this folder object in the cloud, or null.</param>
+        ///// <returns></returns>
+        ///// <remarks>This method will return an error if called when IsFolder is false.</remarks>
+        //CLError Children(out CLFileItem[] children)
+        //{
+        //    children = null;
+        //    return null;
+        //}
+
+        //#endregion  // end Folder Contents
         #endregion  // end Public Methods
 
         #region Private Methods

@@ -50,16 +50,8 @@ namespace Cloud.CLSync.CLSyncboxParameters
         /// <param name="newParentFolderItem">The item representing the new parent folder.</param>
         public MoveItemParams(CLFileItem itemToMove, CLFileItem newParentFolderItem)
         {
-            if (itemToMove == null)
-            {
-                throw new CLArgumentNullException(Static.CLExceptionCode.OnDemand_MoveItemParamsMissingProperties, Resources.ExceptionOnDemandItemToMoveMustNotBeNull);
-            }
-            if (newParentFolderItem == null)
-            {
-                throw new CLArgumentNullException(Static.CLExceptionCode.OnDemand_MoveItemParamsMissingProperties, Resources.ExceptionOnDemandNewParentFolderItemMustBeSpecified);
-            }
-
             this._itemToMove = itemToMove;
+            this._newParentFolderItem = newParentFolderItem;
         }
     }
 }

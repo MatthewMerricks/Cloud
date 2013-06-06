@@ -2839,7 +2839,7 @@
     <value>The parent folder was found, but it has been deleted</value>
     <comment>Translate</comment>
   </data>
-  <data name="ExceptionOnDemandAddFoldersParentFolderNotFound" xml:space="preserve">
+  <data name="ExceptionOnDemandAddParentFolderNotFound" xml:space="preserve">
     <value>The parent folder was not found</value>
     <comment>Translate</comment>
   </data>
@@ -2851,9 +2851,9 @@
     <value>Item must not be null</value>
     <comment>"Item" shoud not be translated</comment>
   </data>
-  <data name="CLFileItemCastStateMustBeACLFileItem" xml:space="preserve">
-    <value>castState must be a CLFileItem</value>
-    <comment>"castState" and "CLFileItem" should not be translated</comment>
+  <data name="CLFileItemCastStateMustBeAGenericHolderOfString" xml:space="preserve">
+    <value>castState must be a GenericHolder&lt;string&gt;</value>
+    <comment>"castState" and "GenericHolder&lt;string&gt;" should not be translated</comment>
   </data>
   <data name="ExceptionOnDemandAddItemNameMustBeSpecified" xml:space="preserve">
     <value>Name must be specified</value>
@@ -2899,12 +2899,156 @@
     <value>Error deleting syncbox: {0}</value>
     <comment>"{0}" shoud not be translated</comment>
   </data>
-  <data name="Backslash" xml:space="preserve">
-    <value>\</value>
-    <comment>"\" should not be translated</comment>
-  </data>
   <data name="IconOverlayRenameBadgePathRemoveBadgeOldPath0" xml:space="preserve">
     <value>IconOverlay: RenameBadgePath. Remove badge at oldPath: {0}.</value>
     <comment>"IconOverlay" and "oldPath" should not be translated.</comment>
+  </data>
+  <data name="ExceptionCLHttpRestAddFilesUploadError" xml:space="preserve">
+    <value>An error occurred uploading a file in CLHttpRest AddFiles</value>
+    <comment>CLHttpRest and AddFiles should not be translated</comment>
+  </data>
+  <data name="ExceptionCLHttpRestDownloadNewerVersion" xml:space="preserve">
+    <value>A newer version of the file already exists and is available for download</value>
+  </data>
+  <data name="ExceptionCLHttpRestWithoutAddFilesResponses" xml:space="preserve">
+    <value>The server responded without an array of add file responses</value>
+  </data>
+  <data name="ExceptionHelpersOpenFileStreamAndCalculateHashesNullDependencyFileChange" xml:space="preserve">
+    <value>dependencyFileChange cannot be null</value>
+    <comment>dependencyFileChange cannot be null</comment>
+  </data>
+  <data name="ExceptionHelpersOpenFileStreamAndCalculateHashesNullDependencyFileChangeMetadata" xml:space="preserve">
+    <value>dependencyFileChange Metadata cannot be null</value>
+    <comment>dependencyFileChange and Metadata cannot be null</comment>
+  </data>
+  <data name="ExceptionMonitorAgentGrabPreprocessedChangesCastInnerState" xml:space="preserve">
+    <value>Unable to cast innerState as IndexingAgent</value>
+    <comment>innerState and IndexingAgent should not be translated</comment>
+  </data>
+  <data name="ExceptionOnDemandItemForPathNotFound" xml:space="preserve">
+    <value>The item was not found at the path</value>
+  </data>
+  <data name="ExceptionHelpersProcessHttpInnerWaitHandleArrayLength" xml:space="preserve">
+    <value>millisecondsTimeout must be at least the length of the WaitHandle array to differentiate success from timeout failure</value>
+    <comment>millisecondsTimeout and WaitHandle should not be translated</comment>
+  </data>
+  <data name="ExceptionCredentialsExpirationDateMustNotBeNull" xml:space="preserve">
+    <value>ExpirationDate must not be null</value>
+    <comment>"ExpirationDate" should not be transalated</comment>
+  </data>
+  <data name="ExceptionCredentialsIsValidRequiresSessionCredentials" xml:space="preserve">
+    <value>IsValid requires session credentials</value>
+    <comment>"IsValid" should not be translated</comment>
+  </data>
+  <data name="ExceptionOnDemandLinkDeviceFirstTimeRequestMustNotBeNull" xml:space="preserve">
+    <value>Link device first time request must not be null</value>
+  </data>
+  <data name="ExceptionOnDemandLinkDeviceRequestMustNotBeNull" xml:space="preserve">
+    <value>Link device request must not be null</value>
+  </data>
+  <data name="ExceptionOnDemandListAllSessionCredentialsOneSessionResponseWasInvalid" xml:space="preserve">
+    <value>One of the session responses was invalid</value>
+    <comment>"session" should not be translated</comment>
+  </data>
+  <data name="ExceptionOnDemandNoServerResponse" xml:space="preserve">
+    <value>No response returned from server</value>
+  </data>
+  <data name="ExceptionOnDemandServerResponseNoSession" xml:space="preserve">
+    <value>No session returned from server</value>
+    <comment>"session" should not be translated</comment>
+  </data>
+  <data name="ExceptionOnDemandUnlinkDeviceRequestMustNotBeNull" xml:space="preserve">
+    <value>Unlink device request must not be null</value>
+  </data>
+  <data name="ExceptionOnDemandDownloadFileIncorrectUserState" xml:space="preserve">
+    <value>incorrect userState object type</value>
+    <comment>"userState" should not be translated</comment>
+  </data>
+  <data name="ExceptionOnDemandInvalidReturnLimit" xml:space="preserve">
+    <value>returnLimit must be greater than zero</value>
+    <comment>"returnLimit" should not be translated</comment>
+  </data>
+  <data name="ExceptionOnDemandItemUidMustNotBeNull" xml:space="preserve">
+    <value>ItemUid must not be null</value>
+    <comment>"ItemUid" should not be translated</comment>
+  </data>
+  <data name="ExceptionOnDemandDownloadFileTempFileDidNotExistAfterSuccessfulDownload" xml:space="preserve">
+    <value>The temp download file did not exist on the disk after a successful download</value>
+  </data>
+  <data name="ExceptionSyncEngineFileTransferStatusUpdateCastUserstate" xml:space="preserve">
+    <value>Unable to cast userState as Nullable&lt;Guid&gt;</value>
+    <comment>userState and Nullable&lt;Guid&gt; should not be translated</comment>
+  </data>
+  <data name="ExceptionCLSyncboxAllocAndInitInnerInitialize" xml:space="preserve">
+    <value>Error initializing the syncbox, see InnerExceptions for details</value>
+    <comment>syncbox and InnerExceptions should not be translated</comment>
+  </data>
+  <data name="ExceptionMonitorAgentAssignDependenciesEventIdSwap" xml:space="preserve">
+    <value>An error occurred swapping the order of two FileChanges in the database in AssignDependencies</value>
+    <comment>FileChanges and AssignDependencies should not be translated</comment>
+  </data>
+  <data name="ExceptionMonitorAgentAssignDependenciesMergeToSql" xml:space="preserve">
+    <value>One or more FileChange instances failed to add or update in the database in AssignDependencies</value>
+    <comment>FileChange and AssignDependencies should not be translated</comment>
+  </data>
+  <data name="ExceptionHelpersSerializableResponseTypesKey" xml:space="preserve">
+    <value>SerializableResponseTypes contains an invalid type key</value>
+    <comment>SerializableResponseTypes should not be translated</comment>
+  </data>
+  <data name="ExceptionOnDemandCLFileItemNotCreatedInThisSyncbox" xml:space="preserve">
+    <value>The input CLFileItem was not created in this syncbox</value>
+    <comment>"CLFileItem" should not be translated</comment>
+  </data>
+  <data name="ExceptionOnDemandCLFileItemNotCreatedInThisSyncboxMsg0" xml:space="preserve">
+    <value>The input CLFileItem at index {0} was not created in this syncbox</value>
+    <comment>"CLFileItem" and "{0}" should not be translated</comment>
+  </data>
+  <data name="ExceptionOnDemandFileItemFoundWhenFolderItemExpected" xml:space="preserve">
+    <value>The input CLFileItem was a file when a folder item was expected</value>
+    <comment>"CLFileItem" should not be translated</comment>
+  </data>
+  <data name="ExceptionOnDemandFileItemFoundWhenFolderItemExpectedMsg0" xml:space="preserve">
+    <value>The input CLFileItem at index {0} was a file when a folder item was expected</value>
+    <comment>"CLFileItem" should not be translated</comment>
+  </data>
+  <data name="ExceptionOnDemandFolderItemFoundWhenFileItemExpectedMsg0" xml:space="preserve">
+    <value>The input CLFileItem at index {0} was a folder when a file item was expected</value>
+    <comment>"CLFileItem" should not be translated</comment>
+  </data>
+  <data name="ExceptionOnDemandItemWasPreviouslyDeleted" xml:space="preserve">
+    <value>The input CLFileItem was previously deleted</value>
+    <comment>"CLFileItem" should not be translated</comment>
+  </data>
+  <data name="ExceptionOnDemandItemWasPreviouslyDeletedMsg0" xml:space="preserve">
+    <value>The input CLFileItem at index {0} was previously deleted</value>
+    <comment>"CLFileItem" should not be translated</comment>
+  </data>
+  <data name="NotTranslatedCLNotificationServiceThreadName" xml:space="preserve">
+    <value>Notification Engine</value>
+    <comment>Do not translate</comment>
+  </data>
+  <data name="ExceptionHelpersProcessHttpInnerStreamCaller" xml:space="preserve">
+    <value>Stream can only be returned from ProcessHttpInner when called by ProcessHttpRawStreamCopy</value>
+    <comment>Stream, ProcessHttpInner, and ProcessHttpRawStreamCopy should not be translated</comment>
+  </data>
+  <data name="HelpersProcessHttpInnerStreamWrappedResponseBody" xml:space="preserve">
+    <value>---HttpWebResponse returned as-is to be wrapped by caller---</value>
+    <comment>HttpWebResponse shoudl not be translated</comment>
+  </data>
+  <data name="ExceptionOnDemandDownloadImageOfSizeFileNotFound" xml:space="preserve">
+    <value>Image file not found</value>
+    <comment>Translate</comment>
+  </data>
+  <data name="ExceptionOnDemandDownloadImageOfSizeInvalidImageSizeValue" xml:space="preserve">
+    <value>Invalid imageSize value</value>
+    <comment>"imageSize" should not be translated</comment>
+  </data>
+  <data name="ExceptionOnDemandDownloadImageOfSizeUserCancelled" xml:space="preserve">
+    <value>User requested cancellation</value>
+    <comment>Translate</comment>
+  </data>
+  <data name="ExceptionOnDemandHttpNoContentLengthHeaderInResponse" xml:space="preserve">
+    <value>No Content-Length header in the response</value>
+    <comment>"Content-Length" should not be translated</comment>
   </data>
 </root>

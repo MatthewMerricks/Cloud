@@ -226,6 +226,7 @@ namespace Cloud.PushNotification
             #region Build HTTP SSE Request
 
             string query = String.Empty;
+            string domainMethodQuery = String.Empty;
             HttpWebRequest sseRequest = null;
             try
             {
@@ -245,10 +246,11 @@ namespace Cloud.PushNotification
                         new KeyValuePair<string, string>(CLDefinitions.QueryStringSender, Uri.EscapeDataString(_copiedSettings.DeviceId)) // possibly user-provided string, therefore needs escaping
                     });
 
-                sseRequest = (HttpWebRequest)HttpWebRequest.Create(
-                                    CLDefinitions.CLNotificationServerSseURL +
-                                    CLDefinitions.MethodPathPushSubscribe +
-                                    query);
+                domainMethodQuery = CLDefinitions.CLNotificationServerSseURL +
+                    CLDefinitions.MethodPathPushSubscribe +
+                    query;
+
+                sseRequest = (HttpWebRequest)HttpWebRequest.Create(domainMethodQuery);
 
                 sseRequest.Method = CLDefinitions.HeaderAppendMethodGet;
                 sseRequest.Accept = CLDefinitions.HeaderSseEventStreamValue;
@@ -258,6 +260,8 @@ namespace Cloud.PushNotification
                 sseRequest.KeepAlive = true; // <-- Connection
                 sseRequest.UserAgent = CLDefinitions.HeaderAppendCloudClient; // set client
 
+                // use the default HTTP 1.1 protocol version
+                sseRequest.ProtocolVersion = HttpVersion.Version11;
 
                 // Send a Last-Event-ID header on a reconnect.
                 if (_lastEventId.Length != 0)
@@ -291,7 +295,7 @@ namespace Cloud.PushNotification
                         _copiedSettings.DeviceId, // device id
                         _syncbox.SyncboxId, // syncbox id
                         CommunicationEntryDirection.Request, // direction is request
-                        CLDefinitions.CLNotificationServerSseURL + CLDefinitions.MethodPathPushSubscribe, // location for the server method
+                        domainMethodQuery, // location for the server method
                         true, // trace is enabled
                         sseRequest.Headers, // headers of request
                         (string)null,  // no body
@@ -425,12 +429,12 @@ namespace Cloud.PushNotification
                                             if (bytesRead != 0)
                                             {
                                                 // Got a byte.  Process it.
-                                                ProcessReceivedCharacter(unicodeCharBuffer[0]);
+                                                ProcessReceivedCharacter(unicodeCharBuffer[0], domainMethodQuery);
                                             }
                                             else
                                             {
                                                 // We are at the end of the stream
-                                                ProcessEndOfStream();
+                                                ProcessEndOfStream(domainMethodQuery);
                                                 break;
                                             }
                                         }
@@ -499,13 +503,12 @@ namespace Cloud.PushNotification
                         {
                             using (Stream responseStream = response.GetResponseStream())
                             {
-
                                 ComTrace.LogCommunication(
                                     traceLocation: _syncbox.CopiedSettings.TraceLocation,
                                     UserDeviceId: _syncbox.CopiedSettings.DeviceId,
                                     SyncboxId: _syncbox.SyncboxId,
                                     Direction: CommunicationEntryDirection.Response,
-                                    DomainAndMethodUri: CLDefinitions.CLNotificationServerSseURL + CLDefinitions.MethodPathPushSubscribe + query,
+                                    DomainAndMethodUriPlusQuery: domainMethodQuery,
                                     traceEnabled: true,
                                     headers: (WebHeaderCollection)null,
                                     body: responseStream,
@@ -533,7 +536,7 @@ namespace Cloud.PushNotification
                                     UserDeviceId: _syncbox.CopiedSettings.DeviceId,
                                     SyncboxId: _syncbox.SyncboxId,
                                     Direction: CommunicationEntryDirection.Response,
-                                    DomainAndMethodUri: CLDefinitions.CLNotificationServerSseURL + CLDefinitions.MethodPathPushSubscribe + query,
+                                    DomainAndMethodUriPlusQuery: domainMethodQuery,
                                     traceEnabled: true,
                                     headers: (WebHeaderCollection)null,
                                     body: responseStream,
@@ -607,7 +610,7 @@ namespace Cloud.PushNotification
             #endregion
         }
 
-        private void ProcessReceivedCharacter(char cCharRead)
+        private void ProcessReceivedCharacter(char cCharRead, string domainMethodQuery)
         {
             // The first character received might be a BYTE ORDER MARK.  If we find one, ignore it.
             if (_stateParse == EnumSseStates.SseState_Idle)
@@ -629,7 +632,7 @@ namespace Cloud.PushNotification
                     }
                     else if (cCharRead == '\n')
                     {
-                        ProcessCurrentLine();
+                        ProcessCurrentLine(domainMethodQuery);
                     }
                     else
                     {
@@ -639,17 +642,17 @@ namespace Cloud.PushNotification
                 case EnumSseStates.SseState_LookForLineEndingGotCR:
                     if (cCharRead == '\r')
                     {
-                        ProcessCurrentLine();
+                        ProcessCurrentLine(domainMethodQuery);
                         _stateParse = EnumSseStates.SseState_LookForLineEndingGotCR;
                     }
                     else if (cCharRead == '\n')
                     {
-                        ProcessCurrentLine();
+                        ProcessCurrentLine(domainMethodQuery);
                         _stateParse = EnumSseStates.SseState_LookForLineEndingChar;
                     }
                     else
                     {
-                        ProcessCurrentLine();
+                        ProcessCurrentLine(domainMethodQuery);
                         _sbCurrentLine.Append(cCharRead);
                         _stateParse = EnumSseStates.SseState_LookForLineEndingChar;
                     }
@@ -660,12 +663,12 @@ namespace Cloud.PushNotification
             }
         }
 
-        private void ProcessCurrentLine()
+        private void ProcessCurrentLine(string domainMethodQuery)
         {
             string currentLine = _sbCurrentLine.ToString().Trim();
             if (currentLine.Length == 0)
             {
-                DispatchEvent();
+                DispatchEvent(domainMethodQuery);
             }
             else if (currentLine[0] == ':')
             {
@@ -720,7 +723,7 @@ namespace Cloud.PushNotification
             }
         }
 
-        private void DispatchEvent()
+        private void DispatchEvent(string domainMethodQuery)
         {
             if (_sbData.Length == 0)
             {
@@ -744,7 +747,7 @@ namespace Cloud.PushNotification
             CLNotificationEvent evt = new CLNotificationEvent();
             evt.Name = _eventName;
             evt.Data = _sbData.ToString().Trim();
-            evt.Origin = CLDefinitions.CLNotificationServerSseURL;
+            evt.Origin = domainMethodQuery;
             evt.LastEventId = _lastEventId;
 
             // Reset for the next event
@@ -764,10 +767,10 @@ namespace Cloud.PushNotification
             return true;
         }
 
-        private void ProcessEndOfStream()
+        private void ProcessEndOfStream(string domainMethodQuery)
         {
-            ProcessCurrentLine();
-            DispatchEvent();
+            ProcessCurrentLine(domainMethodQuery);
+            DispatchEvent(domainMethodQuery);
         }
 
         /// <summary>

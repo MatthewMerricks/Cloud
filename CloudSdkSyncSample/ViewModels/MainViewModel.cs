@@ -1304,7 +1304,7 @@ namespace SampleLiveSync.ViewModels
                     && _syncbox != null)
                 {
                     // start syncing
-                    CLSyncMode syncMode = Properties.Settings.Default.BadgingEnabled ? CLSyncMode.CLSyncModeLiveWithShellExt : CLSyncMode.CLSyncModeLive;
+                    CLSyncMode syncMode = Properties.Settings.Default.BadgingEnabled ? CLSyncMode.CLSyncModeLiveWithBadgingEnabled : CLSyncMode.CLSyncModeLive;
                     CLError errorFromSyncboxStart = _syncbox.StartLiveSync(
                         syncMode,
                         syncStatusChangedCallback: OnSyncStatusUpdated, // called when sync status is updated
@@ -1620,6 +1620,10 @@ namespace SampleLiveSync.ViewModels
 
                     // Kill constant scheduling threads which run forever and prevent application shutdown.
                     CLSyncbox.Shutdown();
+                    if (_syncbox != null)
+                    {
+                        _syncbox.Dispose();
+                    }
                     _syncbox = null;
 
                     // Close the window

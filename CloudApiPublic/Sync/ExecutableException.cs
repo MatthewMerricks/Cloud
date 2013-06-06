@@ -22,7 +22,7 @@ namespace Cloud.Sync
     internal sealed class ExecutableException<T> : Exception, IExecutableException
     {
         /// <summary>
-        /// Userstate passed to the handler action when it is fired
+        /// User state passed to the handler action when it is fired
         /// </summary>
         public T ExecutionState { get; private set; }
         // handler action

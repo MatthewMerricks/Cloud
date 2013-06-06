@@ -132,7 +132,6 @@ namespace Cloud.Model
         /// <summary>
         /// Returns the MD5 as a lowercase hexadecimal string 32 characters long with no seperators, or null
         /// </summary>
-        /// <param name="md5">Output MD5 string</param>
         public string GetMD5LowercaseString()
         {
             byte[] storeMD5 = this._mD5;
@@ -199,6 +198,9 @@ namespace Cloud.Model
             }
         }
 
+        /// <summary>
+        /// The MD5 hash representing the file on disk.
+        /// </summary>
         public byte[] MD5
         {
             get

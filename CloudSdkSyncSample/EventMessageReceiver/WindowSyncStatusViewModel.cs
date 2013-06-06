@@ -338,27 +338,47 @@ namespace SampleLiveSync.EventMessageReceiver
 
                 Func<bool, DateTime, EventMessageReceiver, GenericHolder<Nullable<int>>, DateTime, long, long, CLStatusFileTransfer> getNewTransferToUpdate = (forUpload, firstSampleTime, innerReceiver, innerTransferIndex, startTransferTime, firstSampleBytes, innerEvent) =>
                 {
-                    if (!(forUpload
-                                ? innerReceiver.ListFilesUploading
-                                : innerReceiver.ListFilesDownloading).Any(currentTransfering => ((innerTransferIndex.Value == null
-                            ? addTransferIndex.Value = 0
-                            : addTransferIndex.Value = ((int)addTransferIndex.Value) + 1) > -1)
-                        ? currentTransfering is CLStatusFileTransferBlank
-                        : false))
+                    // define an action which will take a holder of the index int and set it to 0 to start or otherwise increment by 1
+                    Action<GenericHolder<Nullable<int>>> incrementIndexHolder = holderToIncrement =>
+                        {
+                            if (holderToIncrement.Value == null)
+                            {
+                                holderToIncrement.Value = 0; // start by setting to first index
+                            }
+                            else
+                            {
+                                holderToIncrement.Value = ((int)holderToIncrement.Value) + 1; // otherwise, increment to next index
+                            }
+                        };
+
+                    // innerTransferIndex.Value always should start null here (addTransferIndex.Value is the way to access the same data outside of this function)
+                    // we will increment it until it's at the index of the first CLStatusFileTransferBlank in the appropriate collection,
+                    // or it will be the next available index (equal to the length of the collection)
+
+                    bool transferBlankFound = (forUpload
+                        ? innerReceiver.ListFilesUploading
+                        : innerReceiver.ListFilesDownloading)
+
+                        // use Any since when you return a true, it will immediately stop enumeration
+                        .Any(currentTransferring =>
+                            {
+                                incrementIndexHolder(innerTransferIndex);
+
+                                // innerTransferIndex.Value should now represent the current index that is being checked as a 'Blank
+
+                                return currentTransferring is CLStatusFileTransferBlank; // return if blank found to stop enumerating and to signal that a blank was found
+                            });
+
+                    // no 'Blank found to replace, so index should be equal to the length of the collection for insertion of a new item
+                    if (!transferBlankFound)
                     {
-                        if (addTransferIndex.Value == null)
-                        {
-                            addTransferIndex.Value = 0;
-                        }
-                        else
-                        {
-                            addTransferIndex.Value = ((int)addTransferIndex.Value) + 1;
-                        }
+                        // simply increment one more time since the previous Any enumeration will have counted up to Length - 1 to check all existing values
+                        incrementIndexHolder(innerTransferIndex);
                     }
 
                     (forUpload
                         ? innerReceiver.UploadEventIdToStatusFileTransferIndex
-                        : innerReceiver.DownloadEventIdToStatusFileTransferIndex)[innerEvent] = (int)addTransferIndex.Value;
+                        : innerReceiver.DownloadEventIdToStatusFileTransferIndex)[innerEvent] = (int)innerTransferIndex.Value;
 
                     double initialRateBarMax = Math.Max(1d, (((double)firstSampleBytes) / firstSampleTime.Subtract(startTransferTime).TotalSeconds) * 8 * CLStatusFileTransfer.HighestDisplayRateMultiplier);
 
@@ -377,7 +397,7 @@ namespace SampleLiveSync.EventMessageReceiver
                 int existingStatusIndex;
                 if ((isUpload
                     ? thisReceiver.UploadEventIdToStatusFileTransferIndex
-                    : thisReceiver.DownloadEventIdToStatusFileTransferIndex).TryGetValue(currentParameter.Key, out existingStatusIndex)) //.ContainsKey(currentParameter.Key))
+                    : thisReceiver.DownloadEventIdToStatusFileTransferIndex).TryGetValue(currentParameter.Key, out existingStatusIndex))
                 {
                     if ((isUpload
                         ? thisReceiver.ListFilesUploading

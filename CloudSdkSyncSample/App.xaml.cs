@@ -16,6 +16,10 @@ namespace SampleLiveSync
     {
         protected override void OnStartup(StartupEventArgs e)
         {
+            // the following allows use of http-debugging proxies for calls to the Cloud servers
+            System.Net.ServicePointManager.ServerCertificateValidationCallback =
+                ((sender, certificate, chain, sslPolicyErrors) => true);
+
             base.OnStartup(e);
 
             MainView window = new MainView();

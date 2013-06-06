@@ -97,15 +97,6 @@ namespace Cloud.Static {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to \.
-        /// </summary>
-        internal static string Backslash {
-            get {
-                return ResourceManager.GetString("Backslash", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Bytes.
         /// </summary>
         internal static string BytesPlural {
@@ -214,11 +205,11 @@ namespace Cloud.Static {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to castState must be a CLFileItem.
+        ///   Looks up a localized string similar to castState must be a GenericHolder&lt;string&gt;.
         /// </summary>
-        internal static string CLFileItemCastStateMustBeACLFileItem {
+        internal static string CLFileItemCastStateMustBeAGenericHolderOfString {
             get {
-                return ResourceManager.GetString("CLFileItemCastStateMustBeACLFileItem", resourceCulture);
+                return ResourceManager.GetString("CLFileItemCastStateMustBeAGenericHolderOfString", resourceCulture);
             }
         }
         
@@ -2007,6 +1998,24 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to An error occurred uploading a file in CLHttpRest AddFiles.
+        /// </summary>
+        internal static string ExceptionCLHttpRestAddFilesUploadError {
+            get {
+                return ResourceManager.GetString("ExceptionCLHttpRestAddFilesUploadError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A newer version of the file already exists and is available for download.
+        /// </summary>
+        internal static string ExceptionCLHttpRestDownloadNewerVersion {
+            get {
+                return ResourceManager.GetString("ExceptionCLHttpRestDownloadNewerVersion", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Path cannot be null.
         /// </summary>
         internal static string ExceptionCLHttpRestNullPath {
@@ -2021,6 +2030,15 @@ namespace Cloud.Static {
         internal static string ExceptionCLHttpRestNullServerUid {
             get {
                 return ResourceManager.GetString("ExceptionCLHttpRestNullServerUid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The server responded without an array of add file responses.
+        /// </summary>
+        internal static string ExceptionCLHttpRestWithoutAddFilesResponses {
+            get {
+                return ResourceManager.GetString("ExceptionCLHttpRestWithoutAddFilesResponses", resourceCulture);
             }
         }
         
@@ -2084,6 +2102,15 @@ namespace Cloud.Static {
         internal static string ExceptionCLHttpRestWithoutSessions {
             get {
                 return ResourceManager.GetString("ExceptionCLHttpRestWithoutSessions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error initializing the syncbox, see InnerExceptions for details.
+        /// </summary>
+        internal static string ExceptionCLSyncboxAllocAndInitInnerInitialize {
+            get {
+                return ResourceManager.GetString("ExceptionCLSyncboxAllocAndInitInnerInitialize", resourceCulture);
             }
         }
         
@@ -2156,6 +2183,24 @@ namespace Cloud.Static {
         internal static string ExceptionCreatingUserRegistrationWithCode {
             get {
                 return ResourceManager.GetString("ExceptionCreatingUserRegistrationWithCode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ExpirationDate must not be null.
+        /// </summary>
+        internal static string ExceptionCredentialsExpirationDateMustNotBeNull {
+            get {
+                return ResourceManager.GetString("ExceptionCredentialsExpirationDateMustNotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IsValid requires session credentials.
+        /// </summary>
+        internal static string ExceptionCredentialsIsValidRequiresSessionCredentials {
+            get {
+                return ResourceManager.GetString("ExceptionCredentialsIsValidRequiresSessionCredentials", resourceCulture);
             }
         }
         
@@ -2309,6 +2354,24 @@ namespace Cloud.Static {
         internal static string ExceptionHelpersHandleUploadDownloadStatusNullEventSource {
             get {
                 return ResourceManager.GetString("ExceptionHelpersHandleUploadDownloadStatusNullEventSource", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to dependencyFileChange cannot be null.
+        /// </summary>
+        internal static string ExceptionHelpersOpenFileStreamAndCalculateHashesNullDependencyFileChange {
+            get {
+                return ResourceManager.GetString("ExceptionHelpersOpenFileStreamAndCalculateHashesNullDependencyFileChange", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to dependencyFileChange Metadata cannot be null.
+        /// </summary>
+        internal static string ExceptionHelpersOpenFileStreamAndCalculateHashesNullDependencyFileChangeMetadata {
+            get {
+                return ResourceManager.GetString("ExceptionHelpersOpenFileStreamAndCalculateHashesNullDependencyFileChangeMetadata", resourceCulture);
             }
         }
         
@@ -2493,6 +2556,15 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Stream can only be returned from ProcessHttpInner when called by ProcessHttpRawStreamCopy.
+        /// </summary>
+        internal static string ExceptionHelpersProcessHttpInnerStreamCaller {
+            get {
+                return ResourceManager.GetString("ExceptionHelpersProcessHttpInnerStreamCaller", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to uploadDownload TempDownloadFolderPath cannot be null.
         /// </summary>
         internal static string ExceptionHelpersProcessHttpInnerTempDownloadFolderPath {
@@ -2516,6 +2588,15 @@ namespace Cloud.Static {
         internal static string ExceptionHelpersProcessHttpInnerUploadRequestStream {
             get {
                 return ResourceManager.GetString("ExceptionHelpersProcessHttpInnerUploadRequestStream", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to millisecondsTimeout must be at least the length of the WaitHandle array to differentiate success from timeout failure.
+        /// </summary>
+        internal static string ExceptionHelpersProcessHttpInnerWaitHandleArrayLength {
+            get {
+                return ResourceManager.GetString("ExceptionHelpersProcessHttpInnerWaitHandleArrayLength", resourceCulture);
             }
         }
         
@@ -2574,6 +2655,15 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to SerializableResponseTypes contains an invalid type key.
+        /// </summary>
+        internal static string ExceptionHelpersSerializableResponseTypesKey {
+            get {
+                return ResourceManager.GetString("ExceptionHelpersSerializableResponseTypesKey", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to This ListRemoveAllEnumerator has already been disposed.
         /// </summary>
         internal static string ExceptionListRemoveAllEnumeratorDisposed {
@@ -2601,6 +2691,33 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to An error occurred swapping the order of two FileChanges in the database in AssignDependencies.
+        /// </summary>
+        internal static string ExceptionMonitorAgentAssignDependenciesEventIdSwap {
+            get {
+                return ResourceManager.GetString("ExceptionMonitorAgentAssignDependenciesEventIdSwap", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to One or more FileChange instances failed to add or update in the database in AssignDependencies.
+        /// </summary>
+        internal static string ExceptionMonitorAgentAssignDependenciesMergeToSql {
+            get {
+                return ResourceManager.GetString("ExceptionMonitorAgentAssignDependenciesMergeToSql", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to cast innerState as IndexingAgent.
+        /// </summary>
+        internal static string ExceptionMonitorAgentGrabPreprocessedChangesCastInnerState {
+            get {
+                return ResourceManager.GetString("ExceptionMonitorAgentGrabPreprocessedChangesCastInnerState", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to foldersToAdd must be specified, and must have at least one element.
         /// </summary>
         internal static string ExceptionOnDemandAddFoldersNoFoldersToAdd {
@@ -2615,15 +2732,6 @@ namespace Cloud.Static {
         internal static string ExceptionOnDemandAddFoldersParentFolderDeleted {
             get {
                 return ResourceManager.GetString("ExceptionOnDemandAddFoldersParentFolderDeleted", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The parent folder was not found.
-        /// </summary>
-        internal static string ExceptionOnDemandAddFoldersParentFolderNotFound {
-            get {
-                return ResourceManager.GetString("ExceptionOnDemandAddFoldersParentFolderNotFound", resourceCulture);
             }
         }
         
@@ -2651,6 +2759,15 @@ namespace Cloud.Static {
         internal static string ExceptionOnDemandAddItemNameMustBeSpecified {
             get {
                 return ResourceManager.GetString("ExceptionOnDemandAddItemNameMustBeSpecified", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The parent folder was not found.
+        /// </summary>
+        internal static string ExceptionOnDemandAddParentFolderNotFound {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandAddParentFolderNotFound", resourceCulture);
             }
         }
         
@@ -2700,6 +2817,24 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The input CLFileItem was not created in this syncbox.
+        /// </summary>
+        internal static string ExceptionOnDemandCLFileItemNotCreatedInThisSyncbox {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandCLFileItemNotCreatedInThisSyncbox", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The input CLFileItem at index {0} was not created in this syncbox.
+        /// </summary>
+        internal static string ExceptionOnDemandCLFileItemNotCreatedInThisSyncboxMsg0 {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandCLFileItemNotCreatedInThisSyncboxMsg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Destination item already exists.
         /// </summary>
         internal static string ExceptionOnDemandConflict {
@@ -2727,6 +2862,69 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to incorrect userState object type.
+        /// </summary>
+        internal static string ExceptionOnDemandDownloadFileIncorrectUserState {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandDownloadFileIncorrectUserState", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The temp download file did not exist on the disk after a successful download.
+        /// </summary>
+        internal static string ExceptionOnDemandDownloadFileTempFileDidNotExistAfterSuccessfulDownload {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandDownloadFileTempFileDidNotExistAfterSuccessfulDownload", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Image file not found.
+        /// </summary>
+        internal static string ExceptionOnDemandDownloadImageOfSizeFileNotFound {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandDownloadImageOfSizeFileNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid imageSize value.
+        /// </summary>
+        internal static string ExceptionOnDemandDownloadImageOfSizeInvalidImageSizeValue {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandDownloadImageOfSizeInvalidImageSizeValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to User requested cancellation.
+        /// </summary>
+        internal static string ExceptionOnDemandDownloadImageOfSizeUserCancelled {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandDownloadImageOfSizeUserCancelled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The input CLFileItem was a file when a folder item was expected.
+        /// </summary>
+        internal static string ExceptionOnDemandFileItemFoundWhenFolderItemExpected {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandFileItemFoundWhenFolderItemExpected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The input CLFileItem at index {0} was a file when a folder item was expected.
+        /// </summary>
+        internal static string ExceptionOnDemandFileItemFoundWhenFolderItemExpectedMsg0 {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandFileItemFoundWhenFolderItemExpectedMsg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to File item must not be null at item index {0}.
         /// </summary>
         internal static string ExceptionOnDemandFileItemNullAtIndexMsg0 {
@@ -2736,11 +2934,29 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The input CLFileItem at index {0} was a folder when a file item was expected.
+        /// </summary>
+        internal static string ExceptionOnDemandFolderItemFoundWhenFileItemExpectedMsg0 {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandFolderItemFoundWhenFileItemExpectedMsg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Folder item must not be null at item index {0}.
         /// </summary>
         internal static string ExceptionOnDemandFolderItemNullAtIndexMsg0 {
             get {
                 return ResourceManager.GetString("ExceptionOnDemandFolderItemNullAtIndexMsg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No Content-Length header in the response.
+        /// </summary>
+        internal static string ExceptionOnDemandHttpNoContentLengthHeaderInResponse {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandHttpNoContentLengthHeaderInResponse", resourceCulture);
             }
         }
         
@@ -2781,11 +2997,29 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to returnLimit must be greater than zero.
+        /// </summary>
+        internal static string ExceptionOnDemandInvalidReturnLimit {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandInvalidReturnLimit", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to An error occurred for the current item, check the InnerException Message.
         /// </summary>
         internal static string ExceptionOnDemandItemError {
             get {
                 return ResourceManager.GetString("ExceptionOnDemandItemError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The item was not found at the path.
+        /// </summary>
+        internal static string ExceptionOnDemandItemForPathNotFound {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandItemForPathNotFound", resourceCulture);
             }
         }
         
@@ -2808,6 +3042,60 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to ItemUid must not be null.
+        /// </summary>
+        internal static string ExceptionOnDemandItemUidMustNotBeNull {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandItemUidMustNotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The input CLFileItem was previously deleted.
+        /// </summary>
+        internal static string ExceptionOnDemandItemWasPreviouslyDeleted {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandItemWasPreviouslyDeleted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The input CLFileItem at index {0} was previously deleted.
+        /// </summary>
+        internal static string ExceptionOnDemandItemWasPreviouslyDeletedMsg0 {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandItemWasPreviouslyDeletedMsg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Link device first time request must not be null.
+        /// </summary>
+        internal static string ExceptionOnDemandLinkDeviceFirstTimeRequestMustNotBeNull {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandLinkDeviceFirstTimeRequestMustNotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Link device request must not be null.
+        /// </summary>
+        internal static string ExceptionOnDemandLinkDeviceRequestMustNotBeNull {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandLinkDeviceRequestMustNotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to One of the session responses was invalid.
+        /// </summary>
+        internal static string ExceptionOnDemandListAllSessionCredentialsOneSessionResponseWasInvalid {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandListAllSessionCredentialsOneSessionResponseWasInvalid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to newName must be specified.
         /// </summary>
         internal static string ExceptionOnDemandNewNameMustBeSpecified {
@@ -2822,6 +3110,15 @@ namespace Cloud.Static {
         internal static string ExceptionOnDemandNewParentFolderItemMustBeSpecified {
             get {
                 return ResourceManager.GetString("ExceptionOnDemandNewParentFolderItemMustBeSpecified", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No response returned from server.
+        /// </summary>
+        internal static string ExceptionOnDemandNoServerResponse {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandNoServerResponse", resourceCulture);
             }
         }
         
@@ -2898,6 +3195,15 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to No session returned from server.
+        /// </summary>
+        internal static string ExceptionOnDemandServerResponseNoSession {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandServerResponseNoSession", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The syncbox path has already been set.
         /// </summary>
         internal static string ExceptionOnDemandSyncboxPathAlreadySet {
@@ -2912,6 +3218,15 @@ namespace Cloud.Static {
         internal static string ExceptionOnDemandUnknownItemStatus {
             get {
                 return ResourceManager.GetString("ExceptionOnDemandUnknownItemStatus", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unlink device request must not be null.
+        /// </summary>
+        internal static string ExceptionOnDemandUnlinkDeviceRequestMustNotBeNull {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandUnlinkDeviceRequestMustNotBeNull", resourceCulture);
             }
         }
         
@@ -2984,6 +3299,15 @@ namespace Cloud.Static {
         internal static string ExceptionSyncboxStartStatus {
             get {
                 return ResourceManager.GetString("ExceptionSyncboxStartStatus", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to cast userState as Nullable&lt;Guid&gt;.
+        /// </summary>
+        internal static string ExceptionSyncEngineFileTransferStatusUpdateCastUserstate {
+            get {
+                return ResourceManager.GetString("ExceptionSyncEngineFileTransferStatusUpdateCastUserstate", resourceCulture);
             }
         }
         
@@ -3066,6 +3390,15 @@ namespace Cloud.Static {
         internal static string HaveNotHandledBadgingWhenTwoEventsMergedTogether {
             get {
                 return ResourceManager.GetString("HaveNotHandledBadgingWhenTwoEventsMergedTogether", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ---HttpWebResponse returned as-is to be wrapped by caller---.
+        /// </summary>
+        internal static string HelpersProcessHttpInnerStreamWrappedResponseBody {
+            get {
+                return ResourceManager.GetString("HelpersProcessHttpInnerStreamWrappedResponseBody", resourceCulture);
             }
         }
         
@@ -5958,6 +6291,15 @@ namespace Cloud.Static {
         internal static string NotTranslatedCheckLogFileExistanceYearMonthDay {
             get {
                 return ResourceManager.GetString("NotTranslatedCheckLogFileExistanceYearMonthDay", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Notification Engine.
+        /// </summary>
+        internal static string NotTranslatedCLNotificationServiceThreadName {
+            get {
+                return ResourceManager.GetString("NotTranslatedCLNotificationServiceThreadName", resourceCulture);
             }
         }
         

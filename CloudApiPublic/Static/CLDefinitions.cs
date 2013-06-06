@@ -8,8 +8,8 @@
 // Back end definitions
 // @@@@@@@@@ AUTO-BUILD SECTION.  DON'T CHANGE THE FORMAT @@@@@@@@@@@@@@@@@
 //#define PRODUCTION_BACKEND    // cloud.com
-#define DEVELOPMENT_BACKEND     // cliff.cloudburrito.com
-//#define STAGING_BACKEND       // cloudstaging.us
+//#define DEVELOPMENT_BACKEND     // cliff.cloudburrito.com
+#define STAGING_BACKEND       // cloudstaging.us
 // @@@@@@@@@ END AUTO-BUILD SECTION.  DON'T CHANGE THE FORMAT @@@@@@@@@@@@@@@@@
 
 // URL definitions
@@ -101,19 +101,20 @@ namespace Cloud.Static
 #if DEVELOPMENT_BACKEND || PRODUCTION_BACKEND || STAGING_BACKEND
 #if URL_API
         // switched to "_new" for testing latest server logic
-        public const string MethodPathSyncFrom = VersionPrefix + "/sync/from_cloud_new";                                    // POST
+        public const string MethodPathSyncFrom = VersionPrefix + "/sync/from_cloud_new";                                // POST
         public const string MethodPathDownload = VersionPrefix + "/sync/file/download";                                 // POST
         public const string MethodPathUpload = VersionPrefix + "/sync/file/upload";                                     // POST
         // switched to "_new" for testing latest server logic
-        public const string MethodPathSyncTo = VersionPrefix + "/sync/to_cloud_new";                                        // POST
+        public const string MethodPathSyncTo = VersionPrefix + "/sync/to_cloud_new";                                    // POST
         public const string MethodPathPurgePending = VersionPrefix + "/sync/file/purge_pending";                        // POST
         public const string MethodPathGetPending = VersionPrefix + "/sync/file/pending";                                // GET
         public const string MethodPathGetFileMetadata = VersionPrefix + "/sync/file/metadata";                          // GET
         public const string MethodPathGetItemMetadata = VersionPrefix + "/sync/metadata";                               // GET
         public const string MethodPathGetFolderMetadata = VersionPrefix + "/sync/folder/metadata";                      // GET
         public const string MethodPathSyncboxList = VersionPrefix + "/sync/syncbox/list";                               // POST
+        public const string MethodPathImage = VersionPrefix + "/sync/image";                                            // POST
 
-        //public const string MethodPathGetUsedBytes = VersionPrefix + "/sync/file/used_bytes";                           // GET  @@@@@@@@@@@@  DEPRECATED  @@@@@@@@@@@@@@@@@@@@@@
+        //public const string MethodPathGetUsedBytes = VersionPrefix + "/sync/file/used_bytes";                         // GET  @@@@@@@@@@@@  DEPRECATED  @@@@@@@@@@@@@@@@@@@@@@
 
         #region one-off
         #region files
@@ -537,6 +538,9 @@ namespace Cloud.Static
         public const string CLMetadataToName = "to_name";
         public const string CLMetadataParentUid = "parent_uid";
         public const string CLMetadataToParentUid = "to_parent_uid";
+        public const string CLMetadataGenerate = "generate";
+        public const string CLMetadataFalse = "false";
+        public const string CLMetadataInline = "inline";
         /// <summary>
         /// Be careful, this may be the wrong key name, you may need the inverse of <see cref="CLDefinitions.CLMetadataIsStored"/>
         /// </summary>

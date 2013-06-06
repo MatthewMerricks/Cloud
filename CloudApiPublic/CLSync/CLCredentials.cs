@@ -69,6 +69,30 @@ namespace Cloud
         }
         private readonly string _token;
 
+        /// <summary>
+        /// The session token expiration date.
+        /// </summary>
+        internal Nullable<DateTime> ExpirationDate
+        {
+            get
+            {
+                return _expirationDate;
+            }
+        }
+        private readonly Nullable<DateTime> _expirationDate;
+
+        /// <summary>
+        /// The syncbox IDs associated with these credentials.
+        /// </summary>
+        internal HashSet<long> SyncboxIds
+        {
+            get
+            {
+                return _syncboxIds;
+            }
+        }
+        private readonly HashSet<long> _syncboxIds;
+
         #endregion
 
         #region Private Fields
@@ -86,7 +110,7 @@ namespace Cloud
         /// <param name="secret">The application or session private secret.</param>
         /// <param name="credentials">(output) Created credentials object</param>
         /// <param name="token">(optional) The temporary token to use.  Default: null.</param>
-        /// <returns>Returns any error that occurred in construction, if any, or null.</returns>
+        /// <returns>Returns any error that occurred in construction or initialization, if any, or null.</returns>
         public static CLError AllocAndInit(
             string key,
             string secret,
@@ -96,8 +120,6 @@ namespace Cloud
         {
             try
             {
-                Helpers.CheckHalted();
-
                 credentials = new CLCredentials(
                     key,
                     secret,
@@ -126,8 +148,6 @@ namespace Cloud
             string token, 
             ICLCredentialsSettings settings = null)
         {
-            Helpers.CheckHalted();
-
             // check input parameters
             if (string.IsNullOrEmpty(key))
             {
@@ -153,25 +173,41 @@ namespace Cloud
             _copiedSettings = (settings == null
                 ? NullDeviceId.Instance.CopySettings()
                 : settings.CopySettings());
+
+            // setup ServicePointManager as needed here (to be shared with all communication calls everywhere)
+            lock (servicePointManagerConfigured)
+            {
+                if (!servicePointManagerConfigured.Value)
+                {
+                    // 12 is Default Connection Limit (6 up/6 down)
+                    ServicePointManager.DefaultConnectionLimit = CLDefinitions.MaxNumberOfConcurrentDownloads + CLDefinitions.MaxNumberOfConcurrentUploads;
+
+                    ServicePointManager.UseNagleAlgorithm = true;
+                    ServicePointManager.Expect100Continue = true;
+                    ServicePointManager.CheckCertificateRevocationList = true;
+
+                    servicePointManagerConfigured.Value = true;
+                }
+            }
         }
+
+        private static readonly GenericHolder<bool> servicePointManagerConfigured = new GenericHolder<bool>(false);
 
         /// <summary>
         /// Private constructor to create CLCredentials from JsonContracts.Session.
         /// </summary>
-        /// <param name="session"></param>
-        /// <param name="settings"></param>
+        /// <param name="session">The JSON contract to use to construct this CLCredentials object.</param>
+        /// <param name="settings">The settings to use.</param>
         private CLCredentials(JsonContracts.Session session, ICLCredentialsSettings settings = null)
         {
-            Helpers.CheckHalted();
-
             // check input parameters
             if (string.IsNullOrEmpty(session.Key))
             {
-                throw new NullReferenceException(Resources.CLCredentialKeyCannotBeNull);
+                throw new CLArgumentNullException(CLExceptionCode.Credentials_NullKey, Resources.CLCredentialKeyCannotBeNull);
             }
             if (string.IsNullOrEmpty(session.Secret))
             {
-                throw new NullReferenceException(Resources.CLCredentialSecretCannotBeNull);
+                throw new CLArgumentNullException(CLExceptionCode.Credentials_NullSecret, Resources.CLCredentialSecretCannotBeNull);
             }
 
             // Since we allow null then reverse-null coalesce from empty string
@@ -181,10 +217,12 @@ namespace Cloud
                 token = null;
             }
 
-            this._key = Key;
-            this._secret = Secret;
+            this._key = session.Key;
+            this._secret = session.Secret;
 
             this._token = token;
+            this._expirationDate = session.ExpiresAt;
+            this._syncboxIds = session.SyncboxIds;
 
             // copy settings so they don't change while processing; this also defaults some values
             _copiedSettings = (settings == null
@@ -200,9 +238,44 @@ namespace Cloud
         /// Determine whether the credentials were instantiated with a temporary token.
         /// </summary>
         /// <returns>bool: true: The token exists.</returns>
-        public bool IsSessionToken()
+        public bool IsSessionCredentials()
         {
             return !String.IsNullOrEmpty(_token);
+        }
+
+        /// <summary>
+        /// Determine whether the session credentials have expired (!IsValid).  Requires session credentials.
+        /// </summary>
+        /// <param name="isValid">(output) The result.  True: The session credentials have not expired.</param>
+        /// <returns>Any error that occurs, or null.</returns>
+        public CLError IsValid(out bool isValid)
+        {
+            try
+            {
+                if (!IsSessionCredentials())
+                {
+                    throw new CLException(CLExceptionCode.Credentials_NotSessionCredentials, Resources.ExceptionCredentialsIsValidRequiresSessionCredentials);
+                }
+
+                if (ExpirationDate == null)
+                {
+                    throw new CLException(CLExceptionCode.Credentials_ExpirationDateMustNotBeNull, Resources.ExceptionCredentialsExpirationDateMustNotBeNull);
+                }
+
+                if (ExpirationDate < DateTime.UtcNow)
+                {
+                    isValid = true;
+                }
+
+                isValid = false;
+            }
+            catch (Exception ex)
+            {
+                isValid = false;
+                return ex;
+            }
+
+            return null;
         }
 
         #endregion  // end Public Utilities
@@ -225,29 +298,27 @@ namespace Cloud
         }
         #endregion
 
-        #region ListAllActiveSessions (query the cloud for all active sessions for these credentials)
+        #region ListAllActiveSessionCredentials (query the cloud for all active sessions for these credentials)
         /// <summary>
         /// Asynchronously starts listing the sessions on the server for the current credentials.
         /// </summary>
-        /// <param name="callback">Callback method to fire when operation completes</param>
-        /// <param name="callbackUserState">Userstate to pass when firing async callback</param>
+        /// <param name="asyncCallback">Callback method to fire when the async operation completes</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing async callback</param>
         /// <param name="settings">(optional) Settings to use with this request.</param>
-        /// <returns>Returns any error that occurred during communication, if any</returns>
-        public IAsyncResult BeginListAllActiveSessions(
-            AsyncCallback callback,
-            object callbackUserState,
+        /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
+        public IAsyncResult BeginListAllActiveSessionCredentials(
+            AsyncCallback asyncCallback,
+            object asyncCallbackUserState,
             ICLCredentialsSettings settings = null)
         {
-            Helpers.CheckHalted();
-
             var asyncThread = DelegateAndDataHolderBase.Create(
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
                 new
                 {
                     // create the asynchronous result to return
                     toReturn = new GenericAsyncResult<CredentialsListSessionsResult>(
-                        callback,
-                        callbackUserState),
+                        asyncCallback,
+                        asyncCallbackUserState),
                     settings = settings
                 },
                 (Data, errorToAccumulate) =>
@@ -259,7 +330,7 @@ namespace Cloud
                         // declare the specific type of response for this operation
                         CLCredentials [] response;
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
-                        CLError processError = ListAllActiveSessions(
+                        CLError processError = ListAllActiveSessionCredentials(
                             out response,
                             Data.settings);
 
@@ -286,30 +357,26 @@ namespace Cloud
         }
 
         /// <summary>
-        /// Finishes listing sessions on the server for the current application if it has not already finished via its asynchronous result and outputs the result,
+        /// Finishes listing sessions on the server for the current application, if it has not already finished via its asynchronous result and outputs the result,
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
         /// </summary>
-        /// <param name="aResult">The asynchronous result provided upon starting listing the sessions</param>
+        /// <param name="asyncResult">The asynchronous result provided upon starting listing the sessions</param>
         /// <param name="result">(output) The result from listing the sessions</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndListAllActiveSessions(IAsyncResult aResult, out CredentialsListSessionsResult result)
+        public CLError EndListAllActiveSessionCredentials(IAsyncResult asyncResult, out CredentialsListSessionsResult result)
         {
-            Helpers.CheckHalted();
-
-            return Helpers.EndAsyncOperation<CredentialsListSessionsResult>(aResult, out result);
+            return Helpers.EndAsyncOperation<CredentialsListSessionsResult>(asyncResult, out result);
         }
 
         /// <summary>
-        /// Lists the sessions boxes on the server for the current application
+        /// Lists the sessions on the server for the current application
         /// </summary>
         /// <param name="response">(output) An array of CLCredential objects representing the sessions in the cloud.</param>
-        /// <param name="settings">(optional) settings for optional tracing and specifying the client version to the server</param>
+        /// <param name="settings">(optional) settings for optional tracing and specifying the client version to the server.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
         /// <remarks>The response array may be null, empty, or may contain null items.</remarks>
-        public CLError ListAllActiveSessions(out CLCredentials [] response, ICLCredentialsSettings settings = null)
+        public CLError ListAllActiveSessionCredentials(out CLCredentials [] response, ICLCredentialsSettings settings = null)
         {
-            Helpers.CheckHalted();
-
             // try/catch to process the metadata query, on catch return the error
             try
             {
@@ -321,7 +388,7 @@ namespace Cloud
                 // check input parameters
                 if (!(copiedSettings.HttpTimeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException(Resources.CLMSTimeoutMustBeGreaterThanZero);
+                    throw new CLArgumentException(CLExceptionCode.OnDemand_InvalidParameters, Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
 
                 // Communicate with the server.
@@ -351,14 +418,14 @@ namespace Cloud
                         }
                         else
                         {
-                            listCredentials.Add(null);
+                            throw new CLNullReferenceException(CLExceptionCode.OnDemand_ServerReturnedInvalidItem, Resources.ExceptionOnDemandListAllSessionCredentialsOneSessionResponseWasInvalid);
                         }
                     }
                     response = listCredentials.ToArray();
                 }
                 else
                 {
-                    throw new NullReferenceException(Resources.ExceptionCLHttpRestWithoutSessions);
+                    throw new CLNullReferenceException(CLExceptionCode.OnDemand_ServerReturnedInvalidItem, Resources.ExceptionCLHttpRestWithoutSessions);
                 }
             }
             catch (Exception ex)
@@ -370,32 +437,31 @@ namespace Cloud
         }
         #endregion (query the cloud for all active sessions for these credentials)
 
-        #region CreateSessionForSyncboxIds (create a new set of session credentials for a list of syncbox IDs using the current credentials)
+        #region CreateSessionCredentialsForSyncboxIds (create a new set of session credentials for a list of syncbox IDs using the current credentials)
         /// <summary>
         /// Asynchronously starts creating a session on the server for the current application
         /// </summary>
-        /// <param name="callback">Callback method to fire when operation completes</param>
-        /// <param name="callbackUserState">Userstate to pass when firing async callback</param>
+        /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing async callback</param>
         /// <param name="syncboxIds">(optional) IDs of sync boxes to associate with this session.  A null value causes all syncboxes defined for the application to be associated with this session.</param>
         /// <param name="tokenDurationMinutes">(optional) The number of minutes before the token expires. Default: 2160 minutes (36 hours).  Maximum: 7200 minutes (120 hours).</param>
-        /// <param name="settings">(optional) settings for optional tracing and specifying the client version to the server</param>
-        /// <returns>Returns any error that occurred during communication, if any</returns>
-        public IAsyncResult BeginCreateSessionForSyncboxIds(AsyncCallback callback,
-            object callbackUserState,
+        /// <param name="settings">(optional) settings for optional tracing and specifying the client version to the server.</param>
+        /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
+        public IAsyncResult BeginCreateSessionCredentialsForSyncboxIds(
+            AsyncCallback asyncCallback,
+            object asyncCallbackUserState,
             HashSet<long> syncboxIds = null,
             Nullable<long> tokenDurationMinutes = null,
             ICLCredentialsSettings settings = null)
         {
-            Helpers.CheckHalted();
-
             var asyncThread = DelegateAndDataHolderBase.Create(
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
                 new
                 {
                     // create the asynchronous result to return
                     toReturn = new GenericAsyncResult<CredentialsSessionCreateResult>(
-                        callback,
-                        callbackUserState),
+                        asyncCallback,
+                        asyncCallbackUserState),
                     settings = settings,
                     syncboxIds = syncboxIds,
                     tokenDurationMinutes = tokenDurationMinutes
@@ -409,7 +475,7 @@ namespace Cloud
                         // declare the specific type of response for this operation
                         CLCredentials response;
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
-                        CLError processError = CreateSessionForSyncboxIds(
+                        CLError processError = CreateSessionCredentialsForSyncboxIds(
                             out response,
                             Data.syncboxIds,
                             Data.tokenDurationMinutes,
@@ -438,35 +504,31 @@ namespace Cloud
         }
 
         /// <summary>
-        /// Finishes creating the session on the server for the current application if it has not already finished via its asynchronous result and outputs the result,
+        /// Finishes creating the session on the server for the current application, if it has not already finished via its asynchronous result, and outputs the result,
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
         /// </summary>
-        /// <param name="aResult">The asynchronous result provided upon starting the creation of the session</param>
-        /// <param name="result">(output) The result from creating the session</param>
+        /// <param name="asyncResult">The asynchronous result provided upon starting the creation of the session.</param>
+        /// <param name="result">(output) The result from creating the session.</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndCreateSessionForSyncboxIds(IAsyncResult aResult, out CredentialsSessionCreateResult result)
+        public CLError EndCreateSessionCredentialsForSyncboxIds(IAsyncResult asyncResult, out CredentialsSessionCreateResult result)
         {
-            Helpers.CheckHalted();
-
-            return Helpers.EndAsyncOperation<CredentialsSessionCreateResult>(aResult, out result);
+            return Helpers.EndAsyncOperation<CredentialsSessionCreateResult>(asyncResult, out result);
         }
 
         /// <summary>
-        /// Creates a session on the server for the current application
+        /// Creates a session on the server for the current application, and activates the session for a list of syncboxIds.
         /// </summary>
         /// <param name="response">(output) response object from communication</param>
         /// <param name="syncboxIds">(optional) IDs of sync boxes to associate with this session.  A null value causes all syncboxes defined for the application to be associated with this session.</param>
         /// <param name="tokenDurationMinutes">(optional) The number of minutes before the token expires. Default: 2160 minutes (36 hours).  Maximum: 7200 minutes (120 hours).</param>
-        /// <param name="settings">(optional) settings for optional tracing and specifying the client version to the server</param>
+        /// <param name="settings">(optional) settings for optional tracing and specifying the client version to the server.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError CreateSessionForSyncboxIds(
+        public CLError CreateSessionCredentialsForSyncboxIds(
                     out CLCredentials response,
                     HashSet<long> syncboxIds = null,
                     Nullable<long> tokenDurationMinutes = null,
                     ICLCredentialsSettings settings = null)
         {
-            Helpers.CheckHalted();
-
             // try/catch to process the metadata query, on catch return the error
             try
             {
@@ -479,7 +541,7 @@ namespace Cloud
 
                 if (!(copiedSettings.HttpTimeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException(Resources.CLMSTimeoutMustBeGreaterThanZero);
+                    throw new CLArgumentException(CLExceptionCode.OnDemand_TimeoutMilliseconds, Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
 
                 // Determine the request JSON contract to use.  If the syncboxIds parameter is null, use the "all"
@@ -526,7 +588,7 @@ namespace Cloud
                 }
                 else
                 {
-                    throw new Exception("No session returned from server");
+                    throw new CLException(CLExceptionCode.OnDemand_ServerResponseNoSession, Resources.ExceptionOnDemandServerResponseNoSession);
                 }
 
             }
@@ -543,28 +605,25 @@ namespace Cloud
         /// <summary>
         /// Asynchronously starts creating a session on the server for the current application
         /// </summary>
-        /// <param name="callback">Callback method to fire when operation completes</param>
-        /// <param name="callbackUserState">Userstate to pass when firing async callback</param>
-        /// <param name="syncboxIds">(optional) IDs of sync boxes to associate with this session.  A null value causes all syncboxes defined for the application to be associated with this session.</param>
-        /// <param name="tokenDurationMinutes">(optional) The number of minutes before the token expires. Default: 2160 minutes (36 hours).  Maximum: 7200 minutes (120 hours).</param>
-        /// <param name="settings">(optional) settings for optional tracing and specifying the client version to the server</param>
-        /// <returns>Returns any error that occurred during communication, if any</returns>
-        public IAsyncResult BeginGetSessionForKey(
-            AsyncCallback callback,
-            object callbackUserState,
+        /// <param name="asyncCallback">Callback method to fire when operation completes</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing async callback</param>
+        /// <param name="key">The key to use to query the session on the server.</param>
+        /// <param name="settings">(optional) settings for optional tracing and specifying the client version to the server.</param>
+        /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
+        public IAsyncResult BeginSessionCredentialsForKey(
+            AsyncCallback asyncCallback,
+            object asyncCallbackUserState,
             string key,
             ICLCredentialsSettings settings = null)
         {
-            Helpers.CheckHalted();
-
             var asyncThread = DelegateAndDataHolderBase.Create(
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
                 new
                 {
                     // create the asynchronous result to return
                     toReturn = new GenericAsyncResult<CredentialsSessionGetForKeyResult>(
-                        callback,
-                        callbackUserState),
+                        asyncCallback,
+                        asyncCallbackUserState),
                     key = key,
                     settings = settings
                 },
@@ -577,7 +636,7 @@ namespace Cloud
                         // declare the specific type of response for this operation
                         CLCredentials response;
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
-                        CLError processError = GetSessionForKey(
+                        CLError processError = SessionCredentialsForKey(
                             out response,
                             Data.key,
                             Data.settings);
@@ -605,34 +664,29 @@ namespace Cloud
         }
 
         /// <summary>
-        /// Finishes creating the session on the server for the current application if it has not already finished via its asynchronous result and outputs the result,
+        /// Finishes creating the session on the server for the current application, if it has not already finished via its asynchronous result, and outputs the result,
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
         /// </summary>
-        /// <param name="aResult">The asynchronous result provided upon starting the creation of the session</param>
+        /// <param name="asyncResult">The asynchronous result provided upon starting the creation of the session</param>
         /// <param name="result">(output) The result from creating the session</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndGetSessionForKey(IAsyncResult aResult, out CredentialsSessionGetForKeyResult result)
+        public CLError EndSessionCredentialsForKey(IAsyncResult asyncResult, out CredentialsSessionGetForKeyResult result)
         {
-            Helpers.CheckHalted();
-
-            return Helpers.EndAsyncOperation<CredentialsSessionGetForKeyResult>(aResult, out result);
+            return Helpers.EndAsyncOperation<CredentialsSessionGetForKeyResult>(asyncResult, out result);
         }
 
         /// <summary>
         /// Creates a session on the server for the current application
         /// </summary>
         /// <param name="response">(output) response object from communication</param>
-        /// <param name="syncboxIds">(optional) IDs of sync boxes to associate with this session.  A null value causes all syncboxes defined for the application to be associated with this session.</param>
-        /// <param name="tokenDurationMinutes">(optional) The number of minutes before the token expires. Default: 2160 minutes (36 hours).  Maximum: 7200 minutes (120 hours).</param>
-        /// <param name="settings">(optional) settings for optional tracing and specifying the client version to the server</param>
+        /// <param name="key">The key to use to query the session on the server.</param>
+        /// <param name="settings">(optional) settings for optional tracing and specifying the client version to the server.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError GetSessionForKey(
+        public CLError SessionCredentialsForKey(
                     out CLCredentials response,
                     string key,
                     ICLCredentialsSettings settings = null)
         {
-            Helpers.CheckHalted();
-
             // try/catch to process the metadata query, on catch return the error
             try
             {
@@ -645,7 +699,7 @@ namespace Cloud
 
                 if (!(copiedSettings.HttpTimeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException(Resources.CLMSTimeoutMustBeGreaterThanZero);
+                    throw new CLArgumentException(CLExceptionCode.OnDemand_TimeoutMilliseconds, Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
 
                 // Build the query string.
@@ -674,9 +728,8 @@ namespace Cloud
                 }
                 else
                 {
-                    throw new Exception("No session returned from server");
+                    throw new CLException(CLExceptionCode.OnDemand_ServerResponseNoSession, Resources.ExceptionOnDemandServerResponseNoSession);
                 }
-
             }
             catch (Exception ex)
             {
@@ -687,31 +740,29 @@ namespace Cloud
         }
         #endregion  // end GetSessionForKey (get and existing session from the server using its key)
 
-        #region DeleteSessionWithKey (delete a session in the cloud)
+        #region DeleteSessionCredentialsWithKey (delete a session in the cloud)
         /// <summary>
         /// Asynchronously starts deleting a session on the server for the current credentials.
         /// </summary>
-        /// <param name="callback">Callback method to fire when operation completes</param>
-        /// <param name="callbackUserState">Userstate to pass when firing async callback</param>
+        /// <param name="asyncCallback">Callback method to fire when the async operation completes</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing async callback</param>
         /// <param name="key">Key of the session to delete.</param>
         /// <param name="settings">(optional) Settings to use with this request.</param>
-        /// <returns>Returns any error that occurred during communication, if any</returns>
-        public IAsyncResult BeginDeleteSessionWithKey(
-            AsyncCallback callback,
-            object callbackUserState,
+        /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
+        public IAsyncResult BeginDeleteSessionCredentialsWithKey(
+            AsyncCallback asyncCallback,
+            object asyncCallbackUserState,
             string key,
             ICLCredentialsSettings settings = null)
         {
-            Helpers.CheckHalted();
-
             var asyncThread = DelegateAndDataHolderBase.Create(
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
                 new
                 {
                     // create the asynchronous result to return
                     toReturn = new GenericAsyncResult<CredentialsSessionDeleteResult>(
-                        callback,
-                        callbackUserState),
+                        asyncCallback,
+                        asyncCallbackUserState),
                     key = key,
                     settings = settings
                 },
@@ -722,17 +773,14 @@ namespace Cloud
                     try
                     {
                         // declare the specific type of response for this operation
-                        JsonContracts.CredentialsSessionDeleteResponse response;
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
-                        CLError processError = DeleteSessionWithKey(
+                        CLError processError = DeleteSessionCredentialsWithKey(
                             Data.key,
-                            out response,
                             Data.settings);
 
                         Data.toReturn.Complete(
                             new CredentialsSessionDeleteResult(
-                                processError, // any error that may have occurred during processing
-                                response), // the specific type of response for this operation
+                                processError), // any error that may have occurred during processing
                             sCompleted: false); // processing did not complete synchronously
                     }
                     catch (Exception ex)
@@ -752,16 +800,14 @@ namespace Cloud
         }
 
         /// <summary>
-        /// Finishes deleting a session on the server for the current credentials if it has not already finished via its asynchronous result, and outputs the result,
+        /// Finishes deleting a session on the server for the current credentials, if it has not already finished via its asynchronous result, and outputs the result,
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
         /// </summary>
         /// <param name="aResult">The asynchronous result provided upon starting listing the sessions</param>
         /// <param name="result">(output) The result from listing the sessions</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndDeleteSessionWithKey(IAsyncResult aResult, out CredentialsSessionDeleteResult result)
+        public CLError EndDeleteSessionCredentialsWithKey(IAsyncResult aResult, out CredentialsSessionDeleteResult result)
         {
-            Helpers.CheckHalted();
-
             return Helpers.EndAsyncOperation<CredentialsSessionDeleteResult>(aResult, out result);
         }
 
@@ -769,16 +815,12 @@ namespace Cloud
         /// Deletes a session on the server for the current credentials.
         /// </summary>
         /// <param name="key">The key of the session to delete.</param>
-        /// <param name="response">(output) An array of CLCredential objects representing the sessions in the cloud.</param>
         /// <param name="settings">(optional) settings for optional tracing and specifying the client version to the server</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError DeleteSessionWithKey(
+        public CLError DeleteSessionCredentialsWithKey(
             string key, 
-            out JsonContracts.CredentialsSessionDeleteResponse response, 
             ICLCredentialsSettings settings = null)
         {
-            Helpers.CheckHalted();
-
             // try/catch to process the metadata query, on catch return the error
             try
             {
@@ -790,7 +832,7 @@ namespace Cloud
                 // check input parameters
                 if (!(copiedSettings.HttpTimeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException(Resources.CLMSTimeoutMustBeGreaterThanZero);
+                    throw new CLArgumentException(CLExceptionCode.OnDemand_TimeoutMilliseconds, Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
 
                 // Build the query string.
@@ -800,7 +842,8 @@ namespace Cloud
                 };
 
                 // Communicate with the server.
-                response = Helpers.ProcessHttp<JsonContracts.CredentialsSessionDeleteResponse>(
+                JsonContracts.CredentialsSessionDeleteResponse responseFromServer;
+                responseFromServer = Helpers.ProcessHttp<JsonContracts.CredentialsSessionDeleteResponse>(
                     sessionDeleteRequest,
                     CLDefinitions.CLPlatformAuthServerURL,
                     CLDefinitions.MethodPathAuthDeleteSession,
@@ -812,10 +855,15 @@ namespace Cloud
                     this,
                     null, 
                     false);
+
+                // Convert the server response to a CLCredentials object and pass that back as the response.
+                if (responseFromServer == null && responseFromServer.Status != null)
+                {
+                    throw new CLException(CLExceptionCode.OnDemand_NoServerResponse, Resources.ExceptionOnDemandNoServerResponse);
+                }
             }
             catch (Exception ex)
             {
-                response = Helpers.DefaultForType<JsonContracts.CredentialsSessionDeleteResponse>();
                 return ex;
             }
             return null;
@@ -826,17 +874,20 @@ namespace Cloud
 
         #region Public, But Hidden HTTP API calls for CloudApp
 
+        //// --------- adding \cond and \endcond makes the section in between hidden from doxygen
+
+        // \cond
         #region LinkDeviceFirstTime
 
         /// <summary>
         /// Asynchronously starts a request to create an account with a device and a new Syncbox.
         /// </summary>
         /// <param name="aCallback">Callback method to fire when operation completes</param>
-        /// <param name="aState">Userstate to pass when firing async callback</param>
+        /// <param name="aState">User state to pass when firing async callback</param>
         /// <param name="request">The request.  Note: It is not necessary to set Key and Secret.</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <param name="settings">(optional) settings for optional tracing and specifying the client version to the server</param>
-        /// <returns>Returns any error that occurred during communication, if any</returns>
+        /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         public IAsyncResult BeginLinkDeviceFirstTime(AsyncCallback aCallback,
             object aState,
@@ -844,8 +895,6 @@ namespace Cloud
             JsonContracts.LinkDeviceFirstTimeRequest request,
             ICLCredentialsSettings settings = null)
         {
-            Helpers.CheckHalted();
-
             // create the asynchronous result to return
             GenericAsyncResult<LinkDeviceFirstTimeResult> toReturn = new GenericAsyncResult<LinkDeviceFirstTimeResult>(
                 aCallback,
@@ -924,8 +973,6 @@ namespace Cloud
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         public CLError EndLinkDeviceFirstTime(IAsyncResult aResult, out LinkDeviceFirstTimeResult result)
         {
-            Helpers.CheckHalted();
-
             return Helpers.EndAsyncOperation<LinkDeviceFirstTimeResult>(aResult, out result);
         }
 
@@ -945,19 +992,17 @@ namespace Cloud
                     out JsonContracts.LinkDeviceFirstTimeResponse response,
                     ICLCredentialsSettings settings = null)
         {
-            Helpers.CheckHalted();
-
             // try/catch to process the sync_to request, on catch return the error
             try
             {
                 // check input parameters
                 if (request == null)
                 {
-                    throw new ArgumentException(Resources.CLCredentialPushRequestCannotBeNull);
+                    throw new CLArgumentException(CLExceptionCode.OnDemand_TimeoutMilliseconds, Resources.ExceptionOnDemandLinkDeviceFirstTimeRequestMustNotBeNull);
                 }
                 if (!(timeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException(Resources.CLMSTimeoutMustBeGreaterThanZero);
+                    throw new CLArgumentException(CLExceptionCode.OnDemand_TimeoutMilliseconds, Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
 
                 // copy settings so they don't change while processing; this also defaults some values
@@ -1008,11 +1053,11 @@ namespace Cloud
         /// Asynchronously starts a request to log in to an account with a device.
         /// </summary>
         /// <param name="aCallback">Callback method to fire when operation completes</param>
-        /// <param name="aState">Userstate to pass when firing async callback</param>
+        /// <param name="aState">User state to pass when firing async callback</param>
         /// <param name="request">The request.  Note: It is not necessary to set Key or Secret.</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <param name="settings">(optional) settings for optional tracing and specifying the client version to the server</param>
-        /// <returns>Returns any error that occurred during communication, if any</returns>
+        /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         public IAsyncResult BeginLinkDevice(AsyncCallback aCallback,
             object aState,
@@ -1020,8 +1065,6 @@ namespace Cloud
             JsonContracts.LinkDeviceRequest request,
             ICLCredentialsSettings settings = null)
         {
-            Helpers.CheckHalted();
-
             // create the asynchronous result to return
             GenericAsyncResult<LinkDeviceResult> toReturn = new GenericAsyncResult<LinkDeviceResult>(
                 aCallback,
@@ -1108,8 +1151,6 @@ namespace Cloud
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         public CLError EndLinkDevice(IAsyncResult aResult, out LinkDeviceResult result)
         {
-            Helpers.CheckHalted();
-
             return Helpers.EndAsyncOperation<LinkDeviceResult>(aResult, out result);
         }
 
@@ -1129,19 +1170,17 @@ namespace Cloud
                     out JsonContracts.LinkDeviceResponse response,
                     ICLCredentialsSettings settings = null)
         {
-            Helpers.CheckHalted();
-
             // try/catch to process the sync_to request, on catch return the error
             try
             {
                 // check input parameters
                 if (request == null)
                 {
-                    throw new ArgumentException(Resources.CLCredentialPushRequestCannotBeNull);
+                    throw new CLArgumentException(CLExceptionCode.OnDemand_TimeoutMilliseconds, Resources.ExceptionOnDemandLinkDeviceRequestMustNotBeNull);
                 }
                 if (!(timeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException(Resources.CLMSTimeoutMustBeGreaterThanZero);
+                    throw new CLArgumentException(CLExceptionCode.OnDemand_TimeoutMilliseconds, Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
 
                 // copy settings so they don't change while processing; this also defaults some values
@@ -1183,11 +1222,11 @@ namespace Cloud
         /// Asynchronously starts a request to unlink a device (and log out of the user account).
         /// </summary>
         /// <param name="aCallback">Callback method to fire when operation completes</param>
-        /// <param name="aState">Userstate to pass when firing async callback</param>
+        /// <param name="aState">User state to pass when firing async callback</param>
         /// <param name="request">The request.</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <param name="settings">(optional) settings for optional tracing and specifying the client version to the server</param>
-        /// <returns>Returns any error that occurred during communication, if any</returns>
+        /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         public IAsyncResult BeginUnlinkDevice(AsyncCallback aCallback,
             object aState,
@@ -1195,8 +1234,6 @@ namespace Cloud
             JsonContracts.UnlinkDeviceRequest request,
             ICLCredentialsSettings settings = null)
         {
-            Helpers.CheckHalted();
-
             // create the asynchronous result to return
             GenericAsyncResult<UnlinkDeviceResult> toReturn = new GenericAsyncResult<UnlinkDeviceResult>(
                 aCallback,
@@ -1275,8 +1312,6 @@ namespace Cloud
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         public CLError EndUnlinkDevice(IAsyncResult aResult, out UnlinkDeviceResult result)
         {
-            Helpers.CheckHalted();
-
             return Helpers.EndAsyncOperation<UnlinkDeviceResult>(aResult, out result);
         }
 
@@ -1296,19 +1331,17 @@ namespace Cloud
                     out JsonContracts.UnlinkDeviceResponse response,
                     ICLCredentialsSettings settings = null)
         {
-            Helpers.CheckHalted();
-
             // try/catch to process the sync_to request, on catch return the error
             try
             {
                 // check input parameters
                 if (request == null)
                 {
-                    throw new ArgumentException(Resources.CLCredentialPushRequestCannotBeNull);
+                    throw new CLArgumentException(CLExceptionCode.OnDemand_TimeoutMilliseconds, Resources.ExceptionOnDemandUnlinkDeviceRequestMustNotBeNull);
                 }
                 if (!(timeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException(Resources.CLMSTimeoutMustBeGreaterThanZero);
+                    throw new CLArgumentException(CLExceptionCode.OnDemand_TimeoutMilliseconds, Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
 
                 // copy settings so they don't change while processing; this also defaults some values
@@ -1340,6 +1373,7 @@ namespace Cloud
         }
         #endregion  // Unlink Device
 
+        // \endcond
         #endregion  // end Public, But Hidden HTTP API calls for CloudApp
     }
 }

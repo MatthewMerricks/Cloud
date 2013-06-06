@@ -200,7 +200,7 @@ namespace Cloud
         ///// <param name="SyncboxPath">Full path to the directory to be synced (do not include a trailing slash except for a drive root)</param>
         ///// <param name="Status">(output) State of starting Syncbox, check this to make sure it was successful</param>
         ///// <param name="StatusUpdated">(optional) Callback to fire whenever the status of the Syncbox has been updated</param>
-        ///// <param name="StatusUpdatedUserState">(optional) Userstate to pass when firing the statusUpdated callback</param>
+        ///// <param name="StatusUpdatedUserState">(optional) User state to pass when firing the statusUpdated callback</param>
         ///// <returns>Returns any error which occurred starting the Syncbox</returns>
         //public CLError Start(string ApplicationKey,
         //    string ApplicationSecret,
@@ -249,7 +249,7 @@ namespace Cloud
         /// </summary>
         /// <param name="status">(output) State of starting SyncEngine, check this to make sure it was successful</param>
         /// <param name="statusUpdated">(optional) Callback to fire whenever the status of the SyncEngine has been updated</param>
-        /// <param name="statusUpdatedUserState">(optional) Userstate to pass when firing the statusUpdated callback</param>
+        /// <param name="statusUpdatedUserState">(optional) User state to pass when firing the statusUpdated callback</param>
         /// <returns>Returns any error which occurred starting to sync, if any</returns>
         public CLError Start(
 			System.Threading.WaitCallback statusUpdated = null,

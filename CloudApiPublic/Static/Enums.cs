@@ -56,6 +56,11 @@ namespace Cloud.Static
         /// </summary>
         General_SeeFirstException = (((ulong)CLExceptionDomain.General) << 32) | 4, // 0_4
 
+        /// <summary>
+        /// An object was not the expected type.
+        /// </summary>
+        General_ObjectNotExpectedType = (((ulong)CLExceptionDomain.General) << 32) | 5, // 0_5
+
         #endregion
 
         #region Http
@@ -119,6 +124,11 @@ namespace Cloud.Static
         /// Internal completion routine failed
         /// </summary>
         Http_CompletionFailure = (((ulong)CLExceptionDomain.Http) << 32) | 11, // 1_11
+
+        /// <summary>
+        /// (Internal)Content-Length response header expected.
+        /// </summary>
+        Http_NoContentLengthResponseHeader = (((ulong)CLExceptionDomain.Http) << 32) | 12, // 1_12
 
         #endregion
 
@@ -486,7 +496,75 @@ namespace Cloud.Static
         /// </summary>
         OnDemand_DeleteSyncbox = (((ulong)CLExceptionDomain.OnDemand) << 32) | 28, // 5_28
 
+        /// <summary>
+        /// File not found on disk in order to upload.
+        /// </summary>
+        OnDemand_FileAddNotFound = (((ulong)CLExceptionDomain.OnDemand) << 32) | 29, // 5_29
 
+        /// <summary>
+        /// A newer version of the file already exists and is available for download.
+        /// </summary>
+        OnDemand_NewerVersionAvailableForDownload = (((ulong)CLExceptionDomain.OnDemand) << 32) | 30, // 5_30
+
+        /// <summary>
+        /// The parent folder was not found
+        /// </summary>
+        OnDemand_ParentNotFound = (((ulong)CLExceptionDomain.OnDemand) << 32) | 31, // 5_31
+
+        /// <summary>
+        /// An error occurred uploading a file.
+        /// </summary>
+        OnDemand_Upload = (((ulong)CLExceptionDomain.OnDemand) << 32) | 32, // 5_32
+
+        /// <summary>
+        /// The server returned an invalid item among multiple items.
+        /// </summary>
+        OnDemand_ServerReturnedInvalidItem = (((ulong)CLExceptionDomain.OnDemand) << 32) | 33, // 5_33
+
+        /// <summary>
+        /// The server response did not contain a session.
+        /// </summary>
+        OnDemand_ServerResponseNoSession = (((ulong)CLExceptionDomain.OnDemand) << 32) | 34, // 5_34
+
+        /// <summary>
+        /// No server response.
+        /// </summary>
+        OnDemand_NoServerResponse = (((ulong)CLExceptionDomain.OnDemand) << 32) | 35, // 5_35
+
+        /// <summary>
+        /// A request is required.
+        /// </summary>
+        OnDemand_RequestRequired = (((ulong)CLExceptionDomain.OnDemand) << 32) | 36, // 5_36
+
+        /// <summary>
+        /// An error occurred downloading a file.
+        /// </summary>
+        OnDemand_Download = (((ulong)CLExceptionDomain.OnDemand) << 32) | 37, // 5_37
+
+        /// <summary>
+        /// An error occurred downloading a file.
+        /// </summary>
+        OnDemand_DownloadTempDownloadFileNotFoundAfterSuccessfulDownload = (((ulong)CLExceptionDomain.OnDemand) << 32) | 38, // 5_38
+
+        /// <summary>
+        /// Live sync is active for this syncbox, and this method would modify the syncbox.
+        /// </summary>
+        OnDemand_LiveSyncIsActive = (((ulong)CLExceptionDomain.OnDemand) << 32) | 39, // 5_39
+
+        /// <summary>
+        /// CLFileItem was not created in this synbox.
+        /// </summary>
+        OnDemand_NotCreatedInThisSyncbox = (((ulong)CLExceptionDomain.OnDemand) << 32) | 40, // 5_40
+
+        /// <summary>
+        /// CLFileItem was a folder when a file type was expected.
+        /// </summary>
+        OnDemand_FolderItemWhenFileItemExpected = (((ulong)CLExceptionDomain.OnDemand) << 32) | 41, // 5_41
+
+        /// <summary>
+        /// CLFileItem was a file when a folder type was expected.
+        /// </summary>
+        OnDemand_FileItemWhenFolderItemExpected = (((ulong)CLExceptionDomain.OnDemand) << 32) | 42, // 5_42
 
         #endregion
 
@@ -518,13 +596,23 @@ namespace Cloud.Static
 
         /// <summary>
         /// Credentials: Key is null.
-        /// </summary
+        /// </summary>
         Credentials_NullKey = (((ulong)CLExceptionDomain.Credentials) << 32) | 1, // 7_0
 
         /// <summary>
         /// Credentials: Secret is null.
-        /// </summary
+        /// </summary>
         Credentials_NullSecret = (((ulong)CLExceptionDomain.Credentials) << 32) | 1, // 7_1
+
+        /// <summary>
+        /// Credentials: Not session credentials.
+        /// </summary>
+        Credentials_NotSessionCredentials = (((ulong)CLExceptionDomain.Credentials) << 32) | 2, // 7_2
+
+        /// <summary>
+        /// Credentials: Not session credentials.
+        /// </summary>
+        Credentials_ExpirationDateMustNotBeNull = (((ulong)CLExceptionDomain.Credentials) << 32) | 3, // 7_3
 
         #endregion
 
@@ -805,15 +893,14 @@ namespace Cloud.Static
     }
 
     /// <summary>
-    /// Used as a parameter to CLSyncBox.BeginSync.  These values describe how the syncbox will be synced:
+    /// Used as a parameter to CLSyncbox.StartLiveSync.  These values describe how the syncbox will be synced:
     ///   - CLSyncModeLive: All files, folders and metadata will be synced all the time (live).
-    ///   - CLSyncModeLiveWithShellExt: As above, with shell extension (badging).
-    ///   - CLSyncModeOnDemand: Only the metadata is synced.  File downloads are on-demand.
+    ///   - CLSyncModeLiveWithBadgingEnabled: As above, with shell extension (badging).
     /// </summary>
     public enum CLSyncMode : int
     {
         CLSyncModeLive,
-        CLSyncModeLiveWithShellExt
+        CLSyncModeLiveWithBadgingEnabled
     }
 
     /// <summary>

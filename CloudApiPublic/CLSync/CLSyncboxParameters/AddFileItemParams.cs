@@ -20,47 +20,54 @@ namespace Cloud.CLSync.CLSyncboxParameters
     public sealed class AddFileItemParams
     {
         /// <summary>
-        /// Returns the parent folder item of the file being added.
+        /// The parent folder item in the syncbox to which the file will be added.
         /// </summary>
-        public CLFileItem Parent
+        public CLFileItem ParentFolder
         {
             get
             {
-                return _parent;
+                return _parentFolder;
             }
         }
-        private readonly CLFileItem _parent;
+        private readonly CLFileItem _parentFolder;
 
         /// <summary>
-        /// Returns the relative path in the syncbox of the file item being added.
+        /// The new name of the file in the syncbox (within the parent folder item).
         /// </summary>
-        public string RelativePath
+        public string FileName
         {
             get
             {
-                return _relativePath;
+                return _fileName;
             }
         }
-        private readonly string _relativePath;
+        private readonly string _fileName;
+
+
+
+        /// <summary>
+        /// The full path on the local disk of the file item being added.
+        /// </summary>
+        public string FullPath
+        {
+            get
+            {
+                return _fullPath;
+            }
+        }
+        private readonly string _fullPath;
 
         /// <summary>
         /// Construct parameters for adding a file item.
         /// </summary>
-        /// <param name="parent">Parent folder of the item we wish to add.</param>
-        /// <param name="relativePath">Relative path in the syncbox of the file being added.</param>
-        public AddFileItemParams(CLFileItem parent, string relativePath)
+        /// <param name="fullPath">The full path on the local disk of the file being added.</param>
+        /// <param name="parentFolder">Parent folder in the syncbox to which the file will be added.</param>
+        /// <param name="fileName">The new filename of the file in the syncbox (just the filename and extension).</param>
+        public AddFileItemParams(string fullPath, CLFileItem parentFolder, string fileName)
         {
-            if (parent == null)
-            {
-                throw new CLArgumentNullException(Static.CLExceptionCode.OnDemand_MissingParameters, Resources.ExceptionOnDemandAddItemItemMustNotBeNull);
-            }
-            if (String.IsNullOrEmpty(relativePath))
-            {
-                throw new CLArgumentNullException(Static.CLExceptionCode.OnDemand_MissingParameters, Resources.ExceptionOnDemandAddItemNameMustBeSpecified);
-            }
-
-            this._parent = parent;
-            this._relativePath = relativePath;
+            this._parentFolder = parentFolder;
+            this._fullPath = fullPath;
+            this._fileName = fileName;
         }
     }
 }

@@ -97,7 +97,5 @@ namespace win_client.Views
             _trace.writeToLog(9, "WindowSyncStatus: WindowSyncStatus_Closing: Entry.");
             Messenger.Default.Unregister(this);
         }
-
-
     }
 }
