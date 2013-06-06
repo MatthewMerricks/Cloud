@@ -105,7 +105,11 @@ namespace Cloud.Model
 
         protected internal override void Dispose(bool disposing)
         {
-            Metadata = null; // cleans up any attached handlers
+            // cleans up any attached handlers
+            if (_metadata != null)
+            {
+                ((IHashablePropertiesChanged)_metadata).DetachHashablePropertiesChanged(OnMetadataHashablePropertiesChangedHandler);
+            }
 
             base.Dispose(disposing);
         }
