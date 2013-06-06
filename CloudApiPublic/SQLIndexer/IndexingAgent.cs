@@ -4514,9 +4514,6 @@ namespace Cloud.SQLIndexer
             }
         }
 
-        // Define comparer to use locally for file/folder metadata
-        private static FileMetadataHashableComparer fileComparer = new FileMetadataHashableComparer();
-
         /// <summary>
         /// Process changes found on disc that are different from the initial index to produce FileChanges
         /// and return the enumeration of paths traversed; recurses on self for inner folders
@@ -4716,7 +4713,7 @@ namespace Cloud.SQLIndexer
                     if (combinedIndexPlusChanges.TryGetValue(currentFilePathObject, out existingFileMetadata))
                     {
                         // If the file has changed (different metadata), then process a file modification change
-                        if (!fileComparer.Equals(compareProperties, existingFileMetadata.HashableProperties))
+                        if (!FileMetadataHashableComparer.Instance.Equals(compareProperties, existingFileMetadata.HashableProperties))
                         {
                             FileMetadata parentFolderMetadata;
                             string parentFolderServerUid;

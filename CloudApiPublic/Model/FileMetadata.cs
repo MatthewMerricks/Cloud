@@ -17,12 +17,64 @@ namespace Cloud.Model
     /// <summary>
     /// Contains data used to compare files or folders along with an MD5 checksum to establish identity
     /// </summary>
-    public sealed class FileMetadata
+    public sealed class FileMetadata : IHashablePropertiesChanged
     {
+        #region IHashablePropertiesChanged members
+
+        /// <summary>
+        /// Occurs when a property value changes.
+        /// </summary>
+        void IHashablePropertiesChanged.AttachHashablePropertiesChanged(Action value)
+        {
+            HashablePropertiesChanged += value;
+        }
+
+        /// <summary>
+        /// Cleanup attached handler.
+        /// </summary>
+        void IHashablePropertiesChanged.DetachHashablePropertiesChanged(Action value)
+        {
+            HashablePropertiesChanged -= value;
+        }
+
+        private event Action HashablePropertiesChanged;
+
+        #endregion
+
         /// <summary>
         /// Section of comparable properties used to determine uniqueness of a file change
         /// </summary>
-        public FileMetadataHashableProperties HashableProperties { get; set; }
+        public FileMetadataHashableProperties HashableProperties
+        {
+            get
+            {
+                return _hashableProperties;
+            }
+            set
+            {
+                if (!FileMetadataHashableComparer.Instance.Equals(_hashableProperties, value))
+                {
+                    FileMetadataHashableProperties storeOriginal = _hashableProperties;
+
+                    _hashableProperties = value;
+
+                    if (HashablePropertiesChanged != null)
+                    {
+                        try
+                        {
+                            HashablePropertiesChanged();
+                        }
+                        catch
+                        {
+                            _hashableProperties = storeOriginal;
+
+                            throw;
+                        }
+                    }
+                }
+            }
+        }
+        private FileMetadataHashableProperties _hashableProperties;
         /// <summary>
         /// Storage key to identify server location for MDS events
         /// </summary>
@@ -106,6 +158,21 @@ namespace Cloud.Model
         }
     }
     /// <summary>
+    /// Notifies clients that a property value has changed.
+    /// </summary>
+    internal interface IHashablePropertiesChanged
+    {
+        /// <summary>
+        /// Occurs when a property value changes.
+        /// </summary>
+        void AttachHashablePropertiesChanged(Action value);
+
+        /// <summary>
+        /// Cleanup attached handler.
+        /// </summary>
+        void DetachHashablePropertiesChanged(Action value);
+    }
+    /// <summary>
     /// Comparable properties used to determine uniqueness of a file change
     /// </summary>
     public struct FileMetadataHashableProperties
@@ -120,7 +187,7 @@ namespace Cloud.Model
                 return _isFolder;
             }
         }
-        private bool _isFolder;
+        private readonly bool _isFolder;
 
         /// <summary>
         /// Time file or folder was last accessed or written to
@@ -132,7 +199,7 @@ namespace Cloud.Model
                 return _lastTime;
             }
         }
-        private DateTime _lastTime;
+        private readonly DateTime _lastTime;
 
         /// <summary>
         /// Time file or folder was created
@@ -144,7 +211,7 @@ namespace Cloud.Model
                 return _creationTime;
             }
         }
-        private DateTime _creationTime;
+        private readonly DateTime _creationTime;
 
         /// <summary>
         /// The byte size of a file (null for folders)
@@ -156,7 +223,7 @@ namespace Cloud.Model
                 return _size;
             }
         }
-        private Nullable<long> _size;
+        private readonly Nullable<long> _size;
 
         /// <summary>
         /// Primary constructor for file metadata
@@ -179,6 +246,14 @@ namespace Cloud.Model
     /// </summary>
     public sealed class FileMetadataHashableComparer : EqualityComparer<FileMetadataHashableProperties>
     {
+        #region singleton pattern
+
+        public static FileMetadataHashableComparer Instance = new FileMetadataHashableComparer();
+
+        private FileMetadataHashableComparer() { }
+
+        #endregion
+
         /// <summary>
         /// Override for equality comparison of FileMetadataHashableProperties
         /// </summary>

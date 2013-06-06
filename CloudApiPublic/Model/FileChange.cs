@@ -68,11 +68,77 @@ namespace Cloud.Model
         /// <summary>
         /// Contains data used to compare the file or folder and establish its identity
         /// </summary>
-        public FileMetadata Metadata { get; set; }
+        public FileMetadata Metadata
+        {
+            get
+            {
+                return _metadata;
+            }
+            set
+            {
+                if (_metadata != value)
+                {
+                    if (_metadata != null)
+                    {
+                        ((IHashablePropertiesChanged)_metadata).DetachHashablePropertiesChanged(OnMetadataHashablePropertiesChangedHandler);
+                    }
+
+                    PreventModifiedFolder(value, _type);
+
+                    _metadata = value;
+
+                    if (_metadata != null)
+                    {
+                        ((IHashablePropertiesChanged)_metadata).AttachHashablePropertiesChanged(OnMetadataHashablePropertiesChangedHandler);
+                    }
+                }
+            }
+        }
+        private FileMetadata _metadata;
+
+        #region checks after HashableProperties change
+        private void OnMetadataHashablePropertiesChanged()
+        {
+            PreventModifiedFolder(_metadata, _type);
+        }
+        private readonly Action OnMetadataHashablePropertiesChangedHandler;
+
+        protected internal override void Dispose(bool disposing)
+        {
+            Metadata = null; // cleans up any attached handlers
+
+            base.Dispose(disposing);
+        }
+
+        private void PreventModifiedFolder(FileMetadata metadata, FileChangeType changeType)
+        {
+            if (metadata != null && metadata.HashableProperties.IsFolder && changeType == FileChangeType.Modified)
+            {
+                throw new CLInvalidOperationException(CLExceptionCode.Syncing_Model, Resources.ExceptionFileChangeFolderModified);
+            }
+        }
+        #endregion
+
         /// <summary>
         /// Type of file system event
         /// </summary>
-        public FileChangeType Type { get; set; }
+        public FileChangeType Type
+        {
+            get
+            {
+                return _type;
+            }
+            set
+            {
+                if (_type != value)
+                {
+                    PreventModifiedFolder(_metadata, value);
+
+                    _type = value;
+                }
+            }
+        }
+        private FileChangeType _type = FileChangeType.Created; // has to be defaulted to something which is not modified since that would not allow setting the metadata
         internal bool PreviouslyModified { get; set; }
         internal string FileDownloadPendingRevision { get; set; }
         /// <summary>
@@ -234,6 +300,7 @@ namespace Cloud.Model
         {
             this.fileDownloadMoveLocker = fileDownloadMoveLocker;
             this.InMemoryId = Interlocked.Increment(ref InMemoryIdCounter);
+            this.OnMetadataHashablePropertiesChangedHandler = new Action(OnMetadataHashablePropertiesChanged);
         }
         /// <summary>
         /// Constructor for an object to store parameters,
@@ -243,6 +310,7 @@ namespace Cloud.Model
         {
             this.fileDownloadMoveLocker = null;
             this.InMemoryId = Interlocked.Increment(ref InMemoryIdCounter);
+            this.OnMetadataHashablePropertiesChangedHandler = new Action(OnMetadataHashablePropertiesChanged);
         }
 
         /// <summary>

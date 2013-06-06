@@ -442,8 +442,7 @@ namespace Cloud.FileMonitor
         private Dictionary<FilePath, FileChange> QueuedChanges = new Dictionary<FilePath, FileChange>(FilePathComparer.Instance);
         private HashSet<FileChange> QueuedChangesForceProcessing = new HashSet<FileChange>(); // force processing for modify file followed by rename since these events cannot be aggregated, the modify must be allowed to continue
         private Dictionary<FilePath, FilePath> OldToNewPathRenames = new Dictionary<FilePath, FilePath>(FilePathComparer.Instance);
-        private static readonly FileMetadataHashableComparer QueuedChangesMetadataComparer = new FileMetadataHashableComparer();// Comparer has improved hashing by using only the fastest changing bits
-        private Dictionary<FileMetadataHashableProperties, FileChange> QueuedChangesByMetadata = new Dictionary<FileMetadataHashableProperties, FileChange>(QueuedChangesMetadataComparer);// Use custom comparer for improved hashing
+        private Dictionary<FileMetadataHashableProperties, FileChange> QueuedChangesByMetadata = new Dictionary<FileMetadataHashableProperties, FileChange>(FileMetadataHashableComparer.Instance);// Use custom comparer for improved hashing
 
         private readonly bool DependencyDebugging;
 
@@ -4986,7 +4985,7 @@ namespace Cloud.FileMonitor
                                             }
                                             // else if the path does not represent a folder,
                                             // discard the deletion change for files which have been deleted and created again with the same metadata
-                                            else if (QueuedChangesMetadataComparer.Equals(previousChange.Metadata.HashableProperties, toChange.Metadata.HashableProperties))
+                                            else if (FileMetadataHashableComparer.Instance.Equals(previousChange.Metadata.HashableProperties, toChange.Metadata.HashableProperties))
                                             {
                                                 FileChange toCompare;
                                                 if (QueuedChangesByMetadata.TryGetValue(previousChange.Metadata.HashableProperties, out toCompare)
@@ -5162,7 +5161,7 @@ namespace Cloud.FileMonitor
                                             // TODO: check if this condition requires setting the ServerUid and Revision fields in toChange.Metadata back to the values from
                                             // previous change like we did with delete followed by create (which in turn sets the fields back appropriately in AllPaths)
 
-                                            if (QueuedChangesMetadataComparer.Equals(previousChange.Metadata.HashableProperties, toChange.Metadata.HashableProperties))
+                                            if (FileMetadataHashableComparer.Instance.Equals(previousChange.Metadata.HashableProperties, toChange.Metadata.HashableProperties))
                                             {
                                                 previousChange.NewPath = toChange.OldPath;
                                                 previousChange.Metadata = toChange.Metadata;
@@ -5177,13 +5176,27 @@ namespace Cloud.FileMonitor
                                             }
                                             else
                                             {
-                                                previousChange.Metadata = toChange.Metadata;
-                                                previousChange.Type = FileChangeType.Modified;
-                                                previousChange.SetDelayBackToInitialValue();
-
-                                                if (debugMemory)
+                                                if (previousChange.Metadata.HashableProperties.IsFolder)
                                                 {
-                                                    memoryDebugger.Instance.AddSettingFileChangeTimer(previousChange, false);
+                                                    FileChange toCompare;
+                                                    if (QueuedChangesByMetadata.TryGetValue(previousChange.Metadata.HashableProperties, out toCompare)
+                                                        && toCompare.Equals(previousChange))
+                                                    {
+                                                        QueuedChangesByMetadata.Remove(previousChange.Metadata.HashableProperties);
+                                                    }
+                                                    QueuedChanges.Remove(previousChange.NewPath);
+                                                    previousChange.Dispose(); // folder delete was converted to something else (not a folder delete anymore), but modified is not allowed, so instead just dispose the previous event
+                                                }
+                                                else
+                                                {
+                                                    previousChange.Metadata = toChange.Metadata.CopyWithNewServerUidId(previousChange.Metadata.ServerUidId);
+                                                    previousChange.Type = FileChangeType.Modified;
+                                                    previousChange.SetDelayBackToInitialValue();
+
+                                                    if (debugMemory)
+                                                    {
+                                                        memoryDebugger.Instance.AddSettingFileChangeTimer(previousChange, false);
+                                                    }
                                                 }
 
                                                 FileChange.SwapInMemoryIds(previousChange, toChange);
@@ -5210,6 +5223,7 @@ namespace Cloud.FileMonitor
                                                     previousOldPathChange.Metadata = toChange.Metadata;
                                                     previousOldPathChange.Type = FileChangeType.Deleted;
                                                     previousOldPathChange.SetDelayBackToInitialValue();
+                                                    previousOldPathChange.OldPath = null;
 
                                                     if (debugMemory)
                                                     {
@@ -5220,14 +5234,18 @@ namespace Cloud.FileMonitor
                                                 }
                                                 else
                                                 {
-                                                    QueuedChanges.Add(toChange.OldPath,
-                                                        oldLocationDelete);
-                                                }
-                                                StartDelay(oldLocationDelete, startProcessingAction);
+                                                    toChange.NewPath = toChange.OldPath;
+                                                    toChange.Type = FileChangeType.Deleted;
+                                                    toChange.OldPath = null;
 
-                                                if (debugMemory)
-                                                {
-                                                    memoryDebugger.Instance.AddSettingFileChangeTimer(oldLocationDelete, true);
+                                                    QueuedChanges.Add(toChange.NewPath, toChange);
+
+                                                    StartDelay(toChange, startProcessingAction);
+
+                                                    if (debugMemory)
+                                                    {
+                                                        memoryDebugger.Instance.AddSettingFileChangeTimer(toChange, true);
+                                                    }
                                                 }
                                             }
                                             break;

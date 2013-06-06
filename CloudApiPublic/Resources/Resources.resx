@@ -1986,7 +1986,7 @@
     <comment>"IconOverlay" and "OnCurrentBadgesSyncedRecursiveDelete" should not be translated.</comment>
   </data>
   <data name="IconOverlayPath0" xml:space="preserve">
-    <value>Path: &lt;{0}&gt;.</value>
+    <value>      Path: &lt;{0}&gt;.</value>
     <comment>Do Not Translate</comment>
   </data>
   <data name="IconOverlayRenameBadePathInCurrentBadgesSyncedLocker" xml:space="preserve">
@@ -3050,5 +3050,9 @@
   <data name="ExceptionOnDemandHttpNoContentLengthHeaderInResponse" xml:space="preserve">
     <value>No Content-Length header in the response</value>
     <comment>"Content-Length" should not be translated</comment>
+  </data>
+  <data name="ExceptionFileChangeFolderModified" xml:space="preserve">
+    <value>Folder changes cannot have a FileChangeType of Modified</value>
+    <comment>FileChangeType and Modified should not be translated</comment>
   </data>
 </root>
