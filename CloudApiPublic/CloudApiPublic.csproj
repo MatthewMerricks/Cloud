@@ -153,6 +153,7 @@
     <Compile Include="Interfaces\IEventMessageReceiver.cs" />
     <Compile Include="Interfaces\ITransferTaskState.cs" />
     <Compile Include="JsonContracts\Archives.cs" />
+    <Compile Include="JsonContracts\ImageRequest.cs" />
     <Compile Include="JsonContracts\SyncboxGetAllItemsForTypesResponse.cs" />
     <Compile Include="JsonContracts\SyncboxDeleteFoldersResponse.cs" />
     <Compile Include="JsonContracts\FileAdds.cs" />

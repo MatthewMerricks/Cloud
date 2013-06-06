@@ -880,17 +880,19 @@ namespace Cloud.Sync
                             // The information in outputTransferring will be returned to the caller via castState.StatusHolder when he calls GetCurrentStatus().
                             castState.StatusHolder.Value = new CLSyncCurrentStatus(outputState,
                                 outputTransferring);
+                        }
 
-                            if (castState.StatusUpdated != null)
+                        // the following status update callback must be done outside of the lock on StatusHolder because the user
+                        // may synchronously call GetCurrentSyncStatus which also locks on StatusHolder to retrieve the latest state
+                        if (castState.StatusUpdated != null)
+                        {
+                            try
                             {
-                                try
-                                {
-                                    // Call the optional status changed callback with the caller-provided user state.
-                                    castState.StatusUpdated(castState.StatusUpdatedUserState);
-                                }
-                                catch
-                                {
-                                }
+                                // Call the optional status changed callback with the caller-provided user state.
+                                castState.StatusUpdated(castState.StatusUpdatedUserState);
+                            }
+                            catch
+                            {
                             }
                         }
                     }
@@ -6572,7 +6574,7 @@ namespace Cloud.Sync
                                 : exceptions.InnerException.InnerException.Message) // failed to find the third inner exception in the exception, so output the deepest found
                             : exceptions.InnerException.InnerException.InnerException.Message) // success for finding all inner exceptions up to the real source of the error
                         : string.Format(Resources.ExceptionSyncEngineHttpStatus, exceptions.InnerException.InnerException.InnerException.Message, (int)((HttpStatusCode)castFourthException.HttpStatus))); // success for finding all inner exceptions up to the real source of the error
-                                                                                                                                                                                                           // and the error is the http type with a status code to include
+                // and the error is the http type with a status code to include
 
                 // declare a bool for whether error is serious (failed and no longer retrying)
                 bool isErrorSerious;

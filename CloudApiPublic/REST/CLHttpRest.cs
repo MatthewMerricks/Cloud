@@ -105,24 +105,24 @@ namespace Cloud.REST
         {
             if (syncbox == null)
             {
-                throw new NullReferenceException(Resources.SyncboxMustNotBeNull);
+                throw new CLNullReferenceException(CLExceptionCode.General_Arguments, Resources.SyncboxMustNotBeNull);
             }
 
             if (syncbox.Path == null)
             {
-                throw new NullReferenceException(Resources.CLHttpRestSyncboxPathCannotBeNull);
+                throw new CLNullReferenceException(CLExceptionCode.General_Arguments, Resources.CLHttpRestSyncboxPathCannotBeNull);
             }
 
             if (syncbox.Credentials == null)
             {
-                throw new NullReferenceException(Resources.CLHttpRestsyncboxCredentialCannotBeNull);
+                throw new CLNullReferenceException(CLExceptionCode.General_Arguments, Resources.CLHttpRestsyncboxCredentialCannotBeNull);
             }
 
             this._syncbox = syncbox;
 
             if (settings == null)
             {
-                throw new NullReferenceException(Resources.CLSyncSettingsMustNotBeNull);
+                throw new CLNullReferenceException(CLExceptionCode.General_Arguments, Resources.CLSyncSettingsMustNotBeNull);
             }
 
             AdvancedSyncSettings alreadyReadonlySettings = settings as AdvancedSyncSettings;
@@ -137,7 +137,7 @@ namespace Cloud.REST
 
             if (string.IsNullOrEmpty(this._copiedSettings.DeviceId))
             {
-                throw new NullReferenceException(Resources.CLHttpRestDeviceIDCannotBeNull);
+                throw new CLNullReferenceException(CLExceptionCode.General_Arguments, Resources.CLHttpRestDeviceIDCannotBeNull);
             }
 
             _getNewCredentialsCallback = getNewCredentialsCallback;
@@ -306,6 +306,7 @@ namespace Cloud.REST
             return toReturn;
         }
 
+        // This is not currently used, but it could be used by forwarding it in CLFileItem to poll the progress of a Begin/EndDownload async operation.
         /// <summary>
         /// Outputs the latest progress from a file download, returning any error that occurs in the retrieval
         /// </summary>
@@ -323,7 +324,7 @@ namespace Cloud.REST
                 // if try casting the asynchronous result failed, throw an error
                 if (castAResult == null)
                 {
-                    throw new NullReferenceException(Resources.CLAsyncResultInternalTypeMismatch);
+                    throw new CLNullReferenceException(CLExceptionCode.General_ObjectNotExpectedType, Resources.CLAsyncResultInternalTypeMismatch);
                 }
 
                 // try to cast the asynchronous result internal state as the holder for the progress
@@ -332,7 +333,7 @@ namespace Cloud.REST
                 // if trying to cast the internal state as the holder for progress failed, then throw an error (non-descriptive since it's our error)
                 if (iState == null)
                 {
-                    throw new Exception(Resources.CLHttpRestInternalProgressRetrievalFailure1);
+                    throw new CLNullReferenceException(CLExceptionCode.General_ObjectNotExpectedType, Resources.CLHttpRestInternalProgressRetrievalFailure1);
                 }
 
                 // lock on the holder and retrieve the progress for output
@@ -358,56 +359,7 @@ namespace Cloud.REST
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndDownloadFile(IAsyncResult asyncResult, out DownloadFileResult result)
         {
-            // declare the specific type of asynchronous result for file downloads
-            GenericAsyncResult<DownloadFileResult> castAResult;
-
-            // try/catch to try casting the asynchronous result as the type for file downloads and pull the result (possibly incomplete), on catch default the output and return the error
-            try
-            {
-                // try cast the asynchronous result as the type for file downloads
-                castAResult = asyncResult as GenericAsyncResult<DownloadFileResult>;
-
-                // if trying to cast the asynchronous result failed, then throw an error
-                if (castAResult == null)
-                {
-                    throw new NullReferenceException(Resources.CLAsyncResultInternalTypeMismatch);
-                }
-
-                // pull the result for output (may not yet be complete)
-                result = castAResult.Result;
-            }
-            catch (Exception ex)
-            {
-                result = Helpers.DefaultForType<DownloadFileResult>();
-                return ex;
-            }
-
-            // try/catch to finish the asynchronous operation if necessary, re-pull the result for output, and rethrow any exception which may have occurred; on catch, return the error
-            try
-            {
-                // This method assumes that only 1 thread calls EndInvoke 
-                // for this object
-                if (!castAResult.IsCompleted)
-                {
-                    // If the operation isn't done, wait for it
-                    castAResult.AsyncWaitHandle.WaitOne();
-                    castAResult.AsyncWaitHandle.Close();
-                }
-
-                // re-pull the result for output in case it was not completed when it was pulled before
-                result = castAResult.Result;
-
-                // Operation is done: if an exception occurred, return it
-                if (castAResult.Exception != null)
-                {
-                    return castAResult.Exception;
-                }
-            }
-            catch (Exception ex)
-            {
-                return ex;
-            }
-            return null;
+            return Helpers.EndAsyncOperation<DownloadFileResult>(asyncResult, out result);
         }
 
         /// <summary>
@@ -507,7 +459,7 @@ namespace Cloud.REST
 
                 if (timeoutMilliseconds <= 0)
                 {
-                    throw new ArgumentException(Resources.CLMSTimeoutMustBeGreaterThanZero);
+                    throw new CLArgumentException(CLExceptionCode.General_Arguments, Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
 
                 if (serverUid == null)
@@ -623,6 +575,196 @@ namespace Cloud.REST
         }
         #endregion
 
+        #region DownloadImageOfSize (Download an image file and return a Stream with the data)
+        /// <summary>
+        /// Asynchronously starts downloading an image file in the desired size.  Outputs a Stream.
+        /// </summary>
+        /// <param name="asyncCallback">Callback method to fire when the async operation completes</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing async callback</param>
+        /// <param name="fileItem">The file item to download.</param>
+        /// <param name="imageSize">The size of the image to download (small, medium, large or thumbnail).</param>
+        /// <param name="transferStatusCallback">(optional) The transfer progress delegate to call.  May be null.</param>
+        /// <param name="transferStatusCallbackUserState">(optional) The user state to pass to the transfer progress delegate above.  May be null.</param>
+        /// <param name="cancellationSource">A cancellation token source object that can be used to cancel the download operation.  May be null</param>
+        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        internal IAsyncResult BeginDownloadImageOfSize(
+            AsyncCallback asyncCallback,
+            object asyncCallbackUserState,
+            CLFileItem fileItem,
+            Cloud.CLSync.CLFileItem.CLFileItemImageSize imageSize,
+            CLFileDownloadTransferStatusCallback transferStatusCallback, 
+            object transferStatusCallbackUserState,
+            CancellationTokenSource cancellationSource)
+        {
+            var asyncThread = DelegateAndDataHolderBase.Create(
+                // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
+                new
+                {
+                    // create the asynchronous result to return
+                    toReturn = new GenericAsyncResult<FileItemDownloadImageResult>(
+                        asyncCallback,
+                        asyncCallbackUserState),
+                        fileItem = fileItem,
+                        imageSize = imageSize,
+                        transferStatusCallback = transferStatusCallback,
+                        transferStatusCallbackUserState = transferStatusCallbackUserState,
+                        cancellationSource = cancellationSource,
+                },
+                (Data, errorToAccumulate) =>
+                {
+                    // The ThreadProc.
+                    // try/catch to process with the input parameters, on catch set the exception in the asyncronous result
+                    try
+                    {
+                        // alloc and init the syncbox with the passed parameters, storing any error that occurs
+                        Stream stream;
+                        CLError overallError = DownloadImageOfSize(
+                            Data.fileItem,
+                            Data.imageSize,
+                            out stream,
+                            Data.transferStatusCallback,
+                            Data.transferStatusCallbackUserState,
+                            Data.cancellationSource);
+
+                        Data.toReturn.Complete(
+                            new FileItemDownloadImageResult(overallError, stream),  // the result to return
+                            sCompleted: false); // processing did not complete synchronously
+                    }
+                    catch (Exception ex)
+                    {
+                        Data.toReturn.HandleException(
+                            ex, // the exception which was not handled correctly by the CLError wrapping
+                            sCompleted: false); // processing did not complete synchronously
+                    }
+                },
+                null);
+
+            // create the thread from a void (object) parameterized start which wraps the synchronous method call
+            (new Thread(new ThreadStart(asyncThread.VoidProcess))).Start(); // start the asynchronous processing thread which is attached to its data
+
+            // return the asynchronous result
+            return asyncThread.TypedData.toReturn;
+        }
+
+        /// <summary>
+        /// Finishes downloading the image file, if it has not already finished via its asynchronous result, and outputs the result,
+        /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
+        /// </summary>
+        /// <param name="asyncResult">The asynchronous result provided upon starting the request</param>
+        /// <param name="result">(output) An overall error which occurred during processing, if any</param>
+        /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
+        internal CLError EndDownloadImageOfSize(IAsyncResult asyncResult, out FileItemDownloadImageResult result)
+        {
+            return Helpers.EndAsyncOperation<FileItemDownloadImageResult>(asyncResult, out result);
+        }
+
+        /// <summary>
+        /// Download an image file in the desired size.  Outputs a Stream.
+        /// </summary>
+        /// <param name="fileItem">The file item to download.</param>
+        /// <param name="imageSize">The size of the image to download (small, medium, large or thumbnail).</param>
+        /// <param name="imageStream">(Output) The returned Stream representing the image data.</param>
+        /// <param name="transferStatusCallback">(optional) The transfer progress delegate to call.  May be null.</param>
+        /// <param name="transferStatusCallbackUserState">(optional) The user state to pass to the transfer progress delegate above.  May be null.</param>
+        /// <param name="cancellationSource">A cancellation token source object that can be used to cancel the download operation.  May be null</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        internal CLError DownloadImageOfSize(
+            CLFileItem fileItem,
+            Cloud.CLSync.CLFileItem.CLFileItemImageSize imageSize,
+            out Stream imageStream, 
+            CLFileDownloadTransferStatusCallback transferStatusCallback, 
+            object transferStatusCallbackUserState,
+            CancellationTokenSource cancellationSource)
+        {
+            // try/catch to process the request,  On catch return the error
+            try
+            {
+                // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
+                Helpers.RequestNewCredentialsInfo requestNewCredentialsInfo = new Helpers.RequestNewCredentialsInfo()
+                {
+                    ProcessingStateByThreadId = _processingStateByThreadId,
+                    GetNewCredentialsCallback = _getNewCredentialsCallback,
+                    GetNewCredentialsCallbackUserState = _getNewCredentialsCallbackUserState,
+                    GetCurrentCredentialsCallback = GetCurrentCredentialsCallback,
+                    SetCurrentCredentialsCallback = SetCurrentCredentialCallback,
+                };
+
+                // Determine the size to use
+                char charSize;
+                string generate = CLDefinitions.CLMetadataFalse;
+                switch (imageSize)
+                {
+                    case CLFileItem.CLFileItemImageSize.CLFileItemImageSizeSmall:
+                        charSize = (char)0x73 /* 's' */;
+                        break;
+                    case CLFileItem.CLFileItemImageSize.CLFileItemImageSizeMedium:
+                        charSize = (char)0x6D /* 'm' */;
+                        break;
+                    case CLFileItem.CLFileItemImageSize.CLFileItemImageSizeLarge:
+                        charSize = (char)0x6C /* 'l' */;
+                        break;
+                    case CLFileItem.CLFileItemImageSize.CLFileItemImageSizeFull:
+                        charSize = (char)0x6F /* 'o' */;
+                        break;
+                    case CLFileItem.CLFileItemImageSize.CLFileItemImageSizeThumbnail:
+                        charSize = (char)0x74 /* 't' */;
+                        generate = CLDefinitions.CLMetadataInline;
+                        break;
+                    default:
+                        throw new CLArgumentException(CLExceptionCode.OnDemand_InvalidParameters, Resources.ExceptionOnDemandDownloadImageOfSizeInvalidImageSizeValue);
+                }
+
+                // Now make the REST request content.
+                object requestContent = new JsonContracts.ImageRequest()
+                {
+                    SyncboxId = _syncbox.SyncboxId,
+                    ServerUid = fileItem.Uid,
+                    Revision = fileItem.Revision,
+                    Generate = generate,
+                };
+
+                // server method path
+                string serverMethodPath = CLDefinitions.MethodPathImage + ((char)0x2F /* '/' */) + charSize +
+                    Helpers.QueryStringBuilder(new[] // the method grabs its parameters by query string (since this method is an HTTP GET)
+                    {
+                        // query string parameter for the current sync box id, should not need escaping since it should be an integer in string format
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringSyncboxId, _syncbox.SyncboxId.ToString())
+                    });
+
+
+                imageStream = Helpers.ProcessHttpRawStreamCopy(
+                    requestContent, // JSON contract object to serialize and send up as the request content, if any
+                    CLDefinitions.CLMetaDataServerURL, // base domain is the MDS server
+                    serverMethodPath, // the server method path
+                    Helpers.requestMethod.post, // one-off methods are all posts
+                    _copiedSettings.HttpTimeoutMilliseconds, // time before communication timeout
+                    /* uploadDownload */ null,  // not an upload or download
+                    Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
+                    _copiedSettings, // pass the copied settings
+                    _syncbox.SyncboxId, // pass the unique id of the sync box on the server
+                    requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
+                    isOneOff: true,  // On Demand call
+                    transferStatusCallback: transferStatusCallback,  // the transfer progress callback
+                    transferStatusCallbackUserState: transferStatusCallbackUserState,  // the transfer progress callback user state
+                    cancellationSource: cancellationSource);  // the token to request cancellation
+
+                // make sure response was returned
+                if (imageStream == null)
+                {
+                    throw new CLNullReferenceException(CLExceptionCode.OnDemand_NotFound, Resources.ExceptionOnDemandDownloadImageOfSizeFileNotFound);
+                }
+            }
+            catch (Exception ex)
+            {
+                imageStream = Helpers.DefaultForType<Stream>();
+                return ex;
+            }
+
+            return null;
+        }
+
+        #endregion  // end DownloadImageOfSize (Download an image file and return a Stream with the data)
+
         #region ItemForPath (Gets the metedata at a particular server syncbox path)
         /// <summary>
         /// Asynchronously starts querying the syncbox for an item at a given path (must be specified) for existing metadata at that path; outputs a CLFileItem object.
@@ -725,7 +867,7 @@ namespace Cloud.REST
                     Helpers.QueryStringBuilder(new[] // the method grabs its parameters by query string (since this method is an HTTP GET)
                     {
                         // query string parameter for the path to query, built by turning the full path location into a relative path from the cloud root and then escaping the whole thing for a url
-                        new KeyValuePair<string, string>(CLDefinitions.CLMetadataCloudPath, Uri.EscapeDataString(relativePath)),
+                        new KeyValuePair<string, string>(CLDefinitions.CLMetadataCloudPath, Uri.EscapeDataString(relativePath.Replace(((char)0x5C /* '\' */), ((char)0x2F /* '/' */)))),
 
                         // query string parameter for the current sync box id, should not need escaping since it should be an integer in string format
                         new KeyValuePair<string, string>(CLDefinitions.QueryStringSyncboxId, _syncbox.SyncboxId.ToString())
@@ -6095,7 +6237,7 @@ namespace Cloud.REST
 
                         new KeyValuePair<string, string>(CLDefinitions.QueryStringDepth, ((byte)0).ToString()), // query string parameter for optional depth limit
 
-                        new KeyValuePair<string, string>(CLDefinitions.CLMetadataCloudPath, Uri.EscapeDataString(relativePath.Replace('\\', '/'))), // query string parameter for optional path with escaped value
+                        new KeyValuePair<string, string>(CLDefinitions.CLMetadataCloudPath, Uri.EscapeDataString(relativePath.Replace(((char)0x5C /* '\' */), ((char)0x2F /* '/' */)))), // query string parameter for optional path with escaped value
 
                         new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeDeleted, "false"), // query string parameter for not including deleted objects
 
@@ -6451,7 +6593,7 @@ namespace Cloud.REST
 
                         new KeyValuePair<string, string>(CLDefinitions.QueryStringDepth, ((byte)0).ToString()), // query string parameter for optional depth limit
 
-                        new KeyValuePair<string, string>(CLDefinitions.CLMetadataCloudPath, Uri.EscapeDataString(relativePath.Replace('\\', '/'))), // query string parameter for optional path with escaped value
+                        new KeyValuePair<string, string>(CLDefinitions.CLMetadataCloudPath, Uri.EscapeDataString(relativePath.Replace(((char)0x5C /* '\' */), ((char)0x2F /* '/' */)))), // query string parameter for optional path with escaped value
 
                         new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeDeleted, "false"), // query string parameter for not including deleted objects
 
@@ -7993,7 +8135,7 @@ namespace Cloud.REST
                     {
                         (string.IsNullOrEmpty(serverUid)
                             ? // query string parameter for the path to query, built by turning the full path location into a relative path from the cloud root and then escaping the whole thing for a url
-                                new KeyValuePair<string, string>(CLDefinitions.CLMetadataCloudPath, Uri.EscapeDataString(fullPath.GetRelativePath((_syncbox.Path ?? string.Empty), true) + (isFolder ? "/" : string.Empty)))
+                                new KeyValuePair<string, string>(CLDefinitions.CLMetadataCloudPath, Uri.EscapeDataString(fullPath.GetRelativePath((_syncbox.Path ?? string.Empty), true) + (isFolder ? ((char)0x2F).ToString() /* '/' */ : string.Empty)))
 
                             : // query string parameter for the unique id to the file or folder on the server, escaped since it is a server opaque field of undefined format
                                 new KeyValuePair<string, string>(CLDefinitions.CLMetadataServerId, Uri.EscapeDataString(serverUid))),
@@ -8803,7 +8945,7 @@ namespace Cloud.REST
                             {
                                 CreatedDate = toCommunicate.Metadata.HashableProperties.CreationTime,
                                 DeviceId = _copiedSettings.DeviceId,
-                                RelativePath = toCommunicate.NewPath.GetRelativePath(_syncbox.Path, true) + "/",
+                                RelativePath = toCommunicate.NewPath.GetRelativePath(_syncbox.Path, true) + ((char)0x2F /* '/' */),
                                 SyncboxId = _syncbox.SyncboxId,
                                 Name = (string.IsNullOrEmpty(toCommunicate.Metadata.ParentFolderServerUid) ? null : toCommunicate.NewPath.Name),
                                 ParentUid = (string.IsNullOrEmpty(toCommunicate.Metadata.ParentFolderServerUid) ? null : toCommunicate.Metadata.ParentFolderServerUid)
