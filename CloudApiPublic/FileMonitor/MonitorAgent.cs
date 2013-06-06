@@ -2065,24 +2065,29 @@ namespace Cloud.FileMonitor
                             LaterChange.Type.ToString(),
                             LaterChange.OldPath != null ? LaterChange.OldPath : "NoOldPath",
                             LaterChange.NewPath != null ? LaterChange.NewPath : "NoNewPath"));
+
                 foreach (FileChangeWithDependencies CurrentEarlierChange in EnumerateDependenciesFromFileChangeDeepestLevelsFirst(EarlierChange)
                     .Reverse()
                     .OfType<FileChangeWithDependencies>())
                 {
                     bool breakOutOfEnumeration = false;
+
                     _trace.writeToMemory(() => _trace.trcFmtStr(2, Resources.MonitorAgentRenameDependencyCheckCurrentEarlierChangeDirection0Type1OldPath2NewPath3, 
                                 CurrentEarlierChange.Direction.ToString(),
                                 CurrentEarlierChange.Type.ToString(),
                                 CurrentEarlierChange.OldPath != null ? CurrentEarlierChange.OldPath : "NoOldPath",
                                 CurrentEarlierChange.NewPath != null ? CurrentEarlierChange.NewPath : "NoNewPath"));
+
                     switch (CurrentEarlierChange.Type)
                     {
                         case FileChangeType.Renamed:
                             _trace.writeToMemory(() => _trace.trcFmtStr(2, Resources.MonitorAgentRenameDependencyCheckEarlierChangeIsRenamed));
+
                             if (!DependenciesAddedToLaterChange
                                 && (RenamePathSearches == null || !RenamePathSearches.Contains(CurrentEarlierChange)))
                             {
                                 _trace.writeToMemory(() => _trace.trcFmtStr(2, Resources.MonitorAgentRenameDependencyCheckLoopThruOnlyRenamePathsFromTop));
+
                                 foreach (FileChangeWithDependencies CurrentInnerRename in EnumerateDependenciesFromFileChangeDeepestLevelsFirst(CurrentEarlierChange, onlyRenamePathsFromTop: true)
                                     .OfType<FileChangeWithDependencies>())
                                 {
@@ -2090,26 +2095,31 @@ namespace Cloud.FileMonitor
                                                 CurrentInnerRename.Direction.ToString(),
                                                 CurrentInnerRename.OldPath != null ? CurrentInnerRename.OldPath : "NoOldPath",
                                                 CurrentInnerRename.NewPath != null ? CurrentInnerRename.NewPath : "NoNewPath"));
+
                                     if (RenamePathSearches == null)
                                     {
                                         _trace.writeToMemory(() => _trace.trcFmtStr(2, Resources.MonitorAgentRenameDependencyCheckRenamePathSearchsIsFull));
+
                                         RenamePathSearches = new HashSet<FileChangeWithDependencies>(new FileChangeWithDependencies[] { CurrentInnerRename });
                                     }
                                     else
                                     {
                                         _trace.writeToMemory(() => _trace.trcFmtStr(2, Resources.MonitorAgentRenameDependencyCheckRenamePathSearchesNotNullAddThisInnerRenameToRenamePathSearches));
+
                                         RenamePathSearches.Add(CurrentInnerRename);
                                     }
                                     if (CurrentInnerRename.NewPath.Contains(LaterChange.OldPath)
                                         || LaterChange.OldPath.Contains(CurrentInnerRename.NewPath))
                                     {
                                         _trace.writeToMemory(() => _trace.trcFmtStr(2, Resources.MonitorAgentRenameDependencyCheckInnerNewPathContainsLaterChangeOldPathorLAterChangeOldPathContainsInnerNewPath));
+
                                         foreach (FileChangeWithDependencies dependencyToMove in CurrentInnerRename.Dependencies)
                                         {
                                             _trace.writeToMemory(() => _trace.trcFmtStr(2, Resources.MonitorAgentRenameDependencyCheckRemoveDependencyToMoveDirection0OldPathNewPath2,
                                                         dependencyToMove.Direction.ToString(),
                                                         dependencyToMove.OldPath != null ? dependencyToMove.OldPath : "NoOldPath",
                                                         dependencyToMove.NewPath != null ? dependencyToMove.NewPath : "NoNewPath"));
+
                                             CurrentInnerRename.RemoveDependency(dependencyToMove);
                                             LaterChange.AddDependency(dependencyToMove);
                                         }
@@ -2119,6 +2129,7 @@ namespace Cloud.FileMonitor
                                         if (DependencyDebugging)
                                         {
                                             _trace.writeToMemory(() => _trace.trcFmtStr(2, Resources.MonitorAgentRenameDependencyCheckCallCheckFileChangeDependenciesForDuplicatesOnInnerRename));
+
                                             Helpers.CheckFileChangeDependenciesForDuplicates(CurrentInnerRename);
                                         }
                                         PulledChanges.Add(LaterChange);
@@ -2130,12 +2141,17 @@ namespace Cloud.FileMonitor
                         case FileChangeType.Created:
                         case FileChangeType.Modified:
                             _trace.writeToMemory(() => _trace.trcFmtStr(2, Resources.MonitorAgentRenameDependencyCheckEarlierChangeIsCreatedOrModified));
+
                             if (CurrentEarlierChange.NewPath.Contains(LaterChange.OldPath))
                             {
                                 _trace.writeToMemory(() => _trace.trcFmtStr(2, Resources.MonitorAgentRenameDependencyCheckEarlierChangeContainsOldPath));
+
                                 if (FilePathComparer.Instance.Equals(CurrentEarlierChange.NewPath, LaterChange.OldPath))
                                 {
                                     _trace.writeToMemory(() => _trace.trcFmtStr(2, Resources.MonitorAgentRenameDependencyCheckNewPathEqualsOldPath));
+
+                                    MessageEvents.RenameBadgePath(this, new RenameBadgePath(CurrentEarlierChange.NewPath.ToString(), LaterChange.NewPath.ToString()));
+
                                     CurrentEarlierChange.NewPath = LaterChange.NewPath;
 
                                     addOrModifyInSql.Add(CurrentEarlierChange);
@@ -2143,6 +2159,7 @@ namespace Cloud.FileMonitor
                                     if (CurrentEarlierChange.Type == FileChangeType.Created)
                                     {
                                         _trace.writeToMemory(() => _trace.trcFmtStr(2, Resources.MonitorAgentRenameDependencyCheckEarlierChangeIsCreated));
+
                                         if (DisposeChanges == null)
                                         {
                                             DisposeChanges = new List<FileChangeWithDependencies>(Helpers.EnumerateSingleItem(LaterChange));
@@ -2150,6 +2167,7 @@ namespace Cloud.FileMonitor
                                         else
                                         {
                                             _trace.writeToMemory(() => _trace.trcFmtStr(2, Resources.MonitorAgentRenameDependencyCheckAddLaterChangeToChangesToDispose));
+
                                             DisposeChanges.Add(LaterChange);
                                         }
 
@@ -2163,6 +2181,7 @@ namespace Cloud.FileMonitor
                                                         LaterChange.Direction.ToString(),
                                                         LaterChange.OldPath != null ? LaterChange.OldPath : "NoOldPath",
                                                         LaterChange.NewPath != null ? LaterChange.NewPath : "NoNewPath"));
+
                                             laterParent.RemoveDependency(LaterChange);
                                         }
 
@@ -2178,6 +2197,7 @@ namespace Cloud.FileMonitor
                                         eventIdSwaps.Add(new KeyValuePair<FileChange, FileChange>(CurrentEarlierChange, LaterChange));
 
                                         _trace.writeToMemory(() => _trace.trcFmtStr(2, Resources.MonitorAgentRenameDependencyCheckNoDependenciesAddedToLaterChange2));
+
                                         LaterChange.AddDependency(CurrentEarlierChange);
                                         if (DependencyDebugging)
                                         {
@@ -2197,14 +2217,17 @@ namespace Cloud.FileMonitor
 
                                     // loop till recursing parent of current path level is null
                                     _trace.writeToMemory(() => _trace.trcFmtStr(2, Resources.MonitorAgentRenameDependencyCheckNewPathDoesNotEqualOldPathLoopUntilRecursingParentIsRenamed, renamedOverlapChild.Name));
+
                                     while (renamedOverlap != null)
                                     {
                                         // when the rename's OldPath matches the current recursive path parent level,
                                         // replace the child's parent with the rename's NewPath and break out of the checking loop
                                         _trace.writeToMemory(() => _trace.trcFmtStr(2, Resources.MonitorAgentRenameDependencyCheckProcessRenamedOverlap, renamedOverlap.Name));
+
                                         if (FilePathComparer.Instance.Equals(renamedOverlap, LaterChange.OldPath))
                                         {
                                             _trace.writeToMemory(() => _trace.trcFmtStr(2, Resources.MonitorAgentRenameDependencyCheckRenamedOverlapEqualsLaterChangeOldPath0MergeEarlierChangeToSQL, LaterChange.OldPath.Name));
+
                                             renamedOverlapChild.Parent = LaterChange.NewPath;
 
                                             addOrModifyInSql.Add(CurrentEarlierChange);
@@ -2226,6 +2249,7 @@ namespace Cloud.FileMonitor
                                     if (!DependenciesAddedToLaterChange)
                                     {
                                         _trace.writeToMemory(() => _trace.trcFmtStr(2, Resources.MonitorAgentRenameDependencyCheckNoDependenciesAddedToLaterChange));
+
                                         LaterChange.AddDependency(CurrentEarlierChange);
                                         if (DependencyDebugging)
                                         {
@@ -2253,6 +2277,7 @@ namespace Cloud.FileMonitor
                             break;
                         case FileChangeType.Deleted:// possible error condition, I am not sure this case should ever hit
                             _trace.writeToMemory(() => _trace.trcFmtStr(2, Resources.MonitorAgentRenameDependencyCheckEarlierChangeIsDeleted));
+
                             if (LaterChange.OldPath.Contains(CurrentEarlierChange.NewPath))
                             {
                                 _trace.writeToMemory(() => _trace.trcFmtStr(2, Resources.MonitorAgentRenameDependencyCheckLaterOldPathContainsEarlierNewPath));
@@ -2265,12 +2290,14 @@ namespace Cloud.FileMonitor
                     if (breakOutOfEnumeration)
                     {
                         _trace.writeToMemory(() => _trace.trcFmtStr(2, Resources.MonitorAgentRenameDependencyCheckBreakOutOfEnumeration));
+
                         break;
                     }
                 }
 
                 bool localContinueProcessing = !PulledChanges.Contains(EarlierChange);
                 ContinueProcessing = localContinueProcessing;
+
                 _trace.writeToMemory(() => _trace.trcFmtStr(2, Resources.MonitorAgentRenameDependencyCheckContinueProcessing, localContinueProcessing));
             }
             catch (Exception ex)
@@ -2338,6 +2365,9 @@ namespace Cloud.FileMonitor
                     {
                         FilePath newLaterChangeNewPath = LaterChange.NewPath.Copy();
                         FilePath.ApplyRename(newLaterChangeNewPath, CurrentEarlierChange.NewPath, CurrentEarlierChange.OldPath);
+
+                        MessageEvents.RenameBadgePath(this, new RenameBadgePath(LaterChange.NewPath.ToString(), newLaterChangeNewPath.ToString()));
+
                         if (!FilePathComparer.Instance.Equals(newLaterChangeNewPath, LaterChange.NewPath))
                         {
                             LaterChange.NewPath = newLaterChangeNewPath;
