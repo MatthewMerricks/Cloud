@@ -4593,11 +4593,20 @@ namespace Cloud.SQLIndexer
                                     combinedIndexPlusChanges[pendingWithoutSyncCounter.NewPath.Copy()] = pendingWithoutSyncCounter.Metadata;
 
                                     FilePathHierarchicalNode<GenericHolder<bool>> newDeletion;
-                                    CLError deletionHierarchyError = pathDeletions.GrabHierarchyForPath(pendingWithoutSyncCounter.NewPath, out newDeletion, true);
+                                    CLError deletionHierarchyError = pathDeletions.GrabHierarchyForPath(pendingWithoutSyncCounter.NewPath, out newDeletion, suppressException: true);
 
                                     if (deletionHierarchyError == null
                                         && newDeletion == null)
                                     {
+                                        FilePathHierarchicalNode<GenericHolder<bool>> oldDeletionsToMove;
+                                        CLError oldDeletionsHierarchicalError = pathDeletions.GrabHierarchyForPath(pendingWithoutSyncCounter.OldPath, out oldDeletionsToMove, suppressException: true);
+
+                                        if (oldDeletionsHierarchicalError == null
+                                            && oldDeletionsToMove != null)
+                                        {
+                                            pathDeletions.Rename(pendingWithoutSyncCounter.OldPath, pendingWithoutSyncCounter.NewPath);
+                                        }
+
                                         GenericHolder<bool> previousDeletion;
                                         if (pathDeletions.TryGetValue(pendingWithoutSyncCounter.NewPath, out previousDeletion))
                                         {
@@ -4607,8 +4616,6 @@ namespace Cloud.SQLIndexer
                                         {
                                             pathDeletions.Add(pendingWithoutSyncCounter.NewPath, new GenericHolder<bool>(false));
                                         }
-
-                                        pathDeletions.Rename(pendingWithoutSyncCounter.OldPath, pendingWithoutSyncCounter.NewPath);
                                     }
                                 }
                             }
