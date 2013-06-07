@@ -217,11 +217,16 @@ namespace Cloud.SQLIndexer
                         indexDB.BeginTransaction(System.Data.IsolationLevel.Serializable));
                 }
 
+                //"SELECT * " +
+                //"FROM ServerUids " +
+                //"WHERE ServerUids.ServerUid = ?" //<-- parameter 1
+                
+                const string existing = "cXdTvwEKWrKmPKCf8z2lcCVZmhbacDPRe25jQQJu2I/0uZOxaoXixE19UdgTf2GUtZfQS0wDQQZ8DIJ6HDx5/pO8+a3IxBldRLOBTVxavWDaFt6Ee4kgG3yjo94Tpn2+RXNQ6Q1yS8BytJXxRYXykCqyXvhmk/10EDMleZCmByM=";
                 SqlServerUid existingUid = SqlAccessor<SqlServerUid>.SelectResultSet(
                         castTransaction.sqlConnection,
-                        "SELECT * " +
-                        "FROM ServerUids " +
-                        "WHERE ServerUids.ServerUid = ?", // <-- parameter 1
+                        
+                        Helpers.DecryptString(existing,indexDBPassword), 
+
                         transaction: castTransaction.sqlTransaction,
                         selectParameters: Helpers.EnumerateSingleItem(serverUid))
                     .FirstOrDefault();
@@ -285,13 +290,18 @@ namespace Cloud.SQLIndexer
 
                             using (ISQLiteCommand moveServerUidIds = castTransaction.sqlConnection.CreateCommand())
                             {
+                                //"UPDATE FileSystemObjects " +
+                                //    "SET ServerUidId = ? " + // <-- parameter 1
+                                //    "WHERE ServerUidId = ?;" + // <-- parameter 2
+                                //    "DELETE FROM ServerUids " +
+                                //    "WHERE ServerUidId = ?;"; // <-- paramter 3 (equivalent to parameter 2)
+
+                                const string move_server_uid = "xMtLXELDZiXoMY2RpJZny+YKWsx0o5YE/E9tx7aOUfndegDh4qTEeqikr573Hp6LRe+WHL6I07YE4r3iNuGlXi54Cuv+lfFJpaus/KO2PpcV4yo7f/BQVfeUova2TP/XvAYvK0ZNg9hlndBbKRZXdLmADQRogMQ3646FvIpc5vVtjoO+oSnkR55TE9ch2gJ7dCGeowuhKhrPyn9SPZVv1tZzuTGg1tq5oWDrIfGv7VKsVi3oOyurc7kG/0D6yDvhZB2ZPo5Y1s2O5XtwG1Re0KW91FRSsnyEr3eHZlYtp1PDuP1joTrULEjJZU/3CpeU";
+                                
                                 moveServerUidIds.Transaction = castTransaction.sqlTransaction;
 
-                                moveServerUidIds.CommandText = "UPDATE FileSystemObjects " +
-                                    "SET ServerUidId = ? " + // <-- parameter 1
-                                    "WHERE ServerUidId = ?;" + // <-- parameter 2
-                                    "DELETE FROM ServerUids " +
-                                    "WHERE ServerUidId = ?;"; // <-- paramter 3 (equivalent to parameter 2)
+                                moveServerUidIds.CommandText = Helpers.DecryptString(move_server_uid, indexDBPassword);
+
 
                                 ISQLiteParameter uidIdToKeep = moveServerUidIds.CreateParameter();
                                 uidIdToKeep.Value = serverUidId;
@@ -421,11 +431,14 @@ namespace Cloud.SQLIndexer
                         _trace.writeToLog(9, "IndexingAgent: QueryServerUid: Migrated forwards: serverUidId: {0}.", serverUidId);
                     }
 
+                                //"SELECT * " +
+                                //"FROM ServerUids " +
+                                //"WHERE ServerUids.ServerUidId = ?"
+
+                    const string get_uid = "cXdTvwEKWrKmPKCf8z2lcCVZmhbacDPRe25jQQJu2I/0uZOxaoXixE19UdgTf2GUtZfQS0wDQQZ8DIJ6HDx5/pO8+a3IxBldRLOBTVxavWDaFt6Ee4kgG3yjo94Tpn2+ub5rMECNNG9ZzhJIdNJnVTI/dM4VeBHL7dTbhx1dhss=";
+
                     retrievedUid = SqlAccessor<SqlServerUid>.SelectResultSet(
-                            castTransaction.sqlConnection,
-                            "SELECT * " +
-                                "FROM ServerUids " +
-                                "WHERE ServerUids.ServerUidId = ?",
+                            castTransaction.sqlConnection,       Helpers.DecryptString(get_uid,indexDBPassword),
                             transaction: castTransaction.sqlTransaction,
                             selectParameters: Helpers.EnumerateSingleItem(serverUidId))
                         .FirstOrDefault();
@@ -505,11 +518,14 @@ namespace Cloud.SQLIndexer
                         indexDB.BeginTransaction(System.Data.IsolationLevel.Serializable));
                 }
 
+                 //"SELECT * " +
+                 //"FROM ServerUids " +
+                 //"WHERE ServerUids.ServerUid = ?",
+                const string get_uid = "cXdTvwEKWrKmPKCf8z2lcCVZmhbacDPRe25jQQJu2I/0uZOxaoXixE19UdgTf2GUtZfQS0wDQQZ8DIJ6HDx5/pO8+a3IxBldRLOBTVxavWDaFt6Ee4kgG3yjo94Tpn2+ub5rMECNNG9ZzhJIdNJnVTI/dM4VeBHL7dTbhx1dhss=";
+
                 SqlServerUid retrievedUid = SqlAccessor<SqlServerUid>.SelectResultSet(
                         castTransaction.sqlConnection,
-                        "SELECT * " +
-                            "FROM ServerUids " +
-                            "WHERE ServerUids.ServerUid = ?",
+                     Helpers.DecryptString(get_uid, indexDBPassword),
                         transaction: castTransaction.sqlTransaction,
                         selectParameters: Helpers.EnumerateSingleItem(serverUid))
                     .FirstOrDefault();
