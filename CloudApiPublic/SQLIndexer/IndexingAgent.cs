@@ -111,7 +111,7 @@ namespace Cloud.SQLIndexer
             {
                 if (disposed)
                 {
-                    throw new ObjectDisposedException("This IndexingAgent");
+                    throw new ObjectDisposedException(Resources.IndexingAgentThisIndexingAgent);
                 }
 
                 _trace.writeToLog(9, "IndexingAgent: Entry: CreateNewServerUid: serverUid: {0}. revision: {1}. existingTransaction: {2}.", serverUid, revision, existingTransaction == null ? "null" : "notNull");
@@ -188,7 +188,7 @@ namespace Cloud.SQLIndexer
             {
                 if (disposed)
                 {
-                    throw new ObjectDisposedException("This IndexingAgent");
+                    throw new ObjectDisposedException(Resources.IndexingAgentThisIndexingAgent);
                 }
 
                 _trace.writeToLog(9, "IndexingAgent: Entry: UpdateServerUid: serverUidId: {0}. serverUid: {1}. revision: {2}. existingTransaction: {3}.", serverUidId, serverUid, revision, existingTransaction == null ? "null" : "notNull");
@@ -381,7 +381,7 @@ namespace Cloud.SQLIndexer
             {
                 if (disposed)
                 {
-                    throw new ObjectDisposedException("This IndexingAgent");
+                    throw new ObjectDisposedException(Resources.IndexingAgentThisIndexingAgent);
                 }
 
                 _trace.writeToLog(9, "IndexingAgent: Entry: QueryServerUid: serverUidId: {0}. existingTransaction: {1}.", serverUidId, existingTransaction == null ? "null" : "notNull");
@@ -476,7 +476,7 @@ namespace Cloud.SQLIndexer
             {
                 if (disposed)
                 {
-                    throw new ObjectDisposedException("This IndexingAgent");
+                    throw new ObjectDisposedException(Resources.IndexingAgentThisIndexingAgent);
                 }
 
                 _trace.writeToLog(9, "IndexingAgent: Entry: QueryOrCreateServerUid: serverUid: {0}. revision: {1}. syncFromFileModify {2}. existingTransaction: {3}.", serverUid, revision, syncFromFileModify, existingTransaction == null ? "null" : "notNull");
@@ -587,7 +587,7 @@ namespace Cloud.SQLIndexer
             {
                 try
                 {
-                    throw new ObjectDisposedException("This IndexingAgent");
+                    throw new ObjectDisposedException(Resources.IndexingAgentThisIndexingAgent);
                 }
                 catch (Exception ex)
                 {
@@ -712,7 +712,7 @@ namespace Cloud.SQLIndexer
             {
                 try
                 {
-                    throw new ObjectDisposedException("This IndexingAgent");
+                    throw new ObjectDisposedException(Resources.IndexingAgentThisIndexingAgent);
                 }
                 catch (Exception ex)
                 {
@@ -751,7 +751,7 @@ namespace Cloud.SQLIndexer
             {
                 try
                 {
-                    throw new ObjectDisposedException("This IndexingAgent");
+                    throw new ObjectDisposedException(Resources.IndexingAgentThisIndexingAgent);
                 }
                 catch
                 {
@@ -865,7 +865,7 @@ namespace Cloud.SQLIndexer
             {
                 try
                 {
-                    throw new ObjectDisposedException("This IndexingAgent");
+                    throw new ObjectDisposedException(Resources.IndexingAgentThisIndexingAgent);
                 }
                 catch (Exception ex)
                 {
@@ -939,7 +939,7 @@ namespace Cloud.SQLIndexer
             {
                 try
                 {
-                    throw new ObjectDisposedException("This IndexingAgent");
+                    throw new ObjectDisposedException(Resources.IndexingAgentThisIndexingAgent);
                 }
                 catch (Exception ex)
                 {
@@ -1112,7 +1112,7 @@ namespace Cloud.SQLIndexer
             {
                 try
                 {
-                    throw new ObjectDisposedException("This IndexingAgent");
+                    throw new ObjectDisposedException(Resources.IndexingAgentThisIndexingAgent);
                 }
                 catch (Exception ex)
                 {
@@ -1275,7 +1275,7 @@ namespace Cloud.SQLIndexer
             {
                 try
                 {
-                    throw new ObjectDisposedException("This IndexingAgent");
+                    throw new ObjectDisposedException(Resources.IndexingAgentThisIndexingAgent);
                 }
                 catch (Exception ex)
                 {
@@ -1293,7 +1293,7 @@ namespace Cloud.SQLIndexer
             {
                 if (disposed)
                 {
-                    throw new ObjectDisposedException("This IndexingAgent");
+                    throw new ObjectDisposedException(Resources.IndexingAgentThisIndexingAgent);
                 }
 
                 if (existingTransaction != null
@@ -1789,7 +1789,7 @@ namespace Cloud.SQLIndexer
             {
                 try
                 {
-                    throw new ObjectDisposedException("This IndexingAgent");
+                    throw new ObjectDisposedException(Resources.IndexingAgentThisIndexingAgent);
                 }
                 catch (Exception ex)
                 {
@@ -1813,7 +1813,7 @@ namespace Cloud.SQLIndexer
             {
                 if (disposed)
                 {
-                    throw new ObjectDisposedException("This IndexingAgent");
+                    throw new ObjectDisposedException(Resources.IndexingAgentThisIndexingAgent);
                 }
 
                 if (eventIds == null)
@@ -2032,7 +2032,7 @@ namespace Cloud.SQLIndexer
             {
                 try
                 {
-                    throw new ObjectDisposedException("This IndexingAgent");
+                    throw new ObjectDisposedException(Resources.IndexingAgentThisIndexingAgent);
                 }
                 catch (Exception ex)
                 {
@@ -2242,7 +2242,7 @@ namespace Cloud.SQLIndexer
             {
                 try
                 {
-                    throw new ObjectDisposedException("This IndexingAgent");
+                    throw new ObjectDisposedException(Resources.IndexingAgentThisIndexingAgent);
                 }
                 catch (Exception ex)
                 {
@@ -2270,7 +2270,7 @@ namespace Cloud.SQLIndexer
             {
                 try
                 {
-                    throw new ObjectDisposedException("This IndexingAgent");
+                    throw new ObjectDisposedException(Resources.IndexingAgentThisIndexingAgent);
                 }
                 catch (Exception ex)
                 {
@@ -2329,7 +2329,7 @@ namespace Cloud.SQLIndexer
             {
                 try
                 {
-                    throw new ObjectDisposedException("This IndexingAgent");
+                    throw new ObjectDisposedException(Resources.IndexingAgentThisIndexingAgent);
                 }
                 catch
                 {
@@ -2354,7 +2354,7 @@ namespace Cloud.SQLIndexer
             {
                 try
                 {
-                    throw new ObjectDisposedException("This IndexingAgent");
+                    throw new ObjectDisposedException(Resources.IndexingAgentThisIndexingAgent);
                 }
                 catch (Exception ex)
                 {
@@ -2415,7 +2415,7 @@ namespace Cloud.SQLIndexer
             {
                 if (disposed)
                 {
-                    throw new ObjectDisposedException("This IndexingAgent");
+                    throw new ObjectDisposedException(Resources.IndexingAgentThisIndexingAgent);
                 }
 
                 if (existingTransaction != null
@@ -3034,7 +3034,7 @@ namespace Cloud.SQLIndexer
             {
                 try
                 {
-                    throw new ObjectDisposedException("This IndexingAgent");
+                    throw new ObjectDisposedException(Resources.IndexingAgentThisIndexingAgent);
                 }
                 catch (Exception ex)
                 {
@@ -3558,7 +3558,7 @@ namespace Cloud.SQLIndexer
             {
                 try
                 {
-                    throw new ObjectDisposedException("This IndexingAgent");
+                    throw new ObjectDisposedException(Resources.IndexingAgentThisIndexingAgent);
                 }
                 catch (Exception ex)
                 {
@@ -3631,7 +3631,7 @@ namespace Cloud.SQLIndexer
             {
                 try
                 {
-                    throw new ObjectDisposedException("This IndexingAgent");
+                    throw new ObjectDisposedException(Resources.IndexingAgentThisIndexingAgent);
                 }
                 catch
                 {
@@ -3981,7 +3981,7 @@ namespace Cloud.SQLIndexer
             {
                 try
                 {
-                    throw new ObjectDisposedException("This IndexingAgent");
+                    throw new ObjectDisposedException(Resources.IndexingAgentThisIndexingAgent);
                 }
                 catch
                 {
@@ -4074,7 +4074,7 @@ namespace Cloud.SQLIndexer
             {
                 try
                 {
-                    throw new ObjectDisposedException("This IndexingAgent");
+                    throw new ObjectDisposedException(Resources.IndexingAgentThisIndexingAgent);
                 }
                 catch
                 {
@@ -4122,7 +4122,7 @@ namespace Cloud.SQLIndexer
             {
                 try
                 {
-                    throw new ObjectDisposedException("This IndexingAgent");
+                    throw new ObjectDisposedException(Resources.IndexingAgentThisIndexingAgent);
                 }
                 catch
                 {
@@ -4527,7 +4527,7 @@ namespace Cloud.SQLIndexer
             {
                 try
                 {
-                    throw new ObjectDisposedException("This IndexingAgent");
+                    throw new ObjectDisposedException(Resources.IndexingAgentThisIndexingAgent);
                 }
                 catch
                 {
