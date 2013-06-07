@@ -1339,22 +1339,11 @@ namespace Cloud.FileMonitor
 
                                     ChangeAllPathsBase.Remove(this, toApply.OldPath);
 
-                                    //&&&& old code
-                                    //ChangeAllPathsBase.IndexSet(this, toApply.NewPath,
-                                    //    new FileMetadata(toApply.Metadata.RevisionChanger, onRevisionChanged: null)
-                                    //    {
-                                    //        ServerUid = toApply.Metadata.ServerUid,
-                                    //        HashableProperties = toApply.Metadata.HashableProperties,
-                                    //        Revision = toApply.Metadata.Revision
-                                    //    });
-                                    //&&&& end old code
-                                    //&&&& new code
                                     ChangeAllPathsBase.IndexSet(this, toApply.NewPath,
                                         new FileMetadata(toApply.Metadata.ServerUidId)
                                         {
                                             HashableProperties = toApply.Metadata.HashableProperties
                                         });
-                                    //&&&& end new code
                                     break;
                             }
                         }
@@ -4788,20 +4777,10 @@ namespace Cloud.FileMonitor
             if (!FileMetadataHashableComparer.Default.Equals(previousMetadata.HashableProperties, forCompare))
             {
                 // metadata change detected
-                //&&&& old code
-                //return new FileMetadata(previousMetadata.RevisionChanger, onRevisionChanged: null)
-                //{
-                //    ServerUid = previousMetadata.ServerUid,
-                //    HashableProperties = forCompare,
-                //    Revision = previousMetadata.Revision
-                //};
-                //&&&& end old code
-                //&&&& new code   &&&& really check this.
                 return new FileMetadata(previousMetadata.ServerUidId)
                 {
                     HashableProperties = forCompare
                 };
-                //&&&& end new code
             }
             return null;
         }
@@ -5028,8 +5007,6 @@ namespace Cloud.FileMonitor
 
                                                 // delete caused AllPaths to lose metadata fields, but since we're cancelling the delete, they need to be put back
                                                 // since all cases from CheckMetadataAgainstFile which led to this creation change assigned Metadata directly from AllPaths, we can change the fields here to propagate back
-
-                                                //&&&& new code
                                                 toChange.Metadata = toChange.Metadata.CopyWithNewServerUidId(previousChange.Metadata.ServerUidId);
                                                 ChangeAllPathsBase.IndexSet(this, toChange.NewPath, toChange.Metadata);
                                                 //toChange.Metadata = toChange.Metadata.CopyWithDifferentRevisionChanger(previousChange.Metadata.RevisionChanger, Helpers.CreateFileChangeRevisionChangedHandler(toChange, _syncData));
@@ -5056,8 +5033,6 @@ namespace Cloud.FileMonitor
 
                                                 // delete caused AllPaths to lose metadata fields, but since we're cancelling the delete, they need to be put back
                                                 // since all cases from CheckMetadataAgainstFile which led to this creation change assigned Metadata directly from AllPaths, we can change the fields here to propagate back
-
-                                                //&&&& new code
                                                 ChangeAllPathsBase.IndexSet(this, toChange.NewPath, toChange.Metadata);
                                                 //toChange.Metadata = toChange.Metadata.CopyWithDifferentRevisionChanger(previousChange.Metadata.RevisionChanger, Helpers.CreateFileChangeRevisionChangedHandler(toChange, _syncData));
                                                 toChange.Metadata.MimeType = previousChange.Metadata.MimeType;

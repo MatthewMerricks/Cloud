@@ -2564,7 +2564,6 @@ namespace Cloud.SQLIndexer
                     if (mergeToFroms != null)
                     {
                         HashSet<long> updatedIds = new HashSet<long>();
-                        HashSet<long> deletedIds = new HashSet<long>();
 
                         List<FileChange> toAddList = new List<FileChange>();
                         List<long> toDeleteList = new List<long>();
@@ -2814,8 +2813,6 @@ namespace Cloud.SQLIndexer
                                             {
                                                 actionOrder.Add((byte)0);
                                             }
-
-                                            deletedIds.Add(toDelete);
 
                                             toDeleteList.Add(toDelete);
 
@@ -3180,8 +3177,7 @@ namespace Cloud.SQLIndexer
                             // If mergedEvent was not processed in AddEvents,
                             // then process badging (AddEvents processes badging for the rest)
                             if (currentMergeToFrom.MergeTo == null
-                                || updatedIds.Contains(currentMergeToFrom.MergeTo.EventId)
-                                || deletedIds.Contains(currentMergeToFrom.MergeTo.EventId))
+                                || updatedIds.Contains(currentMergeToFrom.MergeTo.EventId))
                             {
                                 MessageEvents.ApplyFileChangeMergeToChangeState(this, new FileChangeMerge(currentMergeToFrom.MergeTo, currentMergeToFrom.MergeFrom));   // Message to invoke BadgeNet.IconOverlay.QueueNewEventBadge(currentMergeToFrom.MergeTo, currentMergeToFrom.MergeFrom)
                             }
@@ -4316,10 +4312,6 @@ namespace Cloud.SQLIndexer
                     {
                         bool isDeleted;
                         MessageEvents.DeleteBadgePath(this, new DeleteBadgePath(storeNewPath), out isDeleted);   // Message to invoke BadgeNet.IconOverlay.DeleteBadgePath(currentEvent.FileSystemObject.Path, out isDeleted);
-                    }
-                    else
-                    {
-                        setBadgeSynced(storeNewPath);
                     }
                     break;
                 case FileChangeType.Renamed:

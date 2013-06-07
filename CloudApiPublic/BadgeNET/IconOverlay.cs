@@ -6,7 +6,7 @@
 // Copyright (c) Cloud.com. All rights reserved.
 
 // Enable the following definition to trace the badging dictionaries.
-#define TRACE_BADGING_DICTIONARIES   //&&&&&& DEBUG REMOVE THIS
+//#define TRACE_BADGING_DICTIONARIES
 
 using System;
 using System.Collections.Generic;
@@ -920,6 +920,9 @@ namespace Cloud.BadgeNET
 
                     // Update the badge for this specific node.
                     UpdateBadgeStateAtPath(toDelete);
+
+                    // Actually delete the badge on all of the badgecom instances.
+                    SendRemoveBadgePathEvent(toDelete);
 
                     // Trace the badging dictionaries
                     TraceBadgingDictionaries(Resources.IconOverlayDeleteBadgePathAfter + toDelete);
@@ -2160,11 +2163,22 @@ namespace Cloud.BadgeNET
                                         setBadge(cloudAppIconBadgeType.cloudAppBadgeSyncing, mergedEvent.OldPath);
                                         break;
                                     case SyncDirection.To:
-                                        thisOverlay._trace.writeToMemory(() => thisOverlay._trace.trcFmtStr(1, Resources.IconOverlayProcessRenamedDirTosetBadgeSyncingAtOldPath));
-                                        setBadge(cloudAppIconBadgeType.cloudAppBadgeSyncing, mergedEvent.OldPath);
-
                                         thisOverlay._trace.writeToMemory(() => thisOverlay._trace.trcFmtStr(1, Resources.IconOverlayProcessRenamedDirToCallRenameBadgePath));
                                         thisOverlay.RenameBadgePath(mergedEvent.OldPath, mergedEvent.NewPath);
+
+                                        //&&&& does this work?
+                                        //bool notUsed;
+                                        //thisOverlay.DeleteBadgePath(mergedEvent.OldPath, out notUsed, true);
+
+                                        //&&&& does this work?
+                                        //thisOverlay.SendRemoveBadgePathEvent(mergedEvent.OldPath);
+
+                                        thisOverlay._trace.writeToMemory(() => thisOverlay._trace.trcFmtStr(1, Resources.IconOverlayProcessRenamedDirTosetBadgeSyncingAtOldPath));
+                                        setBadge(cloudAppIconBadgeType.cloudAppBadgeSyncing, mergedEvent.NewPath);
+
+                                        //&&&& Does this work?
+                                        //thisOverlay.SendAddBadgePathEvent(mergedEvent.NewPath, new GenericHolder<cloudAppIconBadgeType>(cloudAppIconBadgeType.cloudAppBadgeSyncing));
+
                                         break;
                                     default:
                                         throw new NotSupportedException(Resources.IconOverlayUnknownMergedEventDirection + mergedEvent.Direction.ToString());
