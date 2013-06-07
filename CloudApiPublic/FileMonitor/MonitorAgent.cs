@@ -457,7 +457,7 @@ namespace Cloud.FileMonitor
             public bool folderOnly { get; set; }
         }
 
-        private class DisposeCheckingHolder
+        private sealed class DisposeCheckingHolder
         {
             public object Value
             {
@@ -659,7 +659,7 @@ namespace Cloud.FileMonitor
                 }
             }
 
-            public void AddSettingFileChangeTimer(FileChange toConvert, Nullable<bool> addNew = null, Nullable<bool> finished = null)
+            public void AddSettingFileChangeTimer(FileChange toConvert, Nullable<bool> addNew = null, Nullable<bool> finished = null, Nullable<bool> queuingQueued = null)
             {
                 SettingFileChangeTimer toAdd = new SettingFileChangeTimer()
                 {
@@ -677,7 +677,9 @@ namespace Cloud.FileMonitor
                     InMemoryId = toConvert.InMemoryId,
                     IsFolder = toConvert.Metadata.HashableProperties.IsFolder,
                     NewPath = toConvert.NewPath.ToString(),
-                    OldPath = (toConvert.OldPath == null ? null : toConvert.OldPath.ToString())
+                    OldPath = (toConvert.OldPath == null ? null : toConvert.OldPath.ToString()),
+                    QueuingQueuedSpecified = queuingQueued != null,
+                    QueuingQueued = queuingQueued ?? false
                 };
 
                 lock (watcherEntries)
@@ -1601,8 +1603,6 @@ namespace Cloud.FileMonitor
 
             try
             {
-                List<GenericHolder<Nullable<KeyValuePair<Action<DisposeCheckingHolder>, DisposeCheckingHolder>>>> startProcessingActions = new List<GenericHolder<Nullable<KeyValuePair<Action<DisposeCheckingHolder>, DisposeCheckingHolder>>>>();
-
                 // lock to prevent the current, in-memory index from being seperately read/modified
                 lock (AllPaths)
                 {
@@ -1640,9 +1640,6 @@ namespace Cloud.FileMonitor
                                         break;
                                 }
 
-                                GenericHolder<Nullable<KeyValuePair<Action<DisposeCheckingHolder>, DisposeCheckingHolder>>> newProcessingAction = new GenericHolder<Nullable<KeyValuePair<Action<DisposeCheckingHolder>, DisposeCheckingHolder>>>();
-                                startProcessingActions.Add(newProcessingAction);
-
                                 FileChange toQueue = new FileChange(QueuedChanges,
                                     ((currentChange.Direction == SyncDirection.From && (currentChange.Type == FileChangeType.Created || currentChange.Type == FileChangeType.Modified))
                                         ? new object()
@@ -1663,7 +1660,7 @@ namespace Cloud.FileMonitor
                                     throw new CLException(CLExceptionCode.Syncing_FileMonitor, Resources.ExceptionFileMonitorBeginProcessingSetMD5, setMD5Error.Exceptions);
                                 }
 
-                                QueueFileChange(toQueue, newProcessingAction);
+                                QueueFileChange(toQueue, queueToStartProcessing: true);
                             }
                         }
 
@@ -1693,33 +1690,40 @@ namespace Cloud.FileMonitor
                 // will process again without infinitely queueing/dequeueing
                 IsInitialIndex = false;
 
-                // dequeue through the list of file system events that were queued during initial indexing
-                while (ChangesQueueForInitialIndexing.Count > 0)
+                lock (QueuedChanges)
                 {
-                    // take the currently dequeued file system event and run it back through for processing
+                    // initial indexing finds \A, queues for queuing
+                    // after initial indexing but before processing indexed values, \A\B is added
+                    // ChangesQueueForInitialIndexing[0] -> folder create \A\B
+                    // 
 
-                    GenericHolder<Nullable<KeyValuePair<Action<DisposeCheckingHolder>, DisposeCheckingHolder>>> newProcessingAction = new GenericHolder<Nullable<KeyValuePair<Action<DisposeCheckingHolder>, DisposeCheckingHolder>>>();
-                    startProcessingActions.Add(newProcessingAction);
-
-                    ChangesQueueHolder currentChange = ChangesQueueForInitialIndexing.Dequeue();
-                    CheckMetadataAgainstFile(currentChange.newPath,
-                        currentChange.oldPath,
-                        currentChange.changeType,
-                        currentChange.folderOnly,
-                        /* alreadyHoldingIndexLock: */ true,
-                        newProcessingAction);
-                }
-
-                // null the pointer for the initial index queue so it can be cleared from memory
-                ChangesQueueForInitialIndexing = null;
-
-                foreach (GenericHolder<Nullable<KeyValuePair<Action<DisposeCheckingHolder>, DisposeCheckingHolder>>> startProcessing in startProcessingActions)
-                {
-                    if (startProcessing.Value != null
-                        && !((KeyValuePair<Action<DisposeCheckingHolder>, DisposeCheckingHolder>)startProcessing.Value).Value.IsDisposed)
+                    // dequeue through the list of file system events that were queued during initial indexing
+                    while (ChangesQueueForInitialIndexing.Count > 0)
                     {
-                        ((KeyValuePair<Action<DisposeCheckingHolder>, DisposeCheckingHolder>)startProcessing.Value).Key(((KeyValuePair<Action<DisposeCheckingHolder>, DisposeCheckingHolder>)startProcessing.Value).Value);
+                        // take the currently dequeued file system event and run it back through for processing
+
+                        ChangesQueueHolder currentChange = ChangesQueueForInitialIndexing.Dequeue();
+                        CheckMetadataAgainstFile(currentChange.newPath,
+                            currentChange.oldPath,
+                            currentChange.changeType,
+                            currentChange.folderOnly,
+                            alreadyHoldingIndexLock: true,
+                            queueToStartProcessing: true);
                     }
+
+                    // null the pointer for the initial index queue so it can be cleared from memory
+                    ChangesQueueForInitialIndexing = null;
+
+                    foreach (startProcessingQueueItem startProcessing in startProcessingQueue)
+                    {
+                        if (startProcessing.disposalChecker != null
+                            && !startProcessing.disposalChecker.IsDisposed)
+                        {
+                            startProcessing.Action(startProcessing.disposalChecker, startProcessing.thisAgent, startProcessing.thisChange);
+                        }
+                    }
+
+                    startProcessingQueue = null;
                 }
 
                 storeNotificationQueued = initialPushNotificationQueued;
@@ -1736,6 +1740,55 @@ namespace Cloud.FileMonitor
                 PushNotification(null);
             }
         }
+
+        private sealed class startProcessingQueueItem
+        {
+            public startProcessingQueueDelegate Action
+            {
+                get
+                {
+                    return _action;
+                }
+            }
+            private readonly startProcessingQueueDelegate _action;
+
+            public DisposeCheckingHolder disposalChecker
+            {
+                get
+                {
+                    return _disposalChecker;
+                }
+            }
+            private readonly DisposeCheckingHolder _disposalChecker;
+
+            public MonitorAgent thisAgent
+            {
+                get
+                {
+                    return _thisAgent;
+                }
+            }
+            private readonly MonitorAgent _thisAgent;
+
+            public FileChange thisChange
+            {
+                get
+                {
+                    return _thisChange;
+                }
+            }
+            private readonly FileChange _thisChange;
+
+            public startProcessingQueueItem(startProcessingQueueDelegate Action, DisposeCheckingHolder disposalChecker, MonitorAgent thisAgent, FileChange thisChange)
+            {
+                this._action = Action;
+                this._disposalChecker = disposalChecker;
+                this._thisAgent = thisAgent;
+                this._thisChange = thisChange;
+            }
+        }
+        private delegate void startProcessingQueueDelegate(DisposeCheckingHolder disposalChecker, MonitorAgent thisAgent, FileChange thisChange);
+        private List<startProcessingQueueItem> startProcessingQueue = new List<startProcessingQueueItem>();
 
         private CLError AssignDependencies(KeyValuePair<FileChangeSource, FileChangeWithDependencies>[] dependencyChanges, Dictionary<FileChangeWithDependencies, KeyValuePair<FileChange, FileChangeSource>> OriginalFileChangeMappings, out HashSet<FileChangeWithDependencies> PulledChanges, originalQueuedChangesIndexesByInMemoryIdsBase originalQueuedChangesIndexesByInMemoryIds)
         {
@@ -3641,7 +3694,7 @@ namespace Cloud.FileMonitor
         /// <param name="changeType">Type of file system event</param>
         /// <param name="folderOnly">Specificity from routing of file system event</param>
         /// <param name="alreadyHoldingIndexLock">Optional param only to be set (as true) from BeginProcessing method</param>
-        private void CheckMetadataAgainstFile(string newPath, string oldPath, WatcherChangeTypes changeType, bool folderOnly, bool alreadyHoldingIndexLock = false, GenericHolder<Nullable<KeyValuePair<Action<DisposeCheckingHolder>, DisposeCheckingHolder>>> startProcessingAction = null,
+        private void CheckMetadataAgainstFile(string newPath, string oldPath, WatcherChangeTypes changeType, bool folderOnly, bool alreadyHoldingIndexLock = false, bool queueToStartProcessing = false,
 
             // pass through list of FileChanges who were missing parents in AllPaths, in order of last found to miss parent to first found to miss parent
             List<FileChange> swapMemoryOrderListOnParentsNotFound = null)
@@ -3680,13 +3733,6 @@ namespace Cloud.FileMonitor
                         FilePath pathObject;
                         DirectoryInfo folder;
                         pathObject = folder = new DirectoryInfo(newPath);
-
-                        // todo: remove debug only code
-                        if (pathObject.Name[0] == '0'
-                            || pathObject.Name[0] == 'F')
-                        {
-
-                        }
 
                         FileMetadata newIndexedValue;
                         bool newIndexed = AllPaths.TryGetValue(pathObject, out newIndexedValue);
@@ -4060,7 +4106,7 @@ namespace Cloud.FileMonitor
                                                         Metadata = newMetadata
                                                     };
 
-                                                    QueueFileChange(toQueue, startProcessingAction, swapMemoryOrderListOnParentsNotFound);
+                                                    QueueFileChange(toQueue, queueToStartProcessing, swapMemoryOrderListOnParentsNotFound);
                                                 }
                                             }
                                         }
@@ -4101,7 +4147,7 @@ namespace Cloud.FileMonitor
                                                 Metadata = addedMetadata
                                             };
 
-                                            QueueFileChange(toQueue, startProcessingAction, swapMemoryOrderListOnParentsNotFound);
+                                            QueueFileChange(toQueue, queueToStartProcessing, swapMemoryOrderListOnParentsNotFound);
                                         }
                                     }
                                     // if file file does not exist, but an index exists
@@ -4123,7 +4169,7 @@ namespace Cloud.FileMonitor
                                             Metadata = newIndexedValue
                                         };
 
-                                        QueueFileChange(toQueue, startProcessingAction, swapMemoryOrderListOnParentsNotFound);
+                                        QueueFileChange(toQueue, queueToStartProcessing, swapMemoryOrderListOnParentsNotFound);
                                         // remove index
                                         ChangeAllPathsBase.Remove(this, pathObject);
                                     }
@@ -4154,7 +4200,7 @@ namespace Cloud.FileMonitor
                                             }
 
                                             // recurse once on this current function to process the previous path as a file system modified event
-                                            CheckMetadataAgainstFile(oldPath, null, WatcherChangeTypes.Changed, folderOnly: false, alreadyHoldingIndexLock: true);
+                                            CheckMetadataAgainstFile(oldPath, null, WatcherChangeTypes.Changed, folderOnly: false, alreadyHoldingIndexLock: true, queueToStartProcessing: true);
                                         }
                                         // if no file nor folder exists at the previous path and a file or folder does exist at the current path
                                         else if (exists)
@@ -4193,7 +4239,7 @@ namespace Cloud.FileMonitor
 
                                             toQueue.Metadata = existingMetadata.CopyWithNewServerUidId(existingMetadata.ServerUidId);
 
-                                            QueueFileChange(toQueue, startProcessingAction);
+                                            QueueFileChange(toQueue, queueToStartProcessing);
 
                                             // remove index at previous path
                                             ChangeAllPathsBase.Remove(this, oldPathObject);
@@ -4271,7 +4317,7 @@ namespace Cloud.FileMonitor
                                                         Metadata = newMetadata
                                                     };
 
-                                                    QueueFileChange(toQueue, startProcessingAction, swapMemoryOrderListOnParentsNotFound);
+                                                    QueueFileChange(toQueue, queueToStartProcessing, swapMemoryOrderListOnParentsNotFound);
                                                 }
                                                 else if (debugMemory)
                                                 {
@@ -4325,7 +4371,7 @@ namespace Cloud.FileMonitor
                                                 Metadata = newIndexedValue
                                             };
 
-                                            QueueFileChange(toQueue, startProcessingAction, swapMemoryOrderListOnParentsNotFound);
+                                            QueueFileChange(toQueue, queueToStartProcessing, swapMemoryOrderListOnParentsNotFound);
 
                                             // remove index for new path
                                             ChangeAllPathsBase.Remove(this, pathObject);
@@ -4354,7 +4400,7 @@ namespace Cloud.FileMonitor
                                                 Metadata = existingMetadata
                                             };
 
-                                            QueueFileChange(toQueue, startProcessingAction);
+                                            QueueFileChange(toQueue, queueToStartProcessing);
 
                                             // remove index at the previous path
                                             ChangeAllPathsBase.Remove(this, oldPathObject);
@@ -4439,7 +4485,7 @@ namespace Cloud.FileMonitor
                                             Metadata = metadataToUse
                                         };
 
-                                        QueueFileChange(toQueue, startProcessingAction, swapMemoryOrderListOnParentsNotFound);
+                                        QueueFileChange(toQueue, queueToStartProcessing, swapMemoryOrderListOnParentsNotFound);
                                     }
                                     // if index does not exist at either the old nor new paths and the file exists
                                     else
@@ -4504,7 +4550,7 @@ namespace Cloud.FileMonitor
                                             Metadata = newMetadata
                                         };
 
-                                        QueueFileChange(toQueue, startProcessingAction, swapMemoryOrderListOnParentsNotFound);
+                                        QueueFileChange(toQueue, queueToStartProcessing, swapMemoryOrderListOnParentsNotFound);
                                     }
                                 }
                                 // for file system events marked as delete
@@ -4552,7 +4598,7 @@ namespace Cloud.FileMonitor
                                                         Metadata = newMetadata
                                                     };
 
-                                                    QueueFileChange(toQueue, startProcessingAction, swapMemoryOrderListOnParentsNotFound);
+                                                    QueueFileChange(toQueue, queueToStartProcessing, swapMemoryOrderListOnParentsNotFound);
                                                 }
                                                 else if (debugMemory)
                                                 {
@@ -4585,7 +4631,7 @@ namespace Cloud.FileMonitor
                                             Metadata = newIndexedValue
                                         };
 
-                                        QueueFileChange(toQueue, startProcessingAction, swapMemoryOrderListOnParentsNotFound);
+                                        QueueFileChange(toQueue, queueToStartProcessing, swapMemoryOrderListOnParentsNotFound);
 
                                         // remove index
                                         ChangeAllPathsBase.Remove(this, pathObject);
@@ -4622,7 +4668,8 @@ namespace Cloud.FileMonitor
                                         /* oldPath: */ null,
                                         WatcherChangeTypes.Created,
                                         folderOnly: true,
-                                        alreadyHoldingIndexLock: true);
+                                        alreadyHoldingIndexLock: true,
+                                        queueToStartProcessing: true);
                                 }
                             }
                             catch
@@ -4638,7 +4685,8 @@ namespace Cloud.FileMonitor
                                         /* oldPath: */ null,
                                         WatcherChangeTypes.Created,
                                         folderOnly: false,
-                                        alreadyHoldingIndexLock: true);
+                                        alreadyHoldingIndexLock: true,
+                                        queueToStartProcessing: true);
                                 }
                             }
                             catch
@@ -4780,7 +4828,7 @@ namespace Cloud.FileMonitor
         /// Insert new file change into a synchronized queue and begin its delay timer for processing
         /// </summary>
         /// <param name="toChange">New file change</param>
-        private void QueueFileChange(FileChange toChange, GenericHolder<Nullable<KeyValuePair<Action<DisposeCheckingHolder>, DisposeCheckingHolder>>> startProcessingAction = null,
+        private void QueueFileChange(FileChange toChange, bool queueToStartProcessing,
             
             // pass through list of FileChanges who were missing parents in AllPaths, in order of last found to miss parent to first found to miss parent
             List<FileChange> swapMemoryOrderListOnParentsNotFound = null)
@@ -4798,7 +4846,7 @@ namespace Cloud.FileMonitor
                     swapMemoryOrderListOnParentsNotFound.Add(toChange);
                 }
 
-                CheckMetadataAgainstFile(parentPathString, /* oldPath: */ null, WatcherChangeTypes.Created, folderOnly: true, alreadyHoldingIndexLock: true, startProcessingAction: startProcessingAction,
+                CheckMetadataAgainstFile(parentPathString, /* oldPath: */ null, WatcherChangeTypes.Created, folderOnly: true, alreadyHoldingIndexLock: true, queueToStartProcessing: queueToStartProcessing,
                     swapMemoryOrderListOnParentsNotFound: swapMemoryOrderListOnParentsNotFound); // added so memory ids can be swapped if parent is found
             }
             else if (swapMemoryOrderListOnParentsNotFound != null)
@@ -4841,7 +4889,7 @@ namespace Cloud.FileMonitor
                     FileChange matchedFileChangeForRename;
 
                     // function to move the file change to the metadata-keyed queue and start the delayed processing
-                    Action<FileChange, GenericHolder<Nullable<KeyValuePair<Action<DisposeCheckingHolder>, DisposeCheckingHolder>>>> StartDelay = (toDelay, runActionExternal) =>
+                    Action<FileChange, bool> StartDelay = (toDelay, runActionExternal) =>
                     {
                         // move the file change to the metadata-keyed queue if it does not already exist
                         if (!QueuedChangesByMetadata.ContainsKey(toDelay.Metadata.HashableProperties))
@@ -4856,9 +4904,10 @@ namespace Cloud.FileMonitor
                             OnQueueing(this, toDelay);
                         }
 
-                        if (runActionExternal != null)
+                        if (runActionExternal)
                         {
-                            runActionExternal.Value = new KeyValuePair<Action<DisposeCheckingHolder>, DisposeCheckingHolder>(state =>
+                            startProcessingQueue.Add(new startProcessingQueueItem(new startProcessingQueueDelegate(
+                                (state, thisAgent, thisChange) =>
                                 {
                                     Tuple<FileChange,
                                         Action<FileChange, object, int>,
@@ -4867,6 +4916,11 @@ namespace Cloud.FileMonitor
 
                                     if (castState != null)
                                     {
+                                        if (thisAgent.debugMemory)
+                                        {
+                                            memoryDebugger.Instance.AddSettingFileChangeTimer(thisChange, true, queuingQueued: true);
+                                        }
+
                                         // start delayed processing of file change
                                         castState.Item1.ProcessAfterDelay(
                                             castState.Item2,// Callback which fires on process timer completion (on a new thread)
@@ -4874,17 +4928,25 @@ namespace Cloud.FileMonitor
                                             castState.Item3,// processing delay to wait for more events on this file
                                             castState.Item4);// number of processing delay resets before it will process the file anyways
                                     }
-                                }, new DisposeCheckingHolder(() => toDelay.DelayCompleted,
-                                    new Tuple<FileChange,
-                                        Action<FileChange, object, int>,
-                                        int,
-                                        int>(toDelay, // file change to delay-process
+                                }),
+                                new DisposeCheckingHolder(
+                                    new Func<object, bool>(delayState => ((Tuple<FileChange, Action<FileChange, object, int>, int, int>)delayState).Item1.DelayCompleted),
+
+                                    new Tuple<FileChange, Action<FileChange, object, int>, int, int>(
+                                        toDelay, // file change to delay-process
                                         ProcessFileChange,// Callback which fires on process timer completion (on a new thread)
                                         ProcessingDelayInMilliseconds,// processing delay to wait for more events on this file
-                                        ProcessingDelayMaxResets)));// number of processing delay resets before it will process the file anyways
+                                        ProcessingDelayMaxResets)),
+                                this,
+                                toDelay));
                         }
                         else
                         {
+                            if (debugMemory)
+                            {
+                                memoryDebugger.Instance.AddSettingFileChangeTimer(toDelay, true, queuingQueued: false);
+                            }
+
                             // start delayed processing of file change
                             toDelay.ProcessAfterDelay(
                                 ProcessFileChange,// Callback which fires on process timer completion (on a new thread)
@@ -4931,12 +4993,7 @@ namespace Cloud.FileMonitor
                             }
 
                             // call method that starts the FileChange delayed-processing
-                            StartDelay(toChange, startProcessingAction);
-
-                            if (debugMemory)
-                            {
-                                memoryDebugger.Instance.AddSettingFileChangeTimer(toChange, true);
-                            }
+                            StartDelay(toChange, queueToStartProcessing);
                         }
                         // file change has not already started processing
                         else
@@ -4976,12 +5033,7 @@ namespace Cloud.FileMonitor
 
                                                 QueuedChanges[toChange.NewPath] = toChange; // the previous folder deletion change will now be removed from the queued changes queue, and nothing will stop it from continuing to process
 
-                                                StartDelay(toChange, startProcessingAction);
-
-                                                if (debugMemory)
-                                                {
-                                                    memoryDebugger.Instance.AddSettingFileChangeTimer(toChange, true);
-                                                }
+                                                StartDelay(toChange, queueToStartProcessing);
                                             }
                                             // else if the path does not represent a folder,
                                             // discard the deletion change for files which have been deleted and created again with the same metadata
@@ -5142,12 +5194,7 @@ namespace Cloud.FileMonitor
 
                                             QueuedChanges[toChange.NewPath] = toChange; // the previous file rename change will now be removed from the queued changes queue, and nothing will stop it from continuing to process
 
-                                            StartDelay(toChange, startProcessingAction);
-
-                                            if (debugMemory)
-                                            {
-                                                memoryDebugger.Instance.AddSettingFileChangeTimer(toChange, true);
-                                            }
+                                            StartDelay(toChange, queueToStartProcessing);
                                             break;
                                     }
                                     break;
@@ -5240,12 +5287,7 @@ namespace Cloud.FileMonitor
 
                                                     QueuedChanges.Add(toChange.NewPath, toChange);
 
-                                                    StartDelay(toChange, startProcessingAction);
-
-                                                    if (debugMemory)
-                                                    {
-                                                        memoryDebugger.Instance.AddSettingFileChangeTimer(toChange, true);
-                                                    }
+                                                    StartDelay(toChange, queueToStartProcessing);
                                                 }
                                             }
                                             break;
@@ -5314,12 +5356,7 @@ namespace Cloud.FileMonitor
 
                         if (matchedFileChangeForRename.PreviouslyModified)
                         {
-                            StartDelay(toChange, startProcessingAction);
-
-                            if (debugMemory)
-                            {
-                                memoryDebugger.Instance.AddSettingFileChangeTimer(toChange, true);
-                            }
+                            StartDelay(toChange, queueToStartProcessing);
 
                             QueuedChanges.Add(toChange.NewPath, toChange); // toChange is now the rename of the modified file to a new path
 
@@ -5392,12 +5429,7 @@ namespace Cloud.FileMonitor
                         // add file change to the queue
                         QueuedChanges.Add(toChange.NewPath, toChange);
 
-                        StartDelay(toChange, startProcessingAction);
-
-                        if (debugMemory)
-                        {
-                            memoryDebugger.Instance.AddSettingFileChangeTimer(toChange, true);
-                        }
+                        StartDelay(toChange, queueToStartProcessing);
 
                         if (toChange.Type == FileChangeType.Renamed)
                         {

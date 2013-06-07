@@ -202,8 +202,12 @@ namespace Cloud.FileMonitor {
         private bool addNewFieldSpecified;
         
         private bool finishedField;
-        
+
         private bool finishedFieldSpecified;
+
+        private bool queuingQueuedField;
+
+        private bool queuingQueuedFieldSpecified;
         
         /// <remarks/>
         public long InMemoryId {
@@ -294,6 +298,33 @@ namespace Cloud.FileMonitor {
             }
             set {
                 this.finishedFieldSpecified = value;
+            }
+        }
+
+        /// <remarks/>
+        public bool QueuingQueued
+        {
+            get
+            {
+                return this.queuingQueuedField;
+            }
+            set
+            {
+                this.queuingQueuedField = value;
+            }
+        }
+
+        /// <remarks/>
+        [System.Xml.Serialization.XmlIgnoreAttribute()]
+        public bool QueuingQueuedSpecified
+        {
+            get
+            {
+                return this.queuingQueuedFieldSpecified;
+            }
+            set
+            {
+                this.queuingQueuedFieldSpecified = value;
             }
         }
     }
