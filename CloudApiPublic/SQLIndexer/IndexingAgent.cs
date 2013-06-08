@@ -3551,16 +3551,25 @@ namespace Cloud.SQLIndexer
                         throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Existing event object had a FileChangeTypeEnumId which did not match to a known FileChangeType");
                 }
 
+                const string select_fromFSO = "9tJfCkvrYq0ET852fmJ3Eau4jUJSDCTwrQvidfmcaTgZUChtjqlLiiZTeaXS2JjrAtFiky0Gnej9VccuPAvGPAdO/PtdC/zpSqJxVqmL8ajWI5/oATIAwe5kbo7KEz8GdTHedURm4QEuT9DWsdRhIrEtZD7mLS85wmHUm7vHtvnGYtMZ7EBGjBpDeKHGyiteNDN6KYFV44vUxe3PzH93ho8f9DAY2yj78mW+hUmgpjtY0GeICikXT4EOo01WQBUR+GB+x7MBM99D1or6yKW6Ia1AjHwrGHndOYXKrBraLKqLUJblHOxIU71UYHVt8YBfopYSXp0Cs8ucHj8uBqjIwmSr9IYudf7o0TgUygdpjKmWHiId1ibo8JNvFQu8Oz9izT8RElY7kin0Kw9Vc/WOgjfh6g+v+sSr6UaZUn5oJ9O4GHFUG57qh2Gkp2dW+66TcKX4ekDiCWAfxKs7Ujbx2yTOMWbYnkA9n15371iwcog=";
+
                 if (!SqlAccessor<object>.TrySelectScalar<bool>(
                     castTransaction.sqlConnection,
-                    "SELECT EXISTS" +
-                    "(" +
-                        "SELECT NULL " +
-                        "FROM FileSystemObjects " +
-                        "WHERE FileSystemObjects.Name = ? " +
-                        "AND FileSystemObjects.ParentFolderId = ? " +
-                        "AND FileSystemObjects.Pending = 1" +
-                    ") AS EXIST",
+
+                    Helpers.DecryptString(select_fromFSO,indexDBPassword)
+
+                    //"SELECT EXISTS" +
+                    //"(" +
+                    //    "SELECT NULL " +
+                    //    "FROM FileSystemObjects " +
+                    //    "WHERE FileSystemObjects.Name = ? " +
+                    //    "AND FileSystemObjects.ParentFolderId = ? " +
+                    //    "AND FileSystemObjects.Pending = 1" +
+                    //") AS EXIST"
+                    ,
+
+
+
                     out foundOtherPendingAtCompletedPath,
                     castTransaction.sqlTransaction,
                     new[] { (object)existingEventObject.Name, ((long)existingEventObject.ParentFolderId) }))
@@ -3639,10 +3648,15 @@ namespace Cloud.SQLIndexer
                     using (ISQLiteConnection indexDB = CreateAndOpenCipherConnection())
                     {
                         using (ISQLiteCommand changeRoot = indexDB.CreateCommand())
-                        {
-                            changeRoot.CommandText = "UPDATE FileSystemObjects " +
-                                "SET Name = ? " + // <-- parameter 1
-                                "WHERE ParentFolderId IS NULL"; // condition for root folder object
+                        {       
+                            //"UPDATE FileSystemObjects " +
+                            //"SET Name = ? " + // <-- parameter 1
+                            //"WHERE ParentFolderId IS NULL"; // condition for root folder object
+                            const string root_change = "xMtLXELDZiXoMY2RpJZny+YKWsx0o5YE/E9tx7aOUfndegDh4qTEeqikr573Hp6LNBrdK0uw20fMI7ylvhui1yrg8847NBrDzbxVoZud3LaO0JMQfVl+sunRad2C0cao2BmqnyYYmw/jLHJQlnDs5nafC+k67Lm6Csnd+NCs/jVHOlzu1CktM7mQfaUsjVHP";
+                            changeRoot.CommandText = Helpers.DecryptString(root_change,indexDBPassword);
+                                
+                                
+                             
 
                             ISQLiteParameter newRootParam = changeRoot.CreateParameter();
                             newRootParam.Value = newSyncboxPath;
@@ -3970,12 +3984,19 @@ namespace Cloud.SQLIndexer
                                     }
                                 }
 
+                                        //"SELECT * " +
+                                        //"FROM FileSystemObjects " +
+                                        //"WHERE FileSystemObjects.ParentFolderId IS NULL " +
+                                        //"LIMIT 1"
+                                        
+                                const string FSO_root_object = "cXdTvwEKWrKmPKCf8z2lcJAZYJlY+/hU/SRXlajLZDWKtqz9MmQG+tdTKrnlKA+h07uPyguDl8rOem7KpdT9ppmsPcbQmtIRa0KS+dbVT4I4x5fkYnJrAAD8foEdOvKDnU1N1r2+tVVWPV4Ge8oAnEBzIFaUXlo8hDl3ecuY9iuknJwi7h19cLp+d1mGs63PYN37n6DK9pUNeSn0oAIaxdERH4Wom2EzI6HrP8iJlbbyK+mYF8JVEKXKgsz7w876";
+
                                 FileSystemObject rootObject = SqlAccessor<FileSystemObject>.SelectResultSet(
                                         verifyAndUpdateConnection,
-                                        "SELECT * " +
-                                        "FROM FileSystemObjects " +
-                                        "WHERE FileSystemObjects.ParentFolderId IS NULL " +
-                                        "LIMIT 1")
+   
+                                        Helpers.DecryptString(FSO_root_object,indexDBPassword)
+                                        
+                                        )
                                     .FirstOrDefault();
 
                                 if (rootObject == null)
@@ -4242,10 +4263,8 @@ namespace Cloud.SQLIndexer
 
                 Dictionary<long, string> objectIdsToFullPath = new Dictionary<long, string>();
                 SortedDictionary<KeyValuePair<bool, long>, FileSystemObject> sortedFileSystemObjects = new SortedDictionary<KeyValuePair<bool, long>, FileSystemObject>(pendingThenIdComparer.Instance);
-                long missingOrderAppend = 0;
-                const string sql_stuff = "Nhgg+1Mm4IAt3wrnnLK2pP+ppzKUf3QXWhzCj3bmr3ksOBtd8wbFE2Orm4perFa0tGmLFAAsUJhhdejOK/zgSoyEFGnzdybO/6D8nfNrEMEfra3c+npMXDRUKq7/GiM/q2TpBNtZ6O+/CmbZNZtbITGSpE68GpSIZvgWMAIu6S3DJ0wnnOL26g/9LQl4xlQRn3IUCBzoeclAw6bXs57YAPLgz5NyiE33rkZcyWLfzHnG9gvSshGbwQpDkInVHZLUDMifYd1dqSa37UkogfxeQkidqp6JV1tpdcVFXXhUmQOtS00mK6C1eTGrDcuIxMDxpp5RjMQL7XaiXnY3iTK/rr5F0EdqqaMhqhmcQ55tbVq5dIWkWp/Pnz31cgz0xtYe6KdVAp7nGy1dPyTz2bl5AFqDnANzosKrMwIhs/okkUBlcCttZ73idFJ1GeMDW736obimw4tuPjqQaL0x5BebdapJbQrBalHLt9/pon0xn7rtAv784JBQBOoVkOBDZc1uMIIfhwEbC5l+VcQ+aIdltFKHZJyKhnQKYb4gYJFIi2GuiFeeM1ZIPJMdIRiDcJIcnAMfVM9V9bcagcFT5WIZU5XuMjG1FMZjwZYtBtdqUUyUTjojD2NZjPNY2Sth7Bxtu6afFcX9bNO/ReHlGB+j4lkLSviIhuhMaFxc2HBeit13rqKrrW+mlW/OjTrgY+VesSFR9FqPrYVa5qNOHL+X3bbegYvuoaGTVwRB2CnVtDA2gAJnzA/h2N97Um51zAn01hpvX8YdXzXDmR+pPgIjjj0CU4ftMWf37vSTvmS+RVXGtGBeyUsQorww1q5tHcTN32uJ71l1m4NcO+GBX44snCa4qNBWwa/9djQvzZLqmqojoG2w6l1dtIDj5lRwKGKyK2nFlQZO7VWWk+28Oh4CeO1HegEI+1xS5htnECXbtFBabNQmWQPjeVlmqZ+KoniDXO+TDLLGXI/I9YySnNIgGMLTsJPON3IxBMs58w/W7UY/swazbdmcON4jnh5N5O8zs9+3aB29XgwFpAhK1wTIz4jM9BwWE1W8eaErRKzx8EY=";
-                foreach (FileSystemObject combinedPendingNonPending in SqlAccessor<FileSystemObject>.SelectResultSet(
-                    indexDB,
+                long missingOrderAppend = 0; 
+                   
                     //"SELECT " +
                     //    SqlAccessor<FileSystemObject>.GetSelectColumns() + ", " +
                     //    SqlAccessor<Event>.GetSelectColumns("Event") + ", " +
@@ -4263,6 +4282,11 @@ namespace Cloud.SQLIndexer
                     //    "  AND FileSystemObjects.Pending = 1" +
                     //    ")" +
                     //    " LEFT OUTER JOIN ServerUids ON Parents.ServerUidId = ServerUids.ServerUidId"
+
+                const string sql_stuff = "Nhgg+1Mm4IAt3wrnnLK2pP+ppzKUf3QXWhzCj3bmr3ksOBtd8wbFE2Orm4perFa0tGmLFAAsUJhhdejOK/zgSoyEFGnzdybO/6D8nfNrEMEfra3c+npMXDRUKq7/GiM/q2TpBNtZ6O+/CmbZNZtbITGSpE68GpSIZvgWMAIu6S3DJ0wnnOL26g/9LQl4xlQRn3IUCBzoeclAw6bXs57YAPLgz5NyiE33rkZcyWLfzHnG9gvSshGbwQpDkInVHZLUDMifYd1dqSa37UkogfxeQkidqp6JV1tpdcVFXXhUmQOtS00mK6C1eTGrDcuIxMDxpp5RjMQL7XaiXnY3iTK/rr5F0EdqqaMhqhmcQ55tbVq5dIWkWp/Pnz31cgz0xtYe6KdVAp7nGy1dPyTz2bl5AFqDnANzosKrMwIhs/okkUBlcCttZ73idFJ1GeMDW736obimw4tuPjqQaL0x5BebdapJbQrBalHLt9/pon0xn7rtAv784JBQBOoVkOBDZc1uMIIfhwEbC5l+VcQ+aIdltFKHZJyKhnQKYb4gYJFIi2GuiFeeM1ZIPJMdIRiDcJIcnAMfVM9V9bcagcFT5WIZU5XuMjG1FMZjwZYtBtdqUUyUTjojD2NZjPNY2Sth7Bxtu6afFcX9bNO/ReHlGB+j4lkLSviIhuhMaFxc2HBeit13rqKrrW+mlW/OjTrgY+VesSFR9FqPrYVa5qNOHL+X3bbegYvuoaGTVwRB2CnVtDA2gAJnzA/h2N97Um51zAn01hpvX8YdXzXDmR+pPgIjjj0CU4ftMWf37vSTvmS+RVXGtGBeyUsQorww1q5tHcTN32uJ71l1m4NcO+GBX44snCa4qNBWwa/9djQvzZLqmqojoG2w6l1dtIDj5lRwKGKyK2nFlQZO7VWWk+28Oh4CeO1HegEI+1xS5htnECXbtFBabNQmWQPjeVlmqZ+KoniDXO+TDLLGXI/I9YySnNIgGMLTsJPON3IxBMs58w/W7UY/swazbdmcON4jnh5N5O8zs9+3aB29XgwFpAhK1wTIz4jM9BwWE1W8eaErRKzx8EY=";
+                foreach (FileSystemObject combinedPendingNonPending in SqlAccessor<FileSystemObject>.SelectResultSet(
+                    indexDB,
+
                         
                         String.Format(Helpers.DecryptString(sql_stuff,indexDBPassword), SqlAccessor<FileSystemObject>.GetSelectColumns() ,SqlAccessor<Event>.GetSelectColumns("Event"),SqlAccessor<FileSystemObject>.GetSelectColumns("Parent", "Parents"), SqlAccessor<SqlServerUid>.GetSelectColumns("Parent.ServerUid") )                 
                         ,
