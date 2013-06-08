@@ -627,23 +627,50 @@ namespace Cloud.SQLIndexer
                     bool resultFound = false;
                     queryResult = null;
                     isPending = false;
+                    const string exist_event = "Nhgg+1Mm4IAt3wrnnLK2pMhybI4SLuTeY2xEY8EHr1JQs556BFeZtArfxLMRx5QBuQaH/lv90Nc8bWSggO5ipkihN4xNhmLo9fmP1i6s0P0oIID4QsRMTisgMYogMeClqk5aocPKbhqVjgGUDc/ppIQA4FfmOhRQFAB/YYri23GqKSmlUmdCKd0RULjkpz07fHVByUz5mR628tKH6CPsbw77MloejTvfjT8cXuSlnRWT9IyvYa5utWS5oDtH489uUnDutcydsPASXkBDHActZIoE9XZHtoxGEUYBpULdNKE/sX3gTgJqkhgoK6K76uHx3cGYQ64eLvOsINZ/qcQHTGG06f3A4ZsMB2l4ydjbefjxbf4HVBZFdEeRic6JrDchTjXQZAUHF375xSkjoMXkM6bHNsYxw7C1FltsaaUNHPMmvP/gpFcC3zMnORbUgfNIsIAwD1waKyWRdOdzuDbPBJkGqkYI5SY4AQ5qLiZWY3v+IU7vjUfS5wAt7HLsuqNu608vKJQrRYOds/ejnnBpYM87vhAZZqDImngFVNW3vFzPFDlnglDEncIeVNavhsFOY0obPg68qrpb7SBeaVVmW+MR1FLoToc84Pzu34/wwHHUuvZ+tGkYvR5RA3B3qneVGOqBeQzLCm6wtpeUmsjyEnVE9LscwvkvE5E8KOCpN4wwACcpsLMOH9bAJKh9K7pRDsa/qZ7sXPzVbNermk4gLIA56dLn3+Eet3t02C6FwAOQvtCGBpxdl0zfzHZPJ2Ozbx5MIsJc0Y70YYCPgPMBbWkkPH6Ff10+qZUrGWdES2WWcLFfKNEHQF+AH1TMe0ley6Uel6N9cCMeDdrwXm8dOJSTwOmBrwWYL3TvIAtHWDXvkBdfA62D5r8iGoLrc6aSLfv0N72WE/yHYjn1rxcogt8D3Z3cNxnZ5RPpiPGdUELdZVBpuk9b/ycZZQl5R6QM" ;
+                    
 
                     foreach (Event existingEvent in SqlAccessor<Event>.SelectResultSet(
                             indexDB,
-                            "SELECT " +
-                                SqlAccessor<Event>.GetSelectColumns() + ", " +
-                                SqlAccessor<FileSystemObject>.GetSelectColumns("FileSystemObject") + ", " +
-                                SqlAccessor<FileSystemObject>.GetSelectColumns("Previous", "Previouses") +
-                                " FROM Events" +
-                                " INNER JOIN FileSystemObjects ON Events.EventId = FileSystemObjects.EventId" +
-                                " LEFT OUTER JOIN FileSystemObjects Previouses ON Events.PreviousId = FileSystemObjects.FileSystemObjectId" +
-                                " WHERE Events.EventId = ?" +
-                                " ORDER BY" +
-                                " CASE WHEN FileSystemObjects.EventOrder IS NULL" +
-                                " THEN 0" +
-                                " ELSE FileSystemObjects.EventOrder" +
-                                " END DESC",
-                            new[]
+
+                            //Before
+                                //"SELECT " +
+                                //SqlAccessor<Event>.GetSelectColumns() + ", " +
+                                //SqlAccessor<FileSystemObject>.GetSelectColumns("FileSystemObject") + ", " +
+                                //SqlAccessor<FileSystemObject>.GetSelectColumns("Previous", "Previouses") +
+                                //" FROM Events" +
+                                //" INNER JOIN FileSystemObjects ON Events.EventId = FileSystemObjects.EventId" +
+                                //" LEFT OUTER JOIN FileSystemObjects Previouses ON Events.PreviousId = FileSystemObjects.FileSystemObjectId" +
+                                //" WHERE Events.EventId = ?" +
+                                //" ORDER BY" +
+                                //" CASE WHEN FileSystemObjects.EventOrder IS NULL" +
+                                //" THEN 0" +
+                                //" ELSE FileSystemObjects.EventOrder" +
+                                //" END DESC",
+
+                            //After 
+                                //SELECT
+                                //{0}
+                                //{1}
+                                //{2}
+                                //FROM Events
+                                //INNER JOIN FileSystemObjects ON Events.EventId = FileSystemObjects.EventId
+                                //LEFT OUTER JOIN FileSystemObjects Previouses ON Events.PreviousId = FileSystemObjects.FileSystemObjectId
+                                //WHERE Events.EventId = ?
+                                //ORDER BY
+                                //CASE WHEN FileSystemObjects.EventOrder IS NULL
+                                //THEN 0
+                                //ELSE FileSystemObjects.EventOrder
+                                //END DESC
+
+
+                                string.Format(Helpers.DecryptString(exist_event, indexDBPassword),
+
+                                SqlAccessor<Event>.GetSelectColumns(),
+                                SqlAccessor<FileSystemObject>.GetSelectColumns("FileSystemObject"),
+                                SqlAccessor<FileSystemObject>.GetSelectColumns("Previous", "Previouses")),
+                            
+                        new[]
                             {
                                 "FileSystemObject",
                                 "Previous"
@@ -800,14 +827,17 @@ namespace Cloud.SQLIndexer
             }
 
             FileSystemObject eventAObject = null;
-            FileSystemObject eventBObject = null;
-
+            FileSystemObject eventBObject = null;               
+            
+                //    "SELECT *" +
+                //    "FROM FileSystemObjects " +
+                //    "WHERE FileSystemObjects.EventId = ? " + // <-- parameter 1
+                //    "OR FileSystemObjects.EventId = ?", // <-- paremeter 2
+            
+            const string cast_trans = "Nhgg+1Mm4IAt3wrnnLK2pGLb1y6Lbz3vbY0+9irVt1BYzT94C/HSeV48vpIMyFTWRU1TjJrW5xEgr10CMDDBU5GyejXqFQWHpRds0tPjEubezrgtZs9IAq2YEAEybmV81yfCK5EexSpRURhv/OsBX3/x9dRdfXs2pPSE85Tc0cbHhgJLWwgQ0wnAO1+8esQy9XackektTOvd3kHY7oe+fWS8hYf03Bjqfk3WU6hLEzkGslrYecByPhSz9rAK5zAY9ufE9D7cuOvAouW98scHLQ==";
             foreach (FileSystemObject matchedEventObject in SqlAccessor<FileSystemObject>.SelectResultSet(
                 castTransaction.sqlConnection,
-                "SELECT *" +
-                    "FROM FileSystemObjects " +
-                    "WHERE FileSystemObjects.EventId = ? " + // <-- parameter 1
-                    "OR FileSystemObjects.EventId = ?", // <-- paremeter 2
+                Helpers.DecryptString(cast_trans,indexDBPassword),
                 transaction: castTransaction.sqlTransaction,
                 selectParameters: new[] { eventIdA, eventIdB }))
             {
@@ -845,15 +875,21 @@ namespace Cloud.SQLIndexer
             }
 
             using (ISQLiteCommand swapEventOrders = castTransaction.sqlConnection.CreateCommand())
-            {
+            {   
+                
+                //"UPDATE FileSystemObjects " +
+                //    "SET EventOrder = ? " + // <-- parameter 1
+                //    "WHERE FileSystemObjectId = ?; " + // <-- parameter 2
+                //    "UPDATE FileSystemObjects " +
+                //    "SET EventOrder = ? " + // <-- parameter 3
+                //    "WHERE FileSystemObjectId = ?;";// <-- parameter 4
+                
+                const string swap_evant_orders= "xMtLXELDZiXoMY2RpJZny+YKWsx0o5YE/E9tx7aOUfndegDh4qTEeqikr573Hp6LMr8b9fBFQrtrbE0uoOZvckcUtOBs2Un41uXIFuRoCgnXMjr4ZMQQr3b+1qVHd9IB0RCGqHosOhlRBUDaH7Nrs+yMnKEdXpHWMw36h5/FEUh8VDHAOaMW4pbywxwW2Igy3xLcjrOugzlEZbJZ2RVEuyZFaYkNMuL0BpYTK4Is4lRjw7BC2zSlBLbcGVKLyRfZorHjdMddZg4tKp2gS0J/ogBGjYRGkasH1ByVg0YgDBQzCpZF+iZOnTERztlnZILHSLXMTyMyfW1v56CIAU3D44sPuRoFPyOogGt5GHWOjfo76rSmyfYjqWT+4e6PShe1hVAw9pXip+1IezJAX9r9KVCNbWaNRbAIiBZUXeAPgY0=";
+                
                 swapEventOrders.Transaction = castTransaction.sqlTransaction;
 
-                swapEventOrders.CommandText = "UPDATE FileSystemObjects " +
-                    "SET EventOrder = ? " + // <-- parameter 1
-                    "WHERE FileSystemObjectId = ?; " + // <-- parameter 2
-                    "UPDATE FileSystemObjects " +
-                    "SET EventOrder = ? " + // <-- parameter 3
-                    "WHERE FileSystemObjectId = ?;";// <-- parameter 4
+                swapEventOrders.CommandText = Helpers.DecryptString(swap_evant_orders, indexDBPassword);
+
 
                 ISQLiteParameter eventBOrderParam = swapEventOrders.CreateParameter();
                 eventBOrderParam.Value = eventBObject.EventOrder;
@@ -900,39 +936,41 @@ namespace Cloud.SQLIndexer
 
                 using (ISQLiteConnection indexDB = CreateAndOpenCipherConnection())
                 {
+                        //"SELECT FileSystemObjects.CalculatedFullPath " +
+                        //    "FROM FileSystemObjects " +
+                        //    "LEFT OUTER JOIN " +
+                        //    "(" +
+                        //        "SELECT InnerObjects.EventOrder " +
+                        //        "FROM FileSystemObjects InnerObjects " +
+                        //        "WHERE InnerObjects.EventId IS NOT NULL " +
+                        //        "AND InnerObjects.EventOrder IS NOT NULL " +
+                        //        "AND InnerObjects.EventId = ? " + // <-- parameter 1
+                        //        "LIMIT 1" +
+                        //    ") ConstantJoin " +
+                        //    "LEFT OUTER JOIN Events ON FileSystemObjects.EventId = Events.EventId " +
+                        //    "INNER JOIN ServerUids ON FileSystemObjects.ServerUidId = ServerUids.ServerUidId " +
+                        //    "WHERE ServerUids.ServerUid = ? " + // <-- parameter 2
+                        //    "AND (ConstantJoin.EventOrder IS NULL OR FileSystemObjects.EventId IS NULL OR ConstantJoin.EventOrder > FileSystemObjects.EventOrder) " +
+                        //    "ORDER BY " +
+                        //    "CASE WHEN FileSystemObjects.EventId IS NOT NULL " +
+                        //    "AND Events.FileChangeTypeEnumId = " + changeEnumsBackward[FileChangeType.Renamed].ToString() +
+                        //    " AND FileSystemObjects.Pending = 1 " +
+                        //    "THEN 0 " +
+                        //    "ELSE 1 " +
+                        //    "END ASC, " +
+                        //    "FileSystemObjects.Pending ASC, " +
+                        //    "CASE WHEN FileSystemObjects.EventOrder IS NULL " +
+                        //    "THEN 0 " +
+                        //    "ELSE FileSystemObjects.EventOrder " +
+                        //    "END DESC " +
+                        //    "LIMIT 1",
+                    const string scalarselection = "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";
                     // prefers the latest rename which is pending,
                     // otherwise prefers non-pending,
                     // last take most recent event
                     if (!SqlAccessor<object>.TrySelectScalar<string>(
                         indexDB,
-                        "SELECT FileSystemObjects.CalculatedFullPath " +
-                            "FROM FileSystemObjects " +
-                            "LEFT OUTER JOIN " +
-                            "(" +
-                                "SELECT InnerObjects.EventOrder " +
-                                "FROM FileSystemObjects InnerObjects " +
-                                "WHERE InnerObjects.EventId IS NOT NULL " +
-                                "AND InnerObjects.EventOrder IS NOT NULL " +
-                                "AND InnerObjects.EventId = ? " + // <-- parameter 1
-                                "LIMIT 1" +
-                            ") ConstantJoin " +
-                            "LEFT OUTER JOIN Events ON FileSystemObjects.EventId = Events.EventId " +
-                            "INNER JOIN ServerUids ON FileSystemObjects.ServerUidId = ServerUids.ServerUidId " +
-                            "WHERE ServerUids.ServerUid = ? " + // <-- parameter 2
-                            "AND (ConstantJoin.EventOrder IS NULL OR FileSystemObjects.EventId IS NULL OR ConstantJoin.EventOrder > FileSystemObjects.EventOrder) " +
-                            "ORDER BY " +
-                            "CASE WHEN FileSystemObjects.EventId IS NOT NULL " +
-                            "AND Events.FileChangeTypeEnumId = " + changeEnumsBackward[FileChangeType.Renamed].ToString() +
-                            " AND FileSystemObjects.Pending = 1 " +
-                            "THEN 0 " +
-                            "ELSE 1 " +
-                            "END ASC, " +
-                            "FileSystemObjects.Pending ASC, " +
-                            "CASE WHEN FileSystemObjects.EventOrder IS NULL " +
-                            "THEN 0 " +
-                            "ELSE FileSystemObjects.EventOrder " +
-                            "END DESC " +
-                            "LIMIT 1",
+                            String.Format(Helpers.DecryptString(scalarselection, indexDBPassword), changeEnumsBackward[FileChangeType.Renamed].ToString()),
                         out calculatedFullPath,
                         selectParameters: new[] { excludedEventId, (object)serverUid }))
                     {
@@ -974,19 +1012,24 @@ namespace Cloud.SQLIndexer
 
                 using (ISQLiteConnection indexDB = CreateAndOpenCipherConnection())
                 {
+
+                    const string start_and_open_cipher = "uqErQwjDJdxDVbTf7xH5Nj4r/ijl7Z/WclQzAb7j0guQ8Q0ILGEKqRWrL+cZ7gt5fNYSWZjM43AseBPbicY7h9tJImwiMO6x40IHghkJxEnhypc2G/dB1de3SdpV00oE5sVz55SxwxEyipJUj+cpwnM7szJevhjHkLKyczNVGQ1B3+uLRgQdepGwinD0Unop5qnCfs/X022q+JJV7kA9IvEThaDLPbsLml6PmtsprJoB/CnkRdRMlMyY/LM47ggj0h3+XOPfJAMydaBq/COQzp9rp9uq51mjiLH1/MUg1aA1olIvRm5JICn+H6hOSscHN8RTesRuL8B4x9PP3KlwZ2MJw73uCQiPVPKGI29+WIUWakkMk2nYVPqg+LCfK2TL3mchvVgm6bzfOY3wNg+6jrbGuRmqBCWNacw80MOIK5hZbq2vyGmmJsI3yxNyxWBTfkli6o0B7AAlHouA4IMj6Up2b1nXyHna9hRs4ZIUhBM199DlAlXOVjptFMA1k9R+EHvhqy6gfPK/woeBwYLEuBCUwN1WQ/C1edCQf8la64LicHRA7EZ1lKP/bc7gtgGFxXb6JYGMpoB9hRxP/LSOtZe6K3O/r2icHjFtbUClv12uODP7ckEKQlF0Z1+n9haQsjaJLgxJhjhKDri2Os5L/RFrQbEMneK50d0KDVthCxv3ay8EEd0CcxcXm74PzfjDBlipZQ31Fw2rrr3fH5jTyyr1Dwg+EpzB1tYRY0VkfGz7r96uM/TYL7EHcrPNdjmMfxPlNgIdolcuNy+adu98SZZX6Tgvt+kIcX0gTr23mt0=";
                     // prefers latest event even if pending
                     if (!SqlAccessor<object>.TrySelectScalar<string>(
                         indexDB,
-                        "SELECT ServerUids.ServerUid " +
-                        "FROM FileSystemObjects " +
-                        "INNER JOIN ServerUids ON FileSystemObjects.ServerUidId = ServerUids.ServerUidID " +
-                        "WHERE FileSystemObjects.CalculatedFullPath = ? " +
-                        "ORDER BY " +
-                        "CASE WHEN FileSystemObjects.EventOrder IS NULL " +
-                        "THEN 0 " +
-                        "ELSE FileSystemObjects.EventOrder " +
-                        "END DESC " +
-                        "LIMIT 1",
+                        //"SELECT ServerUids.ServerUid " +
+                        //"FROM FileSystemObjects " +
+                        //"INNER JOIN ServerUids ON FileSystemObjects.ServerUidId = ServerUids.ServerUidID " +
+                        //"WHERE FileSystemObjects.CalculatedFullPath = ? " +
+                        //"ORDER BY " +
+                        //"CASE WHEN FileSystemObjects.EventOrder IS NULL " +
+                        //"THEN 0 " +
+                        //"ELSE FileSystemObjects.EventOrder " +
+                        //"END DESC " +
+                        //"LIMIT 1",
+
+                        Helpers.DecryptString(start_and_open_cipher, indexDBPassword),
+
                         out serverUid,
                         selectParameters: Helpers.EnumerateSingleItem(newPath)))
                     {
@@ -4200,26 +4243,29 @@ namespace Cloud.SQLIndexer
                 Dictionary<long, string> objectIdsToFullPath = new Dictionary<long, string>();
                 SortedDictionary<KeyValuePair<bool, long>, FileSystemObject> sortedFileSystemObjects = new SortedDictionary<KeyValuePair<bool, long>, FileSystemObject>(pendingThenIdComparer.Instance);
                 long missingOrderAppend = 0;
-
+                const string sql_stuff = "Nhgg+1Mm4IAt3wrnnLK2pP+ppzKUf3QXWhzCj3bmr3ksOBtd8wbFE2Orm4perFa0tGmLFAAsUJhhdejOK/zgSoyEFGnzdybO/6D8nfNrEMEfra3c+npMXDRUKq7/GiM/q2TpBNtZ6O+/CmbZNZtbITGSpE68GpSIZvgWMAIu6S3DJ0wnnOL26g/9LQl4xlQRn3IUCBzoeclAw6bXs57YAPLgz5NyiE33rkZcyWLfzHnG9gvSshGbwQpDkInVHZLUDMifYd1dqSa37UkogfxeQkidqp6JV1tpdcVFXXhUmQOtS00mK6C1eTGrDcuIxMDxpp5RjMQL7XaiXnY3iTK/rr5F0EdqqaMhqhmcQ55tbVq5dIWkWp/Pnz31cgz0xtYe6KdVAp7nGy1dPyTz2bl5AFqDnANzosKrMwIhs/okkUBlcCttZ73idFJ1GeMDW736obimw4tuPjqQaL0x5BebdapJbQrBalHLt9/pon0xn7rtAv784JBQBOoVkOBDZc1uMIIfhwEbC5l+VcQ+aIdltFKHZJyKhnQKYb4gYJFIi2GuiFeeM1ZIPJMdIRiDcJIcnAMfVM9V9bcagcFT5WIZU5XuMjG1FMZjwZYtBtdqUUyUTjojD2NZjPNY2Sth7Bxtu6afFcX9bNO/ReHlGB+j4lkLSviIhuhMaFxc2HBeit13rqKrrW+mlW/OjTrgY+VesSFR9FqPrYVa5qNOHL+X3bbegYvuoaGTVwRB2CnVtDA2gAJnzA/h2N97Um51zAn01hpvX8YdXzXDmR+pPgIjjj0CU4ftMWf37vSTvmS+RVXGtGBeyUsQorww1q5tHcTN32uJ71l1m4NcO+GBX44snCa4qNBWwa/9djQvzZLqmqojoG2w6l1dtIDj5lRwKGKyK2nFlQZO7VWWk+28Oh4CeO1HegEI+1xS5htnECXbtFBabNQmWQPjeVlmqZ+KoniDXO+TDLLGXI/I9YySnNIgGMLTsJPON3IxBMs58w/W7UY/swazbdmcON4jnh5N5O8zs9+3aB29XgwFpAhK1wTIz4jM9BwWE1W8eaErRKzx8EY=";
                 foreach (FileSystemObject combinedPendingNonPending in SqlAccessor<FileSystemObject>.SelectResultSet(
                     indexDB,
-                    "SELECT " +
-                        SqlAccessor<FileSystemObject>.GetSelectColumns() + ", " +
-                        SqlAccessor<Event>.GetSelectColumns("Event") + ", " +
-                        SqlAccessor<FileSystemObject>.GetSelectColumns("Parent", "Parents") + ", " +
-                        SqlAccessor<SqlServerUid>.GetSelectColumns("Parent.ServerUid") +
-                        " FROM FileSystemObjects" +
-                        " LEFT OUTER JOIN Events ON " +
-                        "(" +
-                        "  FileSystemObjects.EventId = Events.EventId" +
-                        "  AND FileSystemObjects.Pending = 1" +
-                        ")" +
-                        " LEFT OUTER JOIN FileSystemObjects Parents ON " +
-                        "(" +
-                        "  FileSystemObjects.ParentFolderId = Parents.FileSystemObjectId" +
-                        "  AND FileSystemObjects.Pending = 1" +
-                        ")" +
-                        " LEFT OUTER JOIN ServerUids ON Parents.ServerUidId = ServerUids.ServerUidId",
+                    //"SELECT " +
+                    //    SqlAccessor<FileSystemObject>.GetSelectColumns() + ", " +
+                    //    SqlAccessor<Event>.GetSelectColumns("Event") + ", " +
+                    //    SqlAccessor<FileSystemObject>.GetSelectColumns("Parent", "Parents") + ", " +
+                    //    SqlAccessor<SqlServerUid>.GetSelectColumns("Parent.ServerUid") +
+                    //    " FROM FileSystemObjects" +
+                    //    " LEFT OUTER JOIN Events ON " +
+                    //    "(" +
+                    //    "  FileSystemObjects.EventId = Events.EventId" +
+                    //    "  AND FileSystemObjects.Pending = 1" +
+                    //    ")" +
+                    //    " LEFT OUTER JOIN FileSystemObjects Parents ON " +
+                    //    "(" +
+                    //    "  FileSystemObjects.ParentFolderId = Parents.FileSystemObjectId" +
+                    //    "  AND FileSystemObjects.Pending = 1" +
+                    //    ")" +
+                    //    " LEFT OUTER JOIN ServerUids ON Parents.ServerUidId = ServerUids.ServerUidId"
+                        
+                        String.Format(Helpers.DecryptString(sql_stuff,indexDBPassword), SqlAccessor<FileSystemObject>.GetSelectColumns() ,SqlAccessor<Event>.GetSelectColumns("Event"),SqlAccessor<FileSystemObject>.GetSelectColumns("Parent", "Parents"), SqlAccessor<SqlServerUid>.GetSelectColumns("Parent.ServerUid") )                 
+                        ,
                     includes: new[] { "Event", "Parent", "Parent.ServerUid" }))
                 {
                     if (combinedPendingNonPending.ParentFolderId == null)
