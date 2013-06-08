@@ -4267,7 +4267,6 @@ namespace Cloud.Static
                                 }
                             }
 
-                            //&&&&RKS Review this.
                             // The downloadParams.AfterDownloadState may be type IAfterDownCallbackState (live sync download), or type GenericHolder<string> (On Demand download). Process accordingly.
                             bool shouldSetFileAttributes = false;
                             IAfterDownloadCallbackState castDownloadStateLiveSync = ((downloadParams)uploadDownload).AfterDownloadUserState as IAfterDownloadCallbackState;

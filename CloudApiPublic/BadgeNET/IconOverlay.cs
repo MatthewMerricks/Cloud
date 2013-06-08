@@ -300,14 +300,21 @@ namespace Cloud.BadgeNET
                     for (int initialListCounter = 0; initialListCounter < initialListArray.Length; initialListCounter++)
                     {
                         // only keep track of badges that are not "synced"
-                        if (initialListArray[initialListCounter].Value.Value != cloudAppIconBadgeType.cloudAppBadgeSynced)
-                        {
-                            // populate each initial badged object into local dictionary
-                            // throws exception if file path (Key) is null or empty
-                            // do not need to lock on allBadges since listening threads don't start until after this
-                            _trace.writeToLog(9, Resources.IconOverlayAddBadgeForPath0Value1, initialListArray[initialListCounter].Key.ToString(), initialListArray[initialListCounter].Value.Value.ToString());
-                            allBadges[initialListArray[initialListCounter].Key] = initialListArray[initialListCounter].Value;
-                        }
+                        ////&&&& RKS Keep track of all badges in allBadges.
+                        //if (initialListArray[initialListCounter].Value.Value != cloudAppIconBadgeType.cloudAppBadgeSynced)
+                        //{
+                        //    // populate each initial badged object into local dictionary
+                        //    // throws exception if file path (Key) is null or empty
+                        //    // do not need to lock on allBadges since listening threads don't start until after this
+                        //    _trace.writeToLog(9, Resources.IconOverlayAddBadgeForPath0Value1, initialListArray[initialListCounter].Key.ToString(), initialListArray[initialListCounter].Value.Value.ToString());
+                        //    allBadges[initialListArray[initialListCounter].Key] = initialListArray[initialListCounter].Value;
+                        //}
+
+                        // populate each initial badged object into local dictionary
+                        // throws exception if file path (Key) is null or empty
+                        // do not need to lock on allBadges since listening threads don't start until after this
+                        _trace.writeToLog(9, Resources.IconOverlayAddBadgeForPath0Value1, initialListArray[initialListCounter].Key.ToString(), initialListArray[initialListCounter].Value.Value.ToString());
+                        allBadges[initialListArray[initialListCounter].Key] = initialListArray[initialListCounter].Value;
                     }
                 }
             }
@@ -693,13 +700,19 @@ namespace Cloud.BadgeNET
                         {
                             // only keep track of badges that are not "synced"
                             _trace.writeToLog(9, Resources.IconOverlayInitializeOrReplaceCurrentReplaceItemPath0Type1, currentReplacedItem.Key.ToString(), currentReplacedItem.Value.Value.ToString());
-                            if (currentReplacedItem.Value.Value != cloudAppIconBadgeType.cloudAppBadgeSynced)
-                            {
-                                // populate each replaced badged object into local dictionary
-                                // throws exception if file path (Key) is null or empty
-                                _trace.writeToLog(9, Resources.IconOverlayInitializeOrReplaceAddThisItemToDictionary);
-                                allBadges.Add(currentReplacedItem.Key, currentReplacedItem.Value);
-                            }
+                            ////&&&& RKS Keep track of all badges in allBadges
+                            //if (currentReplacedItem.Value.Value != cloudAppIconBadgeType.cloudAppBadgeSynced)
+                            //{
+                            //    // populate each replaced badged object into local dictionary
+                            //    // throws exception if file path (Key) is null or empty
+                            //    _trace.writeToLog(9, Resources.IconOverlayInitializeOrReplaceAddThisItemToDictionary);
+                            //    allBadges.Add(currentReplacedItem.Key, currentReplacedItem.Value);
+                            //}
+
+                            // populate each replaced badged object into local dictionary
+                            // throws exception if file path (Key) is null or empty
+                            _trace.writeToLog(9, Resources.IconOverlayInitializeOrReplaceAddThisItemToDictionary);
+                            allBadges.Add(currentReplacedItem.Key, currentReplacedItem.Value);
                         }
                     }
                 }
@@ -1282,7 +1295,9 @@ namespace Cloud.BadgeNET
                     if (newType.Value == cloudAppIconBadgeType.cloudAppBadgeSynced)
                     {
                         _trace.writeToMemory(() => _trace.trcFmtStr(1, Resources.IconOverlaySetBadgeTypeNewTypeIsSynced));
-                        allBadges[filePath] = null;
+                        //&&&& RKS Filling in allBadges
+                        //allBadges[filePath] = null;
+                        allBadges[filePath] = newType;
                     }
                     else
                     {
@@ -1651,6 +1666,7 @@ namespace Cloud.BadgeNET
                         }
                         else
                         {
+                            //&&&& RKS When keeping all of the badges in allBadges, this code probably isn't executed.
                             // This specific node wasn't found, so it is assumed to be synced, but we won't actually badge as synced.
                             // Instead, we will search the children and determine a badge state from the children.
                             // 
@@ -2166,19 +2182,8 @@ namespace Cloud.BadgeNET
                                         thisOverlay._trace.writeToMemory(() => thisOverlay._trace.trcFmtStr(1, Resources.IconOverlayProcessRenamedDirToCallRenameBadgePath));
                                         thisOverlay.RenameBadgePath(mergedEvent.OldPath, mergedEvent.NewPath);
 
-                                        //&&&& does this work?
-                                        //bool notUsed;
-                                        //thisOverlay.DeleteBadgePath(mergedEvent.OldPath, out notUsed, true);
-
-                                        //&&&& does this work?
-                                        //thisOverlay.SendRemoveBadgePathEvent(mergedEvent.OldPath);
-
                                         thisOverlay._trace.writeToMemory(() => thisOverlay._trace.trcFmtStr(1, Resources.IconOverlayProcessRenamedDirTosetBadgeSyncingAtOldPath));
                                         setBadge(cloudAppIconBadgeType.cloudAppBadgeSyncing, mergedEvent.NewPath);
-
-                                        //&&&& Does this work?
-                                        //thisOverlay.SendAddBadgePathEvent(mergedEvent.NewPath, new GenericHolder<cloudAppIconBadgeType>(cloudAppIconBadgeType.cloudAppBadgeSyncing));
-
                                         break;
                                     default:
                                         throw new NotSupportedException(Resources.IconOverlayUnknownMergedEventDirection + mergedEvent.Direction.ToString());
