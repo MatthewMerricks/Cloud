@@ -708,7 +708,6 @@ namespace Cloud.BadgeNET
                             //    _trace.writeToLog(9, Resources.IconOverlayInitializeOrReplaceAddThisItemToDictionary);
                             //    allBadges.Add(currentReplacedItem.Key, currentReplacedItem.Value);
                             //}
-
                             // populate each replaced badged object into local dictionary
                             // throws exception if file path (Key) is null or empty
                             _trace.writeToLog(9, Resources.IconOverlayInitializeOrReplaceAddThisItemToDictionary);
@@ -1658,7 +1657,9 @@ namespace Cloud.BadgeNET
                         _trace.writeToMemory(() => _trace.trcFmtStr(1, Resources.IconOverlayShouldIconBeBadgedContainsCloudRoot));
                         GenericHolder<cloudAppIconBadgeType> tempBadgeType;
                         bool success = allBadges.TryGetValue(objFilePath, out tempBadgeType);
-                        if (success)
+                        //&&&& RKS: Handle the success case in the else condition.
+                        //if (success)
+                        if (success && tempBadgeType.Value != cloudAppIconBadgeType.cloudAppBadgeSynced)
                         {
                             bool rc = (tempBadgeType.Value == objBadgeType.Value);
                             _trace.writeToMemory(() => _trace.trcFmtStr(1, Resources.IconOverlayShouldIconBeBadgedGotValueFromAllBadgesReturn0, rc));
@@ -2179,11 +2180,12 @@ namespace Cloud.BadgeNET
                                         setBadge(cloudAppIconBadgeType.cloudAppBadgeSyncing, mergedEvent.OldPath);
                                         break;
                                     case SyncDirection.To:
-                                        thisOverlay._trace.writeToMemory(() => thisOverlay._trace.trcFmtStr(1, Resources.IconOverlayProcessRenamedDirToCallRenameBadgePath));
-                                        thisOverlay.RenameBadgePath(mergedEvent.OldPath, mergedEvent.NewPath);
 
                                         thisOverlay._trace.writeToMemory(() => thisOverlay._trace.trcFmtStr(1, Resources.IconOverlayProcessRenamedDirTosetBadgeSyncingAtOldPath));
-                                        setBadge(cloudAppIconBadgeType.cloudAppBadgeSyncing, mergedEvent.NewPath);
+                                        setBadge(cloudAppIconBadgeType.cloudAppBadgeSyncing, mergedEvent.OldPath);
+                                        
+                                        thisOverlay._trace.writeToMemory(() => thisOverlay._trace.trcFmtStr(1, Resources.IconOverlayProcessRenamedDirToCallRenameBadgePath));
+                                        thisOverlay.RenameBadgePath(mergedEvent.OldPath, mergedEvent.NewPath);
                                         break;
                                     default:
                                         throw new NotSupportedException(Resources.IconOverlayUnknownMergedEventDirection + mergedEvent.Direction.ToString());
