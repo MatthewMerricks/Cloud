@@ -445,14 +445,16 @@ namespace Cloud.Support
                 int remainingCount;
                 lock (ProcessingQueue)
                 {
-                    if (ProcessingQueue.Count == 0)
+                    int startingQueueCount = ProcessingQueue.Count;
+
+                    if (startingQueueCount == 0)
                     {
                         IsProcessThreadRunning = false;
                         break;
                     }
 
                     toRun = ProcessingQueue.Dequeue();
-                    remainingCount = ProcessingQueue.Count;
+                    remainingCount = startingQueueCount - 1;
                 }
 
                 try

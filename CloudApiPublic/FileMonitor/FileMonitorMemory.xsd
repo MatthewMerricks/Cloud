@@ -115,6 +115,7 @@
           <xs:element name="IsFolder" type="xs:boolean" />
           <xs:element name="AddNew" type="xs:boolean" minOccurs="0" />
           <xs:element name="Finished" type="xs:boolean" minOccurs="0" />
+          <xs:element name="QueuingQueued" type="xs:boolean" minOccurs="0" />
         </xs:sequence>
       </xs:extension>
     </xs:complexContent>

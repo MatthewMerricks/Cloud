@@ -1845,12 +1845,27 @@ namespace Cloud
             object asyncCallbackUserState,
             CLFileItem folderItem)
         {
+            return BeginItemsForFolderItem(asyncCallback, asyncCallbackUserState, folderItem, includePending: false, includeDeleted: false);
+        }
+
+        // \cond
+
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+        public IAsyncResult BeginItemsForFolderItem(
+            AsyncCallback asyncCallback,
+            object asyncCallbackUserState,
+            CLFileItem folderItem,
+            bool includePending,
+            bool includeDeleted)
+        {
             CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.BeginItemsForFolderItem(asyncCallback, asyncCallbackUserState, folderItem);
+            return httpRestClient.BeginItemsForFolderItem(asyncCallback, asyncCallbackUserState, folderItem, includePending, includeDeleted);
         }
+
+        // \endcond
 
         /// <summary>
         /// Finishes quering the syncbox for the contents of a folder at the given folder item, if it has not already finished via its asynchronous result, and outputs the result,
@@ -1876,12 +1891,23 @@ namespace Cloud
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError ItemsForFolderItem(CLFileItem folderItem, out CLFileItem[] items)
         {
+            return ItemsForFolderItem(folderItem, out items, includePending: false, includeDeleted: false);
+        }
+
+        // \cond
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+        public CLError ItemsForFolderItem(CLFileItem folderItem,
+            out CLFileItem[] items,
+            bool includePending,
+            bool includeDeleted)
+        {
             CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.ItemsForFolderItem(folderItem, out items);
+            return httpRestClient.ItemsForFolderItem(folderItem, out items, includePending, includeDeleted);
         }
+        // \endcond
 
         #endregion  // end ItemsForFolderItem (Queries the syncbox for the contents of the folder item)
 

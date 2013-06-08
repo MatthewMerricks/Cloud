@@ -6315,7 +6315,9 @@ namespace Cloud.REST
         internal IAsyncResult BeginItemsForFolderItem(
             AsyncCallback asyncCallback,
             object asyncCallbackUserState,
-            CLFileItem folderItem)
+            CLFileItem folderItem,
+            bool includePending,
+            bool includeDeleted)
         {
             var asyncThread = DelegateAndDataHolderBase.Create(
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
@@ -6326,6 +6328,8 @@ namespace Cloud.REST
                         asyncCallback,
                         asyncCallbackUserState),
                     folderItem = folderItem,
+                    includePending = includePending,
+                    includeDeleted = includeDeleted
                 },
                 (Data, errorToAccumulate) =>
                 {
@@ -6338,7 +6342,9 @@ namespace Cloud.REST
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
                         CLError processError = ItemsForFolderItem(
                             Data.folderItem,
-                            out response);
+                            out response,
+                            Data.includePending,
+                            Data.includeDeleted);
 
                         Data.toReturn.Complete(
                             new SyncboxItemsForFolderItemResult(
@@ -6382,7 +6388,9 @@ namespace Cloud.REST
         /// <returns>Returns any error that occurred during communication, if any</returns>
         internal CLError ItemsForFolderItem(
             CLFileItem folderItem,
-            out CLFileItem[] items)
+            out CLFileItem[] items,
+            bool includePending,
+            bool includeDeleted)
         {
             // try/catch to process the folder contents query, on catch return the error
             try
@@ -6423,13 +6431,13 @@ namespace Cloud.REST
                             ? new KeyValuePair<string, string>()
                             : new KeyValuePair<string, string>(CLDefinitions.CLMetadataServerId, Uri.EscapeDataString(folderItem.Uid)),
 
-                        new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeDeleted, "false"), // query string parameter for not including deleted objects
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeDeleted, includeDeleted.ToString()), // query string parameter for not including deleted objects
 
                         new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeCount, "true"), // query string parameter for including counts within each folder
 
                         new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeFolders, "true"), // query string parameter for including folders in the list
 
-                        new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeStoredOnly, "true") // query string parameter for including only stored items in the list
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeStoredOnly, (!includePending).ToString()) // query string parameter for including only stored items in the list
                     });
 
                 // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
