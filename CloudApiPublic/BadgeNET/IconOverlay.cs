@@ -935,6 +935,9 @@ namespace Cloud.BadgeNET
 
                     // Actually delete the badge on all of the badgecom instances.
                     SendRemoveBadgePathEvent(toDelete);
+ 
+                    // Remove the badge from the curerent badges list.
+                    _currentBadges.Remove(toDelete);
 
                     // Trace the badging dictionaries
                     TraceBadgingDictionaries(Resources.IconOverlayDeleteBadgePathAfter + toDelete);
