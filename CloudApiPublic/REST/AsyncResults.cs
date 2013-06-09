@@ -317,6 +317,43 @@ namespace Cloud.REST
     /// <summary>
     /// Holds result properties
     /// </summary>
+    public sealed class ListStoragePlanResult
+    {
+        /// <summary>
+        /// The result returned from the server
+        /// </summary>
+        public CLStoragePlan StoragePlan
+        {
+            get
+            {
+                return _storagePlan;
+            }
+        }
+        private readonly CLStoragePlan _storagePlan;
+
+        /// <summary>
+        /// Any error which may have occurred during communication
+        /// </summary>
+        public CLError Error
+        {
+            get
+            {
+                return _error;
+            }
+        }
+        private readonly CLError _error;
+
+        // construct with all readonly properties
+        internal ListStoragePlanResult(CLError error, CLStoragePlan storagePlan)
+        {
+            this._error = Error;
+            this._storagePlan = storagePlan;
+        }
+    }
+
+    /// <summary>
+    /// Holds result properties
+    /// </summary>
     public sealed class CredentialsListSessionsResult
     {
         /// <summary>

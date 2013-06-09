@@ -2862,6 +2862,24 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to No storage plans were returned by the server.
+        /// </summary>
+        internal static string ExceptionOnDemandDefaultStoragePlanNoResponse {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandDefaultStoragePlanNoResponse", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Plans were returned by the server, but there was no default plan marked.
+        /// </summary>
+        internal static string ExceptionOnDemandDefaultStoragePlanNoResponse2 {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandDefaultStoragePlanNoResponse2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Error deleting syncbox: {0}.
         /// </summary>
         internal static string ExceptionOnDemandDeleteSyncboxErrorMsg0 {

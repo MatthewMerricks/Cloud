@@ -3055,4 +3055,10 @@
     <value>Folder changes cannot have a FileChangeType of Modified</value>
     <comment>FileChangeType and Modified should not be translated</comment>
   </data>
+  <data name="ExceptionOnDemandDefaultStoragePlanNoResponse" xml:space="preserve">
+    <value>No storage plans were returned by the server</value>
+  </data>
+  <data name="ExceptionOnDemandDefaultStoragePlanNoResponse2" xml:space="preserve">
+    <value>Plans were returned by the server, but there was no default plan marked</value>
+  </data>
 </root>

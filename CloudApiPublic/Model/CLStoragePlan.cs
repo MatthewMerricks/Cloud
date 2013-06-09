@@ -153,15 +153,146 @@ namespace Cloud.Model
         #endregion  // end Constructors
 
         #region Public Factories
+        #region DefaultStoragePlanWithCredentials (returns the default plan for the credentials)
+
+        /// <summary>
+        /// Asynchronously starts retrieving the default storage plan for these credentials from the server.
+        /// </summary>
+        /// <param name="callback">Callback method to fire when the async operation completes.</param>
+        /// <param name="callbackUserState">User state to pass when firing the async callback above.</param>
+        /// <param name="credentials">The credentials to use with this request.</param>
+        /// <param name="settings">(optional) settings for optional tracing and specifying the client version to the server</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        public static IAsyncResult BeginDefaultStoragePlanWithCredentials(
+            AsyncCallback callback,
+            object callbackUserState,
+            CLCredentials credentials,
+            ICLCredentialsSettings settings = null)
+        {
+            Helpers.CheckHalted();
+
+            var asyncThread = DelegateAndDataHolderBase.Create(
+                // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
+                new
+                {
+                    // create the asynchronous result to return
+                    toReturn = new GenericAsyncResult<ListStoragePlanResult>(
+                        callback,
+                        callbackUserState),
+                    credentials = credentials,
+                    settings = settings
+                },
+                (Data, errorToAccumulate) =>
+                {
+                    // The ThreadProc.
+                    // try/catch to process with the input parameters, on catch set the exception in the asyncronous result
+                    try
+                    {
+                        // declare the specific type of result for this operation
+                        CLStoragePlan plan;
+                        // alloc and init the syncbox with the passed parameters, storing any error that occurs
+                        CLError processError = DefaultStoragePlanWithCredentials(
+                            Data.credentials,
+                            out plan,
+                            Data.settings);
+
+                        Data.toReturn.Complete(
+                            new ListStoragePlanResult(
+                                processError, // any error that may have occurred during processing
+                                plan), // the specific type of result for this operation
+                            sCompleted: false); // processing did not complete synchronously
+                    }
+                    catch (Exception ex)
+                    {
+                        Data.toReturn.HandleException(
+                            ex, // the exception which was not handled correctly by the CLError wrapping
+                            sCompleted: false); // processing did not complete synchronously
+                    }
+                },
+                null);
+
+            // create the thread from a void (object) parameterized start which wraps the synchronous method call
+            (new Thread(new ThreadStart(asyncThread.VoidProcess))).Start(); // start the asynchronous processing thread which is attached to its data
+
+            // return the asynchronous result
+            return asyncThread.TypedData.toReturn;
+        }
+
+        /// <summary>
+        /// Finishes retrieving the default storage plan for these credentials from the server, if it has not already finished via its asynchronous result and outputs the result,
+        /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
+        /// </summary>
+        /// <param name="aResult">The asynchronous result provided upon starting the async operation.</param>
+        /// <param name="result">(output) The result from the async operation.</param>
+        /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
+        public static CLError EndListStoragePlansWithCredentials(IAsyncResult aResult, out ListStoragePlanResult result)
+        {
+            Helpers.CheckHalted();
+
+            return Helpers.EndAsyncOperation<ListStoragePlanResult>(aResult, out result);
+        }
+
+        /// <summary>
+        /// Gets the default storage plan for these credentials from the server.
+        /// </summary>
+        /// <param name="credentials">The credentials to use with this request.</param>
+        /// <param name="plan">(output) The ouput default storage plan for these credentials.</param>
+        /// <param name="settings">(optional) settings for optional tracing and specifying the client version to the server</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        public static CLError DefaultStoragePlanWithCredentials(CLCredentials credentials, out CLStoragePlan plan, ICLCredentialsSettings settings = null)
+        {
+            // try/catch to process the query, on catch return the error
+            try
+            {
+                CLStoragePlan[] plans;
+                CLError errorFromListStoragePlans = ListStoragePlansWithCredentials(credentials, out plans, settings);
+                if (errorFromListStoragePlans != null)
+                {
+                    plan = Helpers.DefaultForType<CLStoragePlan>();
+                    return errorFromListStoragePlans;
+                }
+                else
+                {
+                    if (plans == null || plans.Length < 1)
+                    {
+                        throw new CLNullReferenceException(CLExceptionCode.OnDemand_NoServerResponse, Resources.ExceptionOnDemandDefaultStoragePlanNoResponse);
+                    }
+
+                    plan = Helpers.DefaultForType<CLStoragePlan>();
+                    for (int index = 0; index < plans.Length; index++)
+                    {
+                        if (plans[index].IsDefaultPlan)
+                        {
+                            plan = plans[index];
+                            break;
+                        }
+                    }
+
+                    if (plan == Helpers.DefaultForType<CLStoragePlan>())
+                    {
+                        throw new CLNullReferenceException(CLExceptionCode.OnDemand_NoServerResponse, Resources.ExceptionOnDemandDefaultStoragePlanNoResponse2);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                plan = Helpers.DefaultForType<CLStoragePlan>();
+                return ex;
+            }
+            return null;
+        }
+
+        #endregion  // end DefaultStoragePlanWithCredentials (returns the default plan for the credentials)
+
         #region List (lists the cloud storage plans for this application)
 
         /// <summary>
         /// Asynchronously starts listing the plans on the server for the current application
         /// </summary>
-        /// <param name="callback">Callback method to fire when operation completes</param>
-        /// <param name="callbackUserState">User state to pass when firing async callback</param>
+        /// <param name="callback">Callback method to fire when the async operation completes.</param>
+        /// <param name="callbackUserState">User state to pass when firing the async callback above.</param>
         /// <param name="credentials">The credentials to use with this request.</param>
-        /// <param name="settings">(optional) settings to use with this request</param>
+        /// <param name="settings">(optional) settings for optional tracing and specifying the client version to the server</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public static IAsyncResult BeginListStoragePlansWithCredentials(
             AsyncCallback callback, 
@@ -219,11 +350,11 @@ namespace Cloud.Model
         }
 
         /// <summary>
-        /// Finishes listing plans on the server for the current application if it has not already finished via its asynchronous result and outputs the result,
+        /// Finishes listing plans on the server for these credentials, if it has not already finished via its asynchronous result and outputs the result,
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
         /// </summary>
-        /// <param name="aResult">The asynchronous result provided upon starting listing the plans</param>
-        /// <param name="result">(output) The result from listing the plans</param>
+        /// <param name="aResult">The asynchronous result provided upon starting the async operation.</param>
+        /// <param name="result">(output) The result from the async operation.</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public static CLError EndListStoragePlansWithCredentials(IAsyncResult aResult, out ListStoragePlansResult result)
         {
@@ -235,12 +366,10 @@ namespace Cloud.Model
         /// <summary>
         /// Lists the plans on the server for the current application
         /// </summary>
-        /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
-        /// <param name="response">(output) An array of storage plans from the cloud.</param>
         /// <param name="credentials">The credentials to use with this request.</param>
+        /// <param name="response">(output) The output array of storage plans from the server.</param>
         /// <param name="settings">(optional) settings for optional tracing and specifying the client version to the server</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        /// <remarks>The output response array may be null, empty, or may contain null items.</remarks>
         public static CLError ListStoragePlansWithCredentials(CLCredentials credentials, out CLStoragePlan[] response, ICLCredentialsSettings settings = null)
         {
             Helpers.CheckHalted();
@@ -291,7 +420,7 @@ namespace Cloud.Model
                         }
                         else
                         {
-                            listPlans.Add(null);
+                            throw new NullReferenceException(Resources.ExceptionCLHttpRestWithoutPlans);
                         }
                     }
                     response = listPlans.ToArray();
