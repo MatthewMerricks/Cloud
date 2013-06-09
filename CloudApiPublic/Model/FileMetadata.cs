@@ -151,7 +151,7 @@ namespace Cloud.Model
             this.IsShare = false;
             this.MimeType = item.MimeType;
             this.ParentFolderServerUid = item.ParentUid;
-            this.Permissions = item.Permissions;
+            this.Permissions = null;
             this._serverUidId = 0;  // On Demand only.  Not used currently in the index.
             this.StorageKey = item.StorageKey;
             this.Version = null;

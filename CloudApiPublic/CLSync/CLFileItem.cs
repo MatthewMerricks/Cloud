@@ -81,6 +81,15 @@ namespace Cloud.CLSync
         }
         private readonly string _revision;
 
+        public string Hash
+        {
+            get
+            {
+                return _hash;
+            }
+        }
+        private readonly string _hash;
+
         public Nullable<long> Size
         {
             get
@@ -117,7 +126,7 @@ namespace Cloud.CLSync
         }
         private readonly DateTime _modifiedDate;
 
-        public string Uid
+        public string ItemUid
         {
             get
             {
@@ -161,15 +170,6 @@ namespace Cloud.CLSync
             }
         }
         private readonly bool _isPending;
-
-        public Nullable<POSIXPermissions> Permissions
-        {
-            get
-            {
-                return _permissions;
-            }
-        }
-        private readonly Nullable<POSIXPermissions> _permissions;
 
         public CLSyncbox Syncbox
         {
@@ -215,6 +215,7 @@ namespace Cloud.CLSync
         //    string name,
         //    string relativePath,
         //    string revision,
+        //    string hash,
         //    Nullable<long> size,
         //    string mimeType,
         //    DateTime createdDate,
@@ -223,8 +224,7 @@ namespace Cloud.CLSync
         //    string parentUid,
         //    bool isFolder,
         //    bool isDeleted,
-        //    bool isPending,d
-        //    Nullable<POSIXPermissions> permissions,
+        //    bool isPending,
         //    CLSyncbox syncbox)
         //{
         //    if (syncbox == null)
@@ -240,6 +240,7 @@ namespace Cloud.CLSync
         //    this._relativePath = relativePath;
         //    this._fullPath = [calculate full path here]
         //    this._revision = revision;
+        //    this._hash = hash;
         //    this._size = size;
         //    this._mimeType = mimeType;
         //    this._createdDate = createdDate;
@@ -249,7 +250,6 @@ namespace Cloud.CLSync
         //    this._isFolder = isFolder;
         //    this._isDeleted = isDeleted;
         //    this._isPending = isPending;
-        //    this._permissions = permissions;
         //    this._syncbox = syncbox;
         //    //// in public SDK documents, but for now it's always zero, so don't expose it
         //    //this._childrenCount = 0;
@@ -321,6 +321,7 @@ namespace Cloud.CLSync
                     : (syncbox.Path + "\\" + this._relativePath)));
 
             this._revision = response.Revision;
+            this._hash = response.Hash;
             this._size = response.Size;
             this._mimeType = response.MimeType;
             this._createdDate = response.CreatedDate ?? new DateTime(FileConstants.InvalidUtcTimeTicks, DateTimeKind.Utc);
@@ -329,7 +330,6 @@ namespace Cloud.CLSync
             this._parentUid = response.ParentUid;
             this._isDeleted = response.IsDeleted ?? false;
             this._isPending = !(response.IsNotPending ?? true);
-            this._permissions = response.PermissionsEnum;
             this._syncbox = syncbox;
             this._storageKey = response.StorageKey;
             //// in public SDK documents, but for now it's always zero, so don't expose it
@@ -466,7 +466,7 @@ namespace Cloud.CLSync
             // Download the file.
             CLError errorFromDownloadFile = _httpRestClient.DownloadFile(
                 fcToDownload,
-                this.Uid,
+                this.ItemUid,
                 this.Revision,
                 moveFileUponCompletion: OnAfterDownloadToTempFile,
                 moveFileUponCompletionState: fullPathDownloadedTempFileHolder,

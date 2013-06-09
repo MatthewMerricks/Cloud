@@ -718,7 +718,7 @@ namespace Cloud.REST
                 object requestContent = new JsonContracts.ImageRequest()
                 {
                     SyncboxId = _syncbox.SyncboxId,
-                    ServerUid = fileItem.Uid,
+                    ServerUid = fileItem.ItemUid,
                     Revision = fileItem.Revision,
                     Generate = generate,
                 };
@@ -1197,7 +1197,7 @@ namespace Cloud.REST
                     jsonContractMoves[paramIdx] = new FileOrFolderMove()
                     {
                         ToName = currentParams.NewName,
-                        ServerUid = currentParams.ItemToRename.Uid,
+                        ServerUid = currentParams.ItemToRename.ItemUid,
                     };
                 }
 
@@ -1496,7 +1496,7 @@ namespace Cloud.REST
                     jsonContractMoves[paramIdx] = new FileOrFolderMove()
                     {
                         ToName = currentParams.NewName,
-                        ServerUid = currentParams.ItemToRename.Uid,
+                        ServerUid = currentParams.ItemToRename.ItemUid,
                     };
                 }
 
@@ -1794,8 +1794,8 @@ namespace Cloud.REST
                     // file move (rename) and folder move (rename) share a json contract object for move (rename)
                     jsonContractMoves[paramIdx] = new FileOrFolderMove()
                     {
-                        ToParentUid = currentParams.NewParentFolderItem.Uid,
-                        ServerUid = currentParams.ItemToMove.Uid,
+                        ToParentUid = currentParams.NewParentFolderItem.ItemUid,
+                        ServerUid = currentParams.ItemToMove.ItemUid,
                     };
                 }
 
@@ -2091,8 +2091,8 @@ namespace Cloud.REST
                     // file move (rename) and folder move (rename) share a json contract object for move (rename)
                     jsonContractMoves[paramIdx] = new FileOrFolderMove()
                     {
-                        ToParentUid = currentParams.NewParentFolderItem.Uid,
-                        ServerUid = currentParams.ItemToMove.Uid,
+                        ToParentUid = currentParams.NewParentFolderItem.ItemUid,
+                        ServerUid = currentParams.ItemToMove.ItemUid,
                     };
                 }
 
@@ -2376,7 +2376,7 @@ namespace Cloud.REST
                         throw new CLInvalidOperationException(CLExceptionCode.OnDemand_AlreadyDeleted, String.Format(Resources.ExceptionOnDemandItemWasPreviouslyDeletedMsg0, paramIdx));
                     }
 
-                    jsonContractDeletes[paramIdx] = currentFileItem.Uid;
+                    jsonContractDeletes[paramIdx] = currentFileItem.ItemUid;
                 }
 
                 if (!(_copiedSettings.HttpTimeoutMilliseconds > 0))
@@ -2654,7 +2654,7 @@ namespace Cloud.REST
                         throw new CLInvalidOperationException(CLExceptionCode.OnDemand_AlreadyDeleted, String.Format(Resources.ExceptionOnDemandItemWasPreviouslyDeletedMsg0, paramIdx));
                     }
 
-                    jsonContractDeletes[paramIdx] = currentFolderItem.Uid;
+                    jsonContractDeletes[paramIdx] = currentFolderItem.ItemUid;
                     //{
                         //DeviceId = _copiedSettings.DeviceId,
                         
@@ -2947,7 +2947,7 @@ namespace Cloud.REST
                         CreatedDate = currentFolderItem.CreatedDate,
                         RelativePath = null,
                         Name = (string.IsNullOrEmpty(currentFolderName) ? null : currentFolderName),
-                        ParentUid = (string.IsNullOrEmpty(currentFolderItem.Uid) ? null : currentFolderItem.Uid),
+                        ParentUid = (string.IsNullOrEmpty(currentFolderItem.ItemUid) ? null : currentFolderItem.ItemUid),
                     };
                 }
 
@@ -3329,7 +3329,7 @@ namespace Cloud.REST
                         {
                             throw new CLArgumentNullException(CLExceptionCode.OnDemand_FileAddBadPath, "file add bad path");
                         }
-                        if (string.IsNullOrEmpty(fullPathAndParentAndNewName.ParentFolder.Uid))
+                        if (string.IsNullOrEmpty(fullPathAndParentAndNewName.ParentFolder.ItemUid))
                         {
                             throw new CLArgumentNullException(CLExceptionCode.OnDemand_FileAddInvalidMetadata, "current file in filesToAdd is missing ServerUid");
                         }
@@ -3351,7 +3351,7 @@ namespace Cloud.REST
                                     lastTime: File.GetLastWriteTimeUtc(fullPathAndParentAndNewName.FullPath),
                                     creationTime: File.GetCreationTimeUtc(fullPathAndParentAndNewName.FullPath),
                                     size: null),
-                                ParentFolderServerUid = fullPathAndParentAndNewName.ParentFolder.Uid
+                                ParentFolderServerUid = fullPathAndParentAndNewName.ParentFolder.ItemUid
                             },
                             NewPath = fullPath,
                             Type = FileChangeType.Created
@@ -6427,9 +6427,9 @@ namespace Cloud.REST
                         new KeyValuePair<string, string>(CLDefinitions.QueryStringDepth, ((byte)0).ToString()), // query string parameter for optional depth limit
 
                         // Fill in the uid only if it is supplied.
-                        (folderItem == null || folderItem.Uid == null)
+                        (folderItem == null || folderItem.ItemUid == null)
                             ? new KeyValuePair<string, string>()
-                            : new KeyValuePair<string, string>(CLDefinitions.CLMetadataServerId, Uri.EscapeDataString(folderItem.Uid)),
+                            : new KeyValuePair<string, string>(CLDefinitions.CLMetadataServerId, Uri.EscapeDataString(folderItem.ItemUid)),
 
                         new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeDeleted, includeDeleted.ToString()), // query string parameter for not including deleted objects
 
@@ -6783,9 +6783,9 @@ namespace Cloud.REST
                         new KeyValuePair<string, string>(CLDefinitions.QueryStringDepth, ((byte)0).ToString()), // query string parameter for optional depth limit
 
                         // Fill in the uid only if it is supplied.
-                        (folderItem == null || folderItem.Uid == null)
+                        (folderItem == null || folderItem.ItemUid == null)
                             ? new KeyValuePair<string, string>()
-                            : new KeyValuePair<string, string>(CLDefinitions.CLMetadataServerId, Uri.EscapeDataString(folderItem.Uid)),
+                            : new KeyValuePair<string, string>(CLDefinitions.CLMetadataServerId, Uri.EscapeDataString(folderItem.ItemUid)),
 
                         new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeDeleted, "false"), // query string parameter for not including deleted objects
 
