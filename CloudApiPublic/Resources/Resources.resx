@@ -2297,10 +2297,6 @@
     <value>IconOverlay: setBadgeType. newType is {0}.</value>
     <comment>"IconOverlay", "setBadgeType", and "newType" should not be translated.</comment>
   </data>
-  <data name="IconOverlaySetBadgeTypeNewTypeIsSynced" xml:space="preserve">
-    <value>IconOverlay: setBadgeType. newType is synced.</value>
-    <comment>"IconOverlay", "setBadgeType", and "newType" should not be translated.</comment>
-  </data>
   <data name="IconOverlayShouldIconBeBadgedBreakToDeterminBadgeStatusFromChildrenOfNode" xml:space="preserve">
     <value>IconOverlay: ShouldIconBeBadged. Break to determine the badge status from the children of this node.</value>
     <comment>"IconOverlay" and "ShouldIconBeBadged" should not be translated.</comment>

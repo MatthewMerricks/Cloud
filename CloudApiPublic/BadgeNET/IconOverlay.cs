@@ -1292,20 +1292,21 @@ namespace Cloud.BadgeNET
 
                     }
 
-                    // newType is null means synced.  If the type is synced, newType will be null.  Set it whatever it is.
-                    //_trace.writeToLog(9, "IconOverlay: setBadgeType. Add this type to the dictionary.");
-                    if (newType.Value == cloudAppIconBadgeType.cloudAppBadgeSynced)
-                    {
-                        _trace.writeToMemory(() => _trace.trcFmtStr(1, Resources.IconOverlaySetBadgeTypeNewTypeIsSynced));
-                        //&&&& RKS Filling in allBadges
-                        //allBadges[filePath] = null;
-                        allBadges[filePath] = newType;
-                    }
-                    else
-                    {
-                        _trace.writeToMemory(() => _trace.trcFmtStr(1, Resources.IconOverlaySetBadgeTypeNewTypeIs0, newType.Value.ToString()));
-                        allBadges[filePath] = newType;
-                    }
+                    //&&&& RKS Filling in allBadges
+                    //// newType is null means synced.  If the type is synced, newType will be null.  Set it whatever it is.
+                    //if (newType.Value == cloudAppIconBadgeType.cloudAppBadgeSynced)
+                    //{
+                    //    _trace.writeToMemory(() => _trace.trcFmtStr(1, Resources.IconOverlaySetBadgeTypeNewTypeIsSynced));
+                    //    allBadges[filePath] = null;
+                    //}
+                    //else
+                    //{
+                    //    _trace.writeToMemory(() => _trace.trcFmtStr(1, Resources.IconOverlaySetBadgeTypeNewTypeIs0, newType.Value.ToString()));
+                    //    allBadges[filePath] = newType;
+                    //}
+
+                    _trace.writeToMemory(() => _trace.trcFmtStr(1, Resources.IconOverlaySetBadgeTypeNewTypeIs0, newType.Value.ToString()));
+                    allBadges[filePath] = newType;
 
                     // Update badges for anything changed up the tree
                     _trace.writeToMemory(() => _trace.trcFmtStr(1, Resources.IconOverlaySetBadgeTypeCallUpdateBadgeStateUpTreeStartingWithParentOfNode));
@@ -1670,7 +1671,6 @@ namespace Cloud.BadgeNET
                         }
                         else
                         {
-                            //&&&& RKS When keeping all of the badges in allBadges, this code probably isn't executed.
                             // This specific node wasn't found, so it is assumed to be synced, but we won't actually badge as synced.
                             // Instead, we will search the children and determine a badge state from the children.
                             // 
