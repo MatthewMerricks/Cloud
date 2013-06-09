@@ -24,7 +24,7 @@ namespace Cloud.Model
         /// <summary>
         /// The ID of this storage plan in the cloud.
         /// </summary>
-        public long Id { get; private set; }
+        public long PlanId { get; private set; }
 
         /// <summary>
         /// The name of this storage plan.
@@ -112,7 +112,7 @@ namespace Cloud.Model
                 throw new NullReferenceException("clientApplicationId must not be zero");
             }
 
-            Id = id;
+            PlanId = id;
             Name = name;
             Tier = tier;
             ClientApplicationId = clientApplicationId;
@@ -139,7 +139,7 @@ namespace Cloud.Model
             }
 
 
-            Id = (long)response.Id;
+            PlanId = (long)response.Id;
             Name = response.Name;
             Tier = response.Tier;
             ClientApplicationId = (long)response.ClientApplicationId;

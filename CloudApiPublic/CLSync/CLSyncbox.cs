@@ -1244,7 +1244,7 @@ namespace Cloud
                         FriendlyName = (string.IsNullOrWhiteSpace(friendlyName)
                             ? null
                             : friendlyName),
-                        PlanId = plan.Id
+                        PlanId = plan.PlanId
                     });
 
                 // Create the syncbox on the server and get the response object.

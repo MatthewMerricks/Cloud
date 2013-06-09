@@ -7291,7 +7291,7 @@ namespace Cloud.REST
                     new JsonContracts.SyncboxUpdateStoragePlanRequest() // json contract object for sync box update plan request
                     {
                         SyncboxId = _syncbox.SyncboxId,
-                        PlanId = storagePlan.Id
+                        PlanId = storagePlan.PlanId
                     },
                     CLDefinitions.CLPlatformAuthServerURL, // Platform server URL
                     serverMethodPath,   // method path

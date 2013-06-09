@@ -359,14 +359,14 @@ namespace Cloud.REST
         /// <summary>
         /// The result returned from the server
         /// </summary>
-        public CLCredentials[] Credentials
+        public CLCredentials[] ActiveSessionCredentials
         {
             get
             {
-                return _credentials;
+                return _activeSessionCredentials;
             }
         }
-        private readonly CLCredentials[] _credentials;
+        private readonly CLCredentials[] _activeSessionCredentials;
 
         /// <summary>
         /// Any error which may have occurred during communication
@@ -381,10 +381,10 @@ namespace Cloud.REST
         private readonly CLError _error;
 
         // construct with all readonly properties
-        internal CredentialsListSessionsResult(CLError error, CLCredentials[] credentials)
+        internal CredentialsListSessionsResult(CLError error, CLCredentials[] activeSessionCredentials)
         {
             this._error = error;
-            this._credentials = credentials;
+            this._activeSessionCredentials = activeSessionCredentials;
         }
     }
 
@@ -396,14 +396,14 @@ namespace Cloud.REST
         /// <summary>
         /// The result returned from the server
         /// </summary>
-        public CLCredentials Credentials
+        public CLCredentials SessionCredentials
         {
             get
             {
-                return _credentials;
+                return _sessionCredentials;
             }
         }
-        private readonly CLCredentials _credentials;
+        private readonly CLCredentials _sessionCredentials;
 
         /// <summary>
         /// Any error which may have occurred during communication
@@ -418,10 +418,10 @@ namespace Cloud.REST
         private readonly CLError _error;
 
         // construct with all readonly properties
-        internal CredentialsSessionCreateResult(CLError error, CLCredentials credentials)
+        internal CredentialsSessionCreateResult(CLError error, CLCredentials sessionCredentials)
         {
             this._error = error;
-            this._credentials = credentials;
+            this._sessionCredentials = sessionCredentials;
         }
     }
 
@@ -433,14 +433,14 @@ namespace Cloud.REST
         /// <summary>
         /// The result returned from the server
         /// </summary>
-        public CLCredentials Credentials
+        public CLCredentials SessionCredentials
         {
             get
             {
-                return _credentials;
+                return _sessionCredentials;
             }
         }
-        private readonly CLCredentials _credentials;
+        private readonly CLCredentials _sessionCredentials;
 
         /// <summary>
         /// Any error which may have occurred during communication
@@ -455,10 +455,10 @@ namespace Cloud.REST
         private readonly CLError _error;
 
         // construct with all readonly properties
-        internal CredentialsSessionGetForKeyResult(CLError error, CLCredentials credentials)
+        internal CredentialsSessionGetForKeyResult(CLError error, CLCredentials sessionCredentials)
         {
             this._error = error;
-            this._credentials = credentials;
+            this._sessionCredentials = sessionCredentials;
         }
     }
 
