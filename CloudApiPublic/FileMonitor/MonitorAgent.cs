@@ -1784,7 +1784,7 @@ namespace Cloud.FileMonitor
             CLError toReturn = null;
             try
             {
-                List<FileChange> removeFromSql = new List<FileChange>();
+                HashSet<FileChange> removeFromSql = new HashSet<FileChange>();
                 HashSet<FileChange> addOrModifyInSql = new HashSet<FileChange>();
                 List<KeyValuePair<FileChange, FileChange>> eventIdSwaps = new List<KeyValuePair<FileChange, FileChange>>();
 
@@ -1989,6 +1989,56 @@ namespace Cloud.FileMonitor
                         {
                             try
                             {
+                                // keeps track of which FileChanges were dependencies which were also found in removeFromSql under a Created which do not need to be removed from sql because the parent will be removed from sql
+                                HashSet<FileChange> removedFromRemovedFromSql = new HashSet<FileChange>();
+
+                                // loops through all the items marked for removal from sql
+                                foreach (FileChange currentRemovedFromSql in removeFromSql.ToArray())
+                                {
+                                    // if the current item to remove from sql was a created, then the items dependent on it will get removed from sql as well;
+                                    // if itself was not already going to be automatically removed from sql via removal of a parent then check if it has dependencies which will automatically get removed that don't need to be explicitly manually removed
+                                    if (currentRemovedFromSql.Type == FileChangeType.Created
+                                        && !removedFromRemovedFromSql.Contains(currentRemovedFromSql))
+                                    {
+                                        // create a linked list for traversal of all dependencies within a FileChange, processed in order of highest level to lowest level (pop first for highest level, add to end for current lowest level)
+                                        LinkedList<FileChange> dependenciesOfRemoveFromSql = new LinkedList<FileChange>(
+                                            ((currentRemovedFromSql is FileChangeWithDependencies) && ((FileChangeWithDependencies)currentRemovedFromSql).DependenciesCount > 0)
+
+                                                // case for item has dependencies to iterate, initial state is level 1 dependencies
+                                                ? ((FileChangeWithDependencies)currentRemovedFromSql).Dependencies
+
+                                                // case for item has no dependencies to iterate, while loop will immediately skip
+                                                : Enumerable.Empty<FileChange>());
+
+                                        // while there remains dependencies to iterate
+                                        while (dependenciesOfRemoveFromSql.Count > 0)
+                                        {
+                                            // take the current, highest-level remaining, dependency to process from the beginning of the list
+                                            FileChange currentDependencyToCheck = dependenciesOfRemoveFromSql.First.Value;
+                                            dependenciesOfRemoveFromSql.RemoveFirst();
+
+                                            // if the dependency was also in the list of FileChanges to remove from sql then it will get removed via removal of the parent change, so no need to remove it explicitly
+                                            if (removeFromSql.Contains(currentDependencyToCheck))
+                                            {
+                                                // prevent removal of change
+                                                removeFromSql.Remove(currentDependencyToCheck);
+                                                // prevent checking for removal of sub-changes from removal of changes since they will be checked here
+                                                removedFromRemovedFromSql.Add(currentDependencyToCheck);
+                                            }
+
+                                            // if current dependency has dependencies, add them to the list for iterative sub-processing
+                                            FileChangeWithDependencies castCurrentDependencyToCheck = currentDependencyToCheck as FileChangeWithDependencies;
+                                            if (castCurrentDependencyToCheck != null && castCurrentDependencyToCheck.DependenciesCount > 0)
+                                            {
+                                                foreach (FileChange currentInnerDependency in castCurrentDependencyToCheck.Dependencies)
+                                                {
+                                                    dependenciesOfRemoveFromSql.AddLast(currentInnerDependency);
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+
                                 CLError updateSQLError = Indexer.MergeEventsIntoDatabase(
                                     removeFromSql.Select(currentToRemove => new FileChangeMerge(null, currentToRemove)),
                                     sqlTran);
@@ -4219,7 +4269,7 @@ namespace Cloud.FileMonitor
                                             }
 
                                             // recurse once on this current function to process the previous path as a file system modified event
-                                            CheckMetadataAgainstFile(oldPath, null, WatcherChangeTypes.Changed, folderOnly: false, alreadyHoldingIndexLock: true, queueToStartProcessing: true);
+                                            CheckMetadataAgainstFile(oldPath, null, WatcherChangeTypes.Changed, folderOnly: false, alreadyHoldingIndexLock: true, queueToStartProcessing: queueToStartProcessing);
                                         }
                                         // if no file nor folder exists at the previous path and a file or folder does exist at the current path
                                         else if (exists)
@@ -4688,7 +4738,7 @@ namespace Cloud.FileMonitor
                                         WatcherChangeTypes.Created,
                                         folderOnly: true,
                                         alreadyHoldingIndexLock: true,
-                                        queueToStartProcessing: true);
+                                        queueToStartProcessing: queueToStartProcessing);
                                 }
                             }
                             catch
@@ -4705,7 +4755,7 @@ namespace Cloud.FileMonitor
                                         WatcherChangeTypes.Created,
                                         folderOnly: false,
                                         alreadyHoldingIndexLock: true,
-                                        queueToStartProcessing: true);
+                                        queueToStartProcessing: queueToStartProcessing);
                                 }
                             }
                             catch

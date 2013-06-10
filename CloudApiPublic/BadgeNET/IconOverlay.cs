@@ -299,17 +299,6 @@ namespace Cloud.BadgeNET
                     _trace.writeToLog(9, Resources.IconOverlaypInitializeGotInitialList);
                     for (int initialListCounter = 0; initialListCounter < initialListArray.Length; initialListCounter++)
                     {
-                        // only keep track of badges that are not "synced"
-                        ////&&&& RKS Keep track of all badges in allBadges.
-                        //if (initialListArray[initialListCounter].Value.Value != cloudAppIconBadgeType.cloudAppBadgeSynced)
-                        //{
-                        //    // populate each initial badged object into local dictionary
-                        //    // throws exception if file path (Key) is null or empty
-                        //    // do not need to lock on allBadges since listening threads don't start until after this
-                        //    _trace.writeToLog(9, Resources.IconOverlayAddBadgeForPath0Value1, initialListArray[initialListCounter].Key.ToString(), initialListArray[initialListCounter].Value.Value.ToString());
-                        //    allBadges[initialListArray[initialListCounter].Key] = initialListArray[initialListCounter].Value;
-                        //}
-
                         // populate each initial badged object into local dictionary
                         // throws exception if file path (Key) is null or empty
                         // do not need to lock on allBadges since listening threads don't start until after this
@@ -700,16 +689,6 @@ namespace Cloud.BadgeNET
                         {
                             // only keep track of badges that are not "synced"
                             _trace.writeToLog(9, Resources.IconOverlayInitializeOrReplaceCurrentReplaceItemPath0Type1, currentReplacedItem.Key.ToString(), currentReplacedItem.Value.Value.ToString());
-                            ////&&&& RKS Keep track of all badges in allBadges
-                            //if (currentReplacedItem.Value.Value != cloudAppIconBadgeType.cloudAppBadgeSynced)
-                            //{
-                            //    // populate each replaced badged object into local dictionary
-                            //    // throws exception if file path (Key) is null or empty
-                            //    _trace.writeToLog(9, Resources.IconOverlayInitializeOrReplaceAddThisItemToDictionary);
-                            //    allBadges.Add(currentReplacedItem.Key, currentReplacedItem.Value);
-                            //}
-                            // populate each replaced badged object into local dictionary
-                            // throws exception if file path (Key) is null or empty
                             _trace.writeToLog(9, Resources.IconOverlayInitializeOrReplaceAddThisItemToDictionary);
                             allBadges.Add(currentReplacedItem.Key, currentReplacedItem.Value);
                         }
@@ -1292,19 +1271,6 @@ namespace Cloud.BadgeNET
 
                     }
 
-                    //&&&& RKS Filling in allBadges
-                    //// newType is null means synced.  If the type is synced, newType will be null.  Set it whatever it is.
-                    //if (newType.Value == cloudAppIconBadgeType.cloudAppBadgeSynced)
-                    //{
-                    //    _trace.writeToMemory(() => _trace.trcFmtStr(1, Resources.IconOverlaySetBadgeTypeNewTypeIsSynced));
-                    //    allBadges[filePath] = null;
-                    //}
-                    //else
-                    //{
-                    //    _trace.writeToMemory(() => _trace.trcFmtStr(1, Resources.IconOverlaySetBadgeTypeNewTypeIs0, newType.Value.ToString()));
-                    //    allBadges[filePath] = newType;
-                    //}
-
                     _trace.writeToMemory(() => _trace.trcFmtStr(1, Resources.IconOverlaySetBadgeTypeNewTypeIs0, newType.Value.ToString()));
                     allBadges[filePath] = newType;
 
@@ -1661,8 +1627,6 @@ namespace Cloud.BadgeNET
                         _trace.writeToMemory(() => _trace.trcFmtStr(1, Resources.IconOverlayShouldIconBeBadgedContainsCloudRoot));
                         GenericHolder<cloudAppIconBadgeType> tempBadgeType;
                         bool success = allBadges.TryGetValue(objFilePath, out tempBadgeType);
-                        //&&&& RKS: Handle the success case in the else condition.
-                        //if (success)
                         if (success && tempBadgeType.Value != cloudAppIconBadgeType.cloudAppBadgeSynced)
                         {
                             bool rc = (tempBadgeType.Value == objBadgeType.Value);

@@ -3285,6 +3285,33 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Error getting syncbox status due to bad credentials..
+        /// </summary>
+        internal static string ExceptionSyncboxErrorGettingStatusDueToBadCredentials {
+            get {
+                return ResourceManager.GetString("ExceptionSyncboxErrorGettingStatusDueToBadCredentials", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error getting syncbox status due to expired credentials..
+        /// </summary>
+        internal static string ExceptionSyncboxErrorGettingStatusDueToExpiredCredentials {
+            get {
+                return ResourceManager.GetString("ExceptionSyncboxErrorGettingStatusDueToExpiredCredentials", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error getting syncbox status due to credentials being validated, but syncbox not existing for provided id..
+        /// </summary>
+        internal static string ExceptionSyncboxErrorGettingStatusDueToSyncboxNotFound {
+            get {
+                return ResourceManager.GetString("ExceptionSyncboxErrorGettingStatusDueToSyncboxNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Unable to lock syncbox folder.
         /// </summary>
         internal static string ExceptionSyncboxLockPath {

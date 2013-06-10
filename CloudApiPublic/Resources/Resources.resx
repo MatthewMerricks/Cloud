@@ -3061,4 +3061,16 @@
   <data name="ExceptionOnDemandDefaultStoragePlanNoResponse2" xml:space="preserve">
     <value>Plans were returned by the server, but there was no default plan marked</value>
   </data>
+  <data name="ExceptionSyncboxErrorGettingStatusDueToBadCredentials" xml:space="preserve">
+    <value>Error getting syncbox status due to bad credentials.</value>
+    <comment>syncbox should not be translated</comment>
+  </data>
+  <data name="ExceptionSyncboxErrorGettingStatusDueToExpiredCredentials" xml:space="preserve">
+    <value>Error getting syncbox status due to expired credentials.</value>
+    <comment>syncbox should not be translated</comment>
+  </data>
+  <data name="ExceptionSyncboxErrorGettingStatusDueToSyncboxNotFound" xml:space="preserve">
+    <value>Error getting syncbox status due to credentials being validated, but syncbox not existing for provided id.</value>
+    <comment>syncbox and syncbox should not be translated</comment>
+  </data>
 </root>

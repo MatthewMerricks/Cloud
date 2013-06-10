@@ -130,6 +130,11 @@ namespace Cloud.Static
         /// </summary>
         Http_NoContentLengthResponseHeader = (((ulong)CLExceptionDomain.Http) << 32) | 12, // 1_12
 
+        /// <summary>
+        /// Credentials validated, but syncbox does not exist for the provided id
+        /// </summary>
+        Http_NotAuthorizedSyncboxNotFound = (((ulong)CLExceptionDomain.Http) << 32) | 13, // 1_13
+
         #endregion
 
         #region Syncbox
@@ -177,72 +182,87 @@ namespace Cloud.Static
         /// <summary>
         /// Error retrieving initial Syncbox status from server
         /// </summary>
-        Syncbox_InitialStatus = (((ulong)CLExceptionDomain.Syncing) << 32) | 8, // 2_8
+        Syncbox_InitialStatus = (((ulong)CLExceptionDomain.Syncbox) << 32) | 8, // 2_8
 
         /// <summary>
         /// Syncbox cannot be null
         /// </summary>
-        Syncbox_Null = (((ulong)CLExceptionDomain.Syncing) << 32) | 9, // 2_9
+        Syncbox_Null = (((ulong)CLExceptionDomain.Syncbox) << 32) | 9, // 2_9
 
         /// <summary>
         /// Syncbox already started syncing
         /// </summary>
-        Syncbox_AlreadyStarted = (((ulong)CLExceptionDomain.Syncing) << 32) | 10, // 2_10
+        Syncbox_AlreadyStarted = (((ulong)CLExceptionDomain.Syncbox) << 32) | 10, // 2_10
 
         /// <summary>
         /// Syncbox not started syncing
         /// </summary>
-        Syncbox_NotStarted = (((ulong)CLExceptionDomain.Syncing) << 32) | 11, // 2_11
+        Syncbox_NotStarted = (((ulong)CLExceptionDomain.Syncbox) << 32) | 11, // 2_11
 
         /// <summary>
         /// Error creating backing index for syncing
         /// </summary>
-        Syncbox_IndexCreation = (((ulong)CLExceptionDomain.Syncing) << 32) | 12, // 2_12
+        Syncbox_IndexCreation = (((ulong)CLExceptionDomain.Syncbox) << 32) | 12, // 2_12
 
         /// <summary>
         /// Error starting notification service
         /// </summary>
-        Syncbox_StartingNotifications = (((ulong)CLExceptionDomain.Syncing) << 32) | 13, // 2_13
+        Syncbox_StartingNotifications = (((ulong)CLExceptionDomain.Syncbox) << 32) | 13, // 2_13
 
         /// <summary>
         /// Error creating file monitor
         /// </summary>
-        Syncbox_FileMonitorCreation = (((ulong)CLExceptionDomain.Syncing) << 32) | 14, // 2_14
+        Syncbox_FileMonitorCreation = (((ulong)CLExceptionDomain.Syncbox) << 32) | 14, // 2_14
 
         /// <summary>
         /// Error starting file monitor
         /// </summary>
-        Syncbox_StartingFileMonitor = (((ulong)CLExceptionDomain.Syncing) << 32) | 15, // 2_15
+        Syncbox_StartingFileMonitor = (((ulong)CLExceptionDomain.Syncbox) << 32) | 15, // 2_15
 
         /// <summary>
         /// Starting initial indexing
         /// </summary>
-        Syncbox_StartingInitialIndexing = (((ulong)CLExceptionDomain.Syncing) << 32) | 16,  // 2_16
+        Syncbox_StartingInitialIndexing = (((ulong)CLExceptionDomain.Syncbox) << 32) | 16,  // 2_16
 
         /// <summary>
         /// Syncbox is current being modified
         /// </summary>
-        Syncbox_InProcessOfModification = (((ulong)CLExceptionDomain.Syncing) << 32) | 17,  // 2_17
+        Syncbox_InProcessOfModification = (((ulong)CLExceptionDomain.Syncbox) << 32) | 17,  // 2_17
 
         /// <summary>
         /// Folder not found at syncbox path
         /// </summary>
-        Syncbox_PathNotFound = (((ulong)CLExceptionDomain.Syncing) << 32) | 18,  // 2_18
+        Syncbox_PathNotFound = (((ulong)CLExceptionDomain.Syncbox) << 32) | 18,  // 2_18
 
         /// <summary>
         /// A general exception occurred starting syncing on a syncbox
         /// </summary>
-        Syncbox_GeneralStart = (((ulong)CLExceptionDomain.Syncing) << 32) | 19,  // 2_19
+        Syncbox_GeneralStart = (((ulong)CLExceptionDomain.Syncbox) << 32) | 19,  // 2_19
 
         /// <summary>
         /// The syncbox path has already been set.
         /// </summary>
-        Syncbox_PathAlreadySet = (((ulong)CLExceptionDomain.Syncing) << 32) | 20,  // 2_20
+        Syncbox_PathAlreadySet = (((ulong)CLExceptionDomain.Syncbox) << 32) | 20,  // 2_20
 
         /// <summary>
         /// Error initializing the syncbox.
         /// </summary>
-        Syncbox_Initializing = (((ulong)CLExceptionDomain.Syncing) << 32) | 21,  // 2_21
+        Syncbox_Initializing = (((ulong)CLExceptionDomain.Syncbox) << 32) | 21,  // 2_21
+
+        /// <summary>
+        /// Credentials expired. Refire the method with new credentials.
+        /// </summary>
+        Syncbox_ExpiredCredentials = (((ulong)CLExceptionDomain.Syncbox) << 32) | 22, // 2_22
+
+        /// <summary>
+        /// Credentials incorrect. Refire the method with appropriate credentials.
+        /// </summary>
+        Syncbox_BadCredentials = (((ulong)CLExceptionDomain.Syncbox) << 32) | 23, // 2_23
+
+        /// <summary>
+        /// Credentials validated, but syncbox does not exist for provided id.
+        /// </summary>
+        Syncbox_NotFoundForId = (((ulong)CLExceptionDomain.Syncbox) << 32) | 24, // 2_24
 
         #endregion
 
@@ -622,7 +642,8 @@ namespace Cloud.Static
 
     internal enum AuthenticationErrorType : ulong
     {
-        SessionExpired = 30002
+        SessionExpired = 30002,
+        SyncboxNotFound = 30007
     }
 
     /// <summary>

@@ -3932,6 +3932,7 @@ namespace Cloud.Static
                     }
 
                     bool readingStreamError = true;
+                    bool notFoundNotAuthorizedDeserializationError = false;
 
                     // try/catch to set the response body from the content of the response, on catch rethrow intentional errors or wrap stream-reading errors
                     try
@@ -3949,7 +3950,8 @@ namespace Cloud.Static
                                 readingStreamError = false;
 
                                 if (!string.IsNullOrEmpty(responseBody)
-                                    && status == CLExceptionCode.Http_NotAuthorized)
+                                    && (status == CLExceptionCode.Http_NotAuthorized
+                                        || status == CLExceptionCode.Http_NotFound))
                                 {
                                     using (MemoryStream notAuthorizedStream = new MemoryStream())
                                     {
@@ -4019,12 +4021,48 @@ namespace Cloud.Static
                                         //}
                                         #endregion
 
-                                        JsonContracts.AuthenticationErrorResponse parsedErrorResponse = (JsonContracts.AuthenticationErrorResponse)notAuthorizedSerializer.ReadObject(notAuthorizedStream);
-
-                                        if (parsedErrorResponse.AuthenticationErrors != null
-                                            && parsedErrorResponse.AuthenticationErrors.Any(authenticationError => authenticationError.CodeAsEnum == AuthenticationErrorType.SessionExpired))
+                                        JsonContracts.AuthenticationErrorResponse parsedErrorResponse;
+                                        try
                                         {
-                                            status = CLExceptionCode.Http_NotAuthorizedExpiredCredentials;
+                                            parsedErrorResponse = (JsonContracts.AuthenticationErrorResponse)notAuthorizedSerializer.ReadObject(notAuthorizedStream);
+                                        }
+                                        catch
+                                        {
+                                            if (status == CLExceptionCode.Http_NotFound)
+                                            {
+                                                notFoundNotAuthorizedDeserializationError = true; // why would server return not authorized information via status code 404???
+                                            }
+
+                                            throw;
+                                        }
+
+                                        if (parsedErrorResponse.AuthenticationErrors != null)
+                                        {
+                                            foreach (AuthenticationError currentAuthenticationError in parsedErrorResponse.AuthenticationErrors)
+                                            {
+                                                bool needToBreakOutOfIteration = false;
+
+                                                if (currentAuthenticationError.CodeAsEnum != null)
+                                                {
+                                                    switch ((AuthenticationErrorType)currentAuthenticationError.CodeAsEnum)
+                                                    {
+                                                        case AuthenticationErrorType.SessionExpired:
+                                                            status = CLExceptionCode.Http_NotAuthorizedExpiredCredentials;
+                                                            needToBreakOutOfIteration = true;
+                                                            break;
+
+                                                        case AuthenticationErrorType.SyncboxNotFound:
+                                                            status = CLExceptionCode.Http_NotAuthorizedSyncboxNotFound;
+                                                            needToBreakOutOfIteration = true;
+                                                            break;
+                                                    }
+                                                }
+
+                                                if (needToBreakOutOfIteration)
+                                                {
+                                                    break;
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -4041,6 +4079,12 @@ namespace Cloud.Static
                                 CLExceptionCode.Http_BadRequest,
                                 Resources.ExceptionHelpersProcessHttpInnerInvalidStatusStreamRead,
                                 ex);
+                        }
+                        else if (notFoundNotAuthorizedDeserializationError)
+                        {
+                            // no op;
+
+                            // why would server return not authorized information via status code 404???
                         }
                         else
                         {
