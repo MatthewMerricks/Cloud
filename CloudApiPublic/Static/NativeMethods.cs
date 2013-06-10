@@ -14,6 +14,7 @@ using System.Linq;
 using System.Runtime.InteropServices;                             
 using System.Text;
 using Microsoft.Win32.SafeHandles;
+using System.Reflection;
 #endregion
 
 namespace Cloud.Static
@@ -571,24 +572,41 @@ namespace Cloud.Static
             public IntPtr vendorInfo;
         }
 
+        [Obfuscation(Feature="preserve-name-binding")]
         [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
         public sealed class WSAQUERYSET
         {
+            [Obfuscation(Feature = "preserve-name-binding")]
             public Int32 dwSize = 0;
+            [Obfuscation(Feature = "preserve-name-binding")]
             public String szServiceInstanceName = null;
+            [Obfuscation(Feature = "preserve-name-binding")]
             public IntPtr lpServiceClassId;
+            [Obfuscation(Feature = "preserve-name-binding")]
             public IntPtr lpVersion;
+            [Obfuscation(Feature = "preserve-name-binding")]
             public String lpszComment;
+            [Obfuscation(Feature = "preserve-name-binding")]
             public NAMESPACE_PROVIDER_PTYPE dwNameSpace;
+            [Obfuscation(Feature = "preserve-name-binding")]
             public IntPtr lpNSProviderId;
+            [Obfuscation(Feature = "preserve-name-binding")]
             public String lpszContext;
+            [Obfuscation(Feature = "preserve-name-binding")]
             public Int32 dwNumberOfProtocols;
+            [Obfuscation(Feature = "preserve-name-binding")]
             public IntPtr lpafpProtocols;
+            [Obfuscation(Feature = "preserve-name-binding")]
             public String lpszQueryString;
+            [Obfuscation(Feature = "preserve-name-binding")]
             public Int32 dwNumberOfCsAddrs;
+            [Obfuscation(Feature = "preserve-name-binding")]
             public IntPtr lpcsaBuffer;
+            [Obfuscation(Feature = "preserve-name-binding")]
             public Int32 dwOutputFlags;
+            [Obfuscation(Feature = "preserve-name-binding")]
             public IntPtr lpBlob;
+            
         }
 
         [StructLayout(LayoutKind.Sequential)]
