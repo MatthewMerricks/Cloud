@@ -1804,7 +1804,7 @@ namespace Cloud.SQLIndexer
 
                         Func<Event, FileSystemObject> setIdAndGrabObject = currentEvent =>
                         {
-                            currentEvent.FileSystemObject.EventId = orderToChange[(int)currentEvent.GroupOrder].Value.Value = groupOrderToId[(int)currentEvent.GroupOrder];
+                            currentEvent.FileSystemObject.EventId = currentEvent.EventId = orderToChange[(int)currentEvent.GroupOrder].Value.Value = groupOrderToId[(int)currentEvent.GroupOrder];
                             eventsByIdForPendingRevision.Add((long)currentEvent.FileSystemObject.EventId, currentEvent);
                             return currentEvent.FileSystemObject;
                         };
