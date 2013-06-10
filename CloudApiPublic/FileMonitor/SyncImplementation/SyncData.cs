@@ -60,6 +60,11 @@ namespace Cloud.FileMonitor.SyncImplementation
         {
             return this.Indexer.QueryOrCreateServerUid(serverUid, out serverUidId, revision, syncFromFileModify, existingTransaction);
         }
+
+        public CLError SearchExistingServerUidIdForPendingSyncToCreate(string name, string parentFolderServerUid, out Nullable<long> existingServerUidId)
+        {
+            return this.Indexer.SearchExistingServerUidIdForPendingSyncToCreate(name, parentFolderServerUid, out existingServerUidId);
+        }
         
         /// <summary>
         /// ¡¡ Call this carefully, completely wipes index database (use when user deletes local repository or relinks) !!

@@ -62,6 +62,8 @@ namespace Cloud.Interfaces
 
         CLError QueryOrCreateServerUid(string serverUid, out long serverUidId, string revision, bool syncFromFileModify, SQLTransactionalBase existingTransaction = null);
 
+        CLError SearchExistingServerUidIdForPendingSyncToCreate(string name, string parentFolderServerUid, out Nullable<long> existingServerUidId);
+
         /// <summary>
         /// Creates a new transactional object which can be passed back into database access calls and externalizes the ability to dispose or commit the transaction
         /// </summary>

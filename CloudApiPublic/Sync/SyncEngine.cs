@@ -7452,26 +7452,61 @@ namespace Cloud.Sync
                         long serverUidId;
                         if (matchedChange == null)
                         {
-                            removedServerUidIdToInvalidate = null;
+                            // first check to see if there is a pending sync-to non-delete at the current event's name and parent's 'uid'
+                            // which can be traced back to sync to creation which has still not been communicated (null ServerUid in ServerUids table);
+                            // if one is found, then update that ServerUid row instead of risking creating a new one via query or create
+
+                            Nullable<long> existingServerUidId;
+
+                            CLError searchExistingServerUidIdForPendingSyncToCreateError = innerSyncData.SearchExistingServerUidIdForPendingSyncToCreate(
+                                currentChange.NewPath.Name,
+                                findParentUid,
+                                out existingServerUidId);
+
+                            if (searchExistingServerUidIdForPendingSyncToCreateError != null)
+                            {
+                                throw new AggregateException("Error searching for existing, pending, sync to, creation for name and parent \"uid\"");
+                            }
 
                             bool syncFromFileModify = (currentChange.Type == FileChangeType.Modified
                                 && !findHashableProperties.IsFolder
                                 && currentChange.Direction == SyncDirection.From);
 
-                            CLError queryServerUidError = innerSyncData.QueryOrCreateServerUid(
-                                findServerUid,
-                                out serverUidId,
-                                findRevision,
-                                syncFromFileModify);  // no transaction
+                            if (existingServerUidId == null)
+                            {
+                                removedServerUidIdToInvalidate = null;
+
+                                CLError queryServerUidError = innerSyncData.QueryOrCreateServerUid(
+                                    findServerUid,
+                                    out serverUidId,
+                                    findRevision,
+                                    syncFromFileModify);  // no transaction
+
+                                if (queryServerUidError != null)
+                                {
+                                    throw new AggregateException("Error creating ServerUid", queryServerUidError.Exceptions);
+                                }
+                            }
+                            else
+                            {
+                                serverUidId = (long)existingServerUidId;
+
+                                Nullable<long> existingServerUidIdRequiringMerging;
+                                CLError updateServerUidError = innerSyncData.UpdateServerUid(
+                                    serverUidId,
+                                    findServerUid,
+                                    findRevision,
+                                    out removedServerUidIdToInvalidate); // no transaction
+
+                                if (updateServerUidError != null)
+                                {
+                                    throw new AggregateException(string.Format("Error updating ServerUid for ServerUidId {0}", serverUidId), updateServerUidError.Exceptions);
+                                }
+                            }
 
                             if (syncFromFileModify)
                             {
                                 currentChange.FileDownloadPendingRevision = findRevision;
-                            }
-
-                            if (queryServerUidError != null)
-                            {
-                                throw new AggregateException("Error creating ServerUid", queryServerUidError.Exceptions);
                             }
                         }
                         else

@@ -574,6 +574,84 @@ namespace Cloud.SQLIndexer
             return toReturn;
         }
 
+        public CLError SearchExistingServerUidIdForPendingSyncToCreate(string name, string parentFolderServerUid, out Nullable<long> existingServerUidId)
+        {
+            if (disposed)
+            {
+                try
+                {
+                    throw new ObjectDisposedException("This IndexingAgent");
+                }
+                catch (Exception ex)
+                {
+                    existingServerUidId = Helpers.DefaultForType<Nullable<long>>();
+
+                    return ex;
+                }
+            }
+
+            try
+            {
+                if (string.IsNullOrEmpty(name))
+                {
+                    throw new ArgumentNullException("name cannot be null");
+                }
+                if (string.IsNullOrEmpty(parentFolderServerUid))
+                {
+                    throw new ArgumentNullException("parentFolderServerUid cannot be null");
+                }
+
+                using (ISQLiteConnection indexDB = CreateAndOpenCipherConnection())
+                {
+                    using (ISQLiteCommand searchServerUid = indexDB.CreateCommand())
+                    {
+                        searchServerUid.CommandText = "SELECT MainObjects.ServerUidId, MainObjects.Name " +
+                            "FROM FileSystemObjects MainObjects " +
+                            "INNER JOIN ServerUids MainUids ON MainObjects.ServerUidId = MainUids.ServerUidId " +
+                            "INNER JOIN Events ON MainObjects.EventId = Events.EventId " +
+                            "INNER JOIN FileSystemObjects Parents ON MainObjects.ParentFolderId = Parents.FileSystemObjectId " +
+                            "INNER JOIN ServerUids ParentUids ON Parents.ServerUidId = ParentUids.ServerUidId " +
+                            "WHERE MainObjects.Pending = 1 " +
+                            "AND MainUids.ServerUid IS NULL " +
+                            "AND Events.FileChangeTypeEnumId <> " + changeEnumsBackward[FileChangeType.Deleted].ToString() +
+                            " AND ParentUids.ServerUid = ?" + // <-- parameter 1
+                            " AND MainObjects.NameCIHash = ?"; // <-- parameter 2
+
+                        ISQLiteParameter parentUidParam = searchServerUid.CreateParameter();
+                        parentUidParam.Value = parentFolderServerUid;
+                        searchServerUid.Parameters.Add(parentUidParam);
+
+                        ISQLiteParameter nameCIHashParam = searchServerUid.CreateParameter();
+                        nameCIHashParam.Value = StringComparer.OrdinalIgnoreCase.GetHashCode(name);
+                        searchServerUid.Parameters.Add(nameCIHashParam);
+
+                        using (ISQLiteDataReader searchUidReader = searchServerUid.ExecuteReader(CommandBehavior.SingleResult))
+                        {
+                            existingServerUidId = null;
+
+                            while (searchUidReader.Read())
+                            {
+                                if (StringComparer.OrdinalIgnoreCase.Equals(Convert.ToString(searchUidReader["Name"]), name))
+                                {
+                                    existingServerUidId = Convert.ToInt64(searchUidReader["ServerUidId"]);
+
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                existingServerUidId = Helpers.DefaultForType<Nullable<long>>();
+
+                return ex;
+            }
+
+            return null;
+        }
+
         /// <summary>
         /// Queries database by eventId to return latest metadata and path as a FileChange and whether or not the event is still pending
         /// </summary>
@@ -1002,6 +1080,8 @@ namespace Cloud.SQLIndexer
                                 if (StringComparer.OrdinalIgnoreCase.Equals(Convert.ToString(existingObjectReader["CalculatedFullPath"]), newPath))
                                 {
                                     serverUid = Convert.ToString(existingObjectReader["ServerUid"]);
+
+                                    break;
                                 }
                             }
                         }
