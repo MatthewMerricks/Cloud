@@ -4980,6 +4980,15 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Badge is synced.
+        /// </summary>
+        internal static string IconOverlaySetBadgeTypeNewTypeIsSynced {
+            get {
+                return ResourceManager.GetString("IconOverlaySetBadgeTypeNewTypeIsSynced", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to IconOverlay: ShouldIconBeBadged. Break to determine the badge status from the children of this node..
         /// </summary>
         internal static string IconOverlayShouldIconBeBadgedBreakToDeterminBadgeStatusFromChildrenOfNode {

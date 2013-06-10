@@ -299,11 +299,15 @@ namespace Cloud.BadgeNET
                     _trace.writeToLog(9, Resources.IconOverlaypInitializeGotInitialList);
                     for (int initialListCounter = 0; initialListCounter < initialListArray.Length; initialListCounter++)
                     {
-                        // populate each initial badged object into local dictionary
-                        // throws exception if file path (Key) is null or empty
-                        // do not need to lock on allBadges since listening threads don't start until after this
-                        _trace.writeToLog(9, Resources.IconOverlayAddBadgeForPath0Value1, initialListArray[initialListCounter].Key.ToString(), initialListArray[initialListCounter].Value.Value.ToString());
-                        allBadges[initialListArray[initialListCounter].Key] = initialListArray[initialListCounter].Value;
+                         // only keep track of badges that are not "synced"
+                        if (initialListArray[initialListCounter].Value.Value != cloudAppIconBadgeType.cloudAppBadgeSynced)
+                        {
+                            // populate each initial badged object into local dictionary
+                            // throws exception if file path (Key) is null or empty
+                            // do not need to lock on allBadges since listening threads don't start until after this
+                            _trace.writeToLog(9, Resources.IconOverlayAddBadgeForPath0Value1, initialListArray[initialListCounter].Key.ToString(), initialListArray[initialListCounter].Value.Value.ToString());
+                            allBadges[initialListArray[initialListCounter].Key] = initialListArray[initialListCounter].Value;
+                        }
                     }
                 }
             }
@@ -488,17 +492,8 @@ namespace Cloud.BadgeNET
                 }
             }
 
-            _trace.writeToMemory(() => _trace.trcFmtStr(1, Resources.IconOverlayMessageEventsBadgePathRenamedFromPath0ToPath1, e.RenameBadgePath.FromPath, e.RenameBadgePath.ToPath));
-            CLError error = RenameBadgePath(e.RenameBadgePath.FromPath, e.RenameBadgePath.ToPath);
-            if (error != null)
-            {
-                _trace.writeToLog(1,
-                    Resources.IconOverlayMessageEventsBadgePathRenamedERRORThrowMas0Code1FromPath2ToPath3,
-                    error.PrimaryException.Message,
-                    error.PrimaryException.Code,
-                    e.RenameBadgePath.FromPath,
-                    e.RenameBadgePath.ToPath);
-            }
+            QueueRenameBadge(e.RenameBadgePath.FromPath, e.RenameBadgePath.ToPath);
+
             e.MarkHandled();
         }
 
@@ -513,20 +508,15 @@ namespace Cloud.BadgeNET
                 }
             }
 
-            bool isDeleted;
-            _trace.writeToMemory(() => _trace.trcFmtStr(1, Resources.IconOverlayMessageEventsBadgePathDeletedPath0, e.DeleteBadgePath.PathToDelete));
-            CLError error = DeleteBadgePath(e.DeleteBadgePath.PathToDelete, out isDeleted);
-            if (error != null)
-            {
-                _trace.writeToLog(1,
-                    Resources.IconOverlayMessageEventsBadgePathERRORMsg0Code1,
-                    error.PrimaryException.Message,
-                    error.PrimaryException.Code);
-            }
-            else if (isDeleted)
-            {
-                e.MarkDeleted();
-            }
+            EventWaitHandle synchronizeDeleteHandle = new EventWaitHandle(initialState: false, mode: EventResetMode.ManualReset);
+
+            QueueDeleteBadge(e.DeleteBadgePath.PathToDelete,
+                onIsDeletedState => onIsDeletedState.MarkDeleted(),
+                onIsDeletedState: e,
+                completionHandle: synchronizeDeleteHandle);
+
+            synchronizeDeleteHandle.WaitOne();
+
             e.MarkHandled();
         }
 
@@ -688,10 +678,13 @@ namespace Cloud.BadgeNET
                         foreach (KeyValuePair<FilePath, GenericHolder<cloudAppIconBadgeType>> currentReplacedItem in initialList ?? new KeyValuePair<FilePath, GenericHolder<cloudAppIconBadgeType>>[0])
                         {
                             // only keep track of badges that are not "synced"
-                            _trace.writeToLog(9, Resources.IconOverlayInitializeOrReplaceCurrentReplaceItemPath0Type1, currentReplacedItem.Key.ToString(), currentReplacedItem.Value.Value.ToString());
-                            _trace.writeToLog(9, Resources.IconOverlayInitializeOrReplaceAddThisItemToDictionary);
-                            allBadges.Add(currentReplacedItem.Key, currentReplacedItem.Value);
-                        }
+                            if (currentReplacedItem.Value.Value != cloudAppIconBadgeType.cloudAppBadgeSynced)
+                            {
+                                // populate each replaced badged object into local dictionary
+                                // throws exception if file path (Key) is null or empty
+                                _trace.writeToLog(9, Resources.IconOverlayInitializeOrReplaceAddThisItemToDictionary);
+                                allBadges.Add(currentReplacedItem.Key, currentReplacedItem.Value);
+                            }                        }
                     }
                 }
             }
@@ -894,14 +887,6 @@ namespace Cloud.BadgeNET
                     {
                         if (_currentBadgesSynced != null)
                         {
-                            object notUsed;
-                            if (_currentBadgesSynced.TryGetValue(toDelete, out notUsed))
-                            {
-                                _currentBadges.Remove(toDelete);
-
-                                SendRemoveBadgePathEvent(toDelete);
-                            }
-
                             _currentBadgesSynced.Remove(toDelete);
                         }
                     }
@@ -1271,8 +1256,18 @@ namespace Cloud.BadgeNET
 
                     }
 
-                    _trace.writeToMemory(() => _trace.trcFmtStr(1, Resources.IconOverlaySetBadgeTypeNewTypeIs0, newType.Value.ToString()));
-                    allBadges[filePath] = newType;
+                    // newType is null means synced.  If the type is synced, newType will be null.  Set it whatever it is.
+                    //_trace.writeToLog(9, "IconOverlay: setBadgeType. Add this type to the dictionary.");
+                    if (newType.Value == cloudAppIconBadgeType.cloudAppBadgeSynced)
+                    {
+                        _trace.writeToMemory(() => _trace.trcFmtStr(1, Resources.IconOverlaySetBadgeTypeNewTypeIsSynced));
+                        allBadges[filePath] = null;
+                    }
+                    else
+                    {
+                        _trace.writeToMemory(() => _trace.trcFmtStr(1, Resources.IconOverlaySetBadgeTypeNewTypeIs0, newType.Value.ToString()));
+                        allBadges[filePath] = newType;
+                    }
 
                     // Update badges for anything changed up the tree
                     _trace.writeToMemory(() => _trace.trcFmtStr(1, Resources.IconOverlaySetBadgeTypeCallUpdateBadgeStateUpTreeStartingWithParentOfNode));
@@ -1627,7 +1622,7 @@ namespace Cloud.BadgeNET
                         _trace.writeToMemory(() => _trace.trcFmtStr(1, Resources.IconOverlayShouldIconBeBadgedContainsCloudRoot));
                         GenericHolder<cloudAppIconBadgeType> tempBadgeType;
                         bool success = allBadges.TryGetValue(objFilePath, out tempBadgeType);
-                        if (success && tempBadgeType.Value != cloudAppIconBadgeType.cloudAppBadgeSynced)
+                        if (success)
                         {
                             bool rc = (tempBadgeType.Value == objBadgeType.Value);
                             _trace.writeToMemory(() => _trace.trcFmtStr(1, Resources.IconOverlayShouldIconBeBadgedGotValueFromAllBadgesReturn0, rc));
@@ -1973,6 +1968,14 @@ namespace Cloud.BadgeNET
         {
             QueueBadgeParams(new badgeParams.genericSetter(badgeType, badgePath, this));
         }
+        public void QueueDeleteBadge<T>(FilePath toDelete, Action<T> onIsDeleted, T onIsDeletedState, EventWaitHandle completionHandle)
+        {
+            QueueBadgeParams(new badgeParams.deletePath<T>(toDelete, onIsDeleted, onIsDeletedState, completionHandle, this));
+        }
+        public void QueueRenameBadge(FilePath oldPath, FilePath newPath)
+        {
+            QueueBadgeParams(new badgeParams.renamePath(oldPath, newPath, this));
+        }
         private static readonly Queue<badgeParams.baseParams> setBadgeQueue = new Queue<badgeParams.baseParams>();
         private static bool badgesQueueing = false;
         private static void QueueBadgeParams(badgeParams.baseParams toQueue)
@@ -2041,20 +2044,27 @@ namespace Cloud.BadgeNET
         {
             public abstract class baseParams
             {
-                public IconOverlay thisOverlay { get; protected set; }
+                internal IconOverlay thisOverlay
+                {
+                    get
+                    {
+                        return _thisOverlay;
+                    }
+                }
+                private readonly IconOverlay _thisOverlay;
 
                 protected baseParams(IconOverlay thisOverlay)
                 {
-                    this.thisOverlay = thisOverlay;
+                    this._thisOverlay = thisOverlay;
                 }
 
                 public abstract void Process();
             }
 
-            public class genericSetter : baseParams
+            public sealed class genericSetter : baseParams
             {
-                private cloudAppIconBadgeType badgeType;
-                private FilePath badgePath;
+                private readonly cloudAppIconBadgeType badgeType;
+                private readonly FilePath badgePath;
 
                 public genericSetter(cloudAppIconBadgeType badgeType, FilePath badgePath, IconOverlay thisOverlay)
                     : base(thisOverlay)
@@ -2077,10 +2087,10 @@ namespace Cloud.BadgeNET
                 }
             }
 
-            public class newEvent : baseParams
+            public sealed class newEvent : baseParams
             {
-                private FileChange mergedEvent;
-                private FileChange eventToRemove;
+                private readonly FileChange mergedEvent;
+                private readonly FileChange eventToRemove;
 
                 public newEvent(FileChange mergedEvent, FileChange eventToRemove, IconOverlay thisOverlay)
                     : base(thisOverlay)
@@ -2170,6 +2180,79 @@ namespace Cloud.BadgeNET
                     else if (eventToRemove != null)
                     {
                         setBadge(cloudAppIconBadgeType.cloudAppBadgeSynced, eventToRemove.NewPath);
+                    }
+                }
+            }
+
+            public sealed class deletePath<T> : baseParams
+            {
+                private readonly FilePath toDelete;
+                private readonly Action<T> onIsDeleted;
+                private readonly T onIsDeletedState;
+                private readonly EventWaitHandle completionHandle;
+
+                public deletePath(FilePath toDelete, Action<T> onIsDeleted, T onIsDeletedState, EventWaitHandle completionHandle, IconOverlay thisOverlay)
+                    : base(thisOverlay)
+                {
+                    this.toDelete = toDelete;
+                    this.onIsDeleted = onIsDeleted;
+                    this.onIsDeletedState = onIsDeletedState;
+                    this.completionHandle = completionHandle;
+                }
+
+                public override void Process()
+                {
+                    bool isDeleted;
+                    CLError deleteError = thisOverlay.DeleteBadgePath(toDelete, out isDeleted);
+
+                    if (deleteError != null)
+                    {
+                        thisOverlay._trace.writeToLog(1,
+                            Resources.IconOverlayMessageEventsBadgePathERRORMsg0Code1,
+                            deleteError.PrimaryException.Message,
+                            deleteError.PrimaryException.Code);
+                    }
+                    else if (isDeleted && onIsDeleted != null)
+                    {
+                        try
+                        {
+                            onIsDeleted(onIsDeletedState);
+                        }
+                        catch
+                        {
+                        }
+                    }
+
+                    if (completionHandle != null)
+                    {
+                        completionHandle.Set();
+                    }
+                }
+            }
+
+            public sealed class renamePath : baseParams
+            {
+                private readonly FilePath oldPath;
+                private readonly FilePath newPath;
+
+                public renamePath(FilePath oldPath, FilePath newPath, IconOverlay thisOverlay)
+                    : base(thisOverlay)
+                {
+                    this.oldPath = oldPath;
+                    this.newPath = newPath;
+                }
+
+                public override void Process()
+                {
+                    CLError renameError = thisOverlay.RenameBadgePath(oldPath, newPath);
+                    if (renameError != null)
+                    {
+                        thisOverlay._trace.writeToLog(1,
+                            Resources.IconOverlayMessageEventsBadgePathRenamedERRORThrowMas0Code1FromPath2ToPath3,
+                            renameError.PrimaryException.Message,
+                            renameError.PrimaryException.Code,
+                            oldPath,
+                            newPath);
                     }
                 }
             }
