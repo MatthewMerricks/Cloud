@@ -4308,11 +4308,8 @@ namespace Cloud.SQLIndexer
                     setBadgeSynced(storeNewPath);
                     break;
                 case FileChangeType.Deleted:
-                    if (storeWhetherEventIsASyncFrom)
-                    {
-                        bool isDeleted;
-                        MessageEvents.DeleteBadgePath(this, new DeleteBadgePath(storeNewPath), out isDeleted);   // Message to invoke BadgeNet.IconOverlay.DeleteBadgePath(currentEvent.FileSystemObject.Path, out isDeleted);
-                    }
+                    bool isDeleted;
+                    MessageEvents.DeleteBadgePath(this, new DeleteBadgePath(storeNewPath), out isDeleted);   // Message to invoke BadgeNet.IconOverlay.DeleteBadgePath(currentEvent.FileSystemObject.Path, out isDeleted);
                     break;
                 case FileChangeType.Renamed:
                     if (storeWhetherEventIsASyncFrom)
