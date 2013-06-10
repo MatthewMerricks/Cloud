@@ -3073,4 +3073,7 @@
     <value>Error getting syncbox status due to credentials being validated, but syncbox not existing for provided id.</value>
     <comment>syncbox and syncbox should not be translated</comment>
   </data>
+  <data name="IconOverlaySetBadgeTypeNewTypeIsSynced" xml:space="preserve">
+    <value>Badge is synced</value>
+  </data>
 </root>
