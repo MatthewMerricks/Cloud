@@ -20,7 +20,7 @@ namespace SampleLiveSync.EventMessageReceiver
 {
     // class WindowSyncStatusViewModel <-- this message receiver acts as view models for multiple wpf controls, i.e. sync status window and growls
     // see other partial class for base summary
-    public sealed partial class EventMessageReceiver : NotifiableObject<EventMessageReceiver>, IDisposable, IEventMessageReceiver
+    public sealed partial class EventMessageReceiver : NotifiableObject<EventMessageReceiver>, IEventMessageReceiver
     {
         // private fields for WindowSyncStatusViewModel
         // -David
@@ -176,15 +176,7 @@ namespace SampleLiveSync.EventMessageReceiver
             }
             else
             {
-                Func<EventMessageReceiver, bool> continueProcessing = checkDisposed =>
-                {
-                    lock (thisReceiver._locker)
-                    {
-                        return !checkDisposed.isDisposed;
-                    }
-                };
-
-                while (continueProcessing(thisReceiver))
+                while (true)
                 {
                     KeyValuePair<long, CLStatusFileTransferUpdateParameters>[] dequeuedParameters;
                     lock (thisReceiver.UploadEventIdToQueuedUpdateParameters)
@@ -231,12 +223,13 @@ namespace SampleLiveSync.EventMessageReceiver
                     {
                         break;
                     }
-
+                    
                     lock (thisReceiver.UploadEventIdToQueuedUpdateParameters)
                     {
                         if (thisReceiver.UploadEventIdToQueuedUpdateParameters.Count == 0)
                         {
                             thisReceiver.UploadProcessingTimerRunning = false;
+
                             break;
                         }
                     }
@@ -255,15 +248,7 @@ namespace SampleLiveSync.EventMessageReceiver
             }
             else
             {
-                Func<EventMessageReceiver, bool> continueProcessing = checkDisposed =>
-                {
-                    lock (thisReceiver._locker)
-                    {
-                        return !checkDisposed.isDisposed;
-                    }
-                };
-
-                while (continueProcessing(thisReceiver))
+                while (true)
                 {
                     KeyValuePair<long, CLStatusFileTransferUpdateParameters>[] dequeuedParameters;
                     lock (thisReceiver.DownloadEventIdToQueuedUpdateParameters)
@@ -310,12 +295,13 @@ namespace SampleLiveSync.EventMessageReceiver
                     {
                         break;
                     }
-
+                    
                     lock (thisReceiver.DownloadEventIdToQueuedUpdateParameters)
                     {
                         if (thisReceiver.DownloadEventIdToQueuedUpdateParameters.Count == 0)
                         {
                             thisReceiver.DownloadProcessingTimerRunning = false;
+
                             break;
                         }
                     }

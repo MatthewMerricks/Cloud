@@ -4351,7 +4351,7 @@ namespace Cloud.Static
                                 shouldSetFileAttributes = true;
                             }
 
-                            //// set the file attributes so when the file move triggers a change in the event source its metadata should match the current event;  //&&&&RKS Old code
+                            //// set the file attributes so when the file move triggers a change in the event source its metadata should match the current event;
                             //// also, perform each attribute change with up to 4 retries since it seems to throw errors under normal conditions (if it still fails then it rethrows the exception);
                             //// attributes to set: creation time, last modified time, and last access time
 

@@ -3312,6 +3312,15 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Error subscribing to live sync status messages.  Bad liveSyncStatusReceiver to CLSyncbox.AllocAndInit, or bad DeviceId in settings.
+        /// </summary>
+        internal static string ExceptionSyncboxErrorSubscribingToLiveSyncStatusMessages {
+            get {
+                return ResourceManager.GetString("ExceptionSyncboxErrorSubscribingToLiveSyncStatusMessages", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Unable to lock syncbox folder.
         /// </summary>
         internal static string ExceptionSyncboxLockPath {

@@ -28,7 +28,7 @@ namespace Cloud.Static
         private const int removeHandlerTimeoutMilliseconds = 10000;
 
         #region IEventMessageReceiver subscription
-        public static CLError SubscribeMessageReceiver(long SyncboxId, string DeviceId, IEventMessageReceiver receiver)
+        internal static CLError SubscribeMessageReceiver(long SyncboxId, string DeviceId, IEventMessageReceiver receiver)
         {
             try
             {
@@ -57,7 +57,7 @@ namespace Cloud.Static
             }
             return null;
         }
-        public static CLError UnsubscribeMessageReceiver(long SyncboxId, string DeviceId)
+        internal static CLError UnsubscribeMessageReceiver(long SyncboxId, string DeviceId)
         {
             try
             {

@@ -46,7 +46,7 @@ namespace SampleLiveSync.ViewModels
         private bool _syncStarted = false;
         private bool _windowClosed = false;
         private SyncStatusView _winSyncStatus = null;
-
+        private EventMessageReceiver.EventMessageReceiver _eventMessageReceiver = null;
         private static readonly object _locker = new object();
         private static readonly CLTrace _trace = CLTrace.Instance;
 
@@ -1157,14 +1157,12 @@ namespace SampleLiveSync.ViewModels
 
 
         /// <summary>
-        /// Start syncing the Syncbox.
+        /// Start live sync in the Syncbox.
         /// </summary>
         private void StartSyncing()
         {
             try
             {
-                bool startSyncbox = false;
-
                 // Don't start syncing if the syncbox root directory is missing.
                 if (!Directory.Exists(SettingsAdvancedImpl.Instance.SyncRoot))
                 {
@@ -1188,174 +1186,120 @@ namespace SampleLiveSync.ViewModels
                         if (SettingsAdvancedImpl.Instance.SyncboxId == null)
                         {
                             const string nullSyncboxId = "SettingsAvancedImpl Instance SyncboxId cannot be null";
-                            if (NotifyException != null)
-                            {
-                                NotifyException(this, new NotificationEventArgs<CLError>()
-                                {
-                                    Data = new ArgumentException(nullSyncboxId),
-                                    Message = nullSyncboxId
-                                });
-                            }
                             _trace.writeToLog(1, "MainViewModel: StartSyncing: ERROR: From StartSyncing: Msg: <{0}>.", nullSyncboxId);
+                            throw new ArgumentNullException(nullSyncboxId);
                         }
-                        else
+
+                        // Get a ViewModel to provide some of the status information to use on our status window.
+                        CLError errorFromCreateEventMessageReceiver = EventMessageReceiver.EventMessageReceiver.AllocAndInit(
+                            receiver: out _eventMessageReceiver, // output the created view model
+                            getHistoricBandwidthSettings: OnGetHistoricBandwidthSettings, // optional to provide the historic upload and download bandwidth to the syncbox.
+                            setHistoricBandwidthSettings: OnSetHistoricBandwidthSettings, // optional to persist the historic upload and download bandwidth to the syncbox.
+                            OverrideImportanceFilterNonErrors: EventMessageLevel.All, // optional to filter the non-error messages delivered to the EventMessageReceiver ListMessages.
+                            OverrideImportanceFilterErrors: EventMessageLevel.All, // optional to filter the error messages delivered to the EventMessageReceiver ListMessages.
+                            OverrideDefaultMaxStatusMessages: 500); // optional to restrict the number of messages in the EventMessageReceiver ListMessages
+
+                        if (errorFromCreateEventMessageReceiver != null)
                         {
-                            // create credentials
-                            CLCredentials syncCredentials;
-                            CLError errorCreateSyncCredentials = CLCredentials.AllocAndInit(
-                                key: SettingsAdvancedImpl.Instance.Key,
-                                secret: SettingsAdvancedImpl.Instance.Secret,
-                                credentials: out syncCredentials,
-                                token: SettingsAdvancedImpl.Instance.Token,
-                                settings: SettingsAdvancedImpl.Instance);
+                            string msgErrorFromCreateEventMessageReceiver = "Error creating the data source for the status window: " + errorFromCreateEventMessageReceiver.PrimaryException.Code + ":" + Environment.NewLine + errorFromCreateEventMessageReceiver.PrimaryException.Message;
+                            _trace.writeToLog(1, "MainViewModel: StartSyncing: Error from EventMessageReceiver.AllocAndInit: {0}.", msgErrorFromCreateEventMessageReceiver);
+                            throw new Exception(msgErrorFromCreateEventMessageReceiver);
+                        }
 
-                            if (errorCreateSyncCredentials != null)
-                            {
-                                _trace.writeToLog(1, "MainViewModel: StartSyncing: ERROR: From CLCredential.CreateAndInitialize: Code: {0}. Msg: <{1}>.", errorCreateSyncCredentials.PrimaryException.Code,  errorCreateSyncCredentials.PrimaryException.Message);
-                                if (NotifyException != null)
-                                {
-                                    NotifyException(this, new NotificationEventArgs<CLError>()
-                                    {
-                                        Data = errorCreateSyncCredentials,
-                                        Message = "syncCredentialsStatus: " + errorCreateSyncCredentials.PrimaryException.Code + ":" + Environment.NewLine +
-                                            errorCreateSyncCredentials.PrimaryException.Message
-                                    });
-                                }
-                            }
-                            else
-                            {
-                                // create a Syncbox from an existing SyncboxId
-                                CLExceptionCode syncboxStatus = (CLExceptionCode)0;
-                                CLError errorCreateSyncbox = CLSyncbox.AllocAndInit(
-                                    syncboxId: (long)SettingsAdvancedImpl.Instance.SyncboxId,
-                                    credentials: syncCredentials,
-                                    syncbox: out _syncbox,
-                                    path: SettingsAdvancedImpl.Instance.SyncRoot,
-                                    settings: SettingsAdvancedImpl.Instance,
-                                    getNewCredentialsCallback: ReplaceExpiredCredentialsCallback,
-                                    getNewCredentialsCallbackUserState: this);
+                        // create credentials
+                        CLCredentials syncCredentials = null;
+                        CLError errorCreateSyncCredentials = CLCredentials.AllocAndInit(
+                            key: SettingsAdvancedImpl.Instance.Key,
+                            secret: SettingsAdvancedImpl.Instance.Secret,
+                            credentials: out syncCredentials,
+                            token: SettingsAdvancedImpl.Instance.Token,
+                            settings: SettingsAdvancedImpl.Instance);
 
-                                if (errorCreateSyncbox != null)
-                                {
-                                    syncboxStatus = errorCreateSyncbox.PrimaryException.Code;
-                                    _trace.writeToLog(1, "MainViewModel: StartSyncing: ERROR: From CLSyncbox.CreateAndInitialize: Msg: <{0}>.", errorCreateSyncbox.PrimaryException.Message);
-                                }
-                                if (syncboxStatus != (CLExceptionCode)0)
-                                {
-                                    if (NotifyException != null)
-                                    {
-                                        NotifyException(this, new NotificationEventArgs<CLError>()
-                                        {
-                                            Data = errorCreateSyncbox,
-                                            Message = "syncboxStatus: " + syncboxStatus.ToString() + ":" + Environment.NewLine +
-                                                errorCreateSyncbox.PrimaryException.Message
-                                        });
-                                    }
-                                }
-                                else
-                                {
-                                    // The syncbox was created and it is currently stopped.  Reset the sync database if we should.
-                                    startSyncbox = true;
-                                    if (Properties.Settings.Default.ShouldResetSync)
-                                    {
-                                        CLError errorFromSyncReset = _syncbox.ResetLocalCache();
-                                        if (errorFromSyncReset != null)
-                                        {
-                                            startSyncbox = false;
-                                            _trace.writeToLog(1, "MainViewModel: StartSyncing: ERROR: From Syncbox.SyncReset: Msg: <{0}.", errorFromSyncReset.PrimaryException.Message);
-                                            if (NotifyException != null)
-                                            {
-                                                NotifyException(this, new NotificationEventArgs<CLError>()
-                                                {
-                                                    Data = errorFromSyncReset,
-                                                    Message = String.Format("Error resetting the Syncbox: {0}.", errorFromSyncReset.PrimaryException.Message)
-                                                });
-                                            }
-                                        }
-                                        else
-                                        {
-                                            Properties.Settings.Default.ShouldResetSync = false;
-                                            Properties.Settings.Default.Save();
-                                        }
-                                    }
-                                }
+                        if (errorCreateSyncCredentials != null)
+                        {
+                            string msgErrorFromCreateCredentials = "Error creating credentials: " + errorCreateSyncCredentials.PrimaryException.Code + ":" + Environment.NewLine + errorCreateSyncCredentials.PrimaryException.Message;
+                            _trace.writeToLog(1, "MainViewModel: StartSyncing: Error from CLCredential.AllocAndInit: {0}.", msgErrorFromCreateCredentials);
+                            throw new Exception(msgErrorFromCreateCredentials);
+                        }
+
+                        // create a Syncbox from an existing SyncboxId
+                        CLError errorCreateSyncbox = CLSyncbox.AllocAndInit(
+                            syncboxId: (long)SettingsAdvancedImpl.Instance.SyncboxId,
+                            credentials: syncCredentials,
+                            syncbox: out _syncbox,
+                            path: SettingsAdvancedImpl.Instance.SyncRoot,
+                            settings: SettingsAdvancedImpl.Instance,
+                            liveSyncStatusReceiver: _eventMessageReceiver,
+                            getNewCredentialsCallback: ReplaceExpiredCredentialsCallback,
+                            getNewCredentialsCallbackUserState: this);
+
+                        if (errorCreateSyncbox != null)
+                        {
+                            string msgErrorFromCreateSyncbox = "Error creating syncbox: " + errorCreateSyncbox.PrimaryException.Code + ":" + Environment.NewLine + errorCreateSyncbox.PrimaryException.Message;
+                            _trace.writeToLog(1, "MainViewModel: StartSyncing: ERROR: From CLSyncbox.AllocAndInit: Msg: {0}.", msgErrorFromCreateSyncbox);
+                            throw new Exception(msgErrorFromCreateSyncbox);
+                        }
+
+                        // The syncbox was created and it is currently stopped.  Reset the sync database if we should.
+                        if (Properties.Settings.Default.ShouldResetSync)
+                        {
+                            CLError errorFromSyncReset = _syncbox.ResetLocalCache();
+                            if (errorFromSyncReset != null)
+                            {
+                                string msgErrorFromResetLocalCache = "Error resetting cache: " + errorFromSyncReset.PrimaryException.Code + ":" + Environment.NewLine +
+                                            errorFromSyncReset.PrimaryException.Message;
+                                _trace.writeToLog(1, "MainViewModel: StartSyncing: ERROR: From Syncbox.SyncReset: Code: {0}. Msg: {0}.", errorFromSyncReset.PrimaryException.Code, errorFromSyncReset.PrimaryException.Message);
+                                throw new Exception(msgErrorFromResetLocalCache);
                             }
+
+                            // Clear the reset sync setting
+                            Properties.Settings.Default.ShouldResetSync = false;
+                            Properties.Settings.Default.Save();
                         }
                     }
                 }
 
-                if (startSyncbox
-                    && _syncbox != null)
+                // start syncing
+                CLSyncMode syncMode = Properties.Settings.Default.BadgingEnabled ? CLSyncMode.CLSyncModeLiveWithBadgingEnabled : CLSyncMode.CLSyncModeLive;
+                CLError errorFromSyncboxStart = _syncbox.StartLiveSync(
+                    syncMode,
+                    syncStatusChangedCallback: OnSyncStatusUpdated, // called when sync status is updated
+                    syncStatusChangedCallbackUserState: this); // the user state passed to the callback above
+                if (errorFromSyncboxStart != null)
                 {
-                    // start syncing
-                    CLSyncMode syncMode = Properties.Settings.Default.BadgingEnabled ? CLSyncMode.CLSyncModeLiveWithBadgingEnabled : CLSyncMode.CLSyncModeLive;
-                    CLError errorFromSyncboxStart = _syncbox.StartLiveSync(
-                        syncMode,
-                        syncStatusChangedCallback: OnSyncStatusUpdated, // called when sync status is updated
-                        syncStatusChangedCallbackUserState: this); // the user state passed to the callback above
-                    if (errorFromSyncboxStart != null)
+                    string msgErrorFromStartLiveSync = "Error starting live sync: " + errorFromSyncboxStart.PrimaryException.Code + ":" + Environment.NewLine + errorFromSyncboxStart.PrimaryException.Message;
+                    _trace.writeToLog(1, "MainViewModel: StartSyncing: ERROR: From StartLiveSync: Msg: {0}.", msgErrorFromStartLiveSync);
+                    throw new Exception(msgErrorFromStartLiveSync);
+                }
+
+                // Sync has started
+                lock (_locker)
+                {
+                    SetSyncboxStartedState(isStartedStateToSet: true);
+
+                    // Watch for push notification errors
+                    _syncbox.PushNotificationError += OnPushNotificationError;
+
+                    // Start an instance of the sync status window and start it hidden.
+                    if (_winSyncStatus == null)
                     {
-                        _trace.writeToLog(1, "MainViewModel: StartSyncing: ERROR: From Syncbox.Start: Msg: <{0}>.", errorFromSyncboxStart.PrimaryException.Message);
-                        if (NotifyException != null)
-                        {
-                            NotifyException(this, new NotificationEventArgs<CLError>() 
-                            {
-                                Data = errorFromSyncboxStart, 
-                                Message = String.Format("Error starting the Syncbox: {0}.", errorFromSyncboxStart.PrimaryException.Message) 
-                            });
-                        }
-                    }
-                    else
-                    {
-                        // Sync has started
-                        lock (_locker)
-                        {
-                            SetSyncboxStartedState(isStartedStateToSet: true);
+                        _trace.writeToLog(9, "MainViewModel: StartSyncing: Start the sync status window.");
 
-                            // Watch for push notification errors
-                            _syncbox.PushNotificationError += OnPushNotificationError;
-
-                            // Start an instance of the sync status window and start it hidden.
-                            if (_winSyncStatus == null)
-                            {
-                                _trace.writeToLog(9, "MainViewModel: StartSyncing: Start the sync status window.");
-
-                                // Get a ViewModel to provide some of the status information to use on our status window.
-                                EventMessageReceiver.EventMessageReceiver vm;
-                                CLError errorCreateVM = EventMessageReceiver.EventMessageReceiver.AllocAndInit(
-                                    SyncboxId: _syncbox.SyncboxId, // filter by current sync box
-                                    DeviceId: _syncbox.CopiedSettings.DeviceId, // filter by current device
-                                    receiver: out vm, // output the created view model
-                                    getHistoricBandwidthSettings: OnGetHistoricBandwidthSettings, // optional to provide the historic upload and download bandwidth to the syncbox.
-                                    setHistoricBandwidthSettings: OnSetHistoricBandwidthSettings, // optional to persist the historic upload and download bandwidth to the syncbox.
-                                    OverrideImportanceFilterNonErrors: EventMessageLevel.All, // optional to filter the non-error messages delivered to the EventMessageReceiver ListMessages.
-                                    OverrideImportanceFilterErrors: EventMessageLevel.All, // optional to filter the error messages delivered to the EventMessageReceiver ListMessages.
-                                    OverrideDefaultMaxStatusMessages: 500); // optional to restrict the number of messages in the EventMessageReceiver ListMessages
-
-                                if (errorCreateVM != null)
-                                {
-                                    _trace.writeToLog(1, "MainViewModel: StartSyncing: ERROR: From EventMessageReceiver.CreateAndInitialize: Msg: <{0}>.", errorCreateVM.PrimaryException.Message);
-                                    throw new Exception(String.Format("Error starting the sync status window: {0}.", errorCreateVM.PrimaryException.Message));
-                                }
-                                else
-                                {
-                                    _winSyncStatus = new SyncStatusView();
-                                    _winSyncStatus.DataContext = vm;
-                                    _winSyncStatus.Width = 0;
-                                    _winSyncStatus.Height = 0;
-                                    _winSyncStatus.MinWidth = 0;
-                                    _winSyncStatus.MinHeight = 0;
-                                    _winSyncStatus.Left = Int32.MaxValue;
-                                    _winSyncStatus.Top = Int32.MaxValue;
-                                    _winSyncStatus.ShowInTaskbar = false;
-                                    _winSyncStatus.ShowActivated = false;
-                                    _winSyncStatus.Visibility = Visibility.Hidden;
-                                    _winSyncStatus.WindowStyle = WindowStyle.None;
-                                    _winSyncStatus.Owner = _mainWindow;
-                                    _winSyncStatus.Show();
-                                }
-                            }
-                        }
+                        // Open the window hidden.
+                        _winSyncStatus = new SyncStatusView();
+                        _winSyncStatus.DataContext = _eventMessageReceiver;
+                        _winSyncStatus.Width = 0;
+                        _winSyncStatus.Height = 0;
+                        _winSyncStatus.MinWidth = 0;
+                        _winSyncStatus.MinHeight = 0;
+                        _winSyncStatus.Left = Int32.MaxValue;
+                        _winSyncStatus.Top = Int32.MaxValue;
+                        _winSyncStatus.ShowInTaskbar = false;
+                        _winSyncStatus.ShowActivated = false;
+                        _winSyncStatus.Visibility = Visibility.Hidden;
+                        _winSyncStatus.WindowStyle = WindowStyle.None;
+                        _winSyncStatus.Owner = _mainWindow;
+                        _winSyncStatus.Show();
                     }
                 }
             }
@@ -1365,6 +1309,21 @@ namespace SampleLiveSync.ViewModels
                 error.Log(_trace.TraceLocation, _trace.LogErrors);
                 _trace.writeToLog(1, "MainViewModel: StartSyncing: ERROR: Exception: Msg: <{0}>.", ex.Message);
                 NotifyException(this, new NotificationEventArgs<CLError>() { Data = error, Message = String.Format("Error: {0}.", ex.Message) });
+
+                // Clean up.
+                _eventMessageReceiver = null;
+
+                if (_syncbox != null)
+                {
+                    _syncbox.Dispose();
+                    _syncbox = null;
+                }
+
+                if (_winSyncStatus != null)
+                {
+                    _winSyncStatus.Close();
+                    _winSyncStatus = null;
+                }
             }
         }
 
@@ -1529,19 +1488,7 @@ namespace SampleLiveSync.ViewModels
                 {
                     if (_winSyncStatus != null)
                     {
-                        EventMessageReceiver.EventMessageReceiver vm = _winSyncStatus.DataContext as EventMessageReceiver.EventMessageReceiver;
-                        if (vm != null)
-                        {
-                            try
-                            {
-                                vm.Dispose();
-                            }
-                            catch
-                            {
-                            }
-                            _winSyncStatus.DataContext = null;
-                        }
-
+                        _winSyncStatus.DataContext = null;
                         _winSyncStatus.AllowClose = true;
                         _winSyncStatus.Close();
                         _winSyncStatus = null;

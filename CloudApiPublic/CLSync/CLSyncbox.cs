@@ -177,6 +177,7 @@ namespace Cloud
         private readonly ReaderWriterLockSlim _propertyChangeLocker = new ReaderWriterLockSlim();  // for locking any reads and writes to the changeable properties.
         private readonly Helpers.ReplaceExpiredCredentials _getNewCredentialsCallback = null;
         private readonly object _getNewCredentialsCallbackUserState = null;
+        private readonly IEventMessageReceiver _liveSyncStatusReceiver = null;
 
         #endregion  // end Private Fields
 
@@ -463,7 +464,8 @@ namespace Cloud
         /// <param name="syncboxId">The syncbox ID.</param>
         /// <param name="credentials">The credentials to use to create this syncbox.</param>
         /// <param name="path">(optional) The full path on disk of the folder to associate with this syncbox. The path is used only for live sync only.</param>
-        /// <param name="settings">(optional)The settings to use.</param>
+        /// <param name="settings">(optional) The settings to use.</param>
+        /// <param name="liveSyncStatusReceiver">(optional) The object to receive live sync status event.</param>
         /// <param name="getNewCredentialsCallback">(optional) The delegate to call for getting new temporary credentials.</param>
         /// <param name="getNewCredentialsCallbackUserState">(optional) The user state to pass to the delegate above.</param>
         private CLSyncbox(
@@ -471,6 +473,7 @@ namespace Cloud
             CLCredentials credentials,
             string path = null,
             ICLSyncSettings settings = null,
+            IEventMessageReceiver liveSyncStatusReceiver = null,
             Helpers.ReplaceExpiredCredentials getNewCredentialsCallback = null,
             object getNewCredentialsCallbackUserState = null)
         {
@@ -500,6 +503,8 @@ namespace Cloud
             {
                 throw new CLArgumentNullException(CLExceptionCode.Syncbox_DeviceId, Resources.CLHttpRestDeviceIDCannotBeNull);
             }
+
+            this._liveSyncStatusReceiver = liveSyncStatusReceiver;
 
             // Initialize trace in case it is not already initialized.
             CLTrace.Initialize(this._copiedSettings.TraceLocation, "Cloud", Resources.IconOverlayLog, this._copiedSettings.TraceLevel, this._copiedSettings.LogErrors);
@@ -537,12 +542,14 @@ namespace Cloud
         /// <param name="syncboxContract">The syncbox contract to use.</param>
         /// <param name="credentials">The credentials to use.</param>
         /// <param name="settings">(optional) The settings to use.</param>
+        /// <param name="liveSyncStatusReceiver">(optional) The object to receive live sync status event.</param>
         /// <param name="getNewCredentialsCallback">(optional) The delegate to call for getting new temporary credentials.</param>
         /// <param name="getNewCredentialsCallbackUserState">(optional) The user state to pass to the delegate above.</param>
         private CLSyncbox(
             JsonContracts.Syncbox syncboxContract,
             CLCredentials credentials,
             ICLSyncSettings settings = null,
+            IEventMessageReceiver liveSyncStatusReceiver = null,
             Helpers.ReplaceExpiredCredentials getNewCredentialsCallback = null,
             object getNewCredentialsCallbackUserState = null)
         {
@@ -577,6 +584,8 @@ namespace Cloud
                 this._copiedSettings = settings.CopySettings();
             }
 
+            this._liveSyncStatusReceiver = liveSyncStatusReceiver;
+
             // Initialize trace in case it is not already initialized.
             CLTrace.Initialize(this._copiedSettings.TraceLocation, "Cloud", Resources.IconOverlayLog, this._copiedSettings.TraceLevel, this._copiedSettings.LogErrors);
             _trace.writeToLog(1, "CLSyncbox: Constructing from contract...");
@@ -609,6 +618,7 @@ namespace Cloud
         /// <param name="credentials">The credentials to use with this request.</param>
         /// <param name="path">(optional) The full path of the folder on disk to associate with this syncbox.  The path is used only for live sync.</param>
         /// <param name="settings">(optional) settings to use with this method.</param>
+        /// <param name="liveSyncStatusReceiver">(optional) The object to receive live sync status event.</param>
         /// <param name="getNewCredentialsCallback">(optional) A delegate which will be called to retrieve a new set of credentials when credentials have expired.</param>
         /// <param name="getNewCredentialsCallbackUserState">(optional) The user state to pass as a parameter to the delegate above.</param>
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
@@ -619,6 +629,7 @@ namespace Cloud
             CLCredentials credentials,
             string path = null,
             ICLSyncSettings settings = null,
+            IEventMessageReceiver liveSyncStatusReceiver = null,
             Helpers.ReplaceExpiredCredentials getNewCredentialsCallback = null,
             object getNewCredentialsCallbackUserState = null)
         {
@@ -636,6 +647,7 @@ namespace Cloud
                     credentials = credentials,
                     path = path,
                     settings = settings,
+                    liveSyncStatusReceiver = liveSyncStatusReceiver,
                     getNewCredentialsCallback = getNewCredentialsCallback,
                     getNewCredentialsCallbackUserState = getNewCredentialsCallbackUserState
                 },
@@ -654,6 +666,7 @@ namespace Cloud
                             out response,
                             Data.path,
                             Data.settings,
+                            Data.liveSyncStatusReceiver,
                             Data.getNewCredentialsCallback,
                             Data.getNewCredentialsCallbackUserState);
 
@@ -700,6 +713,7 @@ namespace Cloud
         /// <param name="syncbox">(output) Created local object representation of the Syncbox</param>
         /// <param name="path">(optional) The full path of the folder on disk to associate with this syncbox.  The path is used only for live sync.</param>
         /// <param name="settings">(optional) Settings to use with this request.</param>
+        /// <param name="liveSyncStatusReceiver">(optional) The object to receive live sync status event.</param>
         /// <param name="getNewCredentialsCallback">(optional) A delegate that will be called to provide new credentials when the current credentials token expires.</param>
         /// <param name="getNewCredentialsCallbackUserState">(optional) The user state that will be passed back to the getNewCredentialsCallback delegate.</param>
         /// <returns>Returns any error which occurred during object allocation or initialization, if any, or null.</returns>
@@ -709,6 +723,7 @@ namespace Cloud
             out CLSyncbox syncbox,
             string path = null,
             ICLSyncSettings settings = null,
+            IEventMessageReceiver liveSyncStatusReceiver = null,
             Helpers.ReplaceExpiredCredentials getNewCredentialsCallback = null,
             object getNewCredentialsCallbackUserState = null)
         {
@@ -732,6 +747,7 @@ namespace Cloud
                     credentials: credentials,
                     path: path,
                     settings: settings,
+                    liveSyncStatusReceiver: liveSyncStatusReceiver,
                     getNewCredentialsCallback: getNewCredentialsCallback,
                     getNewCredentialsCallbackUserState: getNewCredentialsCallbackUserState);
             }
@@ -807,46 +823,80 @@ namespace Cloud
                         debugFileMonitorMemoryValue = debugFileMonitorMemory.Value;
                     }
 
-                    // Create the sync engine for this syncbox instance
-                    _syncEngine = new CLSyncEngine(this, debugDependenciesValue, copyDatabaseBetweenChangesValue, debugFileMonitorMemoryValue); // syncbox to sync (contains required settings)
+                    // Subscribe to the live sync events if the user wants them.
+                    if (_liveSyncStatusReceiver != null)
+                    {
+                        CLError errorFromSubscribe = MessageEvents.SubscribeMessageReceiver(this.SyncboxId, _copiedSettings.DeviceId, _liveSyncStatusReceiver);
+                        if (errorFromSubscribe != null)
+                        {
+                            throw new CLInvalidOperationException(CLExceptionCode.Syncbox_SubscribingToLiveSyncStatusReceiver, Resources.ExceptionSyncboxErrorSubscribingToLiveSyncStatusMessages);
+                        }
+                    }
 
                     try
                     {
-                        _syncMode = mode;
+                        // Create the sync engine for this syncbox instance
+                        _syncEngine = new CLSyncEngine(this, debugDependenciesValue, copyDatabaseBetweenChangesValue, debugFileMonitorMemoryValue); // syncbox to sync (contains required settings)
 
-                        // Start the sync engine
-                        CLError syncEngineStartError = _syncEngine.Start(
-                            statusUpdated: syncStatusChangedCallback, // called when sync status is updated
-                            statusUpdatedUserState: syncStatusChangedCallbackUserState); // the user state passed to the callback above
-
-                        if (syncEngineStartError != null)
+                        try
                         {
-                            _trace.writeToLog(1, "Error starting sync engine. Msg: {0}. Code: {1}.", syncEngineStartError.PrimaryException.Message, syncEngineStartError.PrimaryException.Code);
-                            syncEngineStartError.Log(_copiedSettings.TraceLocation, _copiedSettings.LogErrors);
-                            startExceptionLogged = true;
-                            throw new CLException(syncEngineStartError.PrimaryException.Code, Resources.ExceptionCLSyncboxBeginSyncStartEngine, syncEngineStartError.Exceptions);
+                            _syncMode = mode;
+
+                            // Start the sync engine
+                            CLError syncEngineStartError = _syncEngine.Start(
+                                statusUpdated: syncStatusChangedCallback, // called when sync status is updated
+                                statusUpdatedUserState: syncStatusChangedCallbackUserState); // the user state passed to the callback above
+
+                            if (syncEngineStartError != null)
+                            {
+                                _trace.writeToLog(1, "CLSyncbox: StartLiveSync: Error starting sync engine. Msg: {0}. Code: {1}.", syncEngineStartError.PrimaryException.Message, syncEngineStartError.PrimaryException.Code);
+                                syncEngineStartError.Log(_copiedSettings.TraceLocation, _copiedSettings.LogErrors);
+                                startExceptionLogged = true;
+                                throw new CLException(syncEngineStartError.PrimaryException.Code, Resources.ExceptionCLSyncboxBeginSyncStartEngine, syncEngineStartError.Exceptions);
+                            }
                         }
+                        catch
+                        {
+                            if (this._syncEngine != null)
+                            {
+                                try
+                                {
+                                    this._syncEngine.Stop();
+                                }
+                                catch
+                                {
+                                }
+                                this._syncEngine = null;
+                            }
+
+                            throw;
+                        }
+
+                        // The sync engines started with syncboxes must be tracked statically so we can stop them all when the application terminates (in the ShutDown) method.
+                        _startedSyncEngines.Add(_syncEngine);
+                        _isStarted = true;
                     }
                     catch
                     {
-                        if (this._syncEngine != null)
+                        // Unsubscribe from live sync status messages.
+                        try
                         {
-                            try
+                            // Subscribe to the live sync events if the user wants them.
+                            if (_liveSyncStatusReceiver != null)
                             {
-                                this._syncEngine.Stop();
+                                CLError errorFromUnsubscribe = MessageEvents.UnsubscribeMessageReceiver(this.SyncboxId, _copiedSettings.DeviceId);
+                                if (errorFromUnsubscribe != null)
+                                {
+                                    _trace.writeToLog(1, "CLSyncbox: StopLiveSync: ERROR.  From UnsubscribeMessageReceiver.  Msg: <{0}>. Code: {1}.", errorFromUnsubscribe.PrimaryException.Message, errorFromUnsubscribe.PrimaryException.Code);
+                                }
                             }
-                            catch
-                            {
-                            }
-                            this._syncEngine = null;
                         }
-
+                        catch
+                        {
+                        }
+                        
                         throw;
                     }
-
-                    // The sync engines started with syncboxes must be tracked statically so we can stop them all when the application terminates (in the ShutDown) method.
-                    _startedSyncEngines.Add(_syncEngine);
-                    _isStarted = true;
                 }
             }
             catch (Exception ex)
@@ -855,7 +905,7 @@ namespace Cloud
                 if (!startExceptionLogged)
                 {
                     toReturn.Log(_copiedSettings.TraceLocation, _copiedSettings.LogErrors);
-                    _trace.writeToLog(1, "CLSyncbox: StartSync: ERROR.  Exception.  Msg: {0}. Code: {1}.", toReturn.PrimaryException.Message, toReturn.PrimaryException.Code);
+                    _trace.writeToLog(1, "CLSyncbox: StartLiveSync: ERROR.  Exception.  Msg: {0}. Code: {1}.", toReturn.PrimaryException.Message, toReturn.PrimaryException.Code);
                 }
                 return toReturn;
             }
@@ -866,19 +916,20 @@ namespace Cloud
         /// <summary>
         /// Stop live sync.
         /// </summary>
+        /// <returns>Returns any error that may occur, or null.</returns>
         /// <remarks>Note that after stopping it is possible to call SartLiveSync() again to restart syncing.</remarks>
-        public void StopLiveSync()
+        public CLError StopLiveSync()
         {
-            CheckDisposed();
-
             try
             {
+                CheckDisposed();
+
                 lock (_startLocker)
                 {
                     if (!_isStarted
                         || _syncEngine == null)
                     {
-                        return;
+                        return null;
                     }
 
                     try
@@ -894,6 +945,23 @@ namespace Cloud
                     _syncEngine = null;
                     _startedSyncEngines.Remove(_syncEngine);
 
+                    // Unsubscribe from live sync status messages.
+                    try
+                    {
+                        // Subscribe to the live sync events if the user wants them.
+                        if (_liveSyncStatusReceiver != null)
+                        {
+                            CLError errorFromUnsubscribe = MessageEvents.UnsubscribeMessageReceiver(this.SyncboxId, _copiedSettings.DeviceId);
+                            if (errorFromUnsubscribe != null)
+                            {
+                                _trace.writeToLog(1, "CLSyncbox: StopLiveSync: ERROR.  From UnsubscribeMessageReceiver.  Msg: <{0}>. Code: {1}.", errorFromUnsubscribe.PrimaryException.Message, errorFromUnsubscribe.PrimaryException.Code);
+                            }
+                        }
+                    }
+                    catch
+                    {
+                    }
+
                     _isStarted = false;
                 }
             }
@@ -901,8 +969,11 @@ namespace Cloud
             {
                 CLError error = ex;
                 error.Log(_copiedSettings.TraceLocation, _copiedSettings.LogErrors);
-                _trace.writeToLog(1, "CLSyncbox: StopSync: ERROR.  Exception.  Msg: <{0}>. Code: {1}.", error.PrimaryException.Message, error.PrimaryException.Code);
+                _trace.writeToLog(1, "CLSyncbox: StopLiveSync: ERROR.  Exception.  Msg: <{0}>. Code: {1}.", error.PrimaryException.Message, error.PrimaryException.Code);
+                return error;
             }
+
+            return null;
         }
 
         /// <summary>
@@ -1108,6 +1179,7 @@ namespace Cloud
         /// <param name="path">(optional) The full path of the folder on disk to associate with this syncbox.  The path is used only for live sync.</param>
         /// <param name="friendlyName">(optional) The friendly name of the Syncbox.</param>
         /// <param name="settings">(optional) Settings to use with this method.</param>
+        /// <param name="liveSyncStatusReceiver">(optional) The object to receive live sync status event.</param>
         /// <param name="getNewCredentialsCallback">(optional) The callback function that will provide new credentials with temporary credentials expire.</param>
         /// <param name="getNewCredentialsCallbackUserState">(optional) The user state that will be passed as a parameter to the callback function above.</param>
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
@@ -1119,6 +1191,7 @@ namespace Cloud
                     string path = null,
                     string friendlyName = null,
                     ICLSyncSettings settings = null,
+                    IEventMessageReceiver liveSyncStatusReceiver = null,
                     Helpers.ReplaceExpiredCredentials getNewCredentialsCallback = null,
                     object getNewCredentialsCallbackUserState = null)
         {
@@ -1136,6 +1209,7 @@ namespace Cloud
                     friendlyName = friendlyName,
                     credentials = credentials,
                     settings = settings,
+                    liveSyncStatusReceiver = liveSyncStatusReceiver,
                     getNewCredentialsCallback = getNewCredentialsCallback,
                     getNewCredentialsCallbackUserState = getNewCredentialsCallbackUserState
                 },
@@ -1154,6 +1228,7 @@ namespace Cloud
                             path,
                             Data.friendlyName,
                             Data.settings,
+                            Data.liveSyncStatusReceiver,
                             Data.getNewCredentialsCallback,
                             Data.getNewCredentialsCallbackUserState);
 
@@ -1200,6 +1275,7 @@ namespace Cloud
         /// <param name="path">(optional) The path on the local disk to associate with this syncbox.  The path is used only for live sync.</param>
         /// <param name="friendlyName">(optional) The friendly name of the Syncbox.</param>
         /// <param name="settings">(optional) The settings to use with this method</param>
+        /// <param name="liveSyncStatusReceiver">(optional) The object to receive live sync status event.</param>
         /// <param name="getNewCredentialsCallback">(optional) The callback function that will provide new credentials with temporary credentials expire.</param>
         /// <param name="getNewCredentialsCallbackUserState">(optional) The user state that will be passed as a parameter to the callback function above.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
@@ -1210,6 +1286,7 @@ namespace Cloud
                     string path = null,
                     string friendlyName = null,
                     ICLSyncSettings settings = null,
+                    IEventMessageReceiver liveSyncStatusReceiver = null,
                     Helpers.ReplaceExpiredCredentials getNewCredentialsCallback = null,
                     object getNewCredentialsCallbackUserState = null)
         {
@@ -1274,6 +1351,7 @@ namespace Cloud
                     syncboxContract: responseFromServer.Syncbox,
                     credentials: credentials,
                     settings: copiedSettings,
+                    liveSyncStatusReceiver: liveSyncStatusReceiver,
                     getNewCredentialsCallback: getNewCredentialsCallback,
                     getNewCredentialsCallbackUserState: getNewCredentialsCallbackUserState);
 
@@ -1443,6 +1521,7 @@ namespace Cloud
         /// <param name="asyncCallbackUserState">User state to pass as a parameter to the callback when it is fired.</param>
         /// <param name="credentials">The credentials to use with this request.</param>
         /// <param name="settings">(optional) settings to use with this method.</param>
+        /// <param name="liveSyncStatusReceiver">(optional) The object to receive live sync status event.</param>
         /// <param name="getNewCredentialsCallback">(optional) The delegate to call for getting new temporary credentials.</param>
         /// <param name="getNewCredentialsCallbackUserState">(optional) The user state to pass to the delegate above.</param>
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
@@ -1451,6 +1530,7 @@ namespace Cloud
             object asyncCallbackUserState,
             CLCredentials credentials,
             ICLCredentialsSettings settings = null,
+            IEventMessageReceiver liveSyncStatusReceiver = null,
             Helpers.ReplaceExpiredCredentials getNewCredentialsCallback = null,
             object getNewCredentialsCallbackUserState = null)
         {
@@ -1466,6 +1546,7 @@ namespace Cloud
                         asyncCallbackUserState),
                     credentials = credentials,
                     settings = settings,
+                    liveSyncStatusReceiver = liveSyncStatusReceiver,
                     getNewCredentialsCallback = getNewCredentialsCallback,
                     getNewCredentialsCallbackUserState = getNewCredentialsCallbackUserState,
                 },
@@ -1481,6 +1562,7 @@ namespace Cloud
                             Data.credentials,
                             out returnedSyncboxes,
                             Data.settings,
+                            Data.liveSyncStatusReceiver,
                             Data.getNewCredentialsCallback,
                             Data.getNewCredentialsCallbackUserState);
 
@@ -1525,6 +1607,7 @@ namespace Cloud
         /// <param name="credentials">The credentials to use for this request.</param>
         /// <param name="returnedSyncboxes">(output) The returned array of syncboxes.</param>
         /// <param name="settings">(optional) the settings to use with this method</param>
+        /// <param name="liveSyncStatusReceiver">(optional) The object to receive live sync status event.</param>
         /// <param name="getNewCredentialsCallback">(optional) The delegate to call for getting new temporary credentials.</param>
         /// <param name="getNewCredentialsCallbackUserState">(optional) The user state to pass to the delegate above.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
@@ -1533,6 +1616,7 @@ namespace Cloud
             CLCredentials credentials,
             out CLSyncbox[] returnedSyncboxes,
             ICLCredentialsSettings settings = null,
+            IEventMessageReceiver liveSyncStatusReceiver = null,
             Helpers.ReplaceExpiredCredentials getNewCredentialsCallback = null,
             object getNewCredentialsCallbackUserState = null)
         {
@@ -1571,10 +1655,11 @@ namespace Cloud
                         {
                             listSyncboxes.Add(
                                 new CLSyncbox(syncbox,
-                                    credentials,
-                                    copiedSettings,
-                                    getNewCredentialsCallback,
-                                    getNewCredentialsCallbackUserState));
+                                    credentials: credentials,
+                                    settings: copiedSettings,
+                                    liveSyncStatusReceiver: liveSyncStatusReceiver,
+                                    getNewCredentialsCallback: getNewCredentialsCallback,
+                                    getNewCredentialsCallbackUserState: getNewCredentialsCallbackUserState));
                         }
                         else
                         {
@@ -4060,7 +4145,7 @@ namespace Cloud
         #endregion  // end Private Instance Support Functions
 
         #region IDisposable Support
-		 
+
         /// <summary>
         /// Destructor
         /// </summary>
@@ -4112,6 +4197,9 @@ namespace Cloud
                 // Run dispose on inner managed objects based on disposing condition
                 if (disposing)
                 {
+                    // Stop live sync
+                    StopLiveSync();
+
                     // cleanup inner managed objects
                     if (_propertyChangeLocker != null)
                     {

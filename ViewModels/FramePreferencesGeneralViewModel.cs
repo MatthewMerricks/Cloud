@@ -84,7 +84,6 @@ namespace win_client.ViewModels
                         // Report error here
                         return;
                     }
-                    //&&&&               WelcomeTitle = item.Title;
                 });
 
             //TODO: Move the list of languages to a more appropriate place.

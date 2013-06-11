@@ -264,6 +264,11 @@ namespace Cloud.Static
         /// </summary>
         Syncbox_NotFoundForId = (((ulong)CLExceptionDomain.Syncbox) << 32) | 24, // 2_24
 
+        /// <summary>
+        /// Error subscribing to live sync status messages.  Bad liveSyncStatusReceiver to CLSyncbox.AllocAndInit, or bad DeviceId in settings
+        /// </summary>
+        Syncbox_SubscribingToLiveSyncStatusReceiver = (((ulong)CLExceptionDomain.Syncbox) << 32) | 25, // 2_25
+
         #endregion
 
         #region ShellExt

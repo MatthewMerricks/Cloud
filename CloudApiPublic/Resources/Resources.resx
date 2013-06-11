@@ -3076,4 +3076,8 @@
   <data name="IconOverlaySetBadgeTypeNewTypeIsSynced" xml:space="preserve">
     <value>Badge is synced</value>
   </data>
+  <data name="ExceptionSyncboxErrorSubscribingToLiveSyncStatusMessages" xml:space="preserve">
+    <value>Error subscribing to live sync status messages.  Bad liveSyncStatusReceiver to CLSyncbox.AllocAndInit, or bad DeviceId in settings</value>
+    <comment>"liveSyncStatusReceiver", "CLSyncbox.AllocAndInit", "DeviceId", and "settings" should not be translated</comment>
+  </data>
 </root>

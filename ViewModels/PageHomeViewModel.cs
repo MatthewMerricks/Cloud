@@ -76,8 +76,6 @@ namespace win_client.ViewModels
                         // Report error here
                         return;
                     }
-
-                    //&&&&               WelcomeTitle = item.Title;
                 });
 
         }
@@ -441,28 +439,12 @@ namespace win_client.ViewModels
 
         private void SaveAccountInformationWithAccount(CLAccount acct, string deviceName, string uuid, string key, string udid)
         {
-            // Merged 7/11/12
-            // NSString *userName = [[account fullName] stringByAppendingFormat:@" (%@)", [account userName]];
-            // NSMutableDictionary *accountDict = [NSMutableDictionary dictionary];
-            // [accountDict setValue:userName forKey:@"user_name"];
-            // [accountDict setValue:deviceName forKey:@"device_name"];
-            // [accountDict setValue:key forKey:@"akey"];
-            // [accountDict setValue:[NSNumber numberWithBool:YES] forKey:@"r_udid"];
-            // [accountDict setValue:uuid forKey:@"uuid"];
-            // [[CLSettings sharedSettings] saveAccountSettings:accountDict];
-            //&&&&
-
             // NSString *userName = [[account fullName] stringByAppendingFormat:@" (%@)", [account userName]];
             string userName = acct.FullName + String.Format(" ({0})", acct.UserName);
 
             // NSMutableDictionary *accountDict = [NSMutableDictionary dictionary];
             Dictionary<string, object> accountDict = new Dictionary<string,object>();
 
-            // [accountDict setValue:userName forKey:@"user_name"];
-            // [accountDict setValue:deviceName forKey:@"device_name"];
-            // [accountDict setValue:key forKey:@"akey"];
-            // [accountDict setValue:[NSNumber numberWithBool:YES] forKey:@"r_udid"];
-            // [accountDict setValue:uuid forKey:@"uuid"];
             accountDict.Add(Settings.kUserName, userName);
             accountDict.Add(Settings.kDeviceName, deviceName);
             accountDict.Add(Settings.kAKey, key);

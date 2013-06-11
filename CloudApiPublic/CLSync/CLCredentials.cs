@@ -1098,7 +1098,6 @@ namespace Cloud
                     // try/catch to process with the input parameters, on catch set the exception in the asyncronous result
                     try
                     {
-                        //&&&& Check this.
                         // declare the output status for communication
                         CLExceptionCode status;
                         // declare the specific type of response for this operation

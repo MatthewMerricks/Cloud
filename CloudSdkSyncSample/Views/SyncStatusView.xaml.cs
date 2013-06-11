@@ -133,11 +133,7 @@ namespace SampleLiveSync.Views
         {
             // Unload the event receiver
             _trace.writeToLog(9, "WindowSyncStatus: WindowSyncStatus_Unloaded: Entry.");
-            if (_vm != null)
-            {
-                _vm.Dispose();
-                _vm = null;
-            }
+            _vm = null;
 
             if (_vmOurs != null)
             {

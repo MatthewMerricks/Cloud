@@ -73,8 +73,6 @@ namespace win_client.ViewModels
                         // Report error here
                         return;
                     }
-
-                    //&&&&               WelcomeTitle = item.Title;
                 });
             _trace = CLAppDelegate.Instance.GetTrace();
 

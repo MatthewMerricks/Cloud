@@ -18,7 +18,7 @@ namespace SampleLiveSync.EventMessageReceiver
     /// <summary>
     /// View model for views to display changes from status changes, such as growls and sync status; split into partial classes for view-specific portions (i.e. Sync Status window)
     /// </summary>
-    public sealed partial class EventMessageReceiver : NotifiableObject<EventMessageReceiver>, IDisposable, IEventMessageReceiver
+    public sealed partial class EventMessageReceiver : NotifiableObject<EventMessageReceiver>, IEventMessageReceiver
     {
         // timer repeat delay for processing loop which recalculates timing for animations for fading growls in and out
         private const int MessageTimerDelayMilliseconds = 250;
@@ -205,10 +205,6 @@ namespace SampleLiveSync.EventMessageReceiver
         // define the time at which the growl will have completed faded out when it will no longer be visible, defaulting to none
         private Nullable<DateTime> lastFadeOutCompletion = null;
 
-        // Identifies this EventMessageReceiver in the MessageEvents filter
-        private readonly long SyncboxId;
-        private readonly string DeviceId;
-
         // Delegates
         private readonly GetHistoricBandwidthSettings _getHistoricBandwidthSettingsDelegate;
         private readonly SetHistoricBandwidthSettings _setHistoricBandwidthSettingsDelegate;
@@ -220,17 +216,12 @@ namespace SampleLiveSync.EventMessageReceiver
         private bool keepGrowlOpaque = false;
         #endregion
 
-        // define a bool for whether this message receiver has been disposed, defaulting to false
-        private bool isDisposed = false;
-
         #endregion
  
         /// <summary>
         /// Create a new EventMessageReceiver ViewModel.  Optionally use this ViewModel with your sync status controls.
         /// It exposes three ObservableCollections (ListFilesDownloading, ListFilesUploading and ListMessages).
         /// </summary>
-        /// <param name="SyncboxId">The ID of the related CLSyncbox.</param>
-        /// <param name="DeviceId">The ID of the related device.</param>
         /// <param name="receiver">(output) The created EventMessageReceiver, or null.</param>
         /// <param name="getHistoricBandwidthSettings">(optional) Your callback method to retrieve the historic bandwidth for upload and download from persistent storage.</param>
         /// <param name="setHistoricBandwidthSettings">(optional) Your callback method to persist the historic bandwidth for upload and download.</param>
@@ -239,8 +230,6 @@ namespace SampleLiveSync.EventMessageReceiver
         /// <param name="OverrideDefaultMaxStatusMessages">(optional) The maximum number of messages that will be maintained in ListMessages.</param>
         /// <returns>CLError: Any error that occurs, with exception information, or null.</returns>
         public static CLError AllocAndInit(
-            long SyncboxId,
-            string DeviceId,
             out EventMessageReceiver receiver,
             GetHistoricBandwidthSettings getHistoricBandwidthSettings = null,
             SetHistoricBandwidthSettings setHistoricBandwidthSettings = null,
@@ -250,8 +239,7 @@ namespace SampleLiveSync.EventMessageReceiver
         {
             try
             {
-                receiver = new EventMessageReceiver(SyncboxId,
-                    DeviceId,
+                receiver = new EventMessageReceiver(
                     getHistoricBandwidthSettings,
                     setHistoricBandwidthSettings,
                     OverrideImportanceFilterNonErrors,
@@ -266,28 +254,15 @@ namespace SampleLiveSync.EventMessageReceiver
             return null;
         }
         private EventMessageReceiver(
-            long SyncboxId,
-            string DeviceId,
             GetHistoricBandwidthSettings getHistoricBandwidthSettings,
             SetHistoricBandwidthSettings setHistoricBandwidthSettings,
             Nullable<EventMessageLevel> OverrideImportanceFilterNonErrors,
             Nullable<EventMessageLevel> OverrideImportanceFilterErrors,
             Nullable<int> OverrideDefaultMaxStatusMessages)
         {
-            CLError subscriptionError = MessageEvents.SubscribeMessageReceiver(SyncboxId,
-                DeviceId,
-                this);
-            if (subscriptionError != null)
-            {
-                throw new AggregateException("Error subscribing this receiver to MessageEvents", subscriptionError.Exceptions);
-            }
-
             // Save the parameters to private fields.
             _getHistoricBandwidthSettingsDelegate = getHistoricBandwidthSettings;
             _setHistoricBandwidthSettingsDelegate = setHistoricBandwidthSettings;
-
-            this.SyncboxId = SyncboxId;
-            this.DeviceId = DeviceId;
 
             // changes made upon construction for other partial class portions should be handled via a ConstructedHolder (see the next custom construction setter directly below)
 
@@ -532,50 +507,7 @@ namespace SampleLiveSync.EventMessageReceiver
         }
         #endregion
 
-        #region IDisposable members
-        // Standard IDisposable implementation based on MSDN System.IDisposable
-        ~EventMessageReceiver()
-        {
-            Dispose(false);
-        }
-        // Standard IDisposable implementation based on MSDN System.IDisposable
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-        #endregion
-
         #region private methods
-        // Standard IDisposable implementation based on MSDN System.IDisposable
-        private void Dispose(bool disposing)
-        {
-            // lock on instance locker for changing EventMessageReceiver so it cannot be stopped/started simultaneously
-            lock (_locker)
-            {
-                try
-                {
-                    if (!isDisposed)
-                    {
-                        MessageEvents.UnsubscribeMessageReceiver(
-                            SyncboxId,
-                            DeviceId);
-                    }
-                }
-                catch
-                {
-                }
-
-                if (!isDisposed)
-                {
-                    // set delay completed so processing will not fire
-                    isDisposed = true;
-
-                    // Dispose local unmanaged resources last
-                }
-            }
-        }
-
         // handler for the command for when a growl was clicked, looks for another ICommand as the parameter to fire again
         private void ClickedGrowl(object state)
         {
@@ -745,15 +677,6 @@ namespace SampleLiveSync.EventMessageReceiver
                 // loop indefinitely to check for the mouse leaving the growl FrameworkElement
                 while (true)
                 {
-                    // lock on the message receiver to check disposal which will stop processing
-                    lock (thisReceiver)
-                    {
-                        if (thisReceiver.isDisposed)
-                        {
-                            return;
-                        }
-                    }
-
                     // lock on whether the message receiver captured the mouse to check if it is no longer supposed to check which will stop processing
                     lock (thisReceiver.growlCapturedMouse)
                     {
@@ -942,15 +865,6 @@ namespace SampleLiveSync.EventMessageReceiver
             // else if this is the UI thread, then add the growl message
             else
             {
-                // check for disposal and return if disposed
-                lock (this)
-                {
-                    if (isDisposed)
-                    {
-                        return;
-                    }
-                }
-
                 bool needToStartTimer = false;
 
                 // lock on growl messages for modification
@@ -1239,15 +1153,6 @@ namespace SampleLiveSync.EventMessageReceiver
             // else if this is the UI thread, then remove the growl messages
             else
             {
-                // check for disposal and return if disposed
-                lock (this)
-                {
-                    if (isDisposed)
-                    {
-                        return;
-                    }
-                }
-
                 // declare array for copying the input enumerable
                 EventMessage[] toRemoveArray;
                 // if the input enumerable exists and, upon copying it to an array, has at least one message, then remove the messages
@@ -1320,15 +1225,6 @@ namespace SampleLiveSync.EventMessageReceiver
                 // loop until a message is not found which should still continue to be displayed
                 while (foundMessage)
                 {
-                    // check if the receiver has been disposed to stop processing (return)
-                    lock (currentReceiver)
-                    {
-                        if (currentReceiver.isDisposed)
-                        {
-                            return;
-                        }
-                    }
-
                     // declare whether the mouse is hovering over the growl since if so it will need to remain opaque regardless of messages
                     bool skipCalculate;
                     // lock on the mouse capturing to see if the mouse is hovering over the growl (meaning it is kept opaque) and set whether to skip calculation by the mouse hovering over
