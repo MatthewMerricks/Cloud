@@ -4536,7 +4536,7 @@ namespace Cloud.Static
                 return toReturn;
                 #endregion
             }
-            catch
+            catch (Exception ex)
             {
                 // if there was an event for the upload or download, then fire the event callback for a final transfer status
                 if (uploadDownload != null

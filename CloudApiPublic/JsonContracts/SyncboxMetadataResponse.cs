@@ -12,6 +12,7 @@ using System.Runtime.Serialization;
 using System.Text;
 using Cloud.Model;
 using Cloud.Static;
+using System.Reflection;
 
 namespace Cloud.JsonContracts
 {
@@ -19,6 +20,7 @@ namespace Cloud.JsonContracts
     /// <summary>
     /// Result from <see cref="Cloud.CLSyncbox.GetMetadata"/>; also an inner object containing metadata properties for <see cref="FileChangeResponse"/>, <see cref="SyncboxFolderContentsResponse"/>, <see cref="FoldersResponse"/>, <see cref="SyncboxGetAllImageItemsResponse"/>, <see cref="SyncboxGetAllVideoItemsResponse"/>, <see cref="SyncboxGetAllAudioItemsResponse"/>, <see cref="Archives"/>, and <see cref="SyncboxGetRecentsResponse"/>
     /// </summary>
+    [Obfuscation(Exclude = true)]
     [DataContract]
     public sealed class SyncboxMetadataResponse
     {

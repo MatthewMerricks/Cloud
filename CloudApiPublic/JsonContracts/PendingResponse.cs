@@ -9,6 +9,7 @@ using Cloud.Static;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.Serialization;
 using System.Text;
 
@@ -17,6 +18,7 @@ namespace Cloud.JsonContracts
     /// <summary>
     /// Result from <see cref="Cloud.CLSyncbox.GetAllPending"/>
     /// </summary>
+    [Obfuscation(Exclude = true)]
     [DataContract]
     public sealed class PendingResponse
     {

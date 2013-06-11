@@ -10,6 +10,7 @@ using Cloud.Static;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.Serialization;
 using System.Text;
 
@@ -20,6 +21,7 @@ namespace Cloud.JsonContracts
     /// <see cref="Cloud.CLSyncbox.DeleteSyncbox"/>, and
     /// <see cref="Cloud.CLSyncbox.GetSyncboxStatus"/>
     /// </summary>
+    [Obfuscation(Exclude = true)]
     [DataContract]
     [ContainsMetadataDictionary] // within Syncbox Syncbox
     public sealed class SyncboxResponse

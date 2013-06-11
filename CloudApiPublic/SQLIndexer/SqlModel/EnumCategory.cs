@@ -11,10 +11,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Reflection;
 
 namespace Cloud.SQLIndexer.SqlModel
 {   // \cond
-    [SqlAccess.Class(CLDefinitions.EnumCategory_EnumCategories)]
+    [Obfuscation (Exclude=true)]
+    [SqlAccess.Class(CLDefinitions.SqlModel_EnumCategory)]
     public sealed class EnumCategory
     {
         [SqlAccess.Property]

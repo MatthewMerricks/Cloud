@@ -1,12 +1,15 @@
-﻿using System;
+﻿using Cloud.Static;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 
 namespace Cloud.SQLIndexer.SqlModel
 {
     // \cond
-    [SqlAccess.Class("ServerUids")]
+    [Obfuscation(Exclude = true)]
+    [SqlAccess.Class(CLDefinitions.SqlModel_SqlServerUid)]
     public sealed class SqlServerUid
     {
         [SqlAccess.Property]

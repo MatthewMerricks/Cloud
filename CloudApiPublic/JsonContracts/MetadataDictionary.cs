@@ -9,6 +9,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.Serialization;
 using System.Text;
 
@@ -19,6 +20,7 @@ namespace Cloud.JsonContracts
     /// Exposes all the properties as if it were an IDictionary&lt;string, object&gt; but does not implement any IEnumerable interface to prevent overriding serialization,
     /// Implicitly castable as <see cref="MetadataDictionary.MetadataDictionaryEnumerable"/> which implements IEnumerable&lt;KeyValuePair&lt;string, object&gt;&gt;
     /// </summary>
+    [Obfuscation(Exclude = true)]
     [Serializable]
     [KnownType(typeof(MetadataDictionary))]
     [KnownType(typeof(object[]))]

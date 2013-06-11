@@ -15,8 +15,8 @@ using System.Reflection;
 namespace Cloud.SQLIndexer.SqlModel
 {
     // \cond
-    //[Obfuscation(Feature = "preserve-name-binding")]
-    [SqlAccess.Class(CLDefinitions.SqlEnum_Events)]
+    [Obfuscation(Exclude = true)]
+    [SqlAccess.Class(CLDefinitions.SqlModel_SqlEnum)]
     public sealed class SqlEnum
     {
         [SqlAccess.Property]

@@ -19,6 +19,7 @@ using System.Reflection;
 
 namespace Cloud.Static
 {
+    [Obfuscation(Exclude=true)]
     internal static class NativeMethods
     {
         #region GetModuleFileName
@@ -703,7 +704,6 @@ namespace Cloud.Static
         [DllImport(WinSock2_32dll, CharSet = CharSet.Auto, SetLastError = true)]
         public extern static Int32 WSAGetLastError();
 
-
         [StructLayoutAttribute(LayoutKind.Sequential)]
         public sealed class OVERLAPPED
         {
@@ -729,8 +729,6 @@ namespace Cloud.Static
             public uint Offset;
             public uint OffsetHigh;
         }
-
-
 
         public enum WSACOMPLETIONTYPE : uint
         {
@@ -801,8 +799,6 @@ namespace Cloud.Static
         {
             public IntPtr lpOverlapped; // OVERLAPPED*
         }
-
-
 
         public const UInt32 SIO_NSP_NOTIFY_CHANGE = 0x88000019; //_WSAIOW(IOC_WS2,25) -> (IOC_IN|(x)|(y)) -> 0x80000000 | 0x08000000 | 25
         public const int LUP_RETURN_BLOB = 0x0200;

@@ -19,6 +19,7 @@ using System.Text;
 
 namespace Cloud.SQLIndexer.SqlModel
 {
+    [Obfuscation(Exclude = true)]
     internal static class SqlAccessor<T> where T : class
     {
         #region private static members

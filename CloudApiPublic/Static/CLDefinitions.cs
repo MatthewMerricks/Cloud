@@ -175,11 +175,12 @@ namespace Cloud.Static
         #endregion
 
         #region Attributes
-        internal const string EnumCategory_EnumCategories = "EnumCategories";
-        internal const string SqlEnum_Events = "Events";
-        internal const string EnumCategory_Enum = "Enums";
-        internal const string FileSystemObjects = "FileSystemObjects";
-        internal const string Sync_Syncs = "Syncs";
+        internal const string SqlModel_EnumCategory = "EnumCategories";
+        internal const string SqlModel_Event = "Events";
+        internal const string SqlModel_FileSystemObject = "FileSystemObjects";
+        internal const string SqlModel_SqlEnum = "Enums";
+        internal const string SqlModel_SqlServerUid = "ServerUids";
+        internal const string SqlModel_Sync = "Syncs";
         #endregion
 
         #region Platform Management operations
