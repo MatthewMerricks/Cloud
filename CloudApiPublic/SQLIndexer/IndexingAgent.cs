@@ -2335,10 +2335,15 @@ Helpers.DecryptString(non_pending, Encoding.ASCII.GetString(Convert.FromBase64St
                                 {
                                     if (updateSyncCounterOnlyText == null)
                                     {
-                                        updateSyncCounterOnlyText = new StringBuilder("UPDATE FileSystemObjects " +
-                                            "SET SyncCounter = ? " +
-                                            "WHERE SyncCounter IS NULL " +
-                                            "AND EventId IN (?");
+                                            //"UPDATE FileSystemObjects " +
+                                            //"SET SyncCounter = ? " +
+                                            //"WHERE SyncCounter IS NULL " +
+                                            //"AND EventId IN (?");
+                                        const string update_counter_only = "9tA4A9qheaxmqn5OBpSv86o8u/HE1U3uoVPGDIvO8uxFwbNTMjsBNV0TBKek0RAFUab8xxXZlQuV2kLxgXhnElSwWqSmpGztyZC587guim2SDYSZDbZBg1dwEDtWbZSjSDuOkIW9hZFE9MHpLB9KB/in4st6FXttI2o9R37bycGhQz7ttyUZis5pHcYkctSf+5ch9Xfx3J5cBteRs5tDXUdRc129bYzlkEBzO+kV1yF54WZAc4MqkIZ2wLKnjtPb";
+                                        updateSyncCounterOnlyText = new StringBuilder(
+                                            
+                                            Helpers.DecryptString(update_counter_only,Encoding.ASCII.GetString(Convert.FromBase64String(indexDBPassword))));
+
                                     }
                                     else
                                     {
@@ -2914,18 +2919,37 @@ Helpers.DecryptString(non_pending, Encoding.ASCII.GetString(Convert.FromBase64St
 
                                                 // action is update
                                                 default: //case (byte)2:
+
+                                                    //"SELECT " +
+                                                    //            SqlAccessor<FileSystemObject>.GetSelectColumns() + ", " +
+                                                    //            SqlAccessor<Event>.GetSelectColumns("Event") + ", " +
+                                                    //            SqlAccessor<FileSystemObject>.GetSelectColumns("Event.Previous", "Previouses") +
+                                                    //            " FROM FileSystemObjects" +
+                                                    //            " INNER JOIN Events ON FileSystemObjects.EventId = Events.EventId" +
+                                                    //            " LEFT OUTER JOIN FileSystemObjects Previouses ON Events.PreviousId = Previouses.FileSystemObjectId" +
+                                                    //            " WHERE Events.EventId = ?" + // <-- parameter 1
+                                                    //            " AND FileSystemObjects.ParentFolderId IS NOT NULL" +
+                                                    //            " LIMIT 1"
+
+                                                    const string rowexist = "XiF/n8DAmECRcpl1q3g5SOaFkrEO/c+iI1V66stCO9bB3hEK7nYGLuijwAsZ69MKnic6eyxsf+Dhl/eivVXxxImu7p3ZeiPkoWpKpw7GfpirlnO5pPnFAKd5rOvejfiQ+f+F7lY+YU/V1KMowxqZEGu1AajCX2H/4GUc3jQeSjD3dxwtLwJDcnn2QDUbUiXtDme/ofrrLG/Il/GuRa0InF7G4uAn1SZygmbHHk/QnpbQdC7DG7E8m07IMa7nVI/jp4bYUAI408ROMsmsPXhhgaKcimmirqjisCP2Uj3c1TLvIRXcCr1WUzg0TBWevK3b3+f3P67z6YZ6VJshTZy4S9vRxgSF/w2vt0MAb27FNlJ2yQqDnhUFp4JfhaeaRoKZGv0UsxXGWiLxNDBEDMEZ/4p3EvqyUO/TynHwFDNDg2VaJuiLJYYepCgRopHaMhl/FVSc+zb+btspNIiPGQaUHEFSKv65ThADVy3giKPeQh/VWKVVci1Flo/ren1+rNiChwJ/WTem5lynbdORDxTZ8zGt9zo8FE81xrS/7gW7BWw4HP7zBKrFvcOySQkahJ5KFwOD5YUcoKpY1LRki4EUFBXbOF5cLzQHAsiBM0drd9sl46BVwBig8Kh+yf6uy2dRclmsxBRvvXMvAYJLcwFsu1ehgqBVkey0pu4aTutu9vZC65007GiIY/zVvkTLJsOS7unp4lVb/X4LrXoAY2x2EnBZMJ2rZCHOZcgGkD8tBR6ooTx2uKe8S4ZsAtx+W1KSe2tNLe0+Ix2xyfqTrAJN+F2km/zoy/xyvVTU4YM1jSE=";
+                                                                                                             //"SELECT FileSystemObjects.FileSystemObjectId " +
+                                                            //    "FROM FileSystemObjects " +
+                                                            //    "WHERE CalculatedFullPath = ? " + // <-- parameter 1
+                                                            //    "ORDER BY " +
+                                                            //    "CASE WHEN FileSystemObjects.EventOrder IS NULL " +
+                                                            //    "THEN 0 " +
+                                                            //    "ELSE FileSystemObjects.EventOrder " +
+                                                            //    "END DESC " +
+                                                            //    "LIMIT 1",   
+                                                            
+                                                    const string prefer_last_if_pending = "AgH+ETlwi8JFbGkqRXjqdKTh9CEhp0rFMSM6QTpmaYxrMgdgf7inZdXwgEuqXuYM4A9CJRjJ2AJWbK+2XeEfjsHjbyLTBN0A1N3nA0Q4qVP0uGMmqUQs1DzVb0k/t0yviUThOpEJnR4tti5JOtKGZu3jV33vm9bG4dDytNjSuG1Arkw0A8KkAVJV75pGFQc9fJ8cB0eojXobzXVwGDfd1M3XbIPz5RBFb+Y7q6pGyKyiG3q8AcBk17qqV9gk8beZoaw+1fNtJHZB5VZQ5zFjOf9pdSXoLvOzfo1lx7OQL0eXqlckyuEcHqBAfjeWPpZWlaOcuSb86Ou5naD3DgT3bc8GNKXEHKcQX3OKVx0djyfl+KLj3kJILd7X3eN2iPk061qLSJzdE0K76bkOMRbRRDU2w+JnkOnnjR8ms2C7msRiyBBNu646pdrccyW87JosgFnC9Le2en3g7z3DlN8pjuuS0FTLAJoAbUruhADCgP41d28hJ/3Y10R7Rgs0EPM5SfYwQtFc7oD+dfOvvkLFKUpY70OQhtxDQoSycdwHFKtizz1SClY+GcLzA7Kwe1ivDxse/P7vpi5eKvywQgURTA==";
+
                                                     FileSystemObject existingRow = SqlAccessor<FileSystemObject>.SelectResultSet(
                                                             castTransaction.sqlConnection,
-                                                            "SELECT " +
-                                                                SqlAccessor<FileSystemObject>.GetSelectColumns() + ", " +
-                                                                SqlAccessor<Event>.GetSelectColumns("Event") + ", " +
-                                                                SqlAccessor<FileSystemObject>.GetSelectColumns("Event.Previous", "Previouses") +
-                                                                " FROM FileSystemObjects" +
-                                                                " INNER JOIN Events ON FileSystemObjects.EventId = Events.EventId" +
-                                                                " LEFT OUTER JOIN FileSystemObjects Previouses ON Events.PreviousId = Previouses.FileSystemObjectId" +
-                                                                " WHERE Events.EventId = ?" + // <-- parameter 1
-                                                                " AND FileSystemObjects.ParentFolderId IS NOT NULL" +
-                                                                " LIMIT 1",
+
+                                                            String.Format(Helpers.DecryptString(rowexist, Encoding.ASCII.GetString(Convert.FromBase64String(indexDBPassword))), SqlAccessor<FileSystemObject>.GetSelectColumns(), SqlAccessor<Event>.GetSelectColumns("Event"), SqlAccessor<FileSystemObject>.GetSelectColumns("Event.Previous", "Previouses")),
+
+
                                                             new[]
                                                         {
                                                             "Event",
@@ -2959,15 +2983,10 @@ Helpers.DecryptString(non_pending, Encoding.ASCII.GetString(Convert.FromBase64St
                                                         // prefer latest event even if pending
                                                         else if (!SqlAccessor<object>.TrySelectScalar(
                                                             castTransaction.sqlConnection,
-                                                            "SELECT FileSystemObjects.FileSystemObjectId " +
-                                                                "FROM FileSystemObjects " +
-                                                                "WHERE CalculatedFullPath = ? " + // <-- parameter 1
-                                                                "ORDER BY " +
-                                                                "CASE WHEN FileSystemObjects.EventOrder IS NULL " +
-                                                                "THEN 0 " +
-                                                                "ELSE FileSystemObjects.EventOrder " +
-                                                                "END DESC " +
-                                                                "LIMIT 1",
+
+                                                        Helpers.DecryptString(prefer_last_if_pending, Encoding.ASCII.GetString(Convert.FromBase64String(indexDBPassword))),
+
+
                                                             out toUpdateParentFolderId,
                                                             castTransaction.sqlTransaction,
                                                             selectParameters: Helpers.EnumerateSingleItem(toUpdate.NewPath.Parent.ToString())))
@@ -2983,29 +3002,36 @@ Helpers.DecryptString(non_pending, Encoding.ASCII.GetString(Convert.FromBase64St
                                                             || !FilePathComparer.Instance.Equals(existingRow.Event.Previous.CalculatedFullPath, toUpdate.OldPath))
                                                         {
                                                             long previousIdNotNull;
+                                                                //    "SELECT FileSystemObjects.FileSystemObjectId " +
+                                                                //    "FROM FileSystemObjects " +
+                                                                //    "LEFT OUTER JOIN Events ON FileSystemObjects.EventId = Events.EventId " +
+                                                                //    "WHERE FileSystemObjects.CalculatedFullPath = ? " + // <-- parameter 1
+                                                                //    "ORDER BY " +
+                                                                //    "CASE WHEN FileSystemObjects.EventId IS NOT NULL " +
+                                                                //    "AND Events.FileChangeTypeEnumId = " + changeEnumsBackward[FileChangeType.Renamed].ToString() +
+                                                                //    " AND FileSystemObjects.Pending = 1 " +
+                                                                //    "THEN 0 " +
+                                                                //    "ELSE 1 " +
+                                                                //    "END ASC, " +
+                                                                //    "FileSystemObjects.Pending ASC, " +
+                                                                //    "CASE WHEN FileSystemObjects.EventOrder IS NULL " +
+                                                                //    "THEN 0 " +
+                                                                //    "ELSE FileSystemObjects.EventOrder " +
+                                                                //    "END DESC " +
+                                                                //    "LIMIT 1",
+                                                            const string previous_not_null = "AgH+ETlwi8JFbGkqRXjqdKTh9CEhp0rFMSM6QTpmaYxrMgdgf7inZdXwgEuqXuYM4A9CJRjJ2AJWbK+2XeEfjsHjbyLTBN0A1N3nA0Q4qVP0uGMmqUQs1DzVb0k/t0yviUThOpEJnR4tti5JOtKGZu3jV33vm9bG4dDytNjSuG249c5wIVV/7UlMksANLropV3dxBavVE2ODI5sCkFSonH0FhHNlqP1ZRTiAhUZah/avGg+EsFpRss0kmbz+7dmqwOGYIYi58F6K57CIKMU4BxJhvwQg7KAkfCRMo1eesL0xYuu/+MNxE0VEjcMhi9AwTtDqBv1bRgYjZrpw+hibQBZJi86NQ/sZYIcBhdJ9KscLQyJC9AqSxUt+hoLosQSiBsSz5GxUdO/2hoZYefY9lp3ktZmrzj1plwA8r0W+z0Zyq1xoM5xRg8XH9p7eqUDMyc7n13J6vj437B1EMVV2jiBHRlxIOJ1RGy4dpERTIXomTuhD7Kfvzqd6M/injQSs4p+HBwWUxojzYjsVVEyikoCf+ywceEXRXIQCH2BGJY7oj//BbBKeUlliiE5+nPcL4a3ziVTHTOR74Bk6hu8Vk5gSgLNiQSKWgiuujhi0Xm2CC57LkWTXmkzJ08RHua1vODr0CIs5WUmvDCqyKhkvA4NGWSNSo0K9ZaMw1f31r/a952aHSefjgJSEzL8zu9uBTa77luat1R8g+Ec7QFO2WRn/GRnW8U7Hw/Xk7m3g6Ih0XPhhtUryZqcq1qBIv2PZeMAA+HUv4/O/1Y52rSHRfdsJExZIdgXY6+F2/en3lk9gF8NnOKh8k0ybKJUCtPeEp+MOzSl/nz+Eta9OXEIaPtdijy1an56kv/0bhc/YsriF/96anJGBXXOmBK1XkkffHsF99e08wQGCb5VwmUDRwi8WPQOFh1HbM6adhVl05IiTBJH0WB6KMs9X4W0QZ7gJPybktyZ2IPCNEiPAmO1ZeUpEQCUGrd/7m72s1k4DvWp1WDLsCBH8EJKribHqV2yxbpMc4xqlylrNozNcil88R0OLElTDHQjKvhkx3hyG6Z0NL5LHe1EcFmt2NiGq99jCHTzMRXg99glNu4RSA237qn8taQopfZ1I/7bTkAM6xcLA6Hxec6fqvINxiUPJqCw3nJVZCvCYkVJ2fkwD+l2uLG/SCCR3cFKFU9jnc4/Gud/D1pCHsUfv0NAF5i9oamRrisJvnOPLdJ2/ciwGBHQifPxaUgfesxdkQsAcmfCaOuHS4kjDosUdr4KM1NDWm48lLhJf3j+qs21nk4POXQmvDg==";
 
                                                             // prefers the latest rename which is pending,
                                                             // otherwise prefers non-pending,
                                                             // last take most recent event
                                                             if (!SqlAccessor<object>.TrySelectScalar(
                                                                 castTransaction.sqlConnection,
-                                                                "SELECT FileSystemObjects.FileSystemObjectId " +
-                                                                    "FROM FileSystemObjects " +
-                                                                    "LEFT OUTER JOIN Events ON FileSystemObjects.EventId = Events.EventId " +
-                                                                    "WHERE FileSystemObjects.CalculatedFullPath = ? " + // <-- parameter 1
-                                                                    "ORDER BY " +
-                                                                    "CASE WHEN FileSystemObjects.EventId IS NOT NULL " +
-                                                                    "AND Events.FileChangeTypeEnumId = " + changeEnumsBackward[FileChangeType.Renamed].ToString() +
-                                                                    " AND FileSystemObjects.Pending = 1 " +
-                                                                    "THEN 0 " +
-                                                                    "ELSE 1 " +
-                                                                    "END ASC, " +
-                                                                    "FileSystemObjects.Pending ASC, " +
-                                                                    "CASE WHEN FileSystemObjects.EventOrder IS NULL " +
-                                                                    "THEN 0 " +
-                                                                    "ELSE FileSystemObjects.EventOrder " +
-                                                                    "END DESC " +
-                                                                    "LIMIT 1",
+
+
+
+                                                                    
+                                                        Helpers.DecryptString(previous_not_null, Encoding.ASCII.GetString(Convert.FromBase64String(indexDBPassword))),
+
                                                                 result: out previousIdNotNull,
                                                                 transaction: castTransaction.sqlTransaction,
                                                                 selectParameters: Helpers.EnumerateSingleItem(toUpdate.OldPath.ToString())))
@@ -3153,9 +3179,15 @@ Helpers.DecryptString(non_pending, Encoding.ASCII.GetString(Convert.FromBase64St
                 {
                     updatePendingRevision.Transaction = castTransaction.sqlTransaction;
 
-                    updatePendingRevision.CommandText = "UPDATE Events " +
-                        "SET FileDownloadPendingRevision = ? " +
-                        "WHERE EventId = ?";
+
+                    const string update_pending_rev = "+0VaKzE7jzykHTCl1rvaASO1D5+/dPEGla9m/CdyBNseDzCGBYyKXhxxmweeR3Fvl9u6+P6t2tZMj+jZsDv9vPkpTknhmoBgEVaUb622llBpQtpdyLaoVbDfWwmJ27ZhLg1xaAzgYiH5bFdM8RII5QGSExEVlcJP1CRWV6KAy2x74WMN+m+q6pw+FdT/j+09";
+                    updatePendingRevision.CommandText = Helpers.DecryptString(update_pending_rev, Encoding.ASCII.GetString(Convert.FromBase64String(indexDBPassword)))
+                        
+                        //"UPDATE Events " +
+                        //"SET FileDownloadPendingRevision = ? " +
+                        //"WHERE EventId = ?"
+                        
+                        ;
 
                     ISQLiteParameter updateRevisionParam = updatePendingRevision.CreateParameter();
                     updateRevisionParam.Value = toUpdate.FileDownloadPendingRevision;
@@ -3296,10 +3328,17 @@ Helpers.DecryptString(non_pending, Encoding.ASCII.GetString(Convert.FromBase64St
                         {
                             using (ISQLiteCommand moveChildrenCommand = Data.castTransaction.sqlConnection.CreateCommand())
                             {
+                                const string move_child = "+0VaKzE7jzykHTCl1rvaASO1D5+/dPEGla9m/CdyBNseDzCGBYyKXhxxmweeR3Fvl9u6+P6t2tZMj+jZsDv9vPkpTknhmoBgEVaUb622llBpQtpdyLaoVbDfWwmJ27ZhLg1xaAzgYiH5bFdM8RII5QGSExEVlcJP1CRWV6KAy2yoilmmJ1nUiLhQ1v1VatCB";
+                                    
                                 moveChildrenCommand.Transaction = Data.castTransaction.sqlTransaction;
-                                moveChildrenCommand.CommandText = "UPDATE FileSystemObjects " +
-                                    "SET ParentFolderId = ? " +
-                                    "WHERE ParentFolderId = ?";
+                                moveChildrenCommand.CommandText = 
+                                    
+                                   Helpers.DecryptString(move_child,Encoding.ASCII.GetString(Convert.FromBase64String(indexDBPassword)))
+                                    //"UPDATE FileSystemObjects " +
+                                    //"SET ParentFolderId = ? " +
+                                    //"WHERE ParentFolderId = ?"
+                                    
+                                    ;
 
                                 ISQLiteParameter newObjectId = moveChildrenCommand.CreateParameter();
                                 newObjectId.Value = Data.newId.Value;
@@ -3319,20 +3358,34 @@ Helpers.DecryptString(non_pending, Encoding.ASCII.GetString(Convert.FromBase64St
                     },
                     moveObjectsToNewParentError);
 
+                        //"SELECT " +
+                        //SqlAccessor<FileSystemObject>.GetSelectColumns() + ", " +
+                        //SqlAccessor<Event>.GetSelectColumns("Event") + ", " +
+                        //SqlAccessor<FileSystemObject>.GetSelectColumns("Event.Previous", "Previouses") + ", " +
+                        //SqlAccessor<SqlServerUid>.GetSelectColumns("ServerUid") +
+                        //" FROM FileSystemObjects" +
+                        //" INNER JOIN Events ON FileSystemObjects.EventId = Events.EventId" +
+                        //" LEFT OUTER JOIN FileSystemObjects Previouses ON Events.PreviousId = Previouses.FileSystemObjectId" +
+                        //" INNER JOIN ServerUids ON FileSystemObjects.ServerUidId = ServerUids.ServerUidId" +
+                        //" WHERE FileSystemObjects.EventId = ?" + // <-- parameter 1
+                        //" ORDER BY FileSystemObjects.FileSystemObjectId DESC" +
+                        //" LIMIT 1",
+
+                const string existing_event_object = "XiF/n8DAmECRcpl1q3g5SOaFkrEO/c+iI1V66stCO9Yv7K3QnlXqj68P0vDvLKPE7l2vApnAKMzQ5OaAXhCw4ePhbedZKtt9uIkBpBbdy+hJWp84rcyf/bACcB9Ddtz3hLe1W0lucK6jAp99t4+o2JoC0Tixt52TE4OdgHVjVVwMTcIl5ownxd6E8QQ1rsGuZF7gxgaRukQYyJYpYxCJpDbIlv+oSiY90eBv848joSrihsL4w4TSdIT9n7wnPGlGLGse8g+TnSLhUaro0OowpcEER59va7RrS92FYmK+tOJk5HwtwQKLsLlXS+AH1uBY+Xt9RCjK0XEzMSfUQ6WLWkELGx9P3U6UR6W1WpxCAdqU7HobU3ugGTmPmJ1VrJZzl65vkp2I1rXu855iGM+VpTMEz8soFTNojFpsNW3cissVKTUt9FKlQUeBl1ZUw17EMEKUDIYMBapwlmFXXS38DnouDg/VulJhu0fkqx0uavMlc/Tvk8FZ6dabC8FRHQ5achjXemEwlRVd8LmEykIiDTIP0lk7MeMSiz/Ope0bDmLxA47ioMOwre9B0yyVjFpIwyoZRiPwwahbKbURV88Po2MDL7EGbLkz/runLnuazewkf5wVXSbIgzQ0qjW7gofeT2jhH0Gh3uTEuhiAQWEbFhwuHyUuBoofxbfcgBZ5JQOPBXah5ORORVyao4CJvGQiwVVb6h/4DKCU9ufMWZMmRur4Q9eFdFdCaNjtBPnrAPh+HwC4DxJYCxfrUvHPb4PpSkLzCnh77xF6RNgXhuoUefJdrWHuCiw+KYso/soebo8AvaLYc2z8kwXxydQ26MuodFcDqGxS6/7N4lguH+0xCSFH88X+jr2Icobxp/FSj0JBM3nHri5N46Z7Z+RG2ghVI5E2gXRi2JvvcnBNd/q3AYXiGnjz//4t3Jroy7ZnYGedgmBXfJaAye3KFc7V+TQ0HGk3+6ZVOVkZoV43z0uyQsE7DDsqNCWcSUrnxkOUcR+ZUEBGbK5GOoCMpWUo9jr+wlGAVJWmsNjUJH90kmnsz513x3IrUaQ4cx561wh4VYw=";
+
                 FileSystemObject existingEventObject = SqlAccessor<FileSystemObject>.SelectResultSet(
                         castTransaction.sqlConnection,
-                        "SELECT " +
-                        SqlAccessor<FileSystemObject>.GetSelectColumns() + ", " +
-                        SqlAccessor<Event>.GetSelectColumns("Event") + ", " +
-                        SqlAccessor<FileSystemObject>.GetSelectColumns("Event.Previous", "Previouses") + ", " +
-                        SqlAccessor<SqlServerUid>.GetSelectColumns("ServerUid") +
-                        " FROM FileSystemObjects" +
-                        " INNER JOIN Events ON FileSystemObjects.EventId = Events.EventId" +
-                        " LEFT OUTER JOIN FileSystemObjects Previouses ON Events.PreviousId = Previouses.FileSystemObjectId" +
-                        " INNER JOIN ServerUids ON FileSystemObjects.ServerUidId = ServerUids.ServerUidId" +
-                        " WHERE FileSystemObjects.EventId = ?" + // <-- parameter 1
-                        " ORDER BY FileSystemObjects.FileSystemObjectId DESC" +
-                        " LIMIT 1",
+
+                        String.Format(
+                        Helpers.DecryptString(
+                        existing_event_object,Encoding.ASCII.GetString(
+                        Convert.FromBase64String(indexDBPassword))),
+                        SqlAccessor<FileSystemObject>.GetSelectColumns(), 
+                        SqlAccessor<Event>.GetSelectColumns("Event"), 
+                        SqlAccessor<FileSystemObject>.GetSelectColumns("Event.Previous", "Previouses"), 
+                        SqlAccessor<SqlServerUid>.GetSelectColumns("ServerUid")),
+
+
                         new[]
                         {
                             "Event",
@@ -3361,19 +3414,25 @@ Helpers.DecryptString(non_pending, Encoding.ASCII.GetString(Convert.FromBase64St
                     // server "uid" can be null for conflicts where we rename the local item and have a dependent creation at the new path (since the rename was technically never communicated)
 
                     bool foundLaterCreate;
+                    const string found_late_create = "6dvoJhuOH09lpRVxcMPuf6zJlm1x1mPQwh0GHA5i+ZnugtIOHJ+83KhGWVKyKcFIWN5b7j4nF/b02+876/EtRm4nLlKBd/lfUruqxyv1XuZjoGD1DtrqiiYL1PD6RIeR8E8h5ofG9jHvmi2HwW5F+k72jxpHCdarqCydoTpF+dL2jhZveV7S82vbUDoI0suofkXx+tHp2E2/sViH8ByHrg0dVOv53TjY5E8m55rWMZpKiaT1FUCgFjpkK1/0Gu+avQuhdZCBXTS8g8POnXwG1Gn88UhPf0dPZxOs3GEdowNnI/Bc+F7G2xHzCedjPUwrA7cSGu6TPwSXdtsy9QzuZ3EObv6uuHKpES7B8eUiivUWAGJdjZB+o5FHDbzx3wWasm3bHTiB7M0EDGejKgi1H5tFCKTibeyeRrp9apBYWlUzcfGmn1uZDuJZ2C9nrvAp5vvrvFwzI4MRE9LLOL6o5rWml0MXdm8kd+o4bfoW937jVjA0NBO+fcwD/EeGUkpn80YvkMdyiFzCo5OzkmSKCjmyRJl96PfLekuWSlVBUfYdK7gvEcrgH6FZ69LrLf9qLXo+SaVsGp+wEotVY+6v3pIQaoscoIHYufeoUHVqliUc6r7oMPQtPixZ9EsAbGNkN2QK1wFHJj+XBDniMZ0HXa0iGRrSg/FcPLXnafjRZXLV4AtnZbOMYFajVCUdI7pr0ol2wPusUWHmHllw0Ngeag==";
+
                     if (existingEventObject.EventOrder == null
                         || !SqlAccessor<object>.TrySelectScalar<bool>(
                             castTransaction.sqlConnection,
-                            "SELECT EXISTS " +
-                            "(" +
-                                "SELECT NULL " +
-                                "FROM FileSystemObjects " +
-                                "INNER JOIN Events ON Events.EventId = FileSystemObjects.EventId " +
-                                "WHERE FileSystemObjects.ServerUidId = ? " + // <-- parameter 1
-                                "AND FileSystemObjects.Pending = 1 " +
-                                "AND Events.FileChangeTypeEnumId = " + changeEnumsBackward[FileChangeType.Created].ToString() +
-                                " AND EventOrder > ?" + // <-- parameter 2
-                            ") AS EXIST",
+
+                            String.Format(Helpers.DecryptString(found_late_create, Encoding.ASCII.GetString(Convert.FromBase64String(indexDBPassword))),changeEnumsBackward[FileChangeType.Created].ToString())
+
+                            //"SELECT EXISTS " +
+                            //"(" +
+                            //    "SELECT NULL " +
+                            //    "FROM FileSystemObjects " +
+                            //    "INNER JOIN Events ON Events.EventId = FileSystemObjects.EventId " +
+                            //    "WHERE FileSystemObjects.ServerUidId = ? " + // <-- parameter 1
+                            //    "AND FileSystemObjects.Pending = 1 " +
+                            //    "AND Events.FileChangeTypeEnumId = " + changeEnumsBackward[FileChangeType.Created].ToString() +
+                            //    " AND EventOrder > ?" + // <-- parameter 2
+                            //") AS EXIST"
+                            ,
                             out foundLaterCreate,
                             castTransaction.sqlTransaction,
                             new[] { existingEventObject.ServerUidId, (long)existingEventObject.EventOrder })
@@ -3394,15 +3453,20 @@ Helpers.DecryptString(non_pending, Encoding.ASCII.GetString(Convert.FromBase64St
                 storeWhetherEventIsASyncFrom = existingEventObject.Event.SyncFrom;
 
                 long existingNonPendingIdToMerge;
+                const string existing_nonpending_to_merge = "AgH+ETlwi8JFbGkqRXjqdKTh9CEhp0rFMSM6QTpmaYxrMgdgf7inZdXwgEuqXuYM4A9CJRjJ2AJWbK+2XeEfjsHjbyLTBN0A1N3nA0Q4qVP0uGMmqUQs1DzVb0k/t0yviUThOpEJnR4tti5JOtKGZu3jV33vm9bG4dDytNjSuG1Arkw0A8KkAVJV75pGFQc9KQCeOCdg2vaWXLCeNU/za5W7VOlETe2tAjqD1OstqwGWNJVjrq1kKMbcY3DCTTUbg0B3KqZ3zJPtURwpnZttGlaJZgYPsKbc8FD28rLjE5ajd8UQeSozwJ88xn9IQqWGBh2MxRhKSWsidOpo+w0SC4g+5dl1JDuDjiBuBHfUcro8gCS04Zo17G+O0KmgCwXmTzsjgU/qpbrDMkHMVpqlG2HTtBmOYm2TEiZ53r0WyPYJmevwDTy840ynPS8/DcY0JeNbH9VRCimJ/V0+H12LvDKUlexUwvrAZ++EuBd7ZjRWv7ERuYuPwcRWrP+wfgZi/71TO0HQtkyBz3BW6g3hjsKzwTai/KDCmBppYf0P7dDhu+h8qjaVyj7Mif0qunaNzWctD/ADl4JoVkMjihy/J9fOVh4EKfz7+ThGfR3V6wopxED2wtqHVJj6C9itZuSD";
                 if (SqlAccessor<object>.TrySelectScalar(
                     castTransaction.sqlConnection,
-                    "SELECT FileSystemObjects.FileSystemObjectId " +
-                    "FROM FileSystemObjects " +
-                    "WHERE FileSystemObjects.ParentFolderId = ? " + // <-- parameter 1
-                    "AND FileSystemObjects.Name = ? " + // <-- parameter 2
-                    "AND FileSystemObjects.Pending = 0 " +
-                    "ORDER BY FileSystemObjects.FileSystemObjectId DESC " +
-                    "LIMIT 1",
+
+                    Helpers.DecryptString(existing_nonpending_to_merge, Encoding.ASCII.GetString(Convert.FromBase64String(indexDBPassword)))
+
+                    //"SELECT FileSystemObjects.FileSystemObjectId " +
+                    //"FROM FileSystemObjects " +
+                    //"WHERE FileSystemObjects.ParentFolderId = ? " + // <-- parameter 1
+                    //"AND FileSystemObjects.Name = ? " + // <-- parameter 2
+                    //"AND FileSystemObjects.Pending = 0 " +
+                    //"ORDER BY FileSystemObjects.FileSystemObjectId DESC " +
+                    //"LIMIT 1"
+                    ,
                     out existingNonPendingIdToMerge,
                     castTransaction.sqlTransaction,
                     (new[] { (long)existingEventObject.ParentFolderId, (object)existingEventObject.Name })))
@@ -3485,11 +3549,14 @@ Helpers.DecryptString(non_pending, Encoding.ASCII.GetString(Convert.FromBase64St
                         {
                             using (ISQLiteCommand updateRevision = castTransaction.sqlConnection.CreateCommand())
                             {
+                                const string update_rev = "qvD42Gwb7pnBtXYpI3VuUXDJmBfa6scsRn9hnyU8DIa2GT9xBMRBJ+KNWYdhNGu7pDRJvGlKOg0IwTaPJgbvevTCpUFEfCvRuXT1AlfsEFHQq5F27IAn5i+KFAlj6P1dnc52kgd3d9fsGLgWfUPYsXdJvIf1QNWKhSecLjyWPV0=";
                                 updateRevision.Transaction = castTransaction.sqlTransaction;
 
-                                updateRevision.CommandText = "UPDATE ServerUids " +
-                                    "SET Revision = ? " +
-                                    "WHERE ServerUidId = ?";
+                                updateRevision.CommandText =  Helpers.DecryptString(update_rev, Encoding.ASCII.GetString(Convert.FromBase64String(indexDBPassword)));
+                                    
+                                    //"UPDATE ServerUids " +
+                                    //"SET Revision = ? " +
+                                    //"WHERE ServerUidId = ?";
 
                                 ISQLiteParameter revisionParameter = updateRevision.CreateParameter();
                                 revisionParameter.Value = existingEventObject.Event.FileDownloadPendingRevision;
@@ -3542,40 +3609,47 @@ Helpers.DecryptString(non_pending, Encoding.ASCII.GetString(Convert.FromBase64St
 
                             // find lowest EventOrder with same ParentFolderId and Name with a greater EventOrder than the current object which also has an Event with a FileChangeTypeEnumId which represents either "created" or "renamed", if any
                             // if this EventOrder is found, limit the above query by "AND EventOrder < [lowest EventOrder of create\rename]"
+                           
+                                                            //"UPDATE FileSystemObjects " +
+                                //"SET ParentFolderId = ?, " + // <-- parameter 1
+                                //"Name = ? " + // <-- parameter 2
+                                //"WHERE ParentFolderId = ? " + // <-- parameter 3
+                                //"AND Name = ? " + // <-- parameter 4
+                                //"AND EventOrder < " +
+                                //"(" +
+                                //    "SELECT UpperExclusiveOrder " +
+                                //    "FROM " +
+                                //    "(" +
+                                //        "SELECT MAX(InnerObjects.EventOrder) + 1 as UpperExclusiveOrder " +
+                                //        "FROM FileSystemObjects InnerObjects" +
+                                //        " " +
+                                //        "UNION SELECT MIN(InnerObjects.EventOrder) " +
+                                //        "FROM FileSystemObjects InnerObjects " +
+                                //        "INNER JOIN Events ON InnerObjects.EventId = Events.EventId " +
+                                //        "WHERE InnerObjects.EventOrder > ? " + // <-- parameter 5
+                                //        "AND Events.FileChangeTypeEnumId IN (" + changeEnumsBackward[FileChangeType.Created].ToString() + ", " + changeEnumsBackward[FileChangeType.Renamed].ToString() + ")" +
+                                //    ") " +
 
-                            moveOtherMatchingOldNames.CommandText = "UPDATE FileSystemObjects " +
-                                "SET ParentFolderId = ?, " + // <-- parameter 1
-                                "Name = ? " + // <-- parameter 2
-                                "WHERE ParentFolderId = ? " + // <-- parameter 3
-                                "AND Name = ? " + // <-- parameter 4
-                                "AND EventOrder < " +
-                                "(" +
-                                    "SELECT UpperExclusiveOrder " +
-                                    "FROM " +
-                                    "(" +
-                                        "SELECT MAX(InnerObjects.EventOrder) + 1 as UpperExclusiveOrder " +
-                                        "FROM FileSystemObjects InnerObjects" +
-                                        " " +
-                                        "UNION SELECT MIN(InnerObjects.EventOrder) " +
-                                        "FROM FileSystemObjects InnerObjects " +
-                                        "INNER JOIN Events ON InnerObjects.EventId = Events.EventId " +
-                                        "WHERE InnerObjects.EventOrder > ? " + // <-- parameter 5
-                                        "AND Events.FileChangeTypeEnumId IN (" + changeEnumsBackward[FileChangeType.Created].ToString() + ", " + changeEnumsBackward[FileChangeType.Renamed].ToString() + ")" +
-                                    ") " +
+                                //    // first order to grab non-null event orders first
+                                //    "ORDER BY " +
+                                //    "CASE WHEN UpperExclusiveOrder IS NULL " +
+                                //    "THEN 1 " +
+                                //    "ELSE 0 " +
+                                //    "END, " +
 
-                                    // first order to grab non-null event orders first
-                                    "ORDER BY " +
-                                    "CASE WHEN UpperExclusiveOrder IS NULL " +
-                                    "THEN 1 " +
-                                    "ELSE 0 " +
-                                    "END, " +
+                                //    // then order by the event order itself (ascending)
+                                //    "UpperExclusiveOrder " +
 
-                                    // then order by the event order itself (ascending)
-                                    "UpperExclusiveOrder " +
+                                //    // only take the lowest event order (either the maximum or the lowest create or rename)
+                                //    "LIMIT 1" +
+                                //")";
+                            
+                            
+                            const string moveothermatchingname = "9tA4A9qheaxmqn5OBpSv86o8u/HE1U3uoVPGDIvO8uxFwbNTMjsBNV0TBKek0RAFVHLHxUuWhXcYIIDQlVL5HeF4UTFjYSdKBH0wm0SsApDR77FTEJf3TPQXB4/rBAm+DHc/VlscUu41BMhP8dUMg2Fs+qSLANWyFpvuwBI/ax+mXGhZmxbyOLl+LQTIAd3Qnc/fUCoIKfCk2Nyms1UEFqyWB0Pjs0jabiMFLjo1NguvfYBPqTtzfetCymAVEQ2xXgF7UrahKXkrN0FPaNNJqS37Bj+Zjhifg2Z6kkl2tbRIdFZLbr1spn35hcdj4Plnj5D3MwF/wzNl1tc3HuDRehlmvz+0UdkggEML59PGpybyZC4QfyxgqH8m/LeXPkvNYYyB7suSF+UYPIDLpiFEQZY7Gkv2bbdQxEMEwJOcxEG4xCdRF4sleCx54RRdA1WN6IXYoJHPc7eUndXV8/hDRS8aPzj3nKrxpQOejC9+iEW+H3ZGadb61vjyWuh5edCZELESPPIrUGY37X9BC9YivOvNV4bGBvEH/u9S6v2wnb3rLSNsH7DODldYjy1rgUgJX+h1rrfdWUmINB0dBI7FCEXNYnGOd6s8c7Y2VxTqHdDDxau7lWauDiF6sASTBLBc+2QvNA6r27tabJgE2E7d+2fl5q4683s1mkFTwLE/pUY7uNr0kn4TXgXAkRkShvxK4GEV7E5ci9fqo44VmaxDrA+rladqDNgip9tY/KzOAMHxVcXwx/2A+MXHHv1udqPnqs0j+19MdLyx8Q19EQQnjpQnU8Dvbmi4f+7bL4XIGA3M/g9O5i+Z3+GdL0vs9t6vwUzRSzMVoj7sDe6tQMCNiwXNagHpuNZdyHdlg1Rarl8cLhdFVWhEwRQOZ/z1u8EyrtJfemPOv9ixMpp7jIxd5gePiXbOiSKGKL3nP8dBYDZ/mDZGVs/5yYEknjHTK22Z2bmtYfQqpuYAuCIBR6z83dsa3TFJ2RzmghKG27+WZ5qO/13Roph+9CpWISLV99C7NW5i1QVQSqpJEgLkKJQJPivPbvOA+qacEqiam+qfaMONNdfDd614qiO+ljx75ThYlgKBHMvqeb9ikPKB3yrPHeT9fzZoW++duZ27w6qEDVZllP38aFkvbROrha4peoYQgdeQJn7XApQFBxW/vkBYLWwgQstML+ddn5K0RlodYNgWn9ucdKGAcUqoP4d8YEUpKHItpy0NaV4m9Lk8kTF7Q2WjhINwvyJfaD8T/2gpe+E8K1+aRr2FGHuxiblWvHwdwViBlMclH7Ge5xRTJkvpYiK6XihZ04N5yjHTdjIL36buHRaVXU3awr5SqPppCvtjDn77NilTlr8neUTe82fR12bV8SGBCMhk+/s6akS8V7VhB2qldZZHIRhrAzd4ClWBT9MN/IKoPIzDYwxuyZpNszMDe29VDbRVG4UYWk70VFeZ/NE6T4AZousCcIQYhmONx0+xj1oBJn0lXl7iS37xycKwbDAfoPGewYqnLEIe4V57Bt9mSydmQGyvoNipN7byhtE1cA2IU9rDFO5GPP/H3g9AalSRGjIKuDNIPZMUrk5i+RaTxlntGOlbJ1aGZu3r";
+                            moveOtherMatchingOldNames.CommandText =
+                                Helpers.DecryptString(moveothermatchingname, Encoding.ASCII.GetString(Convert.FromBase64String(indexDBPassword)));
+                                
 
-                                    // only take the lowest event order (either the maximum or the lowest create or rename)
-                                    "LIMIT 1" +
-                                ")";
 
                             ISQLiteParameter newParentParam = moveOtherMatchingOldNames.CreateParameter();
                             newParentParam.Value = existingEventObject.ParentFolderId;
@@ -3641,22 +3715,22 @@ Helpers.DecryptString(non_pending, Encoding.ASCII.GetString(Convert.FromBase64St
                     default:
                         throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Existing event object had a FileChangeTypeEnumId which did not match to a known FileChangeType");
                 }
-
-                const string select_fromFSO = "9tJfCkvrYq0ET852fmJ3Eau4jUJSDCTwrQvidfmcaTgZUChtjqlLiiZTeaXS2JjrAtFiky0Gnej9VccuPAvGPAdO/PtdC/zpSqJxVqmL8ajWI5/oATIAwe5kbo7KEz8GdTHedURm4QEuT9DWsdRhIrEtZD7mLS85wmHUm7vHtvnGYtMZ7EBGjBpDeKHGyiteNDN6KYFV44vUxe3PzH93ho8f9DAY2yj78mW+hUmgpjtY0GeICikXT4EOo01WQBUR+GB+x7MBM99D1or6yKW6Ia1AjHwrGHndOYXKrBraLKqLUJblHOxIU71UYHVt8YBfopYSXp0Cs8ucHj8uBqjIwmSr9IYudf7o0TgUygdpjKmWHiId1ibo8JNvFQu8Oz9izT8RElY7kin0Kw9Vc/WOgjfh6g+v+sSr6UaZUn5oJ9O4GHFUG57qh2Gkp2dW+66TcKX4ekDiCWAfxKs7Ujbx2yTOMWbYnkA9n15371iwcog=";
+                                                //"SELECT EXISTS" +
+                                                //"(" +
+                                                //    "SELECT NULL " +
+                                                //    "FROM FileSystemObjects " +
+                                                //    "WHERE FileSystemObjects.Name = ? " +
+                                                //    "AND FileSystemObjects.ParentFolderId = ? " +
+                                                //    "AND FileSystemObjects.Pending = 1" +
+                                                //") AS EXIST"
+                const string select_fromFSO = "6dvoJhuOH09lpRVxcMPuf6zJlm1x1mPQwh0GHA5i+ZnugtIOHJ+83KhGWVKyKcFIWN5b7j4nF/b02+876/EtRm4nLlKBd/lfUruqxyv1XuZjoGD1DtrqiiYL1PD6RIeRJ7alQ/pWq+us8OUZ8mQZIpbDimuLnZjNLT/47VFyHSSIQ8jMVLApI1C2xC/tLfB5qBE45tb9112tg5gfHMMbdWlK+nXAWT+VNwE8xJz7s9KhJjWfxByIJXTuOClUKJZFB4sIygoQvA6/wHluI6w4KO2GgE1q7Qec4r3FZLxyl+ULqfNJsoGg+amYJ69OZAX4VXrn0sIhdjFN/qNr1jw+ngO9Nr2EDDXPKfqRCT/TLNsp9JHJ2Sg26UG3wqdH0pfOJEPmKkvKlGaiDh4XEnUiBAEqNAzeZCtCHK6uimJZ6x/I7mxGeCvUm0o3BBVxAilBZyCrZ0yXq5qTnHXwwEsCB77WxFgOYXnPpHevBpkIJNs=";
 
                 if (!SqlAccessor<object>.TrySelectScalar<bool>(
                     castTransaction.sqlConnection,
 
-                    Helpers.DecryptString(select_fromFSO,indexDBPassword)
+                    Helpers.DecryptString(select_fromFSO, Encoding.ASCII.GetString(Convert.FromBase64String(indexDBPassword)))
 
-                    //"SELECT EXISTS" +
-                    //"(" +
-                    //    "SELECT NULL " +
-                    //    "FROM FileSystemObjects " +
-                    //    "WHERE FileSystemObjects.Name = ? " +
-                    //    "AND FileSystemObjects.ParentFolderId = ? " +
-                    //    "AND FileSystemObjects.Pending = 1" +
-                    //") AS EXIST"
+                    //
                     ,
 
 
@@ -3743,8 +3817,8 @@ Helpers.DecryptString(non_pending, Encoding.ASCII.GetString(Convert.FromBase64St
                             //"UPDATE FileSystemObjects " +
                             //"SET Name = ? " + // <-- parameter 1
                             //"WHERE ParentFolderId IS NULL"; // condition for root folder object
-                            const string root_change = "xMtLXELDZiXoMY2RpJZny+YKWsx0o5YE/E9tx7aOUfndegDh4qTEeqikr573Hp6LNBrdK0uw20fMI7ylvhui1yrg8847NBrDzbxVoZud3LaO0JMQfVl+sunRad2C0cao2BmqnyYYmw/jLHJQlnDs5nafC+k67Lm6Csnd+NCs/jVHOlzu1CktM7mQfaUsjVHP";
-                            changeRoot.CommandText = Helpers.DecryptString(root_change,indexDBPassword);
+                            const string root_change = "9tA4A9qheaxmqn5OBpSv86o8u/HE1U3uoVPGDIvO8uxFwbNTMjsBNV0TBKek0RAF2IoquE2G2pJ4mXiQt79qfbhdjuiJyDE49icAMJwKlcbipzqc2Hv5y+rBvw93KEqImivPzDQwqoOfMCTlDoZ9IITY7VCmJOPqBlzJBJdQpRuFF1FNvuTQB8lpInDQgWM3";
+                            changeRoot.CommandText = Helpers.DecryptString(root_change, Encoding.ASCII.GetString(Convert.FromBase64String(indexDBPassword)));
                                 
                                 
                              
@@ -4080,12 +4154,12 @@ Helpers.DecryptString(non_pending, Encoding.ASCII.GetString(Convert.FromBase64St
                                         //"WHERE FileSystemObjects.ParentFolderId IS NULL " +
                                         //"LIMIT 1"
                                         
-                                const string FSO_root_object = "cXdTvwEKWrKmPKCf8z2lcJAZYJlY+/hU/SRXlajLZDWKtqz9MmQG+tdTKrnlKA+h07uPyguDl8rOem7KpdT9ppmsPcbQmtIRa0KS+dbVT4I4x5fkYnJrAAD8foEdOvKDnU1N1r2+tVVWPV4Ge8oAnEBzIFaUXlo8hDl3ecuY9iuknJwi7h19cLp+d1mGs63PYN37n6DK9pUNeSn0oAIaxdERH4Wom2EzI6HrP8iJlbbyK+mYF8JVEKXKgsz7w876";
+                                const string FSO_root_object = "t3Ee1ulQLjs62aHw5E7nEHC3Yt6pkKQiMjDOMA00p+Qo1PZHGpfRx91FJNSloGZ3xDH11QktFYyaPHTl7mAN/QkLD0PnpC8sDmmRC3eIdnNwEv6VbgcYJMh2e8FkOh6pkTk+wvxmCRAw6xSk4LnkkIBkbxHbXULufC0P8A7txr+KYvXKLpwm5BBu8bvcAoOUm2ktCSGamUmo73Gmpd/w6ZmrmHM9l5akpRPajdsJpThQM2ie2apF+g6FPK1GJmuF";
 
                                 FileSystemObject rootObject = SqlAccessor<FileSystemObject>.SelectResultSet(
                                         verifyAndUpdateConnection,
-   
-                                        Helpers.DecryptString(FSO_root_object,indexDBPassword)
+
+                                        Helpers.DecryptString(FSO_root_object, Encoding.ASCII.GetString(Convert.FromBase64String(indexDBPassword)))
                                         
                                         )
                                     .FirstOrDefault();
@@ -4374,12 +4448,12 @@ Helpers.DecryptString(non_pending, Encoding.ASCII.GetString(Convert.FromBase64St
                     //    ")" +
                     //    " LEFT OUTER JOIN ServerUids ON Parents.ServerUidId = ServerUids.ServerUidId"
 
-                const string sql_stuff = "Nhgg+1Mm4IAt3wrnnLK2pP+ppzKUf3QXWhzCj3bmr3ksOBtd8wbFE2Orm4perFa0tGmLFAAsUJhhdejOK/zgSoyEFGnzdybO/6D8nfNrEMEfra3c+npMXDRUKq7/GiM/q2TpBNtZ6O+/CmbZNZtbITGSpE68GpSIZvgWMAIu6S3DJ0wnnOL26g/9LQl4xlQRn3IUCBzoeclAw6bXs57YAPLgz5NyiE33rkZcyWLfzHnG9gvSshGbwQpDkInVHZLUDMifYd1dqSa37UkogfxeQkidqp6JV1tpdcVFXXhUmQOtS00mK6C1eTGrDcuIxMDxpp5RjMQL7XaiXnY3iTK/rr5F0EdqqaMhqhmcQ55tbVq5dIWkWp/Pnz31cgz0xtYe6KdVAp7nGy1dPyTz2bl5AFqDnANzosKrMwIhs/okkUBlcCttZ73idFJ1GeMDW736obimw4tuPjqQaL0x5BebdapJbQrBalHLt9/pon0xn7rtAv784JBQBOoVkOBDZc1uMIIfhwEbC5l+VcQ+aIdltFKHZJyKhnQKYb4gYJFIi2GuiFeeM1ZIPJMdIRiDcJIcnAMfVM9V9bcagcFT5WIZU5XuMjG1FMZjwZYtBtdqUUyUTjojD2NZjPNY2Sth7Bxtu6afFcX9bNO/ReHlGB+j4lkLSviIhuhMaFxc2HBeit13rqKrrW+mlW/OjTrgY+VesSFR9FqPrYVa5qNOHL+X3bbegYvuoaGTVwRB2CnVtDA2gAJnzA/h2N97Um51zAn01hpvX8YdXzXDmR+pPgIjjj0CU4ftMWf37vSTvmS+RVXGtGBeyUsQorww1q5tHcTN32uJ71l1m4NcO+GBX44snCa4qNBWwa/9djQvzZLqmqojoG2w6l1dtIDj5lRwKGKyK2nFlQZO7VWWk+28Oh4CeO1HegEI+1xS5htnECXbtFBabNQmWQPjeVlmqZ+KoniDXO+TDLLGXI/I9YySnNIgGMLTsJPON3IxBMs58w/W7UY/swazbdmcON4jnh5N5O8zs9+3aB29XgwFpAhK1wTIz4jM9BwWE1W8eaErRKzx8EY=";
+                const string sql_stuff = "XiF/n8DAmECRcpl1q3g5SOaFkrEO/c+iI1V66stCO9Yv7K3QnlXqj68P0vDvLKPE7l2vApnAKMzQ5OaAXhCw4ePhbedZKtt9uIkBpBbdy+hJWp84rcyf/bACcB9Ddtz3hLe1W0lucK6jAp99t4+o2AGMfnnyF7KXN/KcSe+JA9MKvV7tSIehB9AAdsOfRK6cebaxSm0tbfBmLIvgrPKrWl8U56aCnHMKt/rjWdEZT6G1v8HbNY1hUWURMi2sAOX5ZfNrP0lLnqWf8nYuSYX9bAup4LG9qW8E5TPGOraPYphhqlkvL/kb5KK0+x0Ar/kcP/JXrRqesxRePXdvGXreJfnphzdWXZBtK3UJgZMSZPpia25EzUAk/6yN1SOXgIU3kkhtoil9zgY37a8VUCgJfrpABcOUudrPjrayjeq80LknJDX8m7m4PehuSdLs7ptMaVHtbR+P9mH9pHaEQLTROENAXe280Xzv+8aMZXJFbsnxSvtAGWr8uEsiOZi+hUHfh1m8ARdNLNNrf2FfdwMWUygelm2msuqvZb7c9XrBqdnPd/KX8XtEAij/IZTWoZ3XN6FlQ4tcCYgyhE4Bryy4TS1307xLFzbx9ZSVdKd19biE9Y92l1IZSalWkNSUEz9gs4jkkthQWktM+aOItuBbNb9zztaLBINhhpWnPj0pm1slBXDDIjyWnNPdfvYbabI2Fm8iq4T8kGHzhR0Bu4L6mBWlRSS9gA9AJl78tB1Yfb4DPgDenfWQg3d3TJMJO75yldYthyb1vAmSnMXkH67HUM0/eK3/4gFqRtHvuHS9GeZ+DdUYmgc639LnGs0Du9IsZyAmCRu0K8ss0gRE1qJkLFjeEUbb+g43XbBgk6mWuc1GzRNsoA7xhKPeDE+DPV/DMAntqX94mmsC8+9UAJBCkK19M5kZJZUq1j26KXXLwDvtBvZvW/twmFKM7GK2fxP5/QqXzt8RtI0oijK6fK1oFh133Ptu+S7j/5Ut6dnp2Hquw0OgQXH+jHtup5CC9T0UjwfCLQFYjl5XmabotZKRgc8PVTzc/UC6ETesUu1P/So=";
                 foreach (FileSystemObject combinedPendingNonPending in SqlAccessor<FileSystemObject>.SelectResultSet(
                     indexDB,
 
-                        
-                        String.Format(Helpers.DecryptString(sql_stuff,indexDBPassword), SqlAccessor<FileSystemObject>.GetSelectColumns() ,SqlAccessor<Event>.GetSelectColumns("Event"),SqlAccessor<FileSystemObject>.GetSelectColumns("Parent", "Parents"), SqlAccessor<SqlServerUid>.GetSelectColumns("Parent.ServerUid") )                 
+
+                        String.Format(Helpers.DecryptString(sql_stuff, Encoding.ASCII.GetString(Convert.FromBase64String(indexDBPassword))), SqlAccessor<FileSystemObject>.GetSelectColumns(), SqlAccessor<Event>.GetSelectColumns("Event"), SqlAccessor<FileSystemObject>.GetSelectColumns("Parent", "Parents"), SqlAccessor<SqlServerUid>.GetSelectColumns("Parent.ServerUid"))                 
                         ,
                     includes: new[] { "Event", "Parent", "Parent.ServerUid" }))
                 {

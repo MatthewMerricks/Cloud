@@ -19,6 +19,27 @@ namespace Cloud.SQLIndexer.SqlModel
     [SqlAccess.Class(CLDefinitions.FileSystemObjects)]
     public sealed class FileSystemObject : IBeforeDeleteTrigger
     {
+        private const string indexDBPassword = "Q29weXJpZ2h0Q2xvdWQuY29tQ3JlYXRlZEJ5RGF2aWRCcnVjaw=="; // <-- if you change this password, you will likely break all clients with older databases
+        
+                    //"SELECT " +
+                    //"CASE WHEN Enums.Name = 'Renamed' " +
+                    //"AND Events.PreviousId IS NOT NULL " +
+                    //"THEN Events.PreviousId " +
+                    //"ELSE FileSystemObjects.FileSystemObjectId END " +
+                    //"FROM FileSystemObjects " +
+                    //"LEFT OUTER JOIN Events ON FileSystemObjects.EventId = Events.EventId " +
+                    //"LEFT OUTER JOIN Enums ON Events.FileChangeTypeEnumId = Enums.EnumId " +
+                    //"AND Events.FileChangeTypeCategoryId = Enums.EnumCategoryId " +
+                    //"WHERE FileSystemObjects.FileSystemObjectId = ?",
+
+        private const string sql_conn = "XiF/n8DAmECRcpl1q3g5SCMu4j5pzQFxK+sQhCxNZR9puPEreUwrj6A/1UwE8ktpAuGt57Bm1IbmmHMk/kY3G+MKe58tbwnAe4daX+qgjdRDYBxfrMfx0aKiW+yzNx9Q9WiQZaazuBIzKOw6pz/q/cxB0/puYxQypNcDyJbgqTA79VQemSqy98fJnnVvC6hyxrkHeIF+fs9GeVL0PqGpexS0eTKGId94P8ToCbWsi7eaAtuSsYUKWTGwQK35rTXU1XHBpU6IwIFo41teYe0iEFTmRiVoIG7j3RvmJmKOUxfEpe3PhYjplboINKtAdGnOuQYV8wyaoISTJKVJSbELlnZoAuMxivvksrQLxoMzobpwqpxPYdmwPMBamp1LnECTsjn+8nTi3mNdReAPBSQt5SYMdcUd5Bb5XaWxu5OqxfoipUdC+2OppDkHQC6YCk2I/k9AIr1W26mxKuNJrYQlWnF3ac0OqwWr9T8dHY9AhfHEblnPZ2yZ3HsA83JM+IObgzJjKCJzq6A+CMrH92tj+ee/2vc7mgYKBzlPymGCJo4Y0XR/Ahkd4I7OkmOb3gdjDwBuyTW0Au06lzRePEYgpxTFd+b6cjVE45oc9oXtYQEYWW9kq9bUB8ykxmGndB/qxhGPAqEhOpYPa01NO1Glhk+3vsvqCaRTo/UAMBHozvMeVwnTOpDu8gAXjJbzdW3/+rjmBUTqn6WO7pZRqUvnbajUrQgECjlTeu+cIDItrhcClnMIk+T1e9RJh0SQvAEbIRcYXFKUd8e9eHPNGmErgkxPZ4DQYflsdstIOo5yIES0UWtSxn5SEhcSz/4Sxo0LRcZ1JTl4r2jq/tnVna/RuLvb/Ny/6zF9OIimv5rKKCyhKpHzMqylDVyR9PSbNuzFe95nuSAoke43CJgb3zgnGtVMQzk4yaOnhg5XYiTD4uI2rWWtXnCW6YU+jx4a433oVRtzl/Qg+Fn9ekK5eFpEXJtrzaLvxCbH0tEMBEopJf016Hci8uCUNbUNTmb0iDcSg5YTLPHLtD2hbuzxJYkp+TRmVz3kDl2l+yKoA49rH/3mOjxrFzWQlkzIwIoIR8+LLGJxZTh5uExG6/9is5pUBqllTL+IF0sXZP73g+PHBTY=";
+        
+
+                        //"UPDATE FileSystemObjects " +
+                        //"SET ParentFolderId = ? " +
+                        //"WHERE ParentFolderId = ?"
+        
+        private const string before_delete = "9tA4A9qheaxmqn5OBpSv86o8u/HE1U3uoVPGDIvO8uxFwbNTMjsBNV0TBKek0RAFVHLHxUuWhXcYIIDQlVL5HeF4UTFjYSdKBH0wm0SsApDR77FTEJf3TPQXB4/rBAm+Q1+CWo5fRZWJr88LHe1DnN90L3GNZi6wRW7lGXeTHCUmFj/D2S4qcja3kxNFznRnFeG18HbQy30IaSQ+JigcJw==";
         #region IBeforeDeleteTrigger member
 
         public void BeforeDelete(ISQLiteConnection sqlConn, ISQLiteTransaction sqlTran = null)
@@ -26,16 +47,9 @@ namespace Cloud.SQLIndexer.SqlModel
             long earlierParentId;
             if (!SqlAccessor<object>.TrySelectScalar<long>(
                 sqlConn,
-                "SELECT " +
-                    "CASE WHEN Enums.Name = 'Renamed' " +
-                    "AND Events.PreviousId IS NOT NULL " +
-                    "THEN Events.PreviousId " +
-                    "ELSE FileSystemObjects.FileSystemObjectId END " +
-                    "FROM FileSystemObjects " +
-                    "LEFT OUTER JOIN Events ON FileSystemObjects.EventId = Events.EventId " +
-                    "LEFT OUTER JOIN Enums ON Events.FileChangeTypeEnumId = Enums.EnumId " +
-                    "AND Events.FileChangeTypeCategoryId = Enums.EnumCategoryId " +
-                    "WHERE FileSystemObjects.FileSystemObjectId = ?",
+
+                Helpers.DecryptString(sql_conn,Encoding.ASCII.GetString(Convert.FromBase64String(indexDBPassword))),
+                   
                 out earlierParentId,
                 sqlTran,
                 Helpers.EnumerateSingleItem(this.FileSystemObjectId)))
@@ -52,9 +66,10 @@ namespace Cloud.SQLIndexer.SqlModel
                         beforeDelete.Transaction = sqlTran;
                     }
 
-                    beforeDelete.CommandText = "UPDATE FileSystemObjects " +
-                        "SET ParentFolderId = ? " +
-                        "WHERE ParentFolderId = ?";
+                    beforeDelete.CommandText =
+
+                       Helpers.DecryptString(before_delete, Encoding.ASCII.GetString(Convert.FromBase64String(indexDBPassword)))
+                        ;
 
                     ISQLiteParameter replaceParentIdParam = beforeDelete.CreateParameter();
                     replaceParentIdParam.Value = earlierParentId;
