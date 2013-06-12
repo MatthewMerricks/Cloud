@@ -5272,20 +5272,24 @@ namespace Cloud.SQLIndexer
                     // Run dispose on inner managed objects based on disposing condition
                     if (disposing)
                     {
-                        lock (changeEnumsLocker)
-                        {
-                            if (changeEnums != null)
-                            {
-                                changeEnums.Clear();
-                                changeEnums = null;
-                            }
-
-                            if (changeEnumsBackward != null)
-                            {
-                                changeEnumsBackward.Clear();
-                                changeEnumsBackward = null;
-                            }
-                        }
+                        //// found case where changeEnumsBackward is null on normal condition;
+                        //// (probably cause dictionaries are marked static but dispose is on an instance)
+                        //// commented out:
+                        //
+                        //lock (changeEnumsLocker)
+                        //{
+                        //    if (changeEnums != null)
+                        //    {
+                        //        changeEnums.Clear();
+                        //        changeEnums = null;
+                        //    }
+                        //
+                        //    if (changeEnumsBackward != null)
+                        //    {
+                        //        changeEnumsBackward.Clear();
+                        //        changeEnumsBackward = null;
+                        //    }
+                        //}
                     }
 
                     disposed = true;
