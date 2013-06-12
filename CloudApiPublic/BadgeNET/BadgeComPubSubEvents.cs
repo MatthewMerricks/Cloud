@@ -139,6 +139,9 @@ namespace Cloud.BadgeNET
                     throw new Exception("Call Initialize() first");
                 }
 
+                // We're alive.
+                _isSubscriberThreadAlive = true;
+
                 // Publish the event
                 _trace.writeToLog(9, "BadgeComPubSubEvents: PublishEventToBadgeCom: Entry. eventType: {0}. eventSubType: {1}. badgeType: {2}. fullPath: {3}. guidPublisher: {4}.", eventType, eventSubType, badgeType, fullPath, guidPublisher);
                 EnumPubSubServerPublishReturnCodes result = _pubSubServer.Publish(eventType, eventSubType, badgeType, fullPath, guidPublisher);
