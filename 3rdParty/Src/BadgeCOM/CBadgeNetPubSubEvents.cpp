@@ -171,6 +171,9 @@ void CBadgeNetPubSubEvents::PublishEventToBadgeNet(EnumEventType eventType, Enum
             throw new std::exception("Call Initialize() first, and fullPath must not be null");
         }
 
+		// We're alive.
+        _isSubscriberThreadAlive = true;
+
         // Publish the event
         EnumPubSubServerPublishReturnCodes result;
         HRESULT hr = _pPubSubServer->Publish(eventType, eventSubType, badgeType, fullPath, guidPublisher, &result);
