@@ -3083,4 +3083,8 @@
     <value>Error subscribing to live sync status messages.  Bad liveSyncStatusReceiver to CLSyncbox.AllocAndInit, or bad DeviceId in settings</value>
     <comment>"liveSyncStatusReceiver", "CLSyncbox.AllocAndInit", "DeviceId", and "settings" should not be translated</comment>
   </data>
+  <data name="ExceptionFileItemNullFileChange" xml:space="preserve">
+    <value>fileChange must not be null</value>
+    <comment>"fileChange" should not be translated</comment>
+  </data>
 </root>

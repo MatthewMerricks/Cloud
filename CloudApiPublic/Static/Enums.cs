@@ -620,6 +620,11 @@ namespace Cloud.Static
         /// </summary>
         FileItem_UnknownAction = (((ulong)CLExceptionDomain.FileItem) << 32) | 3, // 6_3
 
+        /// <summary>
+        /// (internal constructor) CLFileItem requires a FileChange.
+        /// </summary>
+        FileItem_RequiresFileChange = (((ulong)CLExceptionDomain.FileItem) << 32) | 4, // 6_4
+
         #endregion
 
         #region Credentials

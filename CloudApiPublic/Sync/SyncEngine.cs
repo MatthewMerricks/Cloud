@@ -6210,6 +6210,10 @@ namespace Cloud.Sync
                     else if (downloadStatus == (CLExceptionCode)0)
                     {
                         _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: DownloadForTask: File finished downloading message."));
+                        // Send the new DownloadCompleteMessage status message, including a CLFileItem.
+
+
+
                         // status message
                         MessageEvents.FireNewEventMessage(
                             "File finished downloading to path " + storeNewPath.ToString(), // could have been marked to cancel but already completed, so use stored path

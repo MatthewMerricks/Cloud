@@ -2259,6 +2259,15 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to fileChange must not be null.
+        /// </summary>
+        internal static string ExceptionFileItemNullFileChange {
+            get {
+                return ResourceManager.GetString("ExceptionFileItemNullFileChange", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to response IsFolder must not be null or headerAction must not be null or action must not be null.
         /// </summary>
         internal static string ExceptionFileItemNullIsFolderActionAndHeaderAction {

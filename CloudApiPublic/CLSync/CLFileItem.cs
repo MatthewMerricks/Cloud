@@ -259,6 +259,47 @@ namespace Cloud.CLSync
         //}
 
         /// <summary>
+        /// Constructor to create a CLFileItem from a FileChange.
+        /// </summary>
+        internal CLFileItem(FileChange fileChange, CLSyncbox syncbox)
+        {
+            if (fileChange == null)
+            {
+                throw new CLArgumentNullException(CLExceptionCode.FileItem_RequiresFileChange, Resources.ExceptionFileItemNullFileChange);
+            }
+            if (syncbox == null)
+            {
+                throw new CLArgumentNullException(CLExceptionCode.FileItem_NullSyncbox, Resources.SyncboxMustNotBeNull);
+            }
+
+            this._isFolder = fileChange.Metadata.HashableProperties.IsFolder;
+
+            this._name = fileChange.NewPath.Name;
+
+            this._relativePath = fileChange.NewPath.GetRelativePath(syncbox.Path, replaceWithForwardSlashes: false);  // relative Windows path
+
+            this._fullPath = fileChange.NewPath.ToString();
+
+            this._revision = fileChange.Metadata.HashableProperties   response.Revision;
+            this._hash = response.Hash;
+            this._size = response.Size;
+            this._mimeType = response.MimeType;
+            this._createdDate = response.CreatedDate ?? new DateTime(FileConstants.InvalidUtcTimeTicks, DateTimeKind.Utc);
+            this._modifiedDate = response.ModifiedDate ?? new DateTime(FileConstants.InvalidUtcTimeTicks, DateTimeKind.Utc);
+            this._uid = response.ServerUid;
+            this._parentUid = response.ParentUid;
+            this._isDeleted = response.IsDeleted ?? false;
+            this._isPending = !(response.IsNotPending ?? true);
+            this._syncbox = syncbox;
+            this._storageKey = response.StorageKey;
+            //// in public SDK documents, but for now it's always zero, so don't expose it
+            //this._childrenCount = 0;
+
+            this._httpRestClient = syncbox.HttpRestClient;
+            this._copiedSettings = syncbox.CopiedSettings;
+        }
+
+        /// <summary>
         /// Use this if the response does not have a headerAction or action.
         /// </summary>
         /// <param name="response"></param>
