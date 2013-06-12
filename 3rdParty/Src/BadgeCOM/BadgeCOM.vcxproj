@@ -202,7 +202,7 @@ echo if exist findVersionVar.bat (del findVersionVar.bat)
 if exist findVersionVar.bat (del findVersionVar.bat)
 echo if exist versionVar.txt (del versionVar.txt)
 if exist versionVar.txt (del versionVar.txt)
-echo tlbimp $(OutDir)$(TargetName).dll /delaysign /publickey:C:\CertBackup\CloudSigning\CloudPlatformCodeSigning.pub /out:$(SolutionDir)..\..\..\3rdParty\bin\$(Configuration)\$(TargetName)Lib.dll /company:Cloud.com /copyright:"Copyright (C ) Cloud.com. All rights reserved." /asmversion:^%versionVar^% /productversion:^%versionVar^%
+echo tlbimp $(OutDir)$(TargetName).dll /delaysign /publickey:C:\CertBackup\CloudSigning\CloudPlatformCodeSigning.pub /out:$(SolutionDir)..\..\..\3rdParty\bin\$(Configuration)\$(TargetName)Lib.dll /company:Cloud.com /copyright:"Copyright (C ) Cloud.com. All rights reserved." /asmversion:%%versionVar%% /productversion:%%versionVar%%
 tlbimp $(OutDir)$(TargetName).dll /delaysign /publickey:C:\CertBackup\CloudSigning\CloudPlatformCodeSigning.pub /out:$(SolutionDir)..\..\..\3rdParty\bin\$(Configuration)\$(TargetName)Lib.dll /company:Cloud.com /copyright:"Copyright (C ) Cloud.com. All rights reserved." /asmversion:%versionVar% /productversion:%versionVar%
 if errorlevel 1 goto BuildEventFailed
 
