@@ -9,7 +9,7 @@ namespace SampleLiveSync.EventMessageReceiver
     /// <summary>
     /// <see cref="EventMessage"/> for current number of files in the process of downloading.
     /// </summary>
-    public sealed class DownloadingMessage : EventMessage
+    public sealed class DownloadingMessage : EventMessage<DownloadingMessage>
     {
         #region EventMessage abstract overrides
         public override EventMessageImage Image

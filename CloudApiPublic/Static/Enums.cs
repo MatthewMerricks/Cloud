@@ -752,7 +752,9 @@ namespace Cloud.Static
         SuccessfulDownloadsIncremented,
         UploadingCountChanged,
         DownloadingCountChanged,
-        InternetConnectivityChanged
+        InternetConnectivityChanged,
+        DownloadCompleteChanged,
+        StorageQuotaExceededChanged,
     }
 
     /// <summary>

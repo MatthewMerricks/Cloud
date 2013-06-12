@@ -1,5 +1,5 @@
 ﻿//
-// SetCountMessage.cs
+// SetCountMessageArgs.cs
 // Cloud Windows
 //
 // Created By DavidBruck.
@@ -15,7 +15,7 @@ using System.Text;
 
 namespace Cloud.Model
 {
-    internal sealed class SetCountMessage : ISetCountMessage
+    internal sealed class SetCountMessageArgs : ISetCountMessage
     {
         public EventMessageArgs MessageArgs
         {
@@ -85,7 +85,7 @@ namespace Cloud.Model
         }
         #endregion
 
-        internal SetCountMessage(EventMessageArgs MessageArgs)
+        internal SetCountMessageArgs(EventMessageArgs MessageArgs)
         {
             if (MessageArgs == null)
             {

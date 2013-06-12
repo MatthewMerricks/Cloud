@@ -1,10 +1,11 @@
 ﻿//
-// BasicMessage.cs
+// StorageQuotaExceededMessageArgs.cs
 // Cloud Windows
 //
-// Created By DavidBruck.
+// Created By BobS.
 // Copyright (c) Cloud.com. All rights reserved.
 
+using Cloud.CLSync;
 using Cloud.Interfaces;
 using Cloud.Model.EventMessages;
 using Cloud.Static;
@@ -15,7 +16,7 @@ using System.Text;
 
 namespace Cloud.Model
 {
-    internal sealed class BasicMessage : IBasicMessage
+    internal sealed class StorageQuotaExceededMessageArgs : IStorageQuotaExceededMessage
     {
         public EventMessageArgs MessageArgs
         {
@@ -25,7 +26,6 @@ namespace Cloud.Model
             }
         }
         private readonly EventMessageArgs _messageArgs;
-        private readonly bool _isError;
 
         #region IHandleableArgs members
         bool IHandleableArgs.Handled
@@ -72,26 +72,10 @@ namespace Cloud.Model
         }
         #endregion
 
-        #region IBasicMessage members
-        bool IBasicMessage.IsError
-        {
-            get
-            {
-                return _isError;
-            }
-        }
-        EventMessageLevel IBasicMessage.Level
-        {
-            get
-            {
-                return (_isError
-                    ? ((ErrorMessage)_messageArgs.Message).Importance
-                    : ((InformationalMessage)_messageArgs.Message).Importance);
-            }
-        }
+        #region IStorageQuotaExceededMessage members
         #endregion
 
-        internal BasicMessage(EventMessageArgs MessageArgs)
+        internal StorageQuotaExceededMessageArgs(EventMessageArgs MessageArgs)
         {
             if (MessageArgs == null)
             {
@@ -101,14 +85,12 @@ namespace Cloud.Model
             {
                 throw new NullReferenceException("MessageArgs Message cannot be null");
             }
-            if (MessageArgs.Message.Type != EventMessageType.Error
-                && MessageArgs.Message.Type != EventMessageType.Informational)
+            if (MessageArgs.Message.Type != EventMessageType.StorageQuotaExceededChanged)
             {
-                throw new ArgumentException("MessageArgs Message Type must be Error or Informational, instead it is " + MessageArgs.Message.Type.ToString());
+                throw new ArgumentException("MessageArgs Message Type must be StorageQuotaExceededChanged, instead it is " + MessageArgs.Message.Type.ToString());
             }
 
             this._messageArgs = MessageArgs;
-            this._isError = MessageArgs.Message.Type == EventMessageType.Error;
         }
     }
 }

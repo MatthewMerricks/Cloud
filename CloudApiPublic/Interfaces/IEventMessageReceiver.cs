@@ -5,6 +5,7 @@
 // Created By DavidBruck.
 // Copyright (c) Cloud.com. All rights reserved.
 
+using Cloud.CLSync;
 using Cloud.Model;
 using Cloud.Model.EventMessages;
 using Cloud.Static;
@@ -65,6 +66,16 @@ namespace Cloud.Interfaces
         /// </summary>
         /// <param name="e">Message parameters</param>
         void InternetConnectivityChanged(IInternetConnectivityMessage e);
+        /// <summary>
+        /// Fired when a file download is complete.
+        /// </summary>
+        /// <param name="e">Message parameters</param>
+        void DownloadCompleteChanged(IDownloadCompleteMessage e);
+        /// <summary>
+        /// Fired when storage quota has been exceeded.
+        /// </summary>
+        /// <param name="e">Message parameters</param>
+        void StorageQuotaExceededChanged(IStorageQuotaExceededMessage e);
     }
     public interface IMinimalMessage : IHandleableArgs
     {
@@ -94,5 +105,13 @@ namespace Cloud.Interfaces
     public interface IInternetConnectivityMessage : IMinimalMessage
     {
         bool InternetConnected { get; }
+    }
+    public interface IDownloadCompleteMessage : IMinimalMessage
+    {
+        long EventId { get; }
+        CLFileItem FileItem { get; }
+    }
+    public interface IStorageQuotaExceededMessage : IMinimalMessage
+    {
     }
 }

@@ -1,5 +1,5 @@
 ﻿//
-// IncrementCountMessage.cs
+// TransferUpdateMessageArgs.cs
 // Cloud Windows
 //
 // Created By DavidBruck.
@@ -15,7 +15,7 @@ using System.Text;
 
 namespace Cloud.Model
 {
-    internal sealed class IncrementCountMessage : IIncrementCountMessage
+    internal sealed class TransferUpdateMessageArgs : ITransferUpdateMessage
     {
         public EventMessageArgs MessageArgs
         {
@@ -72,20 +72,30 @@ namespace Cloud.Model
         }
         #endregion
 
-        #region IIncrementCountMessage members
-        uint IIncrementCountMessage.IncrementAmount
+        #region ITransferUpdateMessage members
+        long ITransferUpdateMessage.EventId
         {
             get
             {
                 return
                     (_upload
-                        ? ((SuccessfulUploadsIncrementedMessage)_messageArgs.Message).Count
-                        : ((SuccessfulDownloadsIncrementedMessage)_messageArgs.Message).Count);
+                        ? ((UploadProgressMessage)_messageArgs.Message).EventId
+                        : ((DownloadProgressMessage)_messageArgs.Message).EventId);
+            }
+        }
+        CLStatusFileTransferUpdateParameters ITransferUpdateMessage.Parameters
+        {
+            get
+            {
+                return
+                    (_upload
+                        ? ((UploadProgressMessage)_messageArgs.Message).Parameters
+                        : ((DownloadProgressMessage)_messageArgs.Message).Parameters);
             }
         }
         #endregion
 
-        internal IncrementCountMessage(EventMessageArgs MessageArgs)
+        internal TransferUpdateMessageArgs(EventMessageArgs MessageArgs)
         {
             if (MessageArgs == null)
             {
@@ -95,14 +105,14 @@ namespace Cloud.Model
             {
                 throw new NullReferenceException("MessageArgs Message cannot be null");
             }
-            if (MessageArgs.Message.Type != EventMessageType.SuccessfulUploadsIncremented
-                && MessageArgs.Message.Type != EventMessageType.SuccessfulDownloadsIncremented)
+            if (MessageArgs.Message.Type != EventMessageType.UploadProgress
+                && MessageArgs.Message.Type != EventMessageType.DownloadProgress)
             {
-                throw new ArgumentException("MessageArgs Message Type must be SuccessfulUploadsIncremented or SuccessfulDownloadsIncremented, instead it is " + MessageArgs.Message.Type.ToString());
+                throw new ArgumentException("MessageArgs Message Type must be UploadProgress or DownloadProgress, instead it is " + MessageArgs.Message.Type.ToString());
             }
 
             this._messageArgs = MessageArgs;
-            this._upload = MessageArgs.Message.Type == EventMessageType.SuccessfulUploadsIncremented;
+            this._upload = MessageArgs.Message.Type == EventMessageType.UploadProgress;
         }
     }
 }

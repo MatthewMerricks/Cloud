@@ -37,7 +37,7 @@ namespace SampleLiveSync.EventMessageReceiver
         /// Retrieves the collection of growl messages for display;
         /// bind with one-time binding when used as ItemSource because reference to collection is readonly
         /// </summary>
-        internal ObservableCollection<EventMessage> GrowlMessages
+        internal ObservableCollection<IEventMessage> GrowlMessages
         {
             get
             {
@@ -45,7 +45,7 @@ namespace SampleLiveSync.EventMessageReceiver
             }
         }
         // Create the collection for storing growl messages for display
-        private readonly DelayChangeObservableCollection<EventMessage> _growlMessages = new DelayChangeObservableCollection<EventMessage>();
+        private readonly DelayChangeObservableCollection<IEventMessage> _growlMessages = new DelayChangeObservableCollection<IEventMessage>();
 
         /// <summary>
         /// Retrieves whether the growl messages should be visible (meaning the growl window should not be completely faded out) which should be bound to display visibility; notifies on property change
@@ -197,6 +197,8 @@ namespace SampleLiveSync.EventMessageReceiver
         private UploadedMessage uploaded = null;
         // define the message for internet connectiviy change to update the growl, defaulting to none
         private InternetConnectivityMessage connectivity = null;
+        // define the message for storage quota exceeded change to update the growl, defaulting to none
+        private StorageQuotaExceededMessage storageQuotaExceeded = null;
 
         // define the time at which the growl will finish fading into being completely opaque, defaulting to none
         private Nullable<DateTime> firstFadeInCompletion = null;
@@ -304,8 +306,8 @@ namespace SampleLiveSync.EventMessageReceiver
         {
             if (Application.Current != null)
             {
-                Application.Current.Dispatcher.BeginInvoke((Action<EventMessage>)AddEventMessageToGrowl, // the method which adds a growl message locks for modification
-                    (EventMessage)(new ErrorMessage(message)));
+                Application.Current.Dispatcher.BeginInvoke((Action<EventMessage<ErrorMessage>>)AddEventMessageToGrowl, // the method which adds a growl message locks for modification
+                    (EventMessage<ErrorMessage>)(new ErrorMessage(message)));
             }
         }
 
@@ -314,8 +316,8 @@ namespace SampleLiveSync.EventMessageReceiver
         {
             if (Application.Current != null)
             {
-                Application.Current.Dispatcher.BeginInvoke((Action<EventMessage>)AddEventMessageToGrowl, // the method which adds a growl message locks for modification
-                    (EventMessage)(new InformationalMessage(message)));
+                Application.Current.Dispatcher.BeginInvoke((Action<EventMessage<InformationalMessage>>)AddEventMessageToGrowl, // the method which adds a growl message locks for modification
+                    (EventMessage<InformationalMessage>)(new InformationalMessage(message)));
             }
         }
 
@@ -346,8 +348,8 @@ namespace SampleLiveSync.EventMessageReceiver
                 {
                     if (Application.Current != null)
                     {
-                        Application.Current.Dispatcher.BeginInvoke((Action<EventMessage>)AddEventMessageToGrowl, // the method which adds a growl message locks for modification
-                            (EventMessage)downloading);
+                        Application.Current.Dispatcher.BeginInvoke((Action<EventMessage<DownloadingMessage>>)AddEventMessageToGrowl, // the method which adds a growl message locks for modification
+                            (EventMessage<DownloadingMessage>)downloading);
                     }
                 }
             }
@@ -384,8 +386,8 @@ namespace SampleLiveSync.EventMessageReceiver
                 {
                     if (Application.Current != null)
                     {
-                        Application.Current.Dispatcher.BeginInvoke((Action<EventMessage>)AddEventMessageToGrowl, // the method which adds a growl message locks for modification
-                            (EventMessage)downloaded);
+                        Application.Current.Dispatcher.BeginInvoke((Action<EventMessage<DownloadedMessage>>)AddEventMessageToGrowl, // the method which adds a growl message locks for modification
+                            (EventMessage<DownloadedMessage>)downloaded);
                     }
                 }
             }
@@ -421,8 +423,8 @@ namespace SampleLiveSync.EventMessageReceiver
                 {
                     if (Application.Current != null)
                     {
-                        Application.Current.Dispatcher.BeginInvoke((Action<EventMessage>)AddEventMessageToGrowl, // the method which adds a growl message locks for modification
-                            (EventMessage)uploading);
+                        Application.Current.Dispatcher.BeginInvoke((Action<EventMessage<UploadingMessage>>)AddEventMessageToGrowl, // the method which adds a growl message locks for modification
+                            (EventMessage<UploadingMessage>)uploading);
                     }
                 }
             }
@@ -459,8 +461,8 @@ namespace SampleLiveSync.EventMessageReceiver
                 {
                     if (Application.Current != null)
                     {
-                        Application.Current.Dispatcher.BeginInvoke((Action<EventMessage>)AddEventMessageToGrowl, // the method which adds a growl message locks for modification
-                            (EventMessage)uploaded);
+                        Application.Current.Dispatcher.BeginInvoke((Action<EventMessage<UploadedMessage>>)AddEventMessageToGrowl, // the method which adds a growl message locks for modification
+                            (EventMessage<UploadedMessage>)uploaded);
                     }
                 }
             }
@@ -496,8 +498,51 @@ namespace SampleLiveSync.EventMessageReceiver
                 {
                     if (Application.Current != null)
                     {
-                        Application.Current.Dispatcher.BeginInvoke((Action<EventMessage>)AddEventMessageToGrowl, // the method which adds a growl message locks for modification
-                            (EventMessage)connectivity);
+                        Application.Current.Dispatcher.BeginInvoke((Action<EventMessage<InternetConnectivityMessage>>)AddEventMessageToGrowl, // the method which adds a growl message locks for modification
+                            (EventMessage<InternetConnectivityMessage>)connectivity);
+                    }
+                }
+            }
+
+            // event was handled
+            e.MarkHandled();
+        }
+
+        void IEventMessageReceiver.DownloadCompleteChanged(IDownloadCompleteMessage e)
+        {
+            // Do nothing here.  This message is intended for the On Demand API.  It includes the CLFileItem that just completed downloading.  This sample app already receives an informational download complete message that will display.
+
+            // event was handled
+            e.MarkHandled();
+        }
+
+        void IEventMessageReceiver.StorageQuotaExceededChanged(IStorageQuotaExceededMessage e)
+        {
+            // lock on the growl messages for modification
+            lock (_growlMessages)
+            {
+                // declare a bool for whether a new growl message needed to be created
+                bool newMessage;
+
+                // if there is no current message for the storage quota exceeded, then create the new message 
+                if (storageQuotaExceeded == null)
+                {
+                    storageQuotaExceeded = new StorageQuotaExceededMessage();
+                    newMessage = true;
+                }
+                // else if there was not already an existing message for storage quota exceeded, then update it
+                else
+                {
+                    newMessage = false;
+                }
+
+                // if a new message was created, then add the new message to the growl
+                if (newMessage)
+                {
+                    if (Application.Current != null)
+                    {
+                        Application.Current.Dispatcher.BeginInvoke((Action<EventMessage<StorageQuotaExceededMessage>>)AddEventMessageToGrowl, // the method which adds a growl message locks for modification
+                            (EventMessage<StorageQuotaExceededMessage>)storageQuotaExceeded);
                     }
                 }
             }
@@ -547,7 +592,7 @@ namespace SampleLiveSync.EventMessageReceiver
                 DateTime closeTime = DateTime.UtcNow;
 
                 // loop through the growl messages
-                foreach (EventMessage currentGrowl in _growlMessages)
+                foreach (IEventMessage currentGrowl in _growlMessages)
                 {
                     // mark all the times for fading in and out for the current growl message to the close time
                     currentGrowl.CompleteFadeOut = currentGrowl.StartFadeOut = currentGrowl.FadeInCompletion = closeTime;
@@ -610,7 +655,7 @@ namespace SampleLiveSync.EventMessageReceiver
                     bool foundOpaqueOrFadeOut = false;
 
                     // loop through the growl messages
-                    foreach (EventMessage currentGrowl in _growlMessages)
+                    foreach (IEventMessage currentGrowl in _growlMessages)
                     {
                         // if the current time is before the time the current message would have caused the growl to finish fading in, then check if its fade in completion time is earliest to store
                         if (currentTime.CompareTo(currentGrowl.FadeInCompletion) < 0)
@@ -781,7 +826,7 @@ namespace SampleLiveSync.EventMessageReceiver
                         TimeSpan latestCompleteFadeOut = TimeSpan.Zero;
 
                         // loop though the growl messages
-                        foreach (EventMessage currentGrowl in _growlMessages)
+                        foreach (IEventMessage currentGrowl in _growlMessages)
                         {
                             // declare a time span for how long it would take the current growl to finish fading in if it hasn't faded in already (which would 
                             TimeSpan timeLeftToFadeIn;
@@ -821,7 +866,7 @@ namespace SampleLiveSync.EventMessageReceiver
                         DateTime newCompleteFadeOut = currentTime.Add(latestCompleteFadeOut);
 
                         // loop through the growl messages
-                        foreach (EventMessage currentGrowl in _growlMessages)
+                        foreach (IEventMessage currentGrowl in _growlMessages)
                         {
                             // set the time when the current growl would finish fading in by the time it would starting fading out minus the time it would remain opaque
                             currentGrowl.FadeInCompletion = newStartFadeOut.Subtract(currentGrowl.StartFadeOut.Subtract(currentGrowl.FadeInCompletion));
@@ -850,7 +895,7 @@ namespace SampleLiveSync.EventMessageReceiver
         #endregion
 
         // adds a new message to display in the message collection for the growl
-        private void AddEventMessageToGrowl(EventMessage toAdd)
+        private void AddEventMessageToGrowl<T>(EventMessage<T> toAdd) where T : EventMessage<T>
         {
             if (Application.Current == null)
             {
@@ -939,10 +984,10 @@ namespace SampleLiveSync.EventMessageReceiver
                 bool foundFadeIn = false;
 
                 // create a list for the messages which will store messages which have elapsed in display time (but will only be removed if the whole growl should disappear)
-                List<EventMessage> completedMessages = new List<EventMessage>();
+                List<IEventMessage> completedMessages = new List<IEventMessage>();
 
                 // loop through all growl messages
-                foreach (EventMessage currentGrowl in _growlMessages)
+                foreach (IEventMessage currentGrowl in _growlMessages)
                 {
                     // if the current time is earlier than when the current message would finish fading in, then possibly mark that a fade in was found and update the earliest time to fade in and the latest time to start fading out
                     if (DateTime.Compare(toCompare,
@@ -1126,8 +1171,8 @@ namespace SampleLiveSync.EventMessageReceiver
                     {
                         if (Application.Current != null)
                         {
-                            Application.Current.Dispatcher.BeginInvoke((Action<IEnumerable<EventMessage>>)RemoveEventMessagesFromGrowl, // the method which removes growl messages locks for modification
-                                (IEnumerable<EventMessage>)completedMessages);
+                            Application.Current.Dispatcher.BeginInvoke((Action<IEnumerable<IEventMessage>>)RemoveEventMessagesFromGrowl, // the method which removes growl messages locks for modification
+                                (IEnumerable<IEventMessage>)completedMessages);
                         }
                     }
                 }
@@ -1138,7 +1183,7 @@ namespace SampleLiveSync.EventMessageReceiver
         }
 
         // removes messages from display in the message collection for the growl
-        private void RemoveEventMessagesFromGrowl(IEnumerable<EventMessage> toRemove)
+        private void RemoveEventMessagesFromGrowl(IEnumerable<IEventMessage> toRemove)
         {
             if (Application.Current == null)
             {
@@ -1154,7 +1199,7 @@ namespace SampleLiveSync.EventMessageReceiver
             else
             {
                 // declare array for copying the input enumerable
-                EventMessage[] toRemoveArray;
+                IEventMessage[] toRemoveArray;
                 // if the input enumerable exists and, upon copying it to an array, has at least one message, then remove the messages
                 if (toRemove != null
                     && (toRemoveArray = toRemove.ToArray()).Length > 0)
