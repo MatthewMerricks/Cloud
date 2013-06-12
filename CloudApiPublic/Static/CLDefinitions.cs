@@ -8,8 +8,8 @@
 // Back end definitions
 // @@@@@@@@@ AUTO-BUILD SECTION.  DON'T CHANGE THE FORMAT @@@@@@@@@@@@@@@@@
 //#define PRODUCTION_BACKEND    // cloud.com
-//#define DEVELOPMENT_BACKEND     // cliff.cloudburrito.com
-#define STAGING_BACKEND       // cloudstaging.us
+#define DEVELOPMENT_BACKEND     // cliff.cloudburrito.com
+//#define STAGING_BACKEND       // cloudstaging.us
 // @@@@@@@@@ END AUTO-BUILD SECTION.  DON'T CHANGE THE FORMAT @@@@@@@@@@@@@@@@@
 
 // URL definitions
@@ -521,6 +521,7 @@ namespace Cloud.Static
         public const string CLEventTypeDownload = "download";
         public const string CLEventTypeToParentNotFound = "to_parent_not_found";
         public const string CLEventTypeParentNotFound = "parent_not_found";
+        public const string CLEventTypeQuotaExceeded = "quota_exceeded";
 
         // Cloud Metadata Protocol
         public const string CLMetadataFileObject = "file_object";

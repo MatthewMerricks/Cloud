@@ -99,7 +99,7 @@ namespace Cloud.REST
         #region Constructors and Factories
 
         // private constructor requiring settings to copy and store for the life of this http client
-        private CLHttpRest(CLCredentials credentials, CLSyncbox syncbox, ICLSyncSettings settings,
+        private CLHttpRest(CLSyncbox syncbox, ICLSyncSettings settings,
                                 Helpers.ReplaceExpiredCredentials getNewCredentialsCallback,
                                 object getNewCredentialsCallbackUserState)
         {
@@ -150,19 +150,18 @@ namespace Cloud.REST
         /// <summary>
         /// Creates a CLHttpRest client object for HTTP REST calls to the server
         /// </summary>
-        /// <param name="credentials">Contains authentication information required for communication</param>
         /// <param name="syncboxId">ID of sync box which can be manually synced</param>
         /// <param name="client">(output) Created CLHttpRest client</param>
         /// <param name="settings">(optional) Additional settings to override some defaulted parameters</param>
         /// <returns>Returns any error creating the CLHttpRest client, if any</returns>
-        internal static CLError CreateAndInitialize(CLCredentials credentials, CLSyncbox syncbox, out CLHttpRest client, 
+        internal static CLError CreateAndInitialize(CLSyncbox syncbox, out CLHttpRest client, 
                     ICLSyncSettings settings = null,
                     Helpers.ReplaceExpiredCredentials getNewCredentialsCallback = null,
                     object getNewCredentialsCallbackUserState = null)
         {
             try
             {
-                client = new CLHttpRest(credentials, syncbox, settings, getNewCredentialsCallback, getNewCredentialsCallbackUserState);
+                client = new CLHttpRest(syncbox, settings, getNewCredentialsCallback, getNewCredentialsCallbackUserState);
             }
             catch (Exception ex)
             {

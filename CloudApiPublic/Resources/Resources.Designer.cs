@@ -2151,6 +2151,15 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Storage quota should have been queried from the server and set at least once, including upon initialization..
+        /// </summary>
+        internal static string ExceptionCLSyncboxNullStorageQuota {
+            get {
+                return ResourceManager.GetString("ExceptionCLSyncboxNullStorageQuota", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to path must be set first.
         /// </summary>
         internal static string ExceptionCLSyncboxPathNotSet {

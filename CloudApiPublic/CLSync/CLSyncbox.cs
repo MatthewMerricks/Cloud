@@ -810,12 +810,34 @@ namespace Cloud
                     // Create the sync engine for this syncbox instance
                     _syncEngine = new CLSyncEngine(this, debugDependenciesValue, copyDatabaseBetweenChangesValue, debugFileMonitorMemoryValue); // syncbox to sync (contains required settings)
 
+                    Nullable<long> copyStorageQuota;
+                    long copyQuotaUsage;
+
+                    _propertyChangeLocker.EnterReadLock();
+                    try
+                    {
+                        copyStorageQuota = _storageQuota;
+                        copyQuotaUsage = _quotaUsage ?? 0;
+                    }
+                    finally
+                    {
+                        _propertyChangeLocker.ExitReadLock();
+                    }
+
+                    if (copyStorageQuota == null)
+                    {
+                        throw new CLNullReferenceException(CLExceptionCode.Syncbox_StorageQuotaUnknown, Resources.ExceptionCLSyncboxNullStorageQuota);
+                    }
+
                     try
                     {
                         _syncMode = mode;
 
                         // Start the sync engine
                         CLError syncEngineStartError = _syncEngine.Start(
+                            copyQuotaUsage,
+                            (long)copyStorageQuota,
+                            new SyncEngine.OnGetDataUsageCompletionDelegate(OnGetDataUsageCompletion),
                             statusUpdated: syncStatusChangedCallback, // called when sync status is updated
                             statusUpdatedUserState: syncStatusChangedCallbackUserState); // the user state passed to the callback above
 
@@ -3900,12 +3922,11 @@ namespace Cloud
                 // Create the http rest client
                 _trace.writeToLog(9, Resources.CLSyncboxStartCreateRestClient);
                 CLError createRestClientError = CLHttpRest.CreateAndInitialize(
-                                credentials: this.Credentials,
-                                syncbox: this,
-                                client: out localRestClient,
-                                settings: this._copiedSettings,
-                                getNewCredentialsCallback: _getNewCredentialsCallback,
-                                getNewCredentialsCallbackUserState: _getNewCredentialsCallbackUserState);
+                    syncbox: this,
+                    client: out localRestClient,
+                    settings: this._copiedSettings,
+                    getNewCredentialsCallback: _getNewCredentialsCallback,
+                    getNewCredentialsCallbackUserState: _getNewCredentialsCallbackUserState);
                 if (createRestClientError != null)
                 {
                     _trace.writeToLog(1,
@@ -3950,6 +3971,11 @@ namespace Cloud
                                 throw new CLException(CLExceptionCode.Syncbox_InitialStatus, Resources.ExceptionSyncboxStartStatus, errorFromStatus.Exceptions);
                         }
                     }
+
+                    // &&&& todo: remove debug only code
+                    // when server includes quota information in syncbox\status (called via GetCurrentStatus above), then quota needs to be updated in this object;
+                    // but since the server is missing that information, fill it in via syncbox/usage here:
+                    this.GetDataUsage();
                 }
             }
             catch (Exception ex)

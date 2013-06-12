@@ -252,6 +252,9 @@ namespace Cloud
         /// <param name="statusUpdatedUserState">(optional) User state to pass when firing the statusUpdated callback</param>
         /// <returns>Returns any error which occurred starting to sync, if any</returns>
         public CLError Start(
+            long quotaUsage,
+            long storageQuota,
+            SyncEngine.OnGetDataUsageCompletionDelegate OnGetDataUsageCompletion,
 			System.Threading.WaitCallback statusUpdated = null,
 			object statusUpdatedUserState = null)
         {
@@ -504,7 +507,8 @@ namespace Cloud
                 CLError fileMonitorCreationError;
                 lock (_locker)
                 {
-                    fileMonitorCreationError = MonitorAgent.CreateNewAndInitialize(this._syncbox,
+                    fileMonitorCreationError = MonitorAgent.CreateNewAndInitialize(
+                        this._syncbox,
                         _indexer,
                         this._syncbox.HttpRestClient,
                         this.debugDependencies,
@@ -512,7 +516,10 @@ namespace Cloud
                         statusUpdatedUserState,
                         out _monitor,
                         out _syncEngine,
-                        this.debugFileMonitorMemory);
+                        this.debugFileMonitorMemory,
+                        quotaUsage,
+                        storageQuota,
+                        OnGetDataUsageCompletion);
                 }
 
                 // Hook up the events

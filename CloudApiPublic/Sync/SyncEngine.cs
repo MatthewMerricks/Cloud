@@ -67,7 +67,18 @@ namespace Cloud.Sync
         // time to wait to take everything that has failed out and retry
         private readonly int FailedOutRetryMillisecondInterval;
 
+        private readonly OnGetDataUsageCompletionDelegate OnGetDataUsageCompletion;
+
         private readonly bool DependencyDebugging;
+        #endregion
+
+        #region latest quota storage
+
+        // only read or modify quotaUsage and storageQuota under a lock on RunLocker (except when being initially set on construction)
+
+        private long quotaUsage;
+        private long storageQuota;
+
         #endregion
 
         #region is internet connected
@@ -127,6 +138,7 @@ namespace Cloud.Sync
             }
         }
 
+        internal delegate void OnGetDataUsageCompletionDelegate(JsonContracts.SyncboxUsageResponse response, object userState);
         /// <summary>
         /// Engine constructor
         /// </summary>
@@ -147,6 +159,9 @@ namespace Cloud.Sync
             CLHttpRest httpRestClient,
             out SyncEngine engine,
             bool DependencyDebugging,
+            long quotaUsage,
+            long storageQuota,
+            OnGetDataUsageCompletionDelegate OnGetDataUsageCompletion,
             System.Threading.WaitCallback statusUpdated = null,
             object statusUpdatedUserState = null,
             int HttpTimeoutMilliseconds = CLDefinitions.HttpTimeoutDefaultMilliseconds,
@@ -170,7 +185,10 @@ namespace Cloud.Sync
                     MaxNumberOfNotFounds,
                     ErrorProcessingMillisecondInterval,
                     MaxNumberConnectionFailures,
-                    FailedOutRetryMillisecondInterval);
+                    FailedOutRetryMillisecondInterval,
+                    quotaUsage,
+                    storageQuota,
+                    OnGetDataUsageCompletion);
             }
             catch (Exception ex)
             {
@@ -180,7 +198,7 @@ namespace Cloud.Sync
             return null;
         }
 
-        public SyncEngine(ISyncDataObject syncData,
+        private SyncEngine(ISyncDataObject syncData,
             CLSyncbox syncbox,
             CLHttpRest httpRestClient,
             bool DependencyDebugging,
@@ -191,7 +209,10 @@ namespace Cloud.Sync
             byte MaxNumberOfNotFounds,
             int ErrorProcessingMillisecondInterval,
             byte MaxNumberConnectionFailures,
-            int FailedOutRetryMillisecondInterval)
+            int FailedOutRetryMillisecondInterval,
+            long quotaUsage,
+            long storageQuota,
+            OnGetDataUsageCompletionDelegate OnGetDataUsageCompletion)
         {
             #region validate parameters
             if (syncData == null)
@@ -221,6 +242,10 @@ namespace Cloud.Sync
             if (String.IsNullOrWhiteSpace(syncbox.CopiedSettings.DeviceId))
             {
                 throw new ArgumentException("DeviceId must be specified");
+            }
+            if (OnGetDataUsageCompletion == null)
+            {
+                throw new ArgumentNullException("OnGetDataUsageCompletion cannot be null");
             }
             #endregion
 
@@ -254,6 +279,10 @@ namespace Cloud.Sync
             this.MaxNumberOfServerConnectionFailures = MaxNumberConnectionFailures;
             this.DependencyDebugging = DependencyDebugging;
             this.FailedOutRetryMillisecondInterval = FailedOutRetryMillisecondInterval;
+
+            this.OnGetDataUsageCompletion = OnGetDataUsageCompletion;
+            this.quotaUsage = quotaUsage;
+            this.storageQuota = storageQuota;
             #endregion
         }
 
@@ -1438,9 +1467,12 @@ namespace Cloud.Sync
 
             GenericHolder<IEnumerable<FileChange>> commonTopLevelErrors = new GenericHolder<IEnumerable<FileChange>>(null);
 
-            GenericHolder<List<PossiblyStreamableFileChange>> commonUploadsRemovedUponDuplicateFound = new GenericHolder<List<PossiblyStreamableFileChange>>(null);
+            GenericHolder<List<PossiblyStreamableFileChange>> commonUploadsRemovedUponDuplicateFoundAndFilteredOverQuotaEvents = new GenericHolder<List<PossiblyStreamableFileChange>>(null);
 
             Dictionary<long, UidRevisionHolder> uidStorage = new Dictionary<long, UidRevisionHolder>();
+
+            GenericHolder<Nullable<long>> commonQuotaUsageToReset = new GenericHolder<Nullable<long>>(null);
+            GenericHolder<bool> latestQuotaReceivedFromServer = new GenericHolder<bool>(false);
 
             #endregion
 
@@ -3229,19 +3261,20 @@ namespace Cloud.Sync
 
             #region removeDuplicateUploads
 
-            var removeDuplicateUploads = DelegateAndDataHolderBase.Create(
+            var removeDuplicateUploadsAndFilterOverQuotaEvents = DelegateAndDataHolderBase.Create(
                 new
                 {
                     commonThisEngine = this,
-                    commonUploadsRemovedUponDuplicateFound = commonUploadsRemovedUponDuplicateFound,
+                    commonUploadsRemovedUponDuplicateFoundAndFilteredOverQuotaEvents = commonUploadsRemovedUponDuplicateFoundAndFilteredOverQuotaEvents,
                     commonChangesForCommunication = commonChangesForCommunication,
-                    commonErrorsToQueue = commonErrorsToQueue
+                    commonErrorsToQueue = commonErrorsToQueue,
+                    commonQuotaUsageToReset = commonQuotaUsageToReset
                 },
                 (Data, errorToAccumulate) =>
                 {
                     // check to see if any pending file uploads match with an existing file upload to prevent uploading the same file twice simultaneously
 
-                    Data.commonUploadsRemovedUponDuplicateFound.Value = new List<PossiblyStreamableFileChange>();
+                    Data.commonUploadsRemovedUponDuplicateFoundAndFilteredOverQuotaEvents.Value = new List<PossiblyStreamableFileChange>();
 
                     // define a function to initialize and fill in the failuresDict for lookup of metadata when needed (runs only when needed to prevent unnecessary logic under the UpDownEvent locker)
                     var getRunningUpChangesDict = DelegateAndDataHolderBase.Create(
@@ -3304,23 +3337,36 @@ namespace Cloud.Sync
                     {
                         if (currentChangeToCommunicate.FileChange.Direction == SyncDirection.To
                             && !currentChangeToCommunicate.FileChange.Metadata.HashableProperties.IsFolder
-                            && (currentChangeToCommunicate.FileChange.Type == FileChangeType.Modified))
+                            && (currentChangeToCommunicate.FileChange.Type == FileChangeType.Modified
+                                || currentChangeToCommunicate.FileChange.Type == FileChangeType.Created))
                         {
-                            if (getRunningUpChangesDict.TypedProcess().ContainsKey(currentChangeToCommunicate.FileChange.NewPath))
+                            if ((currentChangeToCommunicate.FileChange.Type == FileChangeType.Modified
+                                    && getRunningUpChangesDict.TypedProcess().ContainsKey(currentChangeToCommunicate.FileChange.NewPath))
+                                || Data.commonThisEngine.quotaUsage > Data.commonThisEngine.storageQuota) // <-- confirmed with Phil not to do a >= check since server allows an add even if it's perfectly at max storage capacity
                             {
-                                Data.commonUploadsRemovedUponDuplicateFound.Value.Add(currentChangeToCommunicate);
+                                Data.commonUploadsRemovedUponDuplicateFoundAndFilteredOverQuotaEvents.Value.Add(currentChangeToCommunicate);
+                            }
+                            else if ((currentChangeToCommunicate.FileChange.Metadata.HashableProperties.Size ?? 1L) > 0L)
+                            {
+                                if (Data.commonQuotaUsageToReset.Value == null)
+                                {
+                                    Data.commonQuotaUsageToReset.Value = Data.commonThisEngine.quotaUsage;
+                                }
+
+                                Data.commonThisEngine.quotaUsage += (currentChangeToCommunicate.FileChange.Metadata.HashableProperties.Size ?? 1L);
                             }
                         }
                     }
-                    if (Data.commonUploadsRemovedUponDuplicateFound.Value.Count > 0)
+
+                    if (Data.commonUploadsRemovedUponDuplicateFoundAndFilteredOverQuotaEvents.Value.Count > 0)
                     {
-                        Dictionary<FileChange, PossiblyStreamableFileChange> hashedDuplicates = Data.commonUploadsRemovedUponDuplicateFound.Value.ToDictionary(currentDuplicate => currentDuplicate.FileChange);
+                        Dictionary<FileChange, PossiblyStreamableFileChange> hashedDuplicates = Data.commonUploadsRemovedUponDuplicateFoundAndFilteredOverQuotaEvents.Value.ToDictionary(currentDuplicate => currentDuplicate.FileChange);
 
                         Data.commonErrorsToQueue.Value.RemoveAll(currentErrorToQueue => hashedDuplicates.ContainsKey(currentErrorToQueue.FileChange));
 
                         lock (Data.commonThisEngine.FailureTimer.TimerRunningLocker)
                         {
-                            foreach (PossiblyStreamableFileChange currentDuplicate in Data.commonUploadsRemovedUponDuplicateFound.Value)
+                            foreach (PossiblyStreamableFileChange currentDuplicate in Data.commonUploadsRemovedUponDuplicateFoundAndFilteredOverQuotaEvents.Value)
                             {
                                 if (currentDuplicate.StreamContext != null)
                                 {
@@ -4090,7 +4136,6 @@ namespace Cloud.Sync
                 // try/finally to always mark sync running stopped if it was marked running
                 try
                 {
-
                     // try/catch for primary sync logic, exception is aggregated to return
                     try
                     {
@@ -4218,13 +4263,13 @@ namespace Cloud.Sync
                                 return toReturn.Value;
                             }
 
-                            removeDuplicateUploads.Process();
+                            removeDuplicateUploadsAndFilterOverQuotaEvents.Process();
 
                             // Take events without dependencies that were not fired off in order to perform communication (or Sync From for no events left)
 
                             // Communicate with server with all the changes to process, storing any exception that occurs
                             commonCommunicationException.Value = CommunicateWithServer(
-                                commonChangesForCommunication.Value.Except(commonUploadsRemovedUponDuplicateFound.Value), // changes to process
+                                commonChangesForCommunication.Value.Except(commonUploadsRemovedUponDuplicateFoundAndFilteredOverQuotaEvents.Value), // changes to process
                                 respondingToPushNotification, // whether the current SyncEngine Run was called for responding to a push notification or on manual polling
                                 out completedChanges, // output changes completed during communication
                                 out incompleteChanges, // output changes that still need to be performed
@@ -4233,7 +4278,8 @@ namespace Cloud.Sync
                                 out newSyncId, // output newest sync id from server
                                 out communicationOutputCredentialsError,
                                 out syncRootUid,
-                                uidStorage);
+                                uidStorage,
+                                latestQuotaReceivedFromServer);
 
                             commonCompletedChanges.Value = completedChanges;
                             commonIncompleteChanges.Value = incompleteChanges;
@@ -4522,6 +4568,12 @@ namespace Cloud.Sync
                     }
                     finally
                     {
+                        if (commonQuotaUsageToReset.Value != null
+                            && !latestQuotaReceivedFromServer.Value)
+                        {
+                            quotaUsage = (long)commonQuotaUsageToReset.Value;
+                        }
+
                         handleCredentialsErrorIfAny.Process();
                     }
 
@@ -7194,7 +7246,8 @@ namespace Cloud.Sync
             out string newSyncId,
             out CredentialsErrorType credentialsError,
             out string syncRootUid,
-            Dictionary<long, UidRevisionHolder> uidStorage)
+            Dictionary<long, UidRevisionHolder> uidStorage,
+            GenericHolder<bool> latestQuotaReceivedFromServer)
         {
             credentialsError = CredentialsErrorType.NoError;
             syncRootUid = null;
@@ -7491,7 +7544,6 @@ namespace Cloud.Sync
                             {
                                 serverUidId = (long)existingServerUidId;
 
-                                Nullable<long> existingServerUidIdRequiringMerging;
                                 CLError updateServerUidError = innerSyncData.UpdateServerUid(
                                     serverUidId,
                                     findServerUid,
@@ -8088,6 +8140,27 @@ namespace Cloud.Sync
                         if (currentBatchResponse.SyncId == null)
                         {
                             throw new NullReferenceException("Invalid HTTP response body in Sync To, SyncId cannot be null");
+                        }
+
+                        if (currentBatchResponse.Quota == null
+                            || currentBatchResponse.Quota.Limit == null)
+                        {
+                            throw new NullReferenceException("SyncFrom deserializedResponse cannot have null Quota");
+                        }
+
+                        quotaUsage = (currentBatchResponse.Quota.Local ?? 0L)
+                            + (currentBatchResponse.Quota.Shared ?? 0L);
+
+                        storageQuota = (long)currentBatchResponse.Quota.Limit;
+
+                        latestQuotaReceivedFromServer.Value = true;
+
+                        try
+                        {
+                            OnGetDataUsageCompletion(currentBatchResponse.Quota, userState: null);
+                        }
+                        catch
+                        {
                         }
 
                         // record the new sync id from the server
@@ -9395,6 +9468,8 @@ namespace Cloud.Sync
                                                     // cases that trigger a file upload
                                                     case CLDefinitions.CLEventTypeUpload:
                                                     case CLDefinitions.CLEventTypeUploading:
+                                                    // case where item cannot be processed because quota is already exceeded
+                                                    case CLDefinitions.CLEventTypeQuotaExceeded:
                                                         // Todo: need optimization to prevent uploading two identical files from the same client, the first of each storage key that gets uploaded will autocomplete all other events with the same storage key
 
                                                         // Sync To event did not complete with communication since it still requires a file upload so add it to incomplete changes list
@@ -10571,6 +10646,27 @@ namespace Cloud.Sync
                         if (deserializedResponse.Events == null)
                         {
                             throw new NullReferenceException("SyncFrom deserializedResponse cannot have null Events");
+                        }
+
+                        if (deserializedResponse.Quota == null
+                            || deserializedResponse.Quota.Limit == null)
+                        {
+                            throw new NullReferenceException("SyncFrom deserializedResponse cannot have null Quota");
+                        }
+
+                        quotaUsage = (deserializedResponse.Quota.Local ?? 0L)
+                            + (deserializedResponse.Quota.Shared ?? 0L);
+
+                        storageQuota = (long)deserializedResponse.Quota.Limit;
+
+                        latestQuotaReceivedFromServer.Value = true;
+
+                        try
+                        {
+                            OnGetDataUsageCompletion(deserializedResponse.Quota, userState: null);
+                        }
+                        catch
+                        {
                         }
 
                         AppendRandomSubSecondTicksToSyncFromFolderCreationTimes(deserializedResponse.Events);

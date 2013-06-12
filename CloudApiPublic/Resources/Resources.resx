@@ -3076,4 +3076,7 @@
   <data name="IconOverlaySetBadgeTypeNewTypeIsSynced" xml:space="preserve">
     <value>Badge is synced</value>
   </data>
+  <data name="ExceptionCLSyncboxNullStorageQuota" xml:space="preserve">
+    <value>Storage quota should have been queried from the server and set at least once, including upon initialization.</value>
+  </data>
 </root>

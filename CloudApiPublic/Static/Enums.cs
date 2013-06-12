@@ -264,6 +264,11 @@ namespace Cloud.Static
         /// </summary>
         Syncbox_NotFoundForId = (((ulong)CLExceptionDomain.Syncbox) << 32) | 24, // 2_24
 
+        /// <summary>
+        /// Storage quota should have been queried from the server and set at least once, including upon initialization.
+        /// </summary>
+        Syncbox_StorageQuotaUnknown = (((ulong)CLExceptionDomain.Syncbox) << 32) | 25, // 2_25
+
         #endregion
 
         #region ShellExt

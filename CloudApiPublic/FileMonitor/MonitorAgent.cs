@@ -715,6 +715,9 @@ namespace Cloud.FileMonitor
             out MonitorAgent newAgent,
             out SyncEngine syncEngine,
             bool debugMemory,
+            long quotaUsage,
+            long storageQuota,
+            SyncEngine.OnGetDataUsageCompletionDelegate OnGetDataUsageCompletion,
             Action<MonitorAgent, FileChange> onQueueingCallback = null,
             bool logProcessing = false)
         {
@@ -738,6 +741,9 @@ namespace Cloud.FileMonitor
                     httpRestClient,
                     out syncEngine,
                     DependencyDebugging,
+                    quotaUsage,
+                    storageQuota,
+                    OnGetDataUsageCompletion,
                     StatusUpdated,
                     StatusUpdatedUserState);
                 if (createSyncEngineError != null)
