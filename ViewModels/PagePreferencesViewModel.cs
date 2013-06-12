@@ -71,8 +71,6 @@ namespace win_client.ViewModels
                         // Report error here
                         return;
                     }
-
-                    //&&&&               WelcomeTitle = item.Title;
                 });
 
         }

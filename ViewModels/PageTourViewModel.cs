@@ -73,7 +73,6 @@ namespace win_client.ViewModels
                         return;
                     }
 
-                    //&&&&               WelcomeTitle = item.Title;
                     PageTour_OpenCloudFolderCommand = true;
                 });
 

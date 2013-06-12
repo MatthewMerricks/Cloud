@@ -9,7 +9,7 @@ namespace SampleLiveSync.EventMessageReceiver
     /// <summary>
     /// <see cref="EventMessage"/> for number of files which have been uploaded since this message was first created.
     /// </summary>
-    public sealed class UploadedMessage : EventMessage
+    public sealed class UploadedMessage : EventMessage<UploadedMessage>
     {
         #region EventMessage abstract overrides
         public override EventMessageImage Image

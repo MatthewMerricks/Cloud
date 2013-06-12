@@ -269,6 +269,11 @@ namespace Cloud.Static
         /// </summary>
         Syncbox_StorageQuotaUnknown = (((ulong)CLExceptionDomain.Syncbox) << 32) | 25, // 2_25
 
+        /// <summary>
+        /// Error subscribing to live sync status messages.  Bad liveSyncStatusReceiver to CLSyncbox.AllocAndInit, or bad DeviceId in settings
+        /// </summary>
+        Syncbox_SubscribingToLiveSyncStatusReceiver = (((ulong)CLExceptionDomain.Syncbox) << 32) | 26, // 2_26
+
         #endregion
 
         #region ShellExt
@@ -752,7 +757,9 @@ namespace Cloud.Static
         SuccessfulDownloadsIncremented,
         UploadingCountChanged,
         DownloadingCountChanged,
-        InternetConnectivityChanged
+        InternetConnectivityChanged,
+        DownloadCompleteChanged,
+        StorageQuotaExceededChanged,
     }
 
     /// <summary>

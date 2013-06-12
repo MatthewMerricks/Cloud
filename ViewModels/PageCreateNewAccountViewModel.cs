@@ -77,7 +77,6 @@ namespace win_client.ViewModels
                     }
 
                     SetFieldsFromSettings();
-                    //&&&&               WelcomeTitle = item.Title;
                 });
 
         }

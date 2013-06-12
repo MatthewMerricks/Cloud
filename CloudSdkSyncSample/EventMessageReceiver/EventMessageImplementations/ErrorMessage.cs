@@ -9,7 +9,7 @@ namespace SampleLiveSync.EventMessageReceiver
     /// <summary>
     /// <see cref="EventMessage"/> for an error.
     /// </summary>
-    public sealed class ErrorMessage : EventMessage
+    public sealed class ErrorMessage : EventMessage<ErrorMessage>
     {
         new private static readonly TimeSpan DefaultOpaqueTime = TimeSpan.FromSeconds(8); // longer time to display error
         new private static readonly TimeSpan DefaultFadeInPlusOpaqueTime = DefaultFadeInTime.Add(DefaultOpaqueTime); // need to redefine calculated values based on changed opaqueTime
