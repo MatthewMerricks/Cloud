@@ -764,6 +764,7 @@ namespace Cloud.Static
         DownloadingCountChanged,
         InternetConnectivityChanged,
         DownloadCompleteChanged,
+        UploadCompleteChanged,
         StorageQuotaExceededChanged,
     }
 

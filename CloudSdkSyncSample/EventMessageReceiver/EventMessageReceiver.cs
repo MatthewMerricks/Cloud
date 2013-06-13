@@ -516,6 +516,14 @@ namespace SampleLiveSync.EventMessageReceiver
             e.MarkHandled();
         }
 
+        void IEventMessageReceiver.UploadCompleteChanged(IUploadCompleteMessage e)
+        {
+            // Do nothing here.  This message is intended for the On Demand API.  It includes the CLFileItem that just completed uploading.  This sample app already receives an informational upload complete message that will display.
+
+            // event was handled
+            e.MarkHandled();
+        }
+
         void IEventMessageReceiver.StorageQuotaExceededChanged(IStorageQuotaExceededMessage e)
         {
             // lock on the growl messages for modification

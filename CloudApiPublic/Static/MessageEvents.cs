@@ -628,6 +628,28 @@ namespace Cloud.Static
             return toReturn;
         }
 
+        public static EventHandledLevel DetectedUploadCompleteChange(
+            long eventId,
+            CLFileItem fileItem,
+            Nullable<long> SyncboxId = null,
+            string DeviceId = null)
+        {
+            EventHandledLevel toReturn = EventHandledLevel.NothingFired;
+
+            EventMessageArgs newArgs = new EventMessageArgs(
+                new UploadCompleteMessage(eventId, fileItem, SyncboxId, DeviceId));
+
+            FireNewEventMessageInternal(newArgs, ref toReturn);
+
+            FireAllInternalReceiversInternal(newArgs, ref toReturn,
+                (IEventMessageReceiver handler, EventMessageArgs newArgs_) =>
+                {
+                    handler.UploadCompleteChanged(new UploadCompleteMessageArgs(newArgs_));
+                });
+
+            return toReturn;
+        }
+
         public static EventHandledLevel DetectedStorageQuotaExceededChange(
             Nullable<long> SyncboxId = null,
             string DeviceId = null)

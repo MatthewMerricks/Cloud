@@ -5516,6 +5516,16 @@ namespace Cloud.Sync
                         ComTrace.LogFileChangeFlow(castState.Syncbox.CopiedSettings.TraceLocation, castState.Syncbox.CopiedSettings.DeviceId, castState.Syncbox.SyncboxId, FileChangeFlowEntryPositionInFlow.UploadDownloadSuccess, Helpers.EnumerateSingleItem((castState.FileToUpload)));
                     }
 
+                    // Send the new UploadCompleteMessage status message, including a CLFileItem.
+                    //TODO: Storage key below should actually be the revision.
+                    //CLFileItem fileItem = new CLFileItem(castState.FileToUpload, castState.Syncbox, castState.FileToUpload.Metadata.StorageKey, castState.ServerUid, isDeleted: false, isPending: false);
+
+                    //MessageEvents.DetectedDownloadCompleteChange(
+                    //    eventId: castState.FileToDownload.EventId, // the id for the event
+                    //    fileItem: fileItem, // the file item constructed above
+                    //    SyncboxId: castState.Syncbox.SyncboxId,
+                    //    DeviceId: castState.Syncbox.CopiedSettings.DeviceId);
+
                     // status message
                     MessageEvents.FireNewEventMessage(
                         "File finished uploading from path " + castState.FileToUpload.NewPath.ToString(),

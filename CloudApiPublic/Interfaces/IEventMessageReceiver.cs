@@ -72,6 +72,11 @@ namespace Cloud.Interfaces
         /// <param name="e">Message parameters</param>
         void DownloadCompleteChanged(IDownloadCompleteMessage e);
         /// <summary>
+        /// Fired when a file upload is complete.
+        /// </summary>
+        /// <param name="e">Message parameters</param>
+        void UploadCompleteChanged(IUploadCompleteMessage e);
+        /// <summary>
         /// Fired when storage quota has been exceeded.
         /// </summary>
         /// <param name="e">Message parameters</param>
@@ -107,6 +112,11 @@ namespace Cloud.Interfaces
         bool InternetConnected { get; }
     }
     public interface IDownloadCompleteMessage : IMinimalMessage
+    {
+        long EventId { get; }
+        CLFileItem FileItem { get; }
+    }
+    public interface IUploadCompleteMessage : IMinimalMessage
     {
         long EventId { get; }
         CLFileItem FileItem { get; }

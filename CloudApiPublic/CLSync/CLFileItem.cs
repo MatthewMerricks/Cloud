@@ -277,7 +277,7 @@ namespace Cloud.CLSync
             this._relativePath = fileChange.NewPath.GetRelativePath(syncbox.Path, replaceWithForwardSlashes: false);  // relative Windows path
             this._fullPath = fileChange.NewPath.ToString();
             this._revision = revision;
-            this._hash = fileChange.MD5.ToString();
+            this._hash = fileChange.GetMD5LowercaseString();
             this._size = fileChange.Metadata.HashableProperties.Size;
             this._mimeType = fileChange.Metadata.MimeType;
             this._createdDate = fileChange.Metadata.HashableProperties.CreationTime;
