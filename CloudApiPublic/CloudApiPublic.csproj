@@ -90,11 +90,6 @@
     </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
-    <Reference Include="Salient.Data.CSDK, Version=1.0.0.0, Culture=neutral, PublicKeyToken=840eb90fa4503c3c, processorArchitecture=MSIL">
-      <HintPath>..\3rdParty\bin\Release\Salient.Data.CSDK.dll</HintPath>
-      <SpecificVersion>True</SpecificVersion>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="SimpleJson.CSDK, Version=0.1.0.0, Culture=neutral, PublicKeyToken=840eb90fa4503c3c, processorArchitecture=MSIL">
       <HintPath>..\3rdParty\bin\Release\SimpleJson.CSDK.dll</HintPath>
       <Aliases>global,SimpleJsonBase</Aliases>

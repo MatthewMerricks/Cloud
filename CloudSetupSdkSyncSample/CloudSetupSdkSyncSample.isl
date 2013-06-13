@@ -349,7 +349,6 @@
 		<row><td>Cloud.dll</td><td>{14F4D5BF-63C1-4ABB-9481-AB6896AA7D25}</td><td>INSTALLDIR</td><td>2</td><td/><td>cloud.dll</td><td>1</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>Cloud.dll2</td><td>{A095316F-7316-466D-B4AF-A278A0D3BB13}</td><td>CLOUDSDK1</td><td>2</td><td/><td>cloud.dll2</td><td>1</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>CloudSetupSdkSyncSampleSupport.exe</td><td>{CCC9F016-CDB5-474C-B34F-ECA5CCB04550}</td><td>INSTALLDIR</td><td>2</td><td/><td>cloudsetupsdksyncsamplesuppo</td><td>1</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>ICSharpCode.SharpZipLib.dll</td><td>{8623CFE1-E705-4D4B-A994-440962F23635}</td><td>INSTALLDIR</td><td>2</td><td/><td>icsharpcode.sharpziplib.dll</td><td>1</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>ISX_DEFAULTCOMPONENT</td><td>{7EA159F8-CDFA-4A5F-929A-34E5B979C67B}</td><td>AMD64</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>ISX_DEFAULTCOMPONENT1</td><td>{46A4698E-F6CF-40A1-A918-64C012C67F52}</td><td>X86</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>ISX_DEFAULTCOMPONENT10</td><td>{8BD252F1-8A94-4616-8066-DB1F14BF3BEF}</td><td>PROJECT</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
@@ -369,7 +368,6 @@
 		<row><td>RateBar.CSDK.dll</td><td>{58A4D7FD-CD4A-4A6B-8961-4C13785FB229}</td><td>APP</td><td>2</td><td/><td>ratebar.csdk.dll</td><td>1</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>SSCERuntime_x64_ENU.exe</td><td>{A3AF0DC7-1E1C-46C9-9390-5B2ADAA8A167}</td><td>INSTALLDIR</td><td>2</td><td/><td>ssceruntime_x64_enu.exe</td><td>1</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>SSCERuntime_x86_ENU.exe</td><td>{E5D17D83-4A62-43E1-AC34-BC6E2B301C21}</td><td>INSTALLDIR</td><td>2</td><td/><td>ssceruntime_x86_enu.exe</td><td>1</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>Salient.Data.CSDK.dll</td><td>{2C2C2D4F-A2E5-41C2-B9F4-44BE0BF15CBA}</td><td>CLOUDSDK1</td><td>2</td><td/><td>salient.data.csdk.dll</td><td>1</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>Sample_Live_Sync.exe</td><td>{D936F44A-28E5-4073-8640-0CD04AF47C46}</td><td>APP</td><td>2</td><td/><td>sample_live_sync.exe</td><td>1</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>SimpleJson.CSDK.dll</td><td>{715F9DD2-9949-4127-9D0E-4240FB47529B}</td><td>CLOUDSDK1</td><td>2</td><td/><td>simplejson.csdk.dll</td><td>1</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>System.Data.SQLite32.dll</td><td>{9851555E-0347-4AC2-A871-04234993B7F5}</td><td>CLOUDSDK1</td><td>2</td><td/><td>system.data.sqlite32.dll</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
@@ -1929,7 +1927,6 @@
 		<row><td>AlwaysInstall</td><td>Cloud.dll</td></row>
 		<row><td>AlwaysInstall</td><td>Cloud.dll2</td></row>
 		<row><td>AlwaysInstall</td><td>CloudSetupSdkSyncSampleSupport.exe</td></row>
-		<row><td>AlwaysInstall</td><td>ICSharpCode.SharpZipLib.dll</td></row>
 		<row><td>AlwaysInstall</td><td>ISX_DEFAULTCOMPONENT</td></row>
 		<row><td>AlwaysInstall</td><td>ISX_DEFAULTCOMPONENT1</td></row>
 		<row><td>AlwaysInstall</td><td>ISX_DEFAULTCOMPONENT10</td></row>
@@ -1949,7 +1946,6 @@
 		<row><td>AlwaysInstall</td><td>RateBar.CSDK.dll</td></row>
 		<row><td>AlwaysInstall</td><td>SSCERuntime_x64_ENU.exe</td></row>
 		<row><td>AlwaysInstall</td><td>SSCERuntime_x86_ENU.exe</td></row>
-		<row><td>AlwaysInstall</td><td>Salient.Data.CSDK.dll</td></row>
 		<row><td>AlwaysInstall</td><td>Sample_Live_Sync.exe</td></row>
 		<row><td>AlwaysInstall</td><td>SimpleJson.CSDK.dll</td></row>
 		<row><td>AlwaysInstall</td><td>System.Data.SQLite32.dll</td></row>
@@ -1978,12 +1974,10 @@
 		<row><td>cloud.xml2</td><td>ISX_DEFAULTCOMPONENT8</td><td>Cloud.xml</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\Cloud.xml</td><td>1</td><td/></row>
 		<row><td>cloudsetupsdksyncsamplesuppo</td><td>CloudSetupSdkSyncSampleSupport.exe</td><td>CLOUDS~1.EXE|CloudSetupSdkSyncSampleSupport.exe</td><td>0</td><td/><td/><td>0</td><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSetupSdkSyncSampleSupport\bin\Release\CloudSetupSdkSyncSampleSupport.exe</td><td>1</td><td/></row>
 		<row><td>cloudsetupsdksyncsamplesuppo1</td><td>ISX_DEFAULTCOMPONENT2</td><td>CLOUDS~1.CON|CloudSetupSdkSyncSampleSupport.exe.config</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSetupSdkSyncSampleSupport\bin\Release\CloudSetupSdkSyncSampleSupport.exe.config</td><td>1</td><td/></row>
-		<row><td>icsharpcode.sharpziplib.dll</td><td>ICSharpCode.SharpZipLib.dll</td><td>ICSHAR~1.DLL|ICSharpCode.SharpZipLib.dll</td><td>0</td><td/><td/><td>0</td><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSetupSdkSyncSampleSupport\bin\Release\ICSharpCode.SharpZipLib.dll</td><td>1</td><td/></row>
 		<row><td>microsoft.net.http.csdk.dll</td><td>Microsoft.Net.Http.CSDK.dll</td><td>MICROS~1.DLL|Microsoft.Net.Http.CSDK.dll</td><td>0</td><td/><td/><td>0</td><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\Microsoft.Net.Http.CSDK.dll</td><td>1</td><td/></row>
 		<row><td>microsoft.practices.servicel1</td><td>Microsoft.Practices.ServiceLocation.CSDK.dll</td><td>MICROS~1.DLL|Microsoft.Practices.ServiceLocation.CSDK.dll</td><td>0</td><td/><td/><td>0</td><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\Microsoft.Practices.ServiceLocation.CSDK.dll</td><td>1</td><td/></row>
 		<row><td>newtonsoft.json.csdk.dll</td><td>Newtonsoft.Json.CSDK.dll</td><td>NEWTON~1.DLL|Newtonsoft.Json.CSDK.dll</td><td>0</td><td/><td/><td>0</td><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\Newtonsoft.Json.CSDK.dll</td><td>1</td><td/></row>
 		<row><td>ratebar.csdk.dll</td><td>RateBar.CSDK.dll</td><td>RATEBA~1.DLL|RateBar.CSDK.dll</td><td>0</td><td/><td/><td>0</td><td>1</td><td>&lt;ISProjectFolder&gt;\..\3rdParty\bin\Release\RateBar.CSDK.dll</td><td>1</td><td/></row>
-		<row><td>salient.data.csdk.dll</td><td>Salient.Data.CSDK.dll</td><td>SALIEN~1.DLL|Salient.Data.CSDK.dll</td><td>0</td><td/><td/><td>0</td><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\Salient.Data.CSDK.dll</td><td>1</td><td/></row>
 		<row><td>sample_live_sync.exe</td><td>Sample_Live_Sync.exe</td><td>SAMPLE~1.EXE|Sample-Live-Sync.exe</td><td>0</td><td/><td/><td>0</td><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\Sample-Live-Sync.exe</td><td>1</td><td/></row>
 		<row><td>sample_live_sync.exe.config</td><td>ISX_DEFAULTCOMPONENT9</td><td>SAMPLE~1.CON|Sample-Live-Sync.exe.config</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\Sample-Live-Sync.exe.config</td><td>1</td><td/></row>
 		<row><td>samplelivesyncdocs.zip</td><td>ISX_DEFAULTCOMPONENT5</td><td>SAMPLE~1.ZIP|SampleLiveSyncDocs.zip</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\html\SampleLiveSyncDocs.zip</td><td>1</td><td/></row>
@@ -2257,7 +2251,6 @@
 		<row><td>Cloud.dll</td><td/><td/><td>_2704C4AC_630D_4332_9ECC_BC312EF03DF6_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>Cloud.dll2</td><td/><td/><td>_75A16B8E_D29B_4F39_86F9_072509BD3B84_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>CloudSetupSdkSyncSampleSupport.exe</td><td/><td/><td>_998E688E_1380_414C_A5BB_28DC36DF6867_FILTER</td><td/><td/><td/><td/></row>
-		<row><td>ICSharpCode.SharpZipLib.dll</td><td/><td/><td>_2878759C_71A5_4539_A222_D2A5DEE3F0CC_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>ISX_DEFAULTCOMPONENT</td><td/><td/><td>_D29534D4_7FB3_465B_A835_9A28A2CD95F4_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>ISX_DEFAULTCOMPONENT1</td><td/><td/><td>_3C0733B3_E0BD_4F89_AC46_4E8D5AD2EB30_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>ISX_DEFAULTCOMPONENT10</td><td/><td/><td>_0811E04F_C88E_4E65_BEA6_1D3544023863_FILTER</td><td/><td/><td/><td/></row>
@@ -2277,7 +2270,6 @@
 		<row><td>RateBar.CSDK.dll</td><td/><td/><td>_381DF397_E3B7_40C8_BB53_7722EF03A91F_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>SSCERuntime_x64_ENU.exe</td><td/><td/><td>_90699031_5D1C_4D41_B456_C5BCA0F2D294_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>SSCERuntime_x86_ENU.exe</td><td/><td/><td>_AC1C9F25_0BA8_4BA5_A18F_EF9F6B845D6D_FILTER</td><td/><td/><td/><td/></row>
-		<row><td>Salient.Data.CSDK.dll</td><td/><td/><td>_7E394B92_5C23_4C2D_9663_45FF61EBC9EC_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>Sample_Live_Sync.exe</td><td/><td/><td>_A84C0BBF_665F_4FD7_890F_E77F236CF4BE_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>SimpleJson.CSDK.dll</td><td/><td/><td>_509C3DC4_EF57_4FA9_9971_F2EE123D8441_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>System.Data.SQLite32.dll</td><td/><td/><td>_155E75F6_6836_45FC_A212_14F92B081D5A_FILTER</td><td/><td/><td/><td/></row>

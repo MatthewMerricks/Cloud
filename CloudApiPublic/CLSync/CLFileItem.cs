@@ -261,7 +261,7 @@ namespace Cloud.CLSync
         /// <summary>
         /// Constructor to create a CLFileItem from a FileChange.
         /// </summary>
-        internal CLFileItem(FileChange fileChange, CLSyncbox syncbox)
+        internal CLFileItem(FileChange fileChange, CLSyncbox syncbox, string revision, string uid, bool isDeleted, bool isPending)
         {
             if (fileChange == null)
             {
@@ -273,27 +273,24 @@ namespace Cloud.CLSync
             }
 
             this._isFolder = fileChange.Metadata.HashableProperties.IsFolder;
-
             this._name = fileChange.NewPath.Name;
-
             this._relativePath = fileChange.NewPath.GetRelativePath(syncbox.Path, replaceWithForwardSlashes: false);  // relative Windows path
-
             this._fullPath = fileChange.NewPath.ToString();
-
-            this._revision = fileChange.Metadata.HashableProperties   response.Revision;
-            this._hash = response.Hash;
-            this._size = response.Size;
-            this._mimeType = response.MimeType;
-            this._createdDate = response.CreatedDate ?? new DateTime(FileConstants.InvalidUtcTimeTicks, DateTimeKind.Utc);
-            this._modifiedDate = response.ModifiedDate ?? new DateTime(FileConstants.InvalidUtcTimeTicks, DateTimeKind.Utc);
-            this._uid = response.ServerUid;
-            this._parentUid = response.ParentUid;
-            this._isDeleted = response.IsDeleted ?? false;
-            this._isPending = !(response.IsNotPending ?? true);
+            this._revision = revision;
+            this._hash = fileChange.MD5.ToString();
+            this._size = fileChange.Metadata.HashableProperties.Size;
+            this._mimeType = fileChange.Metadata.MimeType;
+            this._createdDate = fileChange.Metadata.HashableProperties.CreationTime;
+            this._modifiedDate = fileChange.Metadata.HashableProperties.LastTime;
+            this._uid = uid;
+            this._parentUid = fileChange.Metadata.ParentFolderServerUid;
+            this._isDeleted = isDeleted;
+            this._isPending = isPending;
             this._syncbox = syncbox;
-            this._storageKey = response.StorageKey;
-            //// in public SDK documents, but for now it's always zero, so don't expose it
-            //this._childrenCount = 0;
+            this._storageKey = fileChange.Metadata.StorageKey;
+
+            ////// in public SDK documents, but for now it's always zero, so don't expose it
+            ////this._childrenCount = 0;
 
             this._httpRestClient = syncbox.HttpRestClient;
             this._copiedSettings = syncbox.CopiedSettings;

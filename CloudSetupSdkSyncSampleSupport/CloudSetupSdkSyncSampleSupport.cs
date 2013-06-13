@@ -5,8 +5,6 @@
 // Created By BobS.
 // Copyright (c) Cloud.com. All rights reserved.
 
-using ICSharpCode.SharpZipLib.Core;
-using ICSharpCode.SharpZipLib.Zip;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -73,7 +71,7 @@ namespace CloudSetupSdkSyncSampleSupport
         private static int Install()
         {
             _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Entry.");
-            ZipFile zf = null;
+            ZipStorer zip = null;
             int rcToReturn = 0;
 
             string pathExecutingProgram = null;
@@ -127,15 +125,15 @@ namespace CloudSetupSdkSyncSampleSupport
                 _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Copy the support Cloud.dll file.");
                 File.Copy(pathInstall + "\\Cloud.dll", pathWork);
 
-                // Copy ICSharpCode.SharpZipLib.dll.
-                pathWork = pathInstall + "\\Support\\ICSharpCode.SharpZipLib.dll";
-                if (File.Exists(pathWork))
-                {
-                    _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Delete the support ICSharpCode.SharpZipLib.dll file.");
-                    File.Delete(pathWork);
-                }
-                _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Copy the support ICSharpCode.SharpZipLib.dll file.");
-                File.Copy(pathInstall + "\\ICSharpCode.SharpZipLib.dll", pathWork);
+                //// Copy ICSharpCode.SharpZipLib.dll.
+                //pathWork = pathInstall + "\\Support\\ICSharpCode.SharpZipLib.dll";
+                //if (File.Exists(pathWork))
+                //{
+                //    _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Delete the support ICSharpCode.SharpZipLib.dll file.");
+                //    File.Delete(pathWork);
+                //}
+                //_trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Copy the support ICSharpCode.SharpZipLib.dll file.");
+                //File.Copy(pathInstall + "\\ICSharpCode.SharpZipLib.dll", pathWork);
 
                 //// Copy Interop.Shell32.dll.
                 //pathWork = pathInstall + "\\Support\\Interop.Shell32.dll";
@@ -182,38 +180,33 @@ namespace CloudSetupSdkSyncSampleSupport
 
                 // Open the documentation zip file and decompress all of its files and folders
                 _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Unzip the docs file.");
-                FileStream fs = File.OpenRead(archiveFile);
-                zf = new ZipFile(fs);
-                foreach (ZipEntry zipEntry in zf)
+                zip = ZipStorer.Open(archiveFile, FileAccess.Read);
+                List<ZipStorer.ZipFileEntry> dir = zip.ReadCentralDir();
+                foreach (ZipStorer.ZipFileEntry zipEntry in dir)
                 {
-                    if (!zipEntry.IsFile)
-                    {
-                        continue;           // Ignore directories
-                    }
-                    String entryFileName = zipEntry.Name;
-                    byte[] buffer = new byte[4096];     // 4K is optimum
-                    Stream zipStream = zf.GetInputStream(zipEntry);
+                    String entryFileName = zipEntry.FilenameInZip;  // full path in the zip file, no leading backslash
+                    _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: entryFileName {0}.", entryFileName);
 
                     String fullZipToPath = Path.Combine(outFolder, entryFileName);
                     string directoryName = Path.GetDirectoryName(fullZipToPath);
                     if (directoryName.Length > 0)
                     {
+                        _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Create directory {0}.", directoryName);
                         Directory.CreateDirectory(directoryName);
                     }
 
-                    // Unzip file in buffered chunks. This is just as fast as unpacking to a buffer the full size
-                    // of the file, but does not waste memory.
-                    // The "using" will close the stream even if an exception occurs.
-                    using (FileStream streamWriter = File.Create(fullZipToPath))
+                    // Extract the file to the target.
+                    bool fResultFromExtractFile = zip.ExtractFile(zipEntry, fullZipToPath);
+                    if (!fResultFromExtractFile)
                     {
-                        StreamUtils.Copy(zipStream, streamWriter, buffer);
+                        _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: ERROR: Extracting zip file.");
+                        throw new Exception("Error extracting file " + entryFileName + " to target " + fullZipToPath);
                     }
                 }
 
                 // Close the .zip file
-                zf.IsStreamOwner = true; // Makes close also shut the underlying stream
-                zf.Close(); // Ensure we release resources
-                zf = null;
+                zip.Close();
+                zip = null;
                 _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Done unzipping the docs file.");
 
                 // Delete the .zip file
@@ -227,11 +220,9 @@ namespace CloudSetupSdkSyncSampleSupport
             }
             finally
             {
-                if (zf != null)
+                if (zip != null)
                 {
-                    zf.IsStreamOwner = true; // Makes close also shut the underlying stream
-                    zf.Close(); // Ensure we release resources
-                    zf = null;
+                    zip.Close(); // Ensure we release resources
                 }
             }
 
@@ -246,36 +237,33 @@ namespace CloudSetupSdkSyncSampleSupport
                 _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: outFolder(2): {0}.", outFolder);
                 _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Unzip the SampleLiveSync source file.");
 
-                FileStream fs = File.OpenRead(archiveFile);
-                zf = new ZipFile(fs);
-                foreach (ZipEntry zipEntry in zf)
+                zip = ZipStorer.Open(archiveFile, FileAccess.Read);
+                List<ZipStorer.ZipFileEntry> dir = zip.ReadCentralDir();
+                foreach (ZipStorer.ZipFileEntry zipEntry in dir)
                 {
-                    if (!zipEntry.IsFile)
-                    {
-                        continue;           // Ignore directories
-                    }
-                    String entryFileName = zipEntry.Name;
-                    byte[] buffer = new byte[4096];     // 4K is optimum
-                    Stream zipStream = zf.GetInputStream(zipEntry);
+                    String entryFileName = zipEntry.FilenameInZip;  // full path in the zip file, no leading backslash
+                    _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: entryFileName {0} (2).", entryFileName);
 
                     String fullZipToPath = Path.Combine(outFolder, entryFileName);
                     string directoryName = Path.GetDirectoryName(fullZipToPath);
                     if (directoryName.Length > 0)
-                        Directory.CreateDirectory(directoryName);
-
-                    // Unzip file in buffered chunks. This is just as fast as unpacking to a buffer the full size
-                    // of the file, but does not waste memory.
-                    // The "using" will close the stream even if an exception occurs.
-                    using (FileStream streamWriter = File.Create(fullZipToPath))
                     {
-                        StreamUtils.Copy(zipStream, streamWriter, buffer);
+                        _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Create directory {0}. (2)", directoryName);
+                        Directory.CreateDirectory(directoryName);
+                    }
+
+                    // Extract the file to the target.
+                    bool fResultFromExtractFile = zip.ExtractFile(zipEntry, fullZipToPath);
+                    if (!fResultFromExtractFile)
+                    {
+                        _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: ERROR: Extracting zip file. (2)");
+                        throw new Exception("Error extracting file " + entryFileName + " to target " + fullZipToPath);
                     }
                 }
 
                 // Close the .zip file
-                zf.IsStreamOwner = true; // Makes close also shut the underlying stream
-                zf.Close(); // Ensure we release resources
-                zf = null;
+                zip.Close(); // Ensure we release resources
+                zip = null;
                 _trace.writeToLog(9, "CloudSetupSdkSyncSampleSupport: Install: Done unzipping the SampleLiveSync source file.");
 
                 // Delete the .zip file
@@ -288,11 +276,10 @@ namespace CloudSetupSdkSyncSampleSupport
             }
             finally
             {
-                if (zf != null)
+                if (zip != null)
                 {
-                    zf.IsStreamOwner = true; // Makes close also shut the underlying stream
-                    zf.Close(); // Ensure we release resources
-                    zf = null;
+                    zip.Close(); // Ensure we release resources
+                    zip = null;
                 }
             }
 

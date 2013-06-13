@@ -23,6 +23,7 @@ using Cloud.Interfaces;
 using Cloud.JsonContracts;
 using Cloud.REST;
 using Cloud.Model.EventMessages.ErrorInfo;
+using Cloud.CLSync;
 
 namespace Cloud.Sync
 {
@@ -6209,10 +6210,15 @@ namespace Cloud.Sync
                     }
                     else if (downloadStatus == (CLExceptionCode)0)
                     {
-                        _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: DownloadForTask: File finished downloading message."));
+                        _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: DownloadForTask: File finished downloading messages."));
                         // Send the new DownloadCompleteMessage status message, including a CLFileItem.
+                        CLFileItem fileItem = new CLFileItem(castState.FileToDownload, castState.Syncbox, castState.Revision, castState.ServerUid, isDeleted: false, isPending: false);
 
-
+                        MessageEvents.DetectedDownloadCompleteChange(
+                            eventId: castState.FileToDownload.EventId, // the id for the event
+                            fileItem: fileItem, // the file item constructed above
+                            SyncboxId: castState.Syncbox.SyncboxId,
+                            DeviceId: castState.Syncbox.CopiedSettings.DeviceId);
 
                         // status message
                         MessageEvents.FireNewEventMessage(
