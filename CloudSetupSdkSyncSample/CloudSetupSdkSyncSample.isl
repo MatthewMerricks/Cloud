@@ -4653,7 +4653,7 @@ UwBpAG4AZwBsAGUASQBtAGEAZwBlAAEARQB4AHAAcgBlAHMAcwA=
 		<row><td>PROGRAMFILETOLAUNCHATEND</td><td>[APP]sample_live_sync.exe</td><td/></row>
 		<row><td>ProductCode</td><td>{8B476C3F-CD29-4B06-AD4C-22C14619E258}</td><td/></row>
 		<row><td>ProductName</td><td>CloudSdk</td><td/></row>
-		<row><td>ProductVersion</td><td>0.03.0000.1</td><td/></row>
+		<row><td>ProductVersion</td><td>0.03.0000.2</td><td/></row>
 		<row><td>ProgressType0</td><td>install</td><td/></row>
 		<row><td>ProgressType1</td><td>Installing</td><td/></row>
 		<row><td>ProgressType2</td><td>installed</td><td/></row>
