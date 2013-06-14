@@ -427,8 +427,11 @@ void CBadgeNetPubSubEvents::WatchingThreadProc(LPVOID pUserState)
         while (true)
         {
             // Wait letting the subscribing thread work.
-            fRestartSubscribingThread = false;
 			CLTRACE(9, "CBadgeNetPubSubEvents: WatchingThreadProc: Wait until the next look.");
+
+            fRestartSubscribingThread = false;
+            pThis->_isSubscriberThreadAlive = false;               // reset the keep-alive flag.  We will wait a minute.  Whe we drop out of the wait, it should be set by normal processing.
+
             boost::system_time const timeout = boost::get_system_time() + boost::posix_time::milliseconds(pThis->_knTimeBetweenWatchingThreadChecksMs);
             pThis->_semWatcher.wait(timeout);
 			CLTRACE(9, "CBadgeNetPubSubEvents: WatchingThreadProc: Out of wait.  Check on subscribing thread.");
@@ -455,8 +458,6 @@ void CBadgeNetPubSubEvents::WatchingThreadProc(LPVOID pUserState)
                         fRestartSubscribingThread = true;
                     }
                 }
-
-                pThis->_isSubscriberThreadAlive = false;               // reset it for the next look
             }
             pThis->_locker.unlock();
 			fLockHeld = false;
