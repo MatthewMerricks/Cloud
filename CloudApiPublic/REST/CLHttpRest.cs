@@ -3655,6 +3655,8 @@ namespace Cloud.REST
                                             CLError uploadError = UploadFile(
                                                 Data.uploadStreamContext,
                                                 Data.uploadChange,
+                                                Data.completedItem.ItemUid,
+                                                Data.completedItem.Revision,
                                                 Data._copiedSettings.HttpTimeoutMilliseconds,
                                                 out unusedMessage,
                                                 out hashMismatchFound,
@@ -8193,13 +8195,18 @@ namespace Cloud.REST
         /// <param name="asyncCallbackUserState">User state to pass when firing async callback</param>
         /// <param name="uploadStream">Stream to upload, if it is a FileStream then make sure the file is locked to prevent simultaneous writes</param>
         /// <param name="changeToUpload">File upload change, requires Metadata.HashableProperties.Size, NewPath, Metadata.StorageKey, and MD5 hash to be set</param>
+        /// <param name="uid">The server UID of the file being uploaded.</param>
+        /// <param name="revision">The revision of the file being uploaded.</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception, does not restrict time for the actual file upload</param>
         /// <param name="shutdownToken">(optional) Token used to request cancellation of the upload</param>
         /// <returns>Returns the asynchronous result which is used to retrieve progress and/or the result</returns>
-        internal IAsyncResult BeginUploadFile(AsyncCallback asyncCallback,
+        internal IAsyncResult BeginUploadFile(
+            AsyncCallback asyncCallback,
             object asyncCallbackUserState,
             Stream uploadStream,
             FileChange changeToUpload,
+            string uid,
+            string revision,
             int timeoutMilliseconds,
             CancellationTokenSource shutdownToken = null)
         {
@@ -8213,12 +8220,14 @@ namespace Cloud.REST
                 progressHolder);
 
             // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
-            Tuple<GenericAsyncResult<UploadFileResult>, AsyncCallback, Stream, FileChange, int, CancellationTokenSource> asyncParams =
-                new Tuple<GenericAsyncResult<UploadFileResult>, AsyncCallback, Stream, FileChange, int, CancellationTokenSource>(
+            Tuple<GenericAsyncResult<UploadFileResult>, AsyncCallback, Stream, FileChange, string, string, int, CancellationTokenSource> asyncParams =
+                new Tuple<GenericAsyncResult<UploadFileResult>, AsyncCallback, Stream, FileChange, string, string, int, CancellationTokenSource>(
                     toReturn,
                     asyncCallback,
                     uploadStream,
                     changeToUpload,
+                    uid,
+                    revision,
                     timeoutMilliseconds,
                     shutdownToken);
 
@@ -8226,7 +8235,8 @@ namespace Cloud.REST
             (new Thread(new ParameterizedThreadStart(state =>
             {
                 // try cast the state as the object with all the input parameters
-                Tuple<GenericAsyncResult<UploadFileResult>, AsyncCallback, StreamContext, FileChange, int, CancellationTokenSource> castState = state as Tuple<GenericAsyncResult<UploadFileResult>, AsyncCallback, StreamContext, FileChange, int, CancellationTokenSource>;
+                Tuple<GenericAsyncResult<UploadFileResult>, AsyncCallback, StreamContext, FileChange, string, string, int, CancellationTokenSource> castState = 
+                    state as Tuple<GenericAsyncResult<UploadFileResult>, AsyncCallback, StreamContext, FileChange, string, string, int, CancellationTokenSource>;
                 // if the try cast failed, then show a message box for this unrecoverable error
                 if (castState == null)
                 {
@@ -8262,9 +8272,11 @@ namespace Cloud.REST
                             castState.Item3,
                             castState.Item4,
                             castState.Item5,
+                            castState.Item6,
+                            castState.Item7,
                             out message,
                             out hashMismatchFound,
-                            castState.Item6,
+                            castState.Rest,   // the 8th item.  We can't support any more with this architecture
                             castState.Item2,
                             castState.Item1,
                             progress,
@@ -8404,14 +8416,19 @@ namespace Cloud.REST
         /// <summary>
         /// Uploads a file from a provided stream and file upload change
         /// </summary>
-        /// <param name="uploadStream">Stream to upload, if it is a FileStream then make sure the file is locked to prevent simultaneous writes</param>
+        /// <param name="streamContext">Stream to upload, if it is a FileStream then make sure the file is locked to prevent simultaneous writes</param>
         /// <param name="changeToUpload">File upload change, requires Metadata.HashableProperties.Size, NewPath, Metadata.StorageKey, and MD5 hash to be set</param>
+        /// <param name="uid">The server UID of the file being uploaded.</param>
+        /// <param name="revision">The revision of the file being uploaded.</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception, does not restrict time for the actual file upload</param>
         /// <param name="message">(output) upload response message</param>
         /// <param name="shutdownToken">(optional) Token used to request cancellation of the upload</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        internal CLError UploadFile(StreamContext streamContext,
+        internal CLError UploadFile(
+            StreamContext streamContext,
             FileChange changeToUpload,
+            string uid,
+            string revision,
             int timeoutMilliseconds,
             out string message,
             out bool hashMismatchFound,
@@ -8420,6 +8437,8 @@ namespace Cloud.REST
             return UploadFile(
                 streamContext,
                 changeToUpload,
+                uid,
+                revision,
                 timeoutMilliseconds,
                 out message,
                 out hashMismatchFound,
@@ -8434,6 +8453,8 @@ namespace Cloud.REST
         // internal version with added action for status update
         internal CLError UploadFile(StreamContext streamContext,
             FileChange changeToUpload,
+            string uid,
+            string revision,
             int timeoutMilliseconds,
             out string message,
             out bool hashMismatchFound,
@@ -8444,6 +8465,8 @@ namespace Cloud.REST
             return UploadFile(
                 streamContext,
                 changeToUpload,
+                uid,
+                revision,
                 timeoutMilliseconds,
                 out message,
                 out hashMismatchFound,
@@ -8458,6 +8481,8 @@ namespace Cloud.REST
         // private helper for UploadFile which takes additional parameters we don't wish to expose; does the actual processing
         private CLError UploadFile(StreamContext streamContext,
             FileChange changeToUpload,
+            string uid,
+            string revision,
             int timeoutMilliseconds,
             out string message,
             out bool hashMismatchFound,
@@ -8488,7 +8513,11 @@ namespace Cloud.REST
                         // query string parameter for the current sync box id, should not need escaping since it should be an integer in string format
                         new KeyValuePair<string, string>(CLDefinitions.QueryStringSyncboxId, _syncbox.SyncboxId.ToString()),
                         // query string parameter for the device id, needs to be escaped since it's client-defined
-                        new KeyValuePair<string, string>(CLDefinitions.QueryStringDeviceId, Uri.EscapeDataString(_copiedSettings.DeviceId))
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringDeviceId, Uri.EscapeDataString(_copiedSettings.DeviceId)),
+                        // query string parameter for the UID
+                        new KeyValuePair<string, string>(CLDefinitions.CLMetadataFileDownloadServerUid, uid),
+                        // query string parameter for the revision
+                        new KeyValuePair<string, string>(CLDefinitions.CLMetadataFileRevision, revision),
                     });
 
                 // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
@@ -9170,10 +9199,9 @@ namespace Cloud.REST
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when operation completes</param>
         /// <param name="asyncCallbackUserState">User state to pass when firing async callback</param>
-        /// <param name="fileServerId">Unique id to the file on the server</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
-        /// <param name="includeDeletedVersions">(optional) whether to include file versions which are deleted</param>
         /// <param name="pathToFile">Full path to the file where it would be placed locally within the sync root</param>
+        /// <param name="includeDeletedVersions">(optional) whether to include file versions which are deleted</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
         public IAsyncResult BeginGetFileVersions(AsyncCallback asyncCallback,
             object asyncCallbackUserState,

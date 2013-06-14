@@ -5254,7 +5254,8 @@ namespace Cloud.Sync
                                 FailedChangesQueue = FailedChangesQueue,
                                 RemoveFileChangeEvents = RemoveFileChangeFromUpDownEvent,
                                 RestClient = httpRestClient,
-                                UploadDownloadServerConnectionFailureCount = UploadDownloadConnectionFailures
+                                UploadDownloadServerConnectionFailureCount = UploadDownloadConnectionFailures,
+                                UidStorage = uidStorage,
                             }),
                         asyncTaskThreadId);
                 }
@@ -5424,6 +5425,9 @@ namespace Cloud.Sync
                         throw new NullReferenceException("DownloadTaskState must contain StatusUpdate");
                     }
 
+                    // Get the UID and revision to upload.
+                    UidRevisionHolder uidRevisionHolder = ReturnAndPossiblyFillUidAndRevision(castState.UidStorage, castState.SyncData, castState.FileToUpload.Metadata.ServerUidId);
+
                     // declare the status for performing a rest communication
                     CLExceptionCode uploadStatus = (CLExceptionCode)0;
                     string uploadMessage;
@@ -5431,6 +5435,8 @@ namespace Cloud.Sync
                     // upload the file using the REST client, storing any error that occurs
                     uploadError = castState.RestClient.UploadFile(castState.StreamContext, // stream for upload
                         castState.FileToUpload, // upload change
+                        uidRevisionHolder.ServerUid,
+                        uidRevisionHolder.Revision,
                         (int)castState.HttpTimeoutMilliseconds, // milliseconds before communication timeout (does not apply to the amount of time it takes to actually upload the file)
                         out uploadMessage,
                         out hashMismatchFound,
@@ -6836,6 +6842,7 @@ namespace Cloud.Sync
             public Action<FileChange> RemoveFileChangeEvents { get; set; }
             public CLHttpRest RestClient { get; set; }
             public GenericHolder<byte> UploadDownloadServerConnectionFailureCount { get; set; }
+            public Dictionary<long, UidRevisionHolder> UidStorage { get; set; }
         }
         /// <summary>
         /// Async HTTP operation holder used to help make async calls synchronous
