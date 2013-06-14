@@ -524,6 +524,14 @@ namespace SampleLiveSync.EventMessageReceiver
             e.MarkHandled();
         }
 
+        void IEventMessageReceiver.SyncboxDidStartLiveSyncChanged(ISyncboxDidStartLiveSyncMessage e)
+        {
+            // Do nothing here.  This message is intended for the On Demand API.  It includes the CLSyncbox that started live sync.  The sample app already includes messages that carry this meaning.
+
+            // event was handled
+            e.MarkHandled();
+        }
+
         void IEventMessageReceiver.StorageQuotaExceededChanged(IStorageQuotaExceededMessage e)
         {
             // lock on the growl messages for modification

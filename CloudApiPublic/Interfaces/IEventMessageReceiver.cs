@@ -81,6 +81,11 @@ namespace Cloud.Interfaces
         /// </summary>
         /// <param name="e">Message parameters</param>
         void StorageQuotaExceededChanged(IStorageQuotaExceededMessage e);
+        /// <summary>
+        /// Fired when live syncing has started on a syncbox.
+        /// </summary>
+        /// <param name="e">Message parameters</param>
+        void SyncboxDidStartLiveSyncChanged(ISyncboxDidStartLiveSyncMessage e);
     }
     public interface IMinimalMessage : IHandleableArgs
     {
@@ -123,5 +128,9 @@ namespace Cloud.Interfaces
     }
     public interface IStorageQuotaExceededMessage : IMinimalMessage
     {
+    }
+    public interface ISyncboxDidStartLiveSyncMessage : IMinimalMessage
+    {
+        CLSyncbox Syncbox { get; }
     }
 }

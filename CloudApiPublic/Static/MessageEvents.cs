@@ -669,6 +669,27 @@ namespace Cloud.Static
 
             return toReturn;
         }
+
+        public static EventHandledLevel DetectedSyncboxDidStartLiveSyncChange(
+            CLSyncbox syncbox,
+            Nullable<long> SyncboxId = null,
+            string DeviceId = null)
+        {
+            EventHandledLevel toReturn = EventHandledLevel.NothingFired;
+
+            EventMessageArgs newArgs = new EventMessageArgs(
+                new SyncboxDidStartLiveSyncMessage(syncbox, SyncboxId, DeviceId));
+
+            FireNewEventMessageInternal(newArgs, ref toReturn);
+
+            FireAllInternalReceiversInternal(newArgs, ref toReturn,
+                (IEventMessageReceiver handler, EventMessageArgs newArgs_) =>
+                {
+                    handler.SyncboxDidStartLiveSyncChanged(new SyncboxDidStartLiveSyncMessageArgs(newArgs_));
+                });
+
+            return toReturn;
+        }
         #endregion
 
 
