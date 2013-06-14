@@ -325,6 +325,8 @@ namespace Cloud.BadgeNET
                 {
                     // Wait letting the subscribing thread work.
                     fRestartSubscribingThread = false;
+                    _isSubscriberThreadAlive = false;               // reset the flag and then wait a minute.  When we fall out of the wait, we expect normal work to set the flag.
+
                     //_trace.writeToLog(9, "BadgeComPubSubEvents: WatchingThreadProc: Wait for next look.");
                     _semWatcher.WaitOne(_knTimeBetweenWatchingThreadChecksMs);
                     //_trace.writeToLog(9, "BadgeComPubSubEvents: WatchingThreadProc: Out of wait.  Check the subscribing thread.");
@@ -346,8 +348,6 @@ namespace Cloud.BadgeNET
                                 fRestartSubscribingThread = true;
                             }
                         }
-
-                        _isSubscriberThreadAlive = false;               // reset it for the next look
                     }
 
                     // Restart the subscribing thread if we need to
