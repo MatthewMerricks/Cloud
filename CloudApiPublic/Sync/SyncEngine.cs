@@ -5523,14 +5523,13 @@ namespace Cloud.Sync
                     }
 
                     // Send the new UploadCompleteMessage status message, including a CLFileItem.
-                    //TODO: Storage key below should actually be the revision.
-                    //CLFileItem fileItem = new CLFileItem(castState.FileToUpload, castState.Syncbox, castState.FileToUpload.Metadata.StorageKey, castState.ServerUid, isDeleted: false, isPending: false);
+                    CLFileItem fileItem = new CLFileItem(castState.FileToUpload, castState.Syncbox, uidRevisionHolder.Revision, uidRevisionHolder.ServerUid, isDeleted: false, isPending: false);
 
-                    //MessageEvents.DetectedDownloadCompleteChange(
-                    //    eventId: castState.FileToDownload.EventId, // the id for the event
-                    //    fileItem: fileItem, // the file item constructed above
-                    //    SyncboxId: castState.Syncbox.SyncboxId,
-                    //    DeviceId: castState.Syncbox.CopiedSettings.DeviceId);
+                    MessageEvents.DetectedUploadCompleteChange(
+                        eventId: castState.FileToUpload.EventId, // the id for the event
+                        fileItem: fileItem, // the file item constructed above
+                        SyncboxId: castState.Syncbox.SyncboxId,
+                        DeviceId: castState.Syncbox.CopiedSettings.DeviceId);
 
                     // status message
                     MessageEvents.FireNewEventMessage(
