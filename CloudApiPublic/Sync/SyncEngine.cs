@@ -7538,7 +7538,7 @@ namespace Cloud.Sync
 
                             if (searchExistingServerUidIdForPendingSyncToCreateError != null)
                             {
-                                throw new AggregateException("Error searching for existing, pending, sync to, creation for name and parent \"uid\"");
+                                throw new AggregateException("Error searching for existing, pending, sync to, creation for name and parent \"uid\"", searchExistingServerUidIdForPendingSyncToCreateError.Exceptions);
                             }
 
                             bool syncFromFileModify = (currentChange.Type == FileChangeType.Modified
