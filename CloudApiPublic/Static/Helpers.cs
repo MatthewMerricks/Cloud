@@ -2644,7 +2644,7 @@ namespace Cloud.Static
             {
                 CLError error = ex;
                 error.Log(_trace.TraceLocation, _trace.LogErrors);
-                _trace.writeToLog(9, "Helpers: MoveDownloadedFile: ERROR: Exception: Msg: {0}. Source file: {1}. TargetFile: {2}. BackupFile: {3}.", sourceFileFullPath, targetFileFullPath, backupFileFullPath);
+                _trace.writeToLog(9, "Helpers: MoveDownloadedFile: ERROR: Exception: Msg: {0}. Source file: {1}. TargetFile: {2}. BackupFile: {3}.", ex.Message, sourceFileFullPath, targetFileFullPath, backupFileFullPath);
                 return error;
             }
 
