@@ -49,7 +49,7 @@
   </PropertyGroup>
   <ItemGroup>
     <!--AUTO-BUILD CLOUD.DLL TAG-->
-    <Reference Include="Cloud, Version=0.3.0.2, Culture=neutral, PublicKeyToken=840eb90fa4503c3c, processorArchitecture=MSIL">
+    <Reference Include="Cloud, Version=0.3.0.3, Culture=neutral, PublicKeyToken=840eb90fa4503c3c, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
     </Reference>
     <Reference Include="RateBar.CSDK, Version=1.0.4810.27162, Culture=neutral, PublicKeyToken=840eb90fa4503c3c, processorArchitecture=MSIL">
