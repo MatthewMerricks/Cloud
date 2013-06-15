@@ -596,6 +596,11 @@ namespace Cloud.Static
         /// </summary>
         OnDemand_FileItemWhenFolderItemExpected = (((ulong)CLExceptionDomain.OnDemand) << 32) | 42, // 5_42
 
+        /// <summary>
+        /// Bad settings.
+        /// </summary>
+        OnDemand_Settings = (((ulong)CLExceptionDomain.OnDemand) << 32) | 43, // 5_43
+
         #endregion
 
         #region FileItem

@@ -447,17 +447,17 @@ namespace Cloud.REST
 
                 if (timeoutMilliseconds <= 0)
                 {
-                    throw new CLArgumentException(CLExceptionCode.General_Arguments, Resources.CLMSTimeoutMustBeGreaterThanZero);
+                    throw new CLArgumentException(CLExceptionCode.OnDemand_TimeoutMilliseconds, Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
 
                 if (serverUid == null)
                 {
-                    throw new ArgumentNullException(Resources.ExceptionCLHttpRestNullServerUid);
+                    throw new CLArgumentNullException(CLExceptionCode.OnDemand_InvalidParameters, Resources.ExceptionCLHttpRestNullServerUid);
                 }
 
                 if (revision == null)
                 {
-                    throw new ArgumentNullException(Resources.CLHttpRestMetaDataRevisionCannotBeNull);
+                    throw new CLArgumentNullException(CLExceptionCode.OnDemand_InvalidParameters, Resources.CLHttpRestMetaDataRevisionCannotBeNull);
                 }
 
                 // declare the path for the folder which will store temp download files
@@ -485,13 +485,13 @@ namespace Cloud.REST
                 // if the temp download folder is a bad path rethrow the error
                 if (badTempFolderError != null)
                 {
-                    throw new AggregateException(Resources.CLHttpRestThecustomDownloadFolderFullPathIsBad, badTempFolderError.Exceptions);
+                    throw new CLException(CLExceptionCode.OnDemand_Settings, Resources.CLHttpRestThecustomDownloadFolderFullPathIsBad, badTempFolderError.Exceptions);
                 }
 
                 // if the folder path for downloads is too long, then throw an exception
                 if (currentDownloadFolder.Length > 222) // 222 calculated by 259 max path length minus 1 character for a folder slash seperator plus 36 characters for (Guid).ToString(Resources.CLCredentialStringSettingsN)
                 {
-                    throw new ArgumentException(Resources.CLHttpRestFolderPathTooLong + (currentDownloadFolder.Length - 222).ToString());
+                    throw new CLException(CLExceptionCode.OnDemand_Settings, Resources.CLHttpRestFolderPathTooLong + (currentDownloadFolder.Length - 222).ToString());
                 }
 
                 // build the location of the metadata retrieval method on the server dynamically
@@ -3269,15 +3269,15 @@ namespace Cloud.REST
                 // check input parameters.{
                 if (filesToAdd == null)
                 {
-                    throw new ArgumentNullException("filesToAdd must not be null");  //&&&& fix this
+                    throw new CLArgumentNullException(CLExceptionCode.OnDemand_MissingParameters, Resources.ExceptionOnDemandFilesToAddMustNotBeNull);
                 }
                 if (filesToAdd.Length < 1)
                 {
-                    throw new CLArgumentException(CLExceptionCode.Http_BadRequest, "filesToAdd must have a length greater than zero");
+                    throw new CLArgumentException(CLExceptionCode.Http_BadRequest, Resources.ExceptionOnDemandFilesToAddLengthMustBeGtZero);
                 }
                 if (!(_syncbox.CopiedSettings.HttpTimeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException(Resources.CLMSTimeoutMustBeGreaterThanZero);
+                    throw new CLArgumentException(CLExceptionCode.OnDemand_TimeoutMilliseconds, Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
 
                 StreamOrStreamContextHolder[] uploadStreams = new StreamOrStreamContextHolder[filesToAdd.Length];
@@ -3292,7 +3292,11 @@ namespace Cloud.REST
                         AddFileItemParams fullPathAndParentAndNewName = filesToAdd[currentNameAndParentIdx];
                         if (fullPathAndParentAndNewName == null)
                         {
-                            throw new CLArgumentNullException(CLExceptionCode.OnDemand_InvalidParameters, "fix me here");
+                            throw new CLArgumentNullException(CLExceptionCode.OnDemand_InvalidParameters, String.Format(Resources.ExceptionOnDemandFilesToAddAtIndexMustNotBeNullMsg0, currentNameAndParentIdx));
+                        }
+                        if (fullPathAndParentAndNewName.ParentFolder == null)
+                        {
+                            throw new CLArgumentNullException(CLExceptionCode.OnDemand_MissingParameters, String.Format(Resources.ExceptionOnDemandFilesToAddAtIndexParentMustNotBeNullMsg0, currentNameAndParentIdx));
                         }
                         if (fullPathAndParentAndNewName.ParentFolder.Syncbox != _syncbox)
                         {
@@ -3306,21 +3310,13 @@ namespace Cloud.REST
                         {
                             throw new CLInvalidOperationException(CLExceptionCode.OnDemand_AlreadyDeleted, String.Format(Resources.ExceptionOnDemandItemWasPreviouslyDeletedMsg0, currentNameAndParentIdx));
                         }
-                        if (fullPathAndParentAndNewName.ParentFolder == null)
-                        {
-                            throw new ArgumentNullException(String.Format("filesToAdd item {0} Parent must not be null", currentNameAndParentIdx));  //&&&& fix this
-                        }
                         if (String.IsNullOrEmpty(fullPathAndParentAndNewName.FullPath))
                         {
-                            throw new ArgumentNullException(String.Format("filesToAdd item {0} FullPath must be specified", currentNameAndParentIdx));  //&&&& fix this
-                        }
-                        if (string.IsNullOrEmpty(fullPathAndParentAndNewName.ParentFolder.FullPath))
-                        {
-                            throw new CLArgumentNullException(CLExceptionCode.OnDemand_FileAddBadPath, "file add bad path");
+                            throw new CLArgumentNullException(CLExceptionCode.OnDemand_MissingParameters, String.Format(Resources.ExceptionOnDemandFilesToAddAtIndexFullPathMustNotBeNullMsg0, currentNameAndParentIdx));  //&&&& fix this
                         }
                         if (string.IsNullOrEmpty(fullPathAndParentAndNewName.ParentFolder.ItemUid))
                         {
-                            throw new CLArgumentNullException(CLExceptionCode.OnDemand_FileAddInvalidMetadata, "current file in filesToAdd is missing ServerUid");
+                            throw new CLArgumentNullException(CLExceptionCode.OnDemand_MissingParameters, Resources.ExceptionOnDemandFilesToAddAtIndexParentFolderItemUidMissingMsg0);
                         }
 
                         FilePath fullPath = new FilePath(fullPathAndParentAndNewName.FullPath);
@@ -3371,7 +3367,7 @@ namespace Cloud.REST
                             {
                                 try
                                 {
-                                    throw new CLFileNotFoundException(CLExceptionCode.OnDemand_FileAddNotFound, "file add not found", ex);
+                                    throw new CLFileNotFoundException(CLExceptionCode.OnDemand_FileAddNotFound, Resources.ExceptionFileNotFound, ex);
                                 }
                                 catch (Exception innerEx)
                                 {
@@ -3397,22 +3393,22 @@ namespace Cloud.REST
                         {
                             if (OutputStream == null)
                             {
-                                throw new CLNullReferenceException(CLExceptionCode.OnDemand_FileAdd, "No error creating FileStream but it still does not exist");
+                                throw new CLNullReferenceException(CLExceptionCode.OnDemand_FileAdd, Resources.ExceptionOnDemandAddFileFileStreamDoesNotExist);
                             }
                             
                             uploadStreams[currentNameAndParentIdx] = new StreamOrStreamContextHolder(OutputStream);
 
                             if (intermediateHashes == null)
                             {
-                                throw new CLNullReferenceException(CLExceptionCode.OnDemand_FileAdd, "No error creating intermediateHashes but it still does not exist");
+                                throw new CLNullReferenceException(CLExceptionCode.OnDemand_FileAdd, Resources.ExceptionOnDemandAddFileIntermediateHashesDoesNotExist);
                             }
                             if (newMD5Bytes == null)
                             {
-                                throw new CLNullReferenceException(CLExceptionCode.OnDemand_FileAdd, "No error creating newMD5Bytes but it still does not exist");
+                                throw new CLNullReferenceException(CLExceptionCode.OnDemand_FileAdd, Resources.ExceptionOnDemandAddFileNewMd5BytesDoesNotExist);
                             }
                             if (finalFileSize == null)
                             {
-                                throw new CLNullReferenceException(CLExceptionCode.OnDemand_FileAdd, "No error creating finalFileSize but it still does not exist");
+                                throw new CLNullReferenceException(CLExceptionCode.OnDemand_FileAdd, Resources.ExceptionOnDemandAddFileFinalFileSizeDoesNotExist);
                             }
 
                             uploadStreams[currentNameAndParentIdx].switchToContext(
@@ -3828,7 +3824,7 @@ namespace Cloud.REST
                 // if trying to cast the asynchronous result failed, then throw an error
                 if (castAResult == null)
                 {
-                    throw new NullReferenceException(Resources.CLAsyncResultInternalTypeMismatch);
+                    throw new CLNullReferenceException(CLExceptionCode.General_Miscellaneous, Resources.CLAsyncResultInternalTypeMismatch);
                 }
 
                 // pull the result for output (may not yet be complete)
@@ -3883,33 +3879,34 @@ namespace Cloud.REST
             {
                 // check input parameters
 
+                //TODO: Rework this function and its async counterparts to use CLFileItem.
                 if (!(timeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException(Resources.CLMSTimeoutMustBeGreaterThanZero);
+                    throw new CLArgumentException(CLExceptionCode.OnDemand_TimeoutMilliseconds, Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
                 if (deletionChange == null)
                 {
-                    throw new NullReferenceException(Resources.CLHttpRestDeletionChangeCannotBeNull);
+                    throw new CLNullReferenceException(CLExceptionCode.OnDemand_MissingParameters, Resources.CLHttpRestDeletionChangeCannotBeNull);
                 }
                 if (deletionChange.Direction == SyncDirection.From)
                 {
-                    throw new ArgumentException(Resources.CLHttpRestChangeDirectionIsNotToServer);
+                    throw new CLArgumentException(CLExceptionCode.Syncing_LiveSyncEngine, Resources.CLHttpRestChangeDirectionIsNotToServer);
                 }
                 if (deletionChange.Metadata == null)
                 {
-                    throw new NullReferenceException(Resources.CLHttpRestMetadataCannotBeNull);
+                    throw new CLNullReferenceException(CLExceptionCode.Syncing_LiveSyncEngine, Resources.CLHttpRestMetadataCannotBeNull);
                 }
                 if (deletionChange.Type != FileChangeType.Deleted)
                 {
-                    throw new ArgumentException(Resources.CLHttpRestChangeIsNotOfTypeDeletion);
+                    throw new CLArgumentException(CLExceptionCode.Syncing_LiveSyncEngine, Resources.CLHttpRestChangeIsNotOfTypeDeletion);
                 }
                 if (serverUid == null)
                 {
-                    throw new NullReferenceException(Resources.CLHttpRestDeletionChangeMetadataServerUidMustnotBeNull);
+                    throw new CLNullReferenceException(CLExceptionCode.Syncing_LiveSyncEngine, Resources.CLHttpRestDeletionChangeMetadataServerUidMustnotBeNull);
                 }
                 if (string.IsNullOrEmpty(_syncbox.CopiedSettings.DeviceId))
                 {
-                    throw new NullReferenceException(Resources.CLHttpRestDeviceIDCannotBeNull);
+                    throw new CLNullReferenceException(CLExceptionCode.Syncing_LiveSyncEngine, Resources.CLHttpRestDeviceIDCannotBeNull);
                 }
 
                 // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
@@ -4193,7 +4190,7 @@ namespace Cloud.REST
 
         //        if (!(timeoutMilliseconds > 0))
         //        {
-        //            throw new ArgumentException(Resources.CLMSTimeoutMustBeGreaterThanZero);
+        //            throw new CLArgumentException(CLExceptionCode.OnDemand_TimeoutMilliseconds, Resources.CLMSTimeoutMustBeGreaterThanZero);
         //        }
         //        if (_syncbox.Path == null)
         //        {
@@ -4398,7 +4395,7 @@ namespace Cloud.REST
                         }
                         else
                         {
-                            throw new NullReferenceException(Resources.ExceptionCLHttpRestWithoutMetadata);  //&&&& fix this
+                            throw new CLNullReferenceException(CLExceptionCode.OnDemand_ServerReturnedInvalidItem, Resources.ExceptionCLHttpRestWithoutMetadata);
                         }
                     }
 
@@ -4408,7 +4405,7 @@ namespace Cloud.REST
                 else
                 {
                     items = Helpers.DefaultForType<CLFileItem[]>();
-                    throw new NullReferenceException(Resources.ExceptionCLHttpRestWithoutMetadata);  //&&&& fix this
+                    throw new CLNullReferenceException(CLExceptionCode.OnDemand_NoServerResponse, Resources.ExceptionCLHttpRestWithoutMetadata);
                 }
             }
             catch (Exception ex)
@@ -4566,7 +4563,7 @@ namespace Cloud.REST
                         }
                         else
                         {
-                            throw new NullReferenceException(Resources.ExceptionCLHttpRestWithoutMetadata);  //&&&& fix this
+                            throw new CLNullReferenceException(CLExceptionCode.OnDemand_ServerReturnedInvalidItem, Resources.ExceptionCLHttpRestWithoutMetadata);
                         }
                     }
 
@@ -4575,7 +4572,7 @@ namespace Cloud.REST
                 }
                 else
                 {
-                    throw new NullReferenceException(Resources.ExceptionCLHttpRestWithoutMetadata);   //&&&& fix this
+                    throw new CLNullReferenceException(CLExceptionCode.OnDemand_NoServerResponse, Resources.ExceptionCLHttpRestWithoutMetadata);
                 }
             }
             catch (Exception ex)
@@ -4733,7 +4730,7 @@ namespace Cloud.REST
                         }
                         else
                         {
-                            throw new NullReferenceException(Resources.ExceptionCLHttpRestWithoutMetadata);  //&&&& fix this
+                            throw new CLNullReferenceException(CLExceptionCode.OnDemand_ServerReturnedInvalidItem, Resources.ExceptionCLHttpRestWithoutMetadata);
                         }
                     }
 
@@ -4742,7 +4739,7 @@ namespace Cloud.REST
                 }
                 else
                 {
-                    throw new NullReferenceException(Resources.ExceptionCLHttpRestWithoutMetadata);  //&&&& fix this
+                    throw new CLNullReferenceException(CLExceptionCode.OnDemand_NoServerResponse, Resources.ExceptionCLHttpRestWithoutMetadata);
                 }
             }
             catch (Exception ex)
@@ -4900,7 +4897,7 @@ namespace Cloud.REST
                         }
                         else
                         {
-                            throw new NullReferenceException(Resources.ExceptionCLHttpRestWithoutMetadata);  //&&&& fix this
+                            throw new CLNullReferenceException(CLExceptionCode.OnDemand_ServerReturnedInvalidItem, Resources.ExceptionCLHttpRestWithoutMetadata);
                         }
                     }
 
@@ -4909,7 +4906,7 @@ namespace Cloud.REST
                 }
                 else
                 {
-                    throw new NullReferenceException(Resources.ExceptionCLHttpRestWithoutMetadata);   //&&&& fix this
+                    throw new CLNullReferenceException(CLExceptionCode.OnDemand_NoServerResponse, Resources.ExceptionCLHttpRestWithoutMetadata);
                 }
             }
             catch (Exception ex)
@@ -5067,7 +5064,7 @@ namespace Cloud.REST
                         }
                         else
                         {
-                            throw new NullReferenceException(Resources.ExceptionCLHttpRestWithoutMetadata);  //&&&& fix this
+                            throw new CLNullReferenceException(CLExceptionCode.OnDemand_ServerReturnedInvalidItem, Resources.ExceptionCLHttpRestWithoutMetadata);
                         }
                     }
 
@@ -5076,7 +5073,7 @@ namespace Cloud.REST
                 }
                 else
                 {
-                    throw new NullReferenceException(Resources.ExceptionCLHttpRestWithoutMetadata);   //&&&& fix this
+                    throw new CLNullReferenceException(CLExceptionCode.OnDemand_NoServerResponse, Resources.ExceptionCLHttpRestWithoutMetadata);
                 }
             }
             catch (Exception ex)
@@ -5234,7 +5231,7 @@ namespace Cloud.REST
                         }
                         else
                         {
-                            throw new NullReferenceException(Resources.ExceptionCLHttpRestWithoutMetadata);  //&&&& fix this
+                            throw new CLNullReferenceException(CLExceptionCode.OnDemand_ServerReturnedInvalidItem, Resources.ExceptionCLHttpRestWithoutMetadata);
                         }
                     }
 
@@ -5243,7 +5240,7 @@ namespace Cloud.REST
                 }
                 else
                 {
-                    throw new NullReferenceException(Resources.ExceptionCLHttpRestWithoutMetadata);   //&&&& fix this
+                    throw new CLNullReferenceException(CLExceptionCode.OnDemand_NoServerResponse, Resources.ExceptionCLHttpRestWithoutMetadata);
                 }
             }
             catch (Exception ex)
@@ -5401,7 +5398,7 @@ namespace Cloud.REST
                         }
                         else
                         {
-                            throw new NullReferenceException(Resources.ExceptionCLHttpRestWithoutMetadata);  //&&&& fix this
+                            throw new CLNullReferenceException(CLExceptionCode.OnDemand_ServerReturnedInvalidItem, Resources.ExceptionCLHttpRestWithoutMetadata);
                         }
                     }
 
@@ -5410,7 +5407,7 @@ namespace Cloud.REST
                 }
                 else
                 {
-                    throw new NullReferenceException(Resources.ExceptionCLHttpRestWithoutMetadata);  //&&&& fix this
+                    throw new CLNullReferenceException(CLExceptionCode.OnDemand_NoServerResponse, Resources.ExceptionCLHttpRestWithoutMetadata);
                 }
             }
             catch (Exception ex)
@@ -5604,7 +5601,7 @@ namespace Cloud.REST
                         }
                         else
                         {
-                            throw new NullReferenceException(Resources.ExceptionCLHttpRestWithoutMetadata);  //&&&& fix this
+                            throw new CLNullReferenceException(CLExceptionCode.OnDemand_ServerReturnedInvalidItem, Resources.ExceptionCLHttpRestWithoutMetadata);
                         }
                     }
 
@@ -5613,7 +5610,7 @@ namespace Cloud.REST
                 }
                 else
                 {
-                    throw new NullReferenceException(Resources.ExceptionCLHttpRestWithoutMetadata);   //&&&& fix this
+                    throw new CLNullReferenceException(CLExceptionCode.OnDemand_NoServerResponse, Resources.ExceptionCLHttpRestWithoutMetadata);
                 }
             }
             catch (Exception ex)
@@ -5793,7 +5790,7 @@ namespace Cloud.REST
                         }
                         else
                         {
-                            throw new NullReferenceException(Resources.ExceptionCLHttpRestWithoutMetadata);  //&&&& fix this
+                            throw new CLNullReferenceException(CLExceptionCode.OnDemand_ServerReturnedInvalidItem, Resources.ExceptionCLHttpRestWithoutMetadata);
                         }
                     }
 
@@ -5802,7 +5799,7 @@ namespace Cloud.REST
                 }
                 else
                 {
-                    throw new NullReferenceException(Resources.ExceptionCLHttpRestWithoutMetadata);
+                    throw new CLNullReferenceException(CLExceptionCode.OnDemand_NoServerResponse, Resources.ExceptionCLHttpRestWithoutMetadata);
                 }
             }
             catch (Exception ex)
@@ -5956,7 +5953,7 @@ namespace Cloud.REST
                         }
                         else
                         {
-                            throw new NullReferenceException(Resources.ExceptionCLHttpRestWithoutMetadata);  //&&&& fix this
+                            throw new CLNullReferenceException(CLExceptionCode.OnDemand_ServerReturnedInvalidItem, Resources.ExceptionCLHttpRestWithoutMetadata);
                         }
                     }
 
@@ -5965,7 +5962,7 @@ namespace Cloud.REST
                 }
                 else
                 {
-                    throw new NullReferenceException(Resources.ExceptionCLHttpRestWithoutMetadata);
+                    throw new CLNullReferenceException(CLExceptionCode.OnDemand_NoServerResponse, Resources.ExceptionCLHttpRestWithoutMetadata);
                 }
             }
             catch (Exception ex)
@@ -6063,7 +6060,7 @@ namespace Cloud.REST
                 // check input parameters
                 if (!(_syncbox.CopiedSettings.HttpTimeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException(Resources.CLMSTimeoutMustBeGreaterThanZero);  //&&&& fix this
+                    throw new CLArgumentException(CLExceptionCode.OnDemand_TimeoutMilliseconds, Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
 
                 // build the location of the sync box usage retrieval method on the server dynamically
@@ -6110,7 +6107,7 @@ namespace Cloud.REST
                 }
                 else
                 {
-                    throw new NullReferenceException(Resources.ExceptionCLHttpRestWithoutMetadata);  //&&&& fix this
+                    throw new CLNullReferenceException(CLExceptionCode.OnDemand_NoServerResponse, Resources.ExceptionCLHttpRestWithoutMetadata);
                 }
             }
             catch (Exception ex)
@@ -6215,7 +6212,7 @@ namespace Cloud.REST
 
                 if (!(_syncbox.CopiedSettings.HttpTimeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException(Resources.CLMSTimeoutMustBeGreaterThanZero);
+                    throw new CLArgumentException(CLExceptionCode.OnDemand_TimeoutMilliseconds, Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
 
                 // build the location of the folder contents retrieval method on the server dynamically
@@ -6276,14 +6273,14 @@ namespace Cloud.REST
                         }
                         else
                         {
-                            throw new NullReferenceException(Resources.ExceptionCLHttpRestWithoutMetadata);
+                            throw new CLNullReferenceException(CLExceptionCode.OnDemand_ServerReturnedInvalidItem, Resources.ExceptionCLHttpRestWithoutMetadata);
                         }
                     }
                     items = listFileItems.ToArray();
                 }
                 else
                 {
-                    throw new NullReferenceException(Resources.ExceptionCLHttpRestWithoutMetadata);
+                    throw new CLNullReferenceException(CLExceptionCode.OnDemand_NoServerResponse, Resources.ExceptionCLHttpRestWithoutMetadata);
                 }
             }
             catch (Exception ex)
@@ -6389,7 +6386,7 @@ namespace Cloud.REST
                 // check input parameters
                 if (!(_syncbox.CopiedSettings.HttpTimeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException(Resources.CLMSTimeoutMustBeGreaterThanZero);
+                    throw new CLArgumentException(CLExceptionCode.OnDemand_TimeoutMilliseconds, Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
                 if (folderItem != null)
                 {
@@ -6468,14 +6465,14 @@ namespace Cloud.REST
                         }
                         else
                         {
-                            throw new NullReferenceException(Resources.ExceptionCLHttpRestWithoutMetadata);
+                            throw new CLNullReferenceException(CLExceptionCode.OnDemand_ServerReturnedInvalidItem, Resources.ExceptionCLHttpRestWithoutMetadata);
                         }
                     }
                     items = listFileItems.ToArray();
                 }
                 else
                 {
-                    throw new NullReferenceException(Resources.ExceptionCLHttpRestWithoutMetadata);
+                    throw new CLNullReferenceException(CLExceptionCode.OnDemand_NoServerResponse, Resources.ExceptionCLHttpRestWithoutMetadata);
                 }
             }
             catch (Exception ex)
@@ -6579,7 +6576,7 @@ namespace Cloud.REST
 
                 if (!(_syncbox.CopiedSettings.HttpTimeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException(Resources.CLMSTimeoutMustBeGreaterThanZero);
+                    throw new CLArgumentException(CLExceptionCode.OnDemand_TimeoutMilliseconds, Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
 
                 // build the location of the folder contents retrieval method on the server dynamically
@@ -6640,14 +6637,14 @@ namespace Cloud.REST
                         }
                         else
                         {
-                            throw new NullReferenceException(Resources.ExceptionCLHttpRestWithoutMetadata);
+                            throw new CLNullReferenceException(CLExceptionCode.OnDemand_ServerReturnedInvalidItem, Resources.ExceptionCLHttpRestWithoutMetadata);
                         }
                     }
                     items = listFileItems.ToArray();
                 }
                 else
                 {
-                    throw new NullReferenceException(Resources.ExceptionCLHttpRestWithoutMetadata);
+                    throw new CLNullReferenceException(CLExceptionCode.OnDemand_NoServerResponse, Resources.ExceptionCLHttpRestWithoutMetadata);
                 }
             }
             catch (Exception ex)
@@ -6745,7 +6742,7 @@ namespace Cloud.REST
                 // check input parameters
                 if (!(_syncbox.CopiedSettings.HttpTimeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException(Resources.CLMSTimeoutMustBeGreaterThanZero);
+                    throw new CLArgumentException(CLExceptionCode.OnDemand_TimeoutMilliseconds, Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
                 if (folderItem != null)
                 {
@@ -6824,14 +6821,14 @@ namespace Cloud.REST
                         }
                         else
                         {
-                            throw new NullReferenceException(Resources.ExceptionCLHttpRestWithoutMetadata);
+                            throw new CLNullReferenceException(CLExceptionCode.OnDemand_ServerReturnedInvalidItem, Resources.ExceptionCLHttpRestWithoutMetadata);
                         }
                     }
                     items = listFileItems.ToArray();
                 }
                 else
                 {
-                    throw new NullReferenceException(Resources.ExceptionCLHttpRestWithoutMetadata);
+                    throw new CLNullReferenceException(CLExceptionCode.OnDemand_NoServerResponse, Resources.ExceptionCLHttpRestWithoutMetadata);
                 }
             }
             catch (Exception ex)
@@ -7023,7 +7020,7 @@ namespace Cloud.REST
                 // if trying to cast the asynchronous result failed, then throw an error
                 if (castAResult == null)
                 {
-                    throw new NullReferenceException(Resources.CLAsyncResultInternalTypeMismatch);
+                    throw new CLNullReferenceException(CLExceptionCode.General_Miscellaneous, Resources.CLAsyncResultInternalTypeMismatch);
                 }
 
                 // pull the result for output (may not yet be complete)
@@ -7105,7 +7102,7 @@ namespace Cloud.REST
 
                 if (!(timeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException(Resources.CLMSTimeoutMustBeGreaterThanZero);
+                    throw new CLArgumentException(CLExceptionCode.OnDemand_TimeoutMilliseconds, Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
 
                 // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
@@ -7251,18 +7248,18 @@ namespace Cloud.REST
             {
                 if (reservedForActiveSync)
                 {
-                    return new Exception(Resources.CLHttpRestCurrentSyncboxCannotBeModifiedWhileSyncing);  //&&&& fix this
+                    return new CLInvalidOperationException(CLExceptionCode.OnDemand_LiveSyncIsActive, Resources.CLHttpRestCurrentSyncboxCannotBeModifiedWhileSyncing);
                 }
                 IncrementModifyingSyncboxViaPublicAPICalls();
 
                 // check input parameters
                 if (!(_syncbox.CopiedSettings.HttpTimeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException(Resources.CLMSTimeoutMustBeGreaterThanZero);  //&&&& fix this
+                    throw new CLArgumentException(CLExceptionCode.OnDemand_TimeoutMilliseconds, Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
                 if (storagePlan == null)
                 {
-                    throw new ArgumentException("storagePlan must not be null");  //&&&& fix this
+                    throw new CLArgumentNullException(CLExceptionCode.OnDemand_MissingParameters, Resources.ExceptionOnDemandUpdateStoragePlanStoragePlanMustNotBeNull);
                 }
 
                 // build the location of the sync box usage retrieval method on the server dynamically
@@ -7297,15 +7294,15 @@ namespace Cloud.REST
 
                 if (serverResponse == null)
                 {
-                    throw new NullReferenceException("server returned null response");  //&&&& fix
+                    throw new CLNullReferenceException(CLExceptionCode.OnDemand_NoServerResponse, Resources.ExceptionOnDemandUpdateStoragePlanStoragePlanServerReturnedNullResponse);
                 }
                 if (serverResponse.Syncbox == null)
                 {
-                    throw new NullReferenceException("server returned null response Syncbox");  //&&&& fix
+                    throw new CLNullReferenceException(CLExceptionCode.OnDemand_ServerReturnedInvalidItem, Resources.ExceptionOnDemandUpdateStoragePlanStoragePlanServerReturnedNullResponseSyncbox);
                 }
                 if (serverResponse.Syncbox.PlanId == null)
                 {
-                    throw new NullReferenceException("server returned null response Syncbox PlanId");  //&&&& fix
+                    throw new CLNullReferenceException(CLExceptionCode.OnDemand_ServerReturnedInvalidItem, Resources.ExceptionOnDemandUpdateStoragePlanStoragePlanServerReturnedNullResponseSyncboxPlanId);
                 }
 
                 //// todo: "success" does not compare with "ok", but do not want to compare strings anyways since some methods are "success" and some are "ok"
@@ -7442,11 +7439,11 @@ namespace Cloud.REST
                 // check input parameters
                 if (!(_syncbox.CopiedSettings.HttpTimeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException(Resources.CLMSTimeoutMustBeGreaterThanZero);  //&&&& fix this
+                    throw new CLArgumentException(CLExceptionCode.OnDemand_TimeoutMilliseconds, Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
                 if (String.IsNullOrEmpty(friendlyName))
                 {
-                    throw new ArgumentException("friendlyName must be specified");  //&&&& fix this
+                    throw new CLArgumentException(CLExceptionCode.OnDemand_MissingParameters, Resources.ExceptionOnDemandUpdateFriendlyNameFriendlyNameMustBeSpecified);
                 }
 
                 // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
@@ -7483,15 +7480,15 @@ namespace Cloud.REST
 
                 if (serverResponse == null)
                 {
-                    throw new NullReferenceException("server returned null response");  //&&&& fix
+                    throw new CLNullReferenceException(CLExceptionCode.OnDemand_NoServerResponse, Resources.ExceptionOnDemandUpdateFriendlyNameServerReturnedNullResponse);
                 }
                 if (serverResponse.Syncbox == null)
                 {
-                    throw new NullReferenceException("server returned null response Syncbox");  //&&&& fix
+                    throw new CLNullReferenceException(CLExceptionCode.OnDemand_ServerReturnedInvalidItem, Resources.ExceptionOnDemandUpdateFriendlyNameServerReturnedNullResponseSyncbox);
                 }
                 if (serverResponse.Syncbox.PlanId == null)
                 {
-                    throw new NullReferenceException("server returned null response Syncbox PlanId");  //&&&& fix
+                    throw new CLNullReferenceException(CLExceptionCode.OnDemand_ServerReturnedInvalidItem, Resources.ExceptionOnDemandUpdateFriendlyNameServerReturnedNullResponseSyncboxPlanId);
                 }
 
                 //// todo: "success" does not compare with "ok", but do not want to compare strings anyways since some methods are "success" and some are "ok"
@@ -7609,7 +7606,7 @@ namespace Cloud.REST
                 // check input parameters
                 if (!(_syncbox.CopiedSettings.HttpTimeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException(Resources.CLMSTimeoutMustBeGreaterThanZero);  //&&&& fix this
+                    throw new CLArgumentException(CLExceptionCode.OnDemand_TimeoutMilliseconds, Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
 
                 // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
@@ -7639,19 +7636,19 @@ namespace Cloud.REST
 
                 if (serverResponse == null)
                 {
-                    throw new NullReferenceException("server returned null response");  //&&&& fix
+                    throw new CLNullReferenceException(CLExceptionCode.OnDemand_NoServerResponse, Resources.ExceptionOnDemandGetCurrentStatusNullServerResponse);
                 }
                 if (serverResponse.Syncbox == null)
                 {
-                    throw new NullReferenceException("server returned null response Syncbox");  //&&&& fix
+                    throw new CLNullReferenceException(CLExceptionCode.OnDemand_ServerReturnedInvalidItem, Resources.ExceptionOnDemandGetCurrentStatusServerResponseNullSyncbox);
                 }
                 if (serverResponse.Syncbox.PlanId == null)
                 {
-                    throw new NullReferenceException("server returned null response Syncbox PlanId");  //&&&& fix
+                    throw new CLNullReferenceException(CLExceptionCode.OnDemand_ServerReturnedInvalidItem, Resources.ExceptionOnDemandGetCurrentStatusServerResponseNullSyncboxPlanId);
                 }
                 if (serverResponse.Syncbox.CreatedAt == null)
                 {
-                    throw new NullReferenceException("server returned null response Syncbox CreatedAt");  //&&&& fix
+                    throw new CLNullReferenceException(CLExceptionCode.OnDemand_ServerReturnedInvalidItem, Resources.ExceptionOnDemandGetCurrentStatusServerResponseNullSyncboxCreatedAt);
                 }
 
                 //// todo: "success" does not compare with "ok", but do not want to compare strings anyways since some methods are "success" and some are "ok"
@@ -7704,11 +7701,11 @@ namespace Cloud.REST
                 // check input parameters
                 if (syncToRequest == null)
                 {
-                    throw new ArgumentException(Resources.CLHttpRestSyncToRequestMustNotBeNull);
+                    throw new CLArgumentException(CLExceptionCode.Syncing_LiveSyncEngine, Resources.CLHttpRestSyncToRequestMustNotBeNull);
                 }
                 if (!(timeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException(Resources.CLMSTimeoutMustBeGreaterThanZero);
+                    throw new CLArgumentException(CLExceptionCode.OnDemand_TimeoutMilliseconds, Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
 
                 // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
@@ -7759,11 +7756,11 @@ namespace Cloud.REST
                 // check input parameters
                 if (pushRequest == null)
                 {
-                    throw new ArgumentException(Resources.CLHttpRestPushRequestMustNotBeNull);
+                    throw new CLArgumentException(CLExceptionCode.Syncing_LiveSyncEngine, Resources.CLHttpRestPushRequestMustNotBeNull);
                 }
                 if (!(timeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException(Resources.CLMSTimeoutMustBeGreaterThanZero);
+                    throw new CLArgumentException(CLExceptionCode.OnDemand_TimeoutMilliseconds, Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
 
                 // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
@@ -7813,7 +7810,7 @@ namespace Cloud.REST
                 // check input parameters
                 if (!(timeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException(Resources.CLMSTimeoutMustBeGreaterThanZero);
+                    throw new CLArgumentException(CLExceptionCode.OnDemand_TimeoutMilliseconds, Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
 
                 JsonContracts.NotificationUnsubscribeRequest request = new JsonContracts.NotificationUnsubscribeRequest()
@@ -8099,30 +8096,30 @@ namespace Cloud.REST
                 if (fullPath == null
                     && string.IsNullOrEmpty(serverUid))
                 {
-                    throw new NullReferenceException(Resources.CLHttpRestFullPathorServerUidRequired);
+                    throw new CLNullReferenceException(CLExceptionCode.Syncing_LiveSyncEngine, Resources.CLHttpRestFullPathorServerUidRequired);
                 }
                 if (fullPath != null)
                 {
                     CLError pathError = Helpers.CheckForBadPath(fullPath);
                     if (pathError != null)
                     {
-                        throw new AggregateException(Resources.CLHttpRestFullPathBadFormat, pathError.Exceptions);
+                        throw new CLException(CLExceptionCode.Syncing_LiveSyncEngine, Resources.CLHttpRestFullPathBadFormat, pathError.Exceptions);
                     }
 
                     if (string.IsNullOrEmpty(_syncbox.Path))
                     {
-                        throw new NullReferenceException(Resources.CLHttpRestSyncboxPathCannotBeNull);
+                        throw new CLNullReferenceException(CLExceptionCode.Syncing_LiveSyncEngine, Resources.CLHttpRestSyncboxPathCannotBeNull);
                     }
 
                     if (!fullPath.Contains(_syncbox.Path))
                     {
-                        throw new ArgumentException(Resources.CLHttpRestFullPathDoesNotContainSettingsSyncboxPath);
+                        throw new CLArgumentException(CLExceptionCode.Syncing_LiveSyncEngine, Resources.CLHttpRestFullPathDoesNotContainSettingsSyncboxPath);
                     }
                 } 
 
                 if (!(timeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException(Resources.CLMSTimeoutMustBeGreaterThanZero);
+                    throw new CLArgumentException(CLExceptionCode.OnDemand_TimeoutMilliseconds, Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
 
                 // build the location of the metadata retrieval method on the server dynamically
@@ -8316,7 +8313,7 @@ namespace Cloud.REST
                 // if try casting the asynchronous result failed, throw an error
                 if (castAResult == null)
                 {
-                    throw new NullReferenceException(Resources.CLAsyncResultInternalTypeMismatch);
+                    throw new CLNullReferenceException(CLExceptionCode.General_Miscellaneous, Resources.CLAsyncResultInternalTypeMismatch);
                 }
 
                 // try to cast the asynchronous result internal state as the holder for the progress
@@ -8325,7 +8322,7 @@ namespace Cloud.REST
                 // if trying to cast the internal state as the holder for progress failed, then throw an error (non-descriptive since it's our error)
                 if (iState == null)
                 {
-                    throw new Exception(Resources.CLHttpRestInternalPRogressRetreivalFailure2);
+                    throw new CLNullReferenceException(CLExceptionCode.General_Miscellaneous, Resources.CLHttpRestInternalPRogressRetreivalFailure2);
                 }
 
                 // lock on the holder and retrieve the progress for output
@@ -8363,7 +8360,7 @@ namespace Cloud.REST
                 // if trying to cast the asynchronous result failed, then throw an error
                 if (castAResult == null)
                 {
-                    throw new NullReferenceException(Resources.CLAsyncResultInternalTypeMismatch);
+                    throw new CLNullReferenceException(CLExceptionCode.General_Miscellaneous, Resources.CLAsyncResultInternalTypeMismatch);
                 }
 
                 // pull the result for output (may not yet be complete)
@@ -8492,7 +8489,7 @@ namespace Cloud.REST
 
                 if (timeoutMilliseconds <= 0)
                 {
-                    throw new ArgumentException(Resources.CLMSTimeoutMustBeGreaterThanZero);
+                    throw new CLArgumentException(CLExceptionCode.OnDemand_TimeoutMilliseconds, Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
 
                 // build the location of the metadata retrieval method on the server dynamically
@@ -8652,7 +8649,7 @@ namespace Cloud.REST
                 // if trying to cast the asynchronous result failed, then throw an error
                 if (castAResult == null)
                 {
-                    throw new NullReferenceException(Resources.CLAsyncResultInternalTypeMismatch);
+                    throw new CLNullReferenceException(CLExceptionCode.General_Miscellaneous, Resources.CLAsyncResultInternalTypeMismatch);
                 }
 
                 // pull the result for output (may not yet be complete)
@@ -8707,7 +8704,7 @@ namespace Cloud.REST
 
                 if (!(timeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException(Resources.CLMSTimeoutMustBeGreaterThanZero);
+                    throw new CLArgumentException(CLExceptionCode.OnDemand_TimeoutMilliseconds, Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
 
                 // build the location of the pending retrieval method on the server dynamically
@@ -8925,24 +8922,24 @@ namespace Cloud.REST
 
                 if (toCommunicate == null)
                 {
-                    throw new NullReferenceException(Resources.CLHttpRestCommunicateCannotBeNull);
+                    throw new CLArgumentNullException(CLExceptionCode.Syncing_LiveSyncEngine, Resources.CLHttpRestCommunicateCannotBeNull);
                 }
                 if (toCommunicate.Direction == SyncDirection.From)
                 {
-                    throw new ArgumentException(Resources.CLHttpRestToCommunicateDirectionisNotToServer);
+                    throw new CLArgumentException(CLExceptionCode.Syncing_LiveSyncEngine, Resources.CLHttpRestToCommunicateDirectionisNotToServer);
                 }
                 if (toCommunicate.Metadata == null)
                 {
-                    throw new NullReferenceException(Resources.CLHttpRestToCommunicateMetedataCannotBeNull);
+                    throw new CLNullReferenceException(CLExceptionCode.Syncing_LiveSyncEngine, Resources.CLHttpRestToCommunicateMetedataCannotBeNull);
                 }
                 if (toCommunicate.Type == FileChangeType.Modified
                     && toCommunicate.Metadata.HashableProperties.IsFolder)
                 {
-                    throw new ArgumentException(Resources.CLHttpRestToCommunicateCannotBeFolderandModified);
+                    throw new CLArgumentException(CLExceptionCode.Syncing_LiveSyncEngine, Resources.CLHttpRestToCommunicateCannotBeFolderandModified);
                 }
                 if (!(timeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException(Resources.CLMSTimeoutMustBeGreaterThanZero);
+                    throw new CLArgumentException(CLExceptionCode.OnDemand_TimeoutMilliseconds, Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
 
                 // build the location of the one-off method on the server dynamically
@@ -8959,7 +8956,7 @@ namespace Cloud.REST
 
                         if (toCommunicate.NewPath == null)
                         {
-                            throw new NullReferenceException(Resources.CLHttpRestNewPathCannotBeNull);
+                            throw new CLNullReferenceException(CLExceptionCode.Syncing_LiveSyncEngine, Resources.CLHttpRestNewPathCannotBeNull);
                         }
 
                         // if change is a folder, set path and create request content for folder creation
@@ -8986,11 +8983,11 @@ namespace Cloud.REST
 
                             if (string.IsNullOrEmpty(addHashString))
                             {
-                                throw new NullReferenceException(Resources.CLHttpRestMD5LowerCaseStringSet);
+                                throw new CLNullReferenceException(CLExceptionCode.Syncing_LiveSyncEngine, Resources.CLHttpRestMD5LowerCaseStringSet);
                             }
                             if (toCommunicate.Metadata.HashableProperties.Size == null)
                             {
-                                throw new NullReferenceException(Resources.CLHttpRestMetadataHashablePropertiesSizeCannotBeNull);
+                                throw new CLNullReferenceException(CLExceptionCode.Syncing_LiveSyncEngine, Resources.CLHttpRestMetadataHashablePropertiesSizeCannotBeNull);
                             }
 
                             serverMethodPath = CLDefinitions.MethodPathOneOffFileCreate;
@@ -9018,7 +9015,7 @@ namespace Cloud.REST
                         if (toCommunicate.NewPath == null
                             && string.IsNullOrEmpty(serverUid))
                         {
-                            throw new NullReferenceException(Resources.CLHttpRestXORNewPathServerUidCannotBeNull);
+                            throw new CLNullReferenceException(CLExceptionCode.Syncing_LiveSyncEngine, Resources.CLHttpRestXORNewPathServerUidCannotBeNull);
                         }
 
                         // file deletion and folder deletion share a json contract object for deletion
@@ -9046,20 +9043,20 @@ namespace Cloud.REST
 
                         if (string.IsNullOrEmpty(modifyHashString))
                         {
-                            throw new NullReferenceException(Resources.CLHttpRestMD5LowerCaseStringSet);
+                            throw new CLNullReferenceException(CLExceptionCode.Syncing_LiveSyncEngine, Resources.CLHttpRestMD5LowerCaseStringSet);
                         }
                         if (toCommunicate.Metadata.HashableProperties.Size == null)
                         {
-                            throw new NullReferenceException(Resources.CLHttpRestMetadataHashablePropertiesSizeCannotBeNull);
+                            throw new CLNullReferenceException(CLExceptionCode.Syncing_LiveSyncEngine, Resources.CLHttpRestMetadataHashablePropertiesSizeCannotBeNull);
                         }
                         if (toCommunicate.NewPath == null
                             && string.IsNullOrEmpty(serverUid))
                         {
-                            throw new NullReferenceException(Resources.CLHttpRestXORNewPathServerUidCannotBeNull);
+                            throw new CLNullReferenceException(CLExceptionCode.Syncing_LiveSyncEngine, Resources.CLHttpRestXORNewPathServerUidCannotBeNull);
                         }
                         if (string.IsNullOrEmpty(revision))
                         {
-                            throw new NullReferenceException(Resources.CLHttpRestMetaDataRevisionCannotBeNull);
+                            throw new CLNullReferenceException(CLExceptionCode.Syncing_LiveSyncEngine, Resources.CLHttpRestMetaDataRevisionCannotBeNull);
                         }
 
                         // there is no folder modify, so json contract object and server method path for modify are only for files
@@ -9091,7 +9088,7 @@ namespace Cloud.REST
                         if (toCommunicate.OldPath == null
                             && string.IsNullOrEmpty(serverUid))
                         {
-                            throw new NullReferenceException(Resources.CLHttpRestXOROldPathServerUidCannotBeNull);
+                            throw new CLNullReferenceException(CLExceptionCode.Syncing_LiveSyncEngine, Resources.CLHttpRestXOROldPathServerUidCannotBeNull);
                         }
 
                         #endregion
@@ -9101,7 +9098,7 @@ namespace Cloud.REST
                         if (toCommunicate.NewPath == null
                             && string.IsNullOrEmpty(toCommunicate.Metadata.ParentFolderServerUid))
                         {
-                            throw new NullReferenceException(Resources.CLHttpRestXORNewPathParentFolderServerUidCannotBeNull);
+                            throw new CLNullReferenceException(CLExceptionCode.Syncing_LiveSyncEngine, Resources.CLHttpRestXORNewPathParentFolderServerUidCannotBeNull);
                         }
 
                         #endregion
@@ -9125,7 +9122,7 @@ namespace Cloud.REST
                         break;
 
                     default:
-                        throw new ArgumentException(Resources.CLHttpRestToCommunicateTypeIsUnknownFileChangeType + toCommunicate.Type.ToString());
+                        throw new CLArgumentException(CLExceptionCode.Syncing_LiveSyncEngine, Resources.CLHttpRestToCommunicateTypeIsUnknownFileChangeType + toCommunicate.Type.ToString());
                 }
 
                 // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
@@ -9314,7 +9311,7 @@ namespace Cloud.REST
                 // if trying to cast the asynchronous result failed, then throw an error
                 if (castAResult == null)
                 {
-                    throw new NullReferenceException(Resources.CLAsyncResultInternalTypeMismatch);
+                    throw new CLNullReferenceException(CLExceptionCode.General_Miscellaneous, Resources.CLAsyncResultInternalTypeMismatch);
                 }
 
                 // pull the result for output (may not yet be complete)
@@ -9398,12 +9395,12 @@ namespace Cloud.REST
 
                 if (!(timeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException(Resources.CLMSTimeoutMustBeGreaterThanZero);
+                    throw new CLArgumentException(CLExceptionCode.OnDemand_TimeoutMilliseconds, Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
                 if (pathToFile == null
                     && string.IsNullOrEmpty(fileServerId))
                 {
-                    throw new NullReferenceException(Resources.CLHttpRestXORPathtoFileFileServerUidMustNotBeNull);
+                    throw new CLNullReferenceException(CLExceptionCode.Syncing_LiveSyncEngine, Resources.CLHttpRestXORPathtoFileFileServerUidMustNotBeNull);
                 }
 
                 // build the location of the file versions retrieval method on the server dynamically
@@ -9562,7 +9559,7 @@ namespace Cloud.REST
                 // if trying to cast the asynchronous result failed, then throw an error
                 if (castAResult == null)
                 {
-                    throw new NullReferenceException(Resources.CLAsyncResultInternalTypeMismatch);
+                    throw new CLNullReferenceException(CLExceptionCode.General_Miscellaneous, Resources.CLAsyncResultInternalTypeMismatch);
                 }
 
                 // pull the result for output (may not yet be complete)
@@ -9617,7 +9614,7 @@ namespace Cloud.REST
 
                 if (!(timeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException(Resources.CLMSTimeoutMustBeGreaterThanZero);
+                    throw new CLArgumentException(CLExceptionCode.OnDemand_TimeoutMilliseconds, Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
 
                 // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
