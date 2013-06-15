@@ -4020,7 +4020,6 @@ namespace Cloud
                 CLError createRestClientError = CLHttpRest.CreateAndInitialize(
                     syncbox: this,
                     client: out localRestClient,
-                    settings: this._copiedSettings,
                     getNewCredentialsCallback: _getNewCredentialsCallback,
                     getNewCredentialsCallbackUserState: _getNewCredentialsCallbackUserState);
                 if (createRestClientError != null)
