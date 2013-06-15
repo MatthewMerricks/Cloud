@@ -2914,8 +2914,8 @@ namespace Cloud.Sync
                                     : syncFromCount.ToString() +
                                         " change" + (syncFromCount == 1 ? string.Empty : "s") + " synced from server"),
                             EventMessageLevel.Important,
-                            Syncbox: syncbox,
-                            DeviceId: syncbox.CopiedSettings.DeviceId);
+                            Syncbox: Data.commonThisEngine.syncbox,
+                            DeviceId: Data.commonThisEngine.syncbox.CopiedSettings.DeviceId);
                     }
                     if (Data.commonAsynchronouslyProcessed.Value != null
                         && Data.commonAsynchronouslyProcessed.Value.Count != 0)
