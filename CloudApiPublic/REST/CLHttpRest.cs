@@ -88,9 +88,6 @@ namespace Cloud.REST
 
         #region construct with settings so they do not always need to be passed in
 
-        // storage of settings, which should be a copy of settings passed in on construction so they do not change throughout communication
-        private readonly ICLSyncSettingsAdvanced _copiedSettings;
-
         // Syncbox associated with this CLHttpRest object.
         private CLSyncbox _syncbox;
 
@@ -99,9 +96,10 @@ namespace Cloud.REST
         #region Constructors and Factories
 
         // private constructor requiring settings to copy and store for the life of this http client
-        private CLHttpRest(CLSyncbox syncbox, ICLSyncSettings settings,
-                                Helpers.ReplaceExpiredCredentials getNewCredentialsCallback,
-                                object getNewCredentialsCallbackUserState)
+        private CLHttpRest(
+            CLSyncbox syncbox, 
+            Helpers.ReplaceExpiredCredentials getNewCredentialsCallback,
+            object getNewCredentialsCallbackUserState)
         {
             if (syncbox == null)
             {
@@ -120,22 +118,7 @@ namespace Cloud.REST
 
             this._syncbox = syncbox;
 
-            if (settings == null)
-            {
-                throw new CLNullReferenceException(CLExceptionCode.General_Arguments, Resources.CLSyncSettingsMustNotBeNull);
-            }
-
-            AdvancedSyncSettings alreadyReadonlySettings = settings as AdvancedSyncSettings;
-            if (alreadyReadonlySettings == null)
-            {
-                this._copiedSettings = settings.CopySettings();
-            }
-            else
-            {
-                this._copiedSettings = alreadyReadonlySettings;
-            }
-
-            if (string.IsNullOrEmpty(this._copiedSettings.DeviceId))
+            if (string.IsNullOrEmpty(this._syncbox.CopiedSettings.DeviceId))
             {
                 throw new CLNullReferenceException(CLExceptionCode.General_Arguments, Resources.CLHttpRestDeviceIDCannotBeNull);
             }
@@ -152,16 +135,16 @@ namespace Cloud.REST
         /// </summary>
         /// <param name="syncboxId">ID of sync box which can be manually synced</param>
         /// <param name="client">(output) Created CLHttpRest client</param>
-        /// <param name="settings">(optional) Additional settings to override some defaulted parameters</param>
         /// <returns>Returns any error creating the CLHttpRest client, if any</returns>
-        internal static CLError CreateAndInitialize(CLSyncbox syncbox, out CLHttpRest client, 
-                    ICLSyncSettings settings = null,
-                    Helpers.ReplaceExpiredCredentials getNewCredentialsCallback = null,
-                    object getNewCredentialsCallbackUserState = null)
+        internal static CLError CreateAndInitialize(
+            CLSyncbox syncbox, 
+            out CLHttpRest client, 
+            Helpers.ReplaceExpiredCredentials getNewCredentialsCallback = null,
+            object getNewCredentialsCallbackUserState = null)
         {
             try
             {
-                client = new CLHttpRest(syncbox, settings, getNewCredentialsCallback, getNewCredentialsCallbackUserState);
+                client = new CLHttpRest(syncbox, getNewCredentialsCallback, getNewCredentialsCallbackUserState);
             }
             catch (Exception ex)
             {
@@ -486,14 +469,14 @@ namespace Cloud.REST
                     currentDownloadFolder = customDownloadFolderFullPath;
                 }
                 // else if a specified folder path was not passed and a path was specified in settings, then store the one from settings as the one to use
-                else if (!String.IsNullOrWhiteSpace(_copiedSettings.TempDownloadFolderFullPath))
+                else if (!String.IsNullOrWhiteSpace(_syncbox.CopiedSettings.TempDownloadFolderFullPath))
                 {
-                    currentDownloadFolder = _copiedSettings.TempDownloadFolderFullPath;
+                    currentDownloadFolder = _syncbox.CopiedSettings.TempDownloadFolderFullPath;
                 }
                 // else if a specified folder path was not passed and one did not exist in settings, then build one dynamically to use
                 else
                 {
-                    currentDownloadFolder = Helpers.GetTempFileDownloadPath(_copiedSettings, _syncbox.SyncboxId);
+                    currentDownloadFolder = Helpers.GetTempFileDownloadPath(_syncbox.CopiedSettings, _syncbox.SyncboxId);
                 }
 
                 // check if the folder for temp downloads represents a bad path
@@ -524,7 +507,7 @@ namespace Cloud.REST
                     moveFileUponCompletion, // callback which should move the file to final location
                     moveFileUponCompletionState, // userstate for the move file callback
                     customDownloadFolderFullPath ?? // first try to use a provided custom folder full path
-                        Helpers.GetTempFileDownloadPath(_copiedSettings, _syncbox.SyncboxId), // if custom path not provided, null-coallesce to default
+                        Helpers.GetTempFileDownloadPath(_syncbox.CopiedSettings, _syncbox.SyncboxId), // if custom path not provided, null-coallesce to default
                     Helpers.HandleUploadDownloadStatus, // private event handler to relay status change events
                     changeToDownload, // the FileChange describing the download
                     shutdownToken, // a provided, possibly null CancellationTokenSource which can be cancelled to stop in the middle of communication
@@ -567,7 +550,7 @@ namespace Cloud.REST
                     timeoutMilliseconds, // time before communication timeout (does not restrict time
                     currentDownload, // download-specific parameters holder constructed directly above
                     Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
-                    _copiedSettings, // pass the copied settings
+                    _syncbox.CopiedSettings, // pass the copied settings
                     _syncbox, // pass the syncbox
                     requestNewCredentialsInfo, // pass the optional parameters to support temporary token reallocation.
                     false);
@@ -742,10 +725,10 @@ namespace Cloud.REST
                     CLDefinitions.CLMetaDataServerURL, // base domain is the MDS server
                     serverMethodPath, // the server method path
                     Helpers.requestMethod.post, // one-off methods are all posts
-                    _copiedSettings.HttpTimeoutMilliseconds, // time before communication timeout
+                    _syncbox.CopiedSettings.HttpTimeoutMilliseconds, // time before communication timeout
                     /* uploadDownload */ null,  // not an upload or download
                     Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
-                    _copiedSettings, // pass the copied settings
+                    _syncbox.CopiedSettings, // pass the copied settings
                     _syncbox, // pass the syncbox to use
                     requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
                     isOneOff: true,  // On Demand call
@@ -884,10 +867,10 @@ namespace Cloud.REST
                     CLDefinitions.CLMetaDataServerURL, // base domain is the MDS server
                     serverMethodPath, // dynamic path to appropriate one-off method
                     Helpers.requestMethod.get, // one-off methods are all posts
-                    _copiedSettings.HttpTimeoutMilliseconds, // time before communication timeout
+                    _syncbox.CopiedSettings.HttpTimeoutMilliseconds, // time before communication timeout
                     null, // not an upload or download
                     Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
-                    _copiedSettings, // pass the copied settings
+                    _syncbox.CopiedSettings, // pass the copied settings
                     _syncbox, // pass the syncbox
                     requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
                     true);
@@ -1028,10 +1011,10 @@ namespace Cloud.REST
                     CLDefinitions.CLMetaDataServerURL, // base domain is the MDS server
                     serverMethodPath, // dynamic path to appropriate one-off method
                     Helpers.requestMethod.get, // one-off methods are all posts
-                    _copiedSettings.HttpTimeoutMilliseconds, // time before communication timeout
+                    _syncbox.CopiedSettings.HttpTimeoutMilliseconds, // time before communication timeout
                     null, // not an upload or download
                     Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
-                    _copiedSettings, // pass the copied settings
+                    _syncbox.CopiedSettings, // pass the copied settings
                     _syncbox, // pass the syncbox
                     requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
                     true);
@@ -1206,7 +1189,7 @@ namespace Cloud.REST
                     };
                 }
 
-                if (!(_copiedSettings.HttpTimeoutMilliseconds > 0))
+                if (!(_syncbox.CopiedSettings.HttpTimeoutMilliseconds > 0))
                 {
                     throw new CLArgumentException(CLExceptionCode.OnDemand_TimeoutMilliseconds, Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
@@ -1226,7 +1209,7 @@ namespace Cloud.REST
                 {
                     SyncboxId = _syncbox.SyncboxId,
                     Moves = jsonContractMoves,
-                    DeviceId = _copiedSettings.DeviceId
+                    DeviceId = _syncbox.CopiedSettings.DeviceId
                 };
 
                 // server method path
@@ -1239,10 +1222,10 @@ namespace Cloud.REST
                     CLDefinitions.CLMetaDataServerURL, // base domain is the MDS server
                     serverMethodPath, // dynamic path to appropriate one-off method
                     Helpers.requestMethod.post, // one-off methods are all posts
-                    _copiedSettings.HttpTimeoutMilliseconds, // time before communication timeout
+                    _syncbox.CopiedSettings.HttpTimeoutMilliseconds, // time before communication timeout
                     null, // not an upload or download
                     Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
-                    _copiedSettings, // pass the copied settings
+                    _syncbox.CopiedSettings, // pass the copied settings
                     _syncbox, // pass the syncbox to use
                     requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
                     true);
@@ -1506,7 +1489,7 @@ namespace Cloud.REST
                     };
                 }
 
-                if (!(_copiedSettings.HttpTimeoutMilliseconds > 0))
+                if (!(_syncbox.CopiedSettings.HttpTimeoutMilliseconds > 0))
                 {
                     throw new CLArgumentException(CLExceptionCode.OnDemand_TimeoutMilliseconds, Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
@@ -1526,7 +1509,7 @@ namespace Cloud.REST
                 {
                     SyncboxId = _syncbox.SyncboxId,
                     Moves = jsonContractMoves,
-                    DeviceId = _copiedSettings.DeviceId
+                    DeviceId = _syncbox.CopiedSettings.DeviceId
                 };
 
                 // server method path
@@ -1538,10 +1521,10 @@ namespace Cloud.REST
                     CLDefinitions.CLMetaDataServerURL, // base domain is the MDS server
                     serverMethodPath, // dynamic path to appropriate one-off method
                     Helpers.requestMethod.post, // one-off methods are all posts
-                    _copiedSettings.HttpTimeoutMilliseconds, // time before communication timeout
+                    _syncbox.CopiedSettings.HttpTimeoutMilliseconds, // time before communication timeout
                     null, // not an upload or download
                     Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
-                    _copiedSettings, // pass the copied settings
+                    _syncbox.CopiedSettings, // pass the copied settings
                     _syncbox, // pass the syncbox
                     requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
                     true);
@@ -1805,7 +1788,7 @@ namespace Cloud.REST
                     };
                 }
 
-                if (!(_copiedSettings.HttpTimeoutMilliseconds > 0))
+                if (!(_syncbox.CopiedSettings.HttpTimeoutMilliseconds > 0))
                 {
                     throw new CLArgumentException(CLExceptionCode.OnDemand_TimeoutMilliseconds, Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
@@ -1825,7 +1808,7 @@ namespace Cloud.REST
                 {
                     SyncboxId = _syncbox.SyncboxId,
                     Moves = jsonContractMoves,
-                    DeviceId = _copiedSettings.DeviceId
+                    DeviceId = _syncbox.CopiedSettings.DeviceId
                 };
 
                 // server method path
@@ -1837,10 +1820,10 @@ namespace Cloud.REST
                     CLDefinitions.CLMetaDataServerURL, // base domain is the MDS server
                     serverMethodPath, // dynamic path to appropriate one-off method
                     Helpers.requestMethod.post, // one-off methods are all posts
-                    _copiedSettings.HttpTimeoutMilliseconds, // time before communication timeout
+                    _syncbox.CopiedSettings.HttpTimeoutMilliseconds, // time before communication timeout
                     null, // not an upload or download
                     Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
-                    _copiedSettings, // pass the copied settings
+                    _syncbox.CopiedSettings, // pass the copied settings
                     _syncbox, // pass the syncbox to use
                     requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
                     true);
@@ -2102,7 +2085,7 @@ namespace Cloud.REST
                     };
                 }
 
-                if (!(_copiedSettings.HttpTimeoutMilliseconds > 0))
+                if (!(_syncbox.CopiedSettings.HttpTimeoutMilliseconds > 0))
                 {
                     throw new CLArgumentException(CLExceptionCode.OnDemand_TimeoutMilliseconds, Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
@@ -2122,7 +2105,7 @@ namespace Cloud.REST
                 {
                     SyncboxId = _syncbox.SyncboxId,
                     Moves = jsonContractMoves,
-                    DeviceId = _copiedSettings.DeviceId
+                    DeviceId = _syncbox.CopiedSettings.DeviceId
                 };
 
                 // server method path
@@ -2134,10 +2117,10 @@ namespace Cloud.REST
                     CLDefinitions.CLMetaDataServerURL, // base domain is the MDS server
                     serverMethodPath, // dynamic path to appropriate one-off method
                     Helpers.requestMethod.post, // one-off methods are all posts
-                    _copiedSettings.HttpTimeoutMilliseconds, // time before communication timeout
+                    _syncbox.CopiedSettings.HttpTimeoutMilliseconds, // time before communication timeout
                     null, // not an upload or download
                     Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
-                    _copiedSettings, // pass the copied settings
+                    _syncbox.CopiedSettings, // pass the copied settings
                     _syncbox, // pass the syncbox
                     requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
                     true);
@@ -2385,7 +2368,7 @@ namespace Cloud.REST
                     jsonContractDeletes[paramIdx] = currentFileItem.ItemUid;
                 }
 
-                if (!(_copiedSettings.HttpTimeoutMilliseconds > 0))
+                if (!(_syncbox.CopiedSettings.HttpTimeoutMilliseconds > 0))
                 {
                     throw new CLArgumentException(CLExceptionCode.OnDemand_TimeoutMilliseconds, Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
@@ -2405,7 +2388,7 @@ namespace Cloud.REST
                 {
                     SyncboxId = _syncbox.SyncboxId,
                     Deletes = jsonContractDeletes,
-                    DeviceId = _copiedSettings.DeviceId
+                    DeviceId = _syncbox.CopiedSettings.DeviceId
                 };
 
                 // server method path
@@ -2417,10 +2400,10 @@ namespace Cloud.REST
                     CLDefinitions.CLMetaDataServerURL, // base domain is the MDS server
                     serverMethodPath, // dynamic path to appropriate one-off method
                     Helpers.requestMethod.post, // one-off methods are all posts
-                    _copiedSettings.HttpTimeoutMilliseconds, // time before communication timeout
+                    _syncbox.CopiedSettings.HttpTimeoutMilliseconds, // time before communication timeout
                     null, // not an upload or download
                     Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
-                    _copiedSettings, // pass the copied settings
+                    _syncbox.CopiedSettings, // pass the copied settings
                     _syncbox, // pass the syncbox to use
                     requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
                     true);
@@ -2662,13 +2645,13 @@ namespace Cloud.REST
 
                     jsonContractDeletes[paramIdx] = currentFolderItem.ItemUid;
                     //{
-                        //DeviceId = _copiedSettings.DeviceId,
+                        //DeviceId = _syncbox.CopiedSettings.DeviceId,
                         
                         //SyncboxId = _syncbox.SyncboxId
                     //};
                 }
 
-                if (!(_copiedSettings.HttpTimeoutMilliseconds > 0))
+                if (!(_syncbox.CopiedSettings.HttpTimeoutMilliseconds > 0))
                 {
                     throw new CLArgumentException(CLExceptionCode.OnDemand_TimeoutMilliseconds, Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
@@ -2688,7 +2671,7 @@ namespace Cloud.REST
                 {
                     SyncboxId = _syncbox.SyncboxId,
                     Deletes = jsonContractDeletes,
-                    DeviceId = _copiedSettings.DeviceId
+                    DeviceId = _syncbox.CopiedSettings.DeviceId
                 };
 
                 // server method path
@@ -2700,10 +2683,10 @@ namespace Cloud.REST
                     CLDefinitions.CLMetaDataServerURL, // base domain is the MDS server
                     serverMethodPath, // dynamic path to appropriate one-off method
                     Helpers.requestMethod.post, // one-off methods are all posts
-                    _copiedSettings.HttpTimeoutMilliseconds, // time before communication timeout
+                    _syncbox.CopiedSettings.HttpTimeoutMilliseconds, // time before communication timeout
                     null, // not an upload or download
                     Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
-                    _copiedSettings, // pass the copied settings
+                    _syncbox.CopiedSettings, // pass the copied settings
                     _syncbox, // pass the syncbox
                     requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
                     true);
@@ -2957,7 +2940,7 @@ namespace Cloud.REST
                     };
                 }
 
-                if (!(_copiedSettings.HttpTimeoutMilliseconds > 0))
+                if (!(_syncbox.CopiedSettings.HttpTimeoutMilliseconds > 0))
                 {
                     throw new CLArgumentException(CLExceptionCode.OnDemand_TimeoutMilliseconds, Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
@@ -2977,7 +2960,7 @@ namespace Cloud.REST
                 {
                     Adds = jsonContractAdds,
                     SyncboxId = _syncbox.SyncboxId,
-                    DeviceId = _copiedSettings.DeviceId,
+                    DeviceId = _syncbox.CopiedSettings.DeviceId,
                 };
 
                 // server method path
@@ -2989,10 +2972,10 @@ namespace Cloud.REST
                     CLDefinitions.CLMetaDataServerURL, // base domain is the MDS server
                     serverMethodPath, // dynamic path to appropriate one-off method
                     Helpers.requestMethod.post, // one-off methods are all posts
-                    _copiedSettings.HttpTimeoutMilliseconds, // time before communication timeout
+                    _syncbox.CopiedSettings.HttpTimeoutMilliseconds, // time before communication timeout
                     null, // not an upload or download
                     Helpers.HttpStatusesOkAccepted, //use the hashset for ok/accepted as successful HttpStatusCodes
-                    _copiedSettings, // pass the copied settings
+                    _syncbox.CopiedSettings, // pass the copied settings
                     _syncbox, // pass the syncbox to use
                     requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
                     true);
@@ -3292,7 +3275,7 @@ namespace Cloud.REST
                 {
                     throw new CLArgumentException(CLExceptionCode.Http_BadRequest, "filesToAdd must have a length greater than zero");
                 }
-                if (!(_copiedSettings.HttpTimeoutMilliseconds > 0))
+                if (!(_syncbox.CopiedSettings.HttpTimeoutMilliseconds > 0))
                 {
                     throw new ArgumentException(Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
@@ -3456,7 +3439,7 @@ namespace Cloud.REST
                         // Now make the REST request content.
                         object requestContent = new JsonContracts.FileAdds()
                         {
-                            DeviceId = _copiedSettings.DeviceId,
+                            DeviceId = _syncbox.CopiedSettings.DeviceId,
                             SyncboxId = _syncbox.SyncboxId,
                             Adds = addChanges.Select(currentAddChange => new JsonContracts.FileAdd()
                                 {
@@ -3479,10 +3462,10 @@ namespace Cloud.REST
                             CLDefinitions.CLMetaDataServerURL, // base domain is the MDS server
                             serverMethodPath, // dynamic path to appropriate one-off method
                             Helpers.requestMethod.post, // one-off methods are all posts
-                            _copiedSettings.HttpTimeoutMilliseconds, // time before communication timeout
+                            _syncbox.CopiedSettings.HttpTimeoutMilliseconds, // time before communication timeout
                             null, // not an upload or download
                             Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
-                            _copiedSettings, // pass the copied settings
+                            _syncbox.CopiedSettings, // pass the copied settings
                             _syncbox, // pass the syncbox
                             requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
                             isOneOff: true); // one-offs bypass the halt all check
@@ -3629,7 +3612,7 @@ namespace Cloud.REST
                                         itemCompletionCallbackUserState = itemCompletionCallbackUserState,
                                         transferStatusCallback = transferStatusCallback,
                                         transferStatusCallbackUserState = transferStatusCallbackUserState,
-                                        _copiedSettings = _copiedSettings,
+                                        copiedSettings = _syncbox.CopiedSettings,
                                         completedItem = fileLeftToUpload.Item1,
                                         uploadStreams = uploadStreams
                                     },
@@ -3664,7 +3647,7 @@ namespace Cloud.REST
                                                 Data.uploadChange,
                                                 Data.completedItem.ItemUid,
                                                 Data.completedItem.Revision,
-                                                Data._copiedSettings.HttpTimeoutMilliseconds,
+                                                Data.copiedSettings.HttpTimeoutMilliseconds,
                                                 out unusedMessage,
                                                 out hashMismatchFound,
                                                 Data.cancellationSource,
@@ -3701,7 +3684,7 @@ namespace Cloud.REST
                                     },
                                     errorToAccumulate: null);
 
-                                (new Task(new Action(uploadForTask.VoidProcess))).Start(HttpScheduler.GetSchedulerByDirection(SyncDirection.To, _copiedSettings));
+                                (new Task(new Action(uploadForTask.VoidProcess))).Start(HttpScheduler.GetSchedulerByDirection(SyncDirection.To, _syncbox.CopiedSettings));
                             }
 
                             WaitHandle[] allWaitHandles = filesLeftToUpload.Select(fileToUpload => fileToUpload.Item3).ToArray();
@@ -3924,7 +3907,7 @@ namespace Cloud.REST
                 {
                     throw new NullReferenceException(Resources.CLHttpRestDeletionChangeMetadataServerUidMustnotBeNull);
                 }
-                if (string.IsNullOrEmpty(_copiedSettings.DeviceId))
+                if (string.IsNullOrEmpty(_syncbox.CopiedSettings.DeviceId))
                 {
                     throw new NullReferenceException(Resources.CLHttpRestDeviceIDCannotBeNull);
                 }
@@ -3942,7 +3925,7 @@ namespace Cloud.REST
                 // run the HTTP communication and store the response object to the output parameter
                 response = Helpers.ProcessHttp<JsonContracts.FileChangeResponse>(new JsonContracts.FileOrFolderUndelete() // files and folders share a request content object for undelete
                     {
-                        DeviceId = _copiedSettings.DeviceId, // device id
+                        DeviceId = _syncbox.CopiedSettings.DeviceId, // device id
                         ServerUid = serverUid, // unique id on server
                         SyncboxId = _syncbox.SyncboxId // id of sync box
                     },
@@ -3954,7 +3937,7 @@ namespace Cloud.REST
                     timeoutMilliseconds, // time before communication timeout
                     null, // not an upload or download
                     Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
-                    _copiedSettings, // pass the copied settings
+                    _syncbox.CopiedSettings, // pass the copied settings
                     _syncbox, // pass the syncbox to use
                     requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
                     false);
@@ -4225,7 +4208,7 @@ namespace Cloud.REST
         //        {
         //            throw new NullReferenceException(Resources.CLHttpRestXOROldPathServerUidCannotBeNull);
         //        }
-        //        if (string.IsNullOrEmpty(_copiedSettings.DeviceId))
+        //        if (string.IsNullOrEmpty(_syncbox.CopiedSettings.DeviceId))
         //        {
         //            throw new NullReferenceException(Resources.CLHttpRestDeviceIDCannotBeNull);
         //        }
@@ -4243,7 +4226,7 @@ namespace Cloud.REST
         //        // run the HTTP communication and store the response object to the output parameter
         //        response = Helpers.ProcessHttp<JsonContracts.FileChangeResponse>(new JsonContracts.FileCopy() // object for file copy
         //            {
-        //                DeviceId = _copiedSettings.DeviceId, // device id
+        //                DeviceId = _syncbox.CopiedSettings.DeviceId, // device id
         //                ServerId = fileServerId, // unique id on server
         //                RelativePath = (pathToFile == null
         //                    ? null
@@ -4257,7 +4240,7 @@ namespace Cloud.REST
         //            timeoutMilliseconds, // time before communication timeout
         //            null, // not an upload or download
         //            Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
-        //            _copiedSettings, // pass the copied settings
+        //            _syncbox.CopiedSettings, // pass the copied settings
         //            _syncbox.SyncboxId, // pass the unique id of the sync box on the server
         //            requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
         //            true);
@@ -4374,7 +4357,7 @@ namespace Cloud.REST
                     });
 
 
-                if (!(_copiedSettings.HttpTimeoutMilliseconds > 0))
+                if (!(_syncbox.CopiedSettings.HttpTimeoutMilliseconds > 0))
                 {
                     throw new CLArgumentException(CLExceptionCode.OnDemand_TimeoutMilliseconds, Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
@@ -4395,10 +4378,10 @@ namespace Cloud.REST
                     CLDefinitions.CLMetaDataServerURL, // base domain is the MDS server
                     serverMethodPath, // dynamic path to appropriate one-off method
                     Helpers.requestMethod.get, // one-off methods are all posts
-                    _copiedSettings.HttpTimeoutMilliseconds, // time before communication timeout
+                    _syncbox.CopiedSettings.HttpTimeoutMilliseconds, // time before communication timeout
                     null, // not an upload or download
                     Helpers.HttpStatusesOkAccepted, //use the hashset for ok/accepted as successful HttpStatusCodes
-                    _copiedSettings, // pass the copied settings
+                    _syncbox.CopiedSettings, // pass the copied settings
                     _syncbox, // pass the syncbox
                     requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
                     true);
@@ -4542,7 +4525,7 @@ namespace Cloud.REST
                     });
 
 
-                if (!(_copiedSettings.HttpTimeoutMilliseconds > 0))
+                if (!(_syncbox.CopiedSettings.HttpTimeoutMilliseconds > 0))
                 {
                     throw new CLArgumentException(CLExceptionCode.OnDemand_TimeoutMilliseconds, Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
@@ -4563,10 +4546,10 @@ namespace Cloud.REST
                     CLDefinitions.CLMetaDataServerURL, // base domain is the MDS server
                     serverMethodPath, // dynamic path to appropriate one-off method
                     Helpers.requestMethod.get, // one-off methods are all posts
-                    _copiedSettings.HttpTimeoutMilliseconds, // time before communication timeout
+                    _syncbox.CopiedSettings.HttpTimeoutMilliseconds, // time before communication timeout
                     null, // not an upload or download
                     Helpers.HttpStatusesOkAccepted, //use the hashset for ok/accepted as successful HttpStatusCodes
-                    _copiedSettings, // pass the copied settings
+                    _syncbox.CopiedSettings, // pass the copied settings
                     _syncbox, // pass the syncbox to use
                     requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
                     true);
@@ -4709,7 +4692,7 @@ namespace Cloud.REST
                     });
 
 
-                if (!(_copiedSettings.HttpTimeoutMilliseconds > 0))
+                if (!(_syncbox.CopiedSettings.HttpTimeoutMilliseconds > 0))
                 {
                     throw new CLArgumentException(CLExceptionCode.OnDemand_TimeoutMilliseconds, Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
@@ -4730,10 +4713,10 @@ namespace Cloud.REST
                     CLDefinitions.CLMetaDataServerURL, // base domain is the MDS server
                     serverMethodPath, // dynamic path to appropriate one-off method
                     Helpers.requestMethod.get, // one-off methods are all posts
-                    _copiedSettings.HttpTimeoutMilliseconds, // time before communication timeout
+                    _syncbox.CopiedSettings.HttpTimeoutMilliseconds, // time before communication timeout
                     null, // not an upload or download
                     Helpers.HttpStatusesOkAccepted, //use the hashset for ok/accepted as successful HttpStatusCodes
-                    _copiedSettings, // pass the copied settings
+                    _syncbox.CopiedSettings, // pass the copied settings
                     _syncbox, // pass the syncbox
                     requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
                     true);
@@ -4876,7 +4859,7 @@ namespace Cloud.REST
                     });
 
 
-                if (!(_copiedSettings.HttpTimeoutMilliseconds > 0))
+                if (!(_syncbox.CopiedSettings.HttpTimeoutMilliseconds > 0))
                 {
                     throw new CLArgumentException(CLExceptionCode.OnDemand_TimeoutMilliseconds, Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
@@ -4897,10 +4880,10 @@ namespace Cloud.REST
                     CLDefinitions.CLMetaDataServerURL, // base domain is the MDS server
                     serverMethodPath, // dynamic path to appropriate one-off method
                     Helpers.requestMethod.get, // one-off methods are all posts
-                    _copiedSettings.HttpTimeoutMilliseconds, // time before communication timeout
+                    _syncbox.CopiedSettings.HttpTimeoutMilliseconds, // time before communication timeout
                     null, // not an upload or download
                     Helpers.HttpStatusesOkAccepted, //use the hashset for ok/accepted as successful HttpStatusCodes
-                    _copiedSettings, // pass the copied settings
+                    _syncbox.CopiedSettings, // pass the copied settings
                     _syncbox, // pass the syncbox to use
                     requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
                     true);
@@ -5043,7 +5026,7 @@ namespace Cloud.REST
                     });
 
 
-                if (!(_copiedSettings.HttpTimeoutMilliseconds > 0))
+                if (!(_syncbox.CopiedSettings.HttpTimeoutMilliseconds > 0))
                 {
                     throw new CLArgumentException(CLExceptionCode.OnDemand_TimeoutMilliseconds, Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
@@ -5064,10 +5047,10 @@ namespace Cloud.REST
                     CLDefinitions.CLMetaDataServerURL, // base domain is the MDS server
                     serverMethodPath, // dynamic path to appropriate one-off method
                     Helpers.requestMethod.get, // one-off methods are all posts
-                    _copiedSettings.HttpTimeoutMilliseconds, // time before communication timeout
+                    _syncbox.CopiedSettings.HttpTimeoutMilliseconds, // time before communication timeout
                     null, // not an upload or download
                     Helpers.HttpStatusesOkAccepted, //use the hashset for ok/accepted as successful HttpStatusCodes
-                    _copiedSettings, // pass the copied settings
+                    _syncbox.CopiedSettings, // pass the copied settings
                     _syncbox, // pass the syncbox
                     requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
                     true);
@@ -5210,7 +5193,7 @@ namespace Cloud.REST
                     });
 
 
-                if (!(_copiedSettings.HttpTimeoutMilliseconds > 0))
+                if (!(_syncbox.CopiedSettings.HttpTimeoutMilliseconds > 0))
                 {
                     throw new CLArgumentException(CLExceptionCode.OnDemand_TimeoutMilliseconds, Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
@@ -5231,10 +5214,10 @@ namespace Cloud.REST
                     CLDefinitions.CLMetaDataServerURL, // base domain is the MDS server
                     serverMethodPath, // dynamic path to appropriate one-off method
                     Helpers.requestMethod.get, // one-off methods are all posts
-                    _copiedSettings.HttpTimeoutMilliseconds, // time before communication timeout
+                    _syncbox.CopiedSettings.HttpTimeoutMilliseconds, // time before communication timeout
                     null, // not an upload or download
                     Helpers.HttpStatusesOkAccepted, //use the hashset for ok/accepted as successful HttpStatusCodes
-                    _copiedSettings, // pass the copied settings
+                    _syncbox.CopiedSettings, // pass the copied settings
                     _syncbox, // pass the syncbox to use
                     requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
                     true);
@@ -5377,7 +5360,7 @@ namespace Cloud.REST
                     });
 
 
-                if (!(_copiedSettings.HttpTimeoutMilliseconds > 0))
+                if (!(_syncbox.CopiedSettings.HttpTimeoutMilliseconds > 0))
                 {
                     throw new CLArgumentException(CLExceptionCode.OnDemand_TimeoutMilliseconds, Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
@@ -5398,10 +5381,10 @@ namespace Cloud.REST
                     CLDefinitions.CLMetaDataServerURL, // base domain is the MDS server
                     serverMethodPath, // dynamic path to appropriate one-off method
                     Helpers.requestMethod.get, // one-off methods are all posts
-                    _copiedSettings.HttpTimeoutMilliseconds, // time before communication timeout
+                    _syncbox.CopiedSettings.HttpTimeoutMilliseconds, // time before communication timeout
                     null, // not an upload or download
                     Helpers.HttpStatusesOkAccepted, //use the hashset for ok/accepted as successful HttpStatusCodes
-                    _copiedSettings, // pass the copied settings
+                    _syncbox.CopiedSettings, // pass the copied settings
                     _syncbox, // pass the syncbox
                     requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
                     true);
@@ -5580,7 +5563,7 @@ namespace Cloud.REST
                         new KeyValuePair<string, string>(CLDefinitions.QueryStringExtensions, sExtensionArray),
                     });
 
-                if (!(_copiedSettings.HttpTimeoutMilliseconds > 0))
+                if (!(_syncbox.CopiedSettings.HttpTimeoutMilliseconds > 0))
                 {
                     throw new CLArgumentException(CLExceptionCode.OnDemand_TimeoutMilliseconds, Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
@@ -5601,10 +5584,10 @@ namespace Cloud.REST
                     CLDefinitions.CLMetaDataServerURL, // base domain is the MDS server
                     serverMethodPath, // dynamic path to appropriate one-off method
                     Helpers.requestMethod.get, // one-off methods are all posts
-                    _copiedSettings.HttpTimeoutMilliseconds, // time before communication timeout
+                    _syncbox.CopiedSettings.HttpTimeoutMilliseconds, // time before communication timeout
                     null, // not an upload or download
                     Helpers.HttpStatusesOkAccepted, //use the hashset for ok/accepted as successful HttpStatusCodes
-                    _copiedSettings, // pass the copied settings
+                    _syncbox.CopiedSettings, // pass the copied settings
                     _syncbox, // pass the syncbox to use
                     requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
                     true);
@@ -5769,7 +5752,7 @@ namespace Cloud.REST
                     serverMethodPath += "&" + updatedAfter.Substring(1);  // skip the leading "?" from QueryStringBuilder.
                 }
 
-                if (!(_copiedSettings.HttpTimeoutMilliseconds > 0))
+                if (!(_syncbox.CopiedSettings.HttpTimeoutMilliseconds > 0))
                 {
                     throw new CLArgumentException(CLExceptionCode.OnDemand_TimeoutMilliseconds, Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
@@ -5790,10 +5773,10 @@ namespace Cloud.REST
                     CLDefinitions.CLMetaDataServerURL, // base domain is the MDS server
                     serverMethodPath, // dynamic path to appropriate one-off method
                     Helpers.requestMethod.get, // one-off methods are all posts
-                    _copiedSettings.HttpTimeoutMilliseconds, // time before communication timeout
+                    _syncbox.CopiedSettings.HttpTimeoutMilliseconds, // time before communication timeout
                     null, // not an upload or download
                     Helpers.HttpStatusesOkAccepted, //use the hashset for ok/accepted as successful HttpStatusCodes
-                    _copiedSettings, // pass the copied settings
+                    _syncbox.CopiedSettings, // pass the copied settings
                     _syncbox, // pass the syncbox
                     requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
                     true);
@@ -5932,7 +5915,7 @@ namespace Cloud.REST
                         new KeyValuePair<string, string>(CLDefinitions.QueryStringPerPage, returnLimit.ToString()),
                     });
 
-                if (!(_copiedSettings.HttpTimeoutMilliseconds > 0))
+                if (!(_syncbox.CopiedSettings.HttpTimeoutMilliseconds > 0))
                 {
                     throw new CLArgumentException(CLExceptionCode.OnDemand_TimeoutMilliseconds, Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
@@ -5953,10 +5936,10 @@ namespace Cloud.REST
                     CLDefinitions.CLMetaDataServerURL, // base domain is the MDS server
                     serverMethodPath, // dynamic path to appropriate one-off method
                     Helpers.requestMethod.get, // one-off methods are all posts
-                    _copiedSettings.HttpTimeoutMilliseconds, // time before communication timeout
+                    _syncbox.CopiedSettings.HttpTimeoutMilliseconds, // time before communication timeout
                     null, // not an upload or download
                     Helpers.HttpStatusesOkAccepted, //use the hashset for ok/accepted as successful HttpStatusCodes
-                    _copiedSettings, // pass the copied settings
+                    _syncbox.CopiedSettings, // pass the copied settings
                     _syncbox, // pass the syncbox to use
                     requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
                     true);
@@ -6110,7 +6093,7 @@ namespace Cloud.REST
                     _syncbox.CopiedSettings.HttpTimeoutMilliseconds, // time before communication timeout
                     null, // not an upload or download
                     Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
-                    _copiedSettings, // pass the copied settings
+                    _syncbox.CopiedSettings, // pass the copied settings
                     _syncbox, // pass the syncbox
                     requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
                     true);
@@ -6230,7 +6213,7 @@ namespace Cloud.REST
                     relativePath = "/";         // assume the syncbox root
                 }
 
-                if (!(_copiedSettings.HttpTimeoutMilliseconds > 0))
+                if (!(_syncbox.CopiedSettings.HttpTimeoutMilliseconds > 0))
                 {
                     throw new ArgumentException(Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
@@ -6273,10 +6256,10 @@ namespace Cloud.REST
                     CLDefinitions.CLMetaDataServerURL, // base domain is the MDS server
                     serverMethodPath, // path to query folder contents (dynamic adding query string)
                     Helpers.requestMethod.get, // query folder contents is a get
-                    _copiedSettings.HttpTimeoutMilliseconds, // time before communication timeout
+                    _syncbox.CopiedSettings.HttpTimeoutMilliseconds, // time before communication timeout
                     null, // not an upload or download
                     Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
-                    _copiedSettings, // pass the copied settings
+                    _syncbox.CopiedSettings, // pass the copied settings
                     _syncbox, // pass the syncbox to use
                     requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
                     true);
@@ -6404,7 +6387,7 @@ namespace Cloud.REST
             try
             {
                 // check input parameters
-                if (!(_copiedSettings.HttpTimeoutMilliseconds > 0))
+                if (!(_syncbox.CopiedSettings.HttpTimeoutMilliseconds > 0))
                 {
                     throw new ArgumentException(Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
@@ -6465,10 +6448,10 @@ namespace Cloud.REST
                     CLDefinitions.CLMetaDataServerURL, // base domain is the MDS server
                     serverMethodPath, // path to query folder contents (dynamic adding query string)
                     Helpers.requestMethod.get, // query folder contents is a get
-                    _copiedSettings.HttpTimeoutMilliseconds, // time before communication timeout
+                    _syncbox.CopiedSettings.HttpTimeoutMilliseconds, // time before communication timeout
                     null, // not an upload or download
                     Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
-                    _copiedSettings, // pass the copied settings
+                    _syncbox.CopiedSettings, // pass the copied settings
                     _syncbox, // pass the syncbox
                     requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
                     true);
@@ -6594,7 +6577,7 @@ namespace Cloud.REST
                     relativePath = "/";         // assume the syncbox root
                 }
 
-                if (!(_copiedSettings.HttpTimeoutMilliseconds > 0))
+                if (!(_syncbox.CopiedSettings.HttpTimeoutMilliseconds > 0))
                 {
                     throw new ArgumentException(Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
@@ -6637,10 +6620,10 @@ namespace Cloud.REST
                     CLDefinitions.CLMetaDataServerURL, // base domain is the MDS server
                     serverMethodPath, // path to query folder contents (dynamic adding query string)
                     Helpers.requestMethod.get, // query folder contents is a get
-                    _copiedSettings.HttpTimeoutMilliseconds, // time before communication timeout
+                    _syncbox.CopiedSettings.HttpTimeoutMilliseconds, // time before communication timeout
                     null, // not an upload or download
                     Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
-                    _copiedSettings, // pass the copied settings
+                    _syncbox.CopiedSettings, // pass the copied settings
                     _syncbox, // pass the syncbox to use
                     requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
                     true);
@@ -6760,7 +6743,7 @@ namespace Cloud.REST
             try
             {
                 // check input parameters
-                if (!(_copiedSettings.HttpTimeoutMilliseconds > 0))
+                if (!(_syncbox.CopiedSettings.HttpTimeoutMilliseconds > 0))
                 {
                     throw new ArgumentException(Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
@@ -6821,10 +6804,10 @@ namespace Cloud.REST
                     CLDefinitions.CLMetaDataServerURL, // base domain is the MDS server
                     serverMethodPath, // path to query folder contents (dynamic adding query string)
                     Helpers.requestMethod.get, // query folder contents is a get
-                    _copiedSettings.HttpTimeoutMilliseconds, // time before communication timeout
+                    _syncbox.CopiedSettings.HttpTimeoutMilliseconds, // time before communication timeout
                     null, // not an upload or download
                     Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
-                    _copiedSettings, // pass the copied settings
+                    _syncbox.CopiedSettings, // pass the copied settings
                     _syncbox, // pass the syncbox
                     requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
                     true);
@@ -7146,7 +7129,7 @@ namespace Cloud.REST
                     timeoutMilliseconds, // set the timeout for the operation
                     null, // not an upload or download
                     Helpers.HttpStatusesOkAccepted, // sync box extended metadata should give OK or Accepted
-                    _copiedSettings, // pass the copied settings
+                    _syncbox.CopiedSettings, // pass the copied settings
                     _syncbox, // pass the syncbox to use
                     requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
                     true);
@@ -7307,7 +7290,7 @@ namespace Cloud.REST
                     _syncbox.CopiedSettings.HttpTimeoutMilliseconds, // set the timeout for the operation
                     null, // not an upload or download
                     Helpers.HttpStatusesOkAccepted, // sync box update plan should give OK or Accepted
-                    _copiedSettings, // pass the copied settings
+                    _syncbox.CopiedSettings, // pass the copied settings
                     _syncbox, // pass the syncbox
                     requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
                     true);
@@ -7493,7 +7476,7 @@ namespace Cloud.REST
                     _syncbox.CopiedSettings.HttpTimeoutMilliseconds, // set the timeout for the operation
                     null, // not an upload or download
                     Helpers.HttpStatusesOkAccepted, // sync box update plan should give OK or Accepted
-                    _copiedSettings, // pass the copied settings
+                    _syncbox.CopiedSettings, // pass the copied settings
                     _syncbox, // pass the syncbox to use
                     requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
                     true);
@@ -7649,7 +7632,7 @@ namespace Cloud.REST
                     _syncbox.CopiedSettings.HttpTimeoutMilliseconds, // set the timeout for the operation
                     null, // not an upload or download
                     Helpers.HttpStatusesOkAccepted, // sync box status should give OK or Accepted
-                    _copiedSettings, // pass the copied settings
+                    _syncbox.CopiedSettings, // pass the copied settings
                     _syncbox, // pass the syncbox
                     requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
                     true);
@@ -7747,7 +7730,7 @@ namespace Cloud.REST
                     timeoutMilliseconds, // time before communication timeout
                     null, // not an upload or download
                     Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
-                    _copiedSettings, // pass the copied settings
+                    _syncbox.CopiedSettings, // pass the copied settings
                     _syncbox, // pass the syncbox to use
                     requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
                     false);
@@ -7802,7 +7785,7 @@ namespace Cloud.REST
                     timeoutMilliseconds, // time before communication timeout
                     null, // not an upload or download
                     Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
-                    _copiedSettings, // pass the copied settings
+                    _syncbox.CopiedSettings, // pass the copied settings
                     _syncbox, // pass the syncbox
                     requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
                     false);
@@ -7835,7 +7818,7 @@ namespace Cloud.REST
 
                 JsonContracts.NotificationUnsubscribeRequest request = new JsonContracts.NotificationUnsubscribeRequest()
                 {
-                    DeviceId = _copiedSettings.DeviceId,
+                    DeviceId = _syncbox.CopiedSettings.DeviceId,
                     SyncboxId = _syncbox.SyncboxId
                 };
 
@@ -7844,7 +7827,7 @@ namespace Cloud.REST
                     new[]
                     {
                         new KeyValuePair<string, string>(CLDefinitions.QueryStringSyncboxId, _syncbox.SyncboxId.ToString()), // no need to escape string characters since the source is an integer
-                        new KeyValuePair<string, string>(CLDefinitions.QueryStringSender, Uri.EscapeDataString(_copiedSettings.DeviceId)) // possibly user-provided string, therefore needs escaping
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringSender, Uri.EscapeDataString(_syncbox.CopiedSettings.DeviceId)) // possibly user-provided string, therefore needs escaping
                     });
 
                 // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
@@ -7865,7 +7848,7 @@ namespace Cloud.REST
                     timeoutMilliseconds,
                     null, // not an upload nor download
                     Helpers.HttpStatusesOkAccepted,
-                    _copiedSettings,
+                    _syncbox.CopiedSettings,
                     _syncbox, // pass the syncbox to use
                     requestNewCredentialsInfo,
                     false);
@@ -8179,7 +8162,7 @@ namespace Cloud.REST
                     timeoutMilliseconds, // time before communication timeout
                     null, // not an upload or download
                     Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
-                    _copiedSettings, // pass the copied settings
+                    _syncbox.CopiedSettings, // pass the copied settings
                     _syncbox, // pass the syncbox
                     requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
                     false);
@@ -8520,7 +8503,7 @@ namespace Cloud.REST
                         // query string parameter for the current sync box id, should not need escaping since it should be an integer in string format
                         new KeyValuePair<string, string>(CLDefinitions.QueryStringSyncboxId, _syncbox.SyncboxId.ToString()),
                         // query string parameter for the device id, needs to be escaped since it's client-defined
-                        new KeyValuePair<string, string>(CLDefinitions.QueryStringDeviceId, Uri.EscapeDataString(_copiedSettings.DeviceId)),
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringDeviceId, Uri.EscapeDataString(_syncbox.CopiedSettings.DeviceId)),
                         // query string parameter for the UID
                         new KeyValuePair<string, string>(CLDefinitions.CLMetadataFileDownloadServerUid, uid),
                         // query string parameter for the revision
@@ -8555,7 +8538,7 @@ namespace Cloud.REST
                         statusUpdate, // callback to user to notify when a CLSyncEngine status has changed
                         statusUpdateUserState), // userstate to pass to the statusUpdate callback
                     Helpers.HttpStatusesOkCreatedNotModified, // use the hashset for ok/created/not modified as successful HttpStatusCodes
-                    _copiedSettings, // pass the copied settings
+                    _syncbox.CopiedSettings, // pass the copied settings
                     _syncbox, // pass the syncbox
                     requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
                     false);
@@ -8733,7 +8716,7 @@ namespace Cloud.REST
                     Helpers.QueryStringBuilder(new[] // grab parameters by query string (since this method is an HTTP GET)
                     {
                         // query string parameter for the id of the device, escaped as needed for the URI
-                        new KeyValuePair<string, string>(CLDefinitions.QueryStringDeviceId, Uri.EscapeDataString(_copiedSettings.DeviceId)),
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringDeviceId, Uri.EscapeDataString(_syncbox.CopiedSettings.DeviceId)),
                         
                         // query string parameter for the current sync box id, should not need escaping since it should be an integer in string format
                         new KeyValuePair<string, string>(CLDefinitions.QueryStringSyncboxId, _syncbox.SyncboxId.ToString())
@@ -8758,7 +8741,7 @@ namespace Cloud.REST
                     timeoutMilliseconds, // time before communication timeout
                     null, // not an upload or download
                     Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
-                    _copiedSettings, // pass the copied settings
+                    _syncbox.CopiedSettings, // pass the copied settings
                     _syncbox, // pass the syncbox
                     requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
                     false);
@@ -8987,7 +8970,7 @@ namespace Cloud.REST
                             requestContent = new JsonContracts.FolderAddRequest()
                             {
                                 CreatedDate = toCommunicate.Metadata.HashableProperties.CreationTime,
-                                DeviceId = _copiedSettings.DeviceId,
+                                DeviceId = _syncbox.CopiedSettings.DeviceId,
                                 RelativePath = toCommunicate.NewPath.GetRelativePath(_syncbox.Path, true) + ((char)0x2F /* '/' */),
                                 SyncboxId = _syncbox.SyncboxId,
                                 Name = (string.IsNullOrEmpty(toCommunicate.Metadata.ParentFolderServerUid) ? null : toCommunicate.NewPath.Name),
@@ -9015,7 +8998,7 @@ namespace Cloud.REST
                             requestContent = new JsonContracts.FileAdd()
                             {
                                 CreatedDate = toCommunicate.Metadata.HashableProperties.CreationTime,
-                                DeviceId = _copiedSettings.DeviceId,
+                                DeviceId = _syncbox.CopiedSettings.DeviceId,
                                 Hash = addHashString,
                                 MimeType = toCommunicate.Metadata.MimeType,
                                 ModifiedDate = toCommunicate.Metadata.HashableProperties.LastTime,
@@ -9041,7 +9024,7 @@ namespace Cloud.REST
                         // file deletion and folder deletion share a json contract object for deletion
                         requestContent = new JsonContracts.FileOrFolderDeleteRequest()
                         {
-                            //DeviceId = _copiedSettings.DeviceId,
+                            //DeviceId = _syncbox.CopiedSettings.DeviceId,
                             ServerUid = (serverUid == string.Empty ? null : serverUid),
                             SyncboxId = _syncbox.SyncboxId,
                             RelativePath = (toCommunicate.NewPath == null ? null : toCommunicate.NewPath.GetRelativePath(_syncbox.Path, true))
@@ -9084,7 +9067,7 @@ namespace Cloud.REST
                         requestContent = new JsonContracts.FileModify()
                         {
                             CreatedDate = toCommunicate.Metadata.HashableProperties.CreationTime,
-                            DeviceId = _copiedSettings.DeviceId,
+                            DeviceId = _syncbox.CopiedSettings.DeviceId,
                             Hash = modifyHashString,
                             MimeType = toCommunicate.Metadata.MimeType,
                             ModifiedDate = toCommunicate.Metadata.HashableProperties.LastTime,
@@ -9163,7 +9146,7 @@ namespace Cloud.REST
                     timeoutMilliseconds, // time before communication timeout
                     null, // not an upload or download
                     Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
-                    _copiedSettings, // pass the copied settings
+                    _syncbox.CopiedSettings, // pass the copied settings
                     _syncbox, // pass the syncbox
                     requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
                     false);
@@ -9429,7 +9412,7 @@ namespace Cloud.REST
                     Helpers.QueryStringBuilder(new[]
                     {
                         // query string parameter for the device id
-                        new KeyValuePair<string, string>(CLDefinitions.QueryStringDeviceId, Uri.EscapeDataString(_copiedSettings.DeviceId)),
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringDeviceId, Uri.EscapeDataString(_syncbox.CopiedSettings.DeviceId)),
 
                         // query string parameter for the server id for the file to check, only filled in if it's not null
                         (string.IsNullOrEmpty(fileServerId)
@@ -9468,7 +9451,7 @@ namespace Cloud.REST
                     timeoutMilliseconds, // time before communication timeout
                     null, // not an upload or download
                     Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
-                    _copiedSettings, // pass the copied settings
+                    _syncbox.CopiedSettings, // pass the copied settings
                     _syncbox, // pass the syncbox
                     requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
                     true);
@@ -9649,7 +9632,7 @@ namespace Cloud.REST
 
                 response = Helpers.ProcessHttp<JsonContracts.PendingResponse>(new JsonContracts.PurgePending() // json contract object for purge pending method
                 {
-                    DeviceId = _copiedSettings.DeviceId,
+                    DeviceId = _syncbox.CopiedSettings.DeviceId,
                     SyncboxId = _syncbox.SyncboxId
                 },
                     CLDefinitions.CLMetaDataServerURL,      // MDS server URL
@@ -9658,7 +9641,7 @@ namespace Cloud.REST
                     timeoutMilliseconds, // set the timeout for the operation
                     null, // not an upload or download
                     Helpers.HttpStatusesOkAccepted, // purge pending should give OK or Accepted
-                    _copiedSettings, // pass the copied settings
+                    _syncbox.CopiedSettings, // pass the copied settings
                     _syncbox, // pass the syncbox
                     requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
                     false);
