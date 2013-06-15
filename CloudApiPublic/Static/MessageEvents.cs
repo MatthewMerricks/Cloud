@@ -352,7 +352,7 @@ namespace Cloud.Static
             string Message,
             EventMessageLevel Level = EventMessageLevel.Minor,
             BaseErrorInfo Error = null,
-            Nullable<long> SyncboxId = null,
+            CLSyncbox Syncbox = null,
             string DeviceId = null)
         {
             if (Error != null
@@ -360,6 +360,24 @@ namespace Cloud.Static
             {
                 Helpers.HaltAllOnUnrecoverableError();
 
+                // Fire the EventMessage.  We will create an exception that can be used to build the required CLError.
+                if (Syncbox.SyncboxId != null
+                    && !string.IsNullOrEmpty(DeviceId))
+                {
+                    CLError errorToUse;
+                    try
+                    {
+                        throw new CLException(CLExceptionCode.Syncing_LiveSyncEngine, Message);   // create the stack trace
+                    }
+                    catch (Exception ex)
+                    {
+                        errorToUse = ex;
+                    }
+
+                    MessageEvents.DetectedSyncboxLiveSyncFailedWithErrorChange(Syncbox, errorToUse, Syncbox.SyncboxId, DeviceId);
+                }
+
+                // Procedural trace
                 string stack;
                 try
                 {
@@ -389,20 +407,20 @@ namespace Cloud.Static
                         Message,
                         Level,
                         Error,
-                        SyncboxId,
+                        Syncbox.SyncboxId,
                         DeviceId)
                     : (BaseMessage)new InformationalMessage(
                         Message,
                         Level,
-                        SyncboxId,
+                        Syncbox.SyncboxId,
                         DeviceId)));
 
             FireNewEventMessageInternal(newArgs, ref toReturn);
 
-            if (SyncboxId != null
+            if (Syncbox.SyncboxId != null
                 && !string.IsNullOrEmpty(DeviceId))
             {
-                FireInternalReceiverInternal((long)SyncboxId, DeviceId, newArgs, ref toReturn, 
+                FireInternalReceiverInternal((long)Syncbox.SyncboxId, DeviceId, newArgs, ref toReturn, 
                     (IEventMessageReceiver handler, EventMessageArgs newArgs_) => {
                         BaseMessageArgs newArgsMessage = new BaseMessageArgs(newArgs_); // informational or error message occurs
                         handler.MessageEvents_NewEventMessage(newArgsMessage);
@@ -422,6 +440,7 @@ namespace Cloud.Static
 
             return toReturn;
         }
+
         public static EventHandledLevel SetDownloadingCount(
             uint newCount,
             Nullable<long> SyncboxId = null,
@@ -707,6 +726,28 @@ namespace Cloud.Static
                 (IEventMessageReceiver handler, EventMessageArgs newArgs_) =>
                 {
                     handler.SyncboxDidStopLiveSyncChanged(new SyncboxDidStopLiveSyncMessageArgs(newArgs_));
+                });
+
+            return toReturn;
+        }
+
+        public static EventHandledLevel DetectedSyncboxLiveSyncFailedWithErrorChange(
+            CLSyncbox syncbox,
+            CLError error,
+            Nullable<long> SyncboxId = null,
+            string DeviceId = null)
+        {
+            EventHandledLevel toReturn = EventHandledLevel.NothingFired;
+
+            EventMessageArgs newArgs = new EventMessageArgs(
+                new SyncboxLiveSyncFailedWithErrorMessage(syncbox, error, SyncboxId, DeviceId));
+
+            FireNewEventMessageInternal(newArgs, ref toReturn);
+
+            FireAllInternalReceiversInternal(newArgs, ref toReturn,
+                (IEventMessageReceiver handler, EventMessageArgs newArgs_) =>
+                {
+                    handler.SyncboxLiveSyncFailedWithErrorChanged(new SyncboxLiveSyncFailedWithErrorMessageArgs(newArgs_));
                 });
 
             return toReturn;

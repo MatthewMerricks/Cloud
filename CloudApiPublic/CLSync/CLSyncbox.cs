@@ -1366,7 +1366,7 @@ namespace Cloud
                     validStatusCodes: Helpers.HttpStatusesOkAccepted,
                     CopiedSettings: copiedSettings,
                     Credentials: credentials,
-                    SyncboxId: null, 
+                    Syncbox: null, 
                     isOneOff: false);
 
                 // Check the server response.
@@ -1518,7 +1518,7 @@ namespace Cloud
                     validStatusCodes: Helpers.HttpStatusesOkAccepted,
                     CopiedSettings: copiedSettings,
                     Credentials: credentials,
-                    SyncboxId: null, 
+                    Syncbox: null, 
                     isOneOff: false);
 
                 // Check the server response.
@@ -1675,7 +1675,7 @@ namespace Cloud
                     validStatusCodes: Helpers.HttpStatusesOkAccepted,
                     CopiedSettings: copiedSettings,
                     Credentials: credentials,
-                    SyncboxId: null, 
+                    Syncbox: null, 
                     isOneOff: false);
 
                 // Convert the server response to a list of initialized CLSyncboxes.

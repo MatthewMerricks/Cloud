@@ -540,6 +540,14 @@ namespace SampleLiveSync.EventMessageReceiver
             e.MarkHandled();
         }
 
+        void IEventMessageReceiver.SyncboxLiveSyncFailedWithErrorChanged(ISyncboxLiveSyncFailedWithErrorMessage e)
+        {
+            // Do nothing here.  This message is intended for the On Demand API.  It includes the CLSyncbox that stopped live sync, and the CLError with the error information.  The sample app already includes messages that carry this meaning.
+
+            // event was handled
+            e.MarkHandled();
+        }
+
         void IEventMessageReceiver.StorageQuotaExceededChanged(IStorageQuotaExceededMessage e)
         {
             // lock on the growl messages for modification

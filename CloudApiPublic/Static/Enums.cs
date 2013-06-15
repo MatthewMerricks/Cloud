@@ -768,6 +768,7 @@ namespace Cloud.Static
         StorageQuotaExceededChanged,
         SyncboxDidStartLiveSyncChanged,
         SyncboxDidStopLiveSyncChanged,
+        SyncboxLiveSyncFailedWithErrorChanged,
     }
 
     /// <summary>

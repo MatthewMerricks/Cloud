@@ -212,8 +212,10 @@ namespace Cloud.REST
                 progressHolder);
 
             // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
-            Tuple<GenericAsyncResult<DownloadFileResult>, AsyncCallback, FileChange, string, string, Helpers.AfterDownloadToTempFile, object, Tuple<int, Helpers.BeforeDownloadToTempFile, object, CancellationTokenSource, string>> asyncParams =
-                new Tuple<GenericAsyncResult<DownloadFileResult>, AsyncCallback, FileChange, string, string, Helpers.AfterDownloadToTempFile, object, Tuple<int, Helpers.BeforeDownloadToTempFile, object, CancellationTokenSource, string>>(
+            Tuple<GenericAsyncResult<DownloadFileResult>, AsyncCallback, FileChange, string, string, Helpers.AfterDownloadToTempFile, object, 
+                Tuple<int, Helpers.BeforeDownloadToTempFile, object, CancellationTokenSource, string>> asyncParams =
+                new Tuple<GenericAsyncResult<DownloadFileResult>, AsyncCallback, FileChange, string, string, Helpers.AfterDownloadToTempFile, object, 
+                    Tuple<int, Helpers.BeforeDownloadToTempFile, object, CancellationTokenSource, string>>(
                     toReturn,
                     asyncCallback,
                     changeToDownload,
@@ -232,8 +234,10 @@ namespace Cloud.REST
             (new Thread(new ParameterizedThreadStart(state =>
             {
                 // try cast the state as the object with all the input parameters
-                Tuple<GenericAsyncResult<DownloadFileResult>, AsyncCallback, FileChange, string, string, Helpers.AfterDownloadToTempFile, object, Tuple<int, Helpers.BeforeDownloadToTempFile, object, CancellationTokenSource, string>> castState =
-                    state as Tuple<GenericAsyncResult<DownloadFileResult>, AsyncCallback, FileChange, string, string, Helpers.AfterDownloadToTempFile, object, Tuple<int, Helpers.BeforeDownloadToTempFile, object, CancellationTokenSource, string>>;
+                Tuple<GenericAsyncResult<DownloadFileResult>, AsyncCallback, FileChange, string, string, Helpers.AfterDownloadToTempFile, object, 
+                    Tuple<int, Helpers.BeforeDownloadToTempFile, object, CancellationTokenSource, string>> castState = state as 
+                    Tuple<GenericAsyncResult<DownloadFileResult>, AsyncCallback, FileChange, string, string, Helpers.AfterDownloadToTempFile, object, 
+                        Tuple<int, Helpers.BeforeDownloadToTempFile, object, CancellationTokenSource, string>>;
                 // if the try cast failed, then show a message box for this unrecoverable error
                 if (castState == null)
                 {
@@ -417,7 +421,8 @@ namespace Cloud.REST
             FileTransferStatusUpdateDelegate statusUpdate,
             object statusUpdateUserState)
         {
-            return DownloadFile(changeToDownload,
+            return DownloadFile(
+                changeToDownload,
                 serverUid,
                 revision,
                 moveFileUponCompletion,
@@ -435,7 +440,8 @@ namespace Cloud.REST
         }
 
         // private helper for DownloadFile which takes additional parameters we don't wish to expose; does the actual processing
-        private CLError DownloadFile(FileChange changeToDownload,
+        private CLError DownloadFile(
+            FileChange changeToDownload,
             string serverUid,
             string revision,
             Helpers.AfterDownloadToTempFile moveFileUponCompletion,
@@ -562,7 +568,7 @@ namespace Cloud.REST
                     currentDownload, // download-specific parameters holder constructed directly above
                     Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
                     _copiedSettings, // pass the copied settings
-                    _syncbox.SyncboxId, // pass the unique id of the sync box on the server
+                    _syncbox, // pass the syncbox
                     requestNewCredentialsInfo, // pass the optional parameters to support temporary token reallocation.
                     false);
             }
@@ -740,7 +746,7 @@ namespace Cloud.REST
                     /* uploadDownload */ null,  // not an upload or download
                     Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
                     _copiedSettings, // pass the copied settings
-                    _syncbox.SyncboxId, // pass the unique id of the sync box on the server
+                    _syncbox, // pass the syncbox to use
                     requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
                     isOneOff: true,  // On Demand call
                     transferStatusCallback: transferStatusCallback,  // the transfer progress callback
@@ -882,7 +888,7 @@ namespace Cloud.REST
                     null, // not an upload or download
                     Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
                     _copiedSettings, // pass the copied settings
-                    _syncbox.SyncboxId, // pass the unique id of the sync box on the server
+                    _syncbox, // pass the syncbox
                     requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
                     true);
 
@@ -1026,7 +1032,7 @@ namespace Cloud.REST
                     null, // not an upload or download
                     Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
                     _copiedSettings, // pass the copied settings
-                    _syncbox.SyncboxId, // pass the unique id of the sync box on the server
+                    _syncbox, // pass the syncbox
                     requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
                     true);
 
@@ -1228,7 +1234,8 @@ namespace Cloud.REST
 
                 // Communicate with the server to get the response.
                 JsonContracts.SyncboxMoveFilesOrFoldersResponse responseFromServer;
-                responseFromServer = Helpers.ProcessHttp<JsonContracts.SyncboxMoveFilesOrFoldersResponse>(requestContent, // dynamic type of request content based on method path
+                responseFromServer = Helpers.ProcessHttp<JsonContracts.SyncboxMoveFilesOrFoldersResponse>(
+                    requestContent, // dynamic type of request content based on method path
                     CLDefinitions.CLMetaDataServerURL, // base domain is the MDS server
                     serverMethodPath, // dynamic path to appropriate one-off method
                     Helpers.requestMethod.post, // one-off methods are all posts
@@ -1236,7 +1243,7 @@ namespace Cloud.REST
                     null, // not an upload or download
                     Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
                     _copiedSettings, // pass the copied settings
-                    _syncbox.SyncboxId, // pass the unique id of the sync box on the server
+                    _syncbox, // pass the syncbox to use
                     requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
                     true);
 
@@ -1535,7 +1542,7 @@ namespace Cloud.REST
                     null, // not an upload or download
                     Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
                     _copiedSettings, // pass the copied settings
-                    _syncbox.SyncboxId, // pass the unique id of the sync box on the server
+                    _syncbox, // pass the syncbox
                     requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
                     true);
 
@@ -1834,7 +1841,7 @@ namespace Cloud.REST
                     null, // not an upload or download
                     Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
                     _copiedSettings, // pass the copied settings
-                    _syncbox.SyncboxId, // pass the unique id of the sync box on the server
+                    _syncbox, // pass the syncbox to use
                     requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
                     true);
 
@@ -2131,7 +2138,7 @@ namespace Cloud.REST
                     null, // not an upload or download
                     Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
                     _copiedSettings, // pass the copied settings
-                    _syncbox.SyncboxId, // pass the unique id of the sync box on the server
+                    _syncbox, // pass the syncbox
                     requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
                     true);
 
@@ -2414,7 +2421,7 @@ namespace Cloud.REST
                     null, // not an upload or download
                     Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
                     _copiedSettings, // pass the copied settings
-                    _syncbox.SyncboxId, // pass the unique id of the sync box on the server
+                    _syncbox, // pass the syncbox to use
                     requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
                     true);
 
@@ -2697,7 +2704,7 @@ namespace Cloud.REST
                     null, // not an upload or download
                     Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
                     _copiedSettings, // pass the copied settings
-                    _syncbox.SyncboxId, // pass the unique id of the sync box on the server
+                    _syncbox, // pass the syncbox
                     requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
                     true);
 
@@ -2986,7 +2993,7 @@ namespace Cloud.REST
                     null, // not an upload or download
                     Helpers.HttpStatusesOkAccepted, //use the hashset for ok/accepted as successful HttpStatusCodes
                     _copiedSettings, // pass the copied settings
-                    _syncbox.SyncboxId, // pass the unique id of the sync box on the server
+                    _syncbox, // pass the syncbox to use
                     requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
                     true);
 
@@ -3476,7 +3483,7 @@ namespace Cloud.REST
                             null, // not an upload or download
                             Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
                             _copiedSettings, // pass the copied settings
-                            _syncbox.SyncboxId, // pass the unique id of the sync box on the server
+                            _syncbox, // pass the syncbox
                             requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
                             isOneOff: true); // one-offs bypass the halt all check
 
@@ -3948,7 +3955,7 @@ namespace Cloud.REST
                     null, // not an upload or download
                     Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
                     _copiedSettings, // pass the copied settings
-                    _syncbox.SyncboxId, // pass the unique id of the sync box on the server
+                    _syncbox, // pass the syncbox to use
                     requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
                     false);
             }
@@ -4392,7 +4399,7 @@ namespace Cloud.REST
                     null, // not an upload or download
                     Helpers.HttpStatusesOkAccepted, //use the hashset for ok/accepted as successful HttpStatusCodes
                     _copiedSettings, // pass the copied settings
-                    _syncbox.SyncboxId, // pass the unique id of the sync box on the server
+                    _syncbox, // pass the syncbox
                     requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
                     true);
 
@@ -4560,7 +4567,7 @@ namespace Cloud.REST
                     null, // not an upload or download
                     Helpers.HttpStatusesOkAccepted, //use the hashset for ok/accepted as successful HttpStatusCodes
                     _copiedSettings, // pass the copied settings
-                    _syncbox.SyncboxId, // pass the unique id of the sync box on the server
+                    _syncbox, // pass the syncbox to use
                     requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
                     true);
 
@@ -4727,7 +4734,7 @@ namespace Cloud.REST
                     null, // not an upload or download
                     Helpers.HttpStatusesOkAccepted, //use the hashset for ok/accepted as successful HttpStatusCodes
                     _copiedSettings, // pass the copied settings
-                    _syncbox.SyncboxId, // pass the unique id of the sync box on the server
+                    _syncbox, // pass the syncbox
                     requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
                     true);
 
@@ -4894,7 +4901,7 @@ namespace Cloud.REST
                     null, // not an upload or download
                     Helpers.HttpStatusesOkAccepted, //use the hashset for ok/accepted as successful HttpStatusCodes
                     _copiedSettings, // pass the copied settings
-                    _syncbox.SyncboxId, // pass the unique id of the sync box on the server
+                    _syncbox, // pass the syncbox to use
                     requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
                     true);
 
@@ -5061,7 +5068,7 @@ namespace Cloud.REST
                     null, // not an upload or download
                     Helpers.HttpStatusesOkAccepted, //use the hashset for ok/accepted as successful HttpStatusCodes
                     _copiedSettings, // pass the copied settings
-                    _syncbox.SyncboxId, // pass the unique id of the sync box on the server
+                    _syncbox, // pass the syncbox
                     requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
                     true);
 
@@ -5228,7 +5235,7 @@ namespace Cloud.REST
                     null, // not an upload or download
                     Helpers.HttpStatusesOkAccepted, //use the hashset for ok/accepted as successful HttpStatusCodes
                     _copiedSettings, // pass the copied settings
-                    _syncbox.SyncboxId, // pass the unique id of the sync box on the server
+                    _syncbox, // pass the syncbox to use
                     requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
                     true);
 
@@ -5395,7 +5402,7 @@ namespace Cloud.REST
                     null, // not an upload or download
                     Helpers.HttpStatusesOkAccepted, //use the hashset for ok/accepted as successful HttpStatusCodes
                     _copiedSettings, // pass the copied settings
-                    _syncbox.SyncboxId, // pass the unique id of the sync box on the server
+                    _syncbox, // pass the syncbox
                     requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
                     true);
 
@@ -5598,7 +5605,7 @@ namespace Cloud.REST
                     null, // not an upload or download
                     Helpers.HttpStatusesOkAccepted, //use the hashset for ok/accepted as successful HttpStatusCodes
                     _copiedSettings, // pass the copied settings
-                    _syncbox.SyncboxId, // pass the unique id of the sync box on the server
+                    _syncbox, // pass the syncbox to use
                     requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
                     true);
 
@@ -5787,7 +5794,7 @@ namespace Cloud.REST
                     null, // not an upload or download
                     Helpers.HttpStatusesOkAccepted, //use the hashset for ok/accepted as successful HttpStatusCodes
                     _copiedSettings, // pass the copied settings
-                    _syncbox.SyncboxId, // pass the unique id of the sync box on the server
+                    _syncbox, // pass the syncbox
                     requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
                     true);
 
@@ -5950,7 +5957,7 @@ namespace Cloud.REST
                     null, // not an upload or download
                     Helpers.HttpStatusesOkAccepted, //use the hashset for ok/accepted as successful HttpStatusCodes
                     _copiedSettings, // pass the copied settings
-                    _syncbox.SyncboxId, // pass the unique id of the sync box on the server
+                    _syncbox, // pass the syncbox to use
                     requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
                     true);
 
@@ -6104,7 +6111,7 @@ namespace Cloud.REST
                     null, // not an upload or download
                     Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
                     _copiedSettings, // pass the copied settings
-                    _syncbox.SyncboxId, // pass the unique id of the sync box on the server
+                    _syncbox, // pass the syncbox
                     requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
                     true);
                 if (responseFromServer != null 
@@ -6270,7 +6277,7 @@ namespace Cloud.REST
                     null, // not an upload or download
                     Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
                     _copiedSettings, // pass the copied settings
-                    _syncbox.SyncboxId, // pass the unique id of the sync box on the server
+                    _syncbox, // pass the syncbox to use
                     requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
                     true);
 
@@ -6462,7 +6469,7 @@ namespace Cloud.REST
                     null, // not an upload or download
                     Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
                     _copiedSettings, // pass the copied settings
-                    _syncbox.SyncboxId, // pass the unique id of the sync box on the server
+                    _syncbox, // pass the syncbox
                     requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
                     true);
 
@@ -6634,7 +6641,7 @@ namespace Cloud.REST
                     null, // not an upload or download
                     Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
                     _copiedSettings, // pass the copied settings
-                    _syncbox.SyncboxId, // pass the unique id of the sync box on the server
+                    _syncbox, // pass the syncbox to use
                     requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
                     true);
 
@@ -6818,7 +6825,7 @@ namespace Cloud.REST
                     null, // not an upload or download
                     Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
                     _copiedSettings, // pass the copied settings
-                    _syncbox.SyncboxId, // pass the unique id of the sync box on the server
+                    _syncbox, // pass the syncbox
                     requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
                     true);
 
@@ -7140,7 +7147,7 @@ namespace Cloud.REST
                     null, // not an upload or download
                     Helpers.HttpStatusesOkAccepted, // sync box extended metadata should give OK or Accepted
                     _copiedSettings, // pass the copied settings
-                    _syncbox.SyncboxId, // pass the unique id of the sync box on the server
+                    _syncbox, // pass the syncbox to use
                     requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
                     true);
             }
@@ -7301,7 +7308,7 @@ namespace Cloud.REST
                     null, // not an upload or download
                     Helpers.HttpStatusesOkAccepted, // sync box update plan should give OK or Accepted
                     _copiedSettings, // pass the copied settings
-                    _syncbox.SyncboxId, // pass the unique id of the sync box on the server
+                    _syncbox, // pass the syncbox
                     requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
                     true);
 
@@ -7487,7 +7494,7 @@ namespace Cloud.REST
                     null, // not an upload or download
                     Helpers.HttpStatusesOkAccepted, // sync box update plan should give OK or Accepted
                     _copiedSettings, // pass the copied settings
-                    _syncbox.SyncboxId, // pass the unique id of the sync box on the server
+                    _syncbox, // pass the syncbox to use
                     requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
                     true);
 
@@ -7643,7 +7650,7 @@ namespace Cloud.REST
                     null, // not an upload or download
                     Helpers.HttpStatusesOkAccepted, // sync box status should give OK or Accepted
                     _copiedSettings, // pass the copied settings
-                    _syncbox.SyncboxId, // pass the unique id of the sync box on the server
+                    _syncbox, // pass the syncbox
                     requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
                     true);
 
@@ -7741,7 +7748,7 @@ namespace Cloud.REST
                     null, // not an upload or download
                     Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
                     _copiedSettings, // pass the copied settings
-                    _syncbox.SyncboxId, // pass the unique id of the sync box on the server
+                    _syncbox, // pass the syncbox to use
                     requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
                     false);
             }
@@ -7796,7 +7803,7 @@ namespace Cloud.REST
                     null, // not an upload or download
                     Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
                     _copiedSettings, // pass the copied settings
-                    _syncbox.SyncboxId, // pass the unique id of the sync box on the server
+                    _syncbox, // pass the syncbox
                     requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
                     false);
             }
@@ -7859,7 +7866,7 @@ namespace Cloud.REST
                     null, // not an upload nor download
                     Helpers.HttpStatusesOkAccepted,
                     _copiedSettings,
-                    _syncbox.SyncboxId,
+                    _syncbox, // pass the syncbox to use
                     requestNewCredentialsInfo,
                     false);
             }
@@ -8173,7 +8180,7 @@ namespace Cloud.REST
                     null, // not an upload or download
                     Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
                     _copiedSettings, // pass the copied settings
-                    _syncbox.SyncboxId, // pass the unique id of the sync box on the server
+                    _syncbox, // pass the syncbox
                     requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
                     false);
             }
@@ -8549,7 +8556,7 @@ namespace Cloud.REST
                         statusUpdateUserState), // userstate to pass to the statusUpdate callback
                     Helpers.HttpStatusesOkCreatedNotModified, // use the hashset for ok/created/not modified as successful HttpStatusCodes
                     _copiedSettings, // pass the copied settings
-                    _syncbox.SyncboxId, // pass the unique id of the sync box on the server
+                    _syncbox, // pass the syncbox
                     requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
                     false);
 
@@ -8752,7 +8759,7 @@ namespace Cloud.REST
                     null, // not an upload or download
                     Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
                     _copiedSettings, // pass the copied settings
-                    _syncbox.SyncboxId, // pass the unique id of the sync box on the server
+                    _syncbox, // pass the syncbox
                     requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
                     false);
             }
@@ -9157,7 +9164,7 @@ namespace Cloud.REST
                     null, // not an upload or download
                     Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
                     _copiedSettings, // pass the copied settings
-                    _syncbox.SyncboxId, // pass the unique id of the sync box on the server
+                    _syncbox, // pass the syncbox
                     requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
                     false);
             }
@@ -9462,7 +9469,7 @@ namespace Cloud.REST
                     null, // not an upload or download
                     Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
                     _copiedSettings, // pass the copied settings
-                    _syncbox.SyncboxId, // pass the unique id of the sync box on the server
+                    _syncbox, // pass the syncbox
                     requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
                     true);
             }
@@ -9652,7 +9659,7 @@ namespace Cloud.REST
                     null, // not an upload or download
                     Helpers.HttpStatusesOkAccepted, // purge pending should give OK or Accepted
                     _copiedSettings, // pass the copied settings
-                    _syncbox.SyncboxId, // pass the unique id of the sync box on the server
+                    _syncbox, // pass the syncbox
                     requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
                     false);
             }

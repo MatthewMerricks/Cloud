@@ -3157,7 +3157,9 @@ namespace Cloud.FileMonitor
                                                                 MessageEvents.FireNewEventMessage(
                                                                     Resources.ExceptionMonitorAgentGrabPreprocessedChangesCastInnerState,
                                                                     EventMessageLevel.Important,
-                                                                    new HaltAllOfCloudSDKErrorInfo());
+                                                                    new HaltAllOfCloudSDKErrorInfo(),
+                                                                    this._syncbox,
+                                                                    this._syncbox.CopiedSettings.DeviceId);
 
                                                                 throw new CLException(CLExceptionCode.General_Miscellaneous, Resources.ExceptionMonitorAgentGrabPreprocessedChangesCastInnerState);
                                                             }
@@ -3947,7 +3949,9 @@ namespace Cloud.FileMonitor
                                                     MessageEvents.FireNewEventMessage(
                                                         Resources.MonitorAgentUnableToCastThisActionAsAction,
                                                         EventMessageLevel.Important,
-                                                        new HaltAllOfCloudSDKErrorInfo());
+                                                        new HaltAllOfCloudSDKErrorInfo(),
+                                                        this._syncbox,
+                                                        this._syncbox.CopiedSettings.DeviceId);
                                                 }
                                                 else
                                                 {
@@ -5785,7 +5789,9 @@ namespace Cloud.FileMonitor
                                                     ? string.Join(Environment.NewLine, ((AggregateException)currentError).Flatten().InnerExceptions.Select(innerError => innerError.Message).ToArray())
                                                     : currentError.Message)).ToArray()),
                                         EventMessageLevel.Important,
-                                        new HaltAllOfCloudSDKErrorInfo());
+                                        new HaltAllOfCloudSDKErrorInfo(),
+                                        this._syncbox,
+                                        this._syncbox.CopiedSettings.DeviceId);
                                 }
                             }
 
@@ -5828,7 +5834,9 @@ namespace Cloud.FileMonitor
                                     MessageEvents.FireNewEventMessage(
                                         noEventIdErrorMessage,
                                         EventMessageLevel.Important,
-                                        new HaltAllOfCloudSDKErrorInfo());
+                                        new HaltAllOfCloudSDKErrorInfo(),
+                                        this._syncbox,
+                                        this._syncbox.CopiedSettings.DeviceId);
                                 }
 
                                 ProcessingChanges.AddLast(nextMerge);

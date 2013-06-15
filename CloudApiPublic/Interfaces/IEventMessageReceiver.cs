@@ -91,6 +91,11 @@ namespace Cloud.Interfaces
         /// </summary>
         /// <param name="e">Message parameters</param>
         void SyncboxDidStopLiveSyncChanged(ISyncboxDidStopLiveSyncMessage e);
+        /// <summary>
+        /// Fired when live syncing has stopped due to an error.
+        /// </summary>
+        /// <param name="e">Message parameters</param>
+        void SyncboxLiveSyncFailedWithErrorChanged(ISyncboxLiveSyncFailedWithErrorMessage e);
     }
     public interface IMinimalMessage : IHandleableArgs
     {
@@ -141,5 +146,10 @@ namespace Cloud.Interfaces
     public interface ISyncboxDidStopLiveSyncMessage : IMinimalMessage
     {
         CLSyncbox Syncbox { get; }
+    }
+    public interface ISyncboxLiveSyncFailedWithErrorMessage : IMinimalMessage
+    {
+        CLSyncbox Syncbox { get; }
+        CLError Error { get; }
     }
 }
