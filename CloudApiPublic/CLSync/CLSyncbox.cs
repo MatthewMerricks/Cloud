@@ -964,6 +964,12 @@ namespace Cloud
                     {
                         // Stop the sync engine.
                         _syncEngine.Stop();
+
+                        // Fire the event to the subscribers.
+                        MessageEvents.DetectedSyncboxDidStopLiveSyncChange(
+                            this,
+                            SyncboxId: this.SyncboxId,
+                            DeviceId: this.CopiedSettings.DeviceId);
                     }
                     catch
                     {
@@ -1000,7 +1006,6 @@ namespace Cloud
                 _trace.writeToLog(1, "CLSyncbox: StopLiveSync: ERROR.  Exception.  Msg: <{0}>. Code: {1}.", error.PrimaryException.Message, error.PrimaryException.Code);
                 return error;
             }
-
             return null;
         }
 

@@ -767,6 +767,7 @@ namespace Cloud.Static
         UploadCompleteChanged,
         StorageQuotaExceededChanged,
         SyncboxDidStartLiveSyncChanged,
+        SyncboxDidStopLiveSyncChanged,
     }
 
     /// <summary>
