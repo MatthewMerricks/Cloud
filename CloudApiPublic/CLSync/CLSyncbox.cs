@@ -897,6 +897,12 @@ namespace Cloud
                         // The sync engines started with syncboxes must be tracked statically so we can stop them all when the application terminates (in the ShutDown) method.
                         _startedSyncEngines.Add(_syncEngine);
                         _isStarted = true;
+
+                        // Fire the event to the subscribers.
+                        MessageEvents.DetectedSyncboxDidStartLiveSyncChange(
+                            this,
+                            SyncboxId: this.SyncboxId,
+                            DeviceId: this.CopiedSettings.DeviceId);
                     }
                     catch
                     {
