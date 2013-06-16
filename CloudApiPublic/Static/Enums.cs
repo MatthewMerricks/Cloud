@@ -8,6 +8,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 
 namespace Cloud.Static
@@ -863,6 +864,7 @@ namespace Cloud.Static
     /// <summary>
     /// Describes how a path should display for badging
     /// </summary>
+    [Obfuscation(Exclude = true)]
     internal enum PathState : byte
     {
         None,

@@ -14,10 +14,11 @@ using System.Text;
 
 namespace Cloud.SQLProxies
 {
+    // \cond
     /// <summary>
     /// SQLite implementation of DbCommand.
     /// </summary>
-    internal interface ISQLiteCommand : IDisposable
+    public interface ISQLiteCommand : IDisposable
     {
         /// <summary>
         /// The SQL command text associated with the command
@@ -61,4 +62,5 @@ namespace Cloud.SQLProxies
         /// </summary>
         ISQLiteTransaction Transaction { get; set; }
     }
+    // \endcond
 }

@@ -3868,6 +3868,25 @@ namespace Cloud.Static
                     }
                 }
 
+                StringBuilder allSerializers = null;
+                foreach (KeyValuePair<Type, System.Runtime.Serialization.Json.DataContractJsonSerializer> mySerializer in SerializableResponseTypes)
+                {
+                    if (allSerializers == null)
+                    {
+                        allSerializers = new StringBuilder();
+                    }
+                    else
+                    {
+                        allSerializers.Append(((char)0x2c) + Environment.NewLine);
+                    }
+
+                    allSerializers.Append(mySerializer.Key.ToString() + ((char)0x3a) + mySerializer.Value.ToString());
+                }
+                if (allSerializers == null)
+                {
+                    allSerializers = new StringBuilder();
+                }
+
                 // try to get the serializer for the output by the type of output from dictionary and store whether successful
                 pulledOutSerializer = SerializableResponseTypes.TryGetValue(typeof(T), out outSerializer);
 
@@ -4444,11 +4463,21 @@ namespace Cloud.Static
                                 appendedStream.Flush();
                                 appendedStream.Seek(0, SeekOrigin.Begin);
 
+                                if (outSerializer == null)
+                                {
+                                    throw new Exception(allSerializers.ToString());
+                                }
+
                                 toReturn = (T)outSerializer.ReadObject(appendedStream);
                             }
                         }
                         else
                         {
+                            if (outSerializer == null)
+                            {
+                                throw new Exception(allSerializers.ToString());
+                            }
+
                             // deserialize the response content into the appropriate json contract object
                             toReturn = (T)outSerializer.ReadObject(serializationStream);
                         }
@@ -4504,7 +4533,7 @@ namespace Cloud.Static
                 return toReturn;
                 #endregion
             }
-            catch
+            catch (Exception ex)
             {
                 // if there was an event for the upload or download, then fire the event callback for a final transfer status
                 if (uploadDownload != null

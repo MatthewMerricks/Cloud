@@ -52,9 +52,7 @@
     <Reference Include="Cloud, Version=0.3.0.1, Culture=neutral, PublicKeyToken=840eb90fa4503c3c, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
     </Reference>
-    <Reference Include="RateBar.CSDK, Version=1.0.4810.27162, Culture=neutral, PublicKeyToken=840eb90fa4503c3c, processorArchitecture=MSIL">
-      <HintPath>..\3rdParty\bin\Release\RateBar.CSDK.dll</HintPath>
-    </Reference>
+    <Reference Include="RateBar.CSDK, Version=1.0.4810.27162, Culture=neutral, PublicKeyToken=840eb90fa4503c3c, processorArchitecture=MSIL" />
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Management" />
@@ -189,6 +187,9 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Artwork\Syncing.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <WCFMetadata Include="Service References\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

@@ -9,6 +9,7 @@ using Cloud.Static;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.Serialization;
 using System.Text;
 
@@ -17,6 +18,7 @@ namespace Cloud.JsonContracts
     /// <summary>
     /// An inner object containing header properties for an <see cref="FileChangeResponse"/>
     /// </summary>
+    [Obfuscation(Exclude = true)]
     [DataContract]
     [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
     public sealed class Header

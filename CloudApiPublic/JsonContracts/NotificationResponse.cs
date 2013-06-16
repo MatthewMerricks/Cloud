@@ -9,6 +9,7 @@ using Cloud.Static;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.Serialization;
 using System.Text;
 
@@ -17,6 +18,7 @@ namespace Cloud.JsonContracts
     /// <summary>
     /// Notification from server contained in EventArgs: <see cref="Cloud.PushNotification.NotificationEventArgs"/> via events in <see cref="Cloud.PushNotification.CLNotification"/>
     /// </summary>
+    [Obfuscation(Exclude = true)]
     [DataContract]
     public sealed class NotificationResponse
     {

@@ -7607,7 +7607,11 @@ namespace Cloud.REST
         /// <param name="completionCallback">Callback method to fire when a page of items is complete.  Return the result.</param>
         /// <param name="completionCallbackUserState">User state to be passed whenever the completion callback above is fired.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        internal CLError GetCurrentStatus<T>(
+        /// 
+
+        // /cond
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)] //Hides From Intelisense
+        public CLError GetCurrentStatus<T>(
             Action<JsonContracts.SyncboxStatusResponse, T> completionCallback,
             T completionCallbackUserState)
         {
@@ -7690,7 +7694,7 @@ namespace Cloud.REST
 
             return null;
         }
-
+        // /endcond
         #endregion  // end GetCurrentStatus (Get the current status of this syncbox)
 
         #endregion

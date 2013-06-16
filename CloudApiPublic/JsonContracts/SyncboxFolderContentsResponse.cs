@@ -12,12 +12,14 @@ using System.Runtime.Serialization;
 using System.Text;
 using Cloud.Model;
 using Cloud.Static;
+using System.Reflection;
 
 namespace Cloud.JsonContracts
 {
     /// <summary>
     /// Result from <see cref="Cloud.CLSyncbox.ItemsForPath"/>
     /// </summary>
+    [Obfuscation(Exclude = true)]
     [DataContract]
     public sealed class SyncboxFolderContentsResponse
     {

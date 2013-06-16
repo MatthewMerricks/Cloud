@@ -1,12 +1,16 @@
-﻿using System;
+﻿using Cloud.Static;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 
 namespace Cloud.SQLIndexer.SqlModel
 {
-    [SqlAccess.Class("ServerUids")]
-    internal sealed class SqlServerUid
+    // \cond
+    [Obfuscation(Exclude = true)]
+    [SqlAccess.Class(CLDefinitions.SqlModel_SqlServerUid)]
+    public sealed class SqlServerUid
     {
         [SqlAccess.Property]
         public long ServerUidId { get; set; }
@@ -17,4 +21,5 @@ namespace Cloud.SQLIndexer.SqlModel
         [SqlAccess.Property]
         public string Revision { get; set; }
     }
+    // \endcond
 }

@@ -5468,6 +5468,15 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to This IndexingAgent.
+        /// </summary>
+        internal static string IndexingAgentThisIndexingAgent {
+            get {
+                return ResourceManager.GetString("IndexingAgentThisIndexingAgent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to IndexingAgent: UpdateServerUid: Migrated forwards: serverUidId: {0}..
         /// </summary>
         internal static string IndexingAgentUpdateServerUIDMigratedForwardsServerUIDID0 {
@@ -6597,6 +6606,168 @@ namespace Cloud.Static {
         internal static string NotTranslatedRoamingAppDataFolderNameXPName {
             get {
                 return ResourceManager.GetString("NotTranslatedRoamingAppDataFolderNameXPName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CalculatedFullPath.
+        /// </summary>
+        internal static string NotTranslatedSqlIndexerCalculatedFullPath {
+            get {
+                return ResourceManager.GetString("NotTranslatedSqlIndexerCalculatedFullPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0}{1}.db.
+        /// </summary>
+        internal static string NotTranslatedSqlIndexerDBCopiedName {
+            get {
+                return ResourceManager.GetString("NotTranslatedSqlIndexerDBCopiedName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to DB #{0}:{1}{2}{3}{4}.
+        /// </summary>
+        internal static string NotTranslatedSqlIndexerDBStackFormat {
+            get {
+                return ResourceManager.GetString("NotTranslatedSqlIndexerDBStackFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0}.txt.
+        /// </summary>
+        internal static string NotTranslatedSqlIndexerDBStackName {
+            get {
+                return ResourceManager.GetString("NotTranslatedSqlIndexerDBStackName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Event.
+        /// </summary>
+        internal static string NotTranslatedSqlIndexerEvent {
+            get {
+                return ResourceManager.GetString("NotTranslatedSqlIndexerEvent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Event.Previous.
+        /// </summary>
+        internal static string NotTranslatedSqlIndexerEventPrevious {
+            get {
+                return ResourceManager.GetString("NotTranslatedSqlIndexerEventPrevious", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to FileSystemObject.
+        /// </summary>
+        internal static string NotTranslatedSqlIndexerFileSystemObject {
+            get {
+                return ResourceManager.GetString("NotTranslatedSqlIndexerFileSystemObject", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to FileSystemObjectId.
+        /// </summary>
+        internal static string NotTranslatedSqlIndexerFileSystemObjectId {
+            get {
+                return ResourceManager.GetString("NotTranslatedSqlIndexerFileSystemObjectId", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to integrity_check.
+        /// </summary>
+        internal static string NotTranslatedSqlIndexerIntegrityCheck {
+            get {
+                return ResourceManager.GetString("NotTranslatedSqlIndexerIntegrityCheck", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Name.
+        /// </summary>
+        internal static string NotTranslatedSqlIndexerName {
+            get {
+                return ResourceManager.GetString("NotTranslatedSqlIndexerName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Parent.
+        /// </summary>
+        internal static string NotTranslatedSqlIndexerParent {
+            get {
+                return ResourceManager.GetString("NotTranslatedSqlIndexerParent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Parents.
+        /// </summary>
+        internal static string NotTranslatedSqlIndexerParents {
+            get {
+                return ResourceManager.GetString("NotTranslatedSqlIndexerParents", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Parent.ServerUid.
+        /// </summary>
+        internal static string NotTranslatedSqlIndexerParentServerUid {
+            get {
+                return ResourceManager.GetString("NotTranslatedSqlIndexerParentServerUid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Previous.
+        /// </summary>
+        internal static string NotTranslatedSqlIndexerPrevious {
+            get {
+                return ResourceManager.GetString("NotTranslatedSqlIndexerPrevious", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Previouses.
+        /// </summary>
+        internal static string NotTranslatedSqlIndexerPreviouses {
+            get {
+                return ResourceManager.GetString("NotTranslatedSqlIndexerPreviouses", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ServerUid.
+        /// </summary>
+        internal static string NotTranslatedSqlIndexerServerUid {
+            get {
+                return ResourceManager.GetString("NotTranslatedSqlIndexerServerUid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ServerUidId.
+        /// </summary>
+        internal static string NotTranslatedSqlIndexerServerUidId {
+            get {
+                return ResourceManager.GetString("NotTranslatedSqlIndexerServerUidId", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to .sql.
+        /// </summary>
+        internal static string NotTranslatedSqlIndexerSqlExtension {
+            get {
+                return ResourceManager.GetString("NotTranslatedSqlIndexerSqlExtension", resourceCulture);
             }
         }
         

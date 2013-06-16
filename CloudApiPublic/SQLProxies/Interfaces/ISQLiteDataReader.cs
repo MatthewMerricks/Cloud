@@ -9,13 +9,16 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Reflection;
 
 namespace Cloud.SQLProxies
 {
+    // \cond
     /// <summary>
     /// SQLite implementation of DbDataReader.
     /// </summary>
-    internal interface ISQLiteDataReader : IDisposable
+    [Obfuscation(Feature = "preserve-name-binding")]
+    public interface ISQLiteDataReader : IDisposable
     {
         /// <summary>
         /// Indexer to retrieve data from a column given its name
@@ -44,4 +47,5 @@ namespace Cloud.SQLProxies
         /// <returns>True if a new row was successfully loaded and is ready for processing</returns>
         bool Read();
     }
+    // \endcond
 }

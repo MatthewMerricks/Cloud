@@ -112,7 +112,7 @@ namespace Cloud.SQLIndexer
             {
                 if (disposed)
                 {
-                    throw new ObjectDisposedException("This IndexingAgent");
+                    throw new ObjectDisposedException(Resources.IndexingAgentThisIndexingAgent);
                 }
 
                 _trace.writeToLog(9, "IndexingAgent: Entry: CreateNewServerUid: serverUid: {0}. revision: {1}. existingTransaction: {2}.", serverUid, revision, existingTransaction == null ? "null" : "notNull");
@@ -189,7 +189,7 @@ namespace Cloud.SQLIndexer
             {
                 if (disposed)
                 {
-                    throw new ObjectDisposedException("This IndexingAgent");
+                    throw new ObjectDisposedException(Resources.IndexingAgentThisIndexingAgent);
                 }
 
                 _trace.writeToLog(9, "IndexingAgent: Entry: UpdateServerUid: serverUidId: {0}. serverUid: {1}. revision: {2}. existingTransaction: {3}.", serverUidId, serverUid, revision, existingTransaction == null ? "null" : "notNull");
@@ -218,11 +218,27 @@ namespace Cloud.SQLIndexer
                         indexDB.BeginTransaction(System.Data.IsolationLevel.Serializable));
                 }
 
+                const string selectServerUidByUid = "t3Ee1ulQLjs62aHw5E7nECvEOXnIBnZugOzaPhT39+GYAeWswAkglLpCoOQhZXKdFn8CHvWfA82vrWmGb0RJcXpc5THDH449IVGfc/8aS2qWhWFHtV75xEfaq3iY3/MSCY8UkeCo1WsrUTf4FwJvG3SwDFBf79QC3MhZyK0IgX4=";
+
                 SqlServerUid existingUid = SqlAccessor<SqlServerUid>.SelectResultSet(
                         castTransaction.sqlConnection,
-                        "SELECT * " +
-                        "FROM ServerUids " +
-                        "WHERE ServerUids.ServerUid = ?", // <-- parameter 1
+
+                        //// before
+                        //
+                        //"SELECT * " +
+                        //"FROM ServerUids " +
+                        //"WHERE ServerUids.ServerUid = ?" // <-- parameter 1
+                        //
+                        //// after (decrypted)
+                        //
+                        //SELECT *
+                        //FROM ServerUids
+                        //WHERE ServerUids.ServerUid = ?
+                        Helpers.DecryptString(
+                            selectServerUidByUid,
+                            Encoding.ASCII.GetString(
+                                Convert.FromBase64String(indexDBPassword))),
+
                         transaction: castTransaction.sqlTransaction,
                         selectParameters: Helpers.EnumerateSingleItem(serverUid))
                     .FirstOrDefault();
@@ -288,11 +304,28 @@ namespace Cloud.SQLIndexer
                             {
                                 moveServerUidIds.Transaction = castTransaction.sqlTransaction;
 
-                                moveServerUidIds.CommandText = "UPDATE FileSystemObjects " +
-                                    "SET ServerUidId = ? " + // <-- parameter 1
-                                    "WHERE ServerUidId = ?;" + // <-- parameter 2
-                                    "DELETE FROM ServerUids " +
-                                    "WHERE ServerUidId = ?;"; // <-- paramter 3 (equivalent to parameter 2)
+                                const string updateServerUidString = "9tA4A9qheaxmqn5OBpSv86o8u/HE1U3uoVPGDIvO8uxFwbNTMjsBNV0TBKek0RAFNFXhWHlzk5+A66zGcgZSlb9qptC/hOnRmD/WJipY2H4qdmQgGkev3cYWKTwAtGBzDXlP1mROBqutN5IMu6bEo8JUmgGu3YdVii7zT1cg7qpea6QlXG8x/Axq+akepJBk7wzku/vMkDmTqh3zkpavv45cOOuuLaGn38MNaCCCN+uG94JccTbV1WJgYMSkuhjA4YSqjgsXwzTLAT1KxWiPRJO7a49/ueOe6On7u3Hg1vfZCSKBcsTKZOy9Kb1xzdiI";
+
+                                moveServerUidIds.CommandText =
+                                    //// before
+                                    //
+                                    //"UPDATE FileSystemObjects " +
+                                    //"SET ServerUidId = ? " + // <-- parameter 1
+                                    //"WHERE ServerUidId = ?;" + // <-- parameter 2
+                                    //"DELETE FROM ServerUids " +
+                                    //"WHERE ServerUidId = ?;" // <-- paramter 3 (equivalent to parameter 2)
+                                    //
+                                    //// after (decrypted)
+                                    //
+                                    //UPDATE FileSystemObjects
+                                    //SET ServerUidId = ?
+                                    //WHERE ServerUidId = ?;
+                                    //DELETE FROM ServerUids
+                                    //WHERE ServerUidId = ?;
+                                    Helpers.DecryptString(
+                                        updateServerUidString,
+                                        Encoding.ASCII.GetString(
+                                            Convert.FromBase64String(indexDBPassword)));
 
                                 ISQLiteParameter uidIdToKeep = moveServerUidIds.CreateParameter();
                                 uidIdToKeep.Value = serverUidId;
@@ -382,7 +415,7 @@ namespace Cloud.SQLIndexer
             {
                 if (disposed)
                 {
-                    throw new ObjectDisposedException("This IndexingAgent");
+                    throw new ObjectDisposedException(Resources.IndexingAgentThisIndexingAgent);
                 }
 
                 _trace.writeToLog(9, "IndexingAgent: Entry: QueryServerUid: serverUidId: {0}. existingTransaction: {1}.", serverUidId, existingTransaction == null ? "null" : "notNull");
@@ -422,11 +455,25 @@ namespace Cloud.SQLIndexer
                         _trace.writeToLog(9, "IndexingAgent: QueryServerUid: Migrated forwards: serverUidId: {0}.", serverUidId);
                     }
 
+                    const string selectServerUidById = "t3Ee1ulQLjs62aHw5E7nECvEOXnIBnZugOzaPhT39+GYAeWswAkglLpCoOQhZXKdFn8CHvWfA82vrWmGb0RJcXpc5THDH449IVGfc/8aS2qWhWFHtV75xEfaq3iY3/MS2PMQ+BUzwkO+YyBhLPCQ2fSbA6e8s6RF+Kso44IF6D4=";
+
                     retrievedUid = SqlAccessor<SqlServerUid>.SelectResultSet(
                             castTransaction.sqlConnection,
-                            "SELECT * " +
-                                "FROM ServerUids " +
-                                "WHERE ServerUids.ServerUidId = ?",
+                            //// before
+                            //
+                            //"SELECT * " +
+                            //    "FROM ServerUids " +
+                            //    "WHERE ServerUids.ServerUidId = ?"
+                            //
+                            //// after (decrypted)
+                            //
+                            //SELECT *
+                            //FROM ServerUids
+                            //WHERE ServerUids.ServerUidId = ?
+                            Helpers.DecryptString(
+                                selectServerUidById,
+                                Encoding.ASCII.GetString(
+                                    Convert.FromBase64String(indexDBPassword))),
                             transaction: castTransaction.sqlTransaction,
                             selectParameters: Helpers.EnumerateSingleItem(serverUidId))
                         .FirstOrDefault();
@@ -477,7 +524,7 @@ namespace Cloud.SQLIndexer
             {
                 if (disposed)
                 {
-                    throw new ObjectDisposedException("This IndexingAgent");
+                    throw new ObjectDisposedException(Resources.IndexingAgentThisIndexingAgent);
                 }
 
                 _trace.writeToLog(9, "IndexingAgent: Entry: QueryOrCreateServerUid: serverUid: {0}. revision: {1}. syncFromFileModify {2}. existingTransaction: {3}.", serverUid, revision, syncFromFileModify, existingTransaction == null ? "null" : "notNull");
@@ -506,11 +553,26 @@ namespace Cloud.SQLIndexer
                         indexDB.BeginTransaction(System.Data.IsolationLevel.Serializable));
                 }
 
+                const string selectServerUidByUid = "t3Ee1ulQLjs62aHw5E7nECvEOXnIBnZugOzaPhT39+GYAeWswAkglLpCoOQhZXKdFn8CHvWfA82vrWmGb0RJcXpc5THDH449IVGfc/8aS2qWhWFHtV75xEfaq3iY3/MSCY8UkeCo1WsrUTf4FwJvG1loRIFBh+xMms2EQCAl2nc=";
+
                 SqlServerUid retrievedUid = SqlAccessor<SqlServerUid>.SelectResultSet(
                         castTransaction.sqlConnection,
-                        "SELECT * " +
-                            "FROM ServerUids " +
-                            "WHERE ServerUids.ServerUid = ?",
+                        //// before
+                        //
+                        //"SELECT * " +
+                        //    "FROM ServerUids " +
+                        //    "WHERE ServerUids.ServerUid = ?"
+                        //
+                        //// after (decrypted)
+                        //
+                        //SELECT *
+                        //FROM ServerUids
+                        //WHERE ServerUids.ServerUid = ?
+                        Helpers.DecryptString(
+                            selectServerUidByUid,
+                            Encoding.ASCII.GetString(
+                                Convert.FromBase64String(indexDBPassword))),
+                                
                         transaction: castTransaction.sqlTransaction,
                         selectParameters: Helpers.EnumerateSingleItem(serverUid))
                     .FirstOrDefault();
@@ -580,7 +642,7 @@ namespace Cloud.SQLIndexer
             {
                 try
                 {
-                    throw new ObjectDisposedException("This IndexingAgent");
+                    throw new ObjectDisposedException(Resources.IndexingAgentThisIndexingAgent);
                 }
                 catch (Exception ex)
                 {
@@ -605,17 +667,42 @@ namespace Cloud.SQLIndexer
                 {
                     using (ISQLiteCommand searchServerUid = indexDB.CreateCommand())
                     {
-                        searchServerUid.CommandText = "SELECT MainObjects.ServerUidId, MainObjects.Name " +
-                            "FROM FileSystemObjects MainObjects " +
-                            "INNER JOIN ServerUids MainUids ON MainObjects.ServerUidId = MainUids.ServerUidId " +
-                            "INNER JOIN Events ON MainObjects.EventId = Events.EventId " +
-                            "INNER JOIN FileSystemObjects Parents ON MainObjects.ParentFolderId = Parents.FileSystemObjectId " +
-                            "INNER JOIN ServerUids ParentUids ON Parents.ServerUidId = ParentUids.ServerUidId " +
-                            "WHERE MainObjects.Pending = 1 " +
-                            "AND MainUids.ServerUid IS NULL " +
-                            "AND Events.FileChangeTypeEnumId <> " + changeEnumsBackward[FileChangeType.Deleted].ToString() +
-                            " AND ParentUids.ServerUid = ?" + // <-- parameter 1
-                            " AND MainObjects.NameCIHash = ?"; // <-- parameter 2
+                        const string selectFileSystemObjectByParentUidAndName = "Ir/JfpeZX5xlpoW+GgV7/Q5hgKLsGrAsu4Vfm4TmJFZhZok4RQz6RsaJvls5+3rOrAO0LRfqauEG/XIRSGL74GZXq1EqUW30Jx3G8Fjhpj2DqMFqXlKKGzfJ5nbCY4b7KfekaHm0+b4igA60UMIa8kBMyB/ldpY0R+AGrzqSIOSNZZ5FQEAL35rmQ5B0q5m66BzX3o4oxagl05ul8YxwtOkVUtbjvIlItZ+PiCrsA2FMaIErAJHR4kqamDv408InUADXvKic3baJ5IwsM10l6wcspapvcqMWqt/cV4RFUIPU5ScZs9O6JJC1ks+hhe4a9tSo5kpu5JxVt2DYF8jLHNrF3eFs/Tl3K8gJt3bg5D4/aJ7S118l2AOJike8EU5lf3xf2uoOhJP/M4QVYWcm4Nt0RO3tcYCNAxgpmfNPLdWPYNYCFhaGuJJlJETGwjvUxDOxYyQTOmmO4TKzZtiUF0lcuNuEtsFnMHIRVQiTJ6s+Bu4c1FymBrCD7Vm7Ue7yN3yY6wUwWO0yMoLqd9jlfppegFS7K3+0FboXcOfIReUmpSpZzaMCrz1BmLMhQzUZpfc3rm04zFhs8W7sPWuOy5iA6Ustf2dFzos4GXNsJhVpoDdERvZYY/5F5+14hABrFces9MHgZ+HXYuA4e6BgAKcKJYtdKfqn66HmLWzXox9rJd0dY3ak+hTIK1qN18VskY5Qr/3n/fG+62gjBKpytYae6zfFAS5kq5yHRWmPqdCSSEDmD00i8RT5F8xMzhfJgw6exeGXSoALio3dM7qHUMRQZMsN+MZ0tIIRhU0icptgT6Qh9ZTZeVC/zTt3DvQeOlVQVyM2MSxp+OOuGG3mToa6o57WLkbezOT5bn3+UHrK5e1vGroaAHeEeljLfKWiCCZgCUAUdFbt/ZOSlNH+oJAwH9KSaDrNIjD2WT8URJ4sm22NpoS8B6GNq9PJXGYeA+CGiAYNaRxI7A7Zr5+cwzNW7OAe0EnyAPqhY49ey6b53FgWNxXQ3dCB4DnV2cAavDz31UjTYurQSBAA4DFInbPTJFtO1jWUmCdaOmgLx1QHYY5CUS6LkU0vP78wrH8u0QWS3BYgrin8QOu5YYAqKUIj0TD7KiJTBv4g5nXaAPrm5vGuJ8SaHpzqLZeaCqZUde914uXozJU2UcHrfeuMZV1bxNeDpycKzfid80g6ZJH4d4zV4yrbLG1LxNo/VCH5dSoW3M7NKhXY1IJL22PnGKAjPPBDgXlHAoZiXL7z/VvbGACfmx3PtstloPjR9qAx/0KQl7TLKHs39tsdnMVIsn+Xd4lWMuG5Smrnm+jMHTnz7DscUaHt/weWGxQgeiXwiQEOiO3mIAmteoK+DLZfFA5CElD1UcBE+Ex/ElkyclHxK4F/ANPapJzgyg70t4K6WIwif0JfRL9HmaPSDsmbMs7sxMggtIqCygULTpQYan/+hW3jNnlN/NdxkveQi5WPPJ4npCixUMa/Dj9OesWn74Kkn+paxvArg8Zo+2AvK/h4aE3gOkOg+ftCyOxc6IQs";
+
+                        searchServerUid.CommandText =
+                            //// before
+                            //
+                            //"SELECT MainObjects.ServerUidId, MainObjects.Name " +
+                            //"FROM FileSystemObjects MainObjects " +
+                            //"INNER JOIN ServerUids MainUids ON MainObjects.ServerUidId = MainUids.ServerUidId " +
+                            //"INNER JOIN Events ON MainObjects.EventId = Events.EventId " +
+                            //"INNER JOIN FileSystemObjects Parents ON MainObjects.ParentFolderId = Parents.FileSystemObjectId " +
+                            //"INNER JOIN ServerUids ParentUids ON Parents.ServerUidId = ParentUids.ServerUidId " +
+                            //"WHERE MainObjects.Pending = 1 " +
+                            //"AND MainUids.ServerUid IS NULL " +
+                            //"AND Events.FileChangeTypeEnumId <> " + changeEnumsBackward[FileChangeType.Deleted].ToString() +
+                            //" AND ParentUids.ServerUid = ?" + // <-- parameter 1
+                            //" AND MainObjects.NameCIHash = ?" // <-- parameter 2
+                            //
+                            //// after (decrypted; {0}: changeEnumsBackward[FileChangeType.Deleted])
+                            //
+                            //SELECT MainObjects.ServerUidId, MainObjects.Name
+                            //FROM FileSystemObjects MainObjects
+                            //INNER JOIN ServerUids MainUids ON MainObjects.ServerUidId = MainUids.ServerUidId
+                            //INNER JOIN Events ON MainObjects.EventId = Events.EventId
+                            //INNER JOIN FileSystemObjects Parents ON MainObjects.ParentFolderId = Parents.FileSystemObjectId
+                            //INNER JOIN ServerUids ParentUids ON Parents.ServerUidId = ParentUids.ServerUidId
+                            //WHERE MainObjects.Pending = 1
+                            //AND MainUids.ServerUid IS NULL
+                            //AND Events.FileChangeTypeEnumId <> {0}
+                            //AND ParentUids.ServerUid = ?
+                            //AND MainObjects.NameCIHash = ?
+                            string.Format(
+                                Helpers.DecryptString(
+                                    selectFileSystemObjectByParentUidAndName,
+                                    Encoding.ASCII.GetString(
+                                        Convert.FromBase64String(indexDBPassword))),
+                                changeEnumsBackward[FileChangeType.Deleted]);
 
                         ISQLiteParameter parentUidParam = searchServerUid.CreateParameter();
                         parentUidParam.Value = parentFolderServerUid;
@@ -631,9 +718,9 @@ namespace Cloud.SQLIndexer
 
                             while (searchUidReader.Read())
                             {
-                                if (StringComparer.OrdinalIgnoreCase.Equals(Convert.ToString(searchUidReader["Name"]), name))
+                                if (StringComparer.OrdinalIgnoreCase.Equals(Convert.ToString(searchUidReader[Resources.NotTranslatedSqlIndexerName]), name))
                                 {
-                                    existingServerUidId = Convert.ToInt64(searchUidReader["ServerUidId"]);
+                                    existingServerUidId = Convert.ToInt64(searchUidReader[Resources.NotTranslatedSqlIndexerServerUidId]);
 
                                     break;
                                 }
@@ -666,7 +753,7 @@ namespace Cloud.SQLIndexer
             {
                 try
                 {
-                    throw new ObjectDisposedException("This IndexingAgent");
+                    throw new ObjectDisposedException(Resources.IndexingAgentThisIndexingAgent);
                 }
                 catch (Exception ex)
                 {
@@ -691,25 +778,55 @@ namespace Cloud.SQLIndexer
                     queryResult = null;
                     isPending = false;
 
+                    const string selectEventById = "XiF/n8DAmECRcpl1q3g5SOaFkrEO/c+iI1V66stCO9bB3hEK7nYGLuijwAsZ69MKKHe0UmlVXNE46Xe1g79swjJQypbvXXe7eZglXh6sLHo9InIxJpV0S12E0AmeiKBLbBC157Xkvz89qvl1+ADG9swUwr5jwIGdufPgd9mVZ+ToUXo7Ux5hQw4MHiu/1iJLNq4w1rRHAQYh5FAlCCyG9ik9fZkrsp2Jiz+0hX2QS0MA70TrgQZxH9GSEgF7VY1kOcaXqaubUd1rI3FdOgmigYYhyd2yyOIR0xuendQGLlYlKA51/9+9z4smgA2Dgvt6vAkpNDu60UOXqB7IQzCaNUSziZ6P0Yao8NthNo3YMY95tCWb4sZM8c7uR90xHLPe1/MAc8Z/UEofiWDGOVGw6bpg3nRjiHvVDOLO1N3sH1cp/KAv28o5VWA4q0v3az1OfhWWkUm79tMfdxSoRwea5heWno74jGeAfe0eqOno4ukjvABq5Dl0kbbDWY6sTkTZ0vjA3VH74n8uwJ1stD8hmwRBwicmbWcsoeA3VePskNld89eBGskRwicZPwxfakUO/DJ4t60lL087iZFGHyhnhtR6DXzItsKAJ3BJDUQIwC3IPdUoSebR++kDLkCYvXieXODYZylyCkX5vqyxM1dTs237KNsbQOViDCs73IPAFRbfDUtuXZPb+gMlSBIIRwXo+FxJeVn7yDA0aHKakXxlnNVbRt8FQWhfFs2O1XdxojNJCd1DEmDaHV98S2qG4HII9XLHaaoA2zUJzMOl/6Lu1wTSyI+j6e2lcdEG7WJ4qn26GsuMoiofIv4NS2KsPCd43ufJE9bo3CmQnccGx8r6AtbY7gJbdHMi2jUFfvBd0oAOl/xfiezGPVMf5DGLzzoBSKb6H+RrOE4WUHS/4vqMx8Sn75rjuehaChjcsUpBPmWhjHJ1Qn97L1y4lUDfWzg3";
+
                     foreach (Event existingEvent in SqlAccessor<Event>.SelectResultSet(
                             indexDB,
-                            "SELECT " +
-                                SqlAccessor<Event>.GetSelectColumns() + ", " +
-                                SqlAccessor<FileSystemObject>.GetSelectColumns("FileSystemObject") + ", " +
-                                SqlAccessor<FileSystemObject>.GetSelectColumns("Previous", "Previouses") +
-                                " FROM Events" +
-                                " INNER JOIN FileSystemObjects ON Events.EventId = FileSystemObjects.EventId" +
-                                " LEFT OUTER JOIN FileSystemObjects Previouses ON Events.PreviousId = FileSystemObjects.FileSystemObjectId" +
-                                " WHERE Events.EventId = ?" +
-                                " ORDER BY" +
-                                " CASE WHEN FileSystemObjects.EventOrder IS NULL" +
-                                " THEN 0" +
-                                " ELSE FileSystemObjects.EventOrder" +
-                                " END DESC",
+                            //// before
+                            //
+                            //"SELECT " +
+                            //    SqlAccessor<Event>.GetSelectColumns() + ", " +
+                            //    SqlAccessor<FileSystemObject>.GetSelectColumns(Resources.NotTranslatedSqlIndexerFileSystemObject) + ", " +
+                            //    SqlAccessor<FileSystemObject>.GetSelectColumns(Resources.NotTranslatedSqlIndexerPrevious, Resources.NotTranslatedSqlIndexerPreviouses) +
+                            //    " FROM Events" +
+                            //    " INNER JOIN FileSystemObjects ON Events.EventId = FileSystemObjects.EventId" +
+                            //    " LEFT OUTER JOIN FileSystemObjects Previouses ON Events.PreviousId = FileSystemObjects.FileSystemObjectId" +
+                            //    " WHERE Events.EventId = ?" +
+                            //    " ORDER BY" +
+                            //    " CASE WHEN FileSystemObjects.EventOrder IS NULL" +
+                            //    " THEN 0" +
+                            //    " ELSE FileSystemObjects.EventOrder" +
+                            //    " END DESC"
+                            //
+                            //// after (decrypted; {0}: SqlAccessor<Event>.GetSelectColumns()
+                            //// {1}: SqlAccessor<FileSystemObject>.GetSelectColumns(Resources.NotTranslatedSqlIndexerFileSystemObject)
+                            //// {2}: SqlAccessor<FileSystemObject>.GetSelectColumns(Resources.NotTranslatedSqlIndexerPrevious, Resources.NotTranslatedSqlIndexerPreviouses) )
+                            //
+                            //SELECT
+                            //{0},
+                            //{1},
+                            //{2}
+                            //FROM Events
+                            //INNER JOIN FileSystemObjects ON Events.EventId = FileSystemObjects.EventId
+                            //LEFT OUTER JOIN FileSystemObjects Previouses ON Events.PreviousId = FileSystemObjects.FileSystemObjectId
+                            //WHERE Events.EventId = ?
+                            //ORDER BY
+                            //CASE WHEN FileSystemObjects.EventOrder IS NULL
+                            //THEN 0
+                            //ELSE FileSystemObjects.EventOrder
+                            //END DESC
+                            string.Format(
+                                Helpers.DecryptString(
+                                    selectEventById,
+                                    Encoding.ASCII.GetString(
+                                        Convert.FromBase64String(indexDBPassword))),
+                                SqlAccessor<Event>.GetSelectColumns(),
+                                SqlAccessor<FileSystemObject>.GetSelectColumns(Resources.NotTranslatedSqlIndexerFileSystemObject),
+                                SqlAccessor<FileSystemObject>.GetSelectColumns(Resources.NotTranslatedSqlIndexerPrevious, Resources.NotTranslatedSqlIndexerPreviouses)),
                             new[]
                             {
-                                "FileSystemObject",
-                                "Previous"
+                                Resources.NotTranslatedSqlIndexerFileSystemObject,
+                                Resources.NotTranslatedSqlIndexerPrevious
                             },
                             selectParameters: Helpers.EnumerateSingleItem(eventId)))
                     {
@@ -791,7 +908,7 @@ namespace Cloud.SQLIndexer
             {
                 try
                 {
-                    throw new ObjectDisposedException("This IndexingAgent");
+                    throw new ObjectDisposedException(Resources.IndexingAgentThisIndexingAgent);
                 }
                 catch (Exception ex)
                 {
@@ -830,7 +947,7 @@ namespace Cloud.SQLIndexer
             {
                 try
                 {
-                    throw new ObjectDisposedException("This IndexingAgent");
+                    throw new ObjectDisposedException(Resources.IndexingAgentThisIndexingAgent);
                 }
                 catch
                 {
@@ -865,12 +982,27 @@ namespace Cloud.SQLIndexer
             FileSystemObject eventAObject = null;
             FileSystemObject eventBObject = null;
 
+            const string selectFileSystemObjectByEventId = "t3Ee1ulQLjs62aHw5E7nEHC3Yt6pkKQiMjDOMA00p+Qo1PZHGpfRx91FJNSloGZ3xDH11QktFYyaPHTl7mAN/QkLD0PnpC8sDmmRC3eIdnNwEv6VbgcYJMh2e8FkOh6pkTk+wvxmCRAw6xSk4LnkkKwhOy+K1PbDsM0gmAsv7FH9owvFUl6Kqdc6lKyE4dRdNY/BR7ifuAagqpifyIdzUO2HMAWtilo2ChITR0yPWGwgsxA3WnGPkaBknVI0jG/iTXOmwbu2CK1/r6YN+x/pdw==";
+
             foreach (FileSystemObject matchedEventObject in SqlAccessor<FileSystemObject>.SelectResultSet(
                 castTransaction.sqlConnection,
-                "SELECT *" +
-                    "FROM FileSystemObjects " +
-                    "WHERE FileSystemObjects.EventId = ? " + // <-- parameter 1
-                    "OR FileSystemObjects.EventId = ?", // <-- paremeter 2
+                //// before
+                //
+                //"SELECT *" +
+                //    "FROM FileSystemObjects " +
+                //    "WHERE FileSystemObjects.EventId = ? " + // <-- parameter 1
+                //    "OR FileSystemObjects.EventId = ?" // <-- paremeter 2
+                //
+                //// after (decrypted)
+                //
+                //SELECT *
+                //FROM FileSystemObjects
+                //WHERE FileSystemObjects.EventId = ?
+                //OR FileSystemObjects.EventId = ?
+                Helpers.DecryptString(
+                    selectFileSystemObjectByEventId,
+                    Encoding.ASCII.GetString(
+                        Convert.FromBase64String(indexDBPassword))),
                 transaction: castTransaction.sqlTransaction,
                 selectParameters: new[] { eventIdA, eventIdB }))
             {
@@ -911,12 +1043,30 @@ namespace Cloud.SQLIndexer
             {
                 swapEventOrders.Transaction = castTransaction.sqlTransaction;
 
-                swapEventOrders.CommandText = "UPDATE FileSystemObjects " +
-                    "SET EventOrder = ? " + // <-- parameter 1
-                    "WHERE FileSystemObjectId = ?; " + // <-- parameter 2
-                    "UPDATE FileSystemObjects " +
-                    "SET EventOrder = ? " + // <-- parameter 3
-                    "WHERE FileSystemObjectId = ?;";// <-- parameter 4
+                const string updateFileSystemObjectsById = "9tA4A9qheaxmqn5OBpSv86o8u/HE1U3uoVPGDIvO8uxFwbNTMjsBNV0TBKek0RAFwfuX4RFIfW1SlGaWLm/6a4w1L0VGWdOp1mFenOQFWvidNs96A2LvtvVNuJSRRd3dbDJ2uff0T9GfBcwjwcCQ/alEPFY/maTWztGEQe8iD4qrkqGb+KC2sdfiLg0AmjhDoPLxmuK1XyspJM3jfArYcPT4ql2QAqpn8GNUUt+X07fQ6Wc3tTR6oFgbDuPhVz8TZJwXKyMFRRvqv479d3x/7pjYxIBgqU2TcbExdyhpfrrO0cKLrHF3JOddQUfZBaVIGCfXO3HIIjDa3PDqHclWj0xZfCdRZ/k8iXTc8EaQHb/kuz6VK2y60oDzVIAw4qmasgYsdq+QVl9qWGCom/MOhxjG9dR7QQ5SBk2Z6j5ckcQ=";
+
+                swapEventOrders.CommandText =
+                    //// before
+                    //
+                    //"UPDATE FileSystemObjects " +
+                    //"SET EventOrder = ? " + // <-- parameter 1
+                    //"WHERE FileSystemObjectId = ?; " + // <-- parameter 2
+                    //"UPDATE FileSystemObjects " +
+                    //"SET EventOrder = ? " + // <-- parameter 3
+                    //"WHERE FileSystemObjectId = ?;" // <-- parameter 4
+                    //
+                    //// after (decrypted)
+                    //
+                    //UPDATE FileSystemObjects
+                    //SET EventOrder = ?
+                    //WHERE FileSystemObjectId = ?;
+                    //UPDATE FileSystemObjects
+                    //SET EventOrder = ?
+                    //WHERE FileSystemObjectId = ?;
+                    Helpers.DecryptString(
+                        updateFileSystemObjectsById,
+                        Encoding.ASCII.GetString(
+                            Convert.FromBase64String(indexDBPassword)));
 
                 ISQLiteParameter eventBOrderParam = swapEventOrders.CreateParameter();
                 eventBOrderParam.Value = eventBObject.EventOrder;
@@ -944,7 +1094,7 @@ namespace Cloud.SQLIndexer
             {
                 try
                 {
-                    throw new ObjectDisposedException("This IndexingAgent");
+                    throw new ObjectDisposedException(Resources.IndexingAgentThisIndexingAgent);
                 }
                 catch (Exception ex)
                 {
@@ -963,39 +1113,80 @@ namespace Cloud.SQLIndexer
 
                 using (ISQLiteConnection indexDB = CreateAndOpenCipherConnection())
                 {
+                    const string selectFileSystemObjectByUid = "AgH+ETlwi8JFbGkqRXjqdKTh9CEhp0rFMSM6QTpmaYxrMgdgf7inZdXwgEuqXuYMR07cBwbt10hS8kRRyr8PVUl1vGvN+5X72diozXNAmWM6H173dlUMwHqQRoQXrKkLgNYNNVsIwFDUUB0jMNPpRqQD3IZKfC1ivXoiLjexXqAmdSxKiAv+mjj40Ah4q+djiEVFFqEVMcjYV/3FvYPlirYr3Jh14G6rN1dZmldugBTtnRG3F98UrGOkitHyJtO2lQCOfYRVZL5OQk7+cSoVXy9198iXdkMMLAs0OvIujjdEEywPXQv7MiPu2PQTu9FS7my3l8vrj4LFFHS/Rm3iP68QVVtJ4XSc6buDfpERoHbC9/CQ+gTonzt+p+ahh7B+2D/BB3UYdNHsJvE33OcHr8fOzN9aRrEtR0W2vfTTX+h69qnfZYjxxCXvpEm/7aRlxIO3oJJNMfIcWjZpCkcwhipmlmswR7SZeJCPb36ZwPTLxERj847Ua1bQLeQxhxNYMOnIPzReyMSDazB7vV6EPOMu7NfNS8Tpgg8OiYVzrB1zidh6vWNk6p4WrML0WioR07kn8UGPDYMZBkqqFNs1q0tHQkk1ooXL3n+M/ZGO4fTtb6LbMGqc1USBk5qJ6Us/0oqSmtqME92Xk+wZ6qOEdZqXaNinmR7MdBj9c6NOWTd2VXRSCg67r3MLzdcqFKeMEn9gdWKugpE2HzBWRXMeiwjd/qzptSaQ69PUbqAYn67rRWoToiNJpN9ssK/MeZ8frxnRDjVrZE4FibotufDvMYFXsspMvNvwPsR9p1Lm6xA7WNCmC78lBR8FdVmD+UtsLCZ+55+H1npNYqA6yAuqJCOHOnB+WjCrwk2i/Majxp9fgg+osKMVZwrVsUFqM2QojpF4AK9STfawFCOLalgo7X9D7a9PwvUQAv33pIKoBWD8XAlO6zbKwLKTyqhl4RCqd3gEpmmsXKxOqKdRI6Qb7xdotN3ci25Ew6x/d6p4BtqZtFFlLxFSJzfpiGpdXC5vyeNH1PRKOKlPZwea/lPeTUYOANPz3DWtAvnz5CJSxYw99oB23rfKbWVbLhk8vszlTpzEmCNGmr6ud6we6OlUtGh7LDid/A+nkLarYpSmb7WY8wXucpMxp1ZUJjCVroC9bOiNt4zup0kaS0qfctZiXPOVvgSMF0rjVASSZUrPv0lPyh7jQPADRmDHhiK1qLYdiEHttD40whht5bjPeatFHB8wUtG3chA6vVBhuKVxoWIREGQuKk6MDYf8Bgp5oj9jpzVxPFGsymhB6NWkZUBAEjInu+ez93mNWNwzEbP/HbeA7y85i4wzqCsnb2wv4hefhvWQUm1uPK+U9UIAjWZdIU6tVSSujChfrgi8czhwJkZH8orMm3N6bjbjiduIte1h42bYgq45N+hTn2JxImOkceQvx+Ib7feUr5f8klnDmDFV9FSqOwmvGtaRCu3Mn1jfgn71y/NW1oJJ2fOf6UKSfSIWrvD3tyJX5PYDDBZmRWtTddoFajConcF8iese1NgWETm0Tr/QNBskxQZxhdjV7s0iZ9Acav64Tncv7W6gVrZrt/vd44EWZ2ixLlP2HEg1PF+o7tsOIo8PPjSQJCq2NfDU62f0lULryxys8BuNcq8Tog2UEGLyk/rou4TqS1Z47Q+hV6H60b2al4u8ZJOBc/TFoEJ6l+nN4LJg+v1YVooV2/GCDPnUEJb4crmJcYB4dktb+f+iUx53r5IPcg6xZ24UwlDMAPL47tdsD5LF34PMGND+FK5HmJDb7XXUC9GCMdBIyuYVMaADLaVh68VmmIUAizMYk9TBEghk08zWdPJORYn9SNn34ij/HjRmLL2fD0VQ8BCdLNG0tEqf9ImzWD5zZSonKe16Z8PhGfLFTWLNBO7GsSyzE7KVskgZK8lK3xjmqNPWCPR4LRzhwXhJWLdV0+pZzULJRfjvAKwa5gSS4TvDg5nCENMnouSXw98tXsY/Cp3bf0vFZuMHAJdGvxU3Kj7wWsIHMbPKa/dyX2GwZex08tfHpdYfZ8Y5vx4e9xoIrNb3TRxKxvbnoEXPyDO97PUQUfo9wPMJH/Ogyxo6W8h2ZFx2axQILIyyKs9tFkdoVkPUAXm1JDrBQqYRyPHoMxiYEPEUNhnmZUNBDfLUxMCzxhbgbJn8Szh27O4wP9nfUuEFtyGFx7nMmR0bVHqoGN+nkgs8gDpEAmZkExJrSkH/e4EawG1Lln/s5G/grYupyXkFoc6QkGCngDRCExCmjFH9K2qf0btAc3SGoHX68os65eAdZk1KKP5v8TfhXLnrQEONPxmN7qWPCJ2N+Rox1VYUKrPNNWmYlEqCDTTP5E0Mk0KsQpTAkqgzPHWuevrQiB2M6RLppkXtOPIZEyhHTF2gPgAizHm4CoJXfRnRACShUZHSkg5lewgUdTOE";
+
                     // prefers the latest rename which is pending,
                     // otherwise prefers non-pending,
                     // last take most recent event
                     if (!SqlAccessor<object>.TrySelectScalar<string>(
                         indexDB,
-                        "SELECT FileSystemObjects.CalculatedFullPath " +
-                            "FROM FileSystemObjects " +
-                            "LEFT OUTER JOIN " +
-                            "(" +
-                                "SELECT InnerObjects.EventOrder " +
-                                "FROM FileSystemObjects InnerObjects " +
-                                "WHERE InnerObjects.EventId IS NOT NULL " +
-                                "AND InnerObjects.EventOrder IS NOT NULL " +
-                                "AND InnerObjects.EventId = ? " + // <-- parameter 1
-                                "LIMIT 1" +
-                            ") ConstantJoin " +
-                            "LEFT OUTER JOIN Events ON FileSystemObjects.EventId = Events.EventId " +
-                            "INNER JOIN ServerUids ON FileSystemObjects.ServerUidId = ServerUids.ServerUidId " +
-                            "WHERE ServerUids.ServerUid = ? " + // <-- parameter 2
-                            "AND (ConstantJoin.EventOrder IS NULL OR FileSystemObjects.EventId IS NULL OR ConstantJoin.EventOrder > FileSystemObjects.EventOrder) " +
-                            "ORDER BY " +
-                            "CASE WHEN FileSystemObjects.EventId IS NOT NULL " +
-                            "AND Events.FileChangeTypeEnumId = " + changeEnumsBackward[FileChangeType.Renamed].ToString() +
-                            " AND FileSystemObjects.Pending = 1 " +
-                            "THEN 0 " +
-                            "ELSE 1 " +
-                            "END ASC, " +
-                            "FileSystemObjects.Pending ASC, " +
-                            "CASE WHEN FileSystemObjects.EventOrder IS NULL " +
-                            "THEN 0 " +
-                            "ELSE FileSystemObjects.EventOrder " +
-                            "END DESC " +
-                            "LIMIT 1",
+                        //// before
+                        //
+                        //"SELECT FileSystemObjects.CalculatedFullPath " +
+                        //    "FROM FileSystemObjects " +
+                        //    "LEFT OUTER JOIN " +
+                        //    "(" +
+                        //        "SELECT InnerObjects.EventOrder " +
+                        //        "FROM FileSystemObjects InnerObjects " +
+                        //        "WHERE InnerObjects.EventId IS NOT NULL " +
+                        //        "AND InnerObjects.EventOrder IS NOT NULL " +
+                        //        "AND InnerObjects.EventId = ? " + // <-- parameter 1
+                        //        "LIMIT 1" +
+                        //    ") ConstantJoin " +
+                        //    "LEFT OUTER JOIN Events ON FileSystemObjects.EventId = Events.EventId " +
+                        //    "INNER JOIN ServerUids ON FileSystemObjects.ServerUidId = ServerUids.ServerUidId " +
+                        //    "WHERE ServerUids.ServerUid = ? " + // <-- parameter 2
+                        //    "AND (ConstantJoin.EventOrder IS NULL OR FileSystemObjects.EventId IS NULL OR ConstantJoin.EventOrder > FileSystemObjects.EventOrder) " +
+                        //    "ORDER BY " +
+                        //    "CASE WHEN FileSystemObjects.EventId IS NOT NULL " +
+                        //    "AND Events.FileChangeTypeEnumId = " + changeEnumsBackward[FileChangeType.Renamed].ToString() +
+                        //    " AND FileSystemObjects.Pending = 1 " +
+                        //    "THEN 0 " +
+                        //    "ELSE 1 " +
+                        //    "END ASC, " +
+                        //    "FileSystemObjects.Pending ASC, " +
+                        //    "CASE WHEN FileSystemObjects.EventOrder IS NULL " +
+                        //    "THEN 0 " +
+                        //    "ELSE FileSystemObjects.EventOrder " +
+                        //    "END DESC " +
+                        //    "LIMIT 1"
+                        //
+                        //// after (decrypted; {0}: changeEnumsBackward[FileChangeType.Renamed])
+                        //
+                        //SELECT FileSystemObjects.CalculatedFullPath
+                        //FROM FileSystemObjects
+                        //LEFT OUTER JOIN
+                        //(
+                        //SELECT InnerObjects.EventOrder
+                        //FROM FileSystemObjects InnerObjects
+                        //WHERE InnerObjects.EventId IS NOT NULL
+                        //AND InnerObjects.EventOrder IS NOT NULL
+                        //AND InnerObjects.EventId = ?
+                        //LIMIT 1
+                        //) ConstantJoin
+                        //LEFT OUTER JOIN Events ON FileSystemObjects.EventId = Events.EventId
+                        //INNER JOIN ServerUids ON FileSystemObjects.ServerUidId = ServerUids.ServerUidId
+                        //WHERE ServerUids.ServerUid = ?
+                        //AND (ConstantJoin.EventOrder IS NULL OR FileSystemObjects.EventId IS NULL OR ConstantJoin.EventOrder > FileSystemObjects.EventOrder)
+                        //ORDER BY
+                        //CASE WHEN FileSystemObjects.EventId IS NOT NULL
+                        //AND Events.FileChangeTypeEnumId = {0}
+                        //AND FileSystemObjects.Pending = 1
+                        //THEN 0
+                        //ELSE 1
+                        //END ASC,
+                        //FileSystemObjects.Pending ASC,
+                        //CASE WHEN FileSystemObjects.EventOrder IS NULL
+                        //THEN 0
+                        //ELSE FileSystemObjects.EventOrder
+                        //END DESC
+                        //LIMIT 1
+                        string.Format(
+                            Helpers.DecryptString(
+                                selectFileSystemObjectByUid,
+                                Encoding.ASCII.GetString(
+                                    Convert.FromBase64String(indexDBPassword))),
+                            changeEnumsBackward[FileChangeType.Renamed]),
                         out calculatedFullPath,
                         selectParameters: new[] { excludedEventId, (object)serverUid }))
                     {
@@ -1018,7 +1209,7 @@ namespace Cloud.SQLIndexer
             {
                 try
                 {
-                    throw new ObjectDisposedException("This IndexingAgent");
+                    throw new ObjectDisposedException(Resources.IndexingAgentThisIndexingAgent);
                 }
                 catch (Exception ex)
                 {
@@ -1050,22 +1241,42 @@ namespace Cloud.SQLIndexer
 
                 namePortions.Reverse();
 
-                string pathCIHashes = string.Join("\\",
+                string pathCIHashes = string.Join(((char)0x5c /* \ */).ToString(),
                     namePortions.Select(currentPortion => StringComparer.OrdinalIgnoreCase.GetHashCode(currentPortion).ToString()));
 
                 using (ISQLiteConnection indexDB = CreateAndOpenCipherConnection())
                 {
                     using (ISQLiteCommand existingUidCommand = indexDB.CreateCommand())
                     {
-                        existingUidCommand.CommandText = "SELECT ServerUids.ServerUid, FileSystemObjects.CalculatedFullPath " +
-                            "FROM FileSystemObjects " +
-                            "INNER JOIN ServerUids ON FileSystemObjects.ServerUidId = ServerUids.ServerUidID " +
-                            "WHERE FileSystemObjects.CalculatedFullPathCIHashes = ? " + // <-- parameter 1
-                            "ORDER BY " +
-                            "CASE WHEN FileSystemObjects.EventOrder IS NULL " +
-                            "THEN 0 " +
-                            "ELSE FileSystemObjects.EventOrder " +
-                            "END DESC";
+                        const string selectServerUidByFullPathHash = "WoSiN1iPXeT1ZD9VT//d8Jz8cdTqLc7gxRqmo361fGSIF0WCOpTjrV0d7/XDXFSpPOz+6TNS+xaN1IyZwybY1c2IsyMg0YyTZMeykk9p65VAs0vSPs5lKAHTBb1/PR/hfFt5rMyc2HwYLEu9cvTmzlHvo4Mj2T8gXpsDAsxoev/8nBXmikmQAtoWhEAFQuxTRU855YB++ok9Y6Tk7zE9GvZt9SON1GCdeYHFG5stVhPMXbX1P1rG5lKkkjs1x5EQF/8hEwLPbXq8BM3f6iRs+I1EZFNmb5PyhgjhrElGhIuqbqSxOG2Xo4j8gb4VBwMD6LoIW3SJ+Ol4e0+CSvrjmK0BokT7V59lnat9HEFiZqSgZQjUbtSMjXjTqP3azBxHapoa1h48V+anFC4+C/uW+rFlM9sKubBV7EAF3sArw0thTTKrN4iQ5W+FDfr+GZaM6Omr/80FaPQCY2sGfCSjsBASxnz1fGx201yZRhpcPrtSqb560UyCt0GugcaXZWEr0d3diEWguhn851IGzcNwJC/OJsSfsWyjXW9TdztTGG75wBvkaH09oMw8qjrVMGXTUkhQcZ58joOzXd3BrfZqsvDscGbN7FHPH88GHtyXtPDUzvQ9VcTQDMYLYGFizpFMPtcAG7qQGelK+bmMkv6wmsrqLKXvsB2c3ddYYOkZsHGXN3xjuqpF71p/6mEZONiFpcqPfvMvQ9+RObyLu0te9i6YQFuQxjJPojkO2AsYSdz0HwZWzdwuw9C4IrOD3sGCwb1+Spzmpg2WYYs4rbYlX4d+L1DMsIb3DOh7zxL/4NWyllOCsZlS9MrEzTPgSnhtltTiz6q5O+BRTO+MVn7Mr7FsjaEYt5znfrpEHPNVZHrPAdCr/ODiVj5/9V7NqXyaaIgYBedTmnTGy8FTCNqwjQ==";
+
+                        existingUidCommand.CommandText =
+                            //// before
+                            //
+                            //"SELECT ServerUids.ServerUid, FileSystemObjects.CalculatedFullPath " +
+                            //"FROM FileSystemObjects " +
+                            //"INNER JOIN ServerUids ON FileSystemObjects.ServerUidId = ServerUids.ServerUidID " +
+                            //"WHERE FileSystemObjects.CalculatedFullPathCIHashes = ? " + // <-- parameter 1
+                            //"ORDER BY " +
+                            //"CASE WHEN FileSystemObjects.EventOrder IS NULL " +
+                            //"THEN 0 " +
+                            //"ELSE FileSystemObjects.EventOrder " +
+                            //"END DESC"
+                            //
+                            //// after (decrypted)
+                            //SELECT ServerUids.ServerUid, FileSystemObjects.CalculatedFullPath
+                            //FROM FileSystemObjects
+                            //INNER JOIN ServerUids ON FileSystemObjects.ServerUidId = ServerUids.ServerUidID
+                            //WHERE FileSystemObjects.CalculatedFullPathCIHashes = ?
+                            //ORDER BY
+                            //CASE WHEN FileSystemObjects.EventOrder IS NULL
+                            //THEN 0
+                            //ELSE FileSystemObjects.EventOrder
+                            //END DESC
+                            Helpers.DecryptString(
+                                selectServerUidByFullPathHash,
+                                Encoding.ASCII.GetString(
+                                    Convert.FromBase64String(indexDBPassword)));
 
                         ISQLiteParameter pathCIHashesParam = existingUidCommand.CreateParameter();
                         pathCIHashesParam.Value = pathCIHashes;
@@ -1077,9 +1288,9 @@ namespace Cloud.SQLIndexer
 
                             while (existingObjectReader.Read())
                             {
-                                if (StringComparer.OrdinalIgnoreCase.Equals(Convert.ToString(existingObjectReader["CalculatedFullPath"]), newPath))
+                                if (StringComparer.OrdinalIgnoreCase.Equals(Convert.ToString(existingObjectReader[Resources.NotTranslatedSqlIndexerCalculatedFullPath]), newPath))
                                 {
-                                    serverUid = Convert.ToString(existingObjectReader["ServerUid"]);
+                                    serverUid = Convert.ToString(existingObjectReader[Resources.NotTranslatedSqlIndexerServerUid]);
 
                                     break;
                                 }
@@ -1110,7 +1321,7 @@ namespace Cloud.SQLIndexer
             //{
             //    try
             //    {
-            //        throw new ObjectDisposedException("This IndexingAgent");
+            //        throw new ObjectDisposedException(Resources.IndexingAgentThisIndexingAgent);
             //    }
             //    catch (Exception ex)
             //    {
@@ -1126,7 +1337,8 @@ namespace Cloud.SQLIndexer
         //    //        // Pull the last sync from the database
         //    //        SqlSync lastSync = SqlAccessor<SqlSync>
         //    //            .SelectResultSet(indexDB,
-        //    //                "SELECT TOP 1 * FROM [Syncs] ORDER BY [Syncs].[SyncCounter] DESC")
+        //    //                //// before // // "SELECT TOP 1 * FROM [Syncs] ORDER BY [Syncs].[SyncCounter] DESC" // //// after // // [missing]
+        //    //                )
         //    //            .SingleOrDefault();
 
         //    //        // Default the sync states (to null) if there was never a sync
@@ -1150,7 +1362,8 @@ namespace Cloud.SQLIndexer
         //    //            // Loop through all sync states for the last sync
         //    //            foreach (FileSystemObject currentSyncState in SqlAccessor<FileSystemObject>
         //    //                .SelectResultSet(indexDB,
-        //    //                    "SELECT * FROM [FileSystemObjects] WHERE [FileSystemObjects].[SyncCounter] = " + lastSync.SyncCounter.ToString()))
+        //    //                    //// before // // "SELECT * FROM [FileSystemObjects] WHERE [FileSystemObjects].[SyncCounter] = " + lastSync.SyncCounter // //// after // // [missing]
+        //    //                    ))
         //    //            {
         //    //                if (mappedSyncStates.ContainsKey(currentSyncState.FileSystemObjectId))
         //    //                {
@@ -1222,7 +1435,7 @@ namespace Cloud.SQLIndexer
             {
                 try
                 {
-                    throw new ObjectDisposedException("This IndexingAgent");
+                    throw new ObjectDisposedException(Resources.IndexingAgentThisIndexingAgent);
                 }
                 catch (Exception ex)
                 {
@@ -1254,25 +1467,66 @@ namespace Cloud.SQLIndexer
 
                 namePortions.Reverse();
 
-                string pathCIHashes = string.Join("\\",
+                string pathCIHashes = string.Join(((char)0x5c /* \ */).ToString(),
                     namePortions.Select(currentPortion => StringComparer.OrdinalIgnoreCase.GetHashCode(currentPortion).ToString()));
 
                 using (ISQLiteConnection indexDB = CreateAndOpenCipherConnection())
                 {
+                    const string selectFileSystemObjectByFullPathHash = "t3Ee1ulQLjs62aHw5E7nEHC3Yt6pkKQiMjDOMA00p+Qo1PZHGpfRx91FJNSloGZ3xDH11QktFYyaPHTl7mAN/XsQPT9eyFcyOPzFnJGIGwO7e3uf9CaURqWU8Fck+B4hGqcB1XKdle+E3yJPqcg821CpRNu1/VdZifFtH/jz/TRaoON1XE/nxcfUWCCpyHZQavqxfWY8yic2EYWylYcApe4I9V2ctpQkFQQ/dk+aEVcae+yRZFdt3L/WRzuRH9oObDpG0ciS9Z8wfe5ChHgQDiLJXyQjKX6H8g1kvADUWfIQNb8o782MqyEfLEJfEAJlYX+0hwdWcoHKppIB0rItpwUJyhgzJ8v05jUA8tugjcPE0OFZ70hXYYsl83LwHiMSf5FDCToVE13XZJZrTJ0XA2DXhA3i31hiTwULvLU9Q0PwSptGfv/guDZ1IyrX3kWe8LLZ+5t7UVbq6GL2Fw+vISBRGTuXZaVvlZtKBABg+pT71ZPki1lyAfAZsP0bvkAT/DNrYVXDsD+HGfQGmvfSLys1gy1ngUg3CaIwIOOOx5fBMLJh534k91qQkkjBOSTLroxatmjMsTcxf78eMaYDtjbKOdldQU7hOSjVEbOrbqFxzJ2NXBfEzmsVoVbZV8tYFV/Ams7VUv7SfPyp2Fatw1vO4qguJhaxZv+2bflDTv6KjFdUVR6UA3RgUC38Z/6HsEkmpPP1A2wqFo48c0deKQ==";
+                    const string conditionalWhereRevision = "rNW69hWt8J3a4azuZvJQbreriKnw3+XuHGnmYWaF38EQc7HQdmzg3V2uMC74da2lJ+nD7DeQlmItMZj/8v+VcA==";
+
                     FileSystemObject existingNonPending = SqlAccessor<FileSystemObject>.SelectResultSet(
                             indexDB,
-                            "SELECT * " +
-                                "FROM FileSystemObjects " +
-                                "INNER JOIN ServerUids ON FileSystemObjects.ServerUidId = ServerUids.ServerUidId " +
-                                "WHERE CalculatedFullPathCIHashes = ? " + // <-- parameter 1
+                            //// before
+                            //
+                            //// selectFileSystemObjectByFullPathHash
+                            //
+                            //"SELECT * " +
+                            //    "FROM FileSystemObjects " +
+                            //    "INNER JOIN ServerUids ON FileSystemObjects.ServerUidId = ServerUids.ServerUidId " +
+                            //    "WHERE CalculatedFullPathCIHashes = ? " + // <-- parameter 1
+                            //    (revision == null
+                            //        ? string.Empty
+                            //        : conditionalWhereRevision) + // <-- conditional parameter 2
+                            //    "ORDER BY " +
+                            //    "CASE WHEN FileSystemObjects.EventOrder IS NULL " +
+                            //    "THEN 0 " +
+                            //    "ELSE FileSystemObjects.EventOrder " +
+                            //    "END DESC"
+                            //
+                            //// conditionalWhereRevision
+                            //
+                            //"AND ServerUids.Revision = ? "
+                            //
+                            //// after (decrypted; {0}: (revision == null ? string.Empty : conditionalWhereRevision [decrypted]) )
+                            //
+                            //// selectFileSystemObjectByFullPathHash
+                            //SELECT *
+                            //FROM FileSystemObjects
+                            //INNER JOIN ServerUids ON FileSystemObjects.ServerUidId = ServerUids.ServerUidId
+                            //WHERE CalculatedFullPathCIHashes = ?
+                            //{0}
+                            //ORDER BY
+                            //CASE WHEN FileSystemObjects.EventOrder IS NULL
+                            //THEN 0
+                            //ELSE FileSystemObjects.EventOrder
+                            //END DESC
+                            //
+                            //// conditionalWhereRevision
+                            //
+                            //AND ServerUids.Revision = ?
+                            string.Format(
+                                Helpers.DecryptString(
+                                    selectFileSystemObjectByFullPathHash,
+                                    Encoding.ASCII.GetString(
+                                        Convert.FromBase64String(indexDBPassword))),
                                 (revision == null
                                     ? string.Empty
-                                    : "AND ServerUids.Revision = ? ") + // <-- conditional parameter 2
-                                "ORDER BY " +
-                                "CASE WHEN FileSystemObjects.EventOrder IS NULL " +
-                                "THEN 0 " +
-                                "ELSE FileSystemObjects.EventOrder " +
-                                "END DESC",
+                                    : Helpers.DecryptString(
+                                        conditionalWhereRevision,
+                                        Encoding.ASCII.GetString(
+                                            Convert.FromBase64String(indexDBPassword))))),
+
                                 selectParameters: (revision == null ? Helpers.EnumerateSingleItem(pathCIHashes) : new[] { pathCIHashes, revision }))
                         .FirstOrDefault(currentNonPending => StringComparer.OrdinalIgnoreCase.Equals(currentNonPending.CalculatedFullPath, path));
 
@@ -1322,7 +1576,7 @@ namespace Cloud.SQLIndexer
             //{
             //    try
             //    {
-            //        throw new ObjectDisposedException("This IndexingAgent");
+            //        throw new ObjectDisposedException(Resources.IndexingAgentThisIndexingAgent);
             //    }
             //    catch (Exception ex)
             //    {
@@ -1343,13 +1597,19 @@ namespace Cloud.SQLIndexer
         //            foreach (Event currentChange in
         //                SqlAccessor<Event>
         //                    .SelectResultSet(indexDB,
-        //                        "SELECT " +
-        //                        SqlAccessor<Event>.GetSelectColumns() + ", " +
-        //                        SqlAccessor<FileSystemObject>.GetSelectColumns(FileSystemObject.Name) +
-        //                        "FROM [Events] " +
-        //                        "INNER JOIN [FileSystemObjects] ON [Events].[EventId] = [FileSystemObjects].[EventId] " +
-        //                        "WHERE [FileSystemObjects].[SyncCounter] IS NULL " +
-        //                        "ORDER BY [Events].[EventId]",
+        //                        //// before
+        //                        //
+        //                        //"SELECT " +
+        //                        //SqlAccessor<Event>.GetSelectColumns() + ", " +
+        //                        //SqlAccessor<FileSystemObject>.GetSelectColumns(FileSystemObject.Name) +
+        //                        //"FROM [Events] " +
+        //                        //"INNER JOIN [FileSystemObjects] ON [Events].[EventId] = [FileSystemObjects].[EventId] " +
+        //                        //"WHERE [FileSystemObjects].[SyncCounter] IS NULL " +
+        //                        //"ORDER BY [Events].[EventId]"
+        //                        //
+        //                        //// after (decrypted)
+        //                        //
+        //                        // [missing]
         //                        new string[]
         //                        {
         //                            FileSystemObject.Name
@@ -1402,7 +1662,7 @@ namespace Cloud.SQLIndexer
             {
                 try
                 {
-                    throw new ObjectDisposedException("This IndexingAgent");
+                    throw new ObjectDisposedException(Resources.IndexingAgentThisIndexingAgent);
                 }
                 catch (Exception ex)
                 {
@@ -1420,7 +1680,7 @@ namespace Cloud.SQLIndexer
             {
                 if (disposed)
                 {
-                    throw new ObjectDisposedException("This IndexingAgent");
+                    throw new ObjectDisposedException(Resources.IndexingAgentThisIndexingAgent);
                 }
 
                 if (existingTransaction != null
@@ -1531,25 +1791,6 @@ namespace Cloud.SQLIndexer
                             // prefers the latest rename which is pending,
                             // otherwise prefers non-pending,
                             // last take most recent event
-                            const string objectIdByPathSelectPart1 =
-                                "SELECT FileSystemObjects.FileSystemObjectId, FileSystemObjects.CalculatedFullPath " +
-                                    "FROM FileSystemObjects " +
-                                    "LEFT OUTER JOIN Events ON FileSystemObjects.EventId = Events.EventId " +
-                                    "WHERE FileSystemObjects.CalculatedFullPathCIHashes = ? " + // <-- parameter 1
-                                    "ORDER BY " +
-                                    "CASE WHEN FileSystemObjects.EventId IS NOT NULL " +
-                                    "AND Events.FileChangeTypeEnumId = ";
-                            // parts to be seperated by: changeEnumsBackward[FileChangeType.Renamed].ToString()
-                            const string objectIdByPathSelectPart2 =
-                                " AND FileSystemObjects.Pending = 1 " +
-                                    "THEN 0 " +
-                                    "ELSE 1 " +
-                                    "END ASC, " +
-                                    "FileSystemObjects.Pending ASC, " +
-                                    "CASE WHEN FileSystemObjects.EventOrder IS NULL " +
-                                    "THEN 0 " +
-                                    "ELSE FileSystemObjects.EventOrder " +
-                                    "END DESC";
 
                             Func<SQLTransactionalImplementation, FilePath, Nullable<long>> objectIdByPathSelect = (innerCastTransaction, pathToSearch) =>
                             {
@@ -1568,14 +1809,59 @@ namespace Cloud.SQLIndexer
 
                                 namePortions.Reverse();
 
-                                string pathCIHashes = string.Join("\\",
+                                string pathCIHashes = string.Join(((char)0x5c /* \ */).ToString(),
                                     namePortions.Select(currentPortion => StringComparer.OrdinalIgnoreCase.GetHashCode(currentPortion).ToString()));
 
                                 using (ISQLiteCommand objectIdSearchCommand = innerCastTransaction.sqlConnection.CreateCommand())
                                 {
                                     objectIdSearchCommand.Transaction = innerCastTransaction.sqlTransaction;
 
-                                    objectIdSearchCommand.CommandText = objectIdByPathSelectPart1 + changeEnumsBackward[FileChangeType.Renamed].ToString() + objectIdByPathSelectPart2;
+                                    const string selectFileSystemObjectIdByFullPathHash = "AgH+ETlwi8JFbGkqRXjqdKTh9CEhp0rFMSM6QTpmaYxrMgdgf7inZdXwgEuqXuYM4A9CJRjJ2AJWbK+2XeEfjsHjbyLTBN0A1N3nA0Q4qVNOEMU6uWFsvHIyt+vO7mRotjaQ6thfD0JG4dEBb6CwJ89vQ95+fzquzuLa1c96VgT54coYBhS2C3tyaw2edsBVJbPHBY9AoOd9jpwEk6+Ny/P2L3tYZ6e5uNxcENQzO/pwOGbYha42a1U+38dVMSoqKkQlnmRH0i19cmrh06Kfa+HDXNoDtQGeRTdcqYxQ24UwH4iTCkbvmopF3okXukWm6IiVorCtfxanLcCgfSmsTYVyRksXaRRsiGGlY3B2CMrxHZ8fRTMEdXK+uxPUo09L+rVnigXHTZ59cdYTr7/Mtv63p8+MDJ0W5PQU6SxYTNMhpbbbxMXsgBAVOOY13PbeH+xv1sOrTlFHg2WNKC/LTASc/P6eagesR9E4M3YHu6G9pX8jX0vht0wwmhHJMKyoUWgZ/X0smf/FBqPjecsz2RG48AXFJssSbtOe4L8HaWXJZYGVGcJzRFaqa1URGRw6w60pQhzRiAGx7uPJzJhpBfmzkeFX0Acehvo84RdpN/I2hyYGYkyM/1hyP8DaH33oGKX/4h3ljgOoSWHg+wSiztzJkdUfD5txj9u36njaf194EP1/BBT0EI38d2caDWqLOioEZrRu1OeJ72tikM5770H28wY8m+TQdXHC39MBEKtfZC97KqF9kgPxU2Yq3GuzfJ57DH875K/31mKJg3o23MhwWbdtaCSB0rL6aExXg5NoqvTzskiby0MkagZNrn6jROJ4jWiSsAfyP2INKwPoEJB7RWpTaR/2x8y1mCjP6Ks5OKNC4tV7xDz3byNP1DrSUBKKY50WyZtQfgjDwTqOYm2H/NN+BIxLhIM8mWWy0SLiTWQSq71UedyEtNxAxnTbznMjX4/uL7s9ftatza7sn8lwuc6Hdw0tIIV/WpXQUA7JB+KB2msX6DoafQbMe60ySKHVTijiNB86EtgKWXcJTbgtWNTnk/9rwBJPRV7IDbCQg+JWjo/qSipmOONAcA96Xp9DTePG2ih2UglnxoHnsubeKvhfdW1rM9GTZvsPYvQbxQEWtdTv0E5el0ryg1BjYI9K1QfTiKChVK9xYb/NdzQTbQ9j8zViX1QmUy1aVJVZGs49HFDKGYdzcORuugiTFBG2e3Arcn5NO4/YlWK7PHsgUe8TNpuyx8dyvNbzKanOt+mYKpBEUAU4Mw2pf3kpTPKTncuqsf1vMLZ4t7dFV9GfjLCWFD5uX+8M19lBiWwiCbvw6bsHA0c4klrWBY5HNr4H91hqIPiHhkU4dOaecMzbUGhttMzdCPYYDOBHKcYMZOaoLyM9znYtGJON+KaY";
+
+                                    objectIdSearchCommand.CommandText =
+                                        //// before
+                                        //
+                                        //"SELECT FileSystemObjects.FileSystemObjectId, FileSystemObjects.CalculatedFullPath " +
+                                        //    "FROM FileSystemObjects " +
+                                        //    "LEFT OUTER JOIN Events ON FileSystemObjects.EventId = Events.EventId " +
+                                        //    "WHERE FileSystemObjects.CalculatedFullPathCIHashes = ? " + // <-- parameter 1
+                                        //    "ORDER BY " +
+                                        //    "CASE WHEN FileSystemObjects.EventId IS NOT NULL " +
+                                        //    "AND Events.FileChangeTypeEnumId = " + changeEnumsBackward[FileChangeType.Renamed] +
+                                        //    " AND FileSystemObjects.Pending = 1 " +
+                                        //    "THEN 0 " +
+                                        //    "ELSE 1 " +
+                                        //    "END ASC, " +
+                                        //    "FileSystemObjects.Pending ASC, " +
+                                        //    "CASE WHEN FileSystemObjects.EventOrder IS NULL " +
+                                        //    "THEN 0 " +
+                                        //    "ELSE FileSystemObjects.EventOrder " +
+                                        //    "END DESC"
+                                        //
+                                        //// after (decrypted; {0}: changeEnumsBackward[FileChangeType.Renamed])
+                                        //
+                                        //SELECT FileSystemObjects.FileSystemObjectId, FileSystemObjects.CalculatedFullPath
+                                        //FROM FileSystemObjects
+                                        //LEFT OUTER JOIN Events ON FileSystemObjects.EventId = Events.EventId
+                                        //WHERE FileSystemObjects.CalculatedFullPathCIHashes = ?
+                                        //ORDER BY
+                                        //CASE WHEN FileSystemObjects.EventId IS NOT NULL
+                                        //AND Events.FileChangeTypeEnumId = {0}
+                                        //AND FileSystemObjects.Pending = 1
+                                        //THEN 0
+                                        //ELSE 1
+                                        //END ASC,
+                                        //FileSystemObjects.Pending ASC,
+                                        //CASE WHEN FileSystemObjects.EventOrder IS NULL
+                                        //THEN 0
+                                        //ELSE FileSystemObjects.EventOrder
+                                        //END DESC
+                                        string.Format(
+                                            Helpers.DecryptString(
+                                                selectFileSystemObjectIdByFullPathHash,
+                                                Encoding.ASCII.GetString(
+                                                    Convert.FromBase64String(indexDBPassword))),
+                                            changeEnumsBackward[FileChangeType.Renamed]);
 
                                     ISQLiteParameter pathHashesParam = objectIdSearchCommand.CreateParameter();
                                     pathHashesParam.Value = pathCIHashes;
@@ -1585,9 +1871,9 @@ namespace Cloud.SQLIndexer
                                     {
                                         while (objectIdReader.Read())
                                         {
-                                            if (StringComparer.OrdinalIgnoreCase.Equals(Convert.ToString(objectIdReader["CalculatedFullPath"]), pathToSearch.ToString()))
+                                            if (StringComparer.OrdinalIgnoreCase.Equals(Convert.ToString(objectIdReader[Resources.NotTranslatedSqlIndexerCalculatedFullPath]), pathToSearch.ToString()))
                                             {
-                                                return Convert.ToInt64(objectIdReader["FileSystemObjectId"]);
+                                                return Convert.ToInt64(objectIdReader[Resources.NotTranslatedSqlIndexerFileSystemObjectId]);
                                             }
                                         }
                                     }
@@ -1873,9 +2159,22 @@ namespace Cloud.SQLIndexer
                             transaction: castTransaction.sqlTransaction);
 
                         Dictionary<int, long> groupOrderToId = new Dictionary<int, long>();
+
+                        const string selectEventByGroupId = "t3Ee1ulQLjs62aHw5E7nEH7dXOynUtuW/12FIdbVC0CWiX+fSAMaI9sQqSNRe1ZtgB/byN+8ZmriXy9OJpaeBHEHVZEBlf6r6DA+CDovjutSkvjNpAWd5HNr+LyqOFXe";
+
                         foreach (Event createdEvent in SqlAccessor<Event>.SelectResultSet(
                             castTransaction.sqlConnection,
-                            "SELECT * FROM Events WHERE Events.GroupId = ?",
+                            //// before
+                            //
+                            // "SELECT * FROM Events WHERE Events.GroupId = ?"
+                            //
+                            //// after (decrypted)
+                            //
+                            //SELECT * FROM Events WHERE Events.GroupId = ?
+                            Helpers.DecryptString(
+                                selectEventByGroupId,
+                                Encoding.ASCII.GetString(
+                                    Convert.FromBase64String(indexDBPassword))),
                             transaction: castTransaction.sqlTransaction,
                             selectParameters: Helpers.EnumerateSingleItem(eventGroup)))
                         {
@@ -1946,7 +2245,7 @@ namespace Cloud.SQLIndexer
             {
                 try
                 {
-                    throw new ObjectDisposedException("This IndexingAgent");
+                    throw new ObjectDisposedException(Resources.IndexingAgentThisIndexingAgent);
                 }
                 catch (Exception ex)
                 {
@@ -1970,7 +2269,7 @@ namespace Cloud.SQLIndexer
             {
                 if (disposed)
                 {
-                    throw new ObjectDisposedException("This IndexingAgent");
+                    throw new ObjectDisposedException(Resources.IndexingAgentThisIndexingAgent);
                 }
 
                 if (eventIds == null)
@@ -2022,14 +2321,30 @@ namespace Cloud.SQLIndexer
                             {
                                 // single delete
 
+                                const string selectFileSystemObjectByEventId = "t3Ee1ulQLjs62aHw5E7nEHC3Yt6pkKQiMjDOMA00p+Qo1PZHGpfRx91FJNSloGZ3xDH11QktFYyaPHTl7mAN/QkLD0PnpC8sDmmRC3eIdnNwEv6VbgcYJMh2e8FkOh6pkTk+wvxmCRAw6xSk4LnkkKwhOy+K1PbDsM0gmAsv7FH9owvFUl6Kqdc6lKyE4dRdTOf9DNG6/aLfVe5cQd3mPbLxSTU0vNHhO+nzhf8FKmwO6jOUt5xMeCGlpmRPDrLEOew5YbL8NJni1eOU3FBfO2gHZ3OzqxaA6ccE89uTk86K/HUk03ajwafV53xHb9+02lsCU29yb3zvcNiHqwMm06RiWp00XVt9ugUTdHMsO+U=";
+
                                 FileSystemObject toDelete;
                                 if ((toDelete = SqlAccessor<FileSystemObject>.SelectResultSet(
                                     castTransaction.sqlConnection,
-                                    "SELECT * " +
-                                        "FROM FileSystemObjects " +
-                                        "WHERE FileSystemObjects.EventId = ? " + // <-- parameter 1
-                                        "ORDER BY FileSystemObjects.FileSystemObjectId DESC " +
-                                        "LIMIT 1",
+                                    //// before
+                                    //
+                                    //"SELECT * " +
+                                    //    "FROM FileSystemObjects " +
+                                    //    "WHERE FileSystemObjects.EventId = ? " + // <-- parameter 1
+                                    //    "ORDER BY FileSystemObjects.FileSystemObjectId DESC " +
+                                    //    "LIMIT 1"
+                                    //
+                                    //// after (decrypted)
+                                    //
+                                    //SELECT *
+                                    //FROM FileSystemObjects
+                                    //WHERE FileSystemObjects.EventId = ?
+                                    //ORDER BY FileSystemObjects.FileSystemObjectId DESC
+                                    //LIMIT 1
+                                    Helpers.DecryptString(
+                                        selectFileSystemObjectByEventId,
+                                        Encoding.ASCII.GetString(
+                                            Convert.FromBase64String(indexDBPassword))),
                                     transaction: castTransaction.sqlTransaction,
                                     selectParameters: Helpers.EnumerateSingleItem((long)storeLastDelete)).SingleOrDefault()) == null)
                                 {
@@ -2062,25 +2377,43 @@ namespace Cloud.SQLIndexer
                                     deleteIdsToFind = new HashSet<long>();
                                     deleteIdsToFind.Add((long)storeLastDelete);
 
+                                    const string selectFileSystemObjectByEventIdPart1 = "AgH+ETlwi8JFbGkqRXjqdKTh9CEhp0rFMSM6QTpmaYxrMgdgf7inZdXwgEuqXuYMauX+tt9OiUbBhMkdLPXm+ywU/y6BY6maDp7nCX4L3mNUxYOj1RyPZa6pCW+HpuP+M9dKeHh9YKX3qDDfOlZ1nSzSsgDKx9X8cmR2Y/nO4tDfrYpmThonsNh65EbGXZBZusSw23vEmfgD1nxUBx9I5vipHRKviGw1wkff0DRRjzA092ky/ySdI+TjFOt9Y9DSIh0FySML0zBwgwrlil5Ns8sFWkTD+eWMwxkHKJvt1fmSbRlRBEsQO3T9dfGXgEV08lbinJ89/i6TXxKNfCjAxKgOazxd2rLS+v5lrxZFwDTbST0vo2uQPvM4XDE60nrAkXje7c8IQKWzEuBL3kBp1jzRBORthX5+3Gg1MRRHrjthDNCWFfnRKwEF5JsvC5XeRemmkZVMqIzRjxUAq6YifLNE92mobolRi0Y8DOdaSQM=";
+
                                     multipleDeleteQuery = new StringBuilder(
-                                        "SELECT FileSystemObjects.* " +
-                                            "FROM FileSystemObjects " +
-                                            "INNER JOIN " +
-                                            "(" +
-                                            "SELECT EventId, MAX(FileSystemObjectId) AS MaxFileSystemObjectId " +
-                                            "FROM FileSystemObjects " +
-                                            "WHERE EventId IN (?" /*"[event ids]) " +
-                                            "GROUP BY EventId" +
-                                            ") InnerFileSystemObjects " +
-                                            "WHERE InnerFileSystemObjects.EventId = FileSystemObjects.EventId " +
-                                            "AND InnerFileSystemObjects.MaxFileSystemObjectId = FileSystemObjects.FileSystemObjectId" */);
+                                        //// before
+                                        //
+                                        //"SELECT FileSystemObjects.* " +
+                                        //    "FROM FileSystemObjects " +
+                                        //    "INNER JOIN " +
+                                        //    "(" +
+                                        //    "SELECT EventId, MAX(FileSystemObjectId) AS MaxFileSystemObjectId " +
+                                        //    "FROM FileSystemObjects " +
+                                        //    "WHERE EventId IN (?" /*"[event ids]) " +
+                                        //    "GROUP BY EventId" +
+                                        //    ") InnerFileSystemObjects " +
+                                        //    "WHERE InnerFileSystemObjects.EventId = FileSystemObjects.EventId " +
+                                        //    "AND InnerFileSystemObjects.MaxFileSystemObjectId = FileSystemObjects.FileSystemObjectId" */
+                                        //
+                                        //// after (decrypted)
+                                        //
+                                        //SELECT FileSystemObjects.*
+                                        //FROM FileSystemObjects
+                                        //INNER JOIN
+                                        //(
+                                        //SELECT EventId, MAX(FileSystemObjectId) AS MaxFileSystemObjectId
+                                        //FROM FileSystemObjects
+                                        //WHERE EventId IN (?
+                                        Helpers.DecryptString(
+                                            selectFileSystemObjectByEventIdPart1,
+                                            Encoding.ASCII.GetString(
+                                                Convert.FromBase64String(indexDBPassword))));
                                 }
                                 else
                                 {
                                     if (deleteIdsToFind.Add((long)storeLastDelete))
                                     {
                                         // append current item
-                                        multipleDeleteQuery.Append(",?");
+                                        multipleDeleteQuery.Append(new string(new[] { ((char)0x2c) /* ',' */, ((char)0x3f) /* '?' */ }));
                                     }
                                 }
                             }
@@ -2094,11 +2427,28 @@ namespace Cloud.SQLIndexer
 
                 if (multipleDeleteQuery != null)
                 {
-                    multipleDeleteQuery.Append(") " +
-                        "GROUP BY EventId" +
-                        ") InnerFileSystemObjects " +
-                        "WHERE InnerFileSystemObjects.EventId = FileSystemObjects.EventId " +
-                        "AND InnerFileSystemObjects.MaxFileSystemObjectId = FileSystemObjects.FileSystemObjectId");
+                    const string selectFileSystemObjectByEventIdPart2 = "nH+On2C9vdfAOu+75fb4JkP+K/ZWz4r22CxFGTsLWJmIouas8uXRHJp8fSYn9nVoRF1/cSVAS7KzaMB3dCgq7UZjq58f3QAVF3ZOURIJPcYFpkUqabDCThja2C5olTud3N76JXcxxbFITUsgLisSSbZaWJ+AZq4qxcNKV1imnfHx12TP5caI7hTKcbYxIMkEQ2HMgtFymjdxMO+2XVZ+tIVDQ/PqYFUcnWnltT3PAr8AFlaOIL1ryZsm+o7u9dpHoI6dAfmysr9fKr33jccTZvZrbxs73I/Dher26WyS+lH30U84YfsOqVHlmqJB2wIWLErp/65cRdbrJPFBTYJvJ4ost1tBYliQNdaYHXj2OiH7wYZ1n0Hw9/cKl++my4QAh34Y1OafWnO8MOgaPO6Kg4jbUFGX1lLDy1jInCmd2eKIpVwKtNVybPmNL8dPyLTuyuz7G4pSOTg3YOM+3gxjf5LCuPdYG1bof3z1NIFfj/8uVIXdU7xX/ub5AWSH5vic1V2m+mjto8GZAYPvX0eEmLXhVBWSG1B4Y1PE18y/Lao=";
+
+                    multipleDeleteQuery.Append(
+                        //// before
+                        //
+                        //") " +
+                        //"GROUP BY EventId" +
+                        //") InnerFileSystemObjects " +
+                        //"WHERE InnerFileSystemObjects.EventId = FileSystemObjects.EventId " +
+                        //"AND InnerFileSystemObjects.MaxFileSystemObjectId = FileSystemObjects.FileSystemObjectId"
+                        //
+                        //// after (decrypted)
+                        //
+                        //)
+                        //GROUP BY EventId
+                        //) InnerFileSystemObjects
+                        //WHERE InnerFileSystemObjects.EventId = FileSystemObjects.EventId
+                        //AND InnerFileSystemObjects.MaxFileSystemObjectId = FileSystemObjects.FileSystemObjectId
+                        Helpers.DecryptString(
+                            selectFileSystemObjectByEventIdPart2,
+                            Encoding.ASCII.GetString(
+                                Convert.FromBase64String(indexDBPassword))));
 
                     List<FileSystemObject> fileSystemObjectsToDelete = new List<FileSystemObject>(deleteIdsToFind.Count);
 
@@ -2227,7 +2577,7 @@ namespace Cloud.SQLIndexer
             {
                 try
                 {
-                    throw new ObjectDisposedException("This IndexingAgent");
+                    throw new ObjectDisposedException(Resources.IndexingAgentThisIndexingAgent);
                 }
                 catch (Exception ex)
                 {
@@ -2253,20 +2603,20 @@ namespace Cloud.SQLIndexer
                             stack = ex.StackTrace;
                         }
 
-                        string dbName = indexDBLocation.Substring(0, indexDBLocation.LastIndexOf('.'));
+                        string dbName = indexDBLocation.Substring(0, indexDBLocation.LastIndexOf((char)0x2e /* '.' */));
 
                         File.Copy(indexDBLocation,
                             string.Format(
-                                "{0}{1}.db",
+                                Resources.NotTranslatedSqlIndexerDBCopiedName,
                                 dbName,
                                 dbCopyNumber.Value++));
 
                         File.AppendAllText(
                             string.Format(
-                                "{0}.txt",
+                                Resources.NotTranslatedSqlIndexerDBStackName,
                                 dbName),
                             string.Format(
-                                "DB #{0}:{1}{2}{3}{4}",
+                                Resources.NotTranslatedSqlIndexerDBStackFormat,
                                 dbCopyNumber.Value,
                                 Environment.NewLine,
                                 stack,
@@ -2296,12 +2646,30 @@ namespace Cloud.SQLIndexer
                         {
                             updateRootFolderUID.Transaction = connAndTran.sqlTransaction;
 
-                            updateRootFolderUID.CommandText = "UPDATE FileSystemObjects " +
-                                "SET SyncCounter = ?" + // <-- parameter 1
-                                "WHERE FileSystemObjectId = ?;" + // <-- parameter 2
-                                "UPDATE ServerUids " +
-                                "SET ServerUid = ? " + // <-- parameter 3
-                                "WHERE ServerUidId = ?"; // <-- parameter 4
+                            const string updateRootObject = "9tA4A9qheaxmqn5OBpSv86o8u/HE1U3uoVPGDIvO8uxFwbNTMjsBNV0TBKek0RAFUab8xxXZlQuV2kLxgXhnElSwWqSmpGztyZC587guim2SDYSZDbZBg1dwEDtWbZSjipo6YN2Po6qT9K9Ixf944jPIFusG+xkt6ftZD6AKexd5J/2SzUaC21E5Ir4+lCENY1+ChpeKG6HR2YgXHfE6YhaxGsMkFuT1x/eLR84vHrzJpNkwN3Lr5nmN4OshbpZjOffLj7/c4nG6HyfO6pJabWFt+1ybdyW6ChRzuDcYwfbZAHa7teAW6u+cEEdRlVQHa/FwREpu5EQTb37sgkJjwF8Uu4OIZvs0AVntpdFFddn2hmrmEzKp+OsG+IV9xOh4";
+
+                            updateRootFolderUID.CommandText =
+                                //// before
+                                //
+                                //"UPDATE FileSystemObjects " +
+                                //"SET SyncCounter = ?" + // <-- parameter 1
+                                //"WHERE FileSystemObjectId = ?;" + // <-- parameter 2
+                                //"UPDATE ServerUids " +
+                                //"SET ServerUid = ? " + // <-- parameter 3
+                                //"WHERE ServerUidId = ?;" // <-- parameter 4
+                                //
+                                //// after (decrypted)
+                                //
+                                //UPDATE FileSystemObjects
+                                //SET SyncCounter = ?
+                                //WHERE FileSystemObjectId = ?;
+                                //UPDATE ServerUids
+                                //SET ServerUid = ?
+                                //WHERE ServerUidId = ?;
+                                Helpers.DecryptString(
+                                    updateRootObject,
+                                    Encoding.ASCII.GetString(
+                                        Convert.FromBase64String(indexDBPassword)));
 
                             ISQLiteParameter firstSyncCounter = updateRootFolderUID.CreateParameter();
                             firstSyncCounter.Value = syncCounter;
@@ -2380,14 +2748,30 @@ namespace Cloud.SQLIndexer
                                 {
                                     if (updateSyncCounterOnlyText == null)
                                     {
-                                        updateSyncCounterOnlyText = new StringBuilder("UPDATE FileSystemObjects " +
-                                            "SET SyncCounter = ? " +
-                                            "WHERE SyncCounter IS NULL " +
-                                            "AND EventId IN (?");
+                                        const string updateFileSystemObjectSyncCounter = "9tA4A9qheaxmqn5OBpSv86o8u/HE1U3uoVPGDIvO8uxFwbNTMjsBNV0TBKek0RAFUab8xxXZlQuV2kLxgXhnElSwWqSmpGztyZC587guim2SDYSZDbZBg1dwEDtWbZSjSDuOkIW9hZFE9MHpLB9KB/in4st6FXttI2o9R37bycGhQz7ttyUZis5pHcYkctSf+5ch9Xfx3J5cBteRs5tDXUdRc129bYzlkEBzO+kV1yHaF4GHz5D0Tkqjkodr50rt";
+
+                                        updateSyncCounterOnlyText = new StringBuilder(
+                                            //// before
+                                            //
+                                            //"UPDATE FileSystemObjects " +
+                                            //"SET SyncCounter = ? " +
+                                            //"WHERE SyncCounter IS NULL " +
+                                            //"AND EventId IN (?"
+                                            //
+                                            //// after (decrypted)
+                                            //
+                                            //UPDATE FileSystemObjects
+                                            //SET SyncCounter = ?
+                                            //WHERE SyncCounter IS NULL
+                                            //AND EventId IN (?
+                                            Helpers.DecryptString(
+                                                updateFileSystemObjectSyncCounter,
+                                                Encoding.ASCII.GetString(
+                                                    Convert.FromBase64String(indexDBPassword))));
                                     }
                                     else
                                     {
-                                        updateSyncCounterOnlyText.Append(",?");
+                                        updateSyncCounterOnlyText.Append(new string(new[] { ((char)0x2c) /* ',' */, ((char)0x3f) /* '?' */ }));
                                     }
 
                                     ISQLiteParameter currentEventId = updateSyncCounterOnly.CreateParameter();
@@ -2395,7 +2779,7 @@ namespace Cloud.SQLIndexer
                                     updateSyncCounterOnly.Parameters.Add(currentEventId);
                                 }
 
-                                updateSyncCounterOnlyText.Append(")");
+                                updateSyncCounterOnlyText.Append(((char)0x29).ToString());
 
                                 updateSyncCounterOnly.CommandText = updateSyncCounterOnlyText.ToString();
 
@@ -2437,7 +2821,7 @@ namespace Cloud.SQLIndexer
             {
                 try
                 {
-                    throw new ObjectDisposedException("This IndexingAgent");
+                    throw new ObjectDisposedException(Resources.IndexingAgentThisIndexingAgent);
                 }
                 catch (Exception ex)
                 {
@@ -2465,10 +2849,11 @@ namespace Cloud.SQLIndexer
             {
                 try
                 {
-                    throw new ObjectDisposedException("This IndexingAgent");
+                    throw new ObjectDisposedException(Resources.IndexingAgentThisIndexingAgent);
                 }
                 catch (Exception ex)
                 {
+                    // &&&& todo: since this cannot return the disposed exception, make sure the caller checks for null to throws an appropriate dispose exception
                     return null;
                 }
             }
@@ -2489,20 +2874,20 @@ namespace Cloud.SQLIndexer
                             stack = ex.StackTrace;
                         }
 
-                        string dbName = indexDBLocation.Substring(0, indexDBLocation.LastIndexOf('.'));
+                        string dbName = indexDBLocation.Substring(0, indexDBLocation.LastIndexOf((char)0x2e /* '.' */));
 
                         File.Copy(indexDBLocation,
                             string.Format(
-                                "{0}{1}.db",
+                                Resources.NotTranslatedSqlIndexerDBCopiedName,
                                 dbName,
                                 dbCopyNumber.Value++));
 
                         File.AppendAllText(
                             string.Format(
-                                "{0}.txt",
+                                Resources.NotTranslatedSqlIndexerDBStackName,
                                 dbName),
                             string.Format(
-                                "DB #{0}:{1}{2}{3}{4}",
+                                Resources.NotTranslatedSqlIndexerDBStackFormat,
                                 dbCopyNumber.Value,
                                 Environment.NewLine,
                                 stack,
@@ -2524,10 +2909,11 @@ namespace Cloud.SQLIndexer
             {
                 try
                 {
-                    throw new ObjectDisposedException("This IndexingAgent");
+                    throw new ObjectDisposedException(Resources.IndexingAgentThisIndexingAgent);
                 }
                 catch
                 {
+                    // &&&& todo: since this cannot return the disposed exception, make sure the caller checks for null to throws an appropriate dispose exception
                     return null;
                 }
             }
@@ -2549,7 +2935,7 @@ namespace Cloud.SQLIndexer
             {
                 try
                 {
-                    throw new ObjectDisposedException("This IndexingAgent");
+                    throw new ObjectDisposedException(Resources.IndexingAgentThisIndexingAgent);
                 }
                 catch (Exception ex)
                 {
@@ -2574,20 +2960,20 @@ namespace Cloud.SQLIndexer
                             stack = ex.StackTrace;
                         }
 
-                        string dbName = indexDBLocation.Substring(0, indexDBLocation.LastIndexOf('.'));
+                        string dbName = indexDBLocation.Substring(0, indexDBLocation.LastIndexOf((char)0x2e /* '.' */));
 
                         File.Copy(indexDBLocation,
                             string.Format(
-                                "{0}{1}.db",
+                                Resources.NotTranslatedSqlIndexerDBCopiedName,
                                 dbName,
                                 dbCopyNumber.Value++));
 
                         File.AppendAllText(
                             string.Format(
-                                "{0}.txt",
+                                Resources.NotTranslatedSqlIndexerDBStackName,
                                 dbName),
                             string.Format(
-                                "DB #{0}:{1}{2}{3}{4}",
+                                Resources.NotTranslatedSqlIndexerDBStackFormat,
                                 dbCopyNumber.Value,
                                 Environment.NewLine,
                                 stack,
@@ -2610,7 +2996,7 @@ namespace Cloud.SQLIndexer
             {
                 if (disposed)
                 {
-                    throw new ObjectDisposedException("This IndexingAgent");
+                    throw new ObjectDisposedException(Resources.IndexingAgentThisIndexingAgent);
                 }
 
                 if (existingTransaction != null
@@ -2963,22 +3349,49 @@ namespace Cloud.SQLIndexer
 
                                                     // action is update
                                                     default: //case (byte)2:
+                                                        const string selectFileSystemObjectByEventId = "XiF/n8DAmECRcpl1q3g5SOaFkrEO/c+iI1V66stCO9bB3hEK7nYGLuijwAsZ69MKnic6eyxsf+Dhl/eivVXxxImu7p3ZeiPkoWpKpw7GfpirlnO5pPnFAKd5rOvejfiQ+f+F7lY+YU/V1KMowxqZEGu1AajCX2H/4GUc3jQeSjD3dxwtLwJDcnn2QDUbUiXtDme/ofrrLG/Il/GuRa0InF7G4uAn1SZygmbHHk/QnpbQdC7DG7E8m07IMa7nVI/jp4bYUAI408ROMsmsPXhhgaKcimmirqjisCP2Uj3c1TLvIRXcCr1WUzg0TBWevK3b3+f3P67z6YZ6VJshTZy4S9vRxgSF/w2vt0MAb27FNlJ2yQqDnhUFp4JfhaeaRoKZGv0UsxXGWiLxNDBEDMEZ/4p3EvqyUO/TynHwFDNDg2VaJuiLJYYepCgRopHaMhl/FVSc+zb+btspNIiPGQaUHEFSKv65ThADVy3giKPeQh/VWKVVci1Flo/ren1+rNiChwJ/WTem5lynbdORDxTZ8zGt9zo8FE81xrS/7gW7BWw4HP7zBKrFvcOySQkahJ5KFwOD5YUcoKpY1LRki4EUFBXbOF5cLzQHAsiBM0drd9sl46BVwBig8Kh+yf6uy2dRclmsxBRvvXMvAYJLcwFsu1ehgqBVkey0pu4aTutu9vZC65007GiIY/zVvkTLJsOS7unp4lVb/X4LrXoAY2x2EnBZMJ2rZCHOZcgGkD8tBR6ooTx2uKe8S4ZsAtx+W1KSe2tNLe0+Ix2xyfqTrAJN+G1zWbuh4rf0qRVvfC9F0Dg=";
+
                                                         FileSystemObject existingRow = SqlAccessor<FileSystemObject>.SelectResultSet(
                                                                 castTransaction.sqlConnection,
-                                                                "SELECT " +
-                                                                    SqlAccessor<FileSystemObject>.GetSelectColumns() + ", " +
-                                                                    SqlAccessor<Event>.GetSelectColumns("Event") + ", " +
-                                                                    SqlAccessor<FileSystemObject>.GetSelectColumns("Event.Previous", "Previouses") +
-                                                                    " FROM FileSystemObjects" +
-                                                                    " INNER JOIN Events ON FileSystemObjects.EventId = Events.EventId" +
-                                                                    " LEFT OUTER JOIN FileSystemObjects Previouses ON Events.PreviousId = Previouses.FileSystemObjectId" +
-                                                                    " WHERE Events.EventId = ?" + // <-- parameter 1
-                                                                    " AND FileSystemObjects.ParentFolderId IS NOT NULL" +
-                                                                    " LIMIT 1",
+                                                                //// before
+                                                                //
+                                                                //"SELECT " +
+                                                                //    SqlAccessor<FileSystemObject>.GetSelectColumns() + ", " +
+                                                                //    SqlAccessor<Event>.GetSelectColumns(Resources.NotTranslatedSqlIndexerEvent) + ", " +
+                                                                //    SqlAccessor<FileSystemObject>.GetSelectColumns(Resources.NotTranslatedSqlIndexerEventPrevious, Resources.NotTranslatedSqlIndexerPreviouses) +
+                                                                //    " FROM FileSystemObjects" +
+                                                                //    " INNER JOIN Events ON FileSystemObjects.EventId = Events.EventId" +
+                                                                //    " LEFT OUTER JOIN FileSystemObjects Previouses ON Events.PreviousId = Previouses.FileSystemObjectId" +
+                                                                //    " WHERE Events.EventId = ?" + // <-- parameter 1
+                                                                //    " AND FileSystemObjects.ParentFolderId IS NOT NULL" +
+                                                                //    " LIMIT 1"
+                                                                //
+                                                                //// after (decrypted; {0}: SqlAccessor<FileSystemObject>.GetSelectColumns()
+                                                                //// {1}: SqlAccessor<Event>.GetSelectColumns(Resources.NotTranslatedSqlIndexerEvent)
+                                                                //// {2}: SqlAccessor<FileSystemObject>.GetSelectColumns(Resources.NotTranslatedSqlIndexerEventPrevious, Resources.NotTranslatedSqlIndexerPreviouses) )
+                                                                //
+                                                                //SELECT
+                                                                //{0},
+                                                                //{1},
+                                                                //{2}
+                                                                //FROM FileSystemObjects
+                                                                //INNER JOIN Events ON FileSystemObjects.EventId = Events.EventId
+                                                                //LEFT OUTER JOIN FileSystemObjects Previouses ON Events.PreviousId = Previouses.FileSystemObjectId
+                                                                //WHERE Events.EventId = ?
+                                                                //AND FileSystemObjects.ParentFolderId IS NOT NULL
+                                                                //LIMIT 1
+                                                                string.Format(
+                                                                    Helpers.DecryptString(
+                                                                        selectFileSystemObjectByEventId,
+                                                                        Encoding.ASCII.GetString(
+                                                                            Convert.FromBase64String(indexDBPassword))),
+                                                                    SqlAccessor<FileSystemObject>.GetSelectColumns(),
+                                                                    SqlAccessor<Event>.GetSelectColumns(Resources.NotTranslatedSqlIndexerEvent),
+                                                                    SqlAccessor<FileSystemObject>.GetSelectColumns(Resources.NotTranslatedSqlIndexerEventPrevious, Resources.NotTranslatedSqlIndexerPreviouses)),
                                                                 new[]
                                                                 {
-                                                                    "Event",
-                                                                    "Event.Previous"
+                                                                    Resources.NotTranslatedSqlIndexerEvent,
+                                                                    Resources.NotTranslatedSqlIndexerEventPrevious
                                                                 },
                                                                 castTransaction.sqlTransaction,
                                                                 Helpers.EnumerateSingleItem((long)toUpdate.EventId))
@@ -3022,14 +3435,34 @@ namespace Cloud.SQLIndexer
                                                                 {
                                                                     findParentCommand.Transaction = castTransaction.sqlTransaction;
 
-                                                                    findParentCommand.CommandText = "SELECT FileSystemObjects.FileSystemObjectId, FileSystemObjects.CalculatedFullPath " +
-                                                                        "FROM FileSystemObjects " +
-                                                                        "WHERE CalculatedFullPathCIHashes = ? " + // <-- parameter 1
-                                                                        "ORDER BY " +
-                                                                        "CASE WHEN FileSystemObjects.EventOrder IS NULL " +
-                                                                        "THEN 0 " +
-                                                                        "ELSE FileSystemObjects.EventOrder " +
-                                                                        "END DESC";
+                                                                    const string selectFileSystemObjectIdByFullPathHash = "AgH+ETlwi8JFbGkqRXjqdKTh9CEhp0rFMSM6QTpmaYxrMgdgf7inZdXwgEuqXuYM4A9CJRjJ2AJWbK+2XeEfjsHjbyLTBN0A1N3nA0Q4qVNOEMU6uWFsvHIyt+vO7mRotjaQ6thfD0JG4dEBb6CwJ89vQ95+fzquzuLa1c96VgT54coYBhS2C3tyaw2edsBVJbPHBY9AoOd9jpwEk6+Ny/P2L3tYZ6e5uNxcENQzO/pwOGbYha42a1U+38dVMSoqKkQlnmRH0i19cmrh06Kfa3+qwDJXThCp9i/TtZJ4Q3xj5rDfd/s8qMLK/NohgujicfhNBKw+NDq0Sau8MibFLqvhBztuVNjnrYnJlUSqirB7BE3qrTU1pWGlCZMAG+0lBXq8i57q+s5vZlFTFklVrgQ2c4v8NihfLFVBEFrLJk/z0MTC41p3UA923AW6bP1E/VYhemc22xs1HhG2ghx7K1ZlktcUxmUdJEcEltq9yvrj6Zu2UpjnYf06y/SyexLSdU6e1Gyr2nU0imuWhH7JiLQyNOsYUAw3fhu1yrLDKpZrKqBHzdYYmalqEMJb4hjXDmSh7bxCrAMaJ39Q3D0MIGFew4cQO9v08IsEO8eXN33ncIlWg5Ie+JMMtR8GdAXoEX14BvqmJm0C24iA6ZNN9Os0epQQKqikT2w/zvDm3TE=";
+
+                                                                    findParentCommand.CommandText =
+                                                                        //// before
+                                                                        //
+                                                                        //"SELECT FileSystemObjects.FileSystemObjectId, FileSystemObjects.CalculatedFullPath " +
+                                                                        //"FROM FileSystemObjects " +
+                                                                        //"WHERE CalculatedFullPathCIHashes = ? " + // <-- parameter 1
+                                                                        //"ORDER BY " +
+                                                                        //"CASE WHEN FileSystemObjects.EventOrder IS NULL " +
+                                                                        //"THEN 0 " +
+                                                                        //"ELSE FileSystemObjects.EventOrder " +
+                                                                        //"END DESC"
+                                                                        //
+                                                                        //// after (decrypted)
+                                                                        //
+                                                                        //SELECT FileSystemObjects.FileSystemObjectId, FileSystemObjects.CalculatedFullPath
+                                                                        //FROM FileSystemObjects
+                                                                        //WHERE CalculatedFullPathCIHashes = ?
+                                                                        //ORDER BY
+                                                                        //CASE WHEN FileSystemObjects.EventOrder IS NULL
+                                                                        //THEN 0
+                                                                        //ELSE FileSystemObjects.EventOrder
+                                                                        //END DESC
+                                                                        Helpers.DecryptString(
+                                                                            selectFileSystemObjectIdByFullPathHash,
+                                                                            Encoding.ASCII.GetString(
+                                                                                Convert.FromBase64String(indexDBPassword)));
 
                                                                     FilePath currentParentPath = toUpdate.NewPath.Parent;
 
@@ -3046,7 +3479,7 @@ namespace Cloud.SQLIndexer
 
                                                                     namePortions.Reverse();
 
-                                                                    string pathCIHashes = string.Join("\\",
+                                                                    string pathCIHashes = string.Join(((char)0x5c /* \ */).ToString(),
                                                                         namePortions.Select(currentPortion => StringComparer.OrdinalIgnoreCase.GetHashCode(currentPortion).ToString()));
 
                                                                     ISQLiteParameter previousHashesParam = findParentCommand.CreateParameter();
@@ -3059,9 +3492,9 @@ namespace Cloud.SQLIndexer
 
                                                                         while (previousObjectReader.Read())
                                                                         {
-                                                                            if (StringComparer.OrdinalIgnoreCase.Equals(Convert.ToString(previousObjectReader["CalculatedFullPath"]), toUpdate.NewPath.Parent.ToString()))
+                                                                            if (StringComparer.OrdinalIgnoreCase.Equals(Convert.ToString(previousObjectReader[Resources.NotTranslatedSqlIndexerCalculatedFullPath]), toUpdate.NewPath.Parent.ToString()))
                                                                             {
-                                                                                toUpdateParentFolderId = Convert.ToInt64(previousObjectReader["FileSystemObjectId"]);
+                                                                                toUpdateParentFolderId = Convert.ToInt64(previousObjectReader[Resources.NotTranslatedSqlIndexerFileSystemObjectId]);
 
                                                                                 break;
                                                                             }
@@ -3090,22 +3523,52 @@ namespace Cloud.SQLIndexer
                                                                 {
                                                                     findPreviousCommand.Transaction = castTransaction.sqlTransaction;
 
-                                                                    findPreviousCommand.CommandText = "SELECT FileSystemObjects.FileSystemObjectId, FileSystemObjects.CalculatedFullPath " +
-                                                                        "FROM FileSystemObjects " +
-                                                                        "LEFT OUTER JOIN Events ON FileSystemObjects.EventId = Events.EventId " +
-                                                                        "WHERE FileSystemObjects.CalculatedFullPathCIHashes = ? " + // <-- parameter 1
-                                                                        "ORDER BY " +
-                                                                        "CASE WHEN FileSystemObjects.EventId IS NOT NULL " +
-                                                                        "AND Events.FileChangeTypeEnumId = " + changeEnumsBackward[FileChangeType.Renamed].ToString() +
-                                                                        " AND FileSystemObjects.Pending = 1 " +
-                                                                        "THEN 0 " +
-                                                                        "ELSE 1 " +
-                                                                        "END ASC, " +
-                                                                        "FileSystemObjects.Pending ASC, " +
-                                                                        "CASE WHEN FileSystemObjects.EventOrder IS NULL " +
-                                                                        "THEN 0 " +
-                                                                        "ELSE FileSystemObjects.EventOrder " +
-                                                                        "END DESC";
+                                                                    const string selectFileSystemObjectIdByOldFullPathHash = "AgH+ETlwi8JFbGkqRXjqdKTh9CEhp0rFMSM6QTpmaYxrMgdgf7inZdXwgEuqXuYM4A9CJRjJ2AJWbK+2XeEfjsHjbyLTBN0A1N3nA0Q4qVNOEMU6uWFsvHIyt+vO7mRotjaQ6thfD0JG4dEBb6CwJ89vQ95+fzquzuLa1c96VgT54coYBhS2C3tyaw2edsBVJbPHBY9AoOd9jpwEk6+Ny/P2L3tYZ6e5uNxcENQzO/pwOGbYha42a1U+38dVMSoqKkQlnmRH0i19cmrh06Kfa+HDXNoDtQGeRTdcqYxQ24UwH4iTCkbvmopF3okXukWm6IiVorCtfxanLcCgfSmsTYVyRksXaRRsiGGlY3B2CMrxHZ8fRTMEdXK+uxPUo09L+rVnigXHTZ59cdYTr7/Mtv63p8+MDJ0W5PQU6SxYTNMhpbbbxMXsgBAVOOY13PbeH+xv1sOrTlFHg2WNKC/LTASc/P6eagesR9E4M3YHu6G9pX8jX0vht0wwmhHJMKyoUWgZ/X0smf/FBqPjecsz2RG48AXFJssSbtOe4L8HaWXJZYGVGcJzRFaqa1URGRw6w60pQhzRiAGx7uPJzJhpBfmzkeFX0Acehvo84RdpN/I2hyYGYkyM/1hyP8DaH33oGKX/4h3ljgOoSWHg+wSiztzJkdUfD5txj9u36njaf194EP1/BBT0EI38d2caDWqLOioEZrRu1OeJ72tikM5770H28wY8m+TQdXHC39MBEKtfZC97KqF9kgPxU2Yq3GuzfJ57DH875K/31mKJg3o23MhwWbdtaCSB0rL6aExXg5NoqvTzskiby0MkagZNrn6jROJ4jWiSsAfyP2INKwPoEJB7RWpTaR/2x8y1mCjP6Ks5OKNC4tV7xDz3byNP1DrSUBKKY50WyZtQfgjDwTqOYm2H/NN+BIxLhIM8mWWy0SLiTWQSq71UedyEtNxAxnTbznMjX4/uL7s9ftatza7sn8lwuc6Hdw0tIIV/WpXQUA7JB+KB2msX6DoafQbMe60ySKHVTijiNB86EtgKWXcJTbgtWNTnk/9rwBJPRV7IDbCQg+JWjo/qSipmOONAcA96Xp9DTePG2ih2UglnxoHnsubeKvhfdW1rM9GTZvsPYvQbxQEWtdTv0E5el0ryg1BjYI9K1QfTiKChVK9xYb/NdzQTbQ9j8zViX1QmUy1aVJVZGs49HFDKGYdzcORuugiTFBG2e3Arcn5NO4/YlWK7PHsgUe8TNpuyx8dyvNbzKanOt+mYKpBEUAU4Mw2pf3kpTPKTncuqsf1vMLZ4t7dFV9GfjLCWFD5uX+8M19lBiWwiCbvw6bsHA0c4klrWBY5HNr4H91hqIPiHhkU4dOaecMzbUGhttMzdCPYYDOBHKcag5+nyz4ou5lsn0v8UtLTl";
+
+                                                                    findPreviousCommand.CommandText =
+                                                                        //// before
+                                                                        //
+                                                                        //"SELECT FileSystemObjects.FileSystemObjectId, FileSystemObjects.CalculatedFullPath " +
+                                                                        //"FROM FileSystemObjects " +
+                                                                        //"LEFT OUTER JOIN Events ON FileSystemObjects.EventId = Events.EventId " +
+                                                                        //"WHERE FileSystemObjects.CalculatedFullPathCIHashes = ? " + // <-- parameter 1
+                                                                        //"ORDER BY " +
+                                                                        //"CASE WHEN FileSystemObjects.EventId IS NOT NULL " +
+                                                                        //"AND Events.FileChangeTypeEnumId = " + changeEnumsBackward[FileChangeType.Renamed] +
+                                                                        //" AND FileSystemObjects.Pending = 1 " +
+                                                                        //"THEN 0 " +
+                                                                        //"ELSE 1 " +
+                                                                        //"END ASC, " +
+                                                                        //"FileSystemObjects.Pending ASC, " +
+                                                                        //"CASE WHEN FileSystemObjects.EventOrder IS NULL " +
+                                                                        //"THEN 0 " +
+                                                                        //"ELSE FileSystemObjects.EventOrder " +
+                                                                        //"END DESC"
+                                                                        //
+                                                                        //// after (decrypted; {0}: changeEnumsBackward[FileChangeType.Renamed])
+                                                                        //
+                                                                        //SELECT FileSystemObjects.FileSystemObjectId, FileSystemObjects.CalculatedFullPath
+                                                                        //FROM FileSystemObjects
+                                                                        //LEFT OUTER JOIN Events ON FileSystemObjects.EventId = Events.EventId
+                                                                        //WHERE FileSystemObjects.CalculatedFullPathCIHashes = ?
+                                                                        //ORDER BY
+                                                                        //CASE WHEN FileSystemObjects.EventId IS NOT NULL
+                                                                        //AND Events.FileChangeTypeEnumId = {0}
+                                                                        //AND FileSystemObjects.Pending = 1
+                                                                        //THEN 0
+                                                                        //ELSE 1
+                                                                        //END ASC,
+                                                                        //FileSystemObjects.Pending ASC,
+                                                                        //CASE WHEN FileSystemObjects.EventOrder IS NULL
+                                                                        //THEN 0
+                                                                        //ELSE FileSystemObjects.EventOrder
+                                                                        //END DESC
+                                                                        string.Format(
+                                                                            Helpers.DecryptString(
+                                                                                selectFileSystemObjectIdByOldFullPathHash,
+                                                                                Encoding.ASCII.GetString(
+                                                                                    Convert.FromBase64String(indexDBPassword))),
+                                                                            changeEnumsBackward[FileChangeType.Renamed]);
 
                                                                     FilePath currentOldPath = toUpdate.OldPath;
 
@@ -3122,7 +3585,7 @@ namespace Cloud.SQLIndexer
 
                                                                     namePortions.Reverse();
 
-                                                                    string pathCIHashes = string.Join("\\",
+                                                                    string pathCIHashes = string.Join(((char)0x5c /* \ */).ToString(),
                                                                         namePortions.Select(currentPortion => StringComparer.OrdinalIgnoreCase.GetHashCode(currentPortion).ToString()));
 
                                                                     ISQLiteParameter previousHashesParam = findPreviousCommand.CreateParameter();
@@ -3135,9 +3598,9 @@ namespace Cloud.SQLIndexer
 
                                                                         while (previousObjectReader.Read())
                                                                         {
-                                                                            if (StringComparer.OrdinalIgnoreCase.Equals(Convert.ToString(previousObjectReader["CalculatedFullPath"]), toUpdate.OldPath.ToString()))
+                                                                            if (StringComparer.OrdinalIgnoreCase.Equals(Convert.ToString(previousObjectReader[Resources.NotTranslatedSqlIndexerCalculatedFullPath]), toUpdate.OldPath.ToString()))
                                                                             {
-                                                                                toUpdatePreviousId = Convert.ToInt64(previousObjectReader["FileSystemObjectId"]);
+                                                                                toUpdatePreviousId = Convert.ToInt64(previousObjectReader[Resources.NotTranslatedSqlIndexerFileSystemObjectId]);
 
                                                                                 break;
                                                                             }
@@ -3295,9 +3758,24 @@ namespace Cloud.SQLIndexer
                 {
                     updatePendingRevision.Transaction = castTransaction.sqlTransaction;
 
-                    updatePendingRevision.CommandText = "UPDATE Events " +
-                        "SET FileDownloadPendingRevision = ? " +
-                        "WHERE EventId = ?";
+                    const string updateEventById = "+0VaKzE7jzykHTCl1rvaASO1D5+/dPEGla9m/CdyBNseDzCGBYyKXhxxmweeR3Fvl9u6+P6t2tZMj+jZsDv9vPkpTknhmoBgEVaUb622llBpQtpdyLaoVbDfWwmJ27ZhLg1xaAzgYiH5bFdM8RII5QGSExEVlcJP1CRWV6KAy2xStx8ENFZfh07cLm/WMr7q";
+
+                    updatePendingRevision.CommandText =
+                        //// before
+                        //
+                        //"UPDATE Events " +
+                        //"SET FileDownloadPendingRevision = ? " +
+                        //"WHERE EventId = ?"
+                        //
+                        //// after (decrypted)
+                        //
+                        //UPDATE Events
+                        //SET FileDownloadPendingRevision = ?
+                        //WHERE EventId = ?
+                        Helpers.DecryptString(
+                            updateEventById,
+                            Encoding.ASCII.GetString(
+                                Convert.FromBase64String(indexDBPassword)));
 
                     ISQLiteParameter updateRevisionParam = updatePendingRevision.CreateParameter();
                     updateRevisionParam.Value = toUpdate.FileDownloadPendingRevision;
@@ -3326,7 +3804,7 @@ namespace Cloud.SQLIndexer
             {
                 try
                 {
-                    throw new ObjectDisposedException("This IndexingAgent");
+                    throw new ObjectDisposedException(Resources.IndexingAgentThisIndexingAgent);
                 }
                 catch (Exception ex)
                 {
@@ -3351,20 +3829,20 @@ namespace Cloud.SQLIndexer
                             stack = ex.StackTrace;
                         }
 
-                        string dbName = indexDBLocation.Substring(0, indexDBLocation.LastIndexOf('.'));
+                        string dbName = indexDBLocation.Substring(0, indexDBLocation.LastIndexOf((char)0x2e /* '.' */));
 
                         File.Copy(indexDBLocation,
                             string.Format(
-                                "{0}{1}.db",
+                                Resources.NotTranslatedSqlIndexerDBCopiedName,
                                 dbName,
                                 dbCopyNumber.Value++));
 
                         File.AppendAllText(
                             string.Format(
-                                "{0}.txt",
+                                Resources.NotTranslatedSqlIndexerDBStackName,
                                 dbName),
                             string.Format(
-                                "DB #{0}:{1}{2}{3}{4}",
+                                Resources.NotTranslatedSqlIndexerDBStackFormat,
                                 dbCopyNumber.Value,
                                 Environment.NewLine,
                                 stack,
@@ -3439,9 +3917,25 @@ namespace Cloud.SQLIndexer
                             using (ISQLiteCommand moveChildrenCommand = Data.castTransaction.sqlConnection.CreateCommand())
                             {
                                 moveChildrenCommand.Transaction = Data.castTransaction.sqlTransaction;
-                                moveChildrenCommand.CommandText = "UPDATE FileSystemObjects " +
-                                    "SET ParentFolderId = ? " +
-                                    "WHERE ParentFolderId = ?";
+
+                                const string updateFileSystemObjectByParentId = "9tA4A9qheaxmqn5OBpSv86o8u/HE1U3uoVPGDIvO8uxFwbNTMjsBNV0TBKek0RAFVHLHxUuWhXcYIIDQlVL5HeF4UTFjYSdKBH0wm0SsApDR77FTEJf3TPQXB4/rBAm+Q1+CWo5fRZWJr88LHe1DnN90L3GNZi6wRW7lGXeTHCUmFj/D2S4qcja3kxNFznRny8ZKrvRqJE2hMpzYaS9sig==";
+
+                                moveChildrenCommand.CommandText =
+                                    //// before
+                                    //
+                                    //"UPDATE FileSystemObjects " +
+                                    //"SET ParentFolderId = ? " +
+                                    //"WHERE ParentFolderId = ?"
+                                    //
+                                    //// after (decrypted)
+                                    //
+                                    //UPDATE FileSystemObjects
+                                    //SET ParentFolderId = ?
+                                    //WHERE ParentFolderId = ?
+                                    Helpers.DecryptString(
+                                        updateFileSystemObjectByParentId,
+                                        Encoding.ASCII.GetString(
+                                            Convert.FromBase64String(indexDBPassword)));
 
                                 ISQLiteParameter newObjectId = moveChildrenCommand.CreateParameter();
                                 newObjectId.Value = Data.newId.Value;
@@ -3461,25 +3955,56 @@ namespace Cloud.SQLIndexer
                     },
                     moveObjectsToNewParentError);
 
+                const string selectFileSystemObjectByEventId = "XiF/n8DAmECRcpl1q3g5SOaFkrEO/c+iI1V66stCO9Yv7K3QnlXqj68P0vDvLKPEvsMAT4aYICpfeh5DRpnmvL5qfP/ZUoDajTeFKO752ECwpnxQ1+SCCaqYKnwzeo/Wh2QtqIOGL30cai1QEsJGsX2wbiW96Ht+tWlP7fwugSNF9xClHx6bAQUDBjV7POG2BBOYOxclGuxCoxdfH4INOIe2krCYjkG4XnXE0yToE4GK/gFFSYRGTEoZ2aW7sCxPVdr9EGukZZcgDMbGgxDI40f6DqRXW59ORN/PomUqqelyKGq4Ph0qCZmQVVG2UCoQATQn24CQENDgWyjgYHguK86KqVjDXuRbyhnvqNofwp3J/mdKy+Ov+h9eO/QpeqTAsCp9Gg9hvoxNH+IiJYp4SGP3/tT3KXT+MYwdll2uPkaquDhrkSLBeCcbUQB4Qr2sJylOE8sFIfJjvr377C1RzAPtrFNkaTd9P22gnH+0nlK5RRRHA7d85B9zRqEp1HRcks78J3FTJUPpgjRfVnWKH3SXZgxGxBsctkwM7yo/DfH79d6wdvLsU/cdEHTlEeLx2STEfxd2l51en+Nu/+ZaH9gei1Kck6eAIe2Smrcm2C+lKqttvuYFSbuXcMhtuZkOj6BmM8dmh+Z3yO7FqQhoqdDQG6GVQqvhe7x3CokZQ4AJ+JkbsXiw8Z4PrDQSWGvChuk8nhjwyg0kWXBDSHxLrgaYEUVFbf7dioO68bMLeH3mCwssEZHmbkOmcms75RZf95D+FupARaHWpFvUQukUV3IxKwhlaA9dKcJoPnHXst176HqIrVYYApZyt4tjPq1+9GX1zbbnZxriyAdobDMplco1LdHqp8Fy7anhTocS8gMmDzytyVwtGg/JyJtw70eOJxp6xGm6hrOie0UP8xcCIW2LqRKQEWx/wZT2g2RR5vefEOakrmD6CroLA725QbjNpbMQ+Z6hgEw08tnsn8IG7r7WZfrfsYGrGdju47PIWw997WI/Fx+0zXojF9QkPCbiBuYfXx0UH5vKPgDYxfWATyEhfLuFiF+uxzv9x0nHsVM=";
+
                 FileSystemObject existingEventObject = SqlAccessor<FileSystemObject>.SelectResultSet(
                         castTransaction.sqlConnection,
-                        "SELECT " +
-                        SqlAccessor<FileSystemObject>.GetSelectColumns() + ", " +
-                        SqlAccessor<Event>.GetSelectColumns("Event") + ", " +
-                        SqlAccessor<FileSystemObject>.GetSelectColumns("Event.Previous", "Previouses") + ", " +
-                        SqlAccessor<SqlServerUid>.GetSelectColumns("ServerUid") +
-                        " FROM FileSystemObjects" +
-                        " INNER JOIN Events ON FileSystemObjects.EventId = Events.EventId" +
-                        " LEFT OUTER JOIN FileSystemObjects Previouses ON Events.PreviousId = Previouses.FileSystemObjectId" +
-                        " INNER JOIN ServerUids ON FileSystemObjects.ServerUidId = ServerUids.ServerUidId" +
-                        " WHERE FileSystemObjects.EventId = ?" + // <-- parameter 1
-                        " ORDER BY FileSystemObjects.FileSystemObjectId DESC" +
-                        " LIMIT 1",
+                        //// before
+                        //
+                        //"SELECT " +
+                        //SqlAccessor<FileSystemObject>.GetSelectColumns() + ", " +
+                        //SqlAccessor<Event>.GetSelectColumns(Resources.NotTranslatedSqlIndexerEvent) + ", " +
+                        //SqlAccessor<FileSystemObject>.GetSelectColumns(Resources.NotTranslatedSqlIndexerEventPrevious, Resources.NotTranslatedSqlIndexerPreviouses) + ", " +
+                        //SqlAccessor<SqlServerUid>.GetSelectColumns(Resources.NotTranslatedSqlIndexerServerUid) +
+                        //" FROM FileSystemObjects" +
+                        //" INNER JOIN Events ON FileSystemObjects.EventId = Events.EventId" +
+                        //" LEFT OUTER JOIN FileSystemObjects Previouses ON Events.PreviousId = Previouses.FileSystemObjectId" +
+                        //" INNER JOIN ServerUids ON FileSystemObjects.ServerUidId = ServerUids.ServerUidId" +
+                        //" WHERE FileSystemObjects.EventId = ?" + // <-- parameter 1
+                        //" ORDER BY FileSystemObjects.FileSystemObjectId DESC" +
+                        //" LIMIT 1"
+                        //
+                        //// after (decrypted; {0}: SqlAccessor<FileSystemObject>.GetSelectColumns()
+                        //// {1}: SqlAccessor<Event>.GetSelectColumns(Resources.NotTranslatedSqlIndexerEvent)
+                        //// {2}: SqlAccessor<FileSystemObject>.GetSelectColumns(Resources.NotTranslatedSqlIndexerEventPrevious, Resources.NotTranslatedSqlIndexerPreviouses)
+                        //// {3}: SqlAccessor<SqlServerUid>.GetSelectColumns(Resources.NotTranslatedSqlIndexerServerUid) )
+                        //
+                        //SELECT
+                        //{0},
+                        //{1},
+                        //{2},
+                        //{3}
+                        //FROM FileSystemObjects
+                        //INNER JOIN Events ON FileSystemObjects.EventId = Events.EventId
+                        //LEFT OUTER JOIN FileSystemObjects Previouses ON Events.PreviousId = Previouses.FileSystemObjectId
+                        //INNER JOIN ServerUids ON FileSystemObjects.ServerUidId = ServerUids.ServerUidId
+                        //WHERE FileSystemObjects.EventId = ?
+                        //ORDER BY FileSystemObjects.FileSystemObjectId DESC
+                        //LIMIT 1
+                        string.Format(
+                            Helpers.DecryptString(
+                                selectFileSystemObjectByEventId,
+                                Encoding.ASCII.GetString(
+                                Convert.FromBase64String(indexDBPassword))),
+                            SqlAccessor<FileSystemObject>.GetSelectColumns(),
+                            SqlAccessor<Event>.GetSelectColumns(Resources.NotTranslatedSqlIndexerEvent),
+                            SqlAccessor<FileSystemObject>.GetSelectColumns(Resources.NotTranslatedSqlIndexerEventPrevious, Resources.NotTranslatedSqlIndexerPreviouses),
+                            SqlAccessor<SqlServerUid>.GetSelectColumns(Resources.NotTranslatedSqlIndexerServerUid)),
                         new[]
                         {
-                            "Event",
-                            "Event.Previous",
-                            "ServerUid"
+                            Resources.NotTranslatedSqlIndexerEvent,
+                            Resources.NotTranslatedSqlIndexerEventPrevious,
+                            Resources.NotTranslatedSqlIndexerServerUid
                         },
                         castTransaction.sqlTransaction,
                         Helpers.EnumerateSingleItem(eventId))
@@ -3502,20 +4027,43 @@ namespace Cloud.SQLIndexer
                 {
                     // server "uid" can be null for conflicts where we rename the local item and have a dependent creation at the new path (since the rename was technically never communicated)
 
+                    const string selectWhetherFileSystemObjectExistsForServerUid = "6dvoJhuOH09lpRVxcMPuf6zJlm1x1mPQwh0GHA5i+ZnugtIOHJ+83KhGWVKyKcFIWN5b7j4nF/b02+876/EtRm4nLlKBd/lfUruqxyv1XuZjoGD1DtrqiiYL1PD6RIeR8E8h5ofG9jHvmi2HwW5F+k72jxpHCdarqCydoTpF+dL2jhZveV7S82vbUDoI0suofkXx+tHp2E2/sViH8ByHrg0dVOv53TjY5E8m55rWMZpKiaT1FUCgFjpkK1/0Gu+avQuhdZCBXTS8g8POnXwG1Gn88UhPf0dPZxOs3GEdowNnI/Bc+F7G2xHzCedjPUwrA7cSGu6TPwSXdtsy9QzuZ3EObv6uuHKpES7B8eUiivUWAGJdjZB+o5FHDbzx3wWasm3bHTiB7M0EDGejKgi1H5tFCKTibeyeRrp9apBYWlUzcfGmn1uZDuJZ2C9nrvAp5vvrvFwzI4MRE9LLOL6o5rWml0MXdm8kd+o4bfoW937jVjA0NBO+fcwD/EeGUkpn80YvkMdyiFzCo5OzkmSKCjmyRJl96PfLekuWSlVBUfYdK7gvEcrgH6FZ69LrLf9qLXo+SaVsGp+wEotVY+6v3pIQaoscoIHYufeoUHVqliUc6r7oMPQtPixZ9EsAbGNkN2QK1wFHJj+XBDniMZ0HXa0iGRrSg/FcPLXnafjRZXLV4AtnZbOMYFajVCUdI7prFSXTUBmImJwdzAmtJzXK1Q==";
+
                     bool foundLaterCreate;
                     if (existingEventObject.EventOrder == null
                         || !SqlAccessor<object>.TrySelectScalar<bool>(
                             castTransaction.sqlConnection,
-                            "SELECT EXISTS " +
-                            "(" +
-                                "SELECT NULL " +
-                                "FROM FileSystemObjects " +
-                                "INNER JOIN Events ON Events.EventId = FileSystemObjects.EventId " +
-                                "WHERE FileSystemObjects.ServerUidId = ? " + // <-- parameter 1
-                                "AND FileSystemObjects.Pending = 1 " +
-                                "AND Events.FileChangeTypeEnumId = " + changeEnumsBackward[FileChangeType.Created].ToString() +
-                                " AND EventOrder > ?" + // <-- parameter 2
-                            ") AS EXIST",
+                            //// before
+                            //
+                            //"SELECT EXISTS " +
+                            //"(" +
+                            //    "SELECT NULL " +
+                            //    "FROM FileSystemObjects " +
+                            //    "INNER JOIN Events ON Events.EventId = FileSystemObjects.EventId " +
+                            //    "WHERE FileSystemObjects.ServerUidId = ? " + // <-- parameter 1
+                            //    "AND FileSystemObjects.Pending = 1 " +
+                            //    "AND Events.FileChangeTypeEnumId = " + changeEnumsBackward[FileChangeType.Created] +
+                            //    " AND EventOrder > ?" + // <-- parameter 2
+                            //") AS EXIST"
+                            //
+                            //// after (decrypted; {0}: changeEnumsBackward[FileChangeType.Created])
+                            //
+                            //SELECT EXISTS
+                            //(
+                            //SELECT NULL
+                            //FROM FileSystemObjects
+                            //INNER JOIN Events ON Events.EventId = FileSystemObjects.EventId
+                            //WHERE FileSystemObjects.ServerUidId = ?
+                            //AND FileSystemObjects.Pending = 1
+                            //AND Events.FileChangeTypeEnumId = {0}
+                            //AND EventOrder > ?
+                            //) AS EXIST
+                            string.Format(
+                                Helpers.DecryptString(
+                                    selectWhetherFileSystemObjectExistsForServerUid,
+                                    Encoding.ASCII.GetString(
+                                        Convert.FromBase64String(indexDBPassword))),
+                                changeEnumsBackward[FileChangeType.Created]),
                             out foundLaterCreate,
                             castTransaction.sqlTransaction,
                             new[] { existingEventObject.ServerUidId, (long)existingEventObject.EventOrder })
@@ -3539,12 +4087,30 @@ namespace Cloud.SQLIndexer
                 {
                     existingObjectCommand.Transaction = castTransaction.sqlTransaction;
 
-                    existingObjectCommand.CommandText = "SELECT FileSystemObjects.FileSystemObjectId, FileSystemObjects.Name " +
-                        "FROM FileSystemObjects " +
-                        "WHERE FileSystemObjects.ParentFolderId = ? " + // <-- parameter 1
-                        "AND FileSystemObjects.NameCIHash = ? " + // <-- parameter 2
-                        "AND FileSystemObjects.Pending = 0 " +
-                        "ORDER BY FileSystemObjects.FileSystemObjectId DESC";
+                    const string selectFileSystemObjectIdByNameHashAndParentId = "AgH+ETlwi8JFbGkqRXjqdKTh9CEhp0rFMSM6QTpmaYxrMgdgf7inZdXwgEuqXuYM4A9CJRjJ2AJWbK+2XeEfjsHjbyLTBN0A1N3nA0Q4qVNOEMU6uWFsvHIyt+vO7mRotjaQ6thfD0JG4dEBb6CwJ86VmbNFzR840DvU9mAN+U2/rU023TbaueJ53hdMdiMrsHsu2emU03kLqHuA9I1RdnUArec/ZYboGWZS7mPtAmKEkUdrfKdetzs/JO0NWcMsHuZ7mKfmHiqXUHNr/qwsUiM6TaJREacTRgqaAoEVEXyRjnzCYvqQm1xobLZ0xn7SNGaExMY6AbrlyrqwsC0Xfxjh9IJX7uGxnwk0ifajdMtJIujvhxFfBYfxqqNGY+7WhygNIifBFkxj3ajby0KYaU2UZtw99w1FjVPu0JcRlxAFNN7ldVy2O1/t6PzqAIQ4kWQ3JpyhhQSCC0gqibdZ9jYj3LijDbhgChrrNXwOm/HG8ktPgsOwWvR5vapyY352MR6iCUVyCDfkdGPWjcfRg5dchyoKzfwoLliFjnCIQugMOOExL3KrQv/p/9ZWQHKDzBHFHiE9QrzUUefcIeSD9xL8SiIexC/9m5h1rbVk/A6xKOuhgCxzoA+VQKmKgCkp8/0D1y+0to1Zug7xoopb8W5q5Z9veDiXnJf0Gh8thwpolDI91aKDfxSAwAsIutEs";
+
+                    existingObjectCommand.CommandText =
+                        //// before
+                        //
+                        //"SELECT FileSystemObjects.FileSystemObjectId, FileSystemObjects.Name " +
+                        //"FROM FileSystemObjects " +
+                        //"WHERE FileSystemObjects.ParentFolderId = ? " + // <-- parameter 1
+                        //"AND FileSystemObjects.NameCIHash = ? " + // <-- parameter 2
+                        //"AND FileSystemObjects.Pending = 0 " +
+                        //"ORDER BY FileSystemObjects.FileSystemObjectId DESC"
+                        //
+                        //// after (decrypted)
+                        //
+                        //SELECT FileSystemObjects.FileSystemObjectId, FileSystemObjects.Name
+                        //FROM FileSystemObjects
+                        //WHERE FileSystemObjects.ParentFolderId = ?
+                        //AND FileSystemObjects.NameCIHash = ?
+                        //AND FileSystemObjects.Pending = 0
+                        //ORDER BY FileSystemObjects.FileSystemObjectId DESC
+                        Helpers.DecryptString(
+                            selectFileSystemObjectIdByNameHashAndParentId,
+                            Encoding.ASCII.GetString(
+                                Convert.FromBase64String(indexDBPassword)));
 
                     ISQLiteParameter existingParentParam = existingObjectCommand.CreateParameter();
                     existingParentParam.Value = (long)existingEventObject.ParentFolderId;
@@ -3558,9 +4124,9 @@ namespace Cloud.SQLIndexer
                     {
                         while (existingObjectReader.Read())
                         {
-                            if (StringComparer.OrdinalIgnoreCase.Equals(Convert.ToString(existingObjectReader["Name"]), existingEventObject.Name))
+                            if (StringComparer.OrdinalIgnoreCase.Equals(Convert.ToString(existingObjectReader[Resources.NotTranslatedSqlIndexerName]), existingEventObject.Name))
                             {
-                                long existingNonPendingIdToMerge = Convert.ToInt64(existingObjectReader["FileSystemObjectId"]);
+                                long existingNonPendingIdToMerge = Convert.ToInt64(existingObjectReader[Resources.NotTranslatedSqlIndexerFileSystemObjectId]);
 
                                 //// The following cases below seemed to happen under normal use and we don't wish to kill the sync engine,
                                 //// it would be better if we fixed the causes of the conditions below from happening
@@ -3585,9 +4151,25 @@ namespace Cloud.SQLIndexer
                                 using (ISQLiteCommand movePreviousesCommand = castTransaction.sqlConnection.CreateCommand())
                                 {
                                     movePreviousesCommand.Transaction = castTransaction.sqlTransaction;
-                                    movePreviousesCommand.CommandText = "UPDATE Events " +
-                                        "SET PreviousId = ? " +
-                                        "WHERE PreviousId = ?";
+
+                                    const string updateEventByPreviousId = "+0VaKzE7jzykHTCl1rvaASO1D5+/dPEGla9m/CdyBNstTMfPv6533filFJcEBqd5j5afu13lzZLCKCfJcQO6mbX2EPtGlVAJN3vWsR7TBZe4UoYru96Uqn90xoqlWOF4bIac6eujNY1LKdkwljiTVA==";
+
+                                    movePreviousesCommand.CommandText =
+                                        //// before
+                                        //
+                                        //"UPDATE Events " +
+                                        //"SET PreviousId = ? " +
+                                        //"WHERE PreviousId = ?"
+                                        //
+                                        //// after (decrypted)
+                                        //
+                                        //UPDATE Events
+                                        //SET PreviousId = ?
+                                        //WHERE PreviousId = ?
+                                        Helpers.DecryptString(
+                                            updateEventByPreviousId,
+                                            Encoding.ASCII.GetString(
+                                                Convert.FromBase64String(indexDBPassword)));
 
                                     ISQLiteParameter newPreviousId = movePreviousesCommand.CreateParameter();
                                     newPreviousId.Value = existingEventObject.FileSystemObjectId;
@@ -3649,9 +4231,24 @@ namespace Cloud.SQLIndexer
                             {
                                 updateRevision.Transaction = castTransaction.sqlTransaction;
 
-                                updateRevision.CommandText = "UPDATE ServerUids " +
-                                    "SET Revision = ? " +
-                                    "WHERE ServerUidId = ?";
+                                const string updateServerUidById = "qvD42Gwb7pnBtXYpI3VuUXDJmBfa6scsRn9hnyU8DIa2GT9xBMRBJ+KNWYdhNGu7pDRJvGlKOg0IwTaPJgbvevTCpUFEfCvRuXT1AlfsEFHQq5F27IAn5i+KFAlj6P1dnc52kgd3d9fsGLgWfUPYsRv4XoHsUe2uN+PWvjRM0Qo=";
+
+                                updateRevision.CommandText =
+                                    //// before
+                                    //
+                                    //"UPDATE ServerUids " +
+                                    //"SET Revision = ? " +
+                                    //"WHERE ServerUidId = ?"
+                                    //
+                                    //// after (decrypted)
+                                    //
+                                    //UPDATE ServerUids
+                                    //SET Revision = ?
+                                    //WHERE ServerUidId = ?
+                                    Helpers.DecryptString(
+                                        updateServerUidById,
+                                        Encoding.ASCII.GetString(
+                                            Convert.FromBase64String(indexDBPassword)));
 
                                 ISQLiteParameter revisionParameter = updateRevision.CreateParameter();
                                 revisionParameter.Value = existingEventObject.Event.FileDownloadPendingRevision;
@@ -3696,38 +4293,79 @@ namespace Cloud.SQLIndexer
                         {
                             findObjectIdsToMove.Transaction = castTransaction.sqlTransaction;
 
-                            findObjectIdsToMove.CommandText = "SELECT FileSystemObjects.FileSystemObjectId, FileSystemObjects.Name " +
-                                "FROM FileSystemObjects " +
-                                "WHERE FileSystemObjects.ParentFolderId = ? " + // <-- parameter 1
-                                "AND FileSystemObjects.NameCIHash = ? " + // <-- parameter 2
-                                "AND FileSystemObjects.EventOrder < " +
-                                "(" +
-                                    "SELECT UpperExclusiveOrder " +
-                                    "FROM " +
-                                    "(" +
-                                        "SELECT MAX(InnerObjects.EventOrder) + 1 as UpperExclusiveOrder " +
-                                        "FROM FileSystemObjects InnerObjects" +
-                                        " " +
-                                        "UNION SELECT MIN(InnerObjects.EventOrder) " +
-                                        "FROM FileSystemObjects InnerObjects " +
-                                        "INNER JOIN Events ON InnerObjects.EventId = Events.EventId " +
-                                        "WHERE InnerObjects.EventOrder > ? " + // <-- parameter 3
-                                        "AND Events.FileChangeTypeEnumId IN (" + changeEnumsBackward[FileChangeType.Created].ToString() + ", " + changeEnumsBackward[FileChangeType.Renamed].ToString() + ")" +
-                                    ") " +
+                            const string selectFileSystemObjectIdByNameHash = "AgH+ETlwi8JFbGkqRXjqdKTh9CEhp0rFMSM6QTpmaYxrMgdgf7inZdXwgEuqXuYM4A9CJRjJ2AJWbK+2XeEfjsHjbyLTBN0A1N3nA0Q4qVNOEMU6uWFsvHIyt+vO7mRotjaQ6thfD0JG4dEBb6CwJ86VmbNFzR840DvU9mAN+U2/rU023TbaueJ53hdMdiMrsHsu2emU03kLqHuA9I1RdnUArec/ZYboGWZS7mPtAmKEkUdrfKdetzs/JO0NWcMsHuZ7mKfmHiqXUHNr/qwsUiM6TaJREacTRgqaAoEVEXyRjnzCYvqQm1xobLZ0xn7SNGaExMY6AbrlyrqwsC0Xfxjh9IJX7uGxnwk0ifajdMtJIujvhxFfBYfxqqNGY+7WhygNIifBFkxj3ajby0KYaU2UZtw99w1FjVPu0JcRlxAFNN7ldVy2O1/t6PzqAIQ4kWQ3JpyhhQSCC0gqibdZ9jYj3LijDbhgChrrNXwOm/HG8ktPgsOwWvR5vapyY352NAw8BDv+G1A5YCq1ycEew2IPY71itsEKGgoOQgF7FLeZw5Q7V3hxJo8/sNls2t7WEcsynBejuzDV2ZAuaCQhmjJ4umDM3A7+ksJdM1dc3efcDkUAMqDRoCztsacidTYKoTUlLBAw0+kKqnvOF4FLuuhT2L3A3Qu38xusCQeXTDj9gKrsRGyHn0570d0tGmQvOCUuqwe+D+b2Vby+Gl262NTbzCqPnqrtsyy7hv+kKRHXnuL6xpVbUamCi0G93WqtYBrqwdwK1nTG4APDZxh/+i6BT2H3zbfkkfO0S1Temr/6DPOG+f1VS0ZRVTQs12lyl5CC7EKcq38tnb1ZXb0SAT6PMElzveAzfkXs0X+WqtritqMMJpKmpvtifwYC8PlQM9xsHNjdIvrJ8ITk9wuamFhlN/DX83H6K64T3Oruzohqv4PPlisgce3g/wBqOhKiSPz7x7jnS+TVFu5GsAms/Zu/ddMJE3Vti7CNfK1cTpatNgZiIZNnFTgeAZi0gEHrTpx1KWcPeRJWrGFaOWGw/P9dv1uGapbf/98ET5ZFYATcWuLvclLUvscTtypM+M+iLae+zyqZLV0uXPdsRQ65KcAzEsoEU/E9aiGeEdIvPBqgnc8ak99lp9DhgY5FjLtgvGdCufoj2LBndH/ApBX0dUKDEWAsBH3g32kOCCtZPchlWO7D0d3ZOFFAzx8Bpm/Qo/rN3kLNt8jRPLGuT5lKoi6QkJBTPeScHad97aUO3l6bAhEzNRDxE1pOpSxrHNnyhXpXrsWTG+T0rp+ba5FQP5WpQrvYQTMBzKzGNjU1NofeSuJfErG4XtMZne3uK2dd2Ci5qK7+mYAd4xWvdlKZTEW80xAbuf7/dXMS4r4JlnZ28LlCdvaYSk6ep2Y/OX07XCmJb8VB3Uw3m3C/PBaLVza/UB6z3Wo1VO7/nURkMUNhTFUG8cZzCH/RSGqwcRQmh3Z+zlF8S0WLU4izx1qWa5Y5QHqP6x4nbDw55FJmlIEbgomC/HILywnUiqfd4/OdH8QRdvcefZio8zh4HgOgPd003Vh02tOkisGMJdt2z1P36AqRl+CSAvtjoK5oMmV/3gqG7EJo6y7geaM/XIhBxXKqeu5hcSkkNCwgsy0wiqru8ktOv31l4Y57yfmhYQqFyTIwiF4X+SvlhYcrq2dlESlq7Mf+t4fbg5+aqrIV0L3MTFthnGYurxudQ7qkOk+6//3HjOWYCx/4/F/1e80qAUU2hqczyueQrPYbquv+BFngWmdFr+XzLTDX6aCXvz+wqklpmzSMSh6Mcl2gMZ48rA==";
 
-                                    // first order to grab non-null event orders first
-                                    "ORDER BY " +
-                                    "CASE WHEN UpperExclusiveOrder IS NULL " +
-                                    "THEN 1 " +
-                                    "ELSE 0 " +
-                                    "END, " +
+                            findObjectIdsToMove.CommandText =
+                                //// before
+                                //
+                                //"SELECT FileSystemObjects.FileSystemObjectId, FileSystemObjects.Name " +
+                                //"FROM FileSystemObjects " +
+                                //"WHERE FileSystemObjects.ParentFolderId = ? " + // <-- parameter 1
+                                //"AND FileSystemObjects.NameCIHash = ? " + // <-- parameter 2
+                                //"AND FileSystemObjects.EventOrder < " +
+                                //"(" +
+                                //    "SELECT UpperExclusiveOrder " +
+                                //    "FROM " +
+                                //    "(" +
+                                //        "SELECT MAX(InnerObjects.EventOrder) + 1 as UpperExclusiveOrder " +
+                                //        "FROM FileSystemObjects InnerObjects" +
+                                //        " " +
+                                //        "UNION SELECT MIN(InnerObjects.EventOrder) " +
+                                //        "FROM FileSystemObjects InnerObjects " +
+                                //        "INNER JOIN Events ON InnerObjects.EventId = Events.EventId " +
+                                //        "WHERE InnerObjects.EventOrder > ? " + // <-- parameter 3
+                                //        "AND Events.FileChangeTypeEnumId IN (" + changeEnumsBackward[FileChangeType.Created] + ", " + changeEnumsBackward[FileChangeType.Renamed] + ")" +
+                                //    ") " +
 
-                                    // then order by the event order itself (ascending)
-                                    "UpperExclusiveOrder " +
+                                //    // first order to grab non-null event orders first
+                                //    "ORDER BY " +
+                                //    "CASE WHEN UpperExclusiveOrder IS NULL " +
+                                //    "THEN 1 " +
+                                //    "ELSE 0 " +
+                                //    "END, " +
 
-                                    // only take the lowest event order (either the maximum or the lowest create or rename)
-                                    "LIMIT 1" +
-                                ")";
+                                //    // then order by the event order itself (ascending)
+                                //    "UpperExclusiveOrder " +
+
+                                //    // only take the lowest event order (either the maximum or the lowest create or rename)
+                                //    "LIMIT 1" +
+                                //")"
+                                //
+                                //// after (decrypted; {0}: changeEnumsBackward[FileChangeType.Created]
+                                //// {1}: changeEnumsBackward[FileChangeType.Renamed] )
+                                //
+                                //SELECT FileSystemObjects.FileSystemObjectId, FileSystemObjects.Name
+                                //FROM FileSystemObjects
+                                //WHERE FileSystemObjects.ParentFolderId = ?
+                                //AND FileSystemObjects.NameCIHash = ?
+                                //AND FileSystemObjects.EventOrder <
+                                //(
+                                //SELECT UpperExclusiveOrder
+                                //FROM
+                                //(
+                                //SELECT MAX(InnerObjects.EventOrder) + 1 as UpperExclusiveOrder
+                                //FROM FileSystemObjects InnerObjects
+                                //UNION SELECT MIN(InnerObjects.EventOrder)
+                                //FROM FileSystemObjects InnerObjects
+                                //INNER JOIN Events ON InnerObjects.EventId = Events.EventId
+                                //WHERE InnerObjects.EventOrder > ?
+                                //AND Events.FileChangeTypeEnumId IN ({0}, {1})
+                                //)
+                                //ORDER BY
+                                //CASE WHEN UpperExclusiveOrder IS NULL
+                                //THEN 1
+                                //ELSE 0
+                                //END,
+                                //UpperExclusiveOrder
+                                //LIMIT 1
+                                //)
+                                string.Format(
+                                    Helpers.DecryptString(
+                                        selectFileSystemObjectIdByNameHash,
+                                        Encoding.ASCII.GetString(
+                                            Convert.FromBase64String(indexDBPassword))),
+                                    changeEnumsBackward[FileChangeType.Created],
+                                    changeEnumsBackward[FileChangeType.Renamed]);
 
                             ISQLiteParameter previousParentParam = findObjectIdsToMove.CreateParameter();
                             previousParentParam.Value = (long)existingEventObject.Event.Previous.ParentFolderId;
@@ -3745,9 +4383,9 @@ namespace Cloud.SQLIndexer
                             {
                                 while (existingObjectReader.Read())
                                 {
-                                    if (StringComparer.OrdinalIgnoreCase.Equals(Convert.ToString(existingObjectReader["Name"]), existingEventObject.Name))
+                                    if (StringComparer.OrdinalIgnoreCase.Equals(Convert.ToString(existingObjectReader[Resources.NotTranslatedSqlIndexerName]), existingEventObject.Name))
                                     {
-                                        long previousObjectId = Convert.ToInt64(existingObjectReader["FileSystemObjectId"]);
+                                        long previousObjectId = Convert.ToInt64(existingObjectReader[Resources.NotTranslatedSqlIndexerFileSystemObjectId]);
 
                                         if (objectIdsToMove == null)
                                         {
@@ -3770,22 +4408,48 @@ namespace Cloud.SQLIndexer
 
                                 //// initial attempt to move all the other events at the same location to follow the rename to its new path
                                 //
-                                //moveOtherMatchingOldNames.CommandText = "UPDATE FileSystemObjects " +
-                                //    "SET ParentFolderId = ?, " + // <-- parameter 1
-                                //    "Name = ? " + // <-- parameter 2
-                                //    "WHERE ParentFolderId = ? " + // <-- parameter 3
-                                //    "AND Name = ?"; // <-- parameter 4
+                                //moveOtherMatchingOldNames.CommandText =
+                                    //// before
+                                    //
+                                    //"UPDATE FileSystemObjects " +
+                                    //    "SET ParentFolderId = ?, " + // <-- parameter 1
+                                    //    "Name = ? " + // <-- parameter 2
+                                    //    "WHERE ParentFolderId = ? " + // <-- parameter 3
+                                    //    "AND Name = ?" // <-- parameter 4
+                                    //
+                                    //// after (decrypted)
+                                    //
+                                    // [missing]
 
                                 // find lowest EventOrder with same ParentFolderId and Name with a greater EventOrder than the current object which also has an Event with a FileChangeTypeEnumId which represents either "created" or "renamed", if any
                                 // if this EventOrder is found, limit the above query by "AND EventOrder < [lowest EventOrder of create\rename]"
 
-                                moveOtherMatchingOldNames.CommandText = "UPDATE FileSystemObjects " +
-                                    "SET ParentFolderId = ?, " + // <-- parameter 1
-                                    "Name = ?, " + // <-- parameter 2
-                                    "NameCIHash = ? " + // <-- parameter 3
-                                    "WHERE FileSystemObjectId IN (" +
-                                    string.Join(", ", Enumerable.Repeat("?", objectIdsToMove.Count)) + // <-- parameter 4 through 'n + 3' where 'n' is the number of ids to move
-                                    ")";
+                                const string updateFileSystemObjectNameById = "9tA4A9qheaxmqn5OBpSv86o8u/HE1U3uoVPGDIvO8uxFwbNTMjsBNV0TBKek0RAFVHLHxUuWhXcYIIDQlVL5HeF4UTFjYSdKBH0wm0SsApDR77FTEJf3TPQXB4/rBAm+DHc/VlscUu41BMhP8dUMg8ulzLseduyF32AWS/CSs7mWnojj3v9neU5pUlYb5fgEKZ8nPdkQIwr4RZCRGZ7799a+AvNuV/BUXo/snEzU1D7JmDb9RS00QS96KnjosppMifdxgKnDxO9qPVzgOyzAIXeONVu4zAPxTgr5I9YQF3c=";
+
+                                moveOtherMatchingOldNames.CommandText =
+                                    //// before
+                                    //
+                                    //"UPDATE FileSystemObjects " +
+                                    //"SET ParentFolderId = ?, " + // <-- parameter 1
+                                    //"Name = ?, " + // <-- parameter 2
+                                    //"NameCIHash = ? " + // <-- parameter 3
+                                    //"WHERE FileSystemObjectId IN (" +
+                                    //string.Join(new string(new [] { ((char)0x2c) /* ',' */, ((char)0x20) /* ' ' */ }), Enumerable.Repeat<char>(((char)0x3f) /* '?' */, objectIdsToMove.Count)) + // <-- parameter 4 through 'n + 3' where 'n' is the number of ids to move
+                                    //")"
+                                    //
+                                    //// after (decrypted; {0}: string.Join(new string(new [] { ((char)0x2c) /* ',' */, ((char)0x20) /* ' ' */ }), Enumerable.Repeat<char>(((char)0x3f) /* '?' */, objectIdsToMove.Count)) )
+                                    //
+                                    //UPDATE FileSystemObjects
+                                    //SET ParentFolderId = ?,
+                                    //Name = ?,
+                                    //NameCIHash = ?
+                                    //WHERE FileSystemObjectId IN ({0})
+                                    string.Format(
+                                        Helpers.DecryptString(
+                                            updateFileSystemObjectNameById,
+                                            Encoding.ASCII.GetString(
+                                                Convert.FromBase64String(indexDBPassword))),
+                                        string.Join(new string(new[] { ((char)0x2c) /* ',' */, ((char)0x20) /* ' ' */ }), Enumerable.Repeat<char>(((char)0x3f) /* '?' */, objectIdsToMove.Count)));
 
                                 ISQLiteParameter newParentParam = moveOtherMatchingOldNames.CreateParameter();
                                 newParentParam.Value = existingEventObject.ParentFolderId;
@@ -3903,7 +4567,7 @@ namespace Cloud.SQLIndexer
             {
                 try
                 {
-                    throw new ObjectDisposedException("This IndexingAgent");
+                    throw new ObjectDisposedException(Resources.IndexingAgentThisIndexingAgent);
                 }
                 catch (Exception ex)
                 {
@@ -3926,9 +4590,24 @@ namespace Cloud.SQLIndexer
                     {
                         using (ISQLiteCommand changeRoot = indexDB.CreateCommand())
                         {
-                            changeRoot.CommandText = "UPDATE FileSystemObjects " +
-                                "SET Name = ? " + // <-- parameter 1
-                                "WHERE ParentFolderId IS NULL"; // condition for root folder object
+                            const string updateFileSystemObjectByRoot = "9tA4A9qheaxmqn5OBpSv86o8u/HE1U3uoVPGDIvO8uxFwbNTMjsBNV0TBKek0RAF2IoquE2G2pJ4mXiQt79qfbhdjuiJyDE49icAMJwKlcbipzqc2Hv5y+rBvw93KEqImivPzDQwqoOfMCTlDoZ9IITY7VCmJOPqBlzJBJdQpRuIAEtZqhcLUr0HgnEuYW9T";
+
+                            changeRoot.CommandText =
+                                //// before
+                                //
+                                //"UPDATE FileSystemObjects " +
+                                //"SET Name = ? " + // <-- parameter 1
+                                //"WHERE ParentFolderId IS NULL" // condition for root folder object
+                                //
+                                //// after (decrypted)
+                                //
+                                //UPDATE FileSystemObjects
+                                //SET Name = ?
+                                //WHERE ParentFolderId IS NULL
+                                Helpers.DecryptString(
+                                    updateFileSystemObjectByRoot,
+                                    Encoding.ASCII.GetString(
+                                        Convert.FromBase64String(indexDBPassword)));
 
                             ISQLiteParameter newRootParam = changeRoot.CreateParameter();
                             newRootParam.Value = newSyncboxPath;
@@ -3976,7 +4655,7 @@ namespace Cloud.SQLIndexer
             {
                 try
                 {
-                    throw new ObjectDisposedException("This IndexingAgent");
+                    throw new ObjectDisposedException(Resources.IndexingAgentThisIndexingAgent);
                 }
                 catch
                 {
@@ -4020,8 +4699,8 @@ namespace Cloud.SQLIndexer
                         .Where(resourceName => resourceName.StartsWith(scriptDirectory)))
                     {
                         if (!string.IsNullOrWhiteSpace(currentScriptName)
-                            && currentScriptName.Length >= 5 // length of 1+-digit number plus ".sql" file extension
-                            && currentScriptName.EndsWith(".sql", StringComparison.InvariantCultureIgnoreCase))
+                            && currentScriptName.Length >= 5 // length of 1+-digit number plus Resources.NotTranslatedSqlIndexerSqlExtension file extension
+                            && currentScriptName.EndsWith(Resources.NotTranslatedSqlIndexerSqlExtension, StringComparison.InvariantCultureIgnoreCase))
                         {
                             int numChars = 0;
                             for (int numberCharIndex = scriptDirectory.Length; numberCharIndex < currentScriptName.Length; numberCharIndex++)
@@ -4117,9 +4796,24 @@ namespace Cloud.SQLIndexer
                         using (ISQLiteConnection indexDB = CreateAndOpenCipherConnection())
                         {
                             long storeCategoryId = -1;
+
+                            const string selectEnumCategoryForFileChangeType = "t3Ee1ulQLjs62aHw5E7nEJ4OVRMxHSv05KKk8yteDDLqGGMwOjLNITW5GZUQs9PX7chtt7prSw/TgDJnhFowwiGZph64jP+b4f+mvSNtb79WBikCDdlN4FcpEA1YqN5J";
+
                             foreach (EnumCategory currentCategory in SqlAccessor<EnumCategory>
                                 .SelectResultSet(indexDB,
-                                    "SELECT * FROM EnumCategories WHERE Name = '" + typeof(FileChangeType).Name.Replace("'", "''") + "'"))
+                                    //// before
+                                    //
+                                    //"SELECT * FROM EnumCategories WHERE Name = '" + typeof(FileChangeType).Name.Replace(((char)0x27 /* '\'' */).ToString(), new string((char)0x27 /* '\'' */, 2)) + "'"
+                                    //
+                                    //// after (decrypted; {0}: typeof(FileChangeType).Name.Replace(((char)0x27 /* '\'' */).ToString(), new string((char)0x27 /* '\'' */, 2)) )
+                                    //
+                                    //SELECT * FROM EnumCategories WHERE Name = '{0}'
+                                    string.Format(
+                                        Helpers.DecryptString(
+                                            selectEnumCategoryForFileChangeType,
+                                            Encoding.ASCII.GetString(
+                                                Convert.FromBase64String(indexDBPassword))),
+                                        typeof(FileChangeType).Name.Replace(((char)0x27 /* '\'' */).ToString(), new string((char)0x27 /* '\'' */, 2)))))
                             {
                                 if (storeCategoryId == -1)
                                 {
@@ -4136,9 +4830,23 @@ namespace Cloud.SQLIndexer
                                 throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "No EnumCategory found with name FileChangeType");
                             }
 
+                            const string selectEnumByCategoryId = "t3Ee1ulQLjs62aHw5E7nEJ4OVRMxHSv05KKk8yteDDKPDczN41IFJrTTT/8+SbVUsPZDoZybLGstb13Eo8o/f9PulMXMsbcT40Gd9kvjsqVkTHd09OM8L3VbKsrJVsIj2bt6sri9CJiCGLxwBNEZIQ==";
+
                             foreach (SqlEnum currentChangeEnum in SqlAccessor<SqlEnum>
                                 .SelectResultSet(indexDB,
-                                    "SELECT * FROM Enums WHERE Enums.EnumCategoryId = " + storeCategoryId.ToString()))
+                                    //// before
+                                    //
+                                    //"SELECT * FROM Enums WHERE Enums.EnumCategoryId = " + storeCategoryId
+                                    //
+                                    //// after (decrypted; {0}: storeCategoryId)
+                                    //
+                                    //SELECT * FROM Enums WHERE Enums.EnumCategoryId = {0}
+                                    string.Format(
+                                        Helpers.DecryptString(
+                                            selectEnumByCategoryId,
+                                            Encoding.ASCII.GetString(
+                                                Convert.FromBase64String(indexDBPassword))),
+                                        storeCategoryId)))
                             {
                                 changeCategoryId = currentChangeEnum.EnumCategoryId;
                                 long forwardKey = currentChangeEnum.EnumId;
@@ -4171,9 +4879,9 @@ namespace Cloud.SQLIndexer
 
                 if (copyDatabaseBetweenChanges)
                 {
-                    string indexLocationWithoutExtension = indexDBLocation.Substring(0, indexDBLocation.LastIndexOf('.'));
+                    string indexLocationWithoutExtension = indexDBLocation.Substring(0, indexDBLocation.LastIndexOf((char)0x2e /* '.' */));
                     int highestExistingCopyIndex = 2;
-                    while (File.Exists(string.Format("{0}{1}.db", indexLocationWithoutExtension, highestExistingCopyIndex)))
+                    while (File.Exists(string.Format(Resources.NotTranslatedSqlIndexerDBCopiedName, indexLocationWithoutExtension, highestExistingCopyIndex)))
                     {
                         highestExistingCopyIndex++;
                     }
@@ -4219,7 +4927,21 @@ namespace Cloud.SQLIndexer
 
                             using (ISQLiteCommand getVersionCommand = verifyAndUpdateConnection.CreateCommand())
                             {
-                                getVersionCommand.CommandText = "PRAGMA user_version;";
+                                const string pragmaUserVersion = "dVUjkeheWiZPNrSaG7rHi7OyvtsVcYtTcI35poPgL5vRNOngfRudvZB0QP8OQZ6W";
+
+                                getVersionCommand.CommandText =
+                                    //// before
+                                    //
+                                    //"PRAGMA user_version;"
+                                    //
+                                    //// after (decrypted)
+                                    //
+                                    //PRAGMA user_version;
+                                    Helpers.DecryptString(
+                                        pragmaUserVersion,
+                                        Encoding.ASCII.GetString(
+                                            Convert.FromBase64String(indexDBPassword)));
+
                                 existingVersion = Convert.ToInt32(getVersionCommand.ExecuteScalar());
                             }
 
@@ -4252,17 +4974,48 @@ namespace Cloud.SQLIndexer
                                 {
                                     using (ISQLiteCommand updateVersionCommand = verifyAndUpdateConnection.CreateCommand())
                                     {
-                                        updateVersionCommand.CommandText = "PRAGMA user_version = " + newVersion.ToString();
+                                        const string updatePragmaUserVersion = "dVUjkeheWiZPNrSaG7rHi7OyvtsVcYtTcI35poPgL5uZ8NDxTazLyTLGOX19X8I7LmCmaEtIOYSzDP/t8rX+Vw==";
+
+                                        updateVersionCommand.CommandText =
+                                            //// before
+                                            //
+                                            //"PRAGMA user_version = " + newVersion
+                                            //
+                                            //// after (decrypted; {0}: newVersion)
+                                            //
+                                            //PRAGMA user_version = {0}
+                                            string.Format(
+                                                Helpers.DecryptString(
+                                                    updatePragmaUserVersion,
+                                                    Encoding.ASCII.GetString(
+                                                        Convert.FromBase64String(indexDBPassword))),
+                                                newVersion);
+
                                         updateVersionCommand.ExecuteNonQuery();
                                     }
                                 }
 
+                                const string selectRootObject = "t3Ee1ulQLjs62aHw5E7nEHC3Yt6pkKQiMjDOMA00p+Qo1PZHGpfRx91FJNSloGZ3xDH11QktFYyaPHTl7mAN/QkLD0PnpC8sDmmRC3eIdnNwEv6VbgcYJMh2e8FkOh6pkTk+wvxmCRAw6xSk4LnkkIBkbxHbXULufC0P8A7txr+KYvXKLpwm5BBu8bvcAoOUm2ktCSGamUmo73Gmpd/w6ZmrmHM9l5akpRPajdsJpThd0gIFR+xaNdwqm5boi5Op";
+
                                 FileSystemObject rootObject = SqlAccessor<FileSystemObject>.SelectResultSet(
                                         verifyAndUpdateConnection,
-                                        "SELECT * " +
-                                        "FROM FileSystemObjects " +
-                                        "WHERE FileSystemObjects.ParentFolderId IS NULL " +
-                                        "LIMIT 1")
+                                        //// before
+                                        //
+                                        //"SELECT * " +
+                                        //"FROM FileSystemObjects " +
+                                        //"WHERE FileSystemObjects.ParentFolderId IS NULL " +
+                                        //"LIMIT 1"
+                                        //
+                                        //// after (decrypted)
+                                        //
+                                        //SELECT *
+                                        //FROM FileSystemObjects
+                                        //WHERE FileSystemObjects.ParentFolderId IS NULL
+                                        //LIMIT 1
+                                        Helpers.DecryptString(
+                                            selectRootObject,
+                                            Encoding.ASCII.GetString(
+                                                Convert.FromBase64String(indexDBPassword))))
                                     .FirstOrDefault();
 
                                 if (rootObject == null)
@@ -4327,13 +5080,62 @@ namespace Cloud.SQLIndexer
             {
                 pendingEventsCommand.Transaction = castTransaction.sqlTransaction;
 
-                pendingEventsCommand.CommandText = "SELECT FileSystemObjects.Name " +
-                        "FROM FileSystemObjects " +
-                        "WHERE FileSystemObjects.NameCIHash = ? " + // <-- parameter 1
+                const string selectWhetherFileSystemObjectIsPendingByNameHash = "AgH+ETlwi8JFbGkqRXjqdKTh9CEhp0rFMSM6QTpmaYxrMgdgf7inZdXwgEuqXuYM7yDvB56f0l5Zp7IP4IxcphqihonQ8M4bjAlSZUpcSIgzICNmKDgdlRSpbD+R0xj7um6pmvl+sEKpMp8GK8mlF9fIl8LMc2Stuut4SUWk9J3OZz2OgxuK+PFE/VYQVHRpeZ3jGnQGCMRgmCKXv9W8An+89Utxh+4hE5X3x2Qctbm8UJP37S56dlDcaIEMv8N+I5HYdqsSYaIWa7PzWHqB51fQg/kD9biEhbdHbICSfAkeSjgVRqxr+wWDtMZjaOyO8Vt8k5hLEGwfCVkmkN9C4BQhfllUvKiWr0vXm+IT3vs=";
+                const string conditionalWhereParentIdNull = "O2ELBOgTDqHwNV57vVDPJfPCQkbaoRhLwWcdhqd/+6tSgv3f9QYjjlzGhCCs7EiXwiRcZkyvLX7gsE6Sn1ACm8p0QmC41RzZbAuTFTVsk9+gHgLvgm3ouuQaJkkjhgPm";
+                const string conditionalWhereParentIdValue = "O2ELBOgTDqHwNV57vVDPJfPCQkbaoRhLwWcdhqd/+6tSgv3f9QYjjlzGhCCs7EiXwiRcZkyvLX7gsE6Sn1ACm/olYedr4HnrWA/h/NNEAB/WxtKjvzBljTkNQEfnFUvd";
+
+                pendingEventsCommand.CommandText =
+                    //// before
+                    //
+                    //// selectWhetherFileSystemObjectIsPendingByNameHash
+                    //
+                    //"SELECT FileSystemObjects.Name " +
+                    //    "FROM FileSystemObjects " +
+                    //    "WHERE FileSystemObjects.NameCIHash = ? " + // <-- parameter 1
+                    //    (parentFolderId == null
+                    //        ? conditionalWhereParentIdNull
+                    //        : conditionalWhereParentIdValue) + // <-- conditional parameter 2
+                    //    " AND FileSystemObjects.Pending = 1"
+                    //
+                    //// conditionalWhereParentIdNull
+                    //
+                    //"AND FileSystemObjects.ParentFolderId IS NULL"
+                    //
+                    //// conditionalWhereParentIdValue
+                    //
+                    //"AND FileSystemObjects.ParentFolderId = ?"
+                    //
+                    //// after (decrypted; {0}: (parentFolderId == null ? conditionalWhereParentIdNull [decrypted] : conditionalWhereParentIdValue [decrypted]) )
+                    //
+                    //// selectWhetherFileSystemObjectIsPendingByNameHash
+                    //
+                    //SELECT FileSystemObjects.Name
+                    //FROM FileSystemObjects
+                    //WHERE FileSystemObjects.NameCIHash = ?
+                    //{0}
+                    //AND FileSystemObjects.Pending = 1
+                    //
+                    //// conditionalWhereParentIdNull
+                    //
+                    //AND FileSystemObjects.ParentFolderId IS NULL
+                    //
+                    //// conditionalWhereParentIdValue
+                    //
+                    //AND FileSystemObjects.ParentFolderId = ?
+                    string.Format(
+                        Helpers.DecryptString(
+                            selectWhetherFileSystemObjectIsPendingByNameHash,
+                            Encoding.ASCII.GetString(
+                                Convert.FromBase64String(indexDBPassword))),
                         (parentFolderId == null
-                            ? "AND FileSystemObjects.ParentFolderId IS NULL"
-                            : "AND FileSystemObjects.ParentFolderId = ?") + // <-- conditional parameter 2
-                        " AND FileSystemObjects.Pending = 1";
+                            ? Helpers.DecryptString(
+                                conditionalWhereParentIdNull,
+                                Encoding.ASCII.GetString(
+                                    Convert.FromBase64String(indexDBPassword)))
+                            : Helpers.DecryptString(
+                                conditionalWhereParentIdValue,
+                                Encoding.ASCII.GetString(
+                                    Convert.FromBase64String(indexDBPassword)))));
 
                 ISQLiteParameter existingNameCIHashParam = pendingEventsCommand.CreateParameter();
                 existingNameCIHashParam.Value = nameCIHash ?? StringComparer.OrdinalIgnoreCase.GetHashCode(name);
@@ -4350,7 +5152,7 @@ namespace Cloud.SQLIndexer
                 {
                     while (pendingEventsReader.Read())
                     {
-                        if (StringComparer.OrdinalIgnoreCase.Equals(Convert.ToString(pendingEventsReader["Name"]), name))
+                        if (StringComparer.OrdinalIgnoreCase.Equals(Convert.ToString(pendingEventsReader[Resources.NotTranslatedSqlIndexerName]), name))
                         {
                             return true;
                         }
@@ -4367,7 +5169,7 @@ namespace Cloud.SQLIndexer
             {
                 try
                 {
-                    throw new ObjectDisposedException("This IndexingAgent");
+                    throw new ObjectDisposedException(Resources.IndexingAgentThisIndexingAgent);
                 }
                 catch
                 {
@@ -4406,13 +5208,27 @@ namespace Cloud.SQLIndexer
         {
             using (ISQLiteCommand integrityCheckCommand = conn.CreateCommand())
             {
+                const string pragmaIntegrityCheck = "J9U+678j+ydvhtUjalI5pWNQYrflpMTHY/Ioy77zQez6LlyAnE8f0RAgdJDbuaAtB+DaOSzzppV5jCJReHkKIg==";
+
                 // it's possible integrity_check could be replaced with quick_check for faster performance if it doesn't risk missing any corruption
-                integrityCheckCommand.CommandText = "PRAGMA integrity_check(1);"; // we don't output all the corruption results, only need to grab 1
+                integrityCheckCommand.CommandText =
+                    //// before
+                    //
+                    //"PRAGMA integrity_check(1);" // we don't output all the corruption results, only need to grab 1
+                    //
+                    //// after (decrypted)
+                    //
+                    //PRAGMA integrity_check(1);
+                    Helpers.DecryptString(
+                        pragmaIntegrityCheck,
+                        Encoding.ASCII.GetString(
+                            Convert.FromBase64String(indexDBPassword)));
+
                 using (ISQLiteDataReader integrityReader = integrityCheckCommand.ExecuteReader(System.Data.CommandBehavior.SingleResult))
                 {
                     if (integrityReader.Read())
                     {
-                        int integrityCheckColumnOrdinal = integrityReader.GetOrdinal("integrity_check");
+                        int integrityCheckColumnOrdinal = integrityReader.GetOrdinal(Resources.NotTranslatedSqlIndexerIntegrityCheck);
                         if (integrityCheckColumnOrdinal == -1)
                         {
                             throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Corrupt, "Result from integrity_check does not contain integrity_check column");
@@ -4426,7 +5242,7 @@ namespace Cloud.SQLIndexer
                         string integrityCheckValue;
                         try
                         {
-                            integrityCheckValue = Convert.ToString(integrityReader["integrity_check"]);
+                            integrityCheckValue = Convert.ToString(integrityReader[Resources.NotTranslatedSqlIndexerIntegrityCheck]);
                         }
                         catch
                         {
@@ -4453,7 +5269,7 @@ namespace Cloud.SQLIndexer
             {
                 try
                 {
-                    throw new ObjectDisposedException("This IndexingAgent");
+                    throw new ObjectDisposedException(Resources.IndexingAgentThisIndexingAgent);
                 }
                 catch
                 {
@@ -4466,11 +5282,21 @@ namespace Cloud.SQLIndexer
 
         private static ISQLiteConnection StaticCreateAndOpenCipherConnection(bool enforceForeignKeyConstraints, string indexDBLocation)
         {
-            const string CipherConnectionString = "Data Source=\"{0}\";Pooling=false;Synchronous=Full;UTF8Encoding=True;Foreign Keys={1};Default Timeout=3000";
+            const string CipherConnectionString = "cMGxaRQ9SkHpCFyvjSbF7Toe5tWrH6Y3w8+OqfAUP10JOZ8GhYldUniwo4S6JRoV90e2+kaVm6s3KFTa47y4u91luQTEw15UGH2XrDDGJwIPFmTwVxTAYc+4fhKngxcRSjgb5sUyl+dggY20EfmLnMB8RL9yI8+wWBfzS0qWj2Z4zmuUveHcPqCL5uHiukihAlG37/fD5mOL9NL6qZXyTVpguHpbBBNaIC27vu9cu9Z2Judle1nGAgJn/+EtMkSL+Y4vCR2yS9/Nm9t20b5yTH73ztFKsyl8hCOQDrXfmFo=";
 
             ISQLiteConnection cipherConn = SQLConstructors.SQLiteConnection(
                 string.Format(
-                    CipherConnectionString,
+                    //// before
+                    //
+                    //"Data Source=\"{0}\";Pooling=false;Synchronous=Full;UTF8Encoding=True;Foreign Keys={1};Default Timeout=3000"
+                    //
+                    //// after (decrypted)
+                    //
+                    //Data Source="{0}";Pooling=false;Synchronous=Full;UTF8Encoding=True;Foreign Keys={1};Default Timeout=3000
+                    Helpers.DecryptString(
+                        CipherConnectionString,
+                        Encoding.ASCII.GetString(
+                            Convert.FromBase64String(indexDBPassword))),
                     indexDBLocation,
                     enforceForeignKeyConstraints.ToString()));
 
@@ -4501,7 +5327,7 @@ namespace Cloud.SQLIndexer
             {
                 try
                 {
-                    throw new ObjectDisposedException("This IndexingAgent");
+                    throw new ObjectDisposedException(Resources.IndexingAgentThisIndexingAgent);
                 }
                 catch
                 {
@@ -4538,9 +5364,21 @@ namespace Cloud.SQLIndexer
 
             using (ISQLiteConnection indexDB = CreateAndOpenCipherConnection())
             {
+                const string selectHighestSync = "t3Ee1ulQLjs62aHw5E7nEFP/XcNQUnMlRSmbt+hjuY9j+ruu1iqJ4alK3hQ0jevAIe2VSL4E2w/8VkHGfnQlPMTGCvol1kdohe3dApqAER8e3MsgNTqsh4JeOvsq1DLx4wobMs04CvKFRcnQM7bOTLICfya3G53laxKL5G0cnE0=";
+
                 // Grab the most recent sync from the database to pull sync states
                 SqlSync lastSync = SqlAccessor<SqlSync>.SelectResultSet(indexDB,
-                    "SELECT * FROM Syncs ORDER BY Syncs.SyncCounter DESC LIMIT 1")
+                    //// before
+                    //
+                    //"SELECT * FROM Syncs ORDER BY Syncs.SyncCounter DESC LIMIT 1"
+                    //
+                    //// after (decrypted)
+                    //
+                    //SELECT * FROM Syncs ORDER BY Syncs.SyncCounter DESC LIMIT 1
+                    Helpers.DecryptString(
+                        selectHighestSync,
+                        Encoding.ASCII.GetString(
+                            Convert.FromBase64String(indexDBPassword))))
                     .SingleOrDefault();
                 // Store the sync counter from the last sync, defaulting to null
                 Nullable<long> lastSyncCounter = (lastSync == null
@@ -4564,26 +5402,62 @@ namespace Cloud.SQLIndexer
                 SortedDictionary<KeyValuePair<bool, long>, FileSystemObject> sortedFileSystemObjects = new SortedDictionary<KeyValuePair<bool, long>, FileSystemObject>(pendingThenIdComparer.Instance);
                 long missingOrderAppend = 0;
 
+                const string selectAllFileSystemObjects = "XiF/n8DAmECRcpl1q3g5SOaFkrEO/c+iI1V66stCO9Yv7K3QnlXqj68P0vDvLKPEvsMAT4aYICpfeh5DRpnmvL5qfP/ZUoDajTeFKO752ECwpnxQ1+SCCaqYKnwzeo/W5zqNKJoarqJ7Ykx2KEJCxMsQaMIsLVdd6b7fCvGImiHvrT1P6h6WqhmdCN+kRN88565+TGDJMAEH2GSck84CzbgfHewvatq4KJ61CYL9I9oCI8iDog94ucymzcnoaLjGGQGL55YSImeP1E0jFhh6akovPplqGUVSFzuCZD5jVcCAin8IP1IUJBI6T2FqPtifjIphBfIOwQkPE9q2NfVXhtSc9ftVfxNeuGVQZHpKmee6I1SYRaciRzloKOKEJHtX0ToGMFy4gwMGzjl2jnIGsUQglASQSkOg8+PogitJWXtelu9wA862oC3JrWUEbHeTaeghBu0Dt8Vt2mOM2Sssk5QQ9Ol++V5WKgv6iKjg2z5ZGjrruCtgNXAtnLNqSapSDk98gSWnH/i8G0d89/4xEk7ALAcN/lTJFL/NF3GmQn/Ohq+chmX31+GDK7Paqqx2G7Te99wrXlYcKXOsdTvQ6EMtOSDJQX2BuT3UdF5SDvuOXgpckZNaWB7R4qFXmuLOLZ6wBDi4mXCG1dg27HTnI7r6FHPutWAF75Ty+MxyD6WJp82+5u6ftOenlpZqb6z6UMHm8O+/rt9V9gQ8ooyrroXlcJqmAGKEeV9TYyJVNE4Q7aAzvGqRwp5sdrzMHyyBOBFCpk8qcY7urn22ICIYNLiYC+xcQqgU+qw9yG2VApactu1aBTKWX/ggA4M5cyIuouksUZdb7xrYb+Kt+BQ6KR+sFMYXWwVmQqMSrjTEem5wP0u0l3UUQRMqjpRj1YOPUgrYwVl7UBOJYjU+QTPhUw84wmCYyzD5VE0n3q0H9rNcuiDJABzHpIDEz9ImEtttoCpUVwuOHZEI26WFbKRW76jvK87oUlknTq6kKpQbL0nzfrVuh00fKDYs0626tDO2t8czjXDT3gc2EgoQrvRW8Q==";
+
                 foreach (FileSystemObject combinedPendingNonPending in SqlAccessor<FileSystemObject>.SelectResultSet(
                     indexDB,
-                    "SELECT " +
-                        SqlAccessor<FileSystemObject>.GetSelectColumns() + ", " +
-                        SqlAccessor<Event>.GetSelectColumns("Event") + ", " +
-                        SqlAccessor<FileSystemObject>.GetSelectColumns("Parent", "Parents") + ", " +
-                        SqlAccessor<SqlServerUid>.GetSelectColumns("Parent.ServerUid") +
-                        " FROM FileSystemObjects" +
-                        " LEFT OUTER JOIN Events ON " +
-                        "(" +
-                        "  FileSystemObjects.EventId = Events.EventId" +
-                        "  AND FileSystemObjects.Pending = 1" +
-                        ")" +
-                        " LEFT OUTER JOIN FileSystemObjects Parents ON " +
-                        "(" +
-                        "  FileSystemObjects.ParentFolderId = Parents.FileSystemObjectId" +
-                        "  AND FileSystemObjects.Pending = 1" +
-                        ")" +
-                        " LEFT OUTER JOIN ServerUids ON Parents.ServerUidId = ServerUids.ServerUidId",
-                    includes: new[] { "Event", "Parent", "Parent.ServerUid" }))
+                    //// before
+                    //
+                    //"SELECT " +
+                    //    SqlAccessor<FileSystemObject>.GetSelectColumns() + ", " +
+                    //    SqlAccessor<Event>.GetSelectColumns(Resources.NotTranslatedSqlIndexerEvent) + ", " +
+                    //    SqlAccessor<FileSystemObject>.GetSelectColumns(Resources.NotTranslatedSqlIndexerParent, Resources.NotTranslatedSqlIndexer) + ", " +
+                    //    SqlAccessor<SqlServerUid>.GetSelectColumns(Resources.NotTranslatedSqlIndexerParentServerUid) +
+                    //    " FROM FileSystemObjects" +
+                    //    " LEFT OUTER JOIN Events ON " +
+                    //    "(" +
+                    //    "  FileSystemObjects.EventId = Events.EventId" +
+                    //    "  AND FileSystemObjects.Pending = 1" +
+                    //    ")" +
+                    //    " LEFT OUTER JOIN FileSystemObjects Parents ON " +
+                    //    "(" +
+                    //    "  FileSystemObjects.ParentFolderId = Parents.FileSystemObjectId" +
+                    //    "  AND FileSystemObjects.Pending = 1" +
+                    //    ")" +
+                    //    " LEFT OUTER JOIN ServerUids ON Parents.ServerUidId = ServerUids.ServerUidId"
+                    //
+                    //// after (decrypted; {0}: SqlAccessor<FileSystemObject>.GetSelectColumns()
+                    //// {1}: SqlAccessor<Event>.GetSelectColumns(Resources.NotTranslatedSqlIndexerEvent)
+                    //// {2}: SqlAccessor<FileSystemObject>.GetSelectColumns(Resources.NotTranslatedSqlIndexerParent, Resources.NotTranslatedSqlIndexer)
+                    //// {3}: SqlAccessor<SqlServerUid>.GetSelectColumns(Resources.NotTranslatedSqlIndexerParentServerUid) )
+                    //
+                    //SELECT
+                    //{0},
+                    //{1},
+                    //{2},
+                    //{3}
+                    //FROM FileSystemObjects
+                    //LEFT OUTER JOIN Events ON
+                    //(
+                    //FileSystemObjects.EventId = Events.EventId
+                    //AND FileSystemObjects.Pending = 1
+                    //)
+                    //LEFT OUTER JOIN FileSystemObjects Parents ON
+                    //(
+                    //FileSystemObjects.ParentFolderId = Parents.FileSystemObjectId
+                    //AND FileSystemObjects.Pending = 1
+                    //)
+                    //LEFT OUTER JOIN ServerUids ON Parents.ServerUidId = ServerUids.ServerUidId
+                    string.Format(
+                        Helpers.DecryptString(
+                            selectAllFileSystemObjects,
+                            Encoding.ASCII.GetString(
+                                Convert.FromBase64String(indexDBPassword))),
+                        SqlAccessor<FileSystemObject>.GetSelectColumns(),
+                        SqlAccessor<Event>.GetSelectColumns(Resources.NotTranslatedSqlIndexerEvent),
+                        SqlAccessor<FileSystemObject>.GetSelectColumns(Resources.NotTranslatedSqlIndexerParent, Resources.NotTranslatedSqlIndexerParents),
+                        SqlAccessor<SqlServerUid>.GetSelectColumns(Resources.NotTranslatedSqlIndexerParentServerUid)),
+                    includes: new[] { Resources.NotTranslatedSqlIndexerEvent, Resources.NotTranslatedSqlIndexerParent, Resources.NotTranslatedSqlIndexerParentServerUid }))
                 {
                     if (combinedPendingNonPending.ParentFolderId == null)
                     {
@@ -4910,7 +5784,7 @@ namespace Cloud.SQLIndexer
             {
                 try
                 {
-                    throw new ObjectDisposedException("This IndexingAgent");
+                    throw new ObjectDisposedException(Resources.IndexingAgentThisIndexingAgent);
                 }
                 catch
                 {
@@ -4993,7 +5867,7 @@ namespace Cloud.SQLIndexer
                 // Loop through all subdirectories under the current directory
                 foreach (FindFileResult subDirectory in innerDirectories)
                 {
-                    string subDirectoryFullPath = currentDirectoryFullPath + "\\" + subDirectory.Name;
+                    string subDirectoryFullPath = currentDirectoryFullPath + ((char)0x5c /* \ */).ToString() + subDirectory.Name;
                     FilePath subDirectoryPathObject = subDirectoryFullPath;
 
                     // Store current subdirectory path as traversed
@@ -5071,7 +5945,7 @@ namespace Cloud.SQLIndexer
                 // Loop through all files under the current directory
                 foreach (FindFileResult currentFile in innerFiles)
                 {
-                    string currentFileFullPath = currentDirectoryFullPath + "\\" + currentFile.Name;
+                    string currentFileFullPath = currentDirectoryFullPath + ((char)0x5c /* \ */).ToString() + currentFile.Name;
                     FilePath currentFilePathObject = currentFileFullPath;
 
                     // Remove file from list of changes which have not yet been traversed (since it has been traversed)

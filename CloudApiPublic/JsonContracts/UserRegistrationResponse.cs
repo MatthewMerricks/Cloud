@@ -10,6 +10,7 @@ using Cloud.Static;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.Serialization;
 using System.Text;
 
@@ -18,6 +19,7 @@ namespace Cloud.JsonContracts
     /// <summary>
     /// Contains actual HTTP response fields, representing the response to the definition of a new user to the server.
     /// </summary>
+    [Obfuscation(Exclude = true)]
     [DataContract]
     [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
     public sealed class UserRegistrationResponse

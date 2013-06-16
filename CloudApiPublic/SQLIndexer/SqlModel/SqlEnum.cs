@@ -10,11 +10,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Cloud.Static;
+using System.Reflection;
 
 namespace Cloud.SQLIndexer.SqlModel
 {
-    [SqlAccess.Class(CLDefinitions.SqlEnum_Events)]
-    internal sealed class SqlEnum
+    // \cond
+    [Obfuscation(Exclude = true)]
+    [SqlAccess.Class(CLDefinitions.SqlModel_SqlEnum)]
+    public sealed class SqlEnum
     {
         [SqlAccess.Property]
         public long EnumId { get; set; }
@@ -31,4 +34,5 @@ namespace Cloud.SQLIndexer.SqlModel
         [SqlAccess.Property(SqlAccess.FieldType.JoinedTable)]
         public Event Event { get; set; }
     }
+    // \endcond
 }
