@@ -1,5 +1,5 @@
 ﻿//
-// BasicMessage.cs
+// TransferUpdateMessageArgs.cs
 // Cloud Windows
 //
 // Created By DavidBruck.
@@ -15,7 +15,7 @@ using System.Text;
 
 namespace Cloud.Model
 {
-    internal sealed class BasicMessage : IBasicMessage
+    internal sealed class TransferUpdateMessageArgs : ITransferUpdateMessage
     {
         public EventMessageArgs MessageArgs
         {
@@ -25,7 +25,7 @@ namespace Cloud.Model
             }
         }
         private readonly EventMessageArgs _messageArgs;
-        private readonly bool _isError;
+        private readonly bool _upload;
 
         #region IHandleableArgs members
         bool IHandleableArgs.Handled
@@ -72,26 +72,30 @@ namespace Cloud.Model
         }
         #endregion
 
-        #region IBasicMessage members
-        bool IBasicMessage.IsError
+        #region ITransferUpdateMessage members
+        long ITransferUpdateMessage.EventId
         {
             get
             {
-                return _isError;
+                return
+                    (_upload
+                        ? ((UploadProgressMessage)_messageArgs.Message).EventId
+                        : ((DownloadProgressMessage)_messageArgs.Message).EventId);
             }
         }
-        EventMessageLevel IBasicMessage.Level
+        CLStatusFileTransferUpdateParameters ITransferUpdateMessage.Parameters
         {
             get
             {
-                return (_isError
-                    ? ((ErrorMessage)_messageArgs.Message).Importance
-                    : ((InformationalMessage)_messageArgs.Message).Importance);
+                return
+                    (_upload
+                        ? ((UploadProgressMessage)_messageArgs.Message).Parameters
+                        : ((DownloadProgressMessage)_messageArgs.Message).Parameters);
             }
         }
         #endregion
 
-        internal BasicMessage(EventMessageArgs MessageArgs)
+        internal TransferUpdateMessageArgs(EventMessageArgs MessageArgs)
         {
             if (MessageArgs == null)
             {
@@ -101,14 +105,14 @@ namespace Cloud.Model
             {
                 throw new NullReferenceException("MessageArgs Message cannot be null");
             }
-            if (MessageArgs.Message.Type != EventMessageType.Error
-                && MessageArgs.Message.Type != EventMessageType.Informational)
+            if (MessageArgs.Message.Type != EventMessageType.UploadProgress
+                && MessageArgs.Message.Type != EventMessageType.DownloadProgress)
             {
-                throw new ArgumentException("MessageArgs Message Type must be Error or Informational, instead it is " + MessageArgs.Message.Type.ToString());
+                throw new ArgumentException("MessageArgs Message Type must be UploadProgress or DownloadProgress, instead it is " + MessageArgs.Message.Type.ToString());
             }
 
             this._messageArgs = MessageArgs;
-            this._isError = MessageArgs.Message.Type == EventMessageType.Error;
+            this._upload = MessageArgs.Message.Type == EventMessageType.UploadProgress;
         }
     }
 }

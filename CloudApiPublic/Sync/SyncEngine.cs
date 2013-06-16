@@ -23,6 +23,7 @@ using Cloud.Interfaces;
 using Cloud.JsonContracts;
 using Cloud.REST;
 using Cloud.Model.EventMessages.ErrorInfo;
+using Cloud.CLSync;
 
 namespace Cloud.Sync
 {
@@ -1572,7 +1573,7 @@ namespace Cloud.Sync
 
                             MessageEvents.FireNewEventMessage(
                                 "No internet connection detected. Retrying Sync after a short delay.",
-                                SyncboxId: Data.commonThisEngine.syncbox.SyncboxId,
+                                Syncbox: Data.commonThisEngine.syncbox,
                                 DeviceId: Data.commonThisEngine.syncbox.CopiedSettings.DeviceId);
 
                             throw new Exception("No internet connection detected.");
@@ -1609,7 +1610,7 @@ namespace Cloud.Sync
                         MessageEvents.FireNewEventMessage(
                             Message: "Started checking for sync changes to process",
                             Error: null,
-                            SyncboxId: Data.commonThisEngine.syncbox.SyncboxId,
+                            Syncbox: Data.commonThisEngine.syncbox,
                             DeviceId: Data.commonThisEngine.syncbox.CopiedSettings.DeviceId);
                     }
                     catch (Exception ex)
@@ -1719,7 +1720,9 @@ namespace Cloud.Sync
             var verifyUnderFailureTimerLock = DelegateAndDataHolderBase.Create(
                 new
                 {
-                    commonWithinFailureTimerLock = commonWithinFailureTimerLock
+                    commonWithinFailureTimerLock = commonWithinFailureTimerLock,
+                    syncbox = this.syncbox,
+                    deviceId = this.syncbox.CopiedSettings.DeviceId,
                 },
                 (Data, errorToAccumulate) =>
                 {
@@ -1729,7 +1732,9 @@ namespace Cloud.Sync
 
                         MessageEvents.FireNewEventMessage(invalidMessage,
                             EventMessageLevel.Important,
-                            new HaltAllOfCloudSDKErrorInfo());
+                            new HaltAllOfCloudSDKErrorInfo(),
+                            Data.syncbox,
+                            Data.deviceId);
 
                         throw new InvalidOperationException(invalidMessage);
                     }
@@ -1899,7 +1904,7 @@ namespace Cloud.Sync
                             (outputChangesCount == 0
                                 ? EventMessageLevel.Minor
                                 : EventMessageLevel.Important),
-                            SyncboxId: Data.commonThisEngine.syncbox.SyncboxId,
+                            Syncbox: Data.commonThisEngine.syncbox,
                             DeviceId: Data.commonThisEngine.syncbox.CopiedSettings.DeviceId);
 
                         return true; // true for successful
@@ -1930,7 +1935,7 @@ namespace Cloud.Sync
                             Message: "An error occurred checking for changes",
                             Level: EventMessageLevel.Important,
                             Error: new GeneralErrorInfo(),
-                            SyncboxId: Data.commonThisEngine.syncbox.SyncboxId,
+                            Syncbox: Data.commonThisEngine.syncbox,
                             DeviceId: Data.commonThisEngine.syncbox.CopiedSettings.DeviceId);
 
                         return false; // false for not successful
@@ -2039,7 +2044,9 @@ namespace Cloud.Sync
                 new
                 {
                     commonThisEngine = this,
-                    eventIdToComplete = new GenericHolder<Nullable<long>>(null)
+                    eventIdToComplete = new GenericHolder<Nullable<long>>(null),
+                    syncbox = syncbox,
+                    deviceId = syncbox.CopiedSettings.DeviceId,
                 },
                 (Data, errorToAccumulate) =>
                 {
@@ -2083,7 +2090,9 @@ namespace Cloud.Sync
                             MessageEvents.FireNewEventMessage(
                                 "syncData.completeSingleEvent returned an error after completing an event: " + completeEventError.PrimaryException.Message,
                                 EventMessageLevel.Important,
-                                new HaltAllOfCloudSDKErrorInfo());
+                                new HaltAllOfCloudSDKErrorInfo(),
+                                Data.syncbox,
+                                Data.deviceId);
                         }
 
                         return true;
@@ -2231,7 +2240,7 @@ namespace Cloud.Sync
                                     pendingsErrorString,
                                     EventMessageLevel.Important,
                                     /*Error*/ new GeneralErrorInfo(),
-                                    Data.commonThisEngine.syncbox.SyncboxId,
+                                    Data.commonThisEngine.syncbox,
                                     Data.commonThisEngine.syncbox.CopiedSettings.DeviceId);
                             }
                             catch (Exception ex)
@@ -2290,7 +2299,7 @@ namespace Cloud.Sync
                                             ? "; Handle message event to prevent duplicate messages"
                                             : string.Empty),
                                     EventMessageLevel.Regular,
-                                    SyncboxId: Data.commonThisEngine.syncbox.SyncboxId,
+                                    Syncbox: Data.commonThisEngine.syncbox,
                                     DeviceId: Data.commonThisEngine.syncbox.CopiedSettings.DeviceId);
 
                             Data.unhandledPreexistingUploadDownloadEventMessage.Value = !Data.confirmingMetadataForPreexistingUploadDownloads.Value;
@@ -2458,7 +2467,7 @@ namespace Cloud.Sync
                                     fileMetadataErrorString,
                                     EventMessageLevel.Regular,
                                     /*Error*/new GeneralErrorInfo(),
-                                    Data.commonThisEngine.syncbox.SyncboxId,
+                                    Data.commonThisEngine.syncbox,
                                     Data.commonThisEngine.syncbox.CopiedSettings.DeviceId);
                             }
                             catch (Exception ex)
@@ -2498,7 +2507,7 @@ namespace Cloud.Sync
                                         fileVersionsErrorString,
                                         EventMessageLevel.Regular,
                                         /*Error*/new GeneralErrorInfo(),
-                                        Data.commonThisEngine.syncbox.SyncboxId,
+                                        Data.commonThisEngine.syncbox,
                                         Data.commonThisEngine.syncbox.CopiedSettings.DeviceId);
                                 }
                                 catch (Exception ex)
@@ -2905,8 +2914,8 @@ namespace Cloud.Sync
                                     : syncFromCount.ToString() +
                                         " change" + (syncFromCount == 1 ? string.Empty : "s") + " synced from server"),
                             EventMessageLevel.Important,
-                            SyncboxId: syncbox.SyncboxId,
-                            DeviceId: syncbox.CopiedSettings.DeviceId);
+                            Syncbox: Data.commonThisEngine.syncbox,
+                            DeviceId: Data.commonThisEngine.syncbox.CopiedSettings.DeviceId);
                     }
                     if (Data.commonAsynchronouslyProcessed.Value != null
                         && Data.commonAsynchronouslyProcessed.Value.Count != 0)
@@ -2927,7 +2936,7 @@ namespace Cloud.Sync
                                     : syncFromCount.ToString() +
                                         " file" + (syncFromCount == 1 ? string.Empty : "s") + " queued for download"),
                             EventMessageLevel.Important,
-                            SyncboxId: Data.commonThisEngine.syncbox.SyncboxId,
+                            Syncbox: Data.commonThisEngine.syncbox,
                             DeviceId: Data.commonThisEngine.syncbox.CopiedSettings.DeviceId);
                     }
                 },
@@ -3302,7 +3311,9 @@ namespace Cloud.Sync
                                             MessageEvents.FireNewEventMessage(
                                                 "Unable to cast innerState as List<FileChange>",
                                                 EventMessageLevel.Important,
-                                                new HaltAllOfCloudSDKErrorInfo());
+                                                new HaltAllOfCloudSDKErrorInfo(),
+                                                innerData.commonThisEngine.syncbox,
+                                                innerData.commonThisEngine.syncbox.CopiedSettings.DeviceId);
                                         }
                                         else if (currentUpDown.Direction == SyncDirection.To)
                                         {
@@ -3431,7 +3442,7 @@ namespace Cloud.Sync
                                 EventMessageLevel.Important,
                                 /*Error*/new HaltSyncboxOnAuthenticationFailureErrorInfo(TokenExpired:
                                     Data.commonCredentialsError.Value == CredentialsErrorType.ExpiredCredentials),
-                                Data.commonThisEngine.syncbox.SyncboxId,
+                                Data.commonThisEngine.syncbox,
                                 Data.commonThisEngine.syncbox.CopiedSettings.DeviceId);
                         }
                         catch (Exception ex)
@@ -3524,7 +3535,9 @@ namespace Cloud.Sync
                             MessageEvents.FireNewEventMessage(
                             "syncData.completeSyncSql returned an error after communicating changes: " + completeSyncError.PrimaryException.Message,
                             EventMessageLevel.Important,
-                            new HaltAllOfCloudSDKErrorInfo());
+                            new HaltAllOfCloudSDKErrorInfo(),
+                            Data.commonThisEngine.syncbox,
+                            Data.commonThisEngine.syncbox.CopiedSettings.DeviceId);
                         }
 
                         return true;
@@ -3942,7 +3955,7 @@ namespace Cloud.Sync
                     MessageEvents.FireNewEventMessage(
                         Resources.SyncEngineFinishedCommunicating,
                         EventMessageLevel.Minor,
-                        SyncboxId: Data.commonThisEngine.syncbox.SyncboxId,
+                        Syncbox: Data.commonThisEngine.syncbox,
                         DeviceId: Data.commonThisEngine.syncbox.CopiedSettings.DeviceId);
                 },
                 toReturn);
@@ -4500,7 +4513,9 @@ namespace Cloud.Sync
                                             MessageEvents.FireNewEventMessage(
                                                 Resources.ExceptionSyncEnginePostCommunicationPrematureUploadSuccess,
                                                 EventMessageLevel.Important,
-                                                new HaltAllOfCloudSDKErrorInfo());
+                                                new HaltAllOfCloudSDKErrorInfo(),
+                                                syncbox,
+                                                syncbox.CopiedSettings.DeviceId);
 
                                             throw new CLException(CLExceptionCode.Syncing_LiveSyncEngine, Resources.ExceptionSyncEnginePostCommunicationPrematureUploadSuccess);
                                         }
@@ -4648,7 +4663,7 @@ namespace Cloud.Sync
                     "SyncEngine halted after repeated failure to communicate over one of the Cloud server domains",
                     EventMessageLevel.Important,
                     /*Error*/new HaltSyncboxOnConnectionFailureErrorInfo(),
-                    syncbox.SyncboxId,
+                    syncbox,
                     syncbox.CopiedSettings.DeviceId);
 
                 if (statusUpdated != null)
@@ -4950,7 +4965,7 @@ namespace Cloud.Sync
                                                         "Unable to upload file due to large size. Expected to fail again, therefore will not try immediately. Path: " + errorToQueue.FileChange.NewPath.ToString(),
                                                         EventMessageLevel.Important,
                                                         /*Error*/new GeneralErrorInfo(),
-                                                        syncbox.SyncboxId,
+                                                        syncbox,
                                                         syncbox.CopiedSettings.DeviceId);
                                                 }
 
@@ -5196,7 +5211,7 @@ namespace Cloud.Sync
                                     "Error applying change locally: " + applyChangeError.PrimaryException.Message,
                                     EventMessageLevel.Regular,
                                     /*Error*/new GeneralErrorInfo(),
-                                    syncbox.SyncboxId,
+                                    syncbox,
                                     syncbox.CopiedSettings.DeviceId);
                             }
                             catch
@@ -5253,7 +5268,8 @@ namespace Cloud.Sync
                                 FailedChangesQueue = FailedChangesQueue,
                                 RemoveFileChangeEvents = RemoveFileChangeFromUpDownEvent,
                                 RestClient = httpRestClient,
-                                UploadDownloadServerConnectionFailureCount = UploadDownloadConnectionFailures
+                                UploadDownloadServerConnectionFailureCount = UploadDownloadConnectionFailures,
+                                UidStorage = uidStorage,
                             }),
                         asyncTaskThreadId);
                 }
@@ -5423,6 +5439,9 @@ namespace Cloud.Sync
                         throw new NullReferenceException("DownloadTaskState must contain StatusUpdate");
                     }
 
+                    // Get the UID and revision to upload.
+                    UidRevisionHolder uidRevisionHolder = ReturnAndPossiblyFillUidAndRevision(castState.UidStorage, castState.SyncData, castState.FileToUpload.Metadata.ServerUidId);
+
                     // declare the status for performing a rest communication
                     CLExceptionCode uploadStatus = (CLExceptionCode)0;
                     string uploadMessage;
@@ -5430,6 +5449,8 @@ namespace Cloud.Sync
                     // upload the file using the REST client, storing any error that occurs
                     uploadError = castState.RestClient.UploadFile(castState.StreamContext, // stream for upload
                         castState.FileToUpload, // upload change
+                        uidRevisionHolder.ServerUid,
+                        uidRevisionHolder.Revision,
                         (int)castState.HttpTimeoutMilliseconds, // milliseconds before communication timeout (does not apply to the amount of time it takes to actually upload the file)
                         out uploadMessage,
                         out hashMismatchFound,
@@ -5498,7 +5519,7 @@ namespace Cloud.Sync
                                     "Change to file detected while uploading. Upload will restart with latest data.",
                                     EventMessageLevel.Regular,
                                     new GeneralErrorInfo(),
-                                    castState.Syncbox.SyncboxId,
+                                    castState.Syncbox,
                                     castState.Syncbox.CopiedSettings.DeviceId);
 
                                 // return without EventId so that "ContinueWith"s will not mark the event complete in the database, nor increment the download count
@@ -5515,11 +5536,20 @@ namespace Cloud.Sync
                         ComTrace.LogFileChangeFlow(castState.Syncbox.CopiedSettings.TraceLocation, castState.Syncbox.CopiedSettings.DeviceId, castState.Syncbox.SyncboxId, FileChangeFlowEntryPositionInFlow.UploadDownloadSuccess, Helpers.EnumerateSingleItem((castState.FileToUpload)));
                     }
 
+                    // Send the new UploadCompleteMessage status message, including a CLFileItem.
+                    CLFileItem fileItem = new CLFileItem(castState.FileToUpload, castState.Syncbox, uidRevisionHolder.Revision, uidRevisionHolder.ServerUid, isDeleted: false, isPending: false);
+
+                    MessageEvents.DetectedUploadCompleteChange(
+                        eventId: castState.FileToUpload.EventId, // the id for the event
+                        fileItem: fileItem, // the file item constructed above
+                        SyncboxId: castState.Syncbox.SyncboxId,
+                        DeviceId: castState.Syncbox.CopiedSettings.DeviceId);
+
                     // status message
                     MessageEvents.FireNewEventMessage(
                         "File finished uploading from path " + castState.FileToUpload.NewPath.ToString(),
                         EventMessageLevel.Regular,
-                        SyncboxId: castState.Syncbox.SyncboxId,
+                        Syncbox: castState.Syncbox,
                         DeviceId: castState.Syncbox.CopiedSettings.DeviceId);
 
                     // return with the info for which event id completed, the event source for marking a complete event, and the settings for tracing and error logging
@@ -5603,7 +5633,9 @@ namespace Cloud.Sync
                     MessageEvents.FireNewEventMessage(
                         "uploadState must contain FileToUpload and thus unable cleanup after upload error: " + ex.Message,
                         EventMessageLevel.Important,
-                        new HaltAllOfCloudSDKErrorInfo());
+                        new HaltAllOfCloudSDKErrorInfo(),
+                        castState.Syncbox,
+                        castState.Syncbox.CopiedSettings.DeviceId);
 
                     return new EventIdAndCompletionProcessor(0, null, null, 0);
                 }
@@ -5612,7 +5644,9 @@ namespace Cloud.Sync
                     MessageEvents.FireNewEventMessage(
                         "uploadState must contain SyncData and thus unable cleanup after upload error: " + ex.Message,
                         EventMessageLevel.Important,
-                        new HaltAllOfCloudSDKErrorInfo());
+                        new HaltAllOfCloudSDKErrorInfo(),
+                        castState.Syncbox,
+                        castState.Syncbox.CopiedSettings.DeviceId);
 
                     return new EventIdAndCompletionProcessor(0, null, null, 0);
                 }
@@ -5621,7 +5655,9 @@ namespace Cloud.Sync
                     MessageEvents.FireNewEventMessage(
                         "uploadState must contain Syncbox and thus unable cleanup after upload error: " + ex.Message,
                         EventMessageLevel.Important,
-                        new HaltAllOfCloudSDKErrorInfo());
+                        new HaltAllOfCloudSDKErrorInfo(),
+                        castState.Syncbox,
+                        castState.Syncbox.CopiedSettings.DeviceId);
 
                     return new EventIdAndCompletionProcessor(0, null, null, 0);
                 }
@@ -5630,7 +5666,9 @@ namespace Cloud.Sync
                     MessageEvents.FireNewEventMessage(
                         "uploadState must contain MaxNumberOfFailureRetries and thus unable cleanup after upload error: " + ex.Message,
                         EventMessageLevel.Important,
-                        new HaltAllOfCloudSDKErrorInfo());
+                        new HaltAllOfCloudSDKErrorInfo(),
+                        castState.Syncbox,
+                        castState.Syncbox.CopiedSettings.DeviceId);
 
                     return new EventIdAndCompletionProcessor(0, null, null, 0);
                 }
@@ -5639,7 +5677,9 @@ namespace Cloud.Sync
                     MessageEvents.FireNewEventMessage(
                         "uploadState must contain MaxNumberOfNotFounds and thus unable cleanup after upload error: " + ex.Message,
                         EventMessageLevel.Important,
-                        new HaltAllOfCloudSDKErrorInfo());
+                        new HaltAllOfCloudSDKErrorInfo(),
+                        castState.Syncbox,
+                        castState.Syncbox.CopiedSettings.DeviceId);
 
                     return new EventIdAndCompletionProcessor(0, null, null, 0);
                 }
@@ -5648,7 +5688,9 @@ namespace Cloud.Sync
                     MessageEvents.FireNewEventMessage(
                         "uploadState must contain FailedChangesQueue and thus unable cleanup after upload error: " + ex.Message,
                         EventMessageLevel.Important,
-                        new HaltAllOfCloudSDKErrorInfo());
+                        new HaltAllOfCloudSDKErrorInfo(),
+                        castState.Syncbox,
+                        castState.Syncbox.CopiedSettings.DeviceId);
 
                     return new EventIdAndCompletionProcessor(0, null, null, 0);
                 }
@@ -5797,7 +5839,7 @@ namespace Cloud.Sync
                     growlErrorMessage, // message
                     (isErrorSerious ? EventMessageLevel.Important : EventMessageLevel.Regular), // important of error based on flag for whether it is serious
                     Error: new GeneralErrorInfo(),
-                    SyncboxId: exceptionState.Syncbox.SyncboxId,
+                    Syncbox: exceptionState.Syncbox,
                     DeviceId: exceptionState.Syncbox.CopiedSettings.DeviceId);
             }
             catch (Exception innerEx)
@@ -6209,12 +6251,21 @@ namespace Cloud.Sync
                     }
                     else if (downloadStatus == (CLExceptionCode)0)
                     {
-                        _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: DownloadForTask: File finished downloading message."));
+                        _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: DownloadForTask: File finished downloading messages."));
+                        // Send the new DownloadCompleteMessage status message, including a CLFileItem.
+                        CLFileItem fileItem = new CLFileItem(castState.FileToDownload, castState.Syncbox, castState.Revision, castState.ServerUid, isDeleted: false, isPending: false);
+
+                        MessageEvents.DetectedDownloadCompleteChange(
+                            eventId: castState.FileToDownload.EventId, // the id for the event
+                            fileItem: fileItem, // the file item constructed above
+                            SyncboxId: castState.Syncbox.SyncboxId,
+                            DeviceId: castState.Syncbox.CopiedSettings.DeviceId);
+
                         // status message
                         MessageEvents.FireNewEventMessage(
                             "File finished downloading to path " + storeNewPath.ToString(), // could have been marked to cancel but already completed, so use stored path
                             EventMessageLevel.Regular,
-                            SyncboxId: castState.Syncbox.SyncboxId,
+                            Syncbox: castState.Syncbox,
                             DeviceId: castState.Syncbox.CopiedSettings.DeviceId);
                     }
                     // if there was an error while downloading, rethrow the error
@@ -6350,7 +6401,9 @@ namespace Cloud.Sync
                     MessageEvents.FireNewEventMessage(
                         "downloadState must contain FileToDownload and thus unable cleanup after download error: " + ex.Message,
                         EventMessageLevel.Important,
-                        new HaltAllOfCloudSDKErrorInfo());
+                        new HaltAllOfCloudSDKErrorInfo(),
+                        castState.Syncbox,
+                        castState.Syncbox.CopiedSettings.DeviceId);
 
                     return new EventIdAndCompletionProcessor(0, null, null, 0);
                 }
@@ -6360,7 +6413,9 @@ namespace Cloud.Sync
                     MessageEvents.FireNewEventMessage(
                         "downloadState must contain SyncData and thus unable cleanup after download error: " + ex.Message,
                         EventMessageLevel.Important,
-                        new HaltAllOfCloudSDKErrorInfo());
+                        new HaltAllOfCloudSDKErrorInfo(),
+                        castState.Syncbox,
+                        castState.Syncbox.CopiedSettings.DeviceId);
 
                     return new EventIdAndCompletionProcessor(0, null, null, 0);
                 }
@@ -6370,7 +6425,9 @@ namespace Cloud.Sync
                     MessageEvents.FireNewEventMessage(
                         "downloadState must contain Syncbox and thus unable cleanup after download error: " + ex.Message,
                         EventMessageLevel.Important,
-                        new HaltAllOfCloudSDKErrorInfo());
+                        new HaltAllOfCloudSDKErrorInfo(),
+                        castState.Syncbox,
+                        castState.Syncbox.CopiedSettings.DeviceId);
 
                     return new EventIdAndCompletionProcessor(0, null, null, 0);
                 }
@@ -6380,7 +6437,9 @@ namespace Cloud.Sync
                     MessageEvents.FireNewEventMessage(
                         "downloadState must contain MaxNumberOfFailureRetries and thus unable cleanup after download error: " + ex.Message,
                         EventMessageLevel.Important,
-                        new HaltAllOfCloudSDKErrorInfo());
+                        new HaltAllOfCloudSDKErrorInfo(),
+                        castState.Syncbox,
+                        castState.Syncbox.CopiedSettings.DeviceId);
 
                     return new EventIdAndCompletionProcessor(0, null, null, 0);
                 }
@@ -6390,7 +6449,9 @@ namespace Cloud.Sync
                     MessageEvents.FireNewEventMessage(
                         "downloadState must contain MaxNumberOfNotFounds and thus unable cleanup after download error: " + ex.Message,
                         EventMessageLevel.Important,
-                        new HaltAllOfCloudSDKErrorInfo());
+                        new HaltAllOfCloudSDKErrorInfo(),
+                        castState.Syncbox,
+                        castState.Syncbox.CopiedSettings.DeviceId);
 
                     return new EventIdAndCompletionProcessor(0, null, null, 0);
                 }
@@ -6400,7 +6461,9 @@ namespace Cloud.Sync
                     MessageEvents.FireNewEventMessage(
                         "uploadState must contain FailedChangesQueue and thus unable cleanup after upload error: " + ex.Message,
                         EventMessageLevel.Important,
-                        new HaltAllOfCloudSDKErrorInfo());
+                        new HaltAllOfCloudSDKErrorInfo(),
+                        castState.Syncbox,
+                        castState.Syncbox.CopiedSettings.DeviceId);
 
                     return new EventIdAndCompletionProcessor(0, null, null, 0);
                 }
@@ -6762,7 +6825,7 @@ namespace Cloud.Sync
                     growlErrorMessage, // message
                     (isErrorSerious ? EventMessageLevel.Important : EventMessageLevel.Regular), // important of error based on flag for whether it is serious
                     Error: new GeneralErrorInfo(),
-                    SyncboxId: exceptionState.Syncbox.SyncboxId,
+                    Syncbox: exceptionState.Syncbox,
                     DeviceId: exceptionState.Syncbox.CopiedSettings.DeviceId);
             }
             catch (Exception innerEx)
@@ -6816,6 +6879,7 @@ namespace Cloud.Sync
             public Action<FileChange> RemoveFileChangeEvents { get; set; }
             public CLHttpRest RestClient { get; set; }
             public GenericHolder<byte> UploadDownloadServerConnectionFailureCount { get; set; }
+            public Dictionary<long, UidRevisionHolder> UidStorage { get; set; }
         }
         /// <summary>
         /// Async HTTP operation holder used to help make async calls synchronous
@@ -7518,7 +7582,7 @@ namespace Cloud.Sync
 
                             if (searchExistingServerUidIdForPendingSyncToCreateError != null)
                             {
-                                throw new AggregateException("Error searching for existing, pending, sync to, creation for name and parent \"uid\"");
+                                throw new AggregateException("Error searching for existing, pending, sync to, creation for name and parent \"uid\"", searchExistingServerUidIdForPendingSyncToCreateError.Exceptions);
                             }
 
                             bool syncFromFileModify = (currentChange.Type == FileChangeType.Modified
@@ -7734,7 +7798,6 @@ namespace Cloud.Sync
                             Data.currentEvent.Value.Metadata.ServerUid
                                 ?? (Data.matchedChange.Value == null
                                     ? null
-                            //&&&& old code: : ((PossiblyStreamableFileChange)Data.matchedChange.Value).FileChange.Metadata.ServerUid);
                                     : ReturnAndPossiblyFillUidAndRevision(Data.uidStorage, Data.syncData, ((PossiblyStreamableFileChange)Data.matchedChange.Value).FileChange.Metadata.ServerUidId).ServerUid);
                         string currentEventParentServerUid =
                             (Data.currentEvent.Value.Metadata.ToParentUid ?? Data.currentEvent.Value.Metadata.ParentUid) // ToParentUid is correct when it is set for renames, otherwise grab from regular ParentUid
@@ -7839,7 +7902,7 @@ namespace Cloud.Sync
                                     parentServerUidError,
                                     EventMessageLevel.Important,
                                     new GeneralErrorInfo(),
-                                    syncbox.SyncboxId,
+                                    syncbox,
                                     syncbox.CopiedSettings.DeviceId);
 
                                 throw new NullReferenceException(parentServerUidError);
@@ -7852,7 +7915,6 @@ namespace Cloud.Sync
 
                         if (storeCheckException == null
                             && checkToCommunicate.FileChange.Type != FileChangeType.Created
-                            //&&&& Old code: && (checkToCommunicate.FileChange.Metadata == null || checkToCommunicate.FileChange.Metadata.ServerUid == null))
                             && (checkToCommunicate.FileChange.Metadata == null
                                 || ReturnAndPossiblyFillUidAndRevision(uidStorage, syncData, checkToCommunicate.FileChange.Metadata.ServerUidId).ServerUid == null))
                         {
@@ -7864,7 +7926,7 @@ namespace Cloud.Sync
                                     serverUidError,
                                     EventMessageLevel.Important,
                                     new GeneralErrorInfo(),
-                                    syncbox.SyncboxId,
+                                    syncbox,
                                     syncbox.CopiedSettings.DeviceId);
 
                                 throw new NullReferenceException(serverUidError);
@@ -7936,7 +7998,7 @@ namespace Cloud.Sync
                             (communicationArray.Length - communicationArrayPrecheckErrorIndexes.Count).ToString() +
                             " change" + ((communicationArray.Length - communicationArrayPrecheckErrorIndexes.Count) == 1 ? string.Empty : "s") + " to server and checking for any new changes to sync from server",
                         EventMessageLevel.Regular,
-                        SyncboxId: syncbox.SyncboxId,
+                        Syncbox: syncbox,
                         DeviceId: syncbox.CopiedSettings.DeviceId);
 
                     // build a function which will throw a formatted exception when the FileChange's FileChangeType and the type of file system object (file or folder) do not match
@@ -8053,7 +8115,6 @@ namespace Cloud.Sync
                                     EventId = currentEvent.FileChange.EventId, // this is out local identifier for the event which will be passed as the "client_reference" and returned so we can correlate the response event
                                     Metadata = new SyncboxMetadataResponse()
                                     {
-                                        //&&&& Old code: ServerUid = currentEvent.FileChange.Metadata.ServerUid, // the unique id on the server
                                         ServerUid = ReturnAndPossiblyFillUidAndRevision(uidStorage, syncData, currentEvent.FileChange.Metadata.ServerUidId).ServerUid, // the unique id on the server
 
                                         // the unique id on the server
@@ -8068,7 +8129,6 @@ namespace Cloud.Sync
                                         LastEventId = lastEventId, // the highest event id of all FileChanges in the current batch
                                         ModifiedDate = currentEvent.FileChange.Metadata.HashableProperties.LastTime, // when this file system object was last modified
 
-                                        //&&&& Old code: Revision = currentEvent.FileChange.Metadata.Revision, // last communicated revision for this FileChange
                                         Revision = ReturnAndPossiblyFillUidAndRevision(uidStorage, syncData, currentEvent.FileChange.Metadata.ServerUidId).Revision, // last communicated revision for this FileChange
 
                                         Size = currentEvent.FileChange.Metadata.HashableProperties.Size, // the file size (or null for folders)
@@ -8303,19 +8363,6 @@ namespace Cloud.Sync
                                     // else if there is a status set (Sync To) and the event is not a download, then add to eventsByPath (Sync To events)
                                     else if (currentEvent.Header.Status != CLDefinitions.CLEventTypeDownload) // exception for download when looking for dependencies since we actually want the Sync From event
                                     {
-                                        //&&&& Old code
-                                        //// add the file path to eventsByPath (Sync To paths) from either the original change (rename events only) or produce it from the root folder path plus the metadata path
-                                        //syncToEventsByUidToEventIndex[currentEvent.Metadata == null
-
-                                        //    // if the current event does not have metadata (a sign of a rename event??), then find the original change sent to the server which matches by event id and use its file path
-                                        //    ? toCommunicate.First(currentToCommunicate => (currentEvent.EventId != null || currentEvent.Header.EventId != null) && currentToCommunicate.FileChange.EventId == (long)(currentEvent.EventId ?? currentEvent.Header.EventId))
-                                        //        .FileChange.Metadata.ServerUid
-
-                                        //    // else if the current event does have metadata (non-rename events), then build the path from the root path plus the metadata path
-                                        //    : currentEvent.Metadata.ServerUid] = currentEventIndex;
-                                        // add the file path to eventsByPath (Sync To paths) from either the original change (rename events only) or produce it from the root folder path plus the metadata path
-                                        //&&&& end old code
-                                        //&&&&& Start new code
                                         //  Add the file path to eventsByPath (Sync To paths) from either the original change (rename events only) or produce it from the root folder path plus the metadata path
                                         string serverUid;
                                         // if the current event does not have metadata (a sign of a rename event??), then find the original change sent to the server which matches by event id and use its file path
@@ -8336,7 +8383,6 @@ namespace Cloud.Sync
                                         }
 
                                         syncToEventsByUidToEventIndex[serverUid] = currentEventIndex;
-                                        //&&&&& End new code
                                     }
                                 }
                             }
@@ -8531,14 +8577,7 @@ namespace Cloud.Sync
 
                                 // store the previous values for revision and server uid since firing the revision changer will change these;
                                 // the originals are needed for comparison to see if metadata has changed
-                                //&&&& Old code
-                                //string storeOldRevision = (matchedChange == null ? null : ((PossiblyStreamableFileChange)matchedChange).FileChange.Metadata.Revision);
-                                //string storeOldServerUid = (matchedChange == null ? null : ((PossiblyStreamableFileChange)matchedChange).FileChange.Metadata.ServerUid);
-                                //&&&& End old code
-                                //&&&& New code
                                 Nullable<long> storeOldServerUidId = null;
-                                //&&&& End code
-                                //&&&& new code
 
                                 // try/catch create a FileChange out of the current event, handle special rename conditions, decide if the metadata has changed to update SQL, and case-switch to decide what to do with the FileChange, on catch add the FileChange as an error to be reprocessed
                                 try
@@ -8695,7 +8734,6 @@ namespace Cloud.Sync
                                             if (matchedChange == null)
                                             {
                                                 // if the current event does not have a revision then we cannot search, so throw an exception
-                                                //&&&& Old code: if (string.IsNullOrEmpty(currentChange.Metadata.Revision))
                                                 //
                                                 // only check on revision for files since folders won't have revision anyways
                                                 if (!currentChange.Metadata.HashableProperties.IsFolder
@@ -8741,7 +8779,6 @@ namespace Cloud.Sync
                                                             .OrderByDescending(currentOldPath => currentOldPath.EventId)))
                                                 {
                                                     // if the current matched change by path also matches by revision, then use the found change for the previous metadata and stop searching
-                                                    //&&&& Old code: if (findMetadata.Metadata.Revision == currentChange.Metadata.Revision)
                                                     if (findMetadata.Metadata.ServerUidId == currentChange.Metadata.ServerUidId
 
                                                         || ReturnAndPossiblyFillUidAndRevision(uidStorage, syncData, findMetadata.Metadata.ServerUidId).Revision ==
@@ -8788,15 +8825,12 @@ namespace Cloud.Sync
                                                     FileMetadata syncStateMetadata;
                                                     // search the database for metadata for the event's previous path and revision, storing any error that occurred
                                                     CLError queryMetadataError = syncData.getMetadataByPathAndRevision(currentChange.OldPath.ToString(),
-                                                        //&&&& Old code: currentChange.Metadata.Revision,
                                                         ReturnAndPossiblyFillUidAndRevision(uidStorage, syncData, currentChange.Metadata.ServerUidId).Revision,
                                                         out syncStateMetadata);
 
                                                     // if there was an error querying the database for existing metadata, then rethrow the error
                                                     if (queryMetadataError != null)
                                                     {
-                                                        //&&&& Old code: throw new AggregateException("Error querying SqlIndexer for sync state by path: " + currentChange.OldPath.ToString() +
-                                                        //&&&& Old code:     " and revision: " + currentChange.Metadata.Revision, queryMetadataError.Exceptions);
                                                         throw new AggregateException("Error querying SqlIndexer for sync state by path: " + currentChange.OldPath.ToString() +
                                                             " and revision: " + ReturnAndPossiblyFillUidAndRevision(uidStorage, syncData, currentChange.Metadata.ServerUidId).Revision, queryMetadataError.Exceptions);
                                                     }
@@ -8907,22 +8941,6 @@ namespace Cloud.Sync
                                                                     NewPath = currentChange.NewPath, // new location only (no previous location since this is converted from a rename to a create)
                                                                     Type = FileChangeType.Created // a create to download a new file or process a new folder
                                                                 },
-                                                                //&&&& Old code:
-                                                                //new FileMetadata()
-                                                                //{
-                                                                //    //Need to find what key this is //LinkTargetPath <-- what does this comment mean?
-
-                                                                //    ServerUid = currentChange.Metadata.ServerUid, // the unique id on the server
-                                                                //    HashableProperties = new FileMetadataHashableProperties(currentChange.Metadata.HashableProperties.IsFolder, // whether this creation is a folder
-                                                                //        newMetadata.ModifiedDate, // last modified time for this file system object
-                                                                //        newMetadata.CreatedDate, // creation time for this file system object
-                                                                //        newMetadata.Size), // file size or null for folders
-                                                                //    Revision = newMetadata.Revision, // file revision or null for folders
-                                                                //    StorageKey = newMetadata.StorageKey, // file storage key or null for folders
-                                                                //    MimeType = newMetadata.MimeType // never set on Windows
-                                                                //},
-                                                                //&&&& End old code:
-                                                                //&&&& New code:
                                                                 new FileMetadata(currentChange.Metadata.ServerUidId)
                                                                 {
                                                                     //Need to find what key this is //LinkTargetPath <-- what does this comment mean?
@@ -8934,7 +8952,6 @@ namespace Cloud.Sync
                                                                     StorageKey = newMetadata.StorageKey, // file storage key or null for folders
                                                                     MimeType = newMetadata.MimeType // never set on Windows
                                                                 },
-                                                                //&&&& End new code:
                                                                 newMetadata.Hash, // file MD5 hash or null for folder
                                                                 DependencyDebugging,
                                                                 syncData);
@@ -9040,7 +9057,6 @@ namespace Cloud.Sync
                                                                                 duplicateHasher.Dispose();
                                                                             }
 
-                                                                            //&&&& New code
                                                                             // Create a new ServerUid record
                                                                             long innerServerUidId;
                                                                             CLError innerCreateServerUidError = syncData.CreateNewServerUid(serverUid: null, revision: null, serverUidId: out innerServerUidId);  // no transaction
@@ -9051,26 +9067,6 @@ namespace Cloud.Sync
                                                                             }
 
                                                                             uidStorage[innerServerUidId] = new UidRevisionHolder(ServerUid: null, Revision: null);
-                                                                            //&&&& End new code
-
-                                                                            //&&&& Old code
-                                                                            //FileChange duplicateChange =
-                                                                            //    new FileChange()
-                                                                            //    {
-                                                                            //        Direction = SyncDirection.To,
-                                                                            //        Metadata = new FileMetadata()
-                                                                            //        {
-                                                                            //            HashableProperties = new FileMetadataHashableProperties(
-                                                                            //                /*isFolder*/ false,
-                                                                            //                File.GetLastAccessTimeUtc(oldPathString),
-                                                                            //                File.GetLastWriteTimeUtc(oldPathString),
-                                                                            //                duplicateSize)
-                                                                            //        },
-                                                                            //        NewPath = oldPathString,
-                                                                            //        Type = FileChangeType.Created
-                                                                            //    };
-                                                                            //&&&& End old code
-                                                                            //&&&& New code
                                                                             FileChange duplicateChange =
                                                                                 new FileChange()
                                                                                 {
@@ -9086,7 +9082,6 @@ namespace Cloud.Sync
                                                                                     NewPath = oldPathString,
                                                                                     Type = FileChangeType.Created
                                                                                 };
-                                                                            //&&&& End new code
                                                                             CLError setDuplicateHash = duplicateChange.SetMD5(duplicateHash);
                                                                             if (setDuplicateHash != null)
                                                                             {
@@ -9122,8 +9117,6 @@ namespace Cloud.Sync
                                                                                 throw new NullReferenceException("Null event response metadata adding duplicate file");
                                                                             }
 
-                                                                            //&&&& Old code: duplicateChange.Metadata.Revision = postDuplicateChangeResult.Metadata.Revision;
-                                                                            //&&&& New code:
                                                                             Nullable<long> removedServerUidIdToInvalidate;
                                                                             CLError errorFromUpdateServerUid = syncData.UpdateServerUid(
                                                                                 duplicateChange.Metadata.ServerUidId,
@@ -9136,13 +9129,11 @@ namespace Cloud.Sync
                                                                                 throw new AggregateException("Error updating ServerUid", errorFromUpdateServerUid.Exceptions);
                                                                             }
 
-                                                                            //&&&&& Note: ServerUid was not updated before.  It seems that it should be.
                                                                             if (removedServerUidIdToInvalidate != null)
                                                                             {
                                                                                 uidStorage.Remove((long)removedServerUidIdToInvalidate);
                                                                             }
                                                                             uidStorage[duplicateChange.Metadata.ServerUidId] = new UidRevisionHolder(postDuplicateChangeResult.Metadata.ServerUid, postDuplicateChangeResult.Metadata.Revision);
-                                                                            //&&&& End new code
 
                                                                             duplicateChange.Metadata.StorageKey = postDuplicateChangeResult.Metadata.StorageKey;
 
@@ -9200,7 +9191,7 @@ namespace Cloud.Sync
                                                                                 "Error occurred handling conflict for a file rename: " + ex.Message,
                                                                                 EventMessageLevel.Regular,
                                                                                 /*Error*/ new GeneralErrorInfo(),
-                                                                                syncbox.SyncboxId,
+                                                                                syncbox,
                                                                                 syncbox.CopiedSettings.DeviceId);
                                                                         }
                                                                         catch
@@ -9218,7 +9209,7 @@ namespace Cloud.Sync
                                                                                 "File rename conflict handled through duplication",
                                                                                 EventMessageLevel.Minor,
                                                                                 /*Error*/ null,
-                                                                                syncbox.SyncboxId,
+                                                                                syncbox,
                                                                                 syncbox.CopiedSettings.DeviceId);
                                                                         }
                                                                         catch
@@ -9309,7 +9300,6 @@ namespace Cloud.Sync
                                                         }
                                                     }
 
-                                                    //&&&& Old code: serverUidsToPath[currentChange.Metadata.ServerUid] = currentChange.NewPath.ToString();
                                                     serverUidsToPath[ReturnAndPossiblyFillUidAndRevision(uidStorage, syncData, currentChange.Metadata.ServerUidId).ServerUid] = currentChange.NewPath.ToString();
                                                 }
                                                 catch
@@ -9326,14 +9316,8 @@ namespace Cloud.Sync
 
                                                 try
                                                 {
-                                                    //&&&& Old code
-                                                    //pathsToServerUid[currentChange.NewPath.Copy()] = currentChange.Metadata.ServerUid;
-                                                    //serverUidsToPath[currentChange.Metadata.ServerUid] = currentChange.NewPath.ToString();
-                                                    //&&&& End old code
-                                                    //&&&& New code
                                                     pathsToServerUid[currentChange.NewPath.Copy()] = ReturnAndPossiblyFillUidAndRevision(uidStorage, syncData, currentChange.Metadata.ServerUidId).ServerUid;
                                                     serverUidsToPath[ReturnAndPossiblyFillUidAndRevision(uidStorage, syncData, currentChange.Metadata.ServerUidId).ServerUid] = currentChange.NewPath.ToString();
-                                                    //&&&& End new code
                                                 }
                                                 catch
                                                 {
@@ -9349,7 +9333,6 @@ namespace Cloud.Sync
                                                 try
                                                 {
                                                     pathsToServerUid.Remove(currentChange.NewPath);
-                                                    //&&&& Old code: serverUidsToPath.Remove(currentChange.Metadata.ServerUid);
                                                     serverUidsToPath.Remove(ReturnAndPossiblyFillUidAndRevision(uidStorage, syncData, currentChange.Metadata.ServerUidId).ServerUid);
                                                 }
                                                 catch
@@ -9493,14 +9476,6 @@ namespace Cloud.Sync
                                                             // remove old path since creation does not have one
                                                             currentChange.OldPath = null;
                                                             // clear the server UID since it should be unique for a new creation
-                                                            //&&&& Old code
-                                                            //currentChange.Metadata.ServerUid = null;
-                                                            //// clear revision since new file system objects never need one
-                                                            //currentChange.Metadata.Revision = null;
-                                                            //// notify associated metadata with the change to the revision
-                                                            //currentChange.Metadata.RevisionChanger.FireRevisionChanged(currentChange.Metadata);
-                                                            //&&&& End code
-                                                            //&&&& New code
                                                             // Create a new ServerUid record here.
                                                             long serverUidId;
                                                             CLError createServerUidError = syncData.CreateNewServerUid(serverUid: null, revision: null, serverUidId: out serverUidId);  // no transaction
@@ -9513,7 +9488,6 @@ namespace Cloud.Sync
                                                             uidStorage[serverUidId] = new UidRevisionHolder(ServerUid: null, Revision: null);
 
                                                             currentChange.Metadata = currentChange.Metadata.CopyWithNewServerUidId(serverUidId);
-                                                            //&&&& End new code
 
                                                             // clear storage key since the server may need to assign a new one when creation is sent
                                                             currentChange.Metadata.StorageKey = null;
@@ -9816,20 +9790,10 @@ namespace Cloud.Sync
                                                                 FileChangeType storeType = currentChange.Type;
                                                                 // store the current path of the change to reset upon error
                                                                 FilePath storePath = currentChange.NewPath;
-                                                                //&&&& Old code
-                                                                //// store the current server "uid" of the change to reset upon error
-                                                                //string storeServerUid = currentChange.Metadata.ServerUid;
-                                                                //// store the current server parent "uid" of the change to reset upon error
-                                                                //string storeServerParentUid = currentChange.Metadata.ParentFolderServerUid;
-                                                                //// store the current revision of the change to reset upon error
-                                                                //string storeRevision = currentChange.Metadata.Revision;
-                                                                //&&&& End old code
-                                                                //&&&& New code
                                                                 // store the current server "uid" of the change to reset upon error
                                                                 long storeServerUidId = currentChange.Metadata.ServerUidId;
                                                                 // store the current server parent "uid" of the change to reset upon error
                                                                 string storeServerParentUid = currentChange.Metadata.ParentFolderServerUid;
-                                                                //&&&& End new code
 
                                                                 // try/catch to create a creation FileChange to process the conflict file to rename the file locally and add an event to upload it, on catch revert the modified event path and type
                                                                 try
@@ -9859,7 +9823,6 @@ namespace Cloud.Sync
                                                                             JsonContracts.SyncboxMetadataResponse oldPathMetadataRevision;
                                                                             CLError oldPathMetadataRevisionError = httpRestClient.GetMetadata(
                                                                                 /* isFolder */ false,
-                                                                                //&&&& old code: currentChange.Metadata.ServerUid,
                                                                                 ReturnAndPossiblyFillUidAndRevision(uidStorage, syncData, currentChange.Metadata.ServerUidId).ServerUid,
                                                                                 HttpTimeoutMilliseconds,
                                                                                 out oldPathMetadataRevision);
@@ -9985,16 +9948,7 @@ namespace Cloud.Sync
                                                                     currentChange.OldPath = null;
 
 
-                                                                    //&&&& Old code
-                                                                    //// clear the server UID since it should be unique for a new creation
-                                                                    //currentChange.Metadata.ServerUid = null;
-                                                                    //// clear the revision (since it will be a new file)
-                                                                    //currentChange.Metadata.Revision = null;
-                                                                    //// update associated Metadatas with the revision change
-                                                                    //currentChange.Metadata.RevisionChanger.FireRevisionChanged(currentChange.Metadata);
-                                                                    //&&&& End old code
-                                                                    //&&&& New code
-                                                                    long serverUidId;           //&&&& not used?
+                                                                    long serverUidId;
                                                                     CLError createServerUidError = syncData.CreateNewServerUid(serverUid: null, revision: null, serverUidId: out serverUidId);  // no transaction
 
                                                                     if (createServerUidError != null)
@@ -10005,7 +9959,6 @@ namespace Cloud.Sync
                                                                     uidStorage[serverUidId] = new UidRevisionHolder(ServerUid: null, Revision: null);
 
                                                                     currentChange.Metadata = currentChange.Metadata.CopyWithNewServerUidId(serverUidId);
-                                                                    //&&&& End new code
 
                                                                     // clear the storage key (since it will be a new file)
                                                                     currentChange.Metadata.StorageKey = null;
@@ -10036,20 +9989,11 @@ namespace Cloud.Sync
                                                                         throw new AggregateException("Error creating reparentConflict", reparentCreateError.Exceptions);
                                                                     }
 
-                                                                    //&&&& old code
-                                                                    //reparentConflict.Metadata = new FileMetadata(currentChange.Metadata.RevisionChanger, Helpers.CreateFileChangeRevisionChangedHandler(reparentConflict, syncData))
-                                                                    //    {
-                                                                    //        HashableProperties = currentChange.Metadata.HashableProperties, // copy metadata from the conflicted file
-                                                                    //        ParentFolderServerUid = storeServerParentUid
-                                                                    //    };
-                                                                    //&&&& end old code
-                                                                    //&&&& new code
                                                                     reparentConflict.Metadata = new FileMetadata(currentChange.Metadata.ServerUidId)
                                                                     {
                                                                         HashableProperties = currentChange.Metadata.HashableProperties, // copy metadata from the conflicted file
                                                                         ParentFolderServerUid = storeServerParentUid
                                                                     };
-                                                                    //&&&& new code
 
                                                                     if (DependencyDebugging)
                                                                     {
@@ -10131,16 +10075,9 @@ namespace Cloud.Sync
                                                                         {
                                                                             currentChange.Type = storeType;
                                                                             currentChange.NewPath = storePath;
-                                                                            //&&&& old code
-                                                                            //currentChange.Metadata.ServerUid = storeServerUid;
-                                                                            //currentChange.Metadata.ParentFolderServerUid = storeServerParentUid;
-                                                                            //currentChange.Metadata.Revision = storeRevision;
-                                                                            //&&&& end old code
-                                                                            //&&&& new code
                                                                             // Update the serverUid record here.
                                                                             currentChange.Metadata = currentChange.Metadata.CopyWithNewServerUidId(storeServerUidId);
                                                                             currentChange.Metadata.ParentFolderServerUid = storeServerParentUid;
-                                                                            //&&&& end new code
 
                                                                             throw new AggregateException("Error adding a rename FileChange for a conflicted file", addRenameToConflictPath.Exceptions);
                                                                         }
@@ -10159,16 +10096,9 @@ namespace Cloud.Sync
                                                                             currentChange.EventId = storeEventId;
                                                                             currentChange.Type = storeType;
                                                                             currentChange.NewPath = storePath;
-                                                                            //&&&& old code
-                                                                            //currentChange.Metadata.ServerUid = storeServerUid;
-                                                                            //currentChange.Metadata.ParentFolderServerUid = storeServerParentUid;
-                                                                            //currentChange.Metadata.Revision = storeRevision;
-                                                                            //&&&& end old code
-                                                                            //&&&& new code
                                                                             // Update the ServerUid record here.
                                                                             currentChange.Metadata = currentChange.Metadata.CopyWithNewServerUidId(storeServerUidId);
                                                                             currentChange.Metadata.ParentFolderServerUid = storeServerParentUid;
-                                                                            //&&&& end new code
 
                                                                             throw new AggregateException("Error adding a new creation FileChange at the new conflict path", addModifiedConflictAsCreate.Exceptions);
                                                                         }
@@ -10201,32 +10131,16 @@ namespace Cloud.Sync
                                                                 {
                                                                     // revert the changes to the current conflict and rethrow the error
 
-                                                                    // RKS Update the serverUid record here?
                                                                     currentChange.Type = storeType;
                                                                     currentChange.NewPath = storePath;
-                                                                    //&&&& old code
-                                                                    //currentChange.Metadata.ServerUid = storeServerUid;
-                                                                    //currentChange.Metadata.ParentFolderServerUid = storeServerParentUid;
-                                                                    //currentChange.Metadata.Revision = storeRevision;
-                                                                    //&&&& end old code
-                                                                    //&&&& new code
                                                                     // Update the ServerUid record here.
                                                                     currentChange.Metadata = currentChange.Metadata.CopyWithNewServerUidId(storeServerUidId);
                                                                     currentChange.Metadata.ParentFolderServerUid = storeServerParentUid;
-                                                                    //&&&& end new code
                                                                     throw;
                                                                 }
                                                             }
                                                             catch (Exception ex)
                                                             {
-                                                                //&&&& old code
-                                                                //bool reversedRevision = currentChange.Metadata.Revision != previousRevisionOnConflictException;  //&&&& Not used?
-                                                                //// revert the revision to the value before communication so it will get a conflict the next iteration through Sync to attempt to handle it again
-                                                                //currentChange.Metadata.Revision = previousRevisionOnConflictException;
-                                                                //// update associated Metadatas with the change to the revision
-                                                                //currentChange.Metadata.RevisionChanger.FireRevisionChanged(currentChange.Metadata);
-                                                                //&&&& end old code
-                                                                //&&&& new code
                                                                 // revert the revision to the value before communication so it will get a conflict the next iteration through Sync to attempt to handle it again
                                                                 if (storeOldServerUidId == null)
                                                                 {
@@ -10246,7 +10160,6 @@ namespace Cloud.Sync
                                                                 {
                                                                     currentChange.Metadata = currentChange.Metadata.CopyWithNewServerUidId((long)storeOldServerUidId);
                                                                 }
-                                                                //&&&& end new code
 
                                                                 // store the exception that occurred processing the conflict
                                                                 innerExceptionAppend = new Exception("Error creating local rename to apply for conflict", ex);
@@ -10567,7 +10480,7 @@ namespace Cloud.Sync
                         MessageEvents.FireNewEventMessage(
                             "Checking for any new changes to sync from server",
                             EventMessageLevel.Regular,
-                            SyncboxId: syncbox.SyncboxId,
+                            Syncbox: syncbox,
                             DeviceId: syncbox.CopiedSettings.DeviceId);
 
                         // declare the status of the sync from communication
@@ -10741,31 +10654,12 @@ namespace Cloud.Sync
                                     throw new AggregateException("Error querying or creating ServerUid", queryServerUidError.Exceptions);
                                 }
 
-                                //&&&& New code
                                 // Create a new ServerUid record.  Required below.
                                 uidStorage[currentEventUidId] = new UidRevisionHolder(ServerUid: currentEvent.Metadata.ServerUid, Revision: currentEvent.Metadata.Revision);
-                                //&&&& End new code
 
                                 PossiblyStreamableAndPossiblyChangedFileChange storeConvertedChange = new PossiblyStreamableAndPossiblyChangedFileChange(resultOrder++,
                                     /* needs to update SQL */ true, // all Sync From events are new and should thus be added to the event source database
                                         CreateFileChangeFromBaseChangePlusHash(baseConvertedChange,
-                                    //&&&& old code
-                                    //new FileMetadata()
-                                    //    {
-                                    //        //Need to find what key this is //LinkTargetPath <-- what does this comment mean?
-
-                                            //        ServerUid = currentEvent.Metadata.ServerUid, // unique id on the server
-                                    //        HashableProperties = new FileMetadataHashableProperties((currentEvent.Metadata.IsFolder ?? ParseEventStringToIsFolder(currentEvent.Header.Action ?? currentEvent.Action)), // try to grab whether this event is a folder from the specified property, otherwise parse it from the action
-                                    //            currentEvent.Metadata.ModifiedDate, // grab the last modified time
-                                    //            currentEvent.Metadata.CreatedDate, // grab the time of creation
-                                    //            currentEvent.Metadata.Size), // grab the file size, or null for non-files
-                                    //        Revision = currentEvent.Metadata.Revision, // grab the revision, or null for non-files
-                                    //        StorageKey = currentEvent.Metadata.StorageKey, // grab the storage key, or null for non-files
-                                    //        MimeType = currentEvent.Metadata.MimeType, // never set on Windows
-                                    //        ParentFolderServerUid = currentEvent.Metadata.ToParentUid ?? currentEvent.Metadata.ParentUid
-                                    //    },
-                                    //&&&& end old code
-                                    //&&&& new code
                                             new FileMetadata(currentEventUidId)
                                             {
                                                 //Need to find what key this is //LinkTargetPath <-- what does this comment mean?
@@ -10775,7 +10669,6 @@ namespace Cloud.Sync
                                                 MimeType = currentEvent.Metadata.MimeType, // never set on Windows
                                                 ParentFolderServerUid = currentEvent.Metadata.ToParentUid ?? currentEvent.Metadata.ParentUid
                                             },
-                                    //&&&& end new code
                                             currentEvent.Metadata.Hash, // grab the MD5 hash
                                             DependencyDebugging,
                                             syncData),
@@ -10789,14 +10682,8 @@ namespace Cloud.Sync
                                         {
                                             try
                                             {
-                                                //&&&& old code
-                                                //pathsToServerUid[storeConvertedChange.FileChange.NewPath.Copy()] = storeConvertedChange.FileChange.Metadata.ServerUid;
-                                                //serverUidsToPath[storeConvertedChange.FileChange.Metadata.ServerUid] = storeConvertedChange.FileChange.NewPath.ToString();
-                                                //&&&& end old code
-                                                //&&&& new code
                                                 pathsToServerUid[storeConvertedChange.FileChange.NewPath.Copy()] = ReturnAndPossiblyFillUidAndRevision(uidStorage, syncData, storeConvertedChange.FileChange.Metadata.ServerUidId).ServerUid;
                                                 serverUidsToPath[ReturnAndPossiblyFillUidAndRevision(uidStorage, syncData, storeConvertedChange.FileChange.Metadata.ServerUidId).ServerUid] = storeConvertedChange.FileChange.NewPath.ToString();
-                                                //&&&& end new code
                                             }
                                             catch
                                             {
@@ -10821,7 +10708,6 @@ namespace Cloud.Sync
                                                     }
                                                 }
 
-                                                //&&&& old code: serverUidsToPath[storeConvertedChange.FileChange.Metadata.ServerUid] = storeConvertedChange.FileChange.NewPath.ToString();
                                                 serverUidsToPath[ReturnAndPossiblyFillUidAndRevision(uidStorage, syncData, storeConvertedChange.FileChange.Metadata.ServerUidId).ServerUid] = storeConvertedChange.FileChange.NewPath.ToString();
                                             }
                                             catch
@@ -10836,7 +10722,6 @@ namespace Cloud.Sync
                                             try
                                             {
                                                 pathsToServerUid.Remove(storeConvertedChange.FileChange.NewPath);
-                                                //&&&& old code: serverUidsToPath.Remove(storeConvertedChange.FileChange.Metadata.ServerUid);
                                                 serverUidsToPath.Remove(ReturnAndPossiblyFillUidAndRevision(uidStorage, syncData, storeConvertedChange.FileChange.Metadata.ServerUidId).ServerUid);
                                             }
                                             catch
@@ -10934,7 +10819,6 @@ namespace Cloud.Sync
                                             .OrderByDescending(currentOldPath => currentOldPath.EventId)))
                                     {
                                         // if the current matched change by path also matches by revision, then use the found change for the previous metadata and stop searching
-                                        //&&&& old code: if (findMetadata.Metadata.Revision == currentChange.Metadata.Revision)
                                         if (ReturnAndPossiblyFillUidAndRevision(uidStorage, syncData, findMetadata.Metadata.ServerUidId).Revision == ReturnAndPossiblyFillUidAndRevision(uidStorage, syncData, currentChange.Metadata.ServerUidId).Revision)
                                         {
                                             // use the found change for the previous metadata
@@ -10970,21 +10854,14 @@ namespace Cloud.Sync
                                         FileMetadata syncStateMetadata;
                                         // search the database for metadata for the event's previous path and revision, storing any error that occurred
                                         CLError queryMetadataError = syncData.getMetadataByPathAndRevision(currentChange.OldPath.ToString(),
-                                            //&&&& old code: currentChange.Metadata.Revision,
                                             ReturnAndPossiblyFillUidAndRevision(uidStorage, syncData, currentChange.Metadata.ServerUidId).Revision,
                                             out syncStateMetadata);
 
                                         // if there was an error querying the database for existing metadata, then rethrow the error
                                         if (queryMetadataError != null)
                                         {
-                                            //&&&& old code
-                                            //throw new AggregateException("Error querying SqlIndexer for sync state by path: " + currentChange.OldPath.ToString() +
-                                            //    " and revision: " + currentChange.Metadata.Revision, queryMetadataError.Exceptions);
-                                            //&&&& end old code
-                                            //&&&& new code
                                             throw new AggregateException("Error querying SqlIndexer for sync state by path: " + currentChange.OldPath.ToString() +
                                                 " and revision: " + ReturnAndPossiblyFillUidAndRevision(uidStorage, syncData, currentChange.Metadata.ServerUidId).Revision, queryMetadataError.Exceptions);
-                                            //&&&& end new code
                                         }
 
                                         // if no metadata was returned from the database, then throw an error if the change originated on the client or otherwise try to grab the metadata from the server for a new creation event at the final destination of the rename
@@ -11060,7 +10937,6 @@ namespace Cloud.Sync
                                                 DependencyDebugging,
                                                 syncData);
 
-                                            //&&&& New code
                                             // Create a new ServerUid record;
                                             // also, no reason to specially handle sync from file modifies here because we are in a switch on renamed changes
                                             long serverUidId;
@@ -11076,25 +10952,7 @@ namespace Cloud.Sync
                                             }
 
                                             uidStorage[serverUidId] = new UidRevisionHolder(ServerUid: newMetadata.ServerUid, Revision: newMetadata.Revision);
-                                            //&&&& End new code
 
-
-                                            //&&&& old code
-                                            //newPathCreation.Metadata = new FileMetadata(revisionChanger: null, onRevisionChanged: Helpers.CreateFileChangeRevisionChangedHandler(newPathCreation, syncData))
-                                            //    {
-                                            //        //Need to find what key this is //LinkTargetPath <-- what does this comment mean?
-
-                                            //        ServerUid = newMetadata.ServerUid, // unique id on the server
-                                            //        HashableProperties = new FileMetadataHashableProperties(currentChange.Metadata.HashableProperties.IsFolder, // whether this creation is a folder
-                                            //            newMetadata.ModifiedDate, // last modified time for this file system object
-                                            //            newMetadata.CreatedDate, // creation time for this file system object
-                                            //            newMetadata.Size), // file size or null for folders
-                                            //        Revision = newMetadata.Revision, // file revision or null for folders
-                                            //        StorageKey = newMetadata.StorageKey, // file storage key or null for folders
-                                            //        MimeType = newMetadata.MimeType // never set on Windows
-                                            //    };
-                                            //&&&& end old code
-                                            //&&&& new code
                                             newPathCreation.Metadata = new FileMetadata(serverUidId)
                                             {
                                                 //Need to find what key this is //LinkTargetPath <-- what does this comment mean?
@@ -11106,7 +10964,6 @@ namespace Cloud.Sync
                                                 StorageKey = newMetadata.StorageKey, // file storage key or null for folders
                                                 MimeType = newMetadata.MimeType // never set on Windows
                                             };
-                                            //&&&& end new code
 
                                             alreadyVisitedRenames[newPathCreation.NewPath.Copy()] = newPathCreation.Metadata;
 
@@ -11181,24 +11038,6 @@ namespace Cloud.Sync
                                                                 duplicateHasher.Dispose();
                                                             }
 
-                                                            //&&&& old code
-                                                            //FileChange duplicateChange =
-                                                            //    new FileChange()
-                                                            //    {
-                                                            //        Direction = SyncDirection.To,
-                                                            //        Metadata = new FileMetadata()
-                                                            //        {
-                                                            //            HashableProperties = new FileMetadataHashableProperties(
-                                                            //                /*isFolder*/ false,
-                                                            //                File.GetLastAccessTimeUtc(oldPathString),
-                                                            //                File.GetLastWriteTimeUtc(oldPathString),
-                                                            //                duplicateSize)
-                                                            //        },
-                                                            //        NewPath = oldPathString,
-                                                            //        Type = FileChangeType.Created
-                                                            //    };
-                                                            //&&&& end old code
-                                                            //&&&& new code
                                                             long innerServerUidId;
                                                             CLError innerCreateServerUidError = syncData.CreateNewServerUid(serverUid: null, revision: null, serverUidId: out innerServerUidId);  // no transaction
 
@@ -11224,7 +11063,6 @@ namespace Cloud.Sync
                                                                     NewPath = oldPathString,
                                                                     Type = FileChangeType.Created
                                                                 };
-                                                            //&&&& end new code
 
                                                             CLError setDuplicateHash = duplicateChange.SetMD5(duplicateHash);
                                                             if (setDuplicateHash != null)
@@ -11261,10 +11099,6 @@ namespace Cloud.Sync
                                                                 throw new NullReferenceException("Null event response metadata adding duplicate file");
                                                             }
 
-                                                            //&&&& old code
-                                                            //duplicateChange.Metadata.Revision = postDuplicateChangeResult.Metadata.Revision;
-                                                            //&&&& end old code
-                                                            //&&&& new code
                                                             Nullable<long> removedServerUidIdToInvalidate;
                                                             CLError updateServerUidError = syncData.UpdateServerUid(
                                                                 innerServerUidId,
@@ -11282,7 +11116,6 @@ namespace Cloud.Sync
                                                                 uidStorage.Remove((long)removedServerUidIdToInvalidate);
                                                             }
                                                             uidStorage[innerServerUidId] = new UidRevisionHolder(ServerUid: postDuplicateChangeResult.Metadata.ServerUid, Revision: postDuplicateChangeResult.Metadata.Revision);
-                                                            //&&&& end new code
 
                                                             duplicateChange.Metadata.StorageKey = postDuplicateChangeResult.Metadata.StorageKey;
 
@@ -11342,7 +11175,7 @@ namespace Cloud.Sync
                                                                 "Error occurred handling conflict for a file rename: " + ex.Message,
                                                                 EventMessageLevel.Regular,
                                                                 /*Error*/ new GeneralErrorInfo(),
-                                                                syncbox.SyncboxId,
+                                                                syncbox,
                                                                 syncbox.CopiedSettings.DeviceId);
                                                         }
                                                         catch
@@ -11360,7 +11193,7 @@ namespace Cloud.Sync
                                                                 "File rename conflict handled through duplication",
                                                                 EventMessageLevel.Minor,
                                                                 /*Error*/ null,
-                                                                syncbox.SyncboxId,
+                                                                syncbox,
                                                                 syncbox.CopiedSettings.DeviceId);
                                                         }
                                                         catch
@@ -11465,7 +11298,7 @@ namespace Cloud.Sync
                         MessageEvents.FireNewEventMessage(
                             "Nothing to communicate with server",
                             EventMessageLevel.Minor,
-                            SyncboxId: syncbox.SyncboxId,
+                            Syncbox: syncbox,
                             DeviceId: syncbox.CopiedSettings.DeviceId);
 
                         incompleteChanges = Enumerable.Empty<PossiblyStreamableAndPossiblyChangedFileChange>();
@@ -11495,7 +11328,7 @@ namespace Cloud.Sync
                                     : ex.InnerException.Message)), // else if there is an inner exception with message then append the inner exception message
                     Level: EventMessageLevel.Important,
                     Error: new GeneralErrorInfo(),
-                    SyncboxId: syncbox.SyncboxId,
+                    Syncbox: syncbox,
                     DeviceId: syncbox.CopiedSettings.DeviceId);
 
                 // default all ouputs
@@ -11661,7 +11494,6 @@ namespace Cloud.Sync
 
             if (changeMetadata != null)
             {
-                //&&&& Old codee:  returnedChange.Metadata = changeMetadata.CopyWithDifferentRevisionChanger(changeMetadata.RevisionChanger, Helpers.CreateFileChangeRevisionChangedHandler(returnedChange, syncData));
                 returnedChange.Metadata = changeMetadata.CopyWithNewServerUidId(changeMetadata.ServerUidId);
             }
 

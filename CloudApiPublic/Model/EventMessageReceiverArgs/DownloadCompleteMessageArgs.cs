@@ -1,10 +1,11 @@
 ﻿//
-// TransferUpdateMessage.cs
+// DownloadCompleteMessageArgs.cs
 // Cloud Windows
 //
-// Created By DavidBruck.
+// Created By BobS.
 // Copyright (c) Cloud.com. All rights reserved.
 
+using Cloud.CLSync;
 using Cloud.Interfaces;
 using Cloud.Model.EventMessages;
 using Cloud.Static;
@@ -15,7 +16,7 @@ using System.Text;
 
 namespace Cloud.Model
 {
-    internal sealed class TransferUpdateMessage : ITransferUpdateMessage
+    internal sealed class DownloadCompleteMessageArgs : IDownloadCompleteMessage
     {
         public EventMessageArgs MessageArgs
         {
@@ -25,7 +26,6 @@ namespace Cloud.Model
             }
         }
         private readonly EventMessageArgs _messageArgs;
-        private readonly bool _upload;
 
         #region IHandleableArgs members
         bool IHandleableArgs.Handled
@@ -72,30 +72,25 @@ namespace Cloud.Model
         }
         #endregion
 
-        #region ITransferUpdateMessage members
-        long ITransferUpdateMessage.EventId
+        #region IDownloadCompleteMessage members
+        long IDownloadCompleteMessage.EventId
         {
             get
             {
-                return
-                    (_upload
-                        ? ((UploadProgressMessage)_messageArgs.Message).EventId
-                        : ((DownloadProgressMessage)_messageArgs.Message).EventId);
+                return ((DownloadCompleteMessage)_messageArgs.Message).EventId;
             }
         }
-        CLStatusFileTransferUpdateParameters ITransferUpdateMessage.Parameters
+
+        CLFileItem IDownloadCompleteMessage.FileItem
         {
             get
             {
-                return
-                    (_upload
-                        ? ((UploadProgressMessage)_messageArgs.Message).Parameters
-                        : ((DownloadProgressMessage)_messageArgs.Message).Parameters);
+                return ((DownloadCompleteMessage)_messageArgs.Message).FileItem;
             }
         }
         #endregion
 
-        internal TransferUpdateMessage(EventMessageArgs MessageArgs)
+        internal DownloadCompleteMessageArgs(EventMessageArgs MessageArgs)
         {
             if (MessageArgs == null)
             {
@@ -105,14 +100,12 @@ namespace Cloud.Model
             {
                 throw new NullReferenceException("MessageArgs Message cannot be null");
             }
-            if (MessageArgs.Message.Type != EventMessageType.UploadProgress
-                && MessageArgs.Message.Type != EventMessageType.DownloadProgress)
+            if (MessageArgs.Message.Type != EventMessageType.DownloadCompleteChanged)
             {
-                throw new ArgumentException("MessageArgs Message Type must be UploadProgress or DownloadProgress, instead it is " + MessageArgs.Message.Type.ToString());
+                throw new ArgumentException("MessageArgs Message Type must be DownloadCompleteChanged, instead it is " + MessageArgs.Message.Type.ToString());
             }
 
             this._messageArgs = MessageArgs;
-            this._upload = MessageArgs.Message.Type == EventMessageType.UploadProgress;
         }
     }
 }

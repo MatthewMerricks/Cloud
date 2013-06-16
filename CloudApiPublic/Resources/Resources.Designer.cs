@@ -2259,6 +2259,15 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to fileChange must not be null.
+        /// </summary>
+        internal static string ExceptionFileItemNullFileChange {
+            get {
+                return ResourceManager.GetString("ExceptionFileItemNullFileChange", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to response IsFolder must not be null or headerAction must not be null or action must not be null.
         /// </summary>
         internal static string ExceptionFileItemNullIsFolderActionAndHeaderAction {
@@ -2291,6 +2300,15 @@ namespace Cloud.Static {
         internal static string ExceptionFileMonitorBeginProcessingSetMD5 {
             get {
                 return ResourceManager.GetString("ExceptionFileMonitorBeginProcessingSetMD5", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to File not found.
+        /// </summary>
+        internal static string ExceptionFileNotFound {
+            get {
+                return ResourceManager.GetString("ExceptionFileNotFound", resourceCulture);
             }
         }
         
@@ -2745,6 +2763,42 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to No error creating FileStream but it still does not exist.
+        /// </summary>
+        internal static string ExceptionOnDemandAddFileFileStreamDoesNotExist {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandAddFileFileStreamDoesNotExist", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No error creating finalFileSize but it still does not exist.
+        /// </summary>
+        internal static string ExceptionOnDemandAddFileFinalFileSizeDoesNotExist {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandAddFileFinalFileSizeDoesNotExist", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No error creating intermediateHashes but it still does not exist.
+        /// </summary>
+        internal static string ExceptionOnDemandAddFileIntermediateHashesDoesNotExist {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandAddFileIntermediateHashesDoesNotExist", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No error creating newMD5Bytes but it still does not exist.
+        /// </summary>
+        internal static string ExceptionOnDemandAddFileNewMd5BytesDoesNotExist {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandAddFileNewMd5BytesDoesNotExist", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to foldersToAdd must be specified, and must have at least one element.
         /// </summary>
         internal static string ExceptionOnDemandAddFoldersNoFoldersToAdd {
@@ -2979,6 +3033,60 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to filesToAdd item {0} FullPath must be specified.
+        /// </summary>
+        internal static string ExceptionOnDemandFilesToAddAtIndexFullPathMustNotBeNullMsg0 {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandFilesToAddAtIndexFullPathMustNotBeNullMsg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to filesToAdd item at index {0} must not be null.
+        /// </summary>
+        internal static string ExceptionOnDemandFilesToAddAtIndexMustNotBeNullMsg0 {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandFilesToAddAtIndexMustNotBeNullMsg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to filesToAdd item {0} ParentFolder.ItemUid must be specified.
+        /// </summary>
+        internal static string ExceptionOnDemandFilesToAddAtIndexParentFolderItemUidMissingMsg0 {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandFilesToAddAtIndexParentFolderItemUidMissingMsg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to filesToAdd item {0} Parent folder must not be null.
+        /// </summary>
+        internal static string ExceptionOnDemandFilesToAddAtIndexParentMustNotBeNullMsg0 {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandFilesToAddAtIndexParentMustNotBeNullMsg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to filesToAdd must have a length greater than zero.
+        /// </summary>
+        internal static string ExceptionOnDemandFilesToAddLengthMustBeGtZero {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandFilesToAddLengthMustBeGtZero", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to filesToAdd must not be null.
+        /// </summary>
+        internal static string ExceptionOnDemandFilesToAddMustNotBeNull {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandFilesToAddMustNotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The input CLFileItem at index {0} was a folder when a file item was expected.
         /// </summary>
         internal static string ExceptionOnDemandFolderItemFoundWhenFileItemExpectedMsg0 {
@@ -2993,6 +3101,42 @@ namespace Cloud.Static {
         internal static string ExceptionOnDemandFolderItemNullAtIndexMsg0 {
             get {
                 return ResourceManager.GetString("ExceptionOnDemandFolderItemNullAtIndexMsg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to server returned null response.
+        /// </summary>
+        internal static string ExceptionOnDemandGetCurrentStatusNullServerResponse {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandGetCurrentStatusNullServerResponse", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to server returned null response Syncbox.
+        /// </summary>
+        internal static string ExceptionOnDemandGetCurrentStatusServerResponseNullSyncbox {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandGetCurrentStatusServerResponseNullSyncbox", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to server returned null response Syncbox CreatedAt.
+        /// </summary>
+        internal static string ExceptionOnDemandGetCurrentStatusServerResponseNullSyncboxCreatedAt {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandGetCurrentStatusServerResponseNullSyncboxCreatedAt", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to server returned null response Syncbox PlanId.
+        /// </summary>
+        internal static string ExceptionOnDemandGetCurrentStatusServerResponseNullSyncboxPlanId {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandGetCurrentStatusServerResponseNullSyncboxPlanId", resourceCulture);
             }
         }
         
@@ -3276,6 +3420,79 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to friendlyName must be specified.
+        /// </summary>
+        internal static string ExceptionOnDemandUpdateFriendlyNameFriendlyNameMustBeSpecified {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandUpdateFriendlyNameFriendlyNameMustBeSpecified", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to server returned null response.
+        /// </summary>
+        internal static string ExceptionOnDemandUpdateFriendlyNameServerReturnedNullResponse {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandUpdateFriendlyNameServerReturnedNullResponse", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to server returned null response Syncbox.
+        /// </summary>
+        internal static string ExceptionOnDemandUpdateFriendlyNameServerReturnedNullResponseSyncbox {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandUpdateFriendlyNameServerReturnedNullResponseSyncbox", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to server returned null response Syncbox PlanId.
+        /// </summary>
+        internal static string ExceptionOnDemandUpdateFriendlyNameServerReturnedNullResponseSyncboxPlanId {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandUpdateFriendlyNameServerReturnedNullResponseSyncboxPlanId", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to storagePlan must not be null.
+        /// </summary>
+        internal static string ExceptionOnDemandUpdateStoragePlanStoragePlanMustNotBeNull {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandUpdateStoragePlanStoragePlanMustNotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to server returned null response.
+        /// </summary>
+        internal static string ExceptionOnDemandUpdateStoragePlanStoragePlanServerReturnedNullResponse {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandUpdateStoragePlanStoragePlanServerReturnedNullResponse", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to server returned null response Syncbox.
+        /// </summary>
+        internal static string ExceptionOnDemandUpdateStoragePlanStoragePlanServerReturnedNullResponseSyncbox {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandUpdateStoragePlanStoragePlanServerReturnedNullResponseSyncbox", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to server returned null response Syncbox PlanId.
+        /// </summary>
+        internal static string ExceptionOnDemandUpdateStoragePlanStoragePlanServerReturnedNullResponseSyncboxPlanId {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandUpdateStoragePlanStoragePlanServerReturnedNullResponseSyncboxPla" +
+                        "nId", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Error creating FileMonitor.
         /// </summary>
         internal static string ExceptionSyncboxCreateFileMonitor {
@@ -3317,6 +3534,15 @@ namespace Cloud.Static {
         internal static string ExceptionSyncboxErrorGettingStatusDueToSyncboxNotFound {
             get {
                 return ResourceManager.GetString("ExceptionSyncboxErrorGettingStatusDueToSyncboxNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error subscribing to live sync status messages.  Bad liveSyncStatusReceiver to CLSyncbox.AllocAndInit, or bad DeviceId in settings.
+        /// </summary>
+        internal static string ExceptionSyncboxErrorSubscribingToLiveSyncStatusMessages {
+            get {
+                return ResourceManager.GetString("ExceptionSyncboxErrorSubscribingToLiveSyncStatusMessages", resourceCulture);
             }
         }
         

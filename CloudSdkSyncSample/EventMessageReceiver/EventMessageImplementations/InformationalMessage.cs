@@ -9,7 +9,7 @@ namespace SampleLiveSync.EventMessageReceiver
     /// <summary>
     /// <see cref="EventMessage"/> for some information.
     /// </summary>
-    public sealed class InformationalMessage : EventMessage
+    public sealed class InformationalMessage : EventMessage<InformationalMessage>
     {
         #region EventMessage abstract overrides
         public override EventMessageImage Image

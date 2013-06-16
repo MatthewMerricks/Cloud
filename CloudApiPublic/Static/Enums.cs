@@ -270,6 +270,11 @@ namespace Cloud.Static
         /// </summary>
         Syncbox_StorageQuotaUnknown = (((ulong)CLExceptionDomain.Syncbox) << 32) | 25, // 2_25
 
+        /// <summary>
+        /// Error subscribing to live sync status messages.  Bad liveSyncStatusReceiver to CLSyncbox.AllocAndInit, or bad DeviceId in settings
+        /// </summary>
+        Syncbox_SubscribingToLiveSyncStatusReceiver = (((ulong)CLExceptionDomain.Syncbox) << 32) | 26, // 2_26
+
         #endregion
 
         #region ShellExt
@@ -592,6 +597,11 @@ namespace Cloud.Static
         /// </summary>
         OnDemand_FileItemWhenFolderItemExpected = (((ulong)CLExceptionDomain.OnDemand) << 32) | 42, // 5_42
 
+        /// <summary>
+        /// Bad settings.
+        /// </summary>
+        OnDemand_Settings = (((ulong)CLExceptionDomain.OnDemand) << 32) | 43, // 5_43
+
         #endregion
 
         #region FileItem
@@ -615,6 +625,11 @@ namespace Cloud.Static
         /// (internal constructor) Unable to determine whether item is a file or a folder from action
         /// </summary>
         FileItem_UnknownAction = (((ulong)CLExceptionDomain.FileItem) << 32) | 3, // 6_3
+
+        /// <summary>
+        /// (internal constructor) CLFileItem requires a FileChange.
+        /// </summary>
+        FileItem_RequiresFileChange = (((ulong)CLExceptionDomain.FileItem) << 32) | 4, // 6_4
 
         #endregion
 
@@ -753,7 +768,13 @@ namespace Cloud.Static
         SuccessfulDownloadsIncremented,
         UploadingCountChanged,
         DownloadingCountChanged,
-        InternetConnectivityChanged
+        InternetConnectivityChanged,
+        DownloadCompleteChanged,
+        UploadCompleteChanged,
+        StorageQuotaExceededChanged,
+        SyncboxDidStartLiveSyncChanged,
+        SyncboxDidStopLiveSyncChanged,
+        SyncboxLiveSyncFailedWithErrorChanged,
     }
 
     /// <summary>

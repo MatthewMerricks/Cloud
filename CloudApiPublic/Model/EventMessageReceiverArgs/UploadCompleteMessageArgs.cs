@@ -1,10 +1,11 @@
 ﻿//
-// InternetConnectivityMessage.cs
+// UploadCompleteMessageArgs.cs
 // Cloud Windows
 //
-// Created By DavidBruck.
+// Created By BobS.
 // Copyright (c) Cloud.com. All rights reserved.
 
+using Cloud.CLSync;
 using Cloud.Interfaces;
 using Cloud.Model.EventMessages;
 using Cloud.Static;
@@ -15,7 +16,7 @@ using System.Text;
 
 namespace Cloud.Model
 {
-    internal sealed class InternetConnectivityMessage : IInternetConnectivityMessage
+    internal sealed class UploadCompleteMessageArgs : IUploadCompleteMessage
     {
         public EventMessageArgs MessageArgs
         {
@@ -52,14 +53,14 @@ namespace Cloud.Model
         {
             get
             {
-                return null;
+                return _messageArgs.Message.SyncboxId;
             }
         }
         string IMinimalMessage.DeviceId
         {
             get
             {
-                return null;
+                return _messageArgs.Message.DeviceId;
             }
         }
         BaseMessage IMinimalMessage.BaseMessage
@@ -71,17 +72,25 @@ namespace Cloud.Model
         }
         #endregion
 
-        #region IInternetConnectivityMessage members
-        bool IInternetConnectivityMessage.InternetConnected
+        #region IUploadCompleteMessage members
+        long IUploadCompleteMessage.EventId
         {
             get
             {
-                return ((InternetChangeMessage)_messageArgs.Message).InternetConnected;
+                return ((UploadCompleteMessage)_messageArgs.Message).EventId;
+            }
+        }
+
+        CLFileItem IUploadCompleteMessage.FileItem
+        {
+            get
+            {
+                return ((UploadCompleteMessage)_messageArgs.Message).FileItem;
             }
         }
         #endregion
 
-        internal InternetConnectivityMessage(EventMessageArgs MessageArgs)
+        internal UploadCompleteMessageArgs(EventMessageArgs MessageArgs)
         {
             if (MessageArgs == null)
             {
@@ -91,9 +100,9 @@ namespace Cloud.Model
             {
                 throw new NullReferenceException("MessageArgs Message cannot be null");
             }
-            if (MessageArgs.Message.Type != EventMessageType.InternetConnectivityChanged)
+            if (MessageArgs.Message.Type != EventMessageType.UploadCompleteChanged)
             {
-                throw new ArgumentException("MessageArgs Message Type must be InternetConnectivityChanged, instead it is " + MessageArgs.Message.Type.ToString());
+                throw new ArgumentException("MessageArgs Message Type must be UploadCompleteChanged, instead it is " + MessageArgs.Message.Type.ToString());
             }
 
             this._messageArgs = MessageArgs;

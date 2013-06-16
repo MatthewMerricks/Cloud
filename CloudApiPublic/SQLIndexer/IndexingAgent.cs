@@ -5041,7 +5041,7 @@ namespace Cloud.SQLIndexer
                                 "Database corruption found on initializing index. Replacing database with a fresh one. Files and folders changed while offline will be grabbed again from server. Error message: " + ex.Message,
                                 EventMessageLevel.Important,
                                 new GeneralErrorInfo(),
-                                syncbox.SyncboxId,
+                                syncbox,
                                 syncbox.CopiedSettings.DeviceId);
                         }
 
@@ -5061,7 +5061,7 @@ namespace Cloud.SQLIndexer
                     MessageEvents.FireNewEventMessage(
                         "Existing database not found, possibly due to new SyncboxId\\DeviceId combination. Starting fresh.",
                         EventMessageLevel.Minor,
-                        SyncboxId: syncbox.SyncboxId,
+                        Syncbox: syncbox,
                         DeviceId: syncbox.CopiedSettings.DeviceId);
                 }
 
@@ -5840,7 +5840,9 @@ namespace Cloud.SQLIndexer
                     MessageEvents.FireNewEventMessage(
                         "Unable to find Cloud directory at path: " + currentDirectoryFullPath,
                         EventMessageLevel.Important,
-                        new HaltAllOfCloudSDKErrorInfo());
+                        new HaltAllOfCloudSDKErrorInfo(),
+                        this.syncbox,
+                        this.syncbox.CopiedSettings.DeviceId);
 
                     // This is a really bad error.  It means the connection to the file system is broken, and if we just ignore this error,
                     // sync will determine that there are no files in the Syncbox folder, and it will actually delete all of the files on the server.
@@ -6069,7 +6071,9 @@ namespace Cloud.SQLIndexer
                     MessageEvents.FireNewEventMessage(
                         "Unable to scan files/folders in Cloud folder. Location not accessible:" + Environment.NewLine + ex.Message,
                         EventMessageLevel.Important,
-                        new HaltAllOfCloudSDKErrorInfo());
+                        new HaltAllOfCloudSDKErrorInfo(),
+                        this.syncbox,
+                        this.syncbox.CopiedSettings.DeviceId);
                 }
             }
             catch { }
@@ -6146,20 +6150,24 @@ namespace Cloud.SQLIndexer
                     // Run dispose on inner managed objects based on disposing condition
                     if (disposing)
                     {
-                        lock (changeEnumsLocker)
-                        {
-                            if (changeEnums != null)
-                            {
-                                changeEnums.Clear();
-                                changeEnums = null;
-                            }
-
-                            if (changeEnumsBackward != null)
-                            {
-                                changeEnumsBackward.Clear();
-                                changeEnumsBackward = null;
-                            }
-                        }
+                        //// found case where changeEnumsBackward is null on normal condition;
+                        //// (probably cause dictionaries are marked static but dispose is on an instance)
+                        //// commented out:
+                        //
+                        //lock (changeEnumsLocker)
+                        //{
+                        //    if (changeEnums != null)
+                        //    {
+                        //        changeEnums.Clear();
+                        //        changeEnums = null;
+                        //    }
+                        //
+                        //    if (changeEnumsBackward != null)
+                        //    {
+                        //        changeEnumsBackward.Clear();
+                        //        changeEnumsBackward = null;
+                        //    }
+                        //}
                     }
 
                     disposed = true;

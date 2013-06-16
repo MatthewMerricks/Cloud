@@ -72,8 +72,6 @@ namespace win_client.ViewModels
                         // Report error here
                         return;
                     }
-
-                    //&&&&               WelcomeTitle = item.Title;
                 });
         }
 
@@ -662,44 +660,6 @@ namespace win_client.ViewModels
         /// </summary>
         private void goForward()
         {
-            // Merged 8/9/12
-            //if ([self checkCloudFolderExistsAtPath:[[CLSettings sharedSettings] cloudFolderPath]]
-            //    && self.mergeFolders == NO) {
-        
-            //    NSString *cloudFolderRoot = [[[CLSettings sharedSettings] cloudFolderPath] stringByDeletingLastPathComponent];
-            //    NSString *updatedTextFieldWithPath = [NSString stringWithFormat:[self.setupSelectorViewController.folderExitTextFiled stringValue], cloudFolderRoot];
-            //    [self.setupSelectorViewController.folderExitTextFiled setStringValue:updatedTextFieldWithPath];
-            //    [NSApp beginSheet:self.setupSelectorViewController.folderExistPanel modalForWindow:[self.view window] modalDelegate:self didEndSelector:nil contextInfo:nil];
-        
-            //    return; // if folder exists we will present a selection option to the user.  This will ask "Merge with existing Cloud folder?, "Select new Location", "Merge".
-            //}
-    
-            //// finish setup
-            //CLAppDelegate *delegate = [NSApp delegate];
-            //NSError *error = [delegate installCloudServices];
-
-            //if (error) {
-
-            //    NSAlert *alert = [NSAlert alertWithMessageText:[error localizedDescription] defaultButton:@"Try Again" alternateButton:@"Dismiss" otherButton:nil informativeTextWithFormat:@""];
-            //    [alert setIcon:[NSImage imageNamed:NSImageNameInfo]];            
-            //    [alert beginSheetModalForWindow:[self.view window] modalDelegate:self didEndSelector:@selector(alertDidEnd:returnCode:contextInfo:) contextInfo:nil];
-        
-            //} else {
-        
-            //    // setup successful. let's present go on to the tour.
-            //    self.tourViewController = [[CLTourViewController alloc] initWithNibName:@"CLTourViewController" bundle:nil];
-            //    [[[NSApp mainWindow] contentView] addSubview:self.tourViewController.view];
-        
-            //    PushAnimation *animation = [[PushAnimation alloc] initWithDuration:0.25f animationCurve:NSAnimationLinear];
-            //    [animation setNewDirection:RightDirection];
-            //    [animation setStartingView:self.view];
-            //    [animation setDestinationView:self.tourViewController.view];
-            //    [animation setAnimationBlockingMode:NSAnimationNonblocking];
-            //    [animation startAnimation];
-        
-            //}
-            //&&&&&
-
             // Get the creation time of the cloud folder if it exists
             DateTime cloudFolderCreationTime = DateTime.MinValue;
             bool cloudFolderExists = Directory.Exists(Settings.Instance.CloudFolderPath);

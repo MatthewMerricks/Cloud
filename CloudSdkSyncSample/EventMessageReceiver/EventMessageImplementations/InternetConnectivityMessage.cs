@@ -6,7 +6,7 @@ using Cloud.Static;
 
 namespace SampleLiveSync.EventMessageReceiver
 {
-    public sealed class InternetConnectivityMessage : EventMessage
+    public sealed class InternetConnectivityMessage : EventMessage<InternetConnectivityMessage>
     {
         #region EventMessage abstract overrides
         public override EventMessageImage Image
@@ -21,7 +21,7 @@ namespace SampleLiveSync.EventMessageReceiver
         {
             get
             {
-                return "todo: Network status is...";
+                return "Network status is: " + (_internetConnected ? "Connected" : "Disconnected");
             }
         }
         #endregion
@@ -52,8 +52,8 @@ namespace SampleLiveSync.EventMessageReceiver
             }
 
             base.CompleteFadeOut = (base.StartFadeOut = (base.FadeInCompletion = currentTime.Add(fadeInToAdd))
-                    .Add(UploadedMessage.DefaultOpaqueTime))
-                .Add(UploadedMessage.DefaultFadeOutTime);
+                    .Add(InternetConnectivityMessage.DefaultOpaqueTime))
+                .Add(InternetConnectivityMessage.DefaultFadeOutTime);
         }
     }
 }

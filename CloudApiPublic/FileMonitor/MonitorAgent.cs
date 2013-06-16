@@ -3157,7 +3157,9 @@ namespace Cloud.FileMonitor
                                                                 MessageEvents.FireNewEventMessage(
                                                                     Resources.ExceptionMonitorAgentGrabPreprocessedChangesCastInnerState,
                                                                     EventMessageLevel.Important,
-                                                                    new HaltAllOfCloudSDKErrorInfo());
+                                                                    new HaltAllOfCloudSDKErrorInfo(),
+                                                                    this._syncbox,
+                                                                    this._syncbox.CopiedSettings.DeviceId);
 
                                                                 throw new CLException(CLExceptionCode.General_Miscellaneous, Resources.ExceptionMonitorAgentGrabPreprocessedChangesCastInnerState);
                                                             }
@@ -3947,7 +3949,9 @@ namespace Cloud.FileMonitor
                                                     MessageEvents.FireNewEventMessage(
                                                         Resources.MonitorAgentUnableToCastThisActionAsAction,
                                                         EventMessageLevel.Important,
-                                                        new HaltAllOfCloudSDKErrorInfo());
+                                                        new HaltAllOfCloudSDKErrorInfo(),
+                                                        this._syncbox,
+                                                        this._syncbox.CopiedSettings.DeviceId);
                                                 }
                                                 else
                                                 {
@@ -4080,19 +4084,36 @@ namespace Cloud.FileMonitor
                         {
                             // Only process file/folder event if it does not exist or if its FileAttributes does not contain any unwanted attributes
                             // Also ensure if it is a file that the file is not a shortcut
+                            //&&&& Old code RKS
+                            //if ((!isFolder || changeType != WatcherChangeTypes.Changed) // 
+                            //    && (!exists// file/folder does not exist so no need to check attributes
+                            //        || ((FileAttributes)0 == // compare bitwise and of FileAttributes and all unwanted attributes to '0'
+                            //            ((isFolder // need to grab FileAttributes based on whether change is on a file or folder
+                            //            ? folder.Attributes // change is on folder, grab folder attributes
+                            //            : file.Attributes) // change is on file, grab file attributes
+                            //                & (FileAttributes.Hidden // ignore hidden files
+                            //                    | FileAttributes.Offline // ignore offline files (data is not available on them)
+                            //                    | FileAttributes.System // ignore system files
+                            //                    | FileAttributes.Temporary)) // ignore temporary files
+                            //            //RKSCHANGE:&& (isFolder ? true : !FileIsShortcut(file)))) // allow change if it is a folder or if it is a file that is not a shortcut
+                            //            )))
+                            //&&&& End Old code RKS
                             if ((!isFolder || changeType != WatcherChangeTypes.Changed) // 
                                 && (!exists// file/folder does not exist so no need to check attributes
                                     || ((FileAttributes)0 == // compare bitwise and of FileAttributes and all unwanted attributes to '0'
                                         ((isFolder // need to grab FileAttributes based on whether change is on a file or folder
                                         ? folder.Attributes // change is on folder, grab folder attributes
+                                            & (FileAttributes.Offline // ignore offline folders (data is not available on them)
+                                                | FileAttributes.System // ignore system folders
+                                                | FileAttributes.Temporary) // ignore temporary folders
                                         : file.Attributes) // change is on file, grab file attributes
                                             & (FileAttributes.Hidden // ignore hidden files
                                                 | FileAttributes.Offline // ignore offline files (data is not available on them)
                                                 | FileAttributes.System // ignore system files
                                                 | FileAttributes.Temporary)) // ignore temporary files
-                                        //RKSCHANGE:&& (isFolder ? true : !FileIsShortcut(file)))) // allow change if it is a folder or if it is a file that is not a shortcut
+                                //RKSCHANGE:&& (isFolder ? true : !FileIsShortcut(file)))) // allow change if it is a folder or if it is a file that is not a shortcut
                                         )))
-                            {
+                                {
                                 DateTime lastTime;
                                 DateTime creationTime;
                                 if (exists)
@@ -5768,7 +5789,9 @@ namespace Cloud.FileMonitor
                                                     ? string.Join(Environment.NewLine, ((AggregateException)currentError).Flatten().InnerExceptions.Select(innerError => innerError.Message).ToArray())
                                                     : currentError.Message)).ToArray()),
                                         EventMessageLevel.Important,
-                                        new HaltAllOfCloudSDKErrorInfo());
+                                        new HaltAllOfCloudSDKErrorInfo(),
+                                        this._syncbox,
+                                        this._syncbox.CopiedSettings.DeviceId);
                                 }
                             }
 
@@ -5811,7 +5834,9 @@ namespace Cloud.FileMonitor
                                     MessageEvents.FireNewEventMessage(
                                         noEventIdErrorMessage,
                                         EventMessageLevel.Important,
-                                        new HaltAllOfCloudSDKErrorInfo());
+                                        new HaltAllOfCloudSDKErrorInfo(),
+                                        this._syncbox,
+                                        this._syncbox.CopiedSettings.DeviceId);
                                 }
 
                                 ProcessingChanges.AddLast(nextMerge);

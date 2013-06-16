@@ -18,7 +18,7 @@ namespace SampleLiveSync.EventMessageReceiver
     /// <summary>
     /// View model for views to display changes from status changes, such as growls and sync status; split into partial classes for view-specific portions (i.e. Sync Status window)
     /// </summary>
-    public sealed partial class EventMessageReceiver : NotifiableObject<EventMessageReceiver>, IDisposable, IEventMessageReceiver
+    public sealed partial class EventMessageReceiver : NotifiableObject<EventMessageReceiver>, IEventMessageReceiver
     {
         // timer repeat delay for processing loop which recalculates timing for animations for fading growls in and out
         private const int MessageTimerDelayMilliseconds = 250;
@@ -37,7 +37,7 @@ namespace SampleLiveSync.EventMessageReceiver
         /// Retrieves the collection of growl messages for display;
         /// bind with one-time binding when used as ItemSource because reference to collection is readonly
         /// </summary>
-        internal ObservableCollection<EventMessage> GrowlMessages
+        internal ObservableCollection<IEventMessage> GrowlMessages
         {
             get
             {
@@ -45,7 +45,7 @@ namespace SampleLiveSync.EventMessageReceiver
             }
         }
         // Create the collection for storing growl messages for display
-        private readonly DelayChangeObservableCollection<EventMessage> _growlMessages = new DelayChangeObservableCollection<EventMessage>();
+        private readonly DelayChangeObservableCollection<IEventMessage> _growlMessages = new DelayChangeObservableCollection<IEventMessage>();
 
         /// <summary>
         /// Retrieves whether the growl messages should be visible (meaning the growl window should not be completely faded out) which should be bound to display visibility; notifies on property change
@@ -197,6 +197,8 @@ namespace SampleLiveSync.EventMessageReceiver
         private UploadedMessage uploaded = null;
         // define the message for internet connectiviy change to update the growl, defaulting to none
         private InternetConnectivityMessage connectivity = null;
+        // define the message for storage quota exceeded change to update the growl, defaulting to none
+        private StorageQuotaExceededMessage storageQuotaExceeded = null;
 
         // define the time at which the growl will finish fading into being completely opaque, defaulting to none
         private Nullable<DateTime> firstFadeInCompletion = null;
@@ -204,10 +206,6 @@ namespace SampleLiveSync.EventMessageReceiver
         private Nullable<DateTime> lastFadeOutStart = null;
         // define the time at which the growl will have completed faded out when it will no longer be visible, defaulting to none
         private Nullable<DateTime> lastFadeOutCompletion = null;
-
-        // Identifies this EventMessageReceiver in the MessageEvents filter
-        private readonly long SyncboxId;
-        private readonly string DeviceId;
 
         // Delegates
         private readonly GetHistoricBandwidthSettings _getHistoricBandwidthSettingsDelegate;
@@ -220,17 +218,12 @@ namespace SampleLiveSync.EventMessageReceiver
         private bool keepGrowlOpaque = false;
         #endregion
 
-        // define a bool for whether this message receiver has been disposed, defaulting to false
-        private bool isDisposed = false;
-
         #endregion
  
         /// <summary>
         /// Create a new EventMessageReceiver ViewModel.  Optionally use this ViewModel with your sync status controls.
         /// It exposes three ObservableCollections (ListFilesDownloading, ListFilesUploading and ListMessages).
         /// </summary>
-        /// <param name="SyncboxId">The ID of the related CLSyncbox.</param>
-        /// <param name="DeviceId">The ID of the related device.</param>
         /// <param name="receiver">(output) The created EventMessageReceiver, or null.</param>
         /// <param name="getHistoricBandwidthSettings">(optional) Your callback method to retrieve the historic bandwidth for upload and download from persistent storage.</param>
         /// <param name="setHistoricBandwidthSettings">(optional) Your callback method to persist the historic bandwidth for upload and download.</param>
@@ -239,8 +232,6 @@ namespace SampleLiveSync.EventMessageReceiver
         /// <param name="OverrideDefaultMaxStatusMessages">(optional) The maximum number of messages that will be maintained in ListMessages.</param>
         /// <returns>CLError: Any error that occurs, with exception information, or null.</returns>
         public static CLError AllocAndInit(
-            long SyncboxId,
-            string DeviceId,
             out EventMessageReceiver receiver,
             GetHistoricBandwidthSettings getHistoricBandwidthSettings = null,
             SetHistoricBandwidthSettings setHistoricBandwidthSettings = null,
@@ -250,8 +241,7 @@ namespace SampleLiveSync.EventMessageReceiver
         {
             try
             {
-                receiver = new EventMessageReceiver(SyncboxId,
-                    DeviceId,
+                receiver = new EventMessageReceiver(
                     getHistoricBandwidthSettings,
                     setHistoricBandwidthSettings,
                     OverrideImportanceFilterNonErrors,
@@ -266,28 +256,15 @@ namespace SampleLiveSync.EventMessageReceiver
             return null;
         }
         private EventMessageReceiver(
-            long SyncboxId,
-            string DeviceId,
             GetHistoricBandwidthSettings getHistoricBandwidthSettings,
             SetHistoricBandwidthSettings setHistoricBandwidthSettings,
             Nullable<EventMessageLevel> OverrideImportanceFilterNonErrors,
             Nullable<EventMessageLevel> OverrideImportanceFilterErrors,
             Nullable<int> OverrideDefaultMaxStatusMessages)
         {
-            CLError subscriptionError = MessageEvents.SubscribeMessageReceiver(SyncboxId,
-                DeviceId,
-                this);
-            if (subscriptionError != null)
-            {
-                throw new AggregateException("Error subscribing this receiver to MessageEvents", subscriptionError.Exceptions);
-            }
-
             // Save the parameters to private fields.
             _getHistoricBandwidthSettingsDelegate = getHistoricBandwidthSettings;
             _setHistoricBandwidthSettingsDelegate = setHistoricBandwidthSettings;
-
-            this.SyncboxId = SyncboxId;
-            this.DeviceId = DeviceId;
 
             // changes made upon construction for other partial class portions should be handled via a ConstructedHolder (see the next custom construction setter directly below)
 
@@ -329,8 +306,8 @@ namespace SampleLiveSync.EventMessageReceiver
         {
             if (Application.Current != null)
             {
-                Application.Current.Dispatcher.BeginInvoke((Action<EventMessage>)AddEventMessageToGrowl, // the method which adds a growl message locks for modification
-                    (EventMessage)(new ErrorMessage(message)));
+                Application.Current.Dispatcher.BeginInvoke((Action<EventMessage<ErrorMessage>>)AddEventMessageToGrowl, // the method which adds a growl message locks for modification
+                    (EventMessage<ErrorMessage>)(new ErrorMessage(message)));
             }
         }
 
@@ -339,8 +316,8 @@ namespace SampleLiveSync.EventMessageReceiver
         {
             if (Application.Current != null)
             {
-                Application.Current.Dispatcher.BeginInvoke((Action<EventMessage>)AddEventMessageToGrowl, // the method which adds a growl message locks for modification
-                    (EventMessage)(new InformationalMessage(message)));
+                Application.Current.Dispatcher.BeginInvoke((Action<EventMessage<InformationalMessage>>)AddEventMessageToGrowl, // the method which adds a growl message locks for modification
+                    (EventMessage<InformationalMessage>)(new InformationalMessage(message)));
             }
         }
 
@@ -371,8 +348,8 @@ namespace SampleLiveSync.EventMessageReceiver
                 {
                     if (Application.Current != null)
                     {
-                        Application.Current.Dispatcher.BeginInvoke((Action<EventMessage>)AddEventMessageToGrowl, // the method which adds a growl message locks for modification
-                            (EventMessage)downloading);
+                        Application.Current.Dispatcher.BeginInvoke((Action<EventMessage<DownloadingMessage>>)AddEventMessageToGrowl, // the method which adds a growl message locks for modification
+                            (EventMessage<DownloadingMessage>)downloading);
                     }
                 }
             }
@@ -409,8 +386,8 @@ namespace SampleLiveSync.EventMessageReceiver
                 {
                     if (Application.Current != null)
                     {
-                        Application.Current.Dispatcher.BeginInvoke((Action<EventMessage>)AddEventMessageToGrowl, // the method which adds a growl message locks for modification
-                            (EventMessage)downloaded);
+                        Application.Current.Dispatcher.BeginInvoke((Action<EventMessage<DownloadedMessage>>)AddEventMessageToGrowl, // the method which adds a growl message locks for modification
+                            (EventMessage<DownloadedMessage>)downloaded);
                     }
                 }
             }
@@ -446,8 +423,8 @@ namespace SampleLiveSync.EventMessageReceiver
                 {
                     if (Application.Current != null)
                     {
-                        Application.Current.Dispatcher.BeginInvoke((Action<EventMessage>)AddEventMessageToGrowl, // the method which adds a growl message locks for modification
-                            (EventMessage)uploading);
+                        Application.Current.Dispatcher.BeginInvoke((Action<EventMessage<UploadingMessage>>)AddEventMessageToGrowl, // the method which adds a growl message locks for modification
+                            (EventMessage<UploadingMessage>)uploading);
                     }
                 }
             }
@@ -484,8 +461,8 @@ namespace SampleLiveSync.EventMessageReceiver
                 {
                     if (Application.Current != null)
                     {
-                        Application.Current.Dispatcher.BeginInvoke((Action<EventMessage>)AddEventMessageToGrowl, // the method which adds a growl message locks for modification
-                            (EventMessage)uploaded);
+                        Application.Current.Dispatcher.BeginInvoke((Action<EventMessage<UploadedMessage>>)AddEventMessageToGrowl, // the method which adds a growl message locks for modification
+                            (EventMessage<UploadedMessage>)uploaded);
                     }
                 }
             }
@@ -521,8 +498,83 @@ namespace SampleLiveSync.EventMessageReceiver
                 {
                     if (Application.Current != null)
                     {
-                        Application.Current.Dispatcher.BeginInvoke((Action<EventMessage>)AddEventMessageToGrowl, // the method which adds a growl message locks for modification
-                            (EventMessage)connectivity);
+                        Application.Current.Dispatcher.BeginInvoke((Action<EventMessage<InternetConnectivityMessage>>)AddEventMessageToGrowl, // the method which adds a growl message locks for modification
+                            (EventMessage<InternetConnectivityMessage>)connectivity);
+                    }
+                }
+            }
+
+            // event was handled
+            e.MarkHandled();
+        }
+
+        void IEventMessageReceiver.DownloadCompleteChanged(IDownloadCompleteMessage e)
+        {
+            // Do nothing here.  This message is intended for the On Demand API.  It includes the CLFileItem that just completed downloading.  This sample app already receives an informational download complete message that will display.
+
+            // event was handled
+            e.MarkHandled();
+        }
+
+        void IEventMessageReceiver.UploadCompleteChanged(IUploadCompleteMessage e)
+        {
+            // Do nothing here.  This message is intended for the On Demand API.  It includes the CLFileItem that just completed uploading.  This sample app already receives an informational upload complete message that will display.
+
+            // event was handled
+            e.MarkHandled();
+        }
+
+        void IEventMessageReceiver.SyncboxDidStartLiveSyncChanged(ISyncboxDidStartLiveSyncMessage e)
+        {
+            // Do nothing here.  This message is intended for the On Demand API.  It includes the CLSyncbox that started live sync.  The sample app already includes messages that carry this meaning.
+
+            // event was handled
+            e.MarkHandled();
+        }
+
+        void IEventMessageReceiver.SyncboxDidStopLiveSyncChanged(ISyncboxDidStopLiveSyncMessage e)
+        {
+            // Do nothing here.  This message is intended for the On Demand API.  It includes the CLSyncbox that stopped live sync.  The sample app already includes messages that carry this meaning.
+
+            // event was handled
+            e.MarkHandled();
+        }
+
+        void IEventMessageReceiver.SyncboxLiveSyncFailedWithErrorChanged(ISyncboxLiveSyncFailedWithErrorMessage e)
+        {
+            // Do nothing here.  This message is intended for the On Demand API.  It includes the CLSyncbox that stopped live sync, and the CLError with the error information.  The sample app already includes messages that carry this meaning.
+
+            // event was handled
+            e.MarkHandled();
+        }
+
+        void IEventMessageReceiver.StorageQuotaExceededChanged(IStorageQuotaExceededMessage e)
+        {
+            // lock on the growl messages for modification
+            lock (_growlMessages)
+            {
+                // declare a bool for whether a new growl message needed to be created
+                bool newMessage;
+
+                // if there is no current message for the storage quota exceeded, then create the new message 
+                if (storageQuotaExceeded == null)
+                {
+                    storageQuotaExceeded = new StorageQuotaExceededMessage();
+                    newMessage = true;
+                }
+                // else if there was not already an existing message for storage quota exceeded, then update it
+                else
+                {
+                    newMessage = false;
+                }
+
+                // if a new message was created, then add the new message to the growl
+                if (newMessage)
+                {
+                    if (Application.Current != null)
+                    {
+                        Application.Current.Dispatcher.BeginInvoke((Action<EventMessage<StorageQuotaExceededMessage>>)AddEventMessageToGrowl, // the method which adds a growl message locks for modification
+                            (EventMessage<StorageQuotaExceededMessage>)storageQuotaExceeded);
                     }
                 }
             }
@@ -532,50 +584,7 @@ namespace SampleLiveSync.EventMessageReceiver
         }
         #endregion
 
-        #region IDisposable members
-        // Standard IDisposable implementation based on MSDN System.IDisposable
-        ~EventMessageReceiver()
-        {
-            Dispose(false);
-        }
-        // Standard IDisposable implementation based on MSDN System.IDisposable
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-        #endregion
-
         #region private methods
-        // Standard IDisposable implementation based on MSDN System.IDisposable
-        private void Dispose(bool disposing)
-        {
-            // lock on instance locker for changing EventMessageReceiver so it cannot be stopped/started simultaneously
-            lock (_locker)
-            {
-                try
-                {
-                    if (!isDisposed)
-                    {
-                        MessageEvents.UnsubscribeMessageReceiver(
-                            SyncboxId,
-                            DeviceId);
-                    }
-                }
-                catch
-                {
-                }
-
-                if (!isDisposed)
-                {
-                    // set delay completed so processing will not fire
-                    isDisposed = true;
-
-                    // Dispose local unmanaged resources last
-                }
-            }
-        }
-
         // handler for the command for when a growl was clicked, looks for another ICommand as the parameter to fire again
         private void ClickedGrowl(object state)
         {
@@ -615,7 +624,7 @@ namespace SampleLiveSync.EventMessageReceiver
                 DateTime closeTime = DateTime.UtcNow;
 
                 // loop through the growl messages
-                foreach (EventMessage currentGrowl in _growlMessages)
+                foreach (IEventMessage currentGrowl in _growlMessages)
                 {
                     // mark all the times for fading in and out for the current growl message to the close time
                     currentGrowl.CompleteFadeOut = currentGrowl.StartFadeOut = currentGrowl.FadeInCompletion = closeTime;
@@ -678,7 +687,7 @@ namespace SampleLiveSync.EventMessageReceiver
                     bool foundOpaqueOrFadeOut = false;
 
                     // loop through the growl messages
-                    foreach (EventMessage currentGrowl in _growlMessages)
+                    foreach (IEventMessage currentGrowl in _growlMessages)
                     {
                         // if the current time is before the time the current message would have caused the growl to finish fading in, then check if its fade in completion time is earliest to store
                         if (currentTime.CompareTo(currentGrowl.FadeInCompletion) < 0)
@@ -745,15 +754,6 @@ namespace SampleLiveSync.EventMessageReceiver
                 // loop indefinitely to check for the mouse leaving the growl FrameworkElement
                 while (true)
                 {
-                    // lock on the message receiver to check disposal which will stop processing
-                    lock (thisReceiver)
-                    {
-                        if (thisReceiver.isDisposed)
-                        {
-                            return;
-                        }
-                    }
-
                     // lock on whether the message receiver captured the mouse to check if it is no longer supposed to check which will stop processing
                     lock (thisReceiver.growlCapturedMouse)
                     {
@@ -858,7 +858,7 @@ namespace SampleLiveSync.EventMessageReceiver
                         TimeSpan latestCompleteFadeOut = TimeSpan.Zero;
 
                         // loop though the growl messages
-                        foreach (EventMessage currentGrowl in _growlMessages)
+                        foreach (IEventMessage currentGrowl in _growlMessages)
                         {
                             // declare a time span for how long it would take the current growl to finish fading in if it hasn't faded in already (which would 
                             TimeSpan timeLeftToFadeIn;
@@ -898,7 +898,7 @@ namespace SampleLiveSync.EventMessageReceiver
                         DateTime newCompleteFadeOut = currentTime.Add(latestCompleteFadeOut);
 
                         // loop through the growl messages
-                        foreach (EventMessage currentGrowl in _growlMessages)
+                        foreach (IEventMessage currentGrowl in _growlMessages)
                         {
                             // set the time when the current growl would finish fading in by the time it would starting fading out minus the time it would remain opaque
                             currentGrowl.FadeInCompletion = newStartFadeOut.Subtract(currentGrowl.StartFadeOut.Subtract(currentGrowl.FadeInCompletion));
@@ -927,7 +927,7 @@ namespace SampleLiveSync.EventMessageReceiver
         #endregion
 
         // adds a new message to display in the message collection for the growl
-        private void AddEventMessageToGrowl(EventMessage toAdd)
+        private void AddEventMessageToGrowl<T>(EventMessage<T> toAdd) where T : EventMessage<T>
         {
             if (Application.Current == null)
             {
@@ -942,15 +942,6 @@ namespace SampleLiveSync.EventMessageReceiver
             // else if this is the UI thread, then add the growl message
             else
             {
-                // check for disposal and return if disposed
-                lock (this)
-                {
-                    if (isDisposed)
-                    {
-                        return;
-                    }
-                }
-
                 bool needToStartTimer = false;
 
                 // lock on growl messages for modification
@@ -1025,10 +1016,10 @@ namespace SampleLiveSync.EventMessageReceiver
                 bool foundFadeIn = false;
 
                 // create a list for the messages which will store messages which have elapsed in display time (but will only be removed if the whole growl should disappear)
-                List<EventMessage> completedMessages = new List<EventMessage>();
+                List<IEventMessage> completedMessages = new List<IEventMessage>();
 
                 // loop through all growl messages
-                foreach (EventMessage currentGrowl in _growlMessages)
+                foreach (IEventMessage currentGrowl in _growlMessages)
                 {
                     // if the current time is earlier than when the current message would finish fading in, then possibly mark that a fade in was found and update the earliest time to fade in and the latest time to start fading out
                     if (DateTime.Compare(toCompare,
@@ -1212,8 +1203,8 @@ namespace SampleLiveSync.EventMessageReceiver
                     {
                         if (Application.Current != null)
                         {
-                            Application.Current.Dispatcher.BeginInvoke((Action<IEnumerable<EventMessage>>)RemoveEventMessagesFromGrowl, // the method which removes growl messages locks for modification
-                                (IEnumerable<EventMessage>)completedMessages);
+                            Application.Current.Dispatcher.BeginInvoke((Action<IEnumerable<IEventMessage>>)RemoveEventMessagesFromGrowl, // the method which removes growl messages locks for modification
+                                (IEnumerable<IEventMessage>)completedMessages);
                         }
                     }
                 }
@@ -1224,7 +1215,7 @@ namespace SampleLiveSync.EventMessageReceiver
         }
 
         // removes messages from display in the message collection for the growl
-        private void RemoveEventMessagesFromGrowl(IEnumerable<EventMessage> toRemove)
+        private void RemoveEventMessagesFromGrowl(IEnumerable<IEventMessage> toRemove)
         {
             if (Application.Current == null)
             {
@@ -1239,17 +1230,8 @@ namespace SampleLiveSync.EventMessageReceiver
             // else if this is the UI thread, then remove the growl messages
             else
             {
-                // check for disposal and return if disposed
-                lock (this)
-                {
-                    if (isDisposed)
-                    {
-                        return;
-                    }
-                }
-
                 // declare array for copying the input enumerable
-                EventMessage[] toRemoveArray;
+                IEventMessage[] toRemoveArray;
                 // if the input enumerable exists and, upon copying it to an array, has at least one message, then remove the messages
                 if (toRemove != null
                     && (toRemoveArray = toRemove.ToArray()).Length > 0)
@@ -1320,15 +1302,6 @@ namespace SampleLiveSync.EventMessageReceiver
                 // loop until a message is not found which should still continue to be displayed
                 while (foundMessage)
                 {
-                    // check if the receiver has been disposed to stop processing (return)
-                    lock (currentReceiver)
-                    {
-                        if (currentReceiver.isDisposed)
-                        {
-                            return;
-                        }
-                    }
-
                     // declare whether the mouse is hovering over the growl since if so it will need to remain opaque regardless of messages
                     bool skipCalculate;
                     // lock on the mouse capturing to see if the mouse is hovering over the growl (meaning it is kept opaque) and set whether to skip calculation by the mouse hovering over

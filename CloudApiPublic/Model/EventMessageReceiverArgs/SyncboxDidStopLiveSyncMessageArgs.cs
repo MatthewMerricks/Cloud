@@ -1,10 +1,11 @@
 ﻿//
-// SetCountMessage.cs
+// SyncboxDidStopLiveSyncMessageArgs.cs
 // Cloud Windows
 //
-// Created By DavidBruck.
+// Created By BobS.
 // Copyright (c) Cloud.com. All rights reserved.
 
+using Cloud.CLSync;
 using Cloud.Interfaces;
 using Cloud.Model.EventMessages;
 using Cloud.Static;
@@ -15,7 +16,7 @@ using System.Text;
 
 namespace Cloud.Model
 {
-    internal sealed class SetCountMessage : ISetCountMessage
+    internal sealed class SyncboxDidStopLiveSyncMessageArgs : ISyncboxDidStopLiveSyncMessage
     {
         public EventMessageArgs MessageArgs
         {
@@ -25,7 +26,6 @@ namespace Cloud.Model
             }
         }
         private readonly EventMessageArgs _messageArgs;
-        private readonly bool _upload;
 
         #region IHandleableArgs members
         bool IHandleableArgs.Handled
@@ -72,20 +72,17 @@ namespace Cloud.Model
         }
         #endregion
 
-        #region ISetCountMessage members
-        uint ISetCountMessage.NewCount
+        #region ISyncboxDidStopLiveSyncMessage members
+        CLSyncbox ISyncboxDidStopLiveSyncMessage.Syncbox
         {
             get
             {
-                return
-                    (_upload
-                        ? ((UploadingCountMessage)_messageArgs.Message).Count
-                        : ((DownloadingCountMessage)_messageArgs.Message).Count);
+                return ((SyncboxDidStopLiveSyncMessage)_messageArgs.Message).Syncbox;
             }
         }
         #endregion
 
-        internal SetCountMessage(EventMessageArgs MessageArgs)
+        internal SyncboxDidStopLiveSyncMessageArgs(EventMessageArgs MessageArgs)
         {
             if (MessageArgs == null)
             {
@@ -95,14 +92,12 @@ namespace Cloud.Model
             {
                 throw new NullReferenceException("MessageArgs Message cannot be null");
             }
-            if (MessageArgs.Message.Type != EventMessageType.UploadingCountChanged
-                && MessageArgs.Message.Type != EventMessageType.DownloadingCountChanged)
+            if (MessageArgs.Message.Type != EventMessageType.SyncboxDidStopLiveSyncChanged)
             {
-                throw new ArgumentException("MessageArgs Message Type must be UploadingCountChanged or DownloadingCountChanged, instead it is " + MessageArgs.Message.Type.ToString());
+                throw new ArgumentException("MessageArgs Message Type must be SyncboxDidStopLiveSyncChanged, instead it is " + MessageArgs.Message.Type.ToString());
             }
 
             this._messageArgs = MessageArgs;
-            this._upload = MessageArgs.Message.Type == EventMessageType.UploadingCountChanged;
         }
     }
 }

@@ -8,9 +8,21 @@ using System.Text;
 namespace SampleLiveSync.EventMessageReceiver
 {
     /// <summary>
+    /// Underlying interface for EventMessage (of T)
+    /// </summary>
+    public interface IEventMessage
+    {
+        EventMessageImage Image { get; }
+        string Message { get; }
+        bool ShouldRemove { get; }
+        DateTime FadeInCompletion { get; set; }
+        DateTime StartFadeOut { get; set; }
+        DateTime CompleteFadeOut { get; set; }
+    }
+    /// <summary>
     /// Base class for messages which can be displayed in a growl.
     /// </summary>
-    public abstract class EventMessage : NotifiableObject<EventMessage>
+    public abstract class EventMessage<T> : NotifiableObject<T>, IEventMessage where T : EventMessage<T>
     {
         #region constants
         protected static readonly TimeSpan DefaultFadeInTime = TimeSpan.FromSeconds(1);
