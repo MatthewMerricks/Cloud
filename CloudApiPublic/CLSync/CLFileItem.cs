@@ -192,19 +192,6 @@ namespace Cloud.CLSync
 
         #endregion  // end Public Properties
 
-        #region Internal Readonly Properties
-
-        internal string StorageKey
-        {
-            get
-            {
-                return _storageKey;
-            }
-        }
-        private readonly string _storageKey;
-
-        #endregion
-
         #region Constructors
 
         //// iOS is not allowing public construction of the CLFileItem, it can only be produced internally by create operations or by queries
@@ -287,7 +274,6 @@ namespace Cloud.CLSync
             this._isDeleted = isDeleted;
             this._isPending = isPending;
             this._syncbox = syncbox;
-            this._storageKey = fileChange.Metadata.StorageKey;
 
             ////// in public SDK documents, but for now it's always zero, so don't expose it
             ////this._childrenCount = 0;
@@ -369,7 +355,6 @@ namespace Cloud.CLSync
             this._isDeleted = response.IsDeleted ?? false;
             this._isPending = !(response.IsNotPending ?? true);
             this._syncbox = syncbox;
-            this._storageKey = response.StorageKey;
             //// in public SDK documents, but for now it's always zero, so don't expose it
             //this._childrenCount = 0;
 
