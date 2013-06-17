@@ -534,16 +534,11 @@ namespace Cloud.REST
                 Helpers.ProcessHttp<object>(
 
                      // JSON contract to serialize
-                    (string.IsNullOrEmpty(changeToDownload.Metadata.StorageKey)
-                        ? new Download()
-                        {
-                            Uid = serverUid,
-                            Revision = revision
-                        }
-                        : new Download()
-                        {
-                            StorageKey = changeToDownload.Metadata.StorageKey
-                        }),
+                     new Download()
+                     {
+                         Uid = serverUid,
+                         Revision = revision
+                     },
                     CLDefinitions.CLUploadDownloadServerURL, // server for download
                     serverMethodPath, // dynamic method path to incorporate query string parameters
                     Helpers.requestMethod.post, // download is a post
@@ -3528,7 +3523,7 @@ namespace Cloud.REST
 
                                     case CLDefinitions.CLEventTypeUpload:
                                     case CLDefinitions.CLEventTypeUploading:
-                                        addChanges[responseIdx].Key.Metadata.StorageKey = currentAddResponse.Metadata.StorageKey;
+                                        addChanges[responseIdx].Key.Metadata.StorageKey = currentAddResponse.Metadata.Revision;
 
                                         // This is a little strange.  If the upload completes successfully, we will drive the item completion callback with a CLFileItem.
                                         // The CLFileItem is constructed below out of the currentAddResponse we just received from the server.  However, at this point,
@@ -8185,7 +8180,7 @@ namespace Cloud.REST
         /// <param name="asyncCallback">Callback method to fire upon progress changes in upload, make sure it processes quickly if the IAsyncResult IsCompleted is false</param>
         /// <param name="asyncCallbackUserState">User state to pass when firing async callback</param>
         /// <param name="uploadStream">Stream to upload, if it is a FileStream then make sure the file is locked to prevent simultaneous writes</param>
-        /// <param name="changeToUpload">File upload change, requires Metadata.HashableProperties.Size, NewPath, Metadata.StorageKey, and MD5 hash to be set</param>
+        /// <param name="changeToUpload">File upload change, requires Metadata.HashableProperties.Size, NewPath, and MD5 hash to be set</param>
         /// <param name="uid">The server UID of the file being uploaded.</param>
         /// <param name="revision">The revision of the file being uploaded.</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception, does not restrict time for the actual file upload</param>
@@ -8408,7 +8403,7 @@ namespace Cloud.REST
         /// Uploads a file from a provided stream and file upload change
         /// </summary>
         /// <param name="streamContext">Stream to upload, if it is a FileStream then make sure the file is locked to prevent simultaneous writes</param>
-        /// <param name="changeToUpload">File upload change, requires Metadata.HashableProperties.Size, NewPath, Metadata.StorageKey, and MD5 hash to be set</param>
+        /// <param name="changeToUpload">File upload change, requires Metadata.HashableProperties.Size, NewPath, and MD5 hash to be set</param>
         /// <param name="uid">The server UID of the file being uploaded.</param>
         /// <param name="revision">The revision of the file being uploaded.</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception, does not restrict time for the actual file upload</param>
