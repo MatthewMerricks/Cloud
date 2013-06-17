@@ -23,7 +23,6 @@ using Cloud.Interfaces;
 using Cloud.JsonContracts;
 using Cloud.REST;
 using Cloud.Model.EventMessages.ErrorInfo;
-using Cloud.CLSync;
 
 namespace Cloud.Sync
 {

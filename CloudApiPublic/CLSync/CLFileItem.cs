@@ -5,6 +5,7 @@
 // Created By BobS.
 // Copyright (c) Cloud.com. All rights reserved.
 
+using Cloud.Callbacks;
 using Cloud.Interfaces;
 using Cloud.Model;
 using Cloud.REST;
@@ -14,7 +15,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 
-namespace Cloud.CLSync
+namespace Cloud
 {
     /// <summary>
     /// Represents a Cloud file/folder item."/>
@@ -42,6 +43,9 @@ namespace Cloud.CLSync
 
         #region Public Readonly Properties
 
+        /// <summary>
+        /// The name of this item.  For a folder, it is the last token in the path.  For a file, it is the file name plus extension.
+        /// </summary>
         public string Name
         {
             get
@@ -51,6 +55,9 @@ namespace Cloud.CLSync
         }
         private readonly string _name;
 
+        /// <summary>
+        /// The relative path of this item in the syncbox.
+        /// </summary>
         public string RelativePath
         {
             get
@@ -72,6 +79,9 @@ namespace Cloud.CLSync
         }
         private readonly string _fullPath;
 
+        /// <summary>
+        /// The server-assigned revision of this file item.
+        /// </summary>
         public string Revision
         {
             get
@@ -81,6 +91,9 @@ namespace Cloud.CLSync
         }
         private readonly string _revision;
 
+        /// <summary>
+        /// The MD5 hash of this file item.
+        /// </summary>
         public string Hash
         {
             get
@@ -90,6 +103,9 @@ namespace Cloud.CLSync
         }
         private readonly string _hash;
 
+        /// <summary>
+        /// The size of this file item.
+        /// </summary>
         public Nullable<long> Size
         {
             get
@@ -99,6 +115,9 @@ namespace Cloud.CLSync
         }
         private readonly Nullable<long> _size;
 
+        /// <summary>
+        /// The Mime type associated with this file item.
+        /// </summary>
         public string MimeType
         {
             get
@@ -108,6 +127,9 @@ namespace Cloud.CLSync
         }
         private readonly string _mimeType;
 
+        /// <summary>
+        /// The date and time that this item was created.
+        /// </summary>
         public DateTime CreatedDate
         {
             get
@@ -117,6 +139,9 @@ namespace Cloud.CLSync
         }
         private readonly DateTime _createdDate;
 
+        /// <summary>
+        /// The date and time that this item was last modified.
+        /// </summary>
         public DateTime ModifiedDate
         {
             get
@@ -126,6 +151,9 @@ namespace Cloud.CLSync
         }
         private readonly DateTime _modifiedDate;
 
+        /// <summary>
+        /// The server-assigned unique identifier for this item.
+        /// </summary>
         public string ItemUid
         {
             get
@@ -135,6 +163,9 @@ namespace Cloud.CLSync
         }
         private readonly string _uid;
 
+        /// <summary>
+        /// The server-assigned unique identifier of the parent of this item.
+        /// </summary>
         public string ParentUid
         {
             get
@@ -144,6 +175,9 @@ namespace Cloud.CLSync
         }
         private readonly string _parentUid;
 
+        /// <summary>
+        /// True: This item is a folder.  False: This item is a file.
+        /// </summary>
         public bool IsFolder
         {
             get
@@ -153,6 +187,9 @@ namespace Cloud.CLSync
         }
         private readonly bool _isFolder;
 
+        /// <summary>
+        /// This item has been deleted in the syncbox.
+        /// </summary>
         public bool IsDeleted
         {
             get
@@ -162,6 +199,9 @@ namespace Cloud.CLSync
         }
         private readonly bool _isDeleted;
 
+        /// <summary>
+        /// True: The metadata for this item has been created in the syncbox, but no device has yet completed an upload of the file item.
+        /// </summary>
         public bool IsPending
         {
             get
@@ -171,6 +211,9 @@ namespace Cloud.CLSync
         }
         private readonly bool _isPending;
 
+        /// <summary>
+        /// The associated syncbox.
+        /// </summary>
         public CLSyncbox Syncbox
         {
             get
@@ -283,7 +326,7 @@ namespace Cloud.CLSync
         }
 
         /// <summary>
-        /// Use this if the response does not have a headerAction or action.
+        /// Use this constructor if the response does not have a headerAction or action.
         /// </summary>
         /// <param name="response"></param>
         /// <param name="syncbox"></param>
@@ -291,6 +334,9 @@ namespace Cloud.CLSync
         {
         }
 
+        /// <summary>
+        /// Constructor from a JsonContracts.SyncboxMetadataResponse.
+        /// </summary>
         /// <param name="headerAction">[FileChangeResponse].Header.Action, used as primary fallback for setting IsFolder</param>
         /// <param name="action">[FileChangeResponse].Action, used as secondary fallback for setting IsFolder</param>
         internal CLFileItem(JsonContracts.SyncboxMetadataResponse response, string headerAction, string action, CLSyncbox syncbox)
@@ -377,8 +423,8 @@ namespace Cloud.CLSync
         /// <summary>
         /// Asynchronously starts downloading a file representing this CLFileItem object from the cloud.
         /// </summary>
-        /// <param name="asyncCallback">Callback method to fire when the async operation completes.  Can be null.</param>
-        /// <param name="asyncCallbackUserState">User state to pass to the async callback when it is fired.  Can be null.</param>
+        /// <param name="asyncCallback">Callback method to fire when the async operation completes.  May be null.</param>
+        /// <param name="asyncCallbackUserState">User state to pass to the async callback when it is fired.  May be null.</param>
         /// <param name="transferStatusCallback">The callback to fire with tranfer status updates.  May be null.</param>
         /// <param name="transferStatusCallbackUserState">The user state to pass to the transfer status callback above.  May be null.</param>
         /// <param name="cancellationSource">A cancellation token source object that can be used to cancel the download operation.  May be null</param>
@@ -578,8 +624,8 @@ namespace Cloud.CLSync
         /// <summary>
         /// Asynchronously starts downloading an image for the syncbox file represented by this CLFileItem object, selecting the size of the image to load.
         /// </summary>
-        /// <param name="asyncCallback">Callback method to fire when the async operation completes.  Can be null.</param>
-        /// <param name="asyncCallbackUserState">User state to pass to the async callback when it is fired.  Can be null.</param>
+        /// <param name="asyncCallback">Callback method to fire when the async operation completes.  May be null.</param>
+        /// <param name="asyncCallbackUserState">User state to pass to the async callback when it is fired.  May be null.</param>
         /// <param name="imageSize">The size of the image to load.</param>
         /// <param name="transferStatusCallback">The callback to fire with tranfer status updates.  May be null.</param>
         /// <param name="transferStatusCallbackUserState">The user state to pass to the transfer status callback above.  May be null.</param>

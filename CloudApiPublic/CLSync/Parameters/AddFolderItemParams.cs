@@ -12,7 +12,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace Cloud.CLSync.CLSyncboxParameters
+namespace Cloud.Parameters
 {
     /// <summary>
     /// Contains the name of of new folder, and the parent folder item that will contain the new folder.

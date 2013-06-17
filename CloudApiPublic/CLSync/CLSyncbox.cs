@@ -5,8 +5,6 @@
 // Created By DavidBruck.
 // Copyright (c) Cloud.com. All rights reserved.
 
-using Cloud.CLSync;
-using Cloud.CLSync.CLSyncboxParameters;
 using Cloud.Interfaces;
 using Cloud.Model;
 using Cloud.Model.EventMessages.ErrorInfo;
@@ -21,6 +19,8 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.ComponentModel;
+using Cloud.Parameters;
+using Cloud.Callbacks;
 
 namespace Cloud
 {

@@ -5,7 +5,6 @@
 // Created By Bobs.
 // Copyright (c) Cloud.com. All rights reserved.
 
-using Cloud.CLSync;
 using Cloud.Static;
 using System;
 using System.Collections.Generic;

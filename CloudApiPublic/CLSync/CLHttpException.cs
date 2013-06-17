@@ -12,7 +12,7 @@ using System.Linq;
 using System.Net;
 using System.Text;
 
-namespace Cloud.Model
+namespace Cloud
 {
     /// <summary>
     /// Derived CLException class to contain more specific information relating to Http errors, if provided

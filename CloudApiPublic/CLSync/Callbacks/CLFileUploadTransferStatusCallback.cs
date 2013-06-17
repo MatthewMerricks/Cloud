@@ -10,7 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace Cloud.CLSync
+namespace Cloud.Callbacks
 {
     /// <summary>
     /// Status update callback for upload of a file CLFileItem

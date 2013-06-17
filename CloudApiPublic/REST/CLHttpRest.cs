@@ -22,9 +22,10 @@ using System.Security.Cryptography;
 using Cloud.Support;
 using System.Linq.Expressions;
 using Cloud.Model.EventMessages.ErrorInfo;
-using Cloud.CLSync;
-using Cloud.CLSync.CLSyncboxParameters;
+using Cloud.Parameters;
 using System.Threading.Tasks;
+using Cloud.Parameters;
+using Cloud.Callbacks;
 
 namespace Cloud.REST
 {
@@ -574,7 +575,7 @@ namespace Cloud.REST
             AsyncCallback asyncCallback,
             object asyncCallbackUserState,
             CLFileItem fileItem,
-            Cloud.CLSync.CLFileItem.CLFileItemImageSize imageSize,
+            Cloud.CLFileItem.CLFileItemImageSize imageSize,
             CLFileDownloadTransferStatusCallback transferStatusCallback, 
             object transferStatusCallbackUserState,
             CancellationTokenSource cancellationSource)
@@ -653,7 +654,7 @@ namespace Cloud.REST
         /// <returns>Returns any error that occurred during communication, if any</returns>
         internal CLError DownloadImageOfSize(
             CLFileItem fileItem,
-            Cloud.CLSync.CLFileItem.CLFileItemImageSize imageSize,
+            Cloud.CLFileItem.CLFileItemImageSize imageSize,
             out Stream imageStream, 
             CLFileDownloadTransferStatusCallback transferStatusCallback, 
             object transferStatusCallbackUserState,

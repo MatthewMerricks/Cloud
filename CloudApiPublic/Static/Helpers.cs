@@ -39,7 +39,7 @@ namespace Cloud.Static
 {
     extern alias SimpleJsonBase;
     using System.Security.AccessControl;
-    using Cloud.CLSync;
+    using Cloud.Callbacks;
 
     /// <summary>
     /// Class containing commonly usable static helper methods

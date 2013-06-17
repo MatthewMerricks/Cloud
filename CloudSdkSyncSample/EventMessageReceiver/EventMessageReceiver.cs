@@ -12,6 +12,7 @@ using System.Windows.Media;
 using Cloud.Model;
 using Cloud.Support;
 using Cloud.Interfaces;
+using Cloud;
 
 namespace SampleLiveSync.EventMessageReceiver
 {

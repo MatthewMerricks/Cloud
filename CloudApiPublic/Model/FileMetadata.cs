@@ -10,7 +10,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Cloud.Static;
-using Cloud.CLSync;
 
 namespace Cloud.Model
 {

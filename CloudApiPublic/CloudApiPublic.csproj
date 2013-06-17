@@ -127,15 +127,15 @@
     <Compile Include="BadgeNET\IconOverlay.cs" />
     <Compile Include="CLSync\CLCredentials.cs" />
     <Compile Include="CLSync\CLCredentialsSettings.cs" />
-    <Compile Include="CLSync\CLSyncboxCallbacks\CLFileDownloadTransferStatusCallback.cs" />
-    <Compile Include="CLSync\CLSyncboxCallbacks\CLFileUploadTransferStatusCallback.cs" />
-    <Compile Include="CLSync\CLSyncboxCallbacks\CLFileItemCompletionCallback.cs" />
+    <Compile Include="CLSync\Callbacks\CLFileDownloadTransferStatusCallback.cs" />
+    <Compile Include="CLSync\Callbacks\CLFileUploadTransferStatusCallback.cs" />
+    <Compile Include="CLSync\Callbacks\CLFileItemCompletionCallback.cs" />
     <Compile Include="CLSync\CLSyncbox.cs" />
-    <Compile Include="CLSync\CLSyncboxParameters\AddFolderItemParams.cs" />
-    <Compile Include="CLSync\CLSyncboxParameters\AddFileItemParams.cs" />
-    <Compile Include="CLSync\CLSyncboxParameters\RenameItemParams.cs" />
-    <Compile Include="CLSync\CLSyncboxParameters\MoveItemParams.cs" />
-    <Compile Include="CLSync\CLSyncboxParameters\RenamePathParams.cs" />
+    <Compile Include="CLSync\Parameters\AddFolderItemParams.cs" />
+    <Compile Include="CLSync\Parameters\AddFileItemParams.cs" />
+    <Compile Include="CLSync\Parameters\RenameItemParams.cs" />
+    <Compile Include="CLSync\Parameters\MoveItemParams.cs" />
+    <Compile Include="CLSync\Parameters\RenamePathParams.cs" />
     <Compile Include="CLSync\CLSyncCurrentStatus.cs" />
     <Compile Include="CLSync\CLSyncTransferringFile.cs" />
     <Compile Include="CompilerServices.cs" />
@@ -222,10 +222,10 @@
     <Compile Include="JsonContracts\Syncbox.cs" />
     <Compile Include="JsonContracts\UsedBytes.cs" />
     <Compile Include="JsonContracts\SyncboxGetAllVideoItemsResponse.cs" />
-    <Compile Include="Model\CLStoragePlan.cs" />
+    <Compile Include="CLSync\CLStoragePlan.cs" />
     <Compile Include="CLSync\CLFileItem.cs" />
-    <Compile Include="Model\CLException.cs" />
-    <Compile Include="Model\CLHttpException.cs" />
+    <Compile Include="CLSync\CLException.cs" />
+    <Compile Include="CLSync\CLHttpException.cs" />
     <Compile Include="Model\DelegateAndDataHolder.cs" />
     <Compile Include="Model\EventMessageReceiverArgs\BaseMessageArgs.cs" />
     <Compile Include="Model\EventMessageReceiverArgs\SyncboxLiveSyncFailedWithErrorMessageArgs.cs" />
@@ -402,7 +402,7 @@
       <DependentUpon>Log.xsd</DependentUpon>
     </Compile>
     <Compile Include="Static\TraceType.cs" />
-    <Compile Include="Model\CLError.cs" />
+    <Compile Include="CLSync\CLError.cs" />
     <Compile Include="Static\CLDefinitions.cs" />
     <Compile Include="Support\CLTrace.cs" />
     <Compile Include="Support\DelayProcessable.cs" />

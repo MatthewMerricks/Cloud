@@ -5,7 +5,6 @@
 // Created By DavidBruck.
 // Copyright (c) Cloud.com. All rights reserved.
 
-using Cloud.CLSync;
 using Cloud.Model;
 using Cloud.Static;
 using System;

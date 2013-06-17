@@ -5,7 +5,6 @@
 // Created By BobS.
 // Copyright (c) Cloud.com. All rights reserved.
 
-using Cloud.CLSync;
 using Cloud.Interfaces;
 using Cloud.Model.EventMessages;
 using Cloud.Static;

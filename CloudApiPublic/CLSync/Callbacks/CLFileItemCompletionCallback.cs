@@ -11,7 +11,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace Cloud.CLSync
+namespace Cloud.Callbacks
 {
     /// <summary>
     /// Completion routine for an individual CLFileItem operation (as a member of a collection). Either completedItem will be null or error will be null.
