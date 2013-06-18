@@ -3715,6 +3715,564 @@ namespace Cloud.REST
         }
         #endregion  // end AddFiles (Adds files in the syncbox.)
 
+        #region ModifyFiles (Modify files in the syncbox.)
+        /// <summary>
+        /// Asynchronously starts modifying files in the syncbox.
+        /// </summary>
+        /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing the async callback above.</param>
+        /// <param name="reservedForActiveSync">true: Live sync is active.  User calls are not allowed.</param>
+        /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
+        /// <param name="itemCompletionCallbackUserState">User state to be passed whenever the item completion callback above is fired.</param>
+        /// <param name="transferStatusCallback">Callback method to fire when transfer status is updated for each active item.  Can be null.</param>
+        /// <param name="transferStatusCallbackUserState">User state to be passed whenever the transfer status callback above is fired.  Can be null.</param>
+        /// <param name="cancellationSource">The cancellation token which can be used to cancel the file upload operations.  Can be null.</param>
+        /// <param name="filesToModify">(params) An array of CLFileItems each file to modify.</param>
+        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        internal IAsyncResult BeginModifyFiles(
+            AsyncCallback asyncCallback,
+            object asyncCallbackUserState,
+            bool reservedForActiveSync,
+            CLFileItemCompletionCallback itemCompletionCallback,
+            object itemCompletionCallbackUserState,
+            CLFileUploadTransferStatusCallback transferStatusCallback,
+            object transferStatusCallbackUserState,
+            CancellationTokenSource cancellationSource,
+            params CLFileItem[] filesToModify)
+        {
+            var asyncThread = DelegateAndDataHolderBase.Create(
+                // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
+                new
+                {
+                    // create the asynchronous result to return
+                    toReturn = new GenericAsyncResult<SyncboxModifyFilesResult>(
+                        asyncCallback,
+                        asyncCallbackUserState),
+                    reservedForActiveSync = reservedForActiveSync,
+                    itemCompletionCallback = itemCompletionCallback,
+                    itemCompletionCallbackUserState = itemCompletionCallbackUserState,
+                    transferStatusCallback = transferStatusCallback,
+                    transferStatusCallbackUserState = transferStatusCallbackUserState,
+                    cancellationSource = cancellationSource,
+                    filesToModify = filesToModify
+                },
+                (Data, errorToAccumulate) =>
+                {
+                    // The ThreadProc.
+                    // try/catch to process with the input parameters, on catch set the exception in the asyncronous result
+                    try
+                    {
+                        // alloc and init the syncbox with the passed parameters, storing any error that occurs
+                        CLError overallError = ModifyFiles(
+                            Data.reservedForActiveSync,
+                            Data.itemCompletionCallback,
+                            Data.itemCompletionCallbackUserState,
+                            Data.transferStatusCallback,
+                            Data.transferStatusCallbackUserState,
+                            Data.cancellationSource,
+                            Data.filesToModify);
+
+                        Data.toReturn.Complete(
+                            new SyncboxModifyFilesResult(overallError), // any overall error that may have occurred during processing
+                            sCompleted: false); // processing did not complete synchronously
+                    }
+                    catch (Exception ex)
+                    {
+                        Data.toReturn.HandleException(
+                            ex, // the exception which was not handled correctly by the CLError wrapping
+                            sCompleted: false); // processing did not complete synchronously
+                    }
+                },
+                null);
+
+            // create the thread from a void (object) parameterized start which wraps the synchronous method call
+            (new Thread(new ThreadStart(asyncThread.VoidProcess))).Start(); // start the asynchronous processing thread which is attached to its data
+
+            // return the asynchronous result
+            return asyncThread.TypedData.toReturn;
+        }
+
+        /// <summary>
+        /// Finishes modifying files in the syncbox, if it has not already finished via its asynchronous result, and outputs the result,
+        /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
+        /// </summary>
+        /// <param name="asyncResult">The asynchronous result provided upon starting the request</param>
+        /// <param name="result">(output) The result from the request</param>
+        /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
+        internal CLError EndModifyFiles(IAsyncResult asyncResult, out SyncboxModifyFilesResult result)
+        {
+            return Helpers.EndAsyncOperation<SyncboxModifyFilesResult>(asyncResult, out result);
+        }
+
+        /// <summary>
+        /// Modify files in the syncbox.  Uploads the files to the Cloud.
+        /// </summary>
+        /// <param name="reservedForActiveSync">true: Live sync is active.  User calls are not allowed.</param>
+        /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
+        /// <param name="itemCompletionCallbackUserState">User state to be passed whenever the item completion callback above is fired.</param>
+        /// <param name="transferStatusCallback">Callback method to fire when transfer status is updated for each active item.  Can be null.</param>
+        /// <param name="transferStatusCallbackUserState">User state to be passed whenever the transfer status callback above is fired.  Can be null.</param>
+        /// <param name="cancellationSource">The cancellation token which can be used to cancel the file upload operations.  Can be null.</param>
+        /// <param name="filesToModify">(params) An array of information for each file to add (full path of the file, parent folder in the syncbox and the name of the file in the syncbox).</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        internal CLError ModifyFiles(
+            bool reservedForActiveSync,
+            CLFileItemCompletionCallback itemCompletionCallback,
+            object itemCompletionCallbackUserState,
+            CLFileUploadTransferStatusCallback transferStatusCallback,
+            object transferStatusCallbackUserState,
+            CancellationTokenSource cancellationSource,
+            params CLFileItem[] filesToModify)
+        {
+            // try/catch to process the request,  On catch return the error
+            try
+            {
+                // This method modifies the syncbox.  It is incompatible with live sync.
+                if (reservedForActiveSync)
+                {
+                    throw new CLInvalidOperationException(CLExceptionCode.OnDemand_LiveSyncIsActive, Resources.CLHttpRestCurrentSyncboxCannotBeModifiedWhileSyncing);
+                }
+                IncrementModifyingSyncboxViaPublicAPICalls();
+
+                // check input parameters.{
+                if (filesToModify == null)
+                {
+                    throw new CLArgumentNullException(CLExceptionCode.OnDemand_MissingParameters, Resources.ExceptionOnDemandFilesToModifyMustNotBeNull);
+                }
+                if (filesToModify.Length < 1)
+                {
+                    throw new CLArgumentException(CLExceptionCode.Http_BadRequest, Resources.ExceptionOnDemandFilesToModifyLengthMustBeGtZero);
+                }
+                if (!(_syncbox.CopiedSettings.HttpTimeoutMilliseconds > 0))
+                {
+                    throw new CLArgumentException(CLExceptionCode.OnDemand_TimeoutMilliseconds, Resources.CLMSTimeoutMustBeGreaterThanZero);
+                }
+
+                StreamOrStreamContextHolder[] uploadStreams = new StreamOrStreamContextHolder[filesToModify.Length];
+
+                try
+                {
+                    // The modify changes will hold the FileChange, the ServerUid and the index in filesToModify for each file that will be communicated.
+                    List<Tuple<FileChange, string, int>> modifyChanges = new List<Tuple<FileChange, string, int>>();
+                    List<KeyValuePair<CLError, int>> openStreamErrors = new List<KeyValuePair<CLError, int>>();
+
+                    for (int currentFileItemIdx = 0; currentFileItemIdx < filesToModify.Length; currentFileItemIdx++)
+                    {
+                        CLFileItem currentFileItem = filesToModify[currentFileItemIdx];
+                        if (currentFileItem == null)
+                        {
+                            throw new CLArgumentNullException(CLExceptionCode.OnDemand_InvalidParameters, String.Format(Resources.ExceptionOnDemandFilesToModifyAtIndexMustNotBeNullMsg0, currentFileItemIdx));
+                        }
+                        if (currentFileItem.IsFolder)
+                        {
+                            throw new CLArgumentException(CLExceptionCode.OnDemand_InvalidParameters,  String.Format(Resources.ExceptionOnDemandFilesToModifyAtIndexItemMustBeAFileItemMsg0, currentFileItemIdx));
+                        }
+                        if (String.IsNullOrEmpty(currentFileItem.ItemUid))
+                        {
+                            throw new CLArgumentNullException(CLExceptionCode.OnDemand_MissingParameters, String.Format(Resources.ExceptionOnDemandFilesToModifyAtIndexItemUidMustBeSpecifiedMsg0, currentFileItemIdx));
+                        }
+                        if (currentFileItem.Syncbox != _syncbox)
+                        {
+                            throw new CLInvalidOperationException(CLExceptionCode.OnDemand_NotCreatedInThisSyncbox, String.Format(Resources.ExceptionOnDemandCLFileItemNotCreatedInThisSyncboxMsg0, currentFileItemIdx));
+                        }
+
+                        FilePath fullPath = new FilePath(currentFileItem.FullPath);
+
+                        //TODO: need to add check for bad characters in name
+
+                        //TODO: need to add check for length including name: do not use Helpers.CheckSyncboxPathLength since that only works for the syncbox root
+
+                        FileChange modifyChange = new FileChange()
+                        {
+                            Direction = SyncDirection.To,
+                            Metadata = new FileMetadata()
+                            {
+                                EventTime = DateTime.UtcNow,
+                                HashableProperties = new FileMetadataHashableProperties(
+                                    isFolder: false,
+                                    lastTime: File.GetLastWriteTimeUtc(currentFileItem.FullPath),
+                                    creationTime: File.GetCreationTimeUtc(currentFileItem.FullPath),
+                                    size: null),
+                                StorageKey = currentFileItem.Revision,
+                            },
+                            NewPath = fullPath,
+                            Type = FileChangeType.Created
+                        };
+
+                        FileStream OutputStream;
+                        byte[][] intermediateHashes;
+                        byte[] newMD5Bytes;
+                        Nullable<long> finalFileSize;
+                        bool dependencyFileChangeNotFound = false;
+                        bool openStreamSucceeded;
+
+                        try
+                        {
+                            Helpers.OpenFileStreamAndCalculateHashes(
+                                out OutputStream,
+                                out intermediateHashes,
+                                out newMD5Bytes,
+                                out finalFileSize,
+                                modifyChange,
+                                out dependencyFileChangeNotFound);
+
+                            openStreamSucceeded = true;
+                        }
+                        catch (Exception ex)
+                        {
+                            if (dependencyFileChangeNotFound)
+                            {
+                                try
+                                {
+                                    throw new CLFileNotFoundException(CLExceptionCode.OnDemand_FileAddNotFound, Resources.ExceptionFileNotFound, ex);
+                                }
+                                catch (Exception innerEx)
+                                {
+                                    openStreamErrors.Add(
+                                        new KeyValuePair<CLError, int>(innerEx, currentFileItemIdx));
+                                }
+                            }
+                            else
+                            {
+                                openStreamErrors.Add(
+                                    new KeyValuePair<CLError, int>(ex, currentFileItemIdx));
+                            }
+
+                            openStreamSucceeded = false;
+
+                            OutputStream = Helpers.DefaultForType<FileStream>();
+                            intermediateHashes = Helpers.DefaultForType<byte[][]>();
+                            newMD5Bytes = Helpers.DefaultForType<byte[]>();
+                            finalFileSize = Helpers.DefaultForType<Nullable<long>>();
+                        }
+
+                        if (openStreamSucceeded)
+                        {
+                            if (OutputStream == null)
+                            {
+                                throw new CLNullReferenceException(CLExceptionCode.OnDemand_FileAdd, Resources.ExceptionOnDemandAddFileFileStreamDoesNotExist);
+                            }
+
+                            uploadStreams[currentFileItemIdx] = new StreamOrStreamContextHolder(OutputStream);
+
+                            if (intermediateHashes == null)
+                            {
+                                throw new CLNullReferenceException(CLExceptionCode.OnDemand_FileAdd, Resources.ExceptionOnDemandAddFileIntermediateHashesDoesNotExist);
+                            }
+                            if (newMD5Bytes == null)
+                            {
+                                throw new CLNullReferenceException(CLExceptionCode.OnDemand_FileAdd, Resources.ExceptionOnDemandAddFileNewMd5BytesDoesNotExist);
+                            }
+                            if (finalFileSize == null)
+                            {
+                                throw new CLNullReferenceException(CLExceptionCode.OnDemand_FileAdd, Resources.ExceptionOnDemandAddFileFinalFileSizeDoesNotExist);
+                            }
+
+                            uploadStreams[currentFileItemIdx].switchToContext(
+                                UploadStreamContext.Create(OutputStream, intermediateHashes, newMD5Bytes, finalFileSize));
+
+                            modifyChanges.Add(
+                                new Tuple<FileChange, string, int>(
+                                    modifyChange, currentFileItem.ItemUid, currentFileItemIdx));
+                        }
+                    }
+
+                    if (modifyChanges.Count > 0)
+                    {
+                        // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
+                        Helpers.RequestNewCredentialsInfo requestNewCredentialsInfo = new Helpers.RequestNewCredentialsInfo()
+                        {
+                            ProcessingStateByThreadId = _processingStateByThreadId,
+                            GetNewCredentialsCallback = _getNewCredentialsCallback,
+                            GetNewCredentialsCallbackUserState = _getNewCredentialsCallbackUserState,
+                            GetCurrentCredentialsCallback = GetCurrentCredentialsCallback,
+                            SetCurrentCredentialsCallback = SetCurrentCredentialCallback,
+                        };
+
+                        // Now make the REST request content.
+                        object requestContent = new JsonContracts.FileModifies()
+                        {
+                            DeviceId = _syncbox.CopiedSettings.DeviceId,
+                            SyncboxId = _syncbox.SyncboxId,
+                            Modifies = modifyChanges.Select(currentModifyChange => new JsonContracts.FileModify()
+                            {
+                                CreatedDate = currentModifyChange.Item1.Metadata.HashableProperties.CreationTime,
+                                Hash = currentModifyChange.Item1.GetMD5LowercaseString(),
+                                MimeType = currentModifyChange.Item1.Metadata.MimeType,
+                                ModifiedDate = currentModifyChange.Item1.Metadata.HashableProperties.LastTime,
+                                ServerUid = filesToModify[currentModifyChange.Item3].ItemUid,
+                                Revision = filesToModify[currentModifyChange.Item3].Revision,
+                                Size = currentModifyChange.Item1.Metadata.HashableProperties.Size,
+                            }).ToArray()
+                        };
+
+                        // server method path switched on whether change is a file or not
+                        string serverMethodPath = CLDefinitions.MethodPathOneOffFileModifies;
+
+                        // Communicate with the server to get the response.
+                        JsonContracts.SyncboxModifyFilesResponse responseFromServer;
+                        responseFromServer = Helpers.ProcessHttp<JsonContracts.SyncboxModifyFilesResponse>(requestContent, // dynamic type of request content based on method path
+                            CLDefinitions.CLMetaDataServerURL, // base domain is the MDS server
+                            serverMethodPath, // dynamic path to appropriate one-off method
+                            Helpers.requestMethod.post, // one-off methods are all posts
+                            _syncbox.CopiedSettings.HttpTimeoutMilliseconds, // time before communication timeout
+                            null, // not an upload or download
+                            Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
+                            _syncbox.CopiedSettings, // pass the copied settings
+                            _syncbox, // pass the syncbox
+                            requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
+                            isOneOff: true); // one-offs bypass the halt all check
+
+                        // Convert these items to the output array.
+                        if (responseFromServer == null || responseFromServer.ModifyResponses == null)
+                        {
+                            throw new CLNullReferenceException(CLExceptionCode.OnDemand_FileAdd, Resources.ExceptionCLHttpRestWithoutModifyFilesResponses);
+                        }
+
+                        if (responseFromServer.ModifyResponses.Length != filesToModify.Length)
+                        {
+                            throw new CLException(CLExceptionCode.OnDemand_FileAdd, Resources.ExceptionOnDemandResponseArrayLength);
+                        }
+
+                        // we know we don't have an overall error by now, so we can finally return the items for which we could not open streams
+                        if (itemCompletionCallback != null
+                            && openStreamErrors.Count > 0)
+                        {
+                            foreach (KeyValuePair<CLError, int> openStreamError in openStreamErrors)
+                            {
+                                itemCompletionCallback(itemIndex: openStreamError.Value, completedItem: null, error: openStreamError.Key, userState: itemCompletionCallbackUserState);
+                            }
+                        }
+
+                        List<Tuple<CLFileItem, FileChange, EventWaitHandle, int>> filesLeftToUpload = new List<Tuple<CLFileItem, FileChange, EventWaitHandle, int>>();
+
+                        for (int responseIdx = 0; responseIdx < responseFromServer.ModifyResponses.Length; responseIdx++)
+                        {
+                            try
+                            {
+                                FileChangeResponse currentModifyResponse = responseFromServer.ModifyResponses[responseIdx];
+
+                                if (currentModifyResponse == null)
+                                {
+                                    throw new CLNullReferenceException(CLExceptionCode.OnDemand_MissingResponseField, Resources.ExceptionOnDemandNullItem);
+                                }
+                                if (currentModifyResponse.Header == null || string.IsNullOrEmpty(currentModifyResponse.Header.Status))
+                                {
+                                    throw new CLNullReferenceException(CLExceptionCode.OnDemand_MissingResponseField, Resources.ExceptionOnDemandNullStatus);
+                                }
+                                if (currentModifyResponse.Metadata == null)
+                                {
+                                    throw new CLNullReferenceException(CLExceptionCode.OnDemand_MissingResponseField, Resources.ExceptionOnDemandNullMetadata);
+                                }
+
+                                switch (currentModifyResponse.Header.Status)
+                                {
+                                    case CLDefinitions.CLEventTypeDuplicate:
+                                    case CLDefinitions.CLEventTypeExists:
+                                        CLFileItem resultItem = new CLFileItem(currentModifyResponse.Metadata, currentModifyResponse.Header.Action, currentModifyResponse.Action, _syncbox);
+                                        if (itemCompletionCallback != null)
+                                        {
+                                            try
+                                            {
+                                                itemCompletionCallback(responseIdx, resultItem, error: null, userState: itemCompletionCallbackUserState);
+                                            }
+                                            catch
+                                            {
+                                            }
+                                        }
+                                        StreamOrStreamContextHolder.DisposeHolderInArray(uploadStreams, modifyChanges[responseIdx].Item3);
+                                        break;
+
+                                    case CLDefinitions.CLEventTypeUpload:
+                                    case CLDefinitions.CLEventTypeUploading:
+                                        modifyChanges[responseIdx].Item1.Metadata.StorageKey = currentModifyResponse.Metadata.Revision;
+
+                                        // This is a little strange.  If the upload completes successfully, we will drive the item completion callback with a CLFileItem.
+                                        // The CLFileItem is constructed below out of the currentAddResponse we just received from the server.  However, at this point,
+                                        // The IsNotPending value in the response is false, because the server wants us to upload the file.  Two cases: 1) The upload fails.
+                                        // In that case, we won't present the constructed CLFileItem to the callback.  2) The upload succeeds.  We need the CLFileItem.IsPending
+                                        // flag to be false.  So, set the server's currentAddResponse.IsNotPending field to properly construct the CLFileItem assuming that
+                                        // the upload will succeed.
+                                        currentModifyResponse.Metadata.IsNotPending = true;
+
+                                        // Add this upload request.
+                                        filesLeftToUpload.Add(
+                                            new Tuple<CLFileItem, FileChange, EventWaitHandle, int>(
+                                                new CLFileItem(currentModifyResponse.Metadata, currentModifyResponse.Header.Action, currentModifyResponse.Action, _syncbox),
+                                                modifyChanges[responseIdx].Item1,
+                                                new EventWaitHandle(initialState: false, mode: EventResetMode.ManualReset),
+                                                modifyChanges[responseIdx].Item3));
+                                        break;
+
+                                    case CLDefinitions.CLEventTypeConflict:
+                                        throw new CLException(CLExceptionCode.OnDemand_Conflict, Resources.ExceptionOnDemandConflict);
+
+                                    case CLDefinitions.CLEventTypeAlreadyDeleted:
+                                        throw new CLException(CLExceptionCode.OnDemand_AlreadyDeleted, Resources.ExceptionOnDemandAlreadyDeleted);
+
+                                    case CLDefinitions.RESTResponseStatusFailed:
+                                        Exception innerEx;
+                                        string errorMessageString;
+                                        try
+                                        {
+                                            errorMessageString = string.Join(Environment.NewLine, currentModifyResponse.Metadata.ErrorMessage);
+                                            innerEx = null;
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            errorMessageString = Resources.ExceptionOnDemandDeserializeErrorMessage;
+                                            innerEx = ex;
+                                        }
+
+                                        throw new CLException(CLExceptionCode.OnDemand_ItemError, Resources.ExceptionOnDemandItemError, new Exception(errorMessageString, innerEx));
+
+                                    default:
+                                        throw new CLException(CLExceptionCode.OnDemand_UnknownItemStatus, string.Format(Resources.ExceptionOnDemandUnknownItemStatus, currentModifyResponse.Header.Status));
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                if (itemCompletionCallback != null)
+                                {
+                                    try
+                                    {
+                                        itemCompletionCallback(itemIndex: modifyChanges[responseIdx].Item3, completedItem: null, error: ex, userState: itemCompletionCallbackUserState);
+                                    }
+                                    catch
+                                    {
+                                    }
+                                }
+                                StreamOrStreamContextHolder.DisposeHolderInArray(uploadStreams, modifyChanges[responseIdx].Item3);
+                            }
+                        }
+
+                        if (filesLeftToUpload.Count > 0)
+                        {
+                            foreach (Tuple<CLFileItem, FileChange, EventWaitHandle, int> fileLeftToUpload in filesLeftToUpload)
+                            {
+                                var uploadForTask = DelegateAndDataHolderBase.Create(
+                                    new
+                                    {
+                                        inputItemIndex = fileLeftToUpload.Item4,
+                                        uploadStreamContext = uploadStreams[fileLeftToUpload.Item4].context,
+                                        uploadChange = fileLeftToUpload.Item2,
+                                        cancellationSource = cancellationSource,
+                                        completionHandle = fileLeftToUpload.Item3,
+                                        itemCompletionCallback = itemCompletionCallback,
+                                        itemCompletionCallbackUserState = itemCompletionCallbackUserState,
+                                        transferStatusCallback = transferStatusCallback,
+                                        transferStatusCallbackUserState = transferStatusCallbackUserState,
+                                        copiedSettings = _syncbox.CopiedSettings,
+                                        completedItem = fileLeftToUpload.Item1,
+                                        uploadStreams = uploadStreams
+                                    },
+                                    (Data, errorToAccumulate) =>
+                                    {
+                                        try
+                                        {
+                                            var statusConversionDelegate = DelegateAndDataHolderBase<object, long, SyncDirection, string, long, long, bool>.Create(
+                                                new
+                                                {
+                                                    transferStatusCallback = Data.transferStatusCallback,
+                                                    transferStatusCallbackUserState = Data.transferStatusCallbackUserState,
+                                                    inputItemIndex = Data.inputItemIndex
+                                                },
+                                                (innerData, userState, eventId, direction, relativePath, byteProgress, totalByteSize, isError, innerErrorToAccumulate) =>
+                                                {
+                                                    if (innerData.transferStatusCallback != null)
+                                                    {
+                                                        innerData.transferStatusCallback(
+                                                            innerData.inputItemIndex,
+                                                            byteProgress,
+                                                            totalByteSize,
+                                                            innerData.transferStatusCallbackUserState);
+                                                    }
+                                                },
+                                                null);
+
+                                            string unusedMessage;
+                                            bool hashMismatchFound;
+                                            CLError uploadError = UploadFile(
+                                                Data.uploadStreamContext,
+                                                Data.uploadChange,
+                                                Data.completedItem.ItemUid,
+                                                Data.completedItem.Revision,
+                                                Data.copiedSettings.HttpTimeoutMilliseconds,
+                                                out unusedMessage,
+                                                out hashMismatchFound,
+                                                Data.cancellationSource,
+                                                /* asyncCallback: */ null,
+                                                /* asyncResult: */ null,
+                                                /* progress: */ null,
+                                                new FileTransferStatusUpdateDelegate(statusConversionDelegate.VoidProcess),
+                                                /* statusUpdateId: */ Guid.Empty);
+
+                                            if (uploadError != null)
+                                            {
+                                                throw new CLException(CLExceptionCode.OnDemand_Upload, Resources.ExceptionCLHttpRestAddFilesUploadError, uploadError.Exceptions);
+                                            }
+
+                                            if (Data.itemCompletionCallback != null)
+                                            {
+                                                Data.itemCompletionCallback(Data.inputItemIndex, Data.completedItem, /* error: */ null, Data.itemCompletionCallbackUserState);
+                                            }
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            if (Data.itemCompletionCallback != null)
+                                            {
+                                                Data.itemCompletionCallback(Data.inputItemIndex, /* completedItem: */ null, ex, Data.itemCompletionCallbackUserState);
+                                            }
+                                        }
+                                        finally
+                                        {
+                                            // UploadFile should dispose the stream, but do it anyways just in case
+                                            StreamOrStreamContextHolder.DisposeHolderInArray(Data.uploadStreams, Data.inputItemIndex);
+
+                                            Data.completionHandle.Set();
+                                        }
+                                    },
+                                    errorToAccumulate: null);
+
+                                (new Task(new Action(uploadForTask.VoidProcess))).Start(HttpScheduler.GetSchedulerByDirection(SyncDirection.To, _syncbox.CopiedSettings));
+                            }
+
+                            WaitHandle[] allWaitHandles = filesLeftToUpload.Select(fileToUpload => fileToUpload.Item3).ToArray();
+                            WaitHandle.WaitAll(allWaitHandles);
+                        }
+                    }
+                    // else there was nothing in addChanges since every item in the input parameters could not have its stream opened
+                    // also, only need to fire completion routines for errors if the completion callback was set
+                    else if (itemCompletionCallback != null)
+                    {
+                        foreach (KeyValuePair<CLError, int> openStreamError in openStreamErrors)
+                        {
+                            itemCompletionCallback(itemIndex: openStreamError.Value, completedItem: null, error: openStreamError.Key, userState: itemCompletionCallbackUserState);
+                        }
+                    }
+                }
+                catch
+                {
+                    for (int currentDiposalIndex = 0; currentDiposalIndex < uploadStreams.Length; currentDiposalIndex++)
+                    {
+                        StreamOrStreamContextHolder.DisposeHolderInArray(uploadStreams, currentDiposalIndex);
+                    }
+                    throw;
+                }
+            }
+            catch (Exception ex)
+            {
+                return ex;
+            }
+            finally
+            {
+                DecrementModifyingSyncboxViaPublicAPICalls();
+            }
+
+            return null;
+        }
+        #endregion  // end AddFiles (Adds files in the syncbox.)
+
         #region UndoDeletionFileChange
         /// <summary>
         /// Asynchronously starts posting a single FileChange to the server

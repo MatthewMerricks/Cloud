@@ -23,9 +23,6 @@ namespace Cloud.JsonContracts
     [DataContract]
     public sealed class Session
     {
-        [DataMember(Name = CLDefinitions.RESTResponseSession_SyncboxIds, IsRequired = false)]
-        public HashSet<long> SyncboxIds { get; set; }
-
         [DataMember(Name = CLDefinitions.RESTResponseSession_Key, IsRequired = false)]
         public string Key { get; set; }
 
@@ -37,6 +34,9 @@ namespace Cloud.JsonContracts
 
         [DataMember(Name = CLDefinitions.RESTResponseSession_AllowAll, IsRequired = false)]
         public bool AllowAll { get; set; }
+
+        [DataMember(Name = CLDefinitions.RESTRequestSession_Services, IsRequired = false)]
+        public Service[] Services { get; set; }
 
         [DataMember(Name = CLDefinitions.RESTResponseSession_ExpiresAt, IsRequired = false)]
         public string ExpiresAtString

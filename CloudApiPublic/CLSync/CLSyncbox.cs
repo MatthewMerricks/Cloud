@@ -21,6 +21,7 @@ using System.Threading;
 using System.ComponentModel;
 using Cloud.Parameters;
 using Cloud.Callbacks;
+using Newtonsoft.Json.Linq;
 
 namespace Cloud
 {
@@ -478,6 +479,55 @@ namespace Cloud
             Helpers.ReplaceExpiredCredentials getNewCredentialsCallback = null,
             object getNewCredentialsCallbackUserState = null)
         {
+
+//            //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ &&&& DEBUG REMOVE &&&&&@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+//            string json1 = @"{
+//                ""session"":
+//                {
+//                    ""key"": ""c5c0fc39bd639c8fb2efd720ef8fd22a0d83901904456d4b8450fac25b50af42"",
+//                    ""secret"": ""e10f56b6f2eb2d6934e81c424ec0ac25ca9fb0e8ead8dcb6588f1fa98b6df09e"",
+//                    ""session_token"": """",
+//                    ""expires_at"": ""2008-12-28T00:00:00"",
+//                    ""services"": ""all""
+//                },
+//                ""status"": ""success"",
+//                ""message"": ""This is a message""
+//            }";
+
+//            string json2 = @"{
+//                ""session"":
+//                {
+//                    ""key"": ""c5c0fc39bd639c8fb2efd720ef8fd22a0d83901904456d4b8450fac25b50af42"",
+//                    ""secret"": ""e10f56b6f2eb2d6934e81c424ec0ac25ca9fb0e8ead8dcb6588f1fa98b6df09e"",
+//                    ""session_token"": ""e10f56b555552d6934e81c424ec0ac25ca9fb0e8ead8dcb6588f1fa98b6df09e"",
+//                    ""expires_at"": ""2008-12-28T00:00:00"",
+//                    ""services"": [
+//                        { 
+//                            ""service_type"": ""Sync"",
+//                            ""sync_box_ids"": ""all""
+//                        }
+//                    ]
+//                },
+//                ""status"": ""success"",
+//                ""message"": ""This is a message""
+//            }";
+
+
+//            JObject o = JObject.Parse(json2);
+
+//            JToken services = o["session"]["services"];
+//            if ((string)services == "all")
+//            {
+//                int i = 1;
+//                i++;
+//            }
+//            else
+//            {
+//            }
+
+
+//            //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ &&&& DEBUG REMOVE &&&&&@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
             // Fix up the path.  Use String.Empty if the user passed null.
             if (path == null)
             {

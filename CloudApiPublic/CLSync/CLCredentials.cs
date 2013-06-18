@@ -209,6 +209,10 @@ namespace Cloud
             {
                 throw new CLArgumentNullException(CLExceptionCode.Credentials_NullSecret, Resources.CLCredentialSecretCannotBeNull);
             }
+            if (session.Services == null || session.Services.Length < 1)
+            {
+                throw new CLArgumentNullException(CLExceptionCode.Credentials_ServicesMissing,  Resources.ExceptionOnDemandCredentialsCreateSessionServicesMissingInServerResponse);
+            }
 
             // Since we allow null then reverse-null coalesce from empty string
             string token = session.Token;
@@ -222,7 +226,7 @@ namespace Cloud
 
             this._token = token;
             this._expirationDate = session.ExpiresAt;
-            this._syncboxIds = session.SyncboxIds;
+            this._syncboxIds = new HashSet<long>(session.Services[0].SyncboxIds);
 
             // copy settings so they don't change while processing; this also defaults some values
             _copiedSettings = (settings == null
@@ -550,7 +554,11 @@ namespace Cloud
                 {
                     Cloud.JsonContracts.CredentialsSessionCreateAllRequest sessionCreateAll = new JsonContracts.CredentialsSessionCreateAllRequest()
                     {
-                        SessionIds = CLDefinitions.RESTRequestSession_SyncboxIdsAll,
+                        Service = new JsonContracts.ServiceAllRequest()
+                        {
+                            ServiceType = CLDefinitions.RESTRequestSession_Sync,
+                            SyncboxIds = CLDefinitions.RESTRequestSession_SyncboxIdsAll,
+                        },
                         TokenDuration = timeToLiveMinutes
                     };
                     requestContract = sessionCreateAll;
@@ -559,7 +567,11 @@ namespace Cloud
                 {
                     Cloud.JsonContracts.CredentialsSessionCreateRequest sessionCreate = new JsonContracts.CredentialsSessionCreateRequest()
                     {
-                        SessionIds = syncboxIds.ToArray<long>(),
+                        Service = new JsonContracts.Service()
+                        {
+                            ServiceType = CLDefinitions.RESTRequestSession_Sync,
+                            SyncboxIds = syncboxIds.ToArray<long>(),
+                        },
                         TokenDuration = timeToLiveMinutes
                     };
                     requestContract = sessionCreate;
