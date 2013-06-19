@@ -214,7 +214,7 @@
       </xs:element>
       <xs:element name="MD5" minOccurs="0" maxOccurs="1" type="xs:string" />
       <xs:element name="Revision" minOccurs="0" maxOccurs="1" type="xs:string" />
-      <xs:element name="StorageKey" minOccurs="0" maxOccurs="1" type="xs:string" />
+      <xs:element name="LocalRevision" minOccurs="0" maxOccurs="1" type="xs:string" />
       <xs:element name="Dependencies" minOccurs="0" maxOccurs="1">
         <xs:complexType>
           <xs:choice minOccurs="1" maxOccurs="unbounded">

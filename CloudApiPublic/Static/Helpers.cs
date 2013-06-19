@@ -5178,7 +5178,7 @@ namespace Cloud.Static
                 {
                     throw new ArgumentException("ChangeToTransfer Metadata HashableProperties Size must be greater than or equal to zero");
                 }
-                if (ChangeToTransfer.Metadata.StorageKey == null)
+                if (ChangeToTransfer.Metadata.Revision == null)
                 {
                     throw new ArgumentException("ChangeToTransfer Metadata StorageKey cannot be null");
                 }
@@ -5410,7 +5410,7 @@ namespace Cloud.Static
                 {
                     throw new Exception("Stream cannot be null");
                 }
-                if (base.ChangeToTransfer.Metadata.StorageKey == null)
+                if (base.ChangeToTransfer.Metadata.Revision == null)
                 {
                     throw new Exception("ChangeToTransfer Metadata StorageKey cannot be null");
                 }

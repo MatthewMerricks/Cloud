@@ -194,7 +194,7 @@ namespace Cloud.Static
 
         private string mD5Field;
 
-        private string storageKeyField;
+        private string localRevisionField;
 
         private TraceFileChange[] dependenciesField;
 
@@ -505,15 +505,15 @@ namespace Cloud.Static
         }
 
         /// <remarks/>
-        public string StorageKey
+        public string LocalRevision
         {
             get
             {
-                return this.storageKeyField;
+                return this.localRevisionField;
             }
             set
             {
-                this.storageKeyField = value;
+                this.localRevisionField = value;
             }
         }
 

@@ -5142,7 +5142,7 @@ namespace Cloud.FileMonitor
                                                 toChange.Metadata.MimeType = previousChange.Metadata.MimeType;
                                                 //toChange.Metadata.Revision = previousChange.Metadata.Revision;
                                                 //toChange.Metadata.ServerUid = previousChange.Metadata.ServerUid;
-                                                toChange.Metadata.StorageKey = previousChange.Metadata.StorageKey;
+                                                toChange.Metadata.Revision = previousChange.Metadata.Revision;
                                             }
                                             // For files with different metadata, process as a modify
                                             else
@@ -5167,7 +5167,7 @@ namespace Cloud.FileMonitor
                                                 toChange.Metadata.MimeType = previousChange.Metadata.MimeType;
                                                 //toChange.Metadata.Revision = previousChange.Metadata.Revision;
                                                 //toChange.Metadata.ServerUid = previousChange.Metadata.ServerUid;
-                                                toChange.Metadata.StorageKey = previousChange.Metadata.StorageKey;
+                                                toChange.Metadata.Revision = previousChange.Metadata.Revision;
                                             }
                                             break;
                                         case FileChangeType.Modified:

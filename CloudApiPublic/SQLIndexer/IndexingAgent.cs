@@ -821,8 +821,8 @@ namespace Cloud.SQLIndexer
                                     Encoding.ASCII.GetString(
                                         Convert.FromBase64String(indexDBPassword))),
                                 SqlAccessor<Event>.GetSelectColumns(),
-                                SqlAccessor<FileSystemObject>.GetSelectColumns(Resources.NotTranslatedSqlIndexerFileSystemObject),
-                                SqlAccessor<FileSystemObject>.GetSelectColumns(Resources.NotTranslatedSqlIndexerPrevious, Resources.NotTranslatedSqlIndexerPreviouses)),
+                                SqlAccessor<Cloud.SQLIndexer.SqlModel.FileSystemObjectHolder.FileSystemObject>.GetSelectColumns(Resources.NotTranslatedSqlIndexerFileSystemObject),
+                                SqlAccessor<Cloud.SQLIndexer.SqlModel.FileSystemObjectHolder.FileSystemObject>.GetSelectColumns(Resources.NotTranslatedSqlIndexerPrevious, Resources.NotTranslatedSqlIndexerPreviouses)),
                             new[]
                             {
                                 Resources.NotTranslatedSqlIndexerFileSystemObject,
@@ -859,7 +859,7 @@ namespace Cloud.SQLIndexer
                                 Permissions = (existingEvent.FileSystemObject.Permissions == null
                                     ? (Nullable<POSIXPermissions>)null
                                     : (POSIXPermissions)((int)existingEvent.FileSystemObject.Permissions)),
-                                StorageKey = existingEvent.FileSystemObject.StorageKey,
+                                Revision = existingEvent.FileSystemObject.Revision,
                                 Version = existingEvent.FileSystemObject.Version
                             },
                             NewPath = existingEvent.FileSystemObject.CalculatedFullPath,
@@ -979,12 +979,12 @@ namespace Cloud.SQLIndexer
                 throw new ArgumentException("Cannot swap two events with the same ID");
             }
 
-            FileSystemObject eventAObject = null;
-            FileSystemObject eventBObject = null;
+            Cloud.SQLIndexer.SqlModel.FileSystemObjectHolder.FileSystemObject eventAObject = null;
+            Cloud.SQLIndexer.SqlModel.FileSystemObjectHolder.FileSystemObject eventBObject = null;
 
             const string selectFileSystemObjectByEventId = "t3Ee1ulQLjs62aHw5E7nEHC3Yt6pkKQiMjDOMA00p+Qo1PZHGpfRx91FJNSloGZ3xDH11QktFYyaPHTl7mAN/QkLD0PnpC8sDmmRC3eIdnNwEv6VbgcYJMh2e8FkOh6pkTk+wvxmCRAw6xSk4LnkkKwhOy+K1PbDsM0gmAsv7FH9owvFUl6Kqdc6lKyE4dRdNY/BR7ifuAagqpifyIdzUO2HMAWtilo2ChITR0yPWGwgsxA3WnGPkaBknVI0jG/iTXOmwbu2CK1/r6YN+x/pdw==";
 
-            foreach (FileSystemObject matchedEventObject in SqlAccessor<FileSystemObject>.SelectResultSet(
+            foreach (Cloud.SQLIndexer.SqlModel.FileSystemObjectHolder.FileSystemObject matchedEventObject in SqlAccessor<Cloud.SQLIndexer.SqlModel.FileSystemObjectHolder.FileSystemObject>.SelectResultSet(
                 castTransaction.sqlConnection,
                 //// before
                 //
@@ -1357,10 +1357,10 @@ namespace Cloud.SQLIndexer
         //    //                return createDictError;
         //    //            }
 
-        //    //            Dictionary<long, KeyValuePair<GenericHolder<FileSystemObject>, GenericHolder<FileSystemObject>>> mappedSyncStates = new Dictionary<long,KeyValuePair<GenericHolder<FileSystemObject>,GenericHolder<FileSystemObject>>>();
+        //    //            Dictionary<long, KeyValuePair<GenericHolder<Cloud.SQLIndexer.SqlModel.FileSystemObjectHolder.FileSystemObject>, GenericHolder<Cloud.SQLIndexer.SqlModel.FileSystemObjectHolder.FileSystemObject>>> mappedSyncStates = new Dictionary<long,KeyValuePair<GenericHolder<Cloud.SQLIndexer.SqlModel.FileSystemObjectHolder.FileSystemObject>,GenericHolder<Cloud.SQLIndexer.SqlModel.FileSystemObjectHolder.FileSystemObject>>>();
 
         //    //            // Loop through all sync states for the last sync
-        //    //            foreach (FileSystemObject currentSyncState in SqlAccessor<FileSystemObject>
+        //    //            foreach (Cloud.SQLIndexer.SqlModel.FileSystemObjectHolder.FileSystemObject currentSyncState in SqlAccessor<Cloud.SQLIndexer.SqlModel.FileSystemObjectHolder.FileSystemObject>
         //    //                .SelectResultSet(indexDB,
         //    //                    //// before // // "SELECT * FROM [FileSystemObjects] WHERE [FileSystemObjects].[SyncCounter] = " + lastSync.SyncCounter // //// after // // [missing]
         //    //                    ))
@@ -1379,20 +1379,20 @@ namespace Cloud.SQLIndexer
         //    //                else if (currentSyncState.ServerLinked)
         //    //                {
         //    //                    mappedSyncStates.Add(currentSyncState.FileSystemObjectId,
-        //    //                        new KeyValuePair<GenericHolder<FileSystemObject>, GenericHolder<FileSystemObject>>(
-        //    //                            new GenericHolder<FileSystemObject>(),
-        //    //                            new GenericHolder<FileSystemObject>(currentSyncState)));
+        //    //                        new KeyValuePair<GenericHolder<Cloud.SQLIndexer.SqlModel.FileSystemObjectHolder.FileSystemObject>, GenericHolder<Cloud.SQLIndexer.SqlModel.FileSystemObjectHolder.FileSystemObject>>(
+        //    //                            new GenericHolder<Cloud.SQLIndexer.SqlModel.FileSystemObjectHolder.FileSystemObject>(),
+        //    //                            new GenericHolder<Cloud.SQLIndexer.SqlModel.FileSystemObjectHolder.FileSystemObject>(currentSyncState)));
         //    //                }
         //    //                else
         //    //                {
         //    //                    mappedSyncStates.Add(currentSyncState.FileSystemObjectId,
-        //    //                        new KeyValuePair<GenericHolder<FileSystemObject>, GenericHolder<FileSystemObject>>(
-        //    //                            new GenericHolder<FileSystemObject>(currentSyncState),
-        //    //                            new GenericHolder<FileSystemObject>()));
+        //    //                        new KeyValuePair<GenericHolder<Cloud.SQLIndexer.SqlModel.FileSystemObjectHolder.FileSystemObject>, GenericHolder<Cloud.SQLIndexer.SqlModel.FileSystemObjectHolder.FileSystemObject>>(
+        //    //                            new GenericHolder<Cloud.SQLIndexer.SqlModel.FileSystemObjectHolder.FileSystemObject>(currentSyncState),
+        //    //                            new GenericHolder<Cloud.SQLIndexer.SqlModel.FileSystemObjectHolder.FileSystemObject>()));
         //    //                }
         //    //            }
 
-        //    //            foreach (KeyValuePair<long, KeyValuePair<GenericHolder<FileSystemObject>, GenericHolder<FileSystemObject>>> currentSyncState in mappedSyncStates)
+        //    //            foreach (KeyValuePair<long, KeyValuePair<GenericHolder<Cloud.SQLIndexer.SqlModel.FileSystemObjectHolder.FileSystemObject>, GenericHolder<Cloud.SQLIndexer.SqlModel.FileSystemObjectHolder.FileSystemObject>>> currentSyncState in mappedSyncStates)
         //    //            {
         //    //                // Add the current sync state from the last sync to the output dictionary
         //    //                syncStates.Add(currentSyncState.Value.Key.Value.Path,
@@ -1475,7 +1475,7 @@ namespace Cloud.SQLIndexer
                     const string selectFileSystemObjectByFullPathHash = "t3Ee1ulQLjs62aHw5E7nEHC3Yt6pkKQiMjDOMA00p+Qo1PZHGpfRx91FJNSloGZ3xDH11QktFYyaPHTl7mAN/XsQPT9eyFcyOPzFnJGIGwO7e3uf9CaURqWU8Fck+B4hGqcB1XKdle+E3yJPqcg821CpRNu1/VdZifFtH/jz/TRaoON1XE/nxcfUWCCpyHZQavqxfWY8yic2EYWylYcApe4I9V2ctpQkFQQ/dk+aEVcae+yRZFdt3L/WRzuRH9oObDpG0ciS9Z8wfe5ChHgQDiLJXyQjKX6H8g1kvADUWfIQNb8o782MqyEfLEJfEAJlYX+0hwdWcoHKppIB0rItpwUJyhgzJ8v05jUA8tugjcPE0OFZ70hXYYsl83LwHiMSf5FDCToVE13XZJZrTJ0XA2DXhA3i31hiTwULvLU9Q0PwSptGfv/guDZ1IyrX3kWe8LLZ+5t7UVbq6GL2Fw+vISBRGTuXZaVvlZtKBABg+pT71ZPki1lyAfAZsP0bvkAT/DNrYVXDsD+HGfQGmvfSLys1gy1ngUg3CaIwIOOOx5fBMLJh534k91qQkkjBOSTLroxatmjMsTcxf78eMaYDtjbKOdldQU7hOSjVEbOrbqFxzJ2NXBfEzmsVoVbZV8tYFV/Ams7VUv7SfPyp2Fatw1vO4qguJhaxZv+2bflDTv6KjFdUVR6UA3RgUC38Z/6HsEkmpPP1A2wqFo48c0deKQ==";
                     const string conditionalWhereRevision = "rNW69hWt8J3a4azuZvJQbreriKnw3+XuHGnmYWaF38EQc7HQdmzg3V2uMC74da2lJ+nD7DeQlmItMZj/8v+VcA==";
 
-                    FileSystemObject existingNonPending = SqlAccessor<FileSystemObject>.SelectResultSet(
+                    Cloud.SQLIndexer.SqlModel.FileSystemObjectHolder.FileSystemObject existingNonPending = SqlAccessor<Cloud.SQLIndexer.SqlModel.FileSystemObjectHolder.FileSystemObject>.SelectResultSet(
                             indexDB,
                             //// before
                             //
@@ -1552,7 +1552,7 @@ namespace Cloud.SQLIndexer
                         Permissions = (existingNonPending.Permissions == null
                             ? (Nullable<POSIXPermissions>)null
                             : (POSIXPermissions)((int)existingNonPending.Permissions)),
-                        StorageKey = existingNonPending.StorageKey,
+                        Revision = existingNonPending.Revision,
                         Version = existingNonPending.Version
                     };
                 }
@@ -1601,7 +1601,7 @@ namespace Cloud.SQLIndexer
         //                        //
         //                        //"SELECT " +
         //                        //SqlAccessor<Event>.GetSelectColumns() + ", " +
-        //                        //SqlAccessor<FileSystemObject>.GetSelectColumns(FileSystemObject.Name) +
+        //                        //SqlAccessor<Cloud.SQLIndexer.SqlModel.FileSystemObjectHolder.FileSystemObject>.GetSelectColumns(Cloud.SQLIndexer.SqlModel.FileSystemObjectHolder.FileSystemObject.Name) +
         //                        //"FROM [Events] " +
         //                        //"INNER JOIN [FileSystemObjects] ON [Events].[EventId] = [FileSystemObjects].[EventId] " +
         //                        //"WHERE [FileSystemObjects].[SyncCounter] IS NULL " +
@@ -1612,7 +1612,7 @@ namespace Cloud.SQLIndexer
         //                        // [missing]
         //                        new string[]
         //                        {
-        //                            FileSystemObject.Name
+        //                            Cloud.SQLIndexer.SqlModel.FileSystemObjectHolder.FileSystemObject.Name
         //                        }))
         //            {
         //                // For each event since the last sync (if any), add to the output dictionary
@@ -2018,9 +2018,9 @@ namespace Cloud.SQLIndexer
                                             throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, missingParentErrorMessage);
                                         }
 
-                                        previousId = SqlAccessor<FileSystemObject>.InsertRow<long>(
+                                        previousId = SqlAccessor<Cloud.SQLIndexer.SqlModel.FileSystemObjectHolder.FileSystemObject>.InsertRow<long>(
                                             castTransaction.sqlConnection,
-                                            new FileSystemObject()
+                                            new Cloud.SQLIndexer.SqlModel.FileSystemObjectHolder.FileSystemObject()
                                             {
                                                 IsFolder = currentObjectToBatch.Metadata.HashableProperties.IsFolder,
                                                 Name = currentObjectToBatch.OldPath.Name,
@@ -2117,7 +2117,7 @@ namespace Cloud.SQLIndexer
                         {
                             FileChangeTypeCategoryId = changeCategoryId,
                             FileChangeTypeEnumId = changeEnumsBackward[newEvent.change.Type],
-                            FileSystemObject = new FileSystemObject()
+                            FileSystemObject = new Cloud.SQLIndexer.SqlModel.FileSystemObjectHolder.FileSystemObject()
                             {
                                 CreationTimeUTCTicks = ((newEvent.change.Metadata.HashableProperties.CreationTime.Ticks == FileConstants.InvalidUtcTimeTicks
                                         || (storeCreationTimeUTC = newEvent.change.Metadata.HashableProperties.CreationTime.ToUniversalTime()).Ticks == FileConstants.InvalidUtcTimeTicks)
@@ -2140,7 +2140,7 @@ namespace Cloud.SQLIndexer
                                 ServerUidId = newEvent.change.Metadata.ServerUidId,
                                 //ServerName = newEvent.change.ServerPath // <-- need to add server paths to FileChange
                                 Size = newEvent.change.Metadata.HashableProperties.Size,
-                                StorageKey = newEvent.change.Metadata.StorageKey,
+                                Revision = newEvent.change.Metadata.Revision,
                                 SyncCounter = syncCounter,
                                 Version = newEvent.change.Metadata.Version
                             },
@@ -2181,14 +2181,14 @@ namespace Cloud.SQLIndexer
                             groupOrderToId.Add((int)createdEvent.GroupOrder, createdEvent.EventId);
                         }
 
-                        Func<Event, FileSystemObject> setIdAndGrabObject = currentEvent =>
+                        Func<Event, Cloud.SQLIndexer.SqlModel.FileSystemObjectHolder.FileSystemObject> setIdAndGrabObject = currentEvent =>
                         {
                             currentEvent.FileSystemObject.EventId = currentEvent.EventId = orderToChange[(int)currentEvent.GroupOrder].Value.Value = groupOrderToId[(int)currentEvent.GroupOrder];
                             eventsByIdForPendingRevision.Add((long)currentEvent.FileSystemObject.EventId, currentEvent);
                             return currentEvent.FileSystemObject;
                         };
 
-                        SqlAccessor<FileSystemObject>.InsertRows(
+                        SqlAccessor<Cloud.SQLIndexer.SqlModel.FileSystemObjectHolder.FileSystemObject>.InsertRows(
                             castTransaction.sqlConnection,
                             eventsToAdd.Select(setIdAndGrabObject),
                             transaction: castTransaction.sqlTransaction);
@@ -2323,8 +2323,8 @@ namespace Cloud.SQLIndexer
 
                                 const string selectFileSystemObjectByEventId = "t3Ee1ulQLjs62aHw5E7nEHC3Yt6pkKQiMjDOMA00p+Qo1PZHGpfRx91FJNSloGZ3xDH11QktFYyaPHTl7mAN/QkLD0PnpC8sDmmRC3eIdnNwEv6VbgcYJMh2e8FkOh6pkTk+wvxmCRAw6xSk4LnkkKwhOy+K1PbDsM0gmAsv7FH9owvFUl6Kqdc6lKyE4dRdTOf9DNG6/aLfVe5cQd3mPbLxSTU0vNHhO+nzhf8FKmwO6jOUt5xMeCGlpmRPDrLEOew5YbL8NJni1eOU3FBfO2gHZ3OzqxaA6ccE89uTk86K/HUk03ajwafV53xHb9+02lsCU29yb3zvcNiHqwMm06RiWp00XVt9ugUTdHMsO+U=";
 
-                                FileSystemObject toDelete;
-                                if ((toDelete = SqlAccessor<FileSystemObject>.SelectResultSet(
+                                Cloud.SQLIndexer.SqlModel.FileSystemObjectHolder.FileSystemObject toDelete;
+                                if ((toDelete = SqlAccessor<Cloud.SQLIndexer.SqlModel.FileSystemObjectHolder.FileSystemObject>.SelectResultSet(
                                     castTransaction.sqlConnection,
                                     //// before
                                     //
@@ -2351,7 +2351,7 @@ namespace Cloud.SQLIndexer
                                     throw notFoundException();
                                 }
 
-                                if (!SqlAccessor<FileSystemObject>.DeleteRow(
+                                if (!SqlAccessor<Cloud.SQLIndexer.SqlModel.FileSystemObjectHolder.FileSystemObject>.DeleteRow(
                                     castTransaction.sqlConnection,
                                     toDelete,
                                     castTransaction.sqlTransaction))
@@ -2450,9 +2450,9 @@ namespace Cloud.SQLIndexer
                             Encoding.ASCII.GetString(
                                 Convert.FromBase64String(indexDBPassword))));
 
-                    List<FileSystemObject> fileSystemObjectsToDelete = new List<FileSystemObject>(deleteIdsToFind.Count);
+                    List<Cloud.SQLIndexer.SqlModel.FileSystemObjectHolder.FileSystemObject> fileSystemObjectsToDelete = new List<Cloud.SQLIndexer.SqlModel.FileSystemObjectHolder.FileSystemObject>(deleteIdsToFind.Count);
 
-                    foreach (FileSystemObject currentMatchedDelete in SqlAccessor<FileSystemObject>.SelectResultSet(
+                    foreach (Cloud.SQLIndexer.SqlModel.FileSystemObjectHolder.FileSystemObject currentMatchedDelete in SqlAccessor<Cloud.SQLIndexer.SqlModel.FileSystemObjectHolder.FileSystemObject>.SelectResultSet(
                         castTransaction.sqlConnection,
                         multipleDeleteQuery.ToString(),
                         transaction: castTransaction.sqlTransaction,
@@ -2488,7 +2488,7 @@ namespace Cloud.SQLIndexer
                     }
 
                     IEnumerable<int> unableToFindIndexes;
-                    SqlAccessor<FileSystemObject>.DeleteRows(
+                    SqlAccessor<Cloud.SQLIndexer.SqlModel.FileSystemObjectHolder.FileSystemObject>.DeleteRows(
                         castTransaction.sqlConnection,
                         fileSystemObjectsToDelete,
                         out unableToFindIndexes,
@@ -2512,7 +2512,7 @@ namespace Cloud.SQLIndexer
 
                         for (int currentIndexToDelete = 0; currentIndexToDelete < fileSystemObjectsToDelete.Count; currentIndexToDelete++)
                         {
-                            FileSystemObject currentDeletedObject = fileSystemObjectsToDelete[currentIndexToDelete];
+                            Cloud.SQLIndexer.SqlModel.FileSystemObjectHolder.FileSystemObject currentDeletedObject = fileSystemObjectsToDelete[currentIndexToDelete];
 
                             if (currentIndexToDelete == nextNotFound)
                             {
@@ -3351,7 +3351,7 @@ namespace Cloud.SQLIndexer
                                                     default: //case (byte)2:
                                                         const string selectFileSystemObjectByEventId = "XiF/n8DAmECRcpl1q3g5SOaFkrEO/c+iI1V66stCO9bB3hEK7nYGLuijwAsZ69MKnic6eyxsf+Dhl/eivVXxxImu7p3ZeiPkoWpKpw7GfpirlnO5pPnFAKd5rOvejfiQ+f+F7lY+YU/V1KMowxqZEGu1AajCX2H/4GUc3jQeSjD3dxwtLwJDcnn2QDUbUiXtDme/ofrrLG/Il/GuRa0InF7G4uAn1SZygmbHHk/QnpbQdC7DG7E8m07IMa7nVI/jp4bYUAI408ROMsmsPXhhgaKcimmirqjisCP2Uj3c1TLvIRXcCr1WUzg0TBWevK3b3+f3P67z6YZ6VJshTZy4S9vRxgSF/w2vt0MAb27FNlJ2yQqDnhUFp4JfhaeaRoKZGv0UsxXGWiLxNDBEDMEZ/4p3EvqyUO/TynHwFDNDg2VaJuiLJYYepCgRopHaMhl/FVSc+zb+btspNIiPGQaUHEFSKv65ThADVy3giKPeQh/VWKVVci1Flo/ren1+rNiChwJ/WTem5lynbdORDxTZ8zGt9zo8FE81xrS/7gW7BWw4HP7zBKrFvcOySQkahJ5KFwOD5YUcoKpY1LRki4EUFBXbOF5cLzQHAsiBM0drd9sl46BVwBig8Kh+yf6uy2dRclmsxBRvvXMvAYJLcwFsu1ehgqBVkey0pu4aTutu9vZC65007GiIY/zVvkTLJsOS7unp4lVb/X4LrXoAY2x2EnBZMJ2rZCHOZcgGkD8tBR6ooTx2uKe8S4ZsAtx+W1KSe2tNLe0+Ix2xyfqTrAJN+G1zWbuh4rf0qRVvfC9F0Dg=";
 
-                                                        FileSystemObject existingRow = SqlAccessor<FileSystemObject>.SelectResultSet(
+                                                        Cloud.SQLIndexer.SqlModel.FileSystemObjectHolder.FileSystemObject existingRow = SqlAccessor<Cloud.SQLIndexer.SqlModel.FileSystemObjectHolder.FileSystemObject>.SelectResultSet(
                                                                 castTransaction.sqlConnection,
                                                                 //// before
                                                                 //
@@ -3385,9 +3385,9 @@ namespace Cloud.SQLIndexer
                                                                         selectFileSystemObjectByEventId,
                                                                         Encoding.ASCII.GetString(
                                                                             Convert.FromBase64String(indexDBPassword))),
-                                                                    SqlAccessor<FileSystemObject>.GetSelectColumns(),
+                                                                    SqlAccessor<Cloud.SQLIndexer.SqlModel.FileSystemObjectHolder.FileSystemObject>.GetSelectColumns(),
                                                                     SqlAccessor<Event>.GetSelectColumns(Resources.NotTranslatedSqlIndexerEvent),
-                                                                    SqlAccessor<FileSystemObject>.GetSelectColumns(Resources.NotTranslatedSqlIndexerEventPrevious, Resources.NotTranslatedSqlIndexerPreviouses)),
+                                                                    SqlAccessor<Cloud.SQLIndexer.SqlModel.FileSystemObjectHolder.FileSystemObject>.GetSelectColumns(Resources.NotTranslatedSqlIndexerEventPrevious, Resources.NotTranslatedSqlIndexerPreviouses)),
                                                                 new[]
                                                                 {
                                                                     Resources.NotTranslatedSqlIndexerEvent,
@@ -3666,7 +3666,7 @@ namespace Cloud.SQLIndexer
                                                             existingRow.ServerUidId = toUpdate.Metadata.ServerUidId;
                                                             //existingRow.ServerName // <-- add support for server name
                                                             existingRow.Size = toUpdate.Metadata.HashableProperties.Size;
-                                                            existingRow.StorageKey = toUpdate.Metadata.StorageKey;
+                                                            existingRow.Revision = toUpdate.Metadata.Revision;
                                                             existingRow.Version = toUpdate.Metadata.Version;
                                                             #endregion
 
@@ -3678,7 +3678,7 @@ namespace Cloud.SQLIndexer
                                                             #endregion
 
                                                             if (!SqlAccessor<Event>.UpdateRow(castTransaction.sqlConnection, existingRow.Event, castTransaction.sqlTransaction)
-                                                                || !SqlAccessor<FileSystemObject>.UpdateRow(castTransaction.sqlConnection, existingRow, castTransaction.sqlTransaction))
+                                                                || !SqlAccessor<Cloud.SQLIndexer.SqlModel.FileSystemObjectHolder.FileSystemObject>.UpdateRow(castTransaction.sqlConnection, existingRow, castTransaction.sqlTransaction))
                                                             {
                                                                 toAddList.Add(toUpdate);
 
@@ -3957,7 +3957,7 @@ namespace Cloud.SQLIndexer
 
                 const string selectFileSystemObjectByEventId = "XiF/n8DAmECRcpl1q3g5SOaFkrEO/c+iI1V66stCO9Yv7K3QnlXqj68P0vDvLKPEvsMAT4aYICpfeh5DRpnmvL5qfP/ZUoDajTeFKO752ECwpnxQ1+SCCaqYKnwzeo/Wh2QtqIOGL30cai1QEsJGsX2wbiW96Ht+tWlP7fwugSNF9xClHx6bAQUDBjV7POG2BBOYOxclGuxCoxdfH4INOIe2krCYjkG4XnXE0yToE4GK/gFFSYRGTEoZ2aW7sCxPVdr9EGukZZcgDMbGgxDI40f6DqRXW59ORN/PomUqqelyKGq4Ph0qCZmQVVG2UCoQATQn24CQENDgWyjgYHguK86KqVjDXuRbyhnvqNofwp3J/mdKy+Ov+h9eO/QpeqTAsCp9Gg9hvoxNH+IiJYp4SGP3/tT3KXT+MYwdll2uPkaquDhrkSLBeCcbUQB4Qr2sJylOE8sFIfJjvr377C1RzAPtrFNkaTd9P22gnH+0nlK5RRRHA7d85B9zRqEp1HRcks78J3FTJUPpgjRfVnWKH3SXZgxGxBsctkwM7yo/DfH79d6wdvLsU/cdEHTlEeLx2STEfxd2l51en+Nu/+ZaH9gei1Kck6eAIe2Smrcm2C+lKqttvuYFSbuXcMhtuZkOj6BmM8dmh+Z3yO7FqQhoqdDQG6GVQqvhe7x3CokZQ4AJ+JkbsXiw8Z4PrDQSWGvChuk8nhjwyg0kWXBDSHxLrgaYEUVFbf7dioO68bMLeH3mCwssEZHmbkOmcms75RZf95D+FupARaHWpFvUQukUV3IxKwhlaA9dKcJoPnHXst176HqIrVYYApZyt4tjPq1+9GX1zbbnZxriyAdobDMplco1LdHqp8Fy7anhTocS8gMmDzytyVwtGg/JyJtw70eOJxp6xGm6hrOie0UP8xcCIW2LqRKQEWx/wZT2g2RR5vefEOakrmD6CroLA725QbjNpbMQ+Z6hgEw08tnsn8IG7r7WZfrfsYGrGdju47PIWw997WI/Fx+0zXojF9QkPCbiBuYfXx0UH5vKPgDYxfWATyEhfLuFiF+uxzv9x0nHsVM=";
 
-                FileSystemObject existingEventObject = SqlAccessor<FileSystemObject>.SelectResultSet(
+                Cloud.SQLIndexer.SqlModel.FileSystemObjectHolder.FileSystemObject existingEventObject = SqlAccessor<Cloud.SQLIndexer.SqlModel.FileSystemObjectHolder.FileSystemObject>.SelectResultSet(
                         castTransaction.sqlConnection,
                         //// before
                         //
@@ -3996,9 +3996,9 @@ namespace Cloud.SQLIndexer
                                 selectFileSystemObjectByEventId,
                                 Encoding.ASCII.GetString(
                                 Convert.FromBase64String(indexDBPassword))),
-                            SqlAccessor<FileSystemObject>.GetSelectColumns(),
+                            SqlAccessor<Cloud.SQLIndexer.SqlModel.FileSystemObjectHolder.FileSystemObject>.GetSelectColumns(),
                             SqlAccessor<Event>.GetSelectColumns(Resources.NotTranslatedSqlIndexerEvent),
-                            SqlAccessor<FileSystemObject>.GetSelectColumns(Resources.NotTranslatedSqlIndexerEventPrevious, Resources.NotTranslatedSqlIndexerPreviouses),
+                            SqlAccessor<Cloud.SQLIndexer.SqlModel.FileSystemObjectHolder.FileSystemObject>.GetSelectColumns(Resources.NotTranslatedSqlIndexerEventPrevious, Resources.NotTranslatedSqlIndexerPreviouses),
                             SqlAccessor<SqlServerUid>.GetSelectColumns(Resources.NotTranslatedSqlIndexerServerUid)),
                         new[]
                         {
@@ -4182,9 +4182,9 @@ namespace Cloud.SQLIndexer
                                     movePreviousesCommand.ExecuteNonQuery();
                                 }
 
-                                SqlAccessor<FileSystemObject>.DeleteRow(
+                                SqlAccessor<Cloud.SQLIndexer.SqlModel.FileSystemObjectHolder.FileSystemObject>.DeleteRow(
                                     castTransaction.sqlConnection,
-                                    new FileSystemObject()
+                                    new Cloud.SQLIndexer.SqlModel.FileSystemObjectHolder.FileSystemObject()
                                     {
                                         FileSystemObjectId = existingNonPendingIdToMerge
                                     },
@@ -4216,7 +4216,7 @@ namespace Cloud.SQLIndexer
                     case FileChangeType.Modified:
                         existingEventObject.Pending = false;
                         existingEventObject.EventTimeUTCTicks = DateTime.UtcNow.Ticks;
-                        if (!SqlAccessor<FileSystemObject>.UpdateRow(
+                        if (!SqlAccessor<Cloud.SQLIndexer.SqlModel.FileSystemObjectHolder.FileSystemObject>.UpdateRow(
                             castTransaction.sqlConnection,
                             existingEventObject,
                             castTransaction.sqlTransaction))
@@ -4264,7 +4264,7 @@ namespace Cloud.SQLIndexer
                         break;
 
                     case FileChangeType.Deleted:
-                        if (!SqlAccessor<FileSystemObject>.DeleteRow(
+                        if (!SqlAccessor<Cloud.SQLIndexer.SqlModel.FileSystemObjectHolder.FileSystemObject>.DeleteRow(
                             castTransaction.sqlConnection,
                             existingEventObject,
                             castTransaction.sqlTransaction))
@@ -4492,9 +4492,9 @@ namespace Cloud.SQLIndexer
                         }
 
                         if (!existingEventObject.Event.Previous.Pending
-                            && !SqlAccessor<FileSystemObject>.DeleteRow(
+                            && !SqlAccessor<Cloud.SQLIndexer.SqlModel.FileSystemObjectHolder.FileSystemObject>.DeleteRow(
                                 castTransaction.sqlConnection,
-                                new FileSystemObject()
+                                new Cloud.SQLIndexer.SqlModel.FileSystemObjectHolder.FileSystemObject()
                                 {
                                     FileSystemObjectId = storePreviousId
                                 },
@@ -4503,7 +4503,7 @@ namespace Cloud.SQLIndexer
                             throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Unable to delete previous object for rename event");
                         }
 
-                        if (!SqlAccessor<FileSystemObject>.UpdateRow(
+                        if (!SqlAccessor<Cloud.SQLIndexer.SqlModel.FileSystemObjectHolder.FileSystemObject>.UpdateRow(
                             castTransaction.sqlConnection,
                             existingEventObject,
                             castTransaction.sqlTransaction))
@@ -4752,9 +4752,9 @@ namespace Cloud.SQLIndexer
                                             throw new AggregateException("Unable to create ServerUid", createRootServerUid.Exceptions);
                                         }
 
-                                        rootFileSystemObjectId = SqlAccessor<FileSystemObject>.InsertRow<long>
+                                        rootFileSystemObjectId = SqlAccessor<Cloud.SQLIndexer.SqlModel.FileSystemObjectHolder.FileSystemObject>.InsertRow<long>
                                             (creationConnection,
-                                                new FileSystemObject()
+                                                new Cloud.SQLIndexer.SqlModel.FileSystemObjectHolder.FileSystemObject()
                                                 {
                                                     EventTimeUTCTicks = 0, // never need to show the root folder in recents, so it should have the oldest event time
                                                     IsFolder = true,
@@ -4997,7 +4997,7 @@ namespace Cloud.SQLIndexer
 
                                 const string selectRootObject = "t3Ee1ulQLjs62aHw5E7nEHC3Yt6pkKQiMjDOMA00p+Qo1PZHGpfRx91FJNSloGZ3xDH11QktFYyaPHTl7mAN/QkLD0PnpC8sDmmRC3eIdnNwEv6VbgcYJMh2e8FkOh6pkTk+wvxmCRAw6xSk4LnkkIBkbxHbXULufC0P8A7txr+KYvXKLpwm5BBu8bvcAoOUm2ktCSGamUmo73Gmpd/w6ZmrmHM9l5akpRPajdsJpThd0gIFR+xaNdwqm5boi5Op";
 
-                                FileSystemObject rootObject = SqlAccessor<FileSystemObject>.SelectResultSet(
+                                Cloud.SQLIndexer.SqlModel.FileSystemObjectHolder.FileSystemObject rootObject = SqlAccessor<Cloud.SQLIndexer.SqlModel.FileSystemObjectHolder.FileSystemObject>.SelectResultSet(
                                         verifyAndUpdateConnection,
                                         //// before
                                         //
@@ -5399,19 +5399,19 @@ namespace Cloud.SQLIndexer
                 }
 
                 Dictionary<long, string> objectIdsToFullPath = new Dictionary<long, string>();
-                SortedDictionary<KeyValuePair<bool, long>, FileSystemObject> sortedFileSystemObjects = new SortedDictionary<KeyValuePair<bool, long>, FileSystemObject>(pendingThenIdComparer.Instance);
+                SortedDictionary<KeyValuePair<bool, long>, Cloud.SQLIndexer.SqlModel.FileSystemObjectHolder.FileSystemObject> sortedFileSystemObjects = new SortedDictionary<KeyValuePair<bool, long>, Cloud.SQLIndexer.SqlModel.FileSystemObjectHolder.FileSystemObject>(pendingThenIdComparer.Instance);
                 long missingOrderAppend = 0;
 
                 const string selectAllFileSystemObjects = "XiF/n8DAmECRcpl1q3g5SOaFkrEO/c+iI1V66stCO9Yv7K3QnlXqj68P0vDvLKPEvsMAT4aYICpfeh5DRpnmvL5qfP/ZUoDajTeFKO752ECwpnxQ1+SCCaqYKnwzeo/W5zqNKJoarqJ7Ykx2KEJCxMsQaMIsLVdd6b7fCvGImiHvrT1P6h6WqhmdCN+kRN88565+TGDJMAEH2GSck84CzbgfHewvatq4KJ61CYL9I9oCI8iDog94ucymzcnoaLjGGQGL55YSImeP1E0jFhh6akovPplqGUVSFzuCZD5jVcCAin8IP1IUJBI6T2FqPtifjIphBfIOwQkPE9q2NfVXhtSc9ftVfxNeuGVQZHpKmee6I1SYRaciRzloKOKEJHtX0ToGMFy4gwMGzjl2jnIGsUQglASQSkOg8+PogitJWXtelu9wA862oC3JrWUEbHeTaeghBu0Dt8Vt2mOM2Sssk5QQ9Ol++V5WKgv6iKjg2z5ZGjrruCtgNXAtnLNqSapSDk98gSWnH/i8G0d89/4xEk7ALAcN/lTJFL/NF3GmQn/Ohq+chmX31+GDK7Paqqx2G7Te99wrXlYcKXOsdTvQ6EMtOSDJQX2BuT3UdF5SDvuOXgpckZNaWB7R4qFXmuLOLZ6wBDi4mXCG1dg27HTnI7r6FHPutWAF75Ty+MxyD6WJp82+5u6ftOenlpZqb6z6UMHm8O+/rt9V9gQ8ooyrroXlcJqmAGKEeV9TYyJVNE4Q7aAzvGqRwp5sdrzMHyyBOBFCpk8qcY7urn22ICIYNLiYC+xcQqgU+qw9yG2VApactu1aBTKWX/ggA4M5cyIuouksUZdb7xrYb+Kt+BQ6KR+sFMYXWwVmQqMSrjTEem5wP0u0l3UUQRMqjpRj1YOPUgrYwVl7UBOJYjU+QTPhUw84wmCYyzD5VE0n3q0H9rNcuiDJABzHpIDEz9ImEtttoCpUVwuOHZEI26WFbKRW76jvK87oUlknTq6kKpQbL0nzfrVuh00fKDYs0626tDO2t8czjXDT3gc2EgoQrvRW8Q==";
 
-                foreach (FileSystemObject combinedPendingNonPending in SqlAccessor<FileSystemObject>.SelectResultSet(
+                foreach (Cloud.SQLIndexer.SqlModel.FileSystemObjectHolder.FileSystemObject combinedPendingNonPending in SqlAccessor<Cloud.SQLIndexer.SqlModel.FileSystemObjectHolder.FileSystemObject>.SelectResultSet(
                     indexDB,
                     //// before
                     //
                     //"SELECT " +
-                    //    SqlAccessor<FileSystemObject>.GetSelectColumns() + ", " +
+                    //    SqlAccessor<Cloud.SQLIndexer.SqlModel.FileSystemObjectHolder.FileSystemObject>.GetSelectColumns() + ", " +
                     //    SqlAccessor<Event>.GetSelectColumns(Resources.NotTranslatedSqlIndexerEvent) + ", " +
-                    //    SqlAccessor<FileSystemObject>.GetSelectColumns(Resources.NotTranslatedSqlIndexerParent, Resources.NotTranslatedSqlIndexer) + ", " +
+                    //    SqlAccessor<Cloud.SQLIndexer.SqlModel.FileSystemObjectHolder.FileSystemObject>.GetSelectColumns(Resources.NotTranslatedSqlIndexerParent, Resources.NotTranslatedSqlIndexer) + ", " +
                     //    SqlAccessor<SqlServerUid>.GetSelectColumns(Resources.NotTranslatedSqlIndexerParentServerUid) +
                     //    " FROM FileSystemObjects" +
                     //    " LEFT OUTER JOIN Events ON " +
@@ -5426,9 +5426,9 @@ namespace Cloud.SQLIndexer
                     //    ")" +
                     //    " LEFT OUTER JOIN ServerUids ON Parents.ServerUidId = ServerUids.ServerUidId"
                     //
-                    //// after (decrypted; {0}: SqlAccessor<FileSystemObject>.GetSelectColumns()
+                    //// after (decrypted; {0}: SqlAccessor<Cloud.SQLIndexer.SqlModel.FileSystemObjectHolder.FileSystemObject>.GetSelectColumns()
                     //// {1}: SqlAccessor<Event>.GetSelectColumns(Resources.NotTranslatedSqlIndexerEvent)
-                    //// {2}: SqlAccessor<FileSystemObject>.GetSelectColumns(Resources.NotTranslatedSqlIndexerParent, Resources.NotTranslatedSqlIndexer)
+                    //// {2}: SqlAccessor<Cloud.SQLIndexer.SqlModel.FileSystemObjectHolder.FileSystemObject>.GetSelectColumns(Resources.NotTranslatedSqlIndexerParent, Resources.NotTranslatedSqlIndexer)
                     //// {3}: SqlAccessor<SqlServerUid>.GetSelectColumns(Resources.NotTranslatedSqlIndexerParentServerUid) )
                     //
                     //SELECT
@@ -5453,9 +5453,9 @@ namespace Cloud.SQLIndexer
                             selectAllFileSystemObjects,
                             Encoding.ASCII.GetString(
                                 Convert.FromBase64String(indexDBPassword))),
-                        SqlAccessor<FileSystemObject>.GetSelectColumns(),
+                        SqlAccessor<Cloud.SQLIndexer.SqlModel.FileSystemObjectHolder.FileSystemObject>.GetSelectColumns(),
                         SqlAccessor<Event>.GetSelectColumns(Resources.NotTranslatedSqlIndexerEvent),
-                        SqlAccessor<FileSystemObject>.GetSelectColumns(Resources.NotTranslatedSqlIndexerParent, Resources.NotTranslatedSqlIndexerParents),
+                        SqlAccessor<Cloud.SQLIndexer.SqlModel.FileSystemObjectHolder.FileSystemObject>.GetSelectColumns(Resources.NotTranslatedSqlIndexerParent, Resources.NotTranslatedSqlIndexerParents),
                         SqlAccessor<SqlServerUid>.GetSelectColumns(Resources.NotTranslatedSqlIndexerParentServerUid)),
                     includes: new[] { Resources.NotTranslatedSqlIndexerEvent, Resources.NotTranslatedSqlIndexerParent, Resources.NotTranslatedSqlIndexerParentServerUid }))
                 {
@@ -5486,7 +5486,7 @@ namespace Cloud.SQLIndexer
                 List<FileChange> pendingsWithSyncCounter = new List<FileChange>();
                 List<FileChange> pendingsWithoutSyncCounter = new List<FileChange>();
 
-                foreach (KeyValuePair<KeyValuePair<bool, long>, FileSystemObject> currentObject in sortedFileSystemObjects)
+                foreach (KeyValuePair<KeyValuePair<bool, long>, Cloud.SQLIndexer.SqlModel.FileSystemObjectHolder.FileSystemObject> currentObject in sortedFileSystemObjects)
                 {
                     if (currentObject.Key.Key) // true for pending
                     {
@@ -5510,7 +5510,7 @@ namespace Cloud.SQLIndexer
                                 MimeType = currentObject.Value.MimeType,
                                 Permissions = (currentObject.Value.Permissions == null ? (Nullable<POSIXPermissions>)null : (POSIXPermissions)((int)currentObject.Value.Permissions)),
                                 ParentFolderServerUid = (currentObject.Value.Parent == null ? null : (currentObject.Value.Parent.ServerUid == null ? null : currentObject.Value.Parent.ServerUid.ServerUid)),
-                                StorageKey = currentObject.Value.StorageKey,
+                                Revision = currentObject.Value.Revision,
                                 Version = currentObject.Value.Version
                             },
                             NewPath = currentObject.Value.CalculatedFullPath,
@@ -5549,7 +5549,7 @@ namespace Cloud.SQLIndexer
                             MimeType = currentObject.Value.MimeType,
                             Permissions = (currentObject.Value.Permissions == null ? (Nullable<POSIXPermissions>)null : (POSIXPermissions)((int)currentObject.Value.Permissions)),
                             ParentFolderServerUid = (currentObject.Value.Parent == null ? null : (currentObject.Value.Parent.ServerUid == null ? null : currentObject.Value.Parent.ServerUid.ServerUid)),
-                            StorageKey = currentObject.Value.StorageKey,
+                            Revision = currentObject.Value.Revision,
                             Version = currentObject.Value.Version
                         };
 

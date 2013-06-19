@@ -7,10 +7,9 @@ using System.Text;
 
 namespace Cloud.SQLIndexer.SqlModel
 {
-    // \cond
     [Obfuscation(Exclude = true)]
     [SqlAccess.Class(CLDefinitions.SqlModel_SqlServerUid)]
-    public sealed class SqlServerUid
+    internal sealed class SqlServerUid
     {
         [SqlAccess.Property]
         public long ServerUidId { get; set; }
@@ -21,5 +20,4 @@ namespace Cloud.SQLIndexer.SqlModel
         [SqlAccess.Property]
         public string Revision { get; set; }
     }
-    // \endcond
 }

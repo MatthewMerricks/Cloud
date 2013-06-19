@@ -3524,7 +3524,7 @@ namespace Cloud.REST
 
                                     case CLDefinitions.CLEventTypeUpload:
                                     case CLDefinitions.CLEventTypeUploading:
-                                        addChanges[responseIdx].Key.Metadata.StorageKey = currentAddResponse.Metadata.Revision;
+                                        addChanges[responseIdx].Key.Metadata.Revision = currentAddResponse.Metadata.Revision;
 
                                         // This is a little strange.  If the upload completes successfully, we will drive the item completion callback with a CLFileItem.
                                         // The CLFileItem is constructed below out of the currentAddResponse we just received from the server.  However, at this point,

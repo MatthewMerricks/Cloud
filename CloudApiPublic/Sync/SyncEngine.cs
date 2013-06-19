@@ -2731,7 +2731,7 @@ namespace Cloud.Sync
                                 && (topLevelChange.FileChange.Type == FileChangeType.Created || topLevelChange.FileChange.Type == FileChangeType.Modified)
                                 && topLevelChange.FileChange.Metadata != null
                                 && !topLevelChange.FileChange.Metadata.HashableProperties.IsFolder
-                                && !string.IsNullOrEmpty(topLevelChange.FileChange.Metadata.StorageKey))
+                                && !string.IsNullOrEmpty(topLevelChange.FileChange.Metadata.Revision))
                             {
                                 // advanced trace, InitialRunFileTransfer
                                 Data.oneLineChangeFlowTrace(FileChangeFlowEntryPositionInFlow.InitialRunFileTransfer, Helpers.EnumerateSingleItem(topLevelChange.FileChange), Data.traceChangesEnumerableWithFlowState, Data.positionInChangeFlow, Data.changesToTrace);
@@ -2773,7 +2773,7 @@ namespace Cloud.Sync
                                             return true;
                                         }
 
-                                        if (!pendings.Contains(topLevelChange.FileChange.Metadata.StorageKey))
+                                        if (!pendings.Contains(topLevelChange.FileChange.Metadata.Revision))
                                         {
                                             Data.onCompletionOfSynchronousPreprocessedEventReturnWhetherErrorOccurredCompletingEvent.TypedData.topLevelChange.Value = topLevelChange;
                                             if (Data.onCompletionOfSynchronousPreprocessedEventReturnWhetherErrorOccurredCompletingEvent.TypedProcess())
@@ -2806,7 +2806,7 @@ namespace Cloud.Sync
                                 && (topLevelChange.FileChange.Direction == SyncDirection.From // can preprocess all Sync From events
                                     || ((topLevelChange.FileChange.Type == FileChangeType.Created || topLevelChange.FileChange.Type == FileChangeType.Modified) // if not a Sync From event, first requirement for preprocessing is a creation or modification (file uploads)
                                         && topLevelChange.FileChange.Metadata != null // file uploads require metadata
-                                        && !string.IsNullOrWhiteSpace(topLevelChange.FileChange.Metadata.StorageKey)))) // file uploads requires a storage key
+                                        && !string.IsNullOrWhiteSpace(topLevelChange.FileChange.Metadata.Revision)))) // file uploads requires a storage key
                             {
                                 // declare storage for the event id if it processes succesfully
                                 Nullable<long> successfulEventId;
@@ -5178,7 +5178,6 @@ namespace Cloud.Sync
                                         FailureTimer = FailureTimer,
                                         FileToDownload = toComplete.FileChange,
                                         ServerUid = ReturnAndPossiblyFillUidAndRevision(uidStorage, syncData, toComplete.FileChange.Metadata.ServerUidId).ServerUid,
-                                        Revision = toComplete.FileChange.Metadata.StorageKey,
                                         MD5 = toCompleteBytes,
                                         SyncData = syncData,
                                         Syncbox = syncbox,
@@ -5423,7 +5422,7 @@ namespace Cloud.Sync
                         throw new NullReferenceException("storeFileChange must have a Size");
                     }
 
-                    if (string.IsNullOrWhiteSpace(castState.FileToUpload.Metadata.StorageKey))
+                    if (string.IsNullOrWhiteSpace(castState.FileToUpload.Metadata.Revision))
                     {
                         throw new NullReferenceException("storeFileChange must have a StorageKey");
                     }
@@ -5449,7 +5448,7 @@ namespace Cloud.Sync
                     uploadError = castState.RestClient.UploadFile(castState.StreamContext, // stream for upload
                         castState.FileToUpload, // upload change
                         uidRevisionHolder.ServerUid,
-                        castState.FileToUpload.Metadata.StorageKey,
+                        castState.FileToUpload.Metadata.Revision,
                         (int)castState.HttpTimeoutMilliseconds, // milliseconds before communication timeout (does not apply to the amount of time it takes to actually upload the file)
                         out uploadMessage,
                         out hashMismatchFound,
@@ -5536,7 +5535,7 @@ namespace Cloud.Sync
                     }
 
                     // Send the new UploadCompleteMessage status message, including a CLFileItem.
-                    CLFileItem fileItem = new CLFileItem(castState.FileToUpload, castState.Syncbox, castState.FileToUpload.Metadata.StorageKey, uidRevisionHolder.ServerUid, isDeleted: false, isPending: false);
+                    CLFileItem fileItem = new CLFileItem(castState.FileToUpload, castState.Syncbox, castState.FileToUpload.Metadata.Revision, uidRevisionHolder.ServerUid, isDeleted: false, isPending: false);
 
                     MessageEvents.DetectedUploadCompleteChange(
                         eventId: castState.FileToUpload.EventId, // the id for the event
@@ -6176,7 +6175,7 @@ namespace Cloud.Sync
                     // perform the download of the file, storing any error that occurs
                     downloadError = castState.RestClient.DownloadFile(castState.FileToDownload, // the download change
                         castState.ServerUid,
-                        castState.Revision,
+                        castState.FileToDownload.Metadata.Revision,
                         OnAfterDownloadToTempFile, // handler for when downloading completes, needs to move the file to the final location and update the status string message
                         new OnAfterDownloadToTempFileState() // userstate which will be passed along when the callback is fired when downloading completes
                         {
@@ -6252,7 +6251,7 @@ namespace Cloud.Sync
                     {
                         _trace.writeToMemory(() => _trace.trcFmtStr(2, "SyncEngine: DownloadForTask: File finished downloading messages."));
                         // Send the new DownloadCompleteMessage status message, including a CLFileItem.
-                        CLFileItem fileItem = new CLFileItem(castState.FileToDownload, castState.Syncbox, castState.Revision, castState.ServerUid, isDeleted: false, isPending: false);
+                        CLFileItem fileItem = new CLFileItem(castState.FileToDownload, castState.Syncbox, castState.FileToDownload.Metadata.Revision, castState.ServerUid, isDeleted: false, isPending: false);
 
                         MessageEvents.DetectedDownloadCompleteChange(
                             eventId: castState.FileToDownload.EventId, // the id for the event
@@ -6842,7 +6841,6 @@ namespace Cloud.Sync
             public FileTransferStatusUpdateDelegate StatusUpdate { get; set; }
             public FileChange FileToDownload { get; set; }
             public string ServerUid { get; set; }
-            public string Revision { get; set; }
             public byte[] MD5 { get; set; }
             public ProcessingQueuesTimer FailureTimer { get; set; }
             public ISyncDataObject SyncData { get; set; }
@@ -7459,7 +7457,7 @@ namespace Cloud.Sync
                         // set the metadata properties
                         findHashableProperties = nonNullPreviousFileChange.FileChange.Metadata.HashableProperties;
                         // set the storage key, or null if the event is not for a file
-                        findStorageKey = nonNullPreviousFileChange.FileChange.Metadata.StorageKey;
+                        findStorageKey = nonNullPreviousFileChange.FileChange.Metadata.Revision;
                         // set the revision, or null if the event is not for a file
                         findRevision = ReturnAndPossiblyFillUidAndRevision(innerUidStorage, innerSyncData, nonNullPreviousFileChange.FileChange.Metadata.ServerUidId).Revision;
                         // never set on Windows
@@ -7650,7 +7648,7 @@ namespace Cloud.Sync
                         {
                             ParentFolderServerUid = findParentUid, // set the unique parent folder server id
                             HashableProperties = findHashableProperties, // set the metadata properties
-                            StorageKey = findStorageKey, // set the storage key, or null for non-files
+                            Revision = findStorageKey, // set the storage key, or null for non-files
                             MimeType = findMimeType // never set on Windows
                         };
 
@@ -8129,7 +8127,7 @@ namespace Cloud.Sync
                                         ModifiedDate = currentEvent.FileChange.Metadata.HashableProperties.LastTime, // when this file system object was last modified
 
                                         Size = currentEvent.FileChange.Metadata.HashableProperties.Size, // the file size (or null for folders)
-                                        Revision = currentEvent.FileChange.Metadata.StorageKey, // the server location for storage of this file (or null for a folder); probably not read
+                                        Revision = ReturnAndPossiblyFillUidAndRevision(uidStorage, syncData, currentEvent.FileChange.Metadata.ServerUidId).Revision, // the server location for storage of this file (or null for a folder); probably not read
                                         Version = "1.0", // I do not know what value should be placed here
                                         MimeType = currentEvent.FileChange.Metadata.MimeType // never retrieved from Windows
                                     }
@@ -8695,7 +8693,7 @@ namespace Cloud.Sync
                                             innerCurrentChange,
                                             innerCurrentStreamContext);
 
-                                        if (!innerCurrentChange.Metadata.HashableProperties.IsFolder && (innerCurrentChange.Type == FileChangeType.Created || innerCurrentChange.Type == FileChangeType.Modified) && string.IsNullOrEmpty(innerCurrentChange.Metadata.StorageKey))
+                                        if (!innerCurrentChange.Metadata.HashableProperties.IsFolder && (innerCurrentChange.Type == FileChangeType.Created || innerCurrentChange.Type == FileChangeType.Modified) && string.IsNullOrEmpty(innerCurrentChange.Metadata.Revision))
                                         {
                                             throw new NullReferenceException("Metadata.StorageKey must not be null for uploads or downloads");
                                         }
@@ -8946,7 +8944,7 @@ namespace Cloud.Sync
                                                                         newMetadata.ModifiedDate, // last modified time for this file system object
                                                                         newMetadata.CreatedDate, // creation time for this file system object
                                                                         newMetadata.Size), // file size or null for folders
-                                                                    StorageKey = newMetadata.Revision, // file revision or null for folders
+                                                                    Revision = newMetadata.Revision, // file revision or null for folders
                                                                     MimeType = newMetadata.MimeType // never set on Windows
                                                                 },
                                                                 newMetadata.Hash, // file MD5 hash or null for folder
@@ -9132,7 +9130,7 @@ namespace Cloud.Sync
                                                                             }
                                                                             uidStorage[duplicateChange.Metadata.ServerUidId] = new UidRevisionHolder(postDuplicateChangeResult.Metadata.ServerUid, postDuplicateChangeResult.Metadata.Revision);
 
-                                                                            duplicateChange.Metadata.StorageKey = postDuplicateChangeResult.Metadata.Revision;
+                                                                            duplicateChange.Metadata.Revision = postDuplicateChangeResult.Metadata.Revision;
 
                                                                             if ((new[]
                                                                                 {
@@ -9367,7 +9365,7 @@ namespace Cloud.Sync
                                                 // possible non-rename metadata that could still be different:
                                                 && (((PossiblyStreamableFileChange)matchedChange).FileChange.Direction != currentChange.Direction // different by direction of the change (being Sync To or Sync From)
                                                     || ((PossiblyStreamableFileChange)matchedChange).FileChange.Metadata.HashableProperties.Size != currentChange.Metadata.HashableProperties.Size // different by file size
-                                                    || ((PossiblyStreamableFileChange)matchedChange).FileChange.Metadata.StorageKey != currentChange.Metadata.StorageKey // different by storage key
+                                                    || ((PossiblyStreamableFileChange)matchedChange).FileChange.Metadata.Revision != currentChange.Metadata.Revision // different by storage key
 
                                                     || !(sameCreationTime = Helpers.DateTimesWithinOneSecond(((PossiblyStreamableFileChange)matchedChange).FileChange.Metadata.HashableProperties.CreationTime, currentChange.Metadata.HashableProperties.CreationTime)) // different by creation time; compare within 1 second since communication drops subseconds
                                                     || !(sameLastTime = Helpers.DateTimesWithinOneSecond(((PossiblyStreamableFileChange)matchedChange).FileChange.Metadata.HashableProperties.LastTime, currentChange.Metadata.HashableProperties.LastTime)))); // different by last modified time; compare within 1 second since communication drops subseconds
@@ -9487,7 +9485,7 @@ namespace Cloud.Sync
                                                             currentChange.Metadata = currentChange.Metadata.CopyWithNewServerUidId(serverUidId);
 
                                                             // clear storage key since the server may need to assign a new one when creation is sent
-                                                            currentChange.Metadata.StorageKey = null;
+                                                            currentChange.Metadata.Revision = null;
                                                             // clear mime type, which is not set on Windows anyways
                                                             currentChange.Metadata.MimeType = null;
 
@@ -9958,7 +9956,7 @@ namespace Cloud.Sync
                                                                     currentChange.Metadata = currentChange.Metadata.CopyWithNewServerUidId(serverUidId);
 
                                                                     // clear the storage key (since it will be a new file)
-                                                                    currentChange.Metadata.StorageKey = null;
+                                                                    currentChange.Metadata.Revision = null;
                                                                     // clear the MD5 since it was replaced with an incorrect value from the metadata from the server
                                                                     currentChange.SetMD5(md5: null);
 
@@ -10662,7 +10660,7 @@ namespace Cloud.Sync
                                                 //Need to find what key this is //LinkTargetPath <-- what does this comment mean?
 
                                                 HashableProperties = eventHashables,
-                                                StorageKey = currentEvent.Metadata.Revision, // grab the revision, or null for non-files
+                                                Revision = currentEvent.Metadata.Revision, // grab the revision, or null for non-files
                                                 MimeType = currentEvent.Metadata.MimeType, // never set on Windows
                                                 ParentFolderServerUid = currentEvent.Metadata.ToParentUid ?? currentEvent.Metadata.ParentUid
                                             },
@@ -10958,7 +10956,7 @@ namespace Cloud.Sync
                                                     newMetadata.ModifiedDate, // last modified time for this file system object
                                                     newMetadata.CreatedDate, // creation time for this file system object
                                                     newMetadata.Size), // file size or null for folders
-                                                StorageKey = newMetadata.Revision, // file revision or null for folders
+                                                Revision = newMetadata.Revision, // file revision or null for folders
                                                 MimeType = newMetadata.MimeType // never set on Windows
                                             };
 
@@ -11114,7 +11112,7 @@ namespace Cloud.Sync
                                                             }
                                                             uidStorage[innerServerUidId] = new UidRevisionHolder(ServerUid: postDuplicateChangeResult.Metadata.ServerUid, Revision: postDuplicateChangeResult.Metadata.Revision);
 
-                                                            duplicateChange.Metadata.StorageKey = postDuplicateChangeResult.Metadata.Revision;
+                                                            duplicateChange.Metadata.Revision = postDuplicateChangeResult.Metadata.Revision;
 
                                                             if ((new[]
                                                                 {
@@ -11143,7 +11141,7 @@ namespace Cloud.Sync
                                                                     CLDefinitions.CLEventTypeUploading
                                                                 }).Contains(postDuplicateChangeResult.Header.Status))
                                                             {
-                                                                if (string.IsNullOrEmpty(duplicateChange.Metadata.StorageKey))
+                                                                if (string.IsNullOrEmpty(duplicateChange.Metadata.Revision))
                                                                 {
                                                                     throw new NullReferenceException("Metadata.StorageKey must not be null for uploads or downloads");
                                                                 }
@@ -11254,7 +11252,7 @@ namespace Cloud.Sync
                                 case FileChangeType.Modified:
                                     alreadyVisitedRenames[currentChange.NewPath.Copy()] = currentChange.Metadata;
 
-                                    if (!currentChange.Metadata.HashableProperties.IsFolder && string.IsNullOrEmpty(currentChange.Metadata.StorageKey))
+                                    if (!currentChange.Metadata.HashableProperties.IsFolder && string.IsNullOrEmpty(currentChange.Metadata.Revision))
                                     {
                                         syncFromErrors.Add(
                                             new PossiblyStreamableAndPossiblyChangedFileChangeWithError(

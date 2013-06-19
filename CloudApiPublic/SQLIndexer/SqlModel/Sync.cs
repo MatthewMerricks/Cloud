@@ -14,10 +14,9 @@ using System.Reflection;
 
 namespace Cloud.SQLIndexer.SqlModel
 {
-    // \cond
     [Obfuscation(Exclude = true)]
     [SqlAccess.Class(CLDefinitions.SqlModel_Sync)]
-    public sealed class Sync
+    internal sealed class Sync
     {
         [SqlAccess.Property]
         public long SyncCounter { get; set; }
@@ -26,7 +25,6 @@ namespace Cloud.SQLIndexer.SqlModel
         public string SID { get; set; }
 
         [SqlAccess.Property(SqlAccess.FieldType.JoinedTable)]
-        public FileSystemObject FileSystemObject { get; set; }
+        public Cloud.SQLIndexer.SqlModel.FileSystemObjectHolder.FileSystemObject FileSystemObject { get; set; }
     }
-    // \endcond
 }

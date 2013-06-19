@@ -17,7 +17,7 @@ namespace Cloud.SQLIndexer.SqlModel
     // \cond
     [Obfuscation(Exclude = true)]
     [SqlAccess.Class(CLDefinitions.SqlModel_SqlEnum)]
-    public sealed class SqlEnum
+    internal sealed class SqlEnum
     {
         [SqlAccess.Property]
         public long EnumId { get; set; }

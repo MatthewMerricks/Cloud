@@ -14,10 +14,10 @@ using System.Threading.Tasks;
 using System.Reflection;
 
 namespace Cloud.SQLIndexer.SqlModel
-{   // \cond
+{
     [Obfuscation (Exclude=true)]
     [SqlAccess.Class(CLDefinitions.SqlModel_EnumCategory)]
-    public sealed class EnumCategory
+    internal sealed class EnumCategory
     {
         [SqlAccess.Property]
         public long EnumCategoryId { get; set; }
@@ -28,5 +28,4 @@ namespace Cloud.SQLIndexer.SqlModel
         [SqlAccess.Property(Constants.SqlEnumName, SqlAccess.FieldType.JoinedTable)]
         public SqlEnum SqlEnum { get; set; }
     }
-    // \endcond
 }

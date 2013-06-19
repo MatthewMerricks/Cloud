@@ -14,10 +14,9 @@ using System.Reflection;
 
 namespace Cloud.SQLIndexer.SqlModel
 {
-    // \cond
     [Obfuscation(Exclude = true)]
     [SqlAccess.Class(CLDefinitions.SqlModel_Event)]
-    public sealed class Event
+    internal sealed class Event
     {
         [SqlAccess.Property]
         public long EventId { get; set; }
@@ -47,10 +46,9 @@ namespace Cloud.SQLIndexer.SqlModel
         public SqlEnum SqlEnum { get; set; }
 
         [SqlAccess.Property(SqlAccess.FieldType.JoinedTable)]
-        public FileSystemObject Previous { get; set; }
+        public Cloud.SQLIndexer.SqlModel.FileSystemObjectHolder.FileSystemObject Previous { get; set; }
 
         [SqlAccess.Property(SqlAccess.FieldType.JoinedTable)]
-        public FileSystemObject FileSystemObject { get; set; }
+        public Cloud.SQLIndexer.SqlModel.FileSystemObjectHolder.FileSystemObject FileSystemObject { get; set; }
     }
-    // \endcond
 }

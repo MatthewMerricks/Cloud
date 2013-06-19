@@ -75,9 +75,9 @@ namespace Cloud.Model
         }
         private FileMetadataHashableProperties _hashableProperties;
         /// <summary>
-        /// Storage key to identify server location for MDS events
+        /// Individual version of this file (if a file)
         /// </summary>
-        public string StorageKey { get; set; }
+        public string Revision { get; set; }
         /// <summary>
         /// Whether this represents a shared item
         /// </summary>
@@ -132,7 +132,7 @@ namespace Cloud.Model
                 MimeType = this.MimeType,
                 ParentFolderServerUid = this.ParentFolderServerUid,
                 Permissions = this.Permissions,
-                StorageKey = this.StorageKey,
+                Revision = this.Revision,
                 Version = this.Version
             };
         }
@@ -152,7 +152,7 @@ namespace Cloud.Model
             this.ParentFolderServerUid = item.ParentUid;
             this.Permissions = null;
             this._serverUidId = 0;  // On Demand only.  Not used currently in the index.
-            this.StorageKey = item.Revision;
+            this.Revision = item.Revision;
             this.Version = null;
         }
     }
