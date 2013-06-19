@@ -1337,10 +1337,13 @@ namespace Cloud
                     ? null
                     : new JsonContracts.SyncboxCreateRequest()
                     {
-                        FriendlyName = (string.IsNullOrWhiteSpace(friendlyName)
-                            ? null
-                            : friendlyName),
-                        PlanId = plan.PlanId
+                        Syncbox = new JsonContracts.SyncboxCreateRequestDetails
+                        {
+                            FriendlyName = (string.IsNullOrWhiteSpace(friendlyName)
+                                ? null
+                                : friendlyName),
+                            PlanId = plan.PlanId
+                        }
                     });
 
                 // Create the syncbox on the server and get the response object.
