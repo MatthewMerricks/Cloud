@@ -19,6 +19,7 @@ using System.Windows.Threading;
 using System.Threading;
 using System.Management;
 using System.Text;
+using Cloud.Parameters;
 
 namespace SampleLiveSync.ViewModels
 {
@@ -1227,7 +1228,10 @@ namespace SampleLiveSync.ViewModels
                             syncboxId: (long)SettingsAdvancedImpl.Instance.SyncboxId,
                             credentials: syncCredentials,
                             syncbox: out _syncbox,
-                            path: SettingsAdvancedImpl.Instance.SyncRoot,
+                            //@@@@@@@@@@@@@@@@@@@@@@@@@@  DEBUG REMOVE @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                            path: null,
+                            //path: SettingsAdvancedImpl.Instance.SyncRoot,
+                            //@@@@@@@@@@@@@@@@@@@@@@@@@@  DEBUG REMOVE @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
                             settings: SettingsAdvancedImpl.Instance,
                             liveSyncStatusReceiver: _eventMessageReceiver,
                             getNewCredentialsCallback: ReplaceExpiredCredentialsCallback,
@@ -1258,6 +1262,25 @@ namespace SampleLiveSync.ViewModels
                         }
                     }
                 }
+
+                //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ DEBUG ONLY, REMOVE @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+                Cloud.CLFileItem parentFolder;
+                string path = "c:\\trash\\BobTestFile2.txt";
+                CLError errorFromRootFolder = _syncbox.RootFolder(out parentFolder);
+                Cloud.Parameters.AddFileItemParams myParams = new Cloud.Parameters.AddFileItemParams(path, parentFolder, "BobTestFile2.txt");
+
+                CancellationTokenSource cancellationSource = new CancellationTokenSource();
+
+                //CLError errorFromAddFiles = _syncbox.AddFiles(OnFileAddCompletion, this, OnFileItemTransferStatus, this, cancellationSource, myParams);
+
+                CLFileItem item;
+                CLError errorFromItemAtPath = _syncbox.ItemForPath("/BobTestFile2.txt", out item);
+
+                ModifyFileItemParams parm = new ModifyFileItemParams(path, item);
+                CLError errorFromModifyFiles = _syncbox.ModifyFiles(OnFileAddCompletion, this, OnFileItemTransferStatus, this, cancellationSource, parm);
+
+                //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ DEBUG ONLY, REMOVE @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
                 // start syncing
                 CLSyncMode syncMode = Properties.Settings.Default.BadgingEnabled ? CLSyncMode.CLSyncModeLiveWithBadgingEnabled : CLSyncMode.CLSyncModeLive;
@@ -1326,6 +1349,25 @@ namespace SampleLiveSync.ViewModels
                 }
             }
         }
+
+        //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ DEBUG ONLY, REMOVE @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+        private void OnFileItemTransferStatus(int inputItemIndex, long byteProgress, long totalByteSize, object userState)
+        {
+            int myInputItemIndex = inputItemIndex;
+            long myByteProgress = byteProgress;
+            long myTotalByteSize = totalByteSize;
+            CLError error;
+        }
+
+        private void OnFileAddCompletion(int itemIndex, Cloud.CLFileItem completedItem, CLError error, object userState)
+        {
+            int index = itemIndex;
+            Cloud.CLFileItem myItem = completedItem;
+            CLError myError = error;
+        }
+
+        //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ DEBUG ONLY, REMOVE @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
         /// <summary>
         /// Called by the Syncbox to request new credentials when the previous credentials have expired.

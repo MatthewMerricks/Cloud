@@ -3727,7 +3727,7 @@ namespace Cloud.REST
         /// <param name="transferStatusCallback">Callback method to fire when transfer status is updated for each active item.  Can be null.</param>
         /// <param name="transferStatusCallbackUserState">User state to be passed whenever the transfer status callback above is fired.  Can be null.</param>
         /// <param name="cancellationSource">The cancellation token which can be used to cancel the file upload operations.  Can be null.</param>
-        /// <param name="filesToModify">(params) An array of CLFileItems each file to modify.</param>
+        /// <param name="filesToModify">(params) An array of parameters.  Each parameter contains the CLFileItem representing the file in the syncbox, and the full path on disk of the modified file.</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
         internal IAsyncResult BeginModifyFiles(
             AsyncCallback asyncCallback,
@@ -3738,7 +3738,7 @@ namespace Cloud.REST
             CLFileUploadTransferStatusCallback transferStatusCallback,
             object transferStatusCallbackUserState,
             CancellationTokenSource cancellationSource,
-            params CLFileItem[] filesToModify)
+            params ModifyFileItemParams[] filesToModify)
         {
             var asyncThread = DelegateAndDataHolderBase.Create(
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
@@ -3813,7 +3813,7 @@ namespace Cloud.REST
         /// <param name="transferStatusCallback">Callback method to fire when transfer status is updated for each active item.  Can be null.</param>
         /// <param name="transferStatusCallbackUserState">User state to be passed whenever the transfer status callback above is fired.  Can be null.</param>
         /// <param name="cancellationSource">The cancellation token which can be used to cancel the file upload operations.  Can be null.</param>
-        /// <param name="filesToModify">(params) An array of information for each file to add (full path of the file, parent folder in the syncbox and the name of the file in the syncbox).</param>
+        /// <param name="filesToModify">(params) An array of parameters.  Each parameter contains the CLFileItem representing the file in the syncbox, and the full path on disk of the modified file.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
         internal CLError ModifyFiles(
             bool reservedForActiveSync,
@@ -3822,7 +3822,7 @@ namespace Cloud.REST
             CLFileUploadTransferStatusCallback transferStatusCallback,
             object transferStatusCallbackUserState,
             CancellationTokenSource cancellationSource,
-            params CLFileItem[] filesToModify)
+            params ModifyFileItemParams[] filesToModify)
         {
             // try/catch to process the request,  On catch return the error
             try
@@ -3858,29 +3858,25 @@ namespace Cloud.REST
 
                     for (int currentFileItemIdx = 0; currentFileItemIdx < filesToModify.Length; currentFileItemIdx++)
                     {
-                        CLFileItem currentFileItem = filesToModify[currentFileItemIdx];
-                        if (currentFileItem == null)
+                        ModifyFileItemParams currentParam = filesToModify[currentFileItemIdx];
+                        if (currentParam == null)
                         {
                             throw new CLArgumentNullException(CLExceptionCode.OnDemand_InvalidParameters, String.Format(Resources.ExceptionOnDemandFilesToModifyAtIndexMustNotBeNullMsg0, currentFileItemIdx));
                         }
-                        if (currentFileItem.IsFolder)
+                        if (currentParam.FileItem.IsFolder)
                         {
                             throw new CLArgumentException(CLExceptionCode.OnDemand_InvalidParameters,  String.Format(Resources.ExceptionOnDemandFilesToModifyAtIndexItemMustBeAFileItemMsg0, currentFileItemIdx));
                         }
-                        if (String.IsNullOrEmpty(currentFileItem.ItemUid))
+                        if (String.IsNullOrEmpty(currentParam.FileItem.ItemUid))
                         {
                             throw new CLArgumentNullException(CLExceptionCode.OnDemand_MissingParameters, String.Format(Resources.ExceptionOnDemandFilesToModifyAtIndexItemUidMustBeSpecifiedMsg0, currentFileItemIdx));
                         }
-                        if (currentFileItem.Syncbox != _syncbox)
+                        if (currentParam.FileItem.Syncbox != _syncbox)
                         {
                             throw new CLInvalidOperationException(CLExceptionCode.OnDemand_NotCreatedInThisSyncbox, String.Format(Resources.ExceptionOnDemandCLFileItemNotCreatedInThisSyncboxMsg0, currentFileItemIdx));
                         }
 
-                        FilePath fullPath = new FilePath(currentFileItem.FullPath);
-
-                        //TODO: need to add check for bad characters in name
-
-                        //TODO: need to add check for length including name: do not use Helpers.CheckSyncboxPathLength since that only works for the syncbox root
+                        FilePath fullPath = new FilePath(currentParam.FullPath);
 
                         FileChange modifyChange = new FileChange()
                         {
@@ -3890,10 +3886,10 @@ namespace Cloud.REST
                                 EventTime = DateTime.UtcNow,
                                 HashableProperties = new FileMetadataHashableProperties(
                                     isFolder: false,
-                                    lastTime: File.GetLastWriteTimeUtc(currentFileItem.FullPath),
-                                    creationTime: File.GetCreationTimeUtc(currentFileItem.FullPath),
+                                    lastTime: File.GetLastWriteTimeUtc(currentParam.FullPath),
+                                    creationTime: File.GetCreationTimeUtc(currentParam.FullPath),
                                     size: null),
-                                StorageKey = currentFileItem.Revision,
+                                StorageKey = currentParam.FileItem.Revision,
                             },
                             NewPath = fullPath,
                             Type = FileChangeType.Created
@@ -3973,7 +3969,7 @@ namespace Cloud.REST
 
                             modifyChanges.Add(
                                 new Tuple<FileChange, string, int>(
-                                    modifyChange, currentFileItem.ItemUid, currentFileItemIdx));
+                                    modifyChange, currentParam.FileItem.ItemUid, currentFileItemIdx));
                         }
                     }
 
@@ -4000,8 +3996,8 @@ namespace Cloud.REST
                                 Hash = currentModifyChange.Item1.GetMD5LowercaseString(),
                                 MimeType = currentModifyChange.Item1.Metadata.MimeType,
                                 ModifiedDate = currentModifyChange.Item1.Metadata.HashableProperties.LastTime,
-                                ServerUid = filesToModify[currentModifyChange.Item3].ItemUid,
-                                Revision = filesToModify[currentModifyChange.Item3].Revision,
+                                ServerUid = filesToModify[currentModifyChange.Item3].FileItem.ItemUid,
+                                Revision = filesToModify[currentModifyChange.Item3].FileItem.Revision,
                                 Size = currentModifyChange.Item1.Metadata.HashableProperties.Size,
                             }).ToArray()
                         };
