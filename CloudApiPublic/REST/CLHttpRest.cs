@@ -3889,7 +3889,7 @@ namespace Cloud.REST
                                     lastTime: File.GetLastWriteTimeUtc(currentParam.FullPath),
                                     creationTime: File.GetCreationTimeUtc(currentParam.FullPath),
                                     size: null),
-                                StorageKey = currentParam.FileItem.Revision,
+                                Revision = currentParam.FileItem.Revision,
                             },
                             NewPath = fullPath,
                             Type = FileChangeType.Created
@@ -4081,7 +4081,7 @@ namespace Cloud.REST
 
                                     case CLDefinitions.CLEventTypeUpload:
                                     case CLDefinitions.CLEventTypeUploading:
-                                        modifyChanges[responseIdx].Item1.Metadata.StorageKey = currentModifyResponse.Metadata.Revision;
+                                        modifyChanges[responseIdx].Item1.Metadata.Revision = currentModifyResponse.Metadata.Revision;
 
                                         // This is a little strange.  If the upload completes successfully, we will drive the item completion callback with a CLFileItem.
                                         // The CLFileItem is constructed below out of the currentAddResponse we just received from the server.  However, at this point,
