@@ -39,7 +39,7 @@ namespace Cloud.Static
 {
     extern alias SimpleJsonBase;
     using System.Security.AccessControl;
-    using Cloud.CLSync;
+    using Cloud.Callbacks;
 
     /// <summary>
     /// Class containing commonly usable static helper methods
@@ -2923,7 +2923,7 @@ namespace Cloud.Static
             HashSet<HttpStatusCode> validStatusCodes, // a HashSet with HttpStatusCodes which should be considered all possible successful return codes from the server
             ICLSyncSettingsAdvanced CopiedSettings, // used for device id, trace settings, and client version
             CLCredentials Credentials, // contains key/secret for authorization
-            Nullable<long> SyncboxId, // unique id for the sync box on the server
+            CLSyncbox Syncbox, // the syncbox to use
             bool isOneOff) // one-offs bypass the halt all check
             where T : class // restrict T to an object type to allow default null return
         {
@@ -2936,7 +2936,7 @@ namespace Cloud.Static
                 validStatusCodes,
                 CopiedSettings,
                 Credentials,
-                SyncboxId,
+                Syncbox,
                 isOneOff);
         }
 
@@ -2951,7 +2951,7 @@ namespace Cloud.Static
             uploadDownloadParams uploadDownload, // parameters if the method is for a file upload or download, or null otherwise
             HashSet<HttpStatusCode> validStatusCodes,
             ICLSyncSettingsAdvanced CopiedSettings,
-            Nullable<long> SyncboxId,
+            CLSyncbox Syncbox,
             RequestNewCredentialsInfo RequestNewCredentialsInfo, // gets the credentials and renews the credentials if needed
             bool isOneOff,
             CLFileDownloadTransferStatusCallback transferStatusCallback,
@@ -2970,7 +2970,7 @@ namespace Cloud.Static
             uploadDownloadParams uploadDownload, // parameters if the method is for a file upload or download, or null otherwise
             HashSet<HttpStatusCode> validStatusCodes, // a HashSet with HttpStatusCodes which should be considered all possible successful return codes from the server
             ICLSyncSettingsAdvanced CopiedSettings, // used for device id, trace settings, and client version
-            Nullable<long> SyncboxId,  // unique id for the sync box on the server
+            CLSyncbox Syncbox,   // the syncbox to use
             RequestNewCredentialsInfo RequestNewCredentialsInfo, // gets the credentials and renews the credentials if needed
             bool isOneOff, // one-offs bypass the halt all check
             CLFileDownloadTransferStatusCallback transferStatusCallback,
@@ -3000,7 +3000,7 @@ namespace Cloud.Static
                         validStatusCodes,
                         CopiedSettings,
                         Credentials,
-                        SyncboxId,
+                        Syncbox,
                         isOneOff);
 
                     if (RequestNewCredentialsInfo.GetNewCredentialsCallback != null)
@@ -3014,7 +3014,7 @@ namespace Cloud.Static
                 }
                 catch (Exception ex)
                 {
-                    response = RequestNewCredentialsPart2<HttpWebResponse>(requestContent, serverUrl, serverMethodPath, method, timeoutMilliseconds, uploadDownload, validStatusCodes, CopiedSettings, SyncboxId, RequestNewCredentialsInfo, isOneOff, threadId, Credentials, ex);
+                    response = RequestNewCredentialsPart2<HttpWebResponse>(requestContent, serverUrl, serverMethodPath, method, timeoutMilliseconds, uploadDownload, validStatusCodes, CopiedSettings, Syncbox, RequestNewCredentialsInfo, isOneOff, threadId, Credentials, ex);
                 }
 
                 responseStream = response.GetResponseStream();
@@ -3065,7 +3065,7 @@ namespace Cloud.Static
             uploadDownloadParams uploadDownload, // parameters if the method is for a file upload or download, or null otherwise
             HashSet<HttpStatusCode> validStatusCodes, // a HashSet with HttpStatusCodes which should be considered all possible successful return codes from the server
             ICLSyncSettingsAdvanced CopiedSettings, // used for device id, trace settings, and client version
-            Nullable<long> SyncboxId,  // unique id for the sync box on the server
+            CLSyncbox Syncbox,  // the syncbox to use
             RequestNewCredentialsInfo RequestNewCredentialsInfo, // gets the credentials and renews the credentials if needed
             bool isOneOff) // one-offs bypass the halt all check
             where T : class // restrict T to an object type to allow default null return
@@ -3087,7 +3087,7 @@ namespace Cloud.Static
                     validStatusCodes,
                     CopiedSettings,
                     Credentials,
-                    SyncboxId, 
+                    Syncbox, 
                     isOneOff);
 
                 if (RequestNewCredentialsInfo.GetNewCredentialsCallback != null)
@@ -3103,7 +3103,7 @@ namespace Cloud.Static
             }
             catch (Exception ex)
             {
-                return RequestNewCredentialsPart2<T>(requestContent, serverUrl, serverMethodPath, method, timeoutMilliseconds, uploadDownload, validStatusCodes, CopiedSettings, SyncboxId, RequestNewCredentialsInfo, isOneOff, threadId, Credentials, ex);
+                return RequestNewCredentialsPart2<T>(requestContent, serverUrl, serverMethodPath, method, timeoutMilliseconds, uploadDownload, validStatusCodes, CopiedSettings, Syncbox, RequestNewCredentialsInfo, isOneOff, threadId, Credentials, ex);
             } // <-- end catch
         }
 
@@ -3120,7 +3120,7 @@ namespace Cloud.Static
             uploadDownloadParams uploadDownload, 
             HashSet<HttpStatusCode> validStatusCodes, 
             ICLSyncSettingsAdvanced CopiedSettings, 
-            Nullable<long> SyncboxId, 
+            CLSyncbox Syncbox, 
             RequestNewCredentialsInfo RequestNewCredentialsInfo, 
             bool isOneOff, 
             int threadId, 
@@ -3212,7 +3212,8 @@ namespace Cloud.Static
                     && castEx.Code == CLExceptionCode.Http_NotAuthorizedExpiredCredentials)
                 {
                     // Retry the original operation.
-                    return ProcessHttpInner<T>(requestContent,
+                    return ProcessHttpInner<T>(
+                        requestContent,
                         serverUrl,
                         serverMethodPath,
                         method,
@@ -3221,7 +3222,7 @@ namespace Cloud.Static
                         validStatusCodes,
                         CopiedSettings,
                         Credentials,
-                        SyncboxId,
+                        Syncbox,
                         isOneOff);
                 }
                 else
@@ -3299,7 +3300,7 @@ namespace Cloud.Static
             HashSet<HttpStatusCode> validStatusCodes, // a HashSet with HttpStatusCodes which should be considered all possible successful return codes from the server
             ICLSyncSettingsAdvanced CopiedSettings, // used for device id, trace settings, and client version
             CLCredentials Credentials, // contains key/secret for authorization
-            Nullable<long> SyncboxId, // unique id for the sync box on the server
+            CLSyncbox Syncbox, // syncbox to use
             bool isOneOff, // one-offs bypass the halt all check
             [CallerMemberName] string callerName = null) // pull the caller method to determine if it's the one which supports the Stream type
             where T : class // restrict T to an object type to allow default null return
@@ -3470,7 +3471,7 @@ namespace Cloud.Static
             {
                 httpRequest.ContentType = CLDefinitions.HeaderAppendContentTypeBinary; // content will be direct binary stream
                 httpRequest.ContentLength = uploadDownload.ChangeToTransfer.Metadata.HashableProperties.Size ?? 0; // content length will be file size
-                httpRequest.Headers[CLDefinitions.HeaderAppendStorageKey] = uploadDownload.ChangeToTransfer.Metadata.StorageKey; // add header for destination location of file
+                //Use uid/revision now in query string. httpRequest.Headers[CLDefinitions.HeaderAppendStorageKey] = uploadDownload.ChangeToTransfer.Metadata.StorageKey; // add header for destination location of file
                 httpRequest.Headers[CLDefinitions.HeaderAppendContentMD5] = ((uploadParams)uploadDownload).Hash; // set MD5 content hash for verification of upload stream
                 httpRequest.KeepAlive = true; // do not close connection (is this needed?)
                 requestContentBytes = null; // do not write content bytes since they will come from the Stream inside the upload object
@@ -3484,7 +3485,7 @@ namespace Cloud.Static
                 // trace communication for the current request
                 ComTrace.LogCommunication(CopiedSettings.TraceLocation, // location of trace file
                     CopiedSettings.DeviceId, // device id
-                    SyncboxId, // user id
+                    Syncbox.SyncboxId, // syncbox ID
                     CommunicationEntryDirection.Request, // direction is request
                     serverUrl + serverMethodPath, // location for the server method
                     true, // trace is enabled
@@ -3676,7 +3677,7 @@ namespace Cloud.Static
                                         uploadDownload.RelativePathForStatus, // relative path of file
                                         totalBytesUploaded), // bytes uploaded so far
                                     uploadDownload.ChangeToTransfer, // the source of the event (the event itself)
-                                    SyncboxId, // pass in sync box id to allow filtering
+                                    Syncbox.SyncboxId, // pass in sync box id to allow filtering
                                     CopiedSettings.DeviceId); // pass in device id to allow filtering
 
                                 if (uploadDownload.StatusUpdate != null
@@ -3866,6 +3867,25 @@ namespace Cloud.Static
 
                         httpResponse = (HttpWebResponse)ex.Response;
                     }
+                }
+
+                StringBuilder allSerializers = null;
+                foreach (KeyValuePair<Type, System.Runtime.Serialization.Json.DataContractJsonSerializer> mySerializer in SerializableResponseTypes)
+                {
+                    if (allSerializers == null)
+                    {
+                        allSerializers = new StringBuilder();
+                    }
+                    else
+                    {
+                        allSerializers.Append(((char)0x2c) + Environment.NewLine);
+                    }
+
+                    allSerializers.Append(mySerializer.Key.ToString() + ((char)0x3a) + mySerializer.Value.ToString());
+                }
+                if (allSerializers == null)
+                {
+                    allSerializers = new StringBuilder();
                 }
 
                 // try to get the serializer for the output by the type of output from dictionary and store whether successful
@@ -4303,7 +4323,7 @@ namespace Cloud.Static
                                                     uploadDownload.RelativePathForStatus, // relative path of file
                                                     totalBytesDownloaded), // current count of completed download bytes
                                             uploadDownload.ChangeToTransfer, // the source of the event, the event itself
-                                            SyncboxId, // pass in sync box id for filtering
+                                            Syncbox.SyncboxId, // pass in sync box id for filtering
                                             CopiedSettings.DeviceId); // pass in device id for filtering
                                     }
                                     // flush file stream to finish the file
@@ -4406,7 +4426,7 @@ namespace Cloud.Static
                             // log communication for stream body
                             ComTrace.LogCommunication(CopiedSettings.TraceLocation, // trace file location
                                 CopiedSettings.DeviceId, // device id
-                                SyncboxId, // user id
+                                Syncbox.SyncboxId, // syncbox id
                                 CommunicationEntryDirection.Response, // communication direction is response
                                 serverUrl + serverMethodPath, // input parameter method path
                                 true, // trace is enabled
@@ -4444,11 +4464,21 @@ namespace Cloud.Static
                                 appendedStream.Flush();
                                 appendedStream.Seek(0, SeekOrigin.Begin);
 
+                                if (outSerializer == null)
+                                {
+                                    throw new Exception(allSerializers.ToString());
+                                }
+
                                 toReturn = (T)outSerializer.ReadObject(appendedStream);
                             }
                         }
                         else
                         {
+                            if (outSerializer == null)
+                            {
+                                throw new Exception(allSerializers.ToString());
+                            }
+
                             // deserialize the response content into the appropriate json contract object
                             toReturn = (T)outSerializer.ReadObject(serializationStream);
                         }
@@ -4488,7 +4518,9 @@ namespace Cloud.Static
                         MessageEvents.FireNewEventMessage(
                             Resources.ExceptionHelpersProcessHttpInnerResponseDeserializeMissedEarlierCheck,
                             EventMessageLevel.Important,
-                            new Cloud.Model.EventMessages.ErrorInfo.HaltAllOfCloudSDKErrorInfo());
+                            new Cloud.Model.EventMessages.ErrorInfo.HaltAllOfCloudSDKErrorInfo(),
+                            Syncbox,
+                            CopiedSettings.DeviceId);
 
                         throw new CLHttpException(
                             httpResponse.StatusCode,
@@ -4504,7 +4536,7 @@ namespace Cloud.Static
                 return toReturn;
                 #endregion
             }
-            catch
+            catch (Exception ex)
             {
                 // if there was an event for the upload or download, then fire the event callback for a final transfer status
                 if (uploadDownload != null
@@ -4529,7 +4561,7 @@ namespace Cloud.Static
                                     // need to send a total uploaded bytes which matches the file size so they are equal to cancel the status
                                     uploadDownload.ChangeToTransfer.Metadata.HashableProperties.Size ?? 0),
                                 uploadDownload.ChangeToTransfer, // sender of event (the event itself)
-                                SyncboxId, // pass in sync box id for filtering
+                                Syncbox.SyncboxId, // pass in sync box id for filtering
                                 CopiedSettings.DeviceId); // pass in device id for filtering
                         }
                     }
@@ -4575,7 +4607,7 @@ namespace Cloud.Static
                             // log communication for string body
                             ComTrace.LogCommunication(CopiedSettings.TraceLocation, // trace file location
                                 CopiedSettings.DeviceId, // device id
-                                SyncboxId, // user id
+                                Syncbox.SyncboxId, // syncbox id
                                 CommunicationEntryDirection.Response, // communication direction is response
                                 serverUrl + serverMethodPath, // input parameter method path
                                 true, // trace is enabled

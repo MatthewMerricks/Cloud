@@ -24,6 +24,7 @@ using System.ComponentModel;
 using System.Security.Principal;
 using Cloud.Support;
 using Cloud.Model;
+using Cloud;
 
 namespace SampleLiveSync.Static
 {

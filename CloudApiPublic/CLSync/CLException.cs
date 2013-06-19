@@ -11,7 +11,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace Cloud.Model
+namespace Cloud
 {
     /// <summary>
     /// Derived AggregateException class to contain Cloud error domain and code

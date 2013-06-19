@@ -12,10 +12,11 @@ using System.Text;
 
 namespace Cloud.SQLProxies
 {
+    // \cond
     /// <summary>
     /// SQLite implementation of DbParameterCollection.
     /// </summary>
-    internal interface ISQLiteParameterCollection
+    public interface ISQLiteParameterCollection
     {
         /// <summary>
         /// Adds a parameter to the collection
@@ -24,4 +25,5 @@ namespace Cloud.SQLProxies
         /// <returns>A zero-based index of where the parameter is located in the array</returns>
         int Add(ISQLiteParameter parameter);
     }
+    // \endcond
 }

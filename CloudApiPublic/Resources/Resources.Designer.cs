@@ -2304,6 +2304,15 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to File not found.
+        /// </summary>
+        internal static string ExceptionFileNotFound {
+            get {
+                return ResourceManager.GetString("ExceptionFileNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to MakeAsyncRequestSynchronous was processed without param1.
         /// </summary>
         internal static string ExceptionHelpersAsyncGetUploadRequestStreamOrDownloadResponseMakeSyncParam1 {
@@ -2754,6 +2763,42 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to No error creating FileStream but it still does not exist.
+        /// </summary>
+        internal static string ExceptionOnDemandAddFileFileStreamDoesNotExist {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandAddFileFileStreamDoesNotExist", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No error creating finalFileSize but it still does not exist.
+        /// </summary>
+        internal static string ExceptionOnDemandAddFileFinalFileSizeDoesNotExist {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandAddFileFinalFileSizeDoesNotExist", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No error creating intermediateHashes but it still does not exist.
+        /// </summary>
+        internal static string ExceptionOnDemandAddFileIntermediateHashesDoesNotExist {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandAddFileIntermediateHashesDoesNotExist", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No error creating newMD5Bytes but it still does not exist.
+        /// </summary>
+        internal static string ExceptionOnDemandAddFileNewMd5BytesDoesNotExist {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandAddFileNewMd5BytesDoesNotExist", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to foldersToAdd must be specified, and must have at least one element.
         /// </summary>
         internal static string ExceptionOnDemandAddFoldersNoFoldersToAdd {
@@ -2988,6 +3033,60 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to filesToAdd item {0} FullPath must be specified.
+        /// </summary>
+        internal static string ExceptionOnDemandFilesToAddAtIndexFullPathMustNotBeNullMsg0 {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandFilesToAddAtIndexFullPathMustNotBeNullMsg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to filesToAdd item at index {0} must not be null.
+        /// </summary>
+        internal static string ExceptionOnDemandFilesToAddAtIndexMustNotBeNullMsg0 {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandFilesToAddAtIndexMustNotBeNullMsg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to filesToAdd item {0} ParentFolder.ItemUid must be specified.
+        /// </summary>
+        internal static string ExceptionOnDemandFilesToAddAtIndexParentFolderItemUidMissingMsg0 {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandFilesToAddAtIndexParentFolderItemUidMissingMsg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to filesToAdd item {0} Parent folder must not be null.
+        /// </summary>
+        internal static string ExceptionOnDemandFilesToAddAtIndexParentMustNotBeNullMsg0 {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandFilesToAddAtIndexParentMustNotBeNullMsg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to filesToAdd must have a length greater than zero.
+        /// </summary>
+        internal static string ExceptionOnDemandFilesToAddLengthMustBeGtZero {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandFilesToAddLengthMustBeGtZero", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to filesToAdd must not be null.
+        /// </summary>
+        internal static string ExceptionOnDemandFilesToAddMustNotBeNull {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandFilesToAddMustNotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The input CLFileItem at index {0} was a folder when a file item was expected.
         /// </summary>
         internal static string ExceptionOnDemandFolderItemFoundWhenFileItemExpectedMsg0 {
@@ -3002,6 +3101,42 @@ namespace Cloud.Static {
         internal static string ExceptionOnDemandFolderItemNullAtIndexMsg0 {
             get {
                 return ResourceManager.GetString("ExceptionOnDemandFolderItemNullAtIndexMsg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to server returned null response.
+        /// </summary>
+        internal static string ExceptionOnDemandGetCurrentStatusNullServerResponse {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandGetCurrentStatusNullServerResponse", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to server returned null response Syncbox.
+        /// </summary>
+        internal static string ExceptionOnDemandGetCurrentStatusServerResponseNullSyncbox {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandGetCurrentStatusServerResponseNullSyncbox", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to server returned null response Syncbox CreatedAt.
+        /// </summary>
+        internal static string ExceptionOnDemandGetCurrentStatusServerResponseNullSyncboxCreatedAt {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandGetCurrentStatusServerResponseNullSyncboxCreatedAt", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to server returned null response Syncbox PlanId.
+        /// </summary>
+        internal static string ExceptionOnDemandGetCurrentStatusServerResponseNullSyncboxPlanId {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandGetCurrentStatusServerResponseNullSyncboxPlanId", resourceCulture);
             }
         }
         
@@ -3281,6 +3416,79 @@ namespace Cloud.Static {
         internal static string ExceptionOnDemandUnlinkDeviceRequestMustNotBeNull {
             get {
                 return ResourceManager.GetString("ExceptionOnDemandUnlinkDeviceRequestMustNotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to friendlyName must be specified.
+        /// </summary>
+        internal static string ExceptionOnDemandUpdateFriendlyNameFriendlyNameMustBeSpecified {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandUpdateFriendlyNameFriendlyNameMustBeSpecified", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to server returned null response.
+        /// </summary>
+        internal static string ExceptionOnDemandUpdateFriendlyNameServerReturnedNullResponse {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandUpdateFriendlyNameServerReturnedNullResponse", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to server returned null response Syncbox.
+        /// </summary>
+        internal static string ExceptionOnDemandUpdateFriendlyNameServerReturnedNullResponseSyncbox {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandUpdateFriendlyNameServerReturnedNullResponseSyncbox", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to server returned null response Syncbox PlanId.
+        /// </summary>
+        internal static string ExceptionOnDemandUpdateFriendlyNameServerReturnedNullResponseSyncboxPlanId {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandUpdateFriendlyNameServerReturnedNullResponseSyncboxPlanId", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to storagePlan must not be null.
+        /// </summary>
+        internal static string ExceptionOnDemandUpdateStoragePlanStoragePlanMustNotBeNull {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandUpdateStoragePlanStoragePlanMustNotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to server returned null response.
+        /// </summary>
+        internal static string ExceptionOnDemandUpdateStoragePlanStoragePlanServerReturnedNullResponse {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandUpdateStoragePlanStoragePlanServerReturnedNullResponse", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to server returned null response Syncbox.
+        /// </summary>
+        internal static string ExceptionOnDemandUpdateStoragePlanStoragePlanServerReturnedNullResponseSyncbox {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandUpdateStoragePlanStoragePlanServerReturnedNullResponseSyncbox", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to server returned null response Syncbox PlanId.
+        /// </summary>
+        internal static string ExceptionOnDemandUpdateStoragePlanStoragePlanServerReturnedNullResponseSyncboxPlanId {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandUpdateStoragePlanStoragePlanServerReturnedNullResponseSyncboxPla" +
+                        "nId", resourceCulture);
             }
         }
         
@@ -5486,6 +5694,15 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to This IndexingAgent.
+        /// </summary>
+        internal static string IndexingAgentThisIndexingAgent {
+            get {
+                return ResourceManager.GetString("IndexingAgentThisIndexingAgent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to IndexingAgent: UpdateServerUid: Migrated forwards: serverUidId: {0}..
         /// </summary>
         internal static string IndexingAgentUpdateServerUIDMigratedForwardsServerUIDID0 {
@@ -6615,6 +6832,168 @@ namespace Cloud.Static {
         internal static string NotTranslatedRoamingAppDataFolderNameXPName {
             get {
                 return ResourceManager.GetString("NotTranslatedRoamingAppDataFolderNameXPName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CalculatedFullPath.
+        /// </summary>
+        internal static string NotTranslatedSqlIndexerCalculatedFullPath {
+            get {
+                return ResourceManager.GetString("NotTranslatedSqlIndexerCalculatedFullPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0}{1}.db.
+        /// </summary>
+        internal static string NotTranslatedSqlIndexerDBCopiedName {
+            get {
+                return ResourceManager.GetString("NotTranslatedSqlIndexerDBCopiedName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to DB #{0}:{1}{2}{3}{4}.
+        /// </summary>
+        internal static string NotTranslatedSqlIndexerDBStackFormat {
+            get {
+                return ResourceManager.GetString("NotTranslatedSqlIndexerDBStackFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0}.txt.
+        /// </summary>
+        internal static string NotTranslatedSqlIndexerDBStackName {
+            get {
+                return ResourceManager.GetString("NotTranslatedSqlIndexerDBStackName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Event.
+        /// </summary>
+        internal static string NotTranslatedSqlIndexerEvent {
+            get {
+                return ResourceManager.GetString("NotTranslatedSqlIndexerEvent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Event.Previous.
+        /// </summary>
+        internal static string NotTranslatedSqlIndexerEventPrevious {
+            get {
+                return ResourceManager.GetString("NotTranslatedSqlIndexerEventPrevious", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to FileSystemObject.
+        /// </summary>
+        internal static string NotTranslatedSqlIndexerFileSystemObject {
+            get {
+                return ResourceManager.GetString("NotTranslatedSqlIndexerFileSystemObject", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to FileSystemObjectId.
+        /// </summary>
+        internal static string NotTranslatedSqlIndexerFileSystemObjectId {
+            get {
+                return ResourceManager.GetString("NotTranslatedSqlIndexerFileSystemObjectId", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to integrity_check.
+        /// </summary>
+        internal static string NotTranslatedSqlIndexerIntegrityCheck {
+            get {
+                return ResourceManager.GetString("NotTranslatedSqlIndexerIntegrityCheck", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Name.
+        /// </summary>
+        internal static string NotTranslatedSqlIndexerName {
+            get {
+                return ResourceManager.GetString("NotTranslatedSqlIndexerName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Parent.
+        /// </summary>
+        internal static string NotTranslatedSqlIndexerParent {
+            get {
+                return ResourceManager.GetString("NotTranslatedSqlIndexerParent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Parents.
+        /// </summary>
+        internal static string NotTranslatedSqlIndexerParents {
+            get {
+                return ResourceManager.GetString("NotTranslatedSqlIndexerParents", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Parent.ServerUid.
+        /// </summary>
+        internal static string NotTranslatedSqlIndexerParentServerUid {
+            get {
+                return ResourceManager.GetString("NotTranslatedSqlIndexerParentServerUid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Previous.
+        /// </summary>
+        internal static string NotTranslatedSqlIndexerPrevious {
+            get {
+                return ResourceManager.GetString("NotTranslatedSqlIndexerPrevious", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Previouses.
+        /// </summary>
+        internal static string NotTranslatedSqlIndexerPreviouses {
+            get {
+                return ResourceManager.GetString("NotTranslatedSqlIndexerPreviouses", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ServerUid.
+        /// </summary>
+        internal static string NotTranslatedSqlIndexerServerUid {
+            get {
+                return ResourceManager.GetString("NotTranslatedSqlIndexerServerUid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ServerUidId.
+        /// </summary>
+        internal static string NotTranslatedSqlIndexerServerUidId {
+            get {
+                return ResourceManager.GetString("NotTranslatedSqlIndexerServerUidId", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to .sql.
+        /// </summary>
+        internal static string NotTranslatedSqlIndexerSqlExtension {
+            get {
+                return ResourceManager.GetString("NotTranslatedSqlIndexerSqlExtension", resourceCulture);
             }
         }
         

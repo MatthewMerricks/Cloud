@@ -19,6 +19,7 @@ using System.Text;
 
 namespace Cloud.SQLIndexer.SqlModel
 {
+    [Obfuscation(Exclude = true)]
     internal static class SqlAccessor<T> where T : class
     {
         #region private static members
@@ -1182,6 +1183,7 @@ namespace Cloud.SQLIndexer.SqlModel
     /// <summary>
     /// Attribute parent namespace for decorating classes and properties to signify POCO objects/properties that match SQL CE tables/columns
     /// </summary>
+    [Obfuscation(Feature = "preserve-name-binding")]
     internal static class SqlAccess
     {
         [AttributeUsage(AttributeTargets.Property)]

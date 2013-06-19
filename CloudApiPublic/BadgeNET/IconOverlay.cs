@@ -156,7 +156,7 @@ namespace Cloud.BadgeNET
                             commonThisOverlay = this,
                             waitHandleInitialize = new AutoResetEvent(false),
                             initializeSuccessHolder = new GenericHolder<bool>(false),
-                            innerSyncboxId = syncbox.SyncboxId
+                            innerSyncbox = syncbox
                         },
                         (Data, errorToAccumulate) =>
                         {
@@ -224,7 +224,7 @@ namespace Cloud.BadgeNET
                                     Message: Resources.IconOverlayExplorerIconBadgingHasFailed,
                                     Level: EventMessageLevel.Important,
                                     Error: new GeneralErrorInfo(),
-                                    SyncboxId: Data.innerSyncboxId,
+                                    Syncbox: Data.innerSyncbox,
                                     DeviceId: Data.commonThisOverlay._syncSettings.DeviceId);
                             }
                             Data.commonThisOverlay._trace.writeToLog(9, Resources.IconOverlayThreadInitExitThread);
@@ -328,7 +328,7 @@ namespace Cloud.BadgeNET
                     Message: Resources.IconOverlayExplorerIconBadgingHasFailed,
                     Level: EventMessageLevel.Important,
                     Error: null,
-                    SyncboxId: syncbox.SyncboxId,
+                    Syncbox: syncbox,
                     DeviceId: _syncSettings.DeviceId);
                 return ex;
             }

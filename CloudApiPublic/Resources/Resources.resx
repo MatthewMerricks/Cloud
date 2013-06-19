@@ -747,7 +747,7 @@
   </data>
   <data name="CLAsyncResultInternalTypeMismatch" xml:space="preserve">
     <value>asyncResult does not match expected internal type</value>
-    <comment>"asyncResult" is a variable name. Do Not Translate</comment>
+    <comment>asyncResult should not be translated</comment>
   </data>
   <data name="CLCannotCastStateAs" xml:space="preserve">
     <value>Cannot cast state as</value>
@@ -3079,6 +3079,81 @@
   <data name="ExceptionCLSyncboxNullStorageQuota" xml:space="preserve">
     <value>Storage quota should have been queried from the server and set at least once, including upon initialization.</value>
   </data>
+  <data name="IndexingAgentThisIndexingAgent" xml:space="preserve">
+    <value>This IndexingAgent</value>
+  </data>
+  <data name="NotTranslatedSqlIndexerCalculatedFullPath" xml:space="preserve">
+    <value>CalculatedFullPath</value>
+    <comment>Do not translate</comment>
+  </data>
+  <data name="NotTranslatedSqlIndexerDBCopiedName" xml:space="preserve">
+    <value>{0}{1}.db</value>
+    <comment>Do not translate</comment>
+  </data>
+  <data name="NotTranslatedSqlIndexerDBStackFormat" xml:space="preserve">
+    <value>DB #{0}:{1}{2}{3}{4}</value>
+    <comment>Do not translate</comment>
+  </data>
+  <data name="NotTranslatedSqlIndexerDBStackName" xml:space="preserve">
+    <value>{0}.txt</value>
+    <comment>Do not translate</comment>
+  </data>
+  <data name="NotTranslatedSqlIndexerEvent" xml:space="preserve">
+    <value>Event</value>
+    <comment>Do not translate</comment>
+  </data>
+  <data name="NotTranslatedSqlIndexerEventPrevious" xml:space="preserve">
+    <value>Event.Previous</value>
+    <comment>Do not translate</comment>
+  </data>
+  <data name="NotTranslatedSqlIndexerFileSystemObject" xml:space="preserve">
+    <value>FileSystemObject</value>
+    <comment>Do not translate</comment>
+  </data>
+  <data name="NotTranslatedSqlIndexerFileSystemObjectId" xml:space="preserve">
+    <value>FileSystemObjectId</value>
+    <comment>Do not translate</comment>
+  </data>
+  <data name="NotTranslatedSqlIndexerIntegrityCheck" xml:space="preserve">
+    <value>integrity_check</value>
+    <comment>Do not translate</comment>
+  </data>
+  <data name="NotTranslatedSqlIndexerName" xml:space="preserve">
+    <value>Name</value>
+    <comment>Do not translate</comment>
+  </data>
+  <data name="NotTranslatedSqlIndexerParent" xml:space="preserve">
+    <value>Parent</value>
+    <comment>Do not translate</comment>
+  </data>
+  <data name="NotTranslatedSqlIndexerParents" xml:space="preserve">
+    <value>Parents</value>
+    <comment>Do not translate</comment>
+  </data>
+  <data name="NotTranslatedSqlIndexerParentServerUid" xml:space="preserve">
+    <value>Parent.ServerUid</value>
+    <comment>Do not translate</comment>
+  </data>
+  <data name="NotTranslatedSqlIndexerPrevious" xml:space="preserve">
+    <value>Previous</value>
+    <comment>Do not translate</comment>
+  </data>
+  <data name="NotTranslatedSqlIndexerPreviouses" xml:space="preserve">
+    <value>Previouses</value>
+    <comment>Do not translate</comment>
+  </data>
+  <data name="NotTranslatedSqlIndexerServerUid" xml:space="preserve">
+    <value>ServerUid</value>
+    <comment>Do not translate</comment>
+  </data>
+  <data name="NotTranslatedSqlIndexerServerUidId" xml:space="preserve">
+    <value>ServerUidId</value>
+    <comment>Do not translate</comment>
+  </data>
+  <data name="NotTranslatedSqlIndexerSqlExtension" xml:space="preserve">
+    <value>.sql</value>
+    <comment>Do not translate</comment>
+  </data>
   <data name="ExceptionSyncboxErrorSubscribingToLiveSyncStatusMessages" xml:space="preserve">
     <value>Error subscribing to live sync status messages.  Bad liveSyncStatusReceiver to CLSyncbox.AllocAndInit, or bad DeviceId in settings</value>
     <comment>"liveSyncStatusReceiver", "CLSyncbox.AllocAndInit", "DeviceId", and "settings" should not be translated</comment>
@@ -3086,5 +3161,93 @@
   <data name="ExceptionFileItemNullFileChange" xml:space="preserve">
     <value>fileChange must not be null</value>
     <comment>"fileChange" should not be translated</comment>
+  </data>
+  <data name="ExceptionFileNotFound" xml:space="preserve">
+    <value>File not found</value>
+  </data>
+  <data name="ExceptionOnDemandAddFileFileStreamDoesNotExist" xml:space="preserve">
+    <value>No error creating FileStream but it still does not exist</value>
+    <comment>"FileStream" should not be translated</comment>
+  </data>
+  <data name="ExceptionOnDemandAddFileFinalFileSizeDoesNotExist" xml:space="preserve">
+    <value>No error creating finalFileSize but it still does not exist</value>
+    <comment>"finalFileSize" should not be translated</comment>
+  </data>
+  <data name="ExceptionOnDemandAddFileIntermediateHashesDoesNotExist" xml:space="preserve">
+    <value>No error creating intermediateHashes but it still does not exist</value>
+    <comment>"intermediateHashes" should not be traslated</comment>
+  </data>
+  <data name="ExceptionOnDemandAddFileNewMd5BytesDoesNotExist" xml:space="preserve">
+    <value>No error creating newMD5Bytes but it still does not exist</value>
+    <comment>"newMD5Bytes" should not be translated</comment>
+  </data>
+  <data name="ExceptionOnDemandFilesToAddAtIndexFullPathMustNotBeNullMsg0" xml:space="preserve">
+    <value>filesToAdd item {0} FullPath must be specified</value>
+    <comment>"filesToAdd" and "FullPath" should not be translated</comment>
+  </data>
+  <data name="ExceptionOnDemandFilesToAddAtIndexMustNotBeNullMsg0" xml:space="preserve">
+    <value>filesToAdd item at index {0} must not be null</value>
+    <comment>"filesToAdd" should not be translated</comment>
+  </data>
+  <data name="ExceptionOnDemandFilesToAddAtIndexParentFolderItemUidMissingMsg0" xml:space="preserve">
+    <value>filesToAdd item {0} ParentFolder.ItemUid must be specified</value>
+    <comment>"filesToAdd" and "ParentFolder.ItemUid" should not be translated</comment>
+  </data>
+  <data name="ExceptionOnDemandFilesToAddAtIndexParentMustNotBeNullMsg0" xml:space="preserve">
+    <value>filesToAdd item {0} Parent folder must not be null</value>
+    <comment>"filesToAdd" and "Parent" should not be translated</comment>
+  </data>
+  <data name="ExceptionOnDemandFilesToAddLengthMustBeGtZero" xml:space="preserve">
+    <value>filesToAdd must have a length greater than zero</value>
+    <comment>"filesToAdd" should not be translated</comment>
+  </data>
+  <data name="ExceptionOnDemandFilesToAddMustNotBeNull" xml:space="preserve">
+    <value>filesToAdd must not be null</value>
+    <comment>"filesToAdd" should not be translated</comment>
+  </data>
+  <data name="ExceptionOnDemandGetCurrentStatusNullServerResponse" xml:space="preserve">
+    <value>server returned null response</value>
+  </data>
+  <data name="ExceptionOnDemandGetCurrentStatusServerResponseNullSyncbox" xml:space="preserve">
+    <value>server returned null response Syncbox</value>
+    <comment>"Syncbox" should not be translated</comment>
+  </data>
+  <data name="ExceptionOnDemandGetCurrentStatusServerResponseNullSyncboxCreatedAt" xml:space="preserve">
+    <value>server returned null response Syncbox CreatedAt</value>
+    <comment>"Syncbox" and "CreatedAt" should not be translated</comment>
+  </data>
+  <data name="ExceptionOnDemandGetCurrentStatusServerResponseNullSyncboxPlanId" xml:space="preserve">
+    <value>server returned null response Syncbox PlanId</value>
+    <comment>"Syncbox" and "PlanId" should not be translated</comment>
+  </data>
+  <data name="ExceptionOnDemandUpdateFriendlyNameFriendlyNameMustBeSpecified" xml:space="preserve">
+    <value>friendlyName must be specified</value>
+    <comment>"friendlyName" should not be translated</comment>
+  </data>
+  <data name="ExceptionOnDemandUpdateFriendlyNameServerReturnedNullResponse" xml:space="preserve">
+    <value>server returned null response</value>
+  </data>
+  <data name="ExceptionOnDemandUpdateFriendlyNameServerReturnedNullResponseSyncbox" xml:space="preserve">
+    <value>server returned null response Syncbox</value>
+    <comment>"Syncbox" should not be translated</comment>
+  </data>
+  <data name="ExceptionOnDemandUpdateFriendlyNameServerReturnedNullResponseSyncboxPlanId" xml:space="preserve">
+    <value>server returned null response Syncbox PlanId</value>
+    <comment>"Syncbox" and "PlanId" should not be translated</comment>
+  </data>
+  <data name="ExceptionOnDemandUpdateStoragePlanStoragePlanMustNotBeNull" xml:space="preserve">
+    <value>storagePlan must not be null</value>
+    <comment>"storagePlan" should not be translated</comment>
+  </data>
+  <data name="ExceptionOnDemandUpdateStoragePlanStoragePlanServerReturnedNullResponse" xml:space="preserve">
+    <value>server returned null response</value>
+  </data>
+  <data name="ExceptionOnDemandUpdateStoragePlanStoragePlanServerReturnedNullResponseSyncbox" xml:space="preserve">
+    <value>server returned null response Syncbox</value>
+    <comment>"Syncbox" should not be translated</comment>
+  </data>
+  <data name="ExceptionOnDemandUpdateStoragePlanStoragePlanServerReturnedNullResponseSyncboxPlanId" xml:space="preserve">
+    <value>server returned null response Syncbox PlanId</value>
+    <comment>"Syncbox" and "PlanId" should not be translated</comment>
   </data>
 </root>

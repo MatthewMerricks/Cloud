@@ -14,6 +14,7 @@ using System.Text;
 
 namespace Cloud.SQLProxies
 {
+    // \cond
     /// <summary>
     /// SQLite implentation of DbConnection.
     /// </summary>
@@ -44,7 +45,7 @@ namespace Cloud.SQLProxies
     /// in the connection pool N 100 Default IsolationLevel The default transaciton
     /// isolation level N Serializable
     /// </remarks>
-    internal interface ISQLiteConnection : IDisposable
+    public interface ISQLiteConnection : IDisposable
     {
         /// <summary>
         /// Returns the state of the connection.
@@ -86,4 +87,5 @@ namespace Cloud.SQLProxies
         /// <returns>Returns a SQLiteTransaction object.</returns>
         ISQLiteTransaction BeginTransaction(IsolationLevel isolationLevel);
     }
+    // \endcond
 }

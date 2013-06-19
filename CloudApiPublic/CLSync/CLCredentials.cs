@@ -402,7 +402,7 @@ namespace Cloud
                     Helpers.HttpStatusesOkAccepted,
                     copiedSettings,
                     Credentials: this,
-                    SyncboxId: null, 
+                    Syncbox: null, 
                     isOneOff: false);
 
                 // Convert the server response to the requested output format.

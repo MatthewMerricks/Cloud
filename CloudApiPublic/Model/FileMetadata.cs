@@ -10,7 +10,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Cloud.Static;
-using Cloud.CLSync;
 
 namespace Cloud.Model
 {
@@ -153,7 +152,7 @@ namespace Cloud.Model
             this.ParentFolderServerUid = item.ParentUid;
             this.Permissions = null;
             this._serverUidId = 0;  // On Demand only.  Not used currently in the index.
-            this.StorageKey = item.StorageKey;
+            this.StorageKey = item.Revision;
             this.Version = null;
         }
     }

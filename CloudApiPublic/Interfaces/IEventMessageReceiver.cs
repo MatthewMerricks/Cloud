@@ -5,7 +5,6 @@
 // Created By DavidBruck.
 // Copyright (c) Cloud.com. All rights reserved.
 
-using Cloud.CLSync;
 using Cloud.Model;
 using Cloud.Model.EventMessages;
 using Cloud.Static;
@@ -81,6 +80,21 @@ namespace Cloud.Interfaces
         /// </summary>
         /// <param name="e">Message parameters</param>
         void StorageQuotaExceededChanged(IStorageQuotaExceededMessage e);
+        /// <summary>
+        /// Fired when live syncing has started on a syncbox.
+        /// </summary>
+        /// <param name="e">Message parameters</param>
+        void SyncboxDidStartLiveSyncChanged(ISyncboxDidStartLiveSyncMessage e);
+        /// <summary>
+        /// Fired when live syncing has stopped on a syncbox.
+        /// </summary>
+        /// <param name="e">Message parameters</param>
+        void SyncboxDidStopLiveSyncChanged(ISyncboxDidStopLiveSyncMessage e);
+        /// <summary>
+        /// Fired when live syncing has stopped due to an error.
+        /// </summary>
+        /// <param name="e">Message parameters</param>
+        void SyncboxLiveSyncFailedWithErrorChanged(ISyncboxLiveSyncFailedWithErrorMessage e);
     }
     public interface IMinimalMessage : IHandleableArgs
     {
@@ -123,5 +137,18 @@ namespace Cloud.Interfaces
     }
     public interface IStorageQuotaExceededMessage : IMinimalMessage
     {
+    }
+    public interface ISyncboxDidStartLiveSyncMessage : IMinimalMessage
+    {
+        CLSyncbox Syncbox { get; }
+    }
+    public interface ISyncboxDidStopLiveSyncMessage : IMinimalMessage
+    {
+        CLSyncbox Syncbox { get; }
+    }
+    public interface ISyncboxLiveSyncFailedWithErrorMessage : IMinimalMessage
+    {
+        CLSyncbox Syncbox { get; }
+        CLError Error { get; }
     }
 }

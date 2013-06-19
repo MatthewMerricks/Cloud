@@ -9,17 +9,16 @@ using Cloud.Static;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.Serialization;
 using System.Text;
 
 namespace Cloud.JsonContracts
 {
+    [Obfuscation(Exclude = true)]
     [DataContract]
     internal sealed class Download
     {
-        [DataMember(Name = CLDefinitions.CLMetadataStorageKey, IsRequired = false)]
-        public string StorageKey { get; set; }
-
         [DataMember(Name = CLDefinitions.CLMetadataFileDownloadServerUid, IsRequired = false)]
         public string Uid { get; set; }
 

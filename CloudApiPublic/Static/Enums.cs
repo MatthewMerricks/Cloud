@@ -8,6 +8,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 
 namespace Cloud.Static
@@ -596,6 +597,11 @@ namespace Cloud.Static
         /// </summary>
         OnDemand_FileItemWhenFolderItemExpected = (((ulong)CLExceptionDomain.OnDemand) << 32) | 42, // 5_42
 
+        /// <summary>
+        /// Bad settings.
+        /// </summary>
+        OnDemand_Settings = (((ulong)CLExceptionDomain.OnDemand) << 32) | 43, // 5_43
+
         #endregion
 
         #region FileItem
@@ -766,6 +772,9 @@ namespace Cloud.Static
         DownloadCompleteChanged,
         UploadCompleteChanged,
         StorageQuotaExceededChanged,
+        SyncboxDidStartLiveSyncChanged,
+        SyncboxDidStopLiveSyncChanged,
+        SyncboxLiveSyncFailedWithErrorChanged,
     }
 
     /// <summary>
@@ -876,6 +885,7 @@ namespace Cloud.Static
     /// <summary>
     /// Describes how a path should display for badging
     /// </summary>
+    [Obfuscation(Exclude = true)]
     internal enum PathState : byte
     {
         None,

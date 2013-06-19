@@ -9,11 +9,13 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.Serialization.Json;
 using System.Text;
 
 namespace Cloud.JsonContracts
 {
+    [Obfuscation(Exclude = true)]
     internal static class JsonContractHelpers
     {
         public static DataContractJsonSerializer PushSerializer

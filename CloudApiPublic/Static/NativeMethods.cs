@@ -14,26 +14,31 @@ using System.Linq;
 using System.Runtime.InteropServices;                             
 using System.Text;
 using Microsoft.Win32.SafeHandles;
+using System.Reflection;
 #endregion
 
 namespace Cloud.Static
 {
+    [Obfuscation(Exclude=true)]
     internal static class NativeMethods
     {
         #region GetModuleFileName
-        [DllImport("coredll.dll", SetLastError = true)]
+        public const string core = "core.dll";
+        public const string msvcrt = "msvcrt.dll";
+
+        [DllImport(core, SetLastError = true)]
         public static extern int GetModuleFileName(IntPtr hModule, StringBuilder lpFilename, int nSize);
         #endregion
 
         #region byte array compare
-        [DllImport("msvcrt.dll", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(msvcrt, CallingConvention = CallingConvention.Cdecl)]
         public static extern int memcmp(byte[] b1, byte[] b2, UIntPtr count);
         #endregion
 
         #region OS info
         #region GET
         #region PRODUCT INFO
-        [DllImport("Kernel32.dll")]
+        [DllImport(kernel32)]
         public static extern bool GetProductInfo(
             int osMajorVersion,
             int osMinorVersion,
@@ -43,7 +48,7 @@ namespace Cloud.Static
         #endregion PRODUCT INFO
 
         #region VERSION
-        [DllImport("kernel32.dll")]
+        [DllImport(kernel32)]
         public static extern bool GetVersionEx(ref OSVERSIONINFOEX osVersionInfo);
         #endregion VERSION
         #endregion GET
@@ -124,16 +129,20 @@ namespace Cloud.Static
         #endregion
 
         #region client to screen
+
+        public const string user32 = "user32.dll";
+        public const string shell32 = "shell32.dll";
+        public const string clienttostring = "ClientToScreen";
         [StructLayout(LayoutKind.Sequential)]
         public class POINT
         {
             public int x = 0;
             public int y = 0;
         }
-        [DllImport("user32.dll", EntryPoint = "ClientToScreen", SetLastError = true, ExactSpelling = true, CharSet = CharSet.Auto)]
+        [DllImport(user32, EntryPoint = clienttostring, SetLastError = true, ExactSpelling = true, CharSet = CharSet.Auto)]
         public static extern int ClientToScreen(IntPtr hWnd, [In, Out] POINT pt);
 
-        [DllImport("user32.dll")]
+        [DllImport(user32)]
         [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool GetCursorPos([Out] POINT lpPoint);
 
@@ -146,7 +155,7 @@ namespace Cloud.Static
         /// <param name="uFlags">Check which value to use based on previous param (HChangeNotifyEventID wEventId)</param>
         /// <param name="dwItem1">Points to the single item or nothing for all icons</param>
         /// <param name="dwItem2">Points to nothing</param>
-        [DllImport("shell32.dll")]
+        [DllImport(shell32)]
         public static extern void SHChangeNotify(HChangeNotifyEventID wEventId,
             HChangeNotifyFlags uFlags,
             IntPtr dwItem1,
@@ -412,7 +421,7 @@ namespace Cloud.Static
 
         public const int MAX_PATH = 260;
         public const uint MaxDWORD = 4294967295;
-
+        public const string kernel32 = "kernel32.dll";
         /// <summary>
         /// Win32 FILETIME structure.  The win32 documentation says this:
         /// "Contains a 64-bit value representing the number of 100-nanosecond intervals since January 1, 1601 (UTC)."
@@ -459,11 +468,11 @@ namespace Cloud.Static
         /// If the function fails or fails to locate files from the search string in the lpFileName parameter, the return value is INVALID_HANDLE_VALUE and the contents of lpFindFileData are indeterminate.
         ///</returns>
         ///<see cref="http://msdn.microsoft.com/en-us/library/aa364418%28VS.85%29.aspx"/>
-        [DllImport("kernel32", CharSet = CharSet.Auto, SetLastError = true)]
+        [DllImport(kernel32, CharSet = CharSet.Auto, SetLastError = true)]
         public static extern SafeSearchHandle FindFirstFile(string lpFileName, out WIN32_FIND_DATA lpFindData);
 
         #region find first file extended
-        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+        [DllImport(kernel32, SetLastError = true, CharSet = CharSet.Unicode)]
         public static extern SafeSearchHandle FindFirstFileEx(
             string lpFileName,
             FINDEX_INFO_LEVELS fInfoLevelId,
@@ -512,7 +521,7 @@ namespace Cloud.Static
         /// If the function fails, the return value is zero and the contents of lpFindFileData are indeterminate.
         /// </returns>
         /// <see cref="http://msdn.microsoft.com/en-us/library/aa364428%28VS.85%29.aspx"/>
-        [DllImport("kernel32", CharSet = CharSet.Auto, SetLastError = true)]
+        [DllImport(kernel32, CharSet = CharSet.Auto, SetLastError = true)]
         public static extern bool FindNextFile(SafeSearchHandle hFindFile, out WIN32_FIND_DATA lpFindData);
 
         /// <summary>
@@ -524,13 +533,13 @@ namespace Cloud.Static
         /// If the function fails, the return value is zero. 
         /// </returns>
         /// <see cref="http://msdn.microsoft.com/en-us/library/aa364413%28VS.85%29.aspx"/>
-        [DllImport("kernel32", SetLastError = true)]
+        [DllImport(kernel32, SetLastError = true)]
         public static extern bool FindClose(IntPtr hFindFile);
         #endregion
 
         // CreateFile along with extra attribute allowing locking a folder
         #region CreateFile
-        [DllImport("Kernel32.dll", SetLastError = true, CharSet = CharSet.Auto)]
+        [DllImport(kernel32, SetLastError = true, CharSet = CharSet.Auto)]
         public static extern SafeFileHandle CreateFile(
             string fileName,
             [MarshalAs(UnmanagedType.U4)] FileAccess fileAccess,
@@ -544,6 +553,9 @@ namespace Cloud.Static
         #endregion
 
         #region network monitoring
+
+        private const string WinSock2_32dll = "Ws2_32.dll";
+
         [StructLayout(LayoutKind.Sequential)]
         public struct WSAData
         {
@@ -561,24 +573,41 @@ namespace Cloud.Static
             public IntPtr vendorInfo;
         }
 
+        [Obfuscation(Feature="preserve-name-binding")]
         [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
         public sealed class WSAQUERYSET
         {
+            [Obfuscation(Feature = "preserve-name-binding")]
             public Int32 dwSize = 0;
+            [Obfuscation(Feature = "preserve-name-binding")]
             public String szServiceInstanceName = null;
+            [Obfuscation(Feature = "preserve-name-binding")]
             public IntPtr lpServiceClassId;
+            [Obfuscation(Feature = "preserve-name-binding")]
             public IntPtr lpVersion;
+            [Obfuscation(Feature = "preserve-name-binding")]
             public String lpszComment;
+            [Obfuscation(Feature = "preserve-name-binding")]
             public NAMESPACE_PROVIDER_PTYPE dwNameSpace;
+            [Obfuscation(Feature = "preserve-name-binding")]
             public IntPtr lpNSProviderId;
+            [Obfuscation(Feature = "preserve-name-binding")]
             public String lpszContext;
+            [Obfuscation(Feature = "preserve-name-binding")]
             public Int32 dwNumberOfProtocols;
+            [Obfuscation(Feature = "preserve-name-binding")]
             public IntPtr lpafpProtocols;
+            [Obfuscation(Feature = "preserve-name-binding")]
             public String lpszQueryString;
+            [Obfuscation(Feature = "preserve-name-binding")]
             public Int32 dwNumberOfCsAddrs;
+            [Obfuscation(Feature = "preserve-name-binding")]
             public IntPtr lpcsaBuffer;
+            [Obfuscation(Feature = "preserve-name-binding")]
             public Int32 dwOutputFlags;
+            [Obfuscation(Feature = "preserve-name-binding")]
             public IntPtr lpBlob;
+            
         }
 
         [StructLayout(LayoutKind.Sequential)]
@@ -650,31 +679,30 @@ namespace Cloud.Static
             NS_PNRPCLOUD = 39
         }
 
-        [DllImport("ws2_32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        [DllImport(WinSock2_32dll, CharSet = CharSet.Auto, SetLastError = true)]
         public extern static Int32 WSAStartup(Int16 wVersionRequested, out WSAData wsaData);
 
-        [DllImport("Ws2_32.DLL", CharSet = CharSet.Auto, SetLastError = true)]
+        [DllImport(WinSock2_32dll, CharSet = CharSet.Auto, SetLastError = true)]
         public extern static Int32 WSACleanup();
 
-        [DllImport("Ws2_32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        [DllImport(WinSock2_32dll, CharSet = CharSet.Auto, SetLastError = true)]
         public extern static
             Int32 WSALookupServiceBegin(WSAQUERYSET qsRestrictions,
                 Int32 dwControlFlags, ref IntPtr lphLookup);
 
-        [DllImport("Ws2_32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        [DllImport(WinSock2_32dll, CharSet = CharSet.Auto, SetLastError = true)]
         public extern static
             Int32 WSALookupServiceNext(IntPtr hLookup,
                 Int32 dwControlFlags,
                 ref Int32 lpdwBufferLength,
                 IntPtr pqsResults);
 
-        [DllImport("Ws2_32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        [DllImport(WinSock2_32dll, CharSet = CharSet.Auto, SetLastError = true)]
         public extern static
             Int32 WSALookupServiceEnd(IntPtr hLookup);
 
-        [DllImport("ws2_32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        [DllImport(WinSock2_32dll, CharSet = CharSet.Auto, SetLastError = true)]
         public extern static Int32 WSAGetLastError();
-
 
         [StructLayoutAttribute(LayoutKind.Sequential)]
         public sealed class OVERLAPPED
@@ -701,8 +729,6 @@ namespace Cloud.Static
             public uint Offset;
             public uint OffsetHigh;
         }
-
-
 
         public enum WSACOMPLETIONTYPE : uint
         {
@@ -773,8 +799,6 @@ namespace Cloud.Static
         {
             public IntPtr lpOverlapped; // OVERLAPPED*
         }
-
-
 
         public const UInt32 SIO_NSP_NOTIFY_CHANGE = 0x88000019; //_WSAIOW(IOC_WS2,25) -> (IOC_IN|(x)|(y)) -> 0x80000000 | 0x08000000 | 25
         public const int LUP_RETURN_BLOB = 0x0200;
@@ -978,7 +1002,7 @@ namespace Cloud.Static
         #endregion
 
         #region network event
-        [DllImport("Ws2_32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        [DllImport(WinSock2_32dll, CharSet = CharSet.Auto, SetLastError = true)]
         public extern static Int32 WSANSPIoctl(
             IntPtr hLookup,
             UInt32 dwControlCode,
@@ -992,7 +1016,7 @@ namespace Cloud.Static
         #endregion
         #region Token and Security
         // Token Specific Access Rights
-
+        private const string advapi32= "advapi32.dll";
         public const UInt32 STANDARD_RIGHTS_REQUIRED = 0x000F0000;
         public const UInt32 STANDARD_RIGHTS_READ = 0x00020000;
         public const UInt32 TOKEN_ASSIGN_PRIMARY = 0x0001;
@@ -1042,7 +1066,7 @@ namespace Cloud.Static
             SE_GROUP_INTEGRITY | SE_GROUP_INTEGRITY_ENABLED);
 
 
-        [DllImport("advapi32.dll", SetLastError = true)]
+        [DllImport(advapi32, SetLastError = true)]
         public static extern bool GetTokenInformation(IntPtr tokenHandle, TokenInformationClass tokenInformationClass, IntPtr tokenInformation, int tokenInformationLength, out int returnLength);
 
         /// <summary>
@@ -1106,7 +1130,7 @@ namespace Cloud.Static
         /// when the function returns.
         /// </param>
         /// <returns></returns>
-        [DllImport("advapi32", CharSet = CharSet.Auto, SetLastError = true)]
+        [DllImport(advapi32, CharSet = CharSet.Auto, SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool OpenProcessToken(
             IntPtr hProcess,
@@ -1144,7 +1168,7 @@ namespace Cloud.Static
         /// Receives the new token.
         /// </param>
         /// <returns></returns>
-        [DllImport("advapi32", CharSet = CharSet.Auto, SetLastError = true)]
+        [DllImport(advapi32, CharSet = CharSet.Auto, SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool DuplicateTokenEx(
             SafeTokenHandle hExistingToken,
@@ -1180,7 +1204,7 @@ namespace Cloud.Static
         /// for the buffer pointed to by the TokenInformation parameter. 
         /// </param>
         /// <returns></returns>
-        [DllImport("advapi32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        [DllImport(advapi32, CharSet = CharSet.Auto, SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool GetTokenInformation(
             SafeTokenHandle hToken,
@@ -1212,7 +1236,7 @@ namespace Cloud.Static
         /// TokenInformation.
         /// </param>
         /// <returns></returns>
-        [DllImport("advapi32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        [DllImport(advapi32, CharSet = CharSet.Auto, SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool SetTokenInformation(
             SafeTokenHandle hToken,
@@ -1242,7 +1266,7 @@ namespace Cloud.Static
         /// not valid or if the index value specified by the nSubAuthority 
         /// parameter is out of bounds.
         /// </returns>
-        [DllImport("advapi32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        [DllImport(advapi32, CharSet = CharSet.Auto, SetLastError = true)]
         public static extern IntPtr GetSidSubAuthority(
             IntPtr pSid, 
             UInt32 nSubAuthority);
@@ -1292,7 +1316,7 @@ namespace Cloud.Static
         /// function fails, the return value is false. To get extended error 
         /// information, call GetLastError.
         /// </returns>
-        [DllImport("advapi32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        [DllImport(advapi32, CharSet = CharSet.Auto, SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool AllocateAndInitializeSid(
             ref SID_IDENTIFIER_AUTHORITY pIdentifierAuthority,
@@ -1316,7 +1340,7 @@ namespace Cloud.Static
         /// function fails, it returns a pointer to the SID structure 
         /// represented by the pSid parameter.
         /// </returns>
-        [DllImport("advapi32.dll")]
+        [DllImport(advapi32)]
         public static extern IntPtr FreeSid(IntPtr pSid);
 
 
@@ -1331,7 +1355,7 @@ namespace Cloud.Static
         /// If the SID structure is valid, the return value is the length, in 
         /// bytes, of the SID structure.
         /// </returns>
-        [DllImport("advapi32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        [DllImport(advapi32, CharSet = CharSet.Auto, SetLastError = true)]
         public static extern int GetLengthSid(IntPtr pSID);
 
 
@@ -1385,7 +1409,7 @@ namespace Cloud.Static
         /// identification information about the new process. 
         /// </param>
         /// <returns></returns>
-        [DllImport("advapi32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        [DllImport(advapi32, CharSet = CharSet.Auto, SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool CreateProcessAsUser(
             SafeTokenHandle hToken,
@@ -1406,7 +1430,7 @@ namespace Cloud.Static
         /// </summary>
         /// <param name="handle">A valid handle to an open object.</param>
         /// <returns></returns>
-        [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        [DllImport(kernel32, CharSet = CharSet.Auto, SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool CloseHandle(IntPtr handle);
 
@@ -1485,7 +1509,7 @@ namespace Cloud.Static
             /// resource once it is no longer needed by calling CoTaskMemFree.
             /// </param>
             /// <returns>HRESULT</returns>
-            [DllImport("shell32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+            [DllImport(shell32, CharSet = CharSet.Auto, SetLastError = true)]
             private static extern int SHGetKnownFolderPath(
                 [MarshalAs(UnmanagedType.LPStruct)] Guid rfid,
                 uint dwFlags,

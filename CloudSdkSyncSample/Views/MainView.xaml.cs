@@ -88,7 +88,7 @@ namespace SampleLiveSync.Views
             e.Completed(result == MessageBoxResult.Yes);
         }
 
-        private void OnNotifyException(object sender, Support.NotificationEventArgs<Cloud.Model.CLError> e)
+        private void OnNotifyException(object sender, Support.NotificationEventArgs<Cloud.CLError> e)
         {
             Application.Current.Dispatcher.BeginInvoke(new Action(() =>
                 {

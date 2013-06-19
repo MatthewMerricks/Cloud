@@ -10,6 +10,7 @@ using Cloud.Static;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.Serialization;
 using System.Text;
 
@@ -18,6 +19,7 @@ namespace Cloud.JsonContracts
     /// <summary>
     /// Contains properties for a syncbox create request.
     /// </summary>
+    [Obfuscation(Exclude = true)]
     [DataContract]
     public sealed class SyncboxCreateRequest
     {

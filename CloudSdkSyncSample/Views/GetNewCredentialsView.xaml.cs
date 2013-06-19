@@ -65,7 +65,7 @@ namespace SampleLiveSync.Views
 
         #region Notification Handlers
 
-        private void OnNotifyException(object sender, Support.NotificationEventArgs<Cloud.Model.CLError> e)
+        private void OnNotifyException(object sender, Support.NotificationEventArgs<Cloud.CLError> e)
         {
             MessageBox.Show(System.Windows.Application.Current.MainWindow, String.Format("{0}.", e.Message), "Error", MessageBoxButton.OK, MessageBoxImage.Error);
         }

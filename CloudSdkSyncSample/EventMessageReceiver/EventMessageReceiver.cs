@@ -12,6 +12,7 @@ using System.Windows.Media;
 using Cloud.Model;
 using Cloud.Support;
 using Cloud.Interfaces;
+using Cloud;
 
 namespace SampleLiveSync.EventMessageReceiver
 {
@@ -519,6 +520,30 @@ namespace SampleLiveSync.EventMessageReceiver
         void IEventMessageReceiver.UploadCompleteChanged(IUploadCompleteMessage e)
         {
             // Do nothing here.  This message is intended for the On Demand API.  It includes the CLFileItem that just completed uploading.  This sample app already receives an informational upload complete message that will display.
+
+            // event was handled
+            e.MarkHandled();
+        }
+
+        void IEventMessageReceiver.SyncboxDidStartLiveSyncChanged(ISyncboxDidStartLiveSyncMessage e)
+        {
+            // Do nothing here.  This message is intended for the On Demand API.  It includes the CLSyncbox that started live sync.  The sample app already includes messages that carry this meaning.
+
+            // event was handled
+            e.MarkHandled();
+        }
+
+        void IEventMessageReceiver.SyncboxDidStopLiveSyncChanged(ISyncboxDidStopLiveSyncMessage e)
+        {
+            // Do nothing here.  This message is intended for the On Demand API.  It includes the CLSyncbox that stopped live sync.  The sample app already includes messages that carry this meaning.
+
+            // event was handled
+            e.MarkHandled();
+        }
+
+        void IEventMessageReceiver.SyncboxLiveSyncFailedWithErrorChanged(ISyncboxLiveSyncFailedWithErrorMessage e)
+        {
+            // Do nothing here.  This message is intended for the On Demand API.  It includes the CLSyncbox that stopped live sync, and the CLError with the error information.  The sample app already includes messages that carry this meaning.
 
             // event was handled
             e.MarkHandled();
