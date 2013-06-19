@@ -1,5 +1,5 @@
 ﻿//
-// AddFileItemParams.cs
+// ModifyFileItemParams.cs
 // Cloud Windows
 //
 // Created By BobS.
@@ -15,35 +15,21 @@ using System.Text;
 namespace Cloud.Parameters
 {
     /// <summary>
-    /// Contains the name of of new file, the parent folder item that will contain the new file, and the new name of the file in the syncbox.
+    /// Contains the file item that will be modified in the syncbox, and the full path of the modified file on the local disk.
     /// </summary>
-    public sealed class AddFileItemParams
+    public sealed class ModifyFileItemParams
     {
         /// <summary>
-        /// The parent folder item in the syncbox to which the file will be added.
+        /// The file item to modify in the syncbox.
         /// </summary>
-        public CLFileItem ParentFolder
+        public CLFileItem FileItem
         {
             get
             {
-                return _parentFolder;
+                return _fileItem;
             }
         }
-        private readonly CLFileItem _parentFolder;
-
-        /// <summary>
-        /// The new name of the file in the syncbox (within the parent folder item).
-        /// </summary>
-        public string FileName
-        {
-            get
-            {
-                return _fileName;
-            }
-        }
-        private readonly string _fileName;
-
-
+        private readonly CLFileItem _fileItem;
 
         /// <summary>
         /// The full path on the local disk of the file item being added.
@@ -63,11 +49,10 @@ namespace Cloud.Parameters
         /// <param name="fullPath">The full path on the local disk of the file being added.</param>
         /// <param name="parentFolder">Parent folder in the syncbox to which the file will be added.</param>
         /// <param name="fileName">The new filename of the file in the syncbox (just the filename and extension).</param>
-        public AddFileItemParams(string fullPath, CLFileItem parentFolder, string fileName)
+        public ModifyFileItemParams(string fullPath, CLFileItem fileToModify)
         {
-            this._parentFolder = parentFolder;
+            this._fileItem = fileToModify;
             this._fullPath = fullPath;
-            this._fileName = fileName;
         }
     }
 }

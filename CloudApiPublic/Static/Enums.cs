@@ -655,6 +655,11 @@ namespace Cloud.Static
         /// </summary>
         Credentials_ExpirationDateMustNotBeNull = (((ulong)CLExceptionDomain.Credentials) << 32) | 3, // 7_3
 
+        /// <summary>
+        /// Credentials: Services missing in server response.
+        /// </summary>
+        Credentials_ServicesMissing = (((ulong)CLExceptionDomain.Credentials) << 32) | 4, // 7_4
+
         #endregion
 
         // add values in the format (even keep the comma for the last value and add the comment to the end as well, evaluate everything inside of [] brackets):

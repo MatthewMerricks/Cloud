@@ -23,6 +23,16 @@ namespace Cloud.JsonContracts
     [DataContract]
     public sealed class SyncboxCreateRequest
     {
+        [DataMember(Name = CLDefinitions.RESTRequestSyncbox, IsRequired = false)]
+        public SyncboxCreateRequestDetails Syncbox { get; set; }
+
+        //[DataMember(Name = CLDefinitions.RESTResponseSyncboxFriendlyName, IsRequired = false)]
+        //public string FriendlyName { get; set; }
+    }
+
+    [DataContract]
+    public sealed class SyncboxCreateRequestDetails
+    {
         [DataMember(Name = CLDefinitions.RESTResponseSyncboxPlanId, IsRequired = false)]
         public Nullable<long> PlanId { get; set; }
 

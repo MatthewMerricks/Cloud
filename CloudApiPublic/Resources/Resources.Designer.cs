@@ -2070,6 +2070,15 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The server responded without an array of add file responses.
+        /// </summary>
+        internal static string ExceptionCLHttpRestWithoutModifyFilesResponses {
+            get {
+                return ResourceManager.GetString("ExceptionCLHttpRestWithoutModifyFilesResponses", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Server responded without an array of move responses.
         /// </summary>
         internal static string ExceptionCLHttpRestWithoutMoveResponses {
@@ -2925,6 +2934,15 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Services missing in server response.
+        /// </summary>
+        internal static string ExceptionOnDemandCredentialsCreateSessionServicesMissingInServerResponse {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandCredentialsCreateSessionServicesMissingInServerResponse", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to No storage plans were returned by the server.
         /// </summary>
         internal static string ExceptionOnDemandDefaultStoragePlanNoResponse {
@@ -3083,6 +3101,51 @@ namespace Cloud.Static {
         internal static string ExceptionOnDemandFilesToAddMustNotBeNull {
             get {
                 return ResourceManager.GetString("ExceptionOnDemandFilesToAddMustNotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to filesToModify item at index {0} must be a file item.
+        /// </summary>
+        internal static string ExceptionOnDemandFilesToModifyAtIndexItemMustBeAFileItemMsg0 {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandFilesToModifyAtIndexItemMustBeAFileItemMsg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to filesToModify item at index {0} ItemUid must be specified.
+        /// </summary>
+        internal static string ExceptionOnDemandFilesToModifyAtIndexItemUidMustBeSpecifiedMsg0 {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandFilesToModifyAtIndexItemUidMustBeSpecifiedMsg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to filesToModify item at index {0} must not be null.
+        /// </summary>
+        internal static string ExceptionOnDemandFilesToModifyAtIndexMustNotBeNullMsg0 {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandFilesToModifyAtIndexMustNotBeNullMsg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to filesToModify must have a Length greater than zero.
+        /// </summary>
+        internal static string ExceptionOnDemandFilesToModifyLengthMustBeGtZero {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandFilesToModifyLengthMustBeGtZero", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to filesToModify must not be null.
+        /// </summary>
+        internal static string ExceptionOnDemandFilesToModifyMustNotBeNull {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandFilesToModifyMustNotBeNull", resourceCulture);
             }
         }
         

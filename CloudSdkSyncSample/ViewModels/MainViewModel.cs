@@ -19,6 +19,7 @@ using System.Windows.Threading;
 using System.Threading;
 using System.Management;
 using System.Text;
+using Cloud.Parameters;
 
 namespace SampleLiveSync.ViewModels
 {

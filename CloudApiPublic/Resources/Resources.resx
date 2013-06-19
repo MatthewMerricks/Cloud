@@ -3250,4 +3250,32 @@
     <value>server returned null response Syncbox PlanId</value>
     <comment>"Syncbox" and "PlanId" should not be translated</comment>
   </data>
+  <data name="ExceptionCLHttpRestWithoutModifyFilesResponses" xml:space="preserve">
+    <value>The server responded without an array of add file responses</value>
+    <comment>"add file" should not be translated</comment>
+  </data>
+  <data name="ExceptionOnDemandCredentialsCreateSessionServicesMissingInServerResponse" xml:space="preserve">
+    <value>Services missing in server response</value>
+    <comment>"Services" should not be translated</comment>
+  </data>
+  <data name="ExceptionOnDemandFilesToModifyAtIndexItemMustBeAFileItemMsg0" xml:space="preserve">
+    <value>filesToModify item at index {0} must be a file item</value>
+    <comment>"filesToModify" should not be translated</comment>
+  </data>
+  <data name="ExceptionOnDemandFilesToModifyAtIndexItemUidMustBeSpecifiedMsg0" xml:space="preserve">
+    <value>filesToModify item at index {0} ItemUid must be specified</value>
+    <comment>"filesToModify" and "ItemUid" should not be translated</comment>
+  </data>
+  <data name="ExceptionOnDemandFilesToModifyAtIndexMustNotBeNullMsg0" xml:space="preserve">
+    <value>filesToModify item at index {0} must not be null</value>
+    <comment>"filesToModify" should not be translated</comment>
+  </data>
+  <data name="ExceptionOnDemandFilesToModifyLengthMustBeGtZero" xml:space="preserve">
+    <value>filesToModify must have a Length greater than zero</value>
+    <comment>"filesToModify" should not be translated</comment>
+  </data>
+  <data name="ExceptionOnDemandFilesToModifyMustNotBeNull" xml:space="preserve">
+    <value>filesToModify must not be null</value>
+    <comment>"filesToModify" should not be translated</comment>
+  </data>
 </root>
