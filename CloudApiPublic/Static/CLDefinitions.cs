@@ -75,8 +75,8 @@ namespace Cloud.Static
         public const string CLMetaDataServerURL = HttpPrefix + @"mds." + Domain;
 
         // Notifications
-        public const string CLNotificationServerWsURL = WsPrefix + @"push." + Domain;
-        public const string CLNotificationServerSseURL = HttpPrefix + @"push." + Domain;
+        public const string CLNotificationServerWsURL = WsPrefix + @"sync-push." + Domain;
+        public const string CLNotificationServerSseURL = HttpPrefix + @"sync-push." + Domain;
 
         // Upload/Download Server
         public const string CLUploadDownloadServerURL = HttpPrefix + @"upd." + Domain;
@@ -125,6 +125,7 @@ namespace Cloud.Static
         public const string MethodPathOneOffFileMoves = VersionPrefix + "/sync/file/moves";                             // POST
         public const string MethodPathOneOffFileDeletes = VersionPrefix + "/sync/file/deletes";                         // POST
         public const string MethodPathOneOffFileAdds = VersionPrefix + "/sync/file/adds";                               // POST
+        public const string MethodPathOneOffFileModifies = VersionPrefix + "/sync/file/modifies";                       // POST
         /* duplicate functionality to file move:
         public const string MethodPathOneOffFileRename = VersionPrefix + "/sync/file/rename";                           // POST
  
@@ -227,6 +228,7 @@ namespace Cloud.Static
         public const string MethodPathOneOffFileMoves = "/1/file/moves";                                // POST
         public const string MethodPathOneOffFileDeletes = "/1/file/deletes";                            // POST
         public const string MethodPathOneOffFileAdds = "/1/file/adds";                                  // POST
+        public const string MethodPathOneOffFileModifies = "/1/file/modifies";                          // POST
         /* duplicate functionality to file move:
         public const string MethodPathOneOffFileRename = "/1/file/rename";                              // POST
          */
@@ -316,6 +318,9 @@ namespace Cloud.Static
         public const string JSonClientApplicationFieldApplicationNamespace = "application_namespace";
         public const string JsonClientApplicationFieldKey = "key";
         public const string JsonClientApplicationFieldSecret = "secret";
+
+        // Json service request
+        public const string JsonServiceType = "service_type";
 
         // Json service type fields
         public const string JsonServiceTypeFieldName = "name";
@@ -619,6 +624,7 @@ namespace Cloud.Static
         public const string RESTRequestFileOrFolderDeletes = "uids";
         public const string RESTRequestFolderAdds = "folders";
         public const string RESTRequestFileAdds = "files";
+        public const string RESTRequestFileModifies = "files";
         public const string RESTRequestPath = "path";
 
         // REST Response Status "status"
@@ -637,6 +643,7 @@ namespace Cloud.Static
         public const string RESTResponseDeleteFolders = "folders";
         public const string RESTResponseAddFolders = "folders";
         public const string RESTResponseAddFiles = "files";
+        public const string RESTResponseModifyFiles = "files";
 
         // REST Response Syncbox
         public const string RESTResponseSyncbox = "sync_box";
@@ -684,6 +691,8 @@ namespace Cloud.Static
         public const string RESTRequestSession_SyncboxIdsAll = "all";
         public const string RESTRequestSession_KeyId = "key_id";
         public const string RESTRequestSession_Key = "key";
+        public const string RESTRequestSession_Services = "services";
+        public const string RESTRequestSession_Sync = "Sync";
 
         // REST UserRegistration Request
         public const string RESTRequestUserRegistration_FirstName = "first_name";

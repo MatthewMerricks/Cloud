@@ -333,6 +333,20 @@ namespace Cloud.JsonContracts
         private static DataContractJsonSerializer _fileModifySerializer = null;
         private static readonly object FileModifySerializerLocker = new object();
 
+        public static DataContractJsonSerializer FileModifiesSerializer
+        {
+            get
+            {
+                lock (FileModifiesSerializerLocker)
+                {
+                    return _fileModifiesSerializer
+                        ?? (_fileModifiesSerializer = new DataContractJsonSerializer(typeof(JsonContracts.FileModifies)));
+                }
+            }
+        }
+        private static DataContractJsonSerializer _fileModifiesSerializer = null;
+        private static readonly object FileModifiesSerializerLocker = new object();
+
         public static DataContractJsonSerializer FileOrFolderDeleteSerializer
         {
             get
@@ -432,6 +446,34 @@ namespace Cloud.JsonContracts
         }
         private static DataContractJsonSerializer _fileVersionsSerializer = null;
         private static readonly object FileVersionsSerializerLocker = new object();
+
+        public static DataContractJsonSerializer ServiceSerializer
+        {
+            get
+            {
+                lock (ServiceSerializerLocker)
+                {
+                    return _serviceSerializer
+                        ?? (_serviceSerializer = new DataContractJsonSerializer(typeof(JsonContracts.Service)));
+                }
+            }
+        }
+        private static DataContractJsonSerializer _serviceSerializer = null;
+        private static readonly object ServiceSerializerLocker = new object();
+
+        public static DataContractJsonSerializer ServiceAllRequestSerializer
+        {
+            get
+            {
+                lock (ServiceAllRequestSerializerLocker)
+                {
+                    return _serviceAllRequestSerializer
+                        ?? (_serviceAllRequestSerializer = new DataContractJsonSerializer(typeof(JsonContracts.ServiceAllRequest)));
+                }
+            }
+        }
+        private static DataContractJsonSerializer _serviceAllRequestSerializer = null;
+        private static readonly object ServiceAllRequestSerializerLocker = new object();
 
         ////Used bytes Serializer is depricated
         //
@@ -547,8 +589,6 @@ namespace Cloud.JsonContracts
         private static DataContractJsonSerializer _presentationsSerializer = null;
         private static readonly object PresentationsSerializerLocker = new object();
 
-
-
         public static DataContractJsonSerializer ArchivesSerializer
         {
             get
@@ -562,8 +602,6 @@ namespace Cloud.JsonContracts
         }
         private static DataContractJsonSerializer _archivesSerializer = null;
         private static readonly object ArchivesSerializerLocker = new object();
-
-
 
         public static DataContractJsonSerializer SynboxGetRecentsResponseSerializer
         {
@@ -1170,6 +1208,20 @@ namespace Cloud.JsonContracts
         }
         private static DataContractJsonSerializer _syncboxAddFilesResponseSerializer = null;
         private static readonly object SyncboxAddFilesResponseSerializerLocker = new object();
+
+        public static DataContractJsonSerializer SyncboxModifyFilesResponseSerializer
+        {
+            get
+            {
+                lock (SyncboxModifyFilesResponseSerializerLocker)
+                {
+                    return _syncboxModifyFilesResponseSerializer
+                        ?? (_syncboxModifyFilesResponseSerializer = new DataContractJsonSerializer(typeof(JsonContracts.SyncboxModifyFilesResponse)));
+                }
+            }
+        }
+        private static DataContractJsonSerializer _syncboxModifyFilesResponseSerializer = null;
+        private static readonly object SyncboxModifyFilesResponseSerializerLocker = new object();
         #endregion
     }
 }

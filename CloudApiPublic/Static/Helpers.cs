@@ -2782,12 +2782,15 @@ namespace Cloud.Static
             { typeof(JsonContracts.FileAdd), JsonContractHelpers.FileAddSerializer },
             { typeof(JsonContracts.FileAdds), JsonContractHelpers.FileAddsSerializer },
             { typeof(JsonContracts.FileModify), JsonContractHelpers.FileModifySerializer },
+            { typeof(JsonContracts.FileModifies), JsonContractHelpers.FileModifiesSerializer },
 
             { typeof(JsonContracts.FileOrFolderDeleteRequest), JsonContractHelpers.FileOrFolderDeleteSerializer },
             { typeof(JsonContracts.FileOrFolderDeletesRequest), JsonContractHelpers.FileOrFolderDeletesSerializer },
             { typeof(JsonContracts.FileOrFolderMove), JsonContractHelpers.FileOrFolderMoveSerializer },
             { typeof(JsonContracts.FileOrFolderMoves), JsonContractHelpers.FileOrFolderMovesSerializer },
             { typeof(JsonContracts.FileOrFolderUndelete), JsonContractHelpers.FileOrFolderUndeleteSerializer },
+            { typeof(JsonContracts.Service), JsonContractHelpers.ServiceSerializer },
+            { typeof(JsonContracts.ServiceAllRequest), JsonContractHelpers.ServiceAllRequestSerializer },
             #endregion
 
             { typeof(JsonContracts.FileCopy), JsonContractHelpers.FileCopySerializer },
@@ -2858,7 +2861,8 @@ namespace Cloud.Static
             { typeof(JsonContracts.SyncboxGetAllDocumentItemsResponse), JsonContractHelpers.SyncboxGetAllDocumentItemsResponseSerializer},
             { typeof(JsonContracts.SyncboxGetAllPresentationItemsResponse), JsonContractHelpers.SyncboxGetAllPresentationItemsResponseSerializer},
             { typeof(JsonContracts.SyncboxGetAllTextItemsResponse), JsonContractHelpers.SyncboxGetAllTextItemsResponseSerializer},
-            { typeof(JsonContracts.SyncboxAddFilesResponse), JsonContractHelpers.SyncboxAddFilesResponseSerializer}
+            { typeof(JsonContracts.SyncboxAddFilesResponse), JsonContractHelpers.SyncboxAddFilesResponseSerializer},
+            { typeof(JsonContracts.SyncboxModifyFilesResponse), JsonContractHelpers.SyncboxModifyFilesResponseSerializer},
 
             // do NOT add types for string nor object nor HttpWebResponse since those are not meant to be deserialized
         };

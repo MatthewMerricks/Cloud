@@ -133,6 +133,7 @@
     <Compile Include="CLSync\CLSyncbox.cs" />
     <Compile Include="CLSync\Parameters\AddFolderItemParams.cs" />
     <Compile Include="CLSync\Parameters\AddFileItemParams.cs" />
+    <Compile Include="CLSync\Parameters\ModifyFileItemParams.cs" />
     <Compile Include="CLSync\Parameters\RenameItemParams.cs" />
     <Compile Include="CLSync\Parameters\MoveItemParams.cs" />
     <Compile Include="CLSync\Parameters\RenamePathParams.cs" />
@@ -148,6 +149,10 @@
     <Compile Include="Interfaces\IEventMessageReceiver.cs" />
     <Compile Include="Interfaces\ITransferTaskState.cs" />
     <Compile Include="JsonContracts\Archives.cs" />
+    <Compile Include="JsonContracts\ServiceAllRequest.cs" />
+    <Compile Include="JsonContracts\Service.cs" />
+    <Compile Include="JsonContracts\SyncboxModifyFilesResponse.cs" />
+    <Compile Include="JsonContracts\FileModifies.cs" />
     <Compile Include="JsonContracts\ImageRequest.cs" />
     <Compile Include="JsonContracts\SyncboxGetAllItemsForTypesResponse.cs" />
     <Compile Include="JsonContracts\SyncboxDeleteFoldersResponse.cs" />
