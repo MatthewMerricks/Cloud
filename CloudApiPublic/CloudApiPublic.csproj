@@ -36,7 +36,7 @@
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
     <DocumentationFile>bin\Release\Cloud.xml</DocumentationFile>
-    <DeepSeaObfuscate>true</DeepSeaObfuscate>
+    <DeepSeaObfuscate>false</DeepSeaObfuscate>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'DebugNoSSL|AnyCPU'">
     <DebugSymbols>true</DebugSymbols>
