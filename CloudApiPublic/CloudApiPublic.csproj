@@ -37,6 +37,8 @@
     <Prefer32Bit>false</Prefer32Bit>
     <DocumentationFile>bin\Release\Cloud.xml</DocumentationFile>
     <DeepSeaObfuscate>true</DeepSeaObfuscate>
+    <DeepSeaKeyPassword>
+    </DeepSeaKeyPassword>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'DebugNoSSL|AnyCPU'">
     <DebugSymbols>true</DebugSymbols>
@@ -66,7 +68,6 @@
     <!-- AUTO-BUILD TAG FOR BadgeComLib -->
     <Reference Include="BadgeCOMLib, Version=0.2.6.2, Culture=neutral, PublicKeyToken=840eb90fa4503c3c, processorArchitecture=MSIL">
       <HintPath>..\3rdParty\bin\Release\BadgeCOMLib.dll</HintPath>
-      <SpecificVersion>False</SpecificVersion>
     </Reference>
     <Reference Include="Interop.Shell32, Version=1.0.0.0, Culture=neutral, PublicKeyToken=840eb90fa4503c3c, processorArchitecture=MSIL">
       <HintPath>..\3rdParty\bin\Release\Interop.Shell32.dll</HintPath>
