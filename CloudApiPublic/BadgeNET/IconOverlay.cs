@@ -29,6 +29,7 @@ using BadgeCOMLib;
 using Cloud.Interfaces;
 using Cloud.Sync;
 using Cloud.Model.EventMessages.ErrorInfo;
+using System.Reflection;
 
 namespace Cloud.BadgeNET
 {
@@ -970,7 +971,7 @@ namespace Cloud.BadgeNET
                 }
 
                 // Trace the badging dictionaries
-                TraceBadgingDictionaries(Resources.IconOverlayRenameBadgePathBeforeOldPath + oldPath.ToString() + Resources.IconOverlayNewPath + newPath.ToString() + ">.");
+                TraceBadgingDictionaries(Resources.IconOverlayRenameBadgePathBeforeOldPath + oldPath.ToString() + Resources.IconOverlayNewPath + newPath.ToString() + Resources.GreaterThanPeriod);
 
                 // lock internal list during modification
                 lock (_currentBadgesLocker)
@@ -1131,7 +1132,7 @@ namespace Cloud.BadgeNET
                 }
 
                 // Trace the badging dictionaries
-                TraceBadgingDictionaries(Resources.IconOverlayRenameBadgePathAfterOldPath + oldPath.ToString() + Resources.IconOverlayNewPath + newPath.ToString() + ">.");
+                TraceBadgingDictionaries(Resources.IconOverlayRenameBadgePathAfterOldPath + oldPath.ToString() + Resources.IconOverlayNewPath + newPath.ToString() + Resources.GreaterThanPeriod);
             }
             catch (Exception ex)
             {
@@ -1414,15 +1415,6 @@ namespace Cloud.BadgeNET
 
                     if (shouldCleanUp)
                     {
-                        // lock on object containing intial pipe connection running state
-                        _trace.writeToLog(9, Resources.IconOverlayDisposeInitialized);
-                        lock (pipeLocker)
-                        {
-                            // set runningstate to off
-                            _trace.writeToLog(9, Resources.IconOverlayDisposePipeLocker);
-                            pipeLocker.pipeRunning = false;
-                        }
-
                         // Tell BadgeCom instances that we are going down.
                         try
                         {
@@ -1565,40 +1557,19 @@ namespace Cloud.BadgeNET
 
         #region methods to interface with BadgeCOM
         #region variables, constants, and local classes
-        /// <summary>
-        /// Constant pipename for initial badging connections and appended for unique return connections
-        /// (must match pipename used by COM objects)
-        /// </summary>
-        private const string PipeName = "BadgeCOM";
-
-        /// <summary>
-        /// Lockable object used to store running state of the initial badging connection pipe
-        /// </summary>
-        private pipeRunningHolder pipeLocker = new pipeRunningHolder()
-        {
-            pipeRunning = true
-        };
 
         /// <summary>
         /// BadgeComInitWatcher threads subscribe and monitor initialization events from BadgeCom (Explorer shell extension).
         /// </summary>
         private BadgeComPubSubEvents _badgeComPubSubEvents = null;
 
-        /// <summary>
-        /// Object type of pipeLocker
-        /// (Lockable object storing running state of the initial badging connection pipe)
-        /// </summary>
-        private class pipeRunningHolder
-        {
-            public bool pipeRunning { get; set; }
-        }
         #endregion
 
         /// <summary>
         /// Determine whether this icon should be badged by this badge handler.
         /// </summary>
-        /// <param name="pipeParams"></param>
-        /// <param name="filePath"></param>
+        /// <param name="badgeType">The type of the badge.</param>
+        /// <param name="filePath">The path to badge.</param>
         /// <returns></returns>
         private bool ShouldIconBeBadged(
                                     cloudAppIconBadgeType badgeType,
@@ -2078,12 +2049,12 @@ namespace Cloud.BadgeNET
                 public override void Process()
                 {
                     // Trace the badging dictionaries
-                    thisOverlay.TraceBadgingDictionaries(Resources.IconOverlyGenericSetterProcessBeforeBadgeType + badgeType.ToString() + Resources.IconOverlayPath + badgePath.ToString() + ">.");
+                    thisOverlay.TraceBadgingDictionaries(Resources.IconOverlyGenericSetterProcessBeforeBadgeType + badgeType.ToString() + Resources.IconOverlayPath + badgePath.ToString() + Resources.GreaterThanPeriod);
 
                     thisOverlay.setBadgeType(new GenericHolder<cloudAppIconBadgeType>(badgeType), badgePath);
 
                     // Trace the badging dictionaries
-                    thisOverlay.TraceBadgingDictionaries(Resources.IconOverlayGenricSetterProcessAfterBadgeType + badgeType.ToString() + Resources.IconOverlayPath + badgePath.ToString() + ">.");
+                    thisOverlay.TraceBadgingDictionaries(Resources.IconOverlayGenricSetterProcessAfterBadgeType + badgeType.ToString() + Resources.IconOverlayPath + badgePath.ToString() + Resources.GreaterThanPeriod);
                 }
             }
 
@@ -2113,12 +2084,12 @@ namespace Cloud.BadgeNET
                     Action<cloudAppIconBadgeType, FilePath> setBadge = (badgeType, badgePath) =>
                     {
                         // Trace the badging dictionaries
-                        thisOverlay.TraceBadgingDictionaries(Resources.IconOverlayNewEventProcessBeforeBadgeType + badgeType.ToString() + Resources.IconOverlayPath + badgePath.ToString() + ">.");
+                        thisOverlay.TraceBadgingDictionaries(Resources.IconOverlayNewEventProcessBeforeBadgeType + badgeType.ToString() + Resources.IconOverlayPath + badgePath.ToString() + Resources.GreaterThanPeriod);
 
                         thisOverlay.setBadgeType(new GenericHolder<cloudAppIconBadgeType>(badgeType), badgePath);
 
                         // Trace the badging dictionaries
-                        thisOverlay.TraceBadgingDictionaries(Resources.IconOverlayNewEventProcessAfterBadgeType + badgeType.ToString() + Resources.IconOverlayPath + badgePath.ToString() + ">.");
+                        thisOverlay.TraceBadgingDictionaries(Resources.IconOverlayNewEventProcessAfterBadgeType + badgeType.ToString() + Resources.IconOverlayPath + badgePath.ToString() + Resources.GreaterThanPeriod);
                     };
 
                     // Update the badges for this merged event.

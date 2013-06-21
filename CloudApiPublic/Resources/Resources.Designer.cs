@@ -3728,6 +3728,15 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &gt;..
+        /// </summary>
+        internal static string GreaterThanPeriod {
+            get {
+                return ResourceManager.GetString("GreaterThanPeriod", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to final hash does not match; file has been edited;.
         /// </summary>
         internal static string HashedStreamReaderAdapterFinalHashDoesNotMatchFileWasEdited {
@@ -4011,15 +4020,6 @@ namespace Cloud.Static {
         internal static string IconOverlayDisposeERRORExceptionTerminatingTheBadgeComInitializationWatcherMsg0 {
             get {
                 return ResourceManager.GetString("IconOverlayDisposeERRORExceptionTerminatingTheBadgeComInitializationWatcherMsg0", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to IconOverlay: Dispose. Initialized..
-        /// </summary>
-        internal static string IconOverlayDisposeInitialized {
-            get {
-                return ResourceManager.GetString("IconOverlayDisposeInitialized", resourceCulture);
             }
         }
         

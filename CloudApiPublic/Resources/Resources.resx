@@ -2141,10 +2141,6 @@
     <value>IconOverlay: Dispose. ERROR: Exception terminating the BadgeCom initialzation watcher. Msg: &lt;{0}&gt;.</value>
     <comment>"IconOverlay" and "BadgeCom" should not be translated.</comment>
   </data>
-  <data name="IconOverlayDisposeInitialized" xml:space="preserve">
-    <value>IconOverlay: Dispose. Initialized.</value>
-    <comment>"IconOverlay" should not be translated.</comment>
-  </data>
   <data name="IconOverlayDisposeLock" xml:space="preserve">
     <value>IconOverlay: Dispose.  Lock.</value>
     <comment>"IconOverlay" should not be translated.</comment>
@@ -3277,5 +3273,9 @@
   <data name="ExceptionOnDemandFilesToModifyMustNotBeNull" xml:space="preserve">
     <value>filesToModify must not be null</value>
     <comment>"filesToModify" should not be translated</comment>
+  </data>
+  <data name="GreaterThanPeriod" xml:space="preserve">
+    <value>&gt;.</value>
+    <comment>Do not translate</comment>
   </data>
 </root>

@@ -8,6 +8,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 
 namespace Cloud.BadgeNET
@@ -16,6 +17,7 @@ namespace Cloud.BadgeNET
     /// <summary>
     /// Types of badges for icon overlays, view the associated comment before changing existing enumerated values
     /// </summary>
+    [Obfuscation (Exclude=true)]
     internal enum cloudAppIconBadgeType : byte
     {
         cloudAppBadgeNone = 0, // clears a badge overlay, if any

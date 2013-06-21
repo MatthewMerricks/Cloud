@@ -36,9 +36,10 @@
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
     <DocumentationFile>bin\Release\Cloud.xml</DocumentationFile>
-    <DeepSeaObfuscate>false</DeepSeaObfuscate>
+    <DeepSeaObfuscate>true</DeepSeaObfuscate>
     <DeepSeaKeyPassword>
     </DeepSeaKeyPassword>
+    <DeepSeaExternalConfiguration>C:\Cloud\CloudSDK-Windows\CloudApiPublic\Cloud.dsoconfig</DeepSeaExternalConfiguration>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'DebugNoSSL|AnyCPU'">
     <DebugSymbols>true</DebugSymbols>
