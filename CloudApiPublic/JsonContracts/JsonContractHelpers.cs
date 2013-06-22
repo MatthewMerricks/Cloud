@@ -645,20 +645,6 @@ namespace Cloud.JsonContracts
         private static DataContractJsonSerializer _syncboxUpdatePlanResponseSerializer = null;
         private static readonly object SyncboxUpdatePlanResponseSerializerLocker = new object();
 
-        public static DataContractJsonSerializer SessionCreateResponseSerializer
-        {
-            get
-            {
-                lock (SessionCreateResponseSerializerLocker)
-                {
-                    return _sessionCreateResponseSerializer
-                        ?? (_sessionCreateResponseSerializer = new DataContractJsonSerializer(typeof(JsonContracts.CredentialsSessionCreateResponse)));
-                }
-            }
-        }
-        private static DataContractJsonSerializer _sessionCreateResponseSerializer = null;
-        private static readonly object SessionCreateResponseSerializerLocker = new object();
-
         public static DataContractJsonSerializer SyncboxUpdateResponseSerializer
         {
             get
@@ -872,20 +858,6 @@ namespace Cloud.JsonContracts
         }
         private static DataContractJsonSerializer _listPlansSerializer = null;
         private static readonly object ListPlansSerializerLocker = new object();
-
-        public static DataContractJsonSerializer ListSessionsSerializer
-        {
-            get
-            {
-                lock (ListSessionsSerializerLocker)
-                {
-                    return _listSessionsSerializer
-                        ?? (_listSessionsSerializer = new DataContractJsonSerializer(typeof(JsonContracts.CredentialsListSessionsResponse)));
-                }
-            }
-        }
-        private static DataContractJsonSerializer _listSessionsSerializer = null;
-        private static readonly object ListSessionsSerializerLocker = new object();
 
         public static DataContractJsonSerializer SessionShowSerializer
         {

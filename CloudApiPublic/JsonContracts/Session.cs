@@ -32,9 +32,6 @@ namespace Cloud.JsonContracts
         [DataMember(Name = CLDefinitions.RESTResponseSession_Token, IsRequired = false)]
         public string Token { get; set; }
 
-        [DataMember(Name = CLDefinitions.RESTResponseSession_AllowAll, IsRequired = false)]
-        public bool AllowAll { get; set; }
-
         [DataMember(Name = CLDefinitions.RESTRequestSession_Services, IsRequired = false)]
         public Service[] Services { get; set; }
 

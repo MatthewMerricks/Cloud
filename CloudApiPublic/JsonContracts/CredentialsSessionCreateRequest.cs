@@ -25,7 +25,7 @@ namespace Cloud.JsonContracts
     internal sealed class CredentialsSessionCreateRequest
     {
         [DataMember(Name = CLDefinitions.RESTRequestSession_Services, IsRequired = false)]
-        public Service Service { get; set; }
+        public Service[] Services { get; set; }
 
         [DataMember(Name = CLDefinitions.RESTRequestSession_TokenDuration, IsRequired = false)]
         public Nullable<long> TokenDuration { get; set; }

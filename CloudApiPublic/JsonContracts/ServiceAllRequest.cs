@@ -23,10 +23,10 @@ namespace Cloud.JsonContracts
     [DataContract]
     public sealed class ServiceAllRequest
     {
-        [DataMember(Name = CLDefinitions.RESTResponseSession_SyncboxIds, IsRequired = false)]
-        public string SyncboxIds { get; set; }
-
         [DataMember(Name = CLDefinitions.JsonServiceType, IsRequired = false)]
         public string ServiceType { get; set; }
+
+        [DataMember(Name = CLDefinitions.RESTResponseSession_SyncboxIds, IsRequired = false)]
+        public string SyncboxIds { get; set; }
     }
 }
