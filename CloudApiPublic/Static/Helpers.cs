@@ -2096,6 +2096,7 @@ namespace Cloud.Static
         /// <param name="resourceName">The name of the resource.</param>
         /// <param name="targetFileFullPath">The full path of the target file.</param>
         /// <returns>int: 0: success.  Otherwise, error code.</returns>
+        [Obfuscation(Exclude=true)]
         public static int WriteResourceFileToFilesystemFile(Assembly storeAssembly, string resourceName, string targetFileFullPath)
         {
             try
