@@ -23,10 +23,13 @@ namespace Cloud.JsonContracts
     [DataContract]
     public sealed class Service
     {
-        [DataMember(Name = CLDefinitions.RESTResponseSession_SyncboxIds, IsRequired = false)]
-        public long[] SyncboxIds { get; set; }
-
         [DataMember(Name = CLDefinitions.JsonServiceType, IsRequired = false)]
         public string ServiceType { get; set; }
+
+        /// <summary>
+        /// The list of syncbox IDs included in this service.  If this field is null, all syncbox IDs are included.
+        /// </summary>
+        [DataMember(Name = CLDefinitions.RESTResponseSession_SyncboxIds, IsRequired = false)]
+        public long[] SyncboxIds { get; set; }
     }
 }

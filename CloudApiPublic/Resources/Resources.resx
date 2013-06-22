@@ -2938,10 +2938,6 @@
   <data name="ExceptionOnDemandLinkDeviceRequestMustNotBeNull" xml:space="preserve">
     <value>Link device request must not be null</value>
   </data>
-  <data name="ExceptionOnDemandListAllSessionCredentialsOneSessionResponseWasInvalid" xml:space="preserve">
-    <value>One of the session responses was invalid</value>
-    <comment>"session" should not be translated</comment>
-  </data>
   <data name="ExceptionOnDemandNoServerResponse" xml:space="preserve">
     <value>No response returned from server</value>
   </data>
@@ -3277,5 +3273,45 @@
   <data name="GreaterThanPeriod" xml:space="preserve">
     <value>&gt;.</value>
     <comment>Do not translate</comment>
+  </data>
+  <data name="ExceptionCredentialsConvertingServerResponseIndexMsg0" xml:space="preserve">
+    <value>Error converting server response to session index {0}</value>
+    <comment>"session" should not be translated.</comment>
+  </data>
+  <data name="ExceptionCredentialsNoSessionOrSessionsToken" xml:space="preserve">
+    <value>No session or sessions token returned by server</value>
+    <comment>"session" and "sessions" should not be translated</comment>
+  </data>
+  <data name="ExceptionCredentialsNullKeyReturnedByServer" xml:space="preserve">
+    <value>null key returned by server</value>
+    <comment>"key" should not be translated</comment>
+  </data>
+  <data name="ExceptionCredentialsInvalidSyncBoxIdsStringReturnedByServer" xml:space="preserve">
+    <value>Invalid sync_box_ids string value returned by server</value>
+    <comment>"sync_box_ids" should not be translated</comment>
+  </data>
+  <data name="ExceptionCredentialsNoItemsInServicesArrayReturnedByServer" xml:space="preserve">
+    <value>No items in the services array returned by server</value>
+    <comment>"services" should not be translated</comment>
+  </data>
+  <data name="ExceptionCredentialsNoServiceTypeItemReturnedByServer" xml:space="preserve">
+    <value>No service_type item returned by server</value>
+    <comment>"service_type" should not be translated</comment>
+  </data>
+  <data name="ExceptionCredentialsNoServiceTypeSyncItemReturnedByServer" xml:space="preserve">
+    <value>No sync service_type token returned by server</value>
+    <comment>"sync" and "service_type" should not be translated</comment>
+  </data>
+  <data name="ExceptionCredentialsNoSyncBoxIdsItemReturnedByServer" xml:space="preserve">
+    <value>No sync service sync_box_ids token returned by server</value>
+    <comment>"sync", "sync_box_ids" should not be translated</comment>
+  </data>
+  <data name="ExceptionCredentialsNullExpiresAtReturnedByServer" xml:space="preserve">
+    <value>null expiresAt returned by server</value>
+    <comment>"null" and "expiresAt" should not be translated</comment>
+  </data>
+  <data name="ExceptionCredentialsNullSecretReturnedByServer" xml:space="preserve">
+    <value>null secret returned by server</value>
+    <comment>"null" and "secret" should not be translated</comment>
   </data>
 </root>

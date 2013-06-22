@@ -206,10 +206,8 @@
     <Compile Include="JsonContracts\CredentialsSessionDeleteResponse.cs" />
     <Compile Include="JsonContracts\CredentialsSessionDeleteRequest.cs" />
     <Compile Include="JsonContracts\CredentialsSessionGetForKeyResponse.cs" />
-    <Compile Include="JsonContracts\CredentialsListSessionsResponse.cs" />
     <Compile Include="JsonContracts\CredentialsSessionCreateAllRequest.cs" />
     <Compile Include="JsonContracts\CredentialsSessionCreateRequest.cs" />
-    <Compile Include="JsonContracts\CredentialsSessionCreateResponse.cs" />
     <Compile Include="JsonContracts\Session.cs" />
     <Compile Include="JsonContracts\StoragePlanListResponse.cs" />
     <Compile Include="JsonContracts\StoragePlanResponse.cs" />

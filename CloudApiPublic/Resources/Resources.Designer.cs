@@ -2214,6 +2214,15 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Error converting server response to session index {0}.
+        /// </summary>
+        internal static string ExceptionCredentialsConvertingServerResponseIndexMsg0 {
+            get {
+                return ResourceManager.GetString("ExceptionCredentialsConvertingServerResponseIndexMsg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to ExpirationDate must not be null.
         /// </summary>
         internal static string ExceptionCredentialsExpirationDateMustNotBeNull {
@@ -2223,11 +2232,92 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Invalid sync_box_ids string value returned by server.
+        /// </summary>
+        internal static string ExceptionCredentialsInvalidSyncBoxIdsStringReturnedByServer {
+            get {
+                return ResourceManager.GetString("ExceptionCredentialsInvalidSyncBoxIdsStringReturnedByServer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to IsValid requires session credentials.
         /// </summary>
         internal static string ExceptionCredentialsIsValidRequiresSessionCredentials {
             get {
                 return ResourceManager.GetString("ExceptionCredentialsIsValidRequiresSessionCredentials", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No items in the services array returned by server.
+        /// </summary>
+        internal static string ExceptionCredentialsNoItemsInServicesArrayReturnedByServer {
+            get {
+                return ResourceManager.GetString("ExceptionCredentialsNoItemsInServicesArrayReturnedByServer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No service_type item returned by server.
+        /// </summary>
+        internal static string ExceptionCredentialsNoServiceTypeItemReturnedByServer {
+            get {
+                return ResourceManager.GetString("ExceptionCredentialsNoServiceTypeItemReturnedByServer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No sync service_type token returned by server.
+        /// </summary>
+        internal static string ExceptionCredentialsNoServiceTypeSyncItemReturnedByServer {
+            get {
+                return ResourceManager.GetString("ExceptionCredentialsNoServiceTypeSyncItemReturnedByServer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No session or sessions token returned by server.
+        /// </summary>
+        internal static string ExceptionCredentialsNoSessionOrSessionsToken {
+            get {
+                return ResourceManager.GetString("ExceptionCredentialsNoSessionOrSessionsToken", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No sync service sync_box_ids token returned by server.
+        /// </summary>
+        internal static string ExceptionCredentialsNoSyncBoxIdsItemReturnedByServer {
+            get {
+                return ResourceManager.GetString("ExceptionCredentialsNoSyncBoxIdsItemReturnedByServer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to null expiresAt returned by server.
+        /// </summary>
+        internal static string ExceptionCredentialsNullExpiresAtReturnedByServer {
+            get {
+                return ResourceManager.GetString("ExceptionCredentialsNullExpiresAtReturnedByServer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to null key returned by server.
+        /// </summary>
+        internal static string ExceptionCredentialsNullKeyReturnedByServer {
+            get {
+                return ResourceManager.GetString("ExceptionCredentialsNullKeyReturnedByServer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to null secret returned by server.
+        /// </summary>
+        internal static string ExceptionCredentialsNullSecretReturnedByServer {
+            get {
+                return ResourceManager.GetString("ExceptionCredentialsNullSecretReturnedByServer", resourceCulture);
             }
         }
         
@@ -3335,15 +3425,6 @@ namespace Cloud.Static {
         internal static string ExceptionOnDemandLinkDeviceRequestMustNotBeNull {
             get {
                 return ResourceManager.GetString("ExceptionOnDemandLinkDeviceRequestMustNotBeNull", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to One of the session responses was invalid.
-        /// </summary>
-        internal static string ExceptionOnDemandListAllSessionCredentialsOneSessionResponseWasInvalid {
-            get {
-                return ResourceManager.GetString("ExceptionOnDemandListAllSessionCredentialsOneSessionResponseWasInvalid", resourceCulture);
             }
         }
         
