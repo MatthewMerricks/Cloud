@@ -3197,7 +3197,7 @@
     <value>filesToAdd must not be null</value>
     <comment>"filesToAdd" should not be translated</comment>
   </data>
-  <data name="ExceptionOnDemandGetCurrentStatusNullServerResponse" xml:space="preserve">
+  <data name="ExceptionOnDemandNullServerResponse" xml:space="preserve">
     <value>server returned null response</value>
   </data>
   <data name="ExceptionOnDemandGetCurrentStatusServerResponseNullSyncbox" xml:space="preserve">
@@ -3382,6 +3382,57 @@
   </data>
   <data name="TraceCLSyncboxStopLiveSyncErrorUnsubscribeMsgRcvrMsg0Msg1" xml:space="preserve">
     <value>CLSyncbox: StopLiveSync: ERROR.  From UnsubscribeMessageReceiver.  Msg: &lt;{0}&gt;. Code: {1}.</value>
+    <comment>Do not translate</comment>
+  </data>
+  <data name="ExceptionOnDemandServerResponseStatusNull" xml:space="preserve">
+    <value>Server response status must not be null or empty</value>
+    <comment>"status" should not be translated</comment>
+  </data>
+  <data name="ExceptionSyncboxObjectDisposed" xml:space="preserve">
+    <value>Object disposed</value>
+    <comment>"Object" should not be translated</comment>
+  </data>
+  <data name="ExceptionSyncboxPathInvalidCharacters" xml:space="preserve">
+    <value>syncbox path contains invalid characters.</value>
+    <comment>"path" should not be translated</comment>
+  </data>
+  <data name="ExceptionSyncboxPathMustBeSetFirst" xml:space="preserve">
+    <value>path must be set first</value>
+    <comment>"path" should not be translated</comment>
+  </data>
+  <data name="ExceptionSyncboxPathMustNotBeNull" xml:space="preserve">
+    <value>path must not be null</value>
+    <comment>"path" should not be translated</comment>
+  </data>
+  <data name="ExceptionSyncboxPathTooLongMsg0" xml:space="preserve">
+    <value>syncbox path is too long by {0} characters.</value>
+    <comment>"path" should not be translated</comment>
+  </data>
+  <data name="ExceptionSyncboxPushConnErrorWithoutError" xml:space="preserve">
+    <value>Push notification connection error event fired without an error</value>
+  </data>
+  <data name="TraceSyncboxInitializeInternalUnknownErrorCreatingRestClient" xml:space="preserve">
+    <value>Unknown error creating HTTP REST client</value>
+    <comment>"HTTP" and "REST" should not be translated</comment>
+  </data>
+  <data name="TraceSyncboxOnPushConnErrorManualPollErrMsg0Msg1" xml:space="preserve">
+    <value>CLSyncbox: OnPushNotificationConnectionError: Entry. ERROR: Manual poll error message: &lt;{0}&gt;. Manual poll error code: {1}.</value>
+    <comment>Do not translate</comment>
+  </data>
+  <data name="TraceSyncboxOnPushConnErrorsAndCodesMsg0Msg1Msg2Msg3" xml:space="preserve">
+    <value>CLSyncbox: OnPushNotificationConnectionError: Entry. ERROR: Web socket error message: &lt;{0}&gt;. Web socket error code: {1}. Manual poll error message: &lt;{2}&gt;. Manual poll error code: {3}.</value>
+    <comment>Do not translate</comment>
+  </data>
+  <data name="TraceSyncboxOnPushConnErrorsNotifyApp" xml:space="preserve">
+    <value>CLSyncbox: OnPushNotificationConnectionError: Notify the application.</value>
+    <comment>Do not translate</comment>
+  </data>
+  <data name="TraceSyncboxOnPushConnErrorWebSocketErrMsg0Msg1" xml:space="preserve">
+    <value>CLSyncbox: OnPushNotificationConnectionError: Entry. ERROR: Web socket error message: &lt;{0}&gt;. Web socket error code: {1}.</value>
+    <comment>Do not translate</comment>
+  </data>
+  <data name="TraceSyncboxOnPushNotifConnError" xml:space="preserve">
+    <value>CLSyncbox: OnPushNotificationConnectionError: Entry. ERROR: No errors.</value>
     <comment>Do not translate</comment>
   </data>
 </root>

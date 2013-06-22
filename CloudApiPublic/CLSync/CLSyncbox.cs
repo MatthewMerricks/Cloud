@@ -1530,11 +1530,11 @@ namespace Cloud
                 // Check the server response.
                 if (responseFromServer == null)
                 {
-                    throw new NullReferenceException("Response from server must not be null");  //&&&& fix
+                    throw new CLNullReferenceException(CLExceptionCode.OnDemand_NoServerResponse, Resources.ExceptionOnDemandNullServerResponse);
                 }
                 if (String.IsNullOrEmpty(responseFromServer.Status))
                 {
-                    throw new NullReferenceException("Server response status must not be null or empty");  //&&&& fix
+                    throw new CLNullReferenceException(CLExceptionCode.OnDemand_ServerResponseNoStatus, Resources.ExceptionOnDemandServerResponseStatusNull);
                 }
 
                 // Convert the response object to a CLSyncbox and return that.
@@ -4017,7 +4017,7 @@ namespace Cloud
                 if (setPathHolder == null
                     || setPathHolder.HttpRestClient == null)
                 {
-                    throw new CLNullReferenceException(CLExceptionCode.Syncbox_BadPath, "path must be set first");
+                    throw new CLNullReferenceException(CLExceptionCode.Syncbox_BadPath, Resources.ExceptionSyncboxPathMustBeSetFirst);
                 }
 
                 httpRestClient = setPathHolder.HttpRestClient;
@@ -4048,7 +4048,7 @@ namespace Cloud
         {
             if (path == null)
             {
-                throw new CLArgumentNullException(CLExceptionCode.Syncbox_BadPath, "path must not be null");
+                throw new CLArgumentNullException(CLExceptionCode.Syncbox_BadPath, Resources.ExceptionSyncboxPathMustNotBeNull);
             }
 
             if (setPathLocker != null)
@@ -4075,7 +4075,7 @@ namespace Cloud
                 CLError errorPathTooLong = Helpers.CheckSyncboxPathLength(path, out nOutTooLongChars);
                 if (errorPathTooLong != null)
                 {
-                    throw new CLArgumentException(CLExceptionCode.Syncbox_LongPath, string.Format("syncbox path is too long by {0} characters.", nOutTooLongChars), errorPathTooLong.Exceptions);
+                    throw new CLArgumentException(CLExceptionCode.Syncbox_LongPath, string.Format(Resources.ExceptionSyncboxPathTooLongMsg0, nOutTooLongChars), errorPathTooLong.Exceptions);
                 }
 
                 // The syncbox path may be specified as null, which is replaced with String.Empty.  The path is actually not used for the On Demand case.
@@ -4085,7 +4085,7 @@ namespace Cloud
                     CLError errorBadPath = Helpers.CheckForBadPath(path);
                     if (errorBadPath != null)
                     {
-                        throw new CLArgumentException(CLExceptionCode.Syncbox_BadPath, "syncbox path contains invalid characters.", errorBadPath.Exceptions);
+                        throw new CLArgumentException(CLExceptionCode.Syncbox_BadPath, Resources.ExceptionSyncboxPathInvalidCharacters, errorBadPath.Exceptions);
                     }
                 }
 
@@ -4114,7 +4114,7 @@ namespace Cloud
                 }
                 if (localRestClient == null)
                 {
-                    const string nullRestClient = "Unknown error creating HTTP REST client";
+                    string nullRestClient = Resources.TraceSyncboxInitializeInternalUnknownErrorCreatingRestClient;
                     _trace.writeToLog(1, Resources.CLSyncboxConstructionErrorMsg0, nullRestClient);
 
                     throw new CLNullReferenceException(CLExceptionCode.Syncbox_CreateRestClient, nullRestClient);
@@ -4229,10 +4229,10 @@ namespace Cloud
                 {
                     if (e.ErrorWebSockets == null)
                     {
-                        _trace.writeToLog(1, "CLSyncbox: OnPushNotificationConnectionError: Entry. ERROR: No errors.");
+                        _trace.writeToLog(1, Resources.TraceSyncboxOnPushNotifConnError);
                         try
                         {
-                            throw new CLInvalidOperationException(CLExceptionCode.General_Invalid, "Push notification connection error event fired without an error");
+                            throw new CLInvalidOperationException(CLExceptionCode.General_Invalid, Resources.ExceptionSyncboxPushConnErrorWithoutError);
                         }
                         catch (Exception ex)
                         {
@@ -4241,18 +4241,18 @@ namespace Cloud
                     }
                     else
                     {
-                        _trace.writeToLog(1, "CLSyncbox: OnPushNotificationConnectionError: Entry. ERROR: Web socket error message: <{0}>. Web socket error code: {1}.", e.ErrorWebSockets.PrimaryException.Message, e.ErrorWebSockets.PrimaryException.Code);
+                        _trace.writeToLog(1, Resources.TraceSyncboxOnPushConnErrorWebSocketErrMsg0Msg1, e.ErrorWebSockets.PrimaryException.Message, e.ErrorWebSockets.PrimaryException.Code);
                         e.ErrorWebSockets.Log(_copiedSettings.TraceLocation, _copiedSettings.LogErrors);
                     }
                 }
                 else if (e.ErrorWebSockets == null)
                 {
-                    _trace.writeToLog(1, "CLSyncbox: OnPushNotificationConnectionError: Entry. ERROR: Manual poll error message: <{0}>. Manual poll error code: {1}.", e.ErrorStillDisconnectedPing.PrimaryException.Message, e.ErrorStillDisconnectedPing.PrimaryException.Code);
+                    _trace.writeToLog(1, Resources.TraceSyncboxOnPushConnErrorManualPollErrMsg0Msg1, e.ErrorStillDisconnectedPing.PrimaryException.Message, e.ErrorStillDisconnectedPing.PrimaryException.Code);
                     e.ErrorStillDisconnectedPing.Log(_copiedSettings.TraceLocation, _copiedSettings.LogErrors);
                 }
                 else
                 {
-                    _trace.writeToLog(1, "CLSyncbox: OnPushNotificationConnectionError: Entry. ERROR: Web socket error message: <{0}>. Web socket error code: {1}. Manual poll error message: <{2}>. Manual poll error code: {3}.", e.ErrorWebSockets.PrimaryException.Message, e.ErrorWebSockets.PrimaryException.Code, e.ErrorStillDisconnectedPing.PrimaryException.Message, e.ErrorStillDisconnectedPing.PrimaryException.Code);
+                    _trace.writeToLog(1, Resources.TraceSyncboxOnPushConnErrorsAndCodesMsg0Msg1Msg2Msg3, e.ErrorWebSockets.PrimaryException.Message, e.ErrorWebSockets.PrimaryException.Code, e.ErrorStillDisconnectedPing.PrimaryException.Message, e.ErrorStillDisconnectedPing.PrimaryException.Code);
                     e.ErrorWebSockets.Log(_copiedSettings.TraceLocation, _copiedSettings.LogErrors);
                     e.ErrorStillDisconnectedPing.Log(_copiedSettings.TraceLocation, _copiedSettings.LogErrors);
                 }
@@ -4260,7 +4260,7 @@ namespace Cloud
                 // Tell the application
                 if (PushNotificationError != null)
                 {
-                    _trace.writeToLog(1, "CLSyncbox: OnPushNotificationConnectionError: Notify the application.");
+                    _trace.writeToLog(1, Resources.TraceSyncboxOnPushConnErrorsNotifyApp);
                     PushNotificationError(this, e);
                 }
             }
@@ -4288,7 +4288,7 @@ namespace Cloud
         {
             if (Disposed)
             {
-                throw new Exception("Object disposed");  //&&&& fix
+                throw new CLException(CLExceptionCode.Syncbox_ObjectDisposed, Resources.ExceptionSyncboxObjectDisposed);
             }
 
             Helpers.CheckHalted();
@@ -4301,7 +4301,7 @@ namespace Cloud
         {
             if (Disposed)
             {
-                throw new Exception("Object disposed");  //&&&& fix
+                throw new CLException(CLExceptionCode.Syncbox_ObjectDisposed, Resources.ExceptionSyncboxObjectDisposed);
             }
             if (!isOneOff)
             {

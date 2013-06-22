@@ -8190,7 +8190,7 @@ namespace Cloud.REST
 
                 if (serverResponse == null)
                 {
-                    throw new CLNullReferenceException(CLExceptionCode.OnDemand_NoServerResponse, Resources.ExceptionOnDemandGetCurrentStatusNullServerResponse);
+                    throw new CLNullReferenceException(CLExceptionCode.OnDemand_NoServerResponse, Resources.ExceptionOnDemandNullServerResponse);
                 }
                 if (serverResponse.Syncbox == null)
                 {

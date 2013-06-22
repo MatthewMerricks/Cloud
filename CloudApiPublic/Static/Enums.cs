@@ -290,6 +290,11 @@ namespace Cloud.Static
         /// </summary>
         Syncbox_ArgumentMissing = (((ulong)CLExceptionDomain.Syncbox) << 32) | 29, // 2_29
 
+        /// <summary>
+        /// Object disposed.
+        /// </summary>
+        Syncbox_ObjectDisposed = (((ulong)CLExceptionDomain.Syncbox) << 32) | 30, // 2_30
+
         #endregion
 
         #region ShellExt
@@ -621,6 +626,11 @@ namespace Cloud.Static
         /// The server response did not contain a syncbox.
         /// </summary>
         OnDemand_ServerResponseNoSyncbox = (((ulong)CLExceptionDomain.OnDemand) << 32) | 44, // 5_44
+
+        /// <summary>
+        /// The server response did not contain the expected status.
+        /// </summary>
+        OnDemand_ServerResponseNoStatus = (((ulong)CLExceptionDomain.OnDemand) << 32) | 45, // 5_45
 
         #endregion
 
