@@ -1377,6 +1377,15 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cloud.
+        /// </summary>
+        internal static string Cloud {
+            get {
+                return ResourceManager.GetString("Cloud", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cannot do anything with the Cloud SDK if Helpers.AllHaltedOnUnrecoverableError is set.
         /// </summary>
         internal static string CLSyncBoxAllHaltedOnUnrecoverableErrorIsSet {
@@ -2147,6 +2156,15 @@ namespace Cloud.Static {
         internal static string ExceptionCLSyncboxEngineNotFound {
             get {
                 return ResourceManager.GetString("ExceptionCLSyncboxEngineNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error resetting syncing database.
+        /// </summary>
+        internal static string ExceptionCLSyncboxErrorResettingSyncDatabase {
+            get {
+                return ResourceManager.GetString("ExceptionCLSyncboxErrorResettingSyncDatabase", resourceCulture);
             }
         }
         
@@ -3024,6 +3042,24 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Server response syncbox must not be null.
+        /// </summary>
+        internal static string ExceptionOnDemandCreateSyncboxNoSyncboxInServerResponse {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandCreateSyncboxNoSyncboxInServerResponse", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Response from server must not be null.
+        /// </summary>
+        internal static string ExceptionOnDemandCreateSyncboxNullServerResponse {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandCreateSyncboxNullServerResponse", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Services missing in server response.
         /// </summary>
         internal static string ExceptionOnDemandCredentialsCreateSessionServicesMissingInServerResponse {
@@ -3258,15 +3294,6 @@ namespace Cloud.Static {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to server returned null response.
-        /// </summary>
-        internal static string ExceptionOnDemandGetCurrentStatusNullServerResponse {
-            get {
-                return ResourceManager.GetString("ExceptionOnDemandGetCurrentStatusNullServerResponse", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to server returned null response Syncbox.
         /// </summary>
         internal static string ExceptionOnDemandGetCurrentStatusServerResponseNullSyncbox {
@@ -3483,6 +3510,15 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to server returned null response.
+        /// </summary>
+        internal static string ExceptionOnDemandNullServerResponse {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandNullServerResponse", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Server responded with an item without a status.
         /// </summary>
         internal static string ExceptionOnDemandNullStatus {
@@ -3533,6 +3569,15 @@ namespace Cloud.Static {
         internal static string ExceptionOnDemandServerResponseNoSession {
             get {
                 return ResourceManager.GetString("ExceptionOnDemandServerResponseNoSession", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Server response status must not be null or empty.
+        /// </summary>
+        internal static string ExceptionOnDemandServerResponseStatusNull {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandServerResponseStatusNull", resourceCulture);
             }
         }
         
@@ -3655,6 +3700,15 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to credentials must not be null.
+        /// </summary>
+        internal static string ExceptionSyncboxCredentialsMustNotBeNull {
+            get {
+                return ResourceManager.GetString("ExceptionSyncboxCredentialsMustNotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Error getting syncbox status due to bad credentials..
         /// </summary>
         internal static string ExceptionSyncboxErrorGettingStatusDueToBadCredentials {
@@ -3709,6 +3763,69 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Object disposed.
+        /// </summary>
+        internal static string ExceptionSyncboxObjectDisposed {
+            get {
+                return ResourceManager.GetString("ExceptionSyncboxObjectDisposed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to syncbox path contains invalid characters..
+        /// </summary>
+        internal static string ExceptionSyncboxPathInvalidCharacters {
+            get {
+                return ResourceManager.GetString("ExceptionSyncboxPathInvalidCharacters", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to path must be set first.
+        /// </summary>
+        internal static string ExceptionSyncboxPathMustBeSetFirst {
+            get {
+                return ResourceManager.GetString("ExceptionSyncboxPathMustBeSetFirst", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to path must not be null.
+        /// </summary>
+        internal static string ExceptionSyncboxPathMustNotBeNull {
+            get {
+                return ResourceManager.GetString("ExceptionSyncboxPathMustNotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to syncbox path is too long by {0} characters..
+        /// </summary>
+        internal static string ExceptionSyncboxPathTooLongMsg0 {
+            get {
+                return ResourceManager.GetString("ExceptionSyncboxPathTooLongMsg0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to plan must not be null.
+        /// </summary>
+        internal static string ExceptionSyncboxPlanMustNotBeNull {
+            get {
+                return ResourceManager.GetString("ExceptionSyncboxPlanMustNotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Push notification connection error event fired without an error.
+        /// </summary>
+        internal static string ExceptionSyncboxPushConnErrorWithoutError {
+            get {
+                return ResourceManager.GetString("ExceptionSyncboxPushConnErrorWithoutError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Error starting FileMonitor.
         /// </summary>
         internal static string ExceptionSyncboxStartFileMonitor {
@@ -3741,6 +3858,42 @@ namespace Cloud.Static {
         internal static string ExceptionSyncboxStartStatus {
             get {
                 return ResourceManager.GetString("ExceptionSyncboxStartStatus", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to syncboxContract Id must not be null.
+        /// </summary>
+        internal static string ExceptionSyncboxSyncboxContractIdMustNotBeNull {
+            get {
+                return ResourceManager.GetString("ExceptionSyncboxSyncboxContractIdMustNotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to syncboxContract must not be null.
+        /// </summary>
+        internal static string ExceptionSyncboxSyncboxContractMustNotBeNull {
+            get {
+                return ResourceManager.GetString("ExceptionSyncboxSyncboxContractMustNotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to syncboxContract PlanId must not be null.
+        /// </summary>
+        internal static string ExceptionSyncboxSyncboxContractPlanIdMustNotBeNull {
+            get {
+                return ResourceManager.GetString("ExceptionSyncboxSyncboxContractPlanIdMustNotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to syncboxId must be specified.
+        /// </summary>
+        internal static string ExceptionSyncboxSyncboxIdMustBeSpecified {
+            get {
+                return ResourceManager.GetString("ExceptionSyncboxSyncboxIdMustBeSpecified", resourceCulture);
             }
         }
         
@@ -7318,6 +7471,132 @@ namespace Cloud.Static {
         internal static string SyncEngineFinishedCommunicating {
             get {
                 return ResourceManager.GetString("SyncEngineFinishedCommunicating", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLSyncbox: CLSyncbox: Constructing from contract....
+        /// </summary>
+        internal static string TraceCLSyncboxCLSyncboxConstructingFromContract {
+            get {
+                return ResourceManager.GetString("TraceCLSyncboxCLSyncboxConstructingFromContract", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLSyncbox: ResetLocalCache: ERROR.  Exception.  Msg: {0}. Code: {1}..
+        /// </summary>
+        internal static string TraceCLSyncboxResetLocalCacheErrorExceptionMsg0Msg1 {
+            get {
+                return ResourceManager.GetString("TraceCLSyncboxResetLocalCacheErrorExceptionMsg0Msg1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLSyncbox: ResetLocalCache: ERROR: From syncEngine.SyncReset: Msg: {0}. Code {1}..
+        /// </summary>
+        internal static string TraceCLSyncboxResetLocalCacheErrorSyncResetMsg0Msg1 {
+            get {
+                return ResourceManager.GetString("TraceCLSyncboxResetLocalCacheErrorSyncResetMsg0Msg1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLSyncbox: StartLiveSync: ERROR.  Exception.  Msg: {0}. Code: {1}..
+        /// </summary>
+        internal static string TraceCLSyncboxStartLiveErrorExceptionMsg0Msg1 {
+            get {
+                return ResourceManager.GetString("TraceCLSyncboxStartLiveErrorExceptionMsg0Msg1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to  CLSyncbox: StartLiveSync: Error starting sync engine. Msg: {0}. Code: {1}..
+        /// </summary>
+        internal static string TraceCLSyncboxStartLiveSyncErrorStartingEngineMsg0Msg1 {
+            get {
+                return ResourceManager.GetString("TraceCLSyncboxStartLiveSyncErrorStartingEngineMsg0Msg1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLSyncbox: StartLiveSync: ERROR.  From UnsubscribeMessageReceiver.  Msg: &lt;{0}&gt;. Code: {1}..
+        /// </summary>
+        internal static string TraceCLSyncboxStartLiveSyncErrorUnsubscribeMsgRcvrMsg0Msg1 {
+            get {
+                return ResourceManager.GetString("TraceCLSyncboxStartLiveSyncErrorUnsubscribeMsgRcvrMsg0Msg1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLSyncbox: StopLiveSync: ERROR.  Exception.  Msg: &lt;{0}&gt;. Code: {1}..
+        /// </summary>
+        internal static string TraceCLSyncboxStopLiveErrorExceptionMsg0Msg1 {
+            get {
+                return ResourceManager.GetString("TraceCLSyncboxStopLiveErrorExceptionMsg0Msg1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLSyncbox: StopLiveSync: ERROR.  From UnsubscribeMessageReceiver.  Msg: &lt;{0}&gt;. Code: {1}..
+        /// </summary>
+        internal static string TraceCLSyncboxStopLiveSyncErrorUnsubscribeMsgRcvrMsg0Msg1 {
+            get {
+                return ResourceManager.GetString("TraceCLSyncboxStopLiveSyncErrorUnsubscribeMsgRcvrMsg0Msg1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unknown error creating HTTP REST client.
+        /// </summary>
+        internal static string TraceSyncboxInitializeInternalUnknownErrorCreatingRestClient {
+            get {
+                return ResourceManager.GetString("TraceSyncboxInitializeInternalUnknownErrorCreatingRestClient", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLSyncbox: OnPushNotificationConnectionError: Entry. ERROR: Manual poll error message: &lt;{0}&gt;. Manual poll error code: {1}..
+        /// </summary>
+        internal static string TraceSyncboxOnPushConnErrorManualPollErrMsg0Msg1 {
+            get {
+                return ResourceManager.GetString("TraceSyncboxOnPushConnErrorManualPollErrMsg0Msg1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLSyncbox: OnPushNotificationConnectionError: Entry. ERROR: Web socket error message: &lt;{0}&gt;. Web socket error code: {1}. Manual poll error message: &lt;{2}&gt;. Manual poll error code: {3}..
+        /// </summary>
+        internal static string TraceSyncboxOnPushConnErrorsAndCodesMsg0Msg1Msg2Msg3 {
+            get {
+                return ResourceManager.GetString("TraceSyncboxOnPushConnErrorsAndCodesMsg0Msg1Msg2Msg3", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLSyncbox: OnPushNotificationConnectionError: Notify the application..
+        /// </summary>
+        internal static string TraceSyncboxOnPushConnErrorsNotifyApp {
+            get {
+                return ResourceManager.GetString("TraceSyncboxOnPushConnErrorsNotifyApp", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLSyncbox: OnPushNotificationConnectionError: Entry. ERROR: Web socket error message: &lt;{0}&gt;. Web socket error code: {1}..
+        /// </summary>
+        internal static string TraceSyncboxOnPushConnErrorWebSocketErrMsg0Msg1 {
+            get {
+                return ResourceManager.GetString("TraceSyncboxOnPushConnErrorWebSocketErrMsg0Msg1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CLSyncbox: OnPushNotificationConnectionError: Entry. ERROR: No errors..
+        /// </summary>
+        internal static string TraceSyncboxOnPushNotifConnError {
+            get {
+                return ResourceManager.GetString("TraceSyncboxOnPushNotifConnError", resourceCulture);
             }
         }
         
