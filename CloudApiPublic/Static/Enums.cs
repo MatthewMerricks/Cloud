@@ -275,6 +275,21 @@ namespace Cloud.Static
         /// </summary>
         Syncbox_SubscribingToLiveSyncStatusReceiver = (((ulong)CLExceptionDomain.Syncbox) << 32) | 26, // 2_26
 
+        /// <summary>
+        /// The syncbox ID must be specified.
+        /// </summary>
+        Syncbox_SyncboxId = (((ulong)CLExceptionDomain.Syncbox) << 32) | 27, // 2_27
+
+        /// <summary>
+        /// Bad argument.
+        /// </summary>
+        Syncbox_ArgumentBad = (((ulong)CLExceptionDomain.Syncbox) << 32) | 28, // 2_28
+
+        /// <summary>
+        /// Missing argument.
+        /// </summary>
+        Syncbox_ArgumentMissing = (((ulong)CLExceptionDomain.Syncbox) << 32) | 29, // 2_29
+
         #endregion
 
         #region ShellExt
@@ -601,6 +616,11 @@ namespace Cloud.Static
         /// Bad settings.
         /// </summary>
         OnDemand_Settings = (((ulong)CLExceptionDomain.OnDemand) << 32) | 43, // 5_43
+
+        /// <summary>
+        /// The server response did not contain a syncbox.
+        /// </summary>
+        OnDemand_ServerResponseNoSyncbox = (((ulong)CLExceptionDomain.OnDemand) << 32) | 44, // 5_44
 
         #endregion
 

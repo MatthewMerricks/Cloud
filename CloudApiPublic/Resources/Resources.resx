@@ -3314,4 +3314,74 @@
     <value>null secret returned by server</value>
     <comment>"null" and "secret" should not be translated</comment>
   </data>
+  <data name="Cloud" xml:space="preserve">
+    <value>Cloud</value>
+    <comment>Do not translate</comment>
+  </data>
+  <data name="ExceptionSyncboxCredentialsMustNotBeNull" xml:space="preserve">
+    <value>credentials must not be null</value>
+    <comment>"credentials" should not be translated</comment>
+  </data>
+  <data name="ExceptionSyncboxSyncboxContractIdMustNotBeNull" xml:space="preserve">
+    <value>syncboxContract Id must not be null</value>
+    <comment>"syncboxContract" and "Id" should not be translated</comment>
+  </data>
+  <data name="ExceptionSyncboxSyncboxContractMustNotBeNull" xml:space="preserve">
+    <value>syncboxContract must not be null</value>
+    <comment>"syncboxContract" should not be translated</comment>
+  </data>
+  <data name="ExceptionSyncboxSyncboxContractPlanIdMustNotBeNull" xml:space="preserve">
+    <value>syncboxContract PlanId must not be null</value>
+    <comment>"syncboxContract" and "PlanId" should not be translated</comment>
+  </data>
+  <data name="ExceptionSyncboxSyncboxIdMustBeSpecified" xml:space="preserve">
+    <value>syncboxId must be specified</value>
+    <comment>"syncboxId" should not be translated</comment>
+  </data>
+  <data name="TraceCLSyncboxCLSyncboxConstructingFromContract" xml:space="preserve">
+    <value>CLSyncbox: CLSyncbox: Constructing from contract...</value>
+    <comment>Do not translate</comment>
+  </data>
+  <data name="ExceptionCLSyncboxErrorResettingSyncDatabase" xml:space="preserve">
+    <value>Error resetting syncing database</value>
+  </data>
+  <data name="ExceptionOnDemandCreateSyncboxNoSyncboxInServerResponse" xml:space="preserve">
+    <value>Server response syncbox must not be null</value>
+    <comment>"syncbox" should not be translated</comment>
+  </data>
+  <data name="ExceptionOnDemandCreateSyncboxNullServerResponse" xml:space="preserve">
+    <value>Response from server must not be null</value>
+  </data>
+  <data name="ExceptionSyncboxPlanMustNotBeNull" xml:space="preserve">
+    <value>plan must not be null</value>
+    <comment>"plan" should not be translated</comment>
+  </data>
+  <data name="TraceCLSyncboxResetLocalCacheErrorExceptionMsg0Msg1" xml:space="preserve">
+    <value>CLSyncbox: ResetLocalCache: ERROR.  Exception.  Msg: {0}. Code: {1}.</value>
+    <comment>Do not translate</comment>
+  </data>
+  <data name="TraceCLSyncboxResetLocalCacheErrorSyncResetMsg0Msg1" xml:space="preserve">
+    <value>CLSyncbox: ResetLocalCache: ERROR: From syncEngine.SyncReset: Msg: {0}. Code {1}.</value>
+    <comment>Do not translate</comment>
+  </data>
+  <data name="TraceCLSyncboxStartLiveErrorExceptionMsg0Msg1" xml:space="preserve">
+    <value>CLSyncbox: StartLiveSync: ERROR.  Exception.  Msg: {0}. Code: {1}.</value>
+    <comment>Do not translate</comment>
+  </data>
+  <data name="TraceCLSyncboxStartLiveSyncErrorStartingEngineMsg0Msg1" xml:space="preserve">
+    <value> CLSyncbox: StartLiveSync: Error starting sync engine. Msg: {0}. Code: {1}.</value>
+    <comment>Do not translate</comment>
+  </data>
+  <data name="TraceCLSyncboxStartLiveSyncErrorUnsubscribeMsgRcvrMsg0Msg1" xml:space="preserve">
+    <value>CLSyncbox: StartLiveSync: ERROR.  From UnsubscribeMessageReceiver.  Msg: &lt;{0}&gt;. Code: {1}.</value>
+    <comment>Do not translate</comment>
+  </data>
+  <data name="TraceCLSyncboxStopLiveErrorExceptionMsg0Msg1" xml:space="preserve">
+    <value>CLSyncbox: StopLiveSync: ERROR.  Exception.  Msg: &lt;{0}&gt;. Code: {1}.</value>
+    <comment>Do not translate</comment>
+  </data>
+  <data name="TraceCLSyncboxStopLiveSyncErrorUnsubscribeMsgRcvrMsg0Msg1" xml:space="preserve">
+    <value>CLSyncbox: StopLiveSync: ERROR.  From UnsubscribeMessageReceiver.  Msg: &lt;{0}&gt;. Code: {1}.</value>
+    <comment>Do not translate</comment>
+  </data>
 </root>
