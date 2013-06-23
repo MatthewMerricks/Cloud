@@ -38,7 +38,7 @@ namespace Cloud
         private static CLTrace _trace = CLTrace.Instance;
         private SyncEngine _syncEngine = null;
         private static readonly HashSet<SyncEngine> NetworkMonitoredEngines = new HashSet<SyncEngine>();
-        private System.Threading.WaitCallback statusUpdated = null;
+        private Helpers.SyncStatusChangedCallback statusUpdated = null;
         private object statusUpdatedUserState = null;
         private readonly object _locker = new object();
 
@@ -207,7 +207,7 @@ namespace Cloud
         //    long SyncboxId,
         //    string SyncboxPath,
         //    out CLSyncStartStatus Status,
-        //    System.Threading.WaitCallback StatusUpdated = null,
+        //    Helpers.SyncStatusChangedCallback StatusUpdated = null,
         //    object StatusUpdatedUserState = null)
         //{
         //    try
@@ -255,7 +255,7 @@ namespace Cloud
             long quotaUsage,
             long storageQuota,
             SyncEngine.OnGetDataUsageCompletionDelegate OnGetDataUsageCompletion,
-			System.Threading.WaitCallback statusUpdated = null,
+			Helpers.SyncStatusChangedCallback statusUpdated = null,
 			object statusUpdatedUserState = null)
         {
             bool reservedSyncbox = false;
