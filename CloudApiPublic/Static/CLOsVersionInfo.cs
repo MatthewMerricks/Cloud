@@ -1048,6 +1048,16 @@ namespace Cloud.Static
             return toReturn;
         }
 
+        /// <summary>
+        /// Get the version of this SDK (Cloud.dll)
+        /// </summary>
+        /// <returns>The SDK version.</returns>
+        public static string GetSdkVersion()
+        {
+            string sSdkVersion = ReplaceCommas(typeof(OSVersionInfo).Assembly.GetName().Version.ToString());
+            return sSdkVersion;
+        }
+
         #endregion
     }
 }

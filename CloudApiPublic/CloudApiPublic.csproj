@@ -133,6 +133,7 @@
     <Compile Include="CLSync\Callbacks\CLFileDownloadTransferStatusCallback.cs" />
     <Compile Include="CLSync\Callbacks\CLFileUploadTransferStatusCallback.cs" />
     <Compile Include="CLSync\Callbacks\CLFileItemCompletionCallback.cs" />
+    <Compile Include="CLSync\CLSdk.cs" />
     <Compile Include="CLSync\CLSyncbox.cs" />
     <Compile Include="CLSync\Parameters\AddFolderItemParams.cs" />
     <Compile Include="CLSync\Parameters\AddFileItemParams.cs" />
