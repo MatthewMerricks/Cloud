@@ -38,7 +38,7 @@ namespace Cloud.REST
         #region Private fields
 
         private readonly Dictionary<int, EnumRequestNewCredentialsStates> _processingStateByThreadId;
-        private Helpers.ReplaceExpiredCredentials _getNewCredentialsCallback = null;
+        private Helpers.ReplaceExpiredCredentialsCallback _getNewCredentialsCallback = null;
         private object _getNewCredentialsCallbackUserState = null;
 
         #endregion
@@ -99,7 +99,7 @@ namespace Cloud.REST
         // private constructor requiring settings to copy and store for the life of this http client
         private CLHttpRest(
             CLSyncbox syncbox, 
-            Helpers.ReplaceExpiredCredentials getNewCredentialsCallback,
+            Helpers.ReplaceExpiredCredentialsCallback getNewCredentialsCallback,
             object getNewCredentialsCallbackUserState)
         {
             if (syncbox == null)
@@ -140,7 +140,7 @@ namespace Cloud.REST
         internal static CLError CreateAndInitialize(
             CLSyncbox syncbox, 
             out CLHttpRest client, 
-            Helpers.ReplaceExpiredCredentials getNewCredentialsCallback = null,
+            Helpers.ReplaceExpiredCredentialsCallback getNewCredentialsCallback = null,
             object getNewCredentialsCallbackUserState = null)
         {
             try

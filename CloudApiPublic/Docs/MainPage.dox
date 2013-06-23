@@ -288,7 +288,8 @@
 /// If the enumeration has one and only one flag and that flag is HaltedOnExpiredCredentials then a client can stop sync, grab new credentials from the server, and restart sync with the new credentials.
 /// \par
 /// However, if the enumeration also has an activity flag such as CommuncatingChanges, UploadingFiles, or DownloadingFiles, then the client should wait until a subsequent 
-/// callback from the System.Threading.WaitCallback passed as optional input parameter StatusUpdated when the CloudApiPublic.CLSyncEngine was last started. The reason is because we do not wish to cancel a large file transfer in progress.
+/// callback from the Helpers.SyncStatusChangedCallback delegate passed as optional input parameter (syncStatusChangedCallback) when CLSyncbox.StartLiveSync was last called. 
+/// The reason is because we do not wish to cancel a large file transfer in progress.
 /// 
 /// \subsection sampleapp-stoppingsync-subsec Stopping Sync
 /// Here are the steps to stop sync.  Refer to MainViewModel:StopSyncing() in the sample app code.

@@ -710,7 +710,7 @@ namespace Cloud.FileMonitor
             IndexingAgent indexer,
             CLHttpRest httpRestClient,
             bool DependencyDebugging,
-            System.Threading.WaitCallback StatusUpdated,
+            Helpers.SyncStatusChangedCallback StatusUpdated,
             object StatusUpdatedUserState,
             out MonitorAgent newAgent,
             out SyncEngine syncEngine,
