@@ -3496,7 +3496,7 @@ namespace Cloud.Static
                 // trace communication for the current request
                 ComTrace.LogCommunication(CopiedSettings.TraceLocation, // location of trace file
                     CopiedSettings.DeviceId, // device id
-                    Syncbox.SyncboxId, // syncbox ID
+                    Syncbox != null ? Syncbox.SyncboxId : 0, // syncbox ID
                     CommunicationEntryDirection.Request, // direction is request
                     serverUrl + serverMethodPath, // location for the server method
                     true, // trace is enabled
@@ -4437,7 +4437,7 @@ namespace Cloud.Static
                             // log communication for stream body
                             ComTrace.LogCommunication(CopiedSettings.TraceLocation, // trace file location
                                 CopiedSettings.DeviceId, // device id
-                                Syncbox.SyncboxId, // syncbox id
+                                Syncbox != null ? Syncbox.SyncboxId : 0, // syncbox id
                                 CommunicationEntryDirection.Response, // communication direction is response
                                 serverUrl + serverMethodPath, // input parameter method path
                                 true, // trace is enabled
@@ -4618,7 +4618,7 @@ namespace Cloud.Static
                             // log communication for string body
                             ComTrace.LogCommunication(CopiedSettings.TraceLocation, // trace file location
                                 CopiedSettings.DeviceId, // device id
-                                Syncbox.SyncboxId, // syncbox id
+                                Syncbox != null ? Syncbox.SyncboxId : 0, // syncbox id
                                 CommunicationEntryDirection.Response, // communication direction is response
                                 serverUrl + serverMethodPath, // input parameter method path
                                 true, // trace is enabled
