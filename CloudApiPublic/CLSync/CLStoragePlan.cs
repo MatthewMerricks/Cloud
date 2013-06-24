@@ -75,7 +75,7 @@ namespace Cloud.Model
         /// </summary>
         public CLStoragePlan()
         {
-            throw new NotSupportedException(Resources.CLNotificationManualPollingEngineDefaultConstructorNotSupported);
+            throw new CLNotSupportedException(CLExceptionCode.OnDemand_NotSupported, Resources.CLNotificationManualPollingEngineDefaultConstructorNotSupported);
         }
 
         /// <summary>
@@ -105,11 +105,11 @@ namespace Cloud.Model
 
             if (id == 0)
             {
-                throw new NullReferenceException("id must not be zero");
+                throw new CLArgumentNullException(CLExceptionCode.OnDemand_InvalidParameters, Resources.StoragePlanIdMustNotBeZero);
             }
             if (clientApplicationId == 0)
             {
-                throw new NullReferenceException("clientApplicationId must not be zero");
+                throw new CLArgumentNullException(CLExceptionCode.OnDemand_InvalidParameters, Resources.StoragePlanClientApplicationIdMustNotBeZero);
             }
 
             PlanId = id;
@@ -131,11 +131,11 @@ namespace Cloud.Model
         {
             if (response.Id == null)
             {
-                throw new NullReferenceException("response Id must not be null");
+                throw new CLNullReferenceException(CLExceptionCode.OnDemand_ServerResponseNoId, Resources.StoragePlanServerResponseIdMustNotBeNull);
             }
             if (response.ClientApplicationId == null)
             {
-                throw new NullReferenceException("response ClientApplicationId must not be null");
+                throw new CLNullReferenceException(CLExceptionCode.OnDemand_ServerResponseNoClientApplicationId, Resources.StoragePlanServerResponseClientApplicationIdMustNotBeNull);
             }
 
 
@@ -385,12 +385,12 @@ namespace Cloud.Model
                 // check input parameters
                 if (credentials == null)
                 {
-                    throw new ArgumentNullException("credentials must not be null");
+                    throw new CLArgumentNullException(CLExceptionCode.OnDemand_MissingParameters, Resources.ExceptionOnDemandListStoragePlansCredentialsMustNotBeNull);
                 }
 
                 if (!(copiedSettings.HttpTimeoutMilliseconds > 0))
                 {
-                    throw new ArgumentException(Resources.CLMSTimeoutMustBeGreaterThanZero);
+                    throw new CLArgumentException(CLExceptionCode.OnDemand_TimeoutMilliseconds, Resources.CLMSTimeoutMustBeGreaterThanZero);
                 }
 
                 // Query the server and get the response.
@@ -420,14 +420,14 @@ namespace Cloud.Model
                         }
                         else
                         {
-                            throw new NullReferenceException(Resources.ExceptionCLHttpRestWithoutPlans);
+                            throw new CLNullReferenceException(CLExceptionCode.OnDemand_NoServerResponse, Resources.ExceptionCLHttpRestWithoutPlans);
                         }
                     }
                     response = listPlans.ToArray();
                 }
                 else
                 {
-                    throw new NullReferenceException(Resources.ExceptionCLHttpRestWithoutPlans);
+                    throw new CLNullReferenceException(CLExceptionCode.OnDemand_NoServerResponse, Resources.ExceptionCLHttpRestWithoutPlans);
                 }
             }
             catch (Exception ex)

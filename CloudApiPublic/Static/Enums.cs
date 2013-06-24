@@ -632,6 +632,21 @@ namespace Cloud.Static
         /// </summary>
         OnDemand_ServerResponseNoStatus = (((ulong)CLExceptionDomain.OnDemand) << 32) | 45, // 5_45
 
+        /// <summary>
+        /// The server response did not contain an ID.
+        /// </summary>
+        OnDemand_ServerResponseNoId = (((ulong)CLExceptionDomain.OnDemand) << 32) | 46, // 5_46
+
+        /// <summary>
+        /// The server response did not contain an ClientApplicationId.
+        /// </summary>
+        OnDemand_ServerResponseNoClientApplicationId = (((ulong)CLExceptionDomain.OnDemand) << 32) | 47, // 5_47
+
+        /// <summary>
+        /// Not supported.
+        /// </summary>
+        OnDemand_NotSupported = (((ulong)CLExceptionDomain.OnDemand) << 32) | 48, // 5_48
+
         #endregion
 
         #region FileItem

@@ -2793,14 +2793,14 @@ namespace Cloud.REST
 
         #region PurgePendingFiles (Delete files that have not yet been uploaded in the syncbox.)
         /// <summary>
-        /// Asynchronously starts purging the pending files in the syncbox.
+        /// Asynchronously starts purging the pending files in the syncbox.  Pending files are files whose metadata has been uploaded, but the file data upload itself has not started or completed.
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
         /// <param name="asyncCallbackUserState">User state to pass when firing the async callback above.</param>
         /// <param name="reservedForActiveSync">true: Live sync is active.  User calls are not allowed.</param>
         /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
         /// <param name="itemCompletionCallbackUserState">User state to be passed whenever the item completion callback above is fired.</param>
-        /// <param name="itemsToPurge">One or more file items to purge.  If this </param>
+        /// <param name="itemsToPurge">One or more file items to purge.  If this parameter is null, all of the pending files will be purged in this syncbox.</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
         internal IAsyncResult BeginPurgePendingFiles(
             AsyncCallback asyncCallback,
@@ -2868,12 +2868,12 @@ namespace Cloud.REST
         }
 
         /// <summary>
-        /// Purge pending files in the syncbox.  These are files whose metadata has been uploaded, but the file data upload itself has not started or completed.
+        /// Purge pending files in the syncbox.  Pending files are files whose metadata has been uploaded, but the file data upload itself has not started or completed.
         /// </summary>
         /// <param name="reservedForActiveSync">true: Live sync is active.  User calls are not allowed.</param>
         /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
         /// <param name="itemCompletionCallbackUserState">User state to be passed whenever the item completion callback above is fired.</param>
-        /// <param name="itemsToPurge">One or more file items to purge.</param>
+        /// <param name="itemsToPurge">One or more file items to purge.  If this parameter is null, all of the pending files will be purged in this syncbox.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
         internal CLError PurgePendingFiles(
             bool reservedForActiveSync,
@@ -3067,7 +3067,7 @@ namespace Cloud.REST
             return null;
         }
 
-        #endregion  // end DeleteFiles (Deletes files in the syncbox.)
+        #endregion  // end PurgePendingFiles (Delete files that have not yet been uploaded in the syncbox.)
 
         #region AddFolders (Add folders to a particular parent folder in the syncbox.)
         /// <summary>
@@ -7035,7 +7035,7 @@ namespace Cloud.REST
 
                 if (string.IsNullOrEmpty(relativePath))
                 {
-                    relativePath = "/";         // assume the syncbox root
+                    relativePath = new string(((char)0x2F /* '/' */), 1);         // assume the syncbox root
                 }
 
                 if (!(_syncbox.CopiedSettings.HttpTimeoutMilliseconds > 0))
@@ -7055,13 +7055,13 @@ namespace Cloud.REST
 
                         new KeyValuePair<string, string>(CLDefinitions.CLMetadataCloudPath, Uri.EscapeDataString(relativePath.Replace(((char)0x5C /* '\' */), ((char)0x2F /* '/' */)))), // query string parameter for optional path with escaped value
 
-                        new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeDeleted, "false"), // query string parameter for not including deleted objects
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeDeleted, CLDefinitions.CLMetadataFalse), // query string parameter for not including deleted objects
 
-                        new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeCount, "true"), // query string parameter for including counts within each folder
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeCount, CLDefinitions.CLMetadataTrue), // query string parameter for including counts within each folder
 
-                        new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeFolders, "true"), // query string parameter for including folders in the list
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeFolders, CLDefinitions.CLMetadataTrue), // query string parameter for including folders in the list
 
-                        new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeStoredOnly, "true") // query string parameter for including only stored items in the list
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeStoredOnly, CLDefinitions.CLMetadataTrue) // query string parameter for including only stored items in the list
                     });
 
                 // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
@@ -7249,9 +7249,9 @@ namespace Cloud.REST
 
                         new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeDeleted, includeDeleted.ToString()), // query string parameter for not including deleted objects
 
-                        new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeCount, "true"), // query string parameter for including counts within each folder
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeCount, CLDefinitions.CLMetadataTrue), // query string parameter for including counts within each folder
 
-                        new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeFolders, "true"), // query string parameter for including folders in the list
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeFolders, CLDefinitions.CLMetadataTrue), // query string parameter for including folders in the list
 
                         new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeStoredOnly, (!includePending).ToString()) // query string parameter for including only stored items in the list
                     });
@@ -7399,7 +7399,7 @@ namespace Cloud.REST
 
                 if (string.IsNullOrEmpty(relativePath))
                 {
-                    relativePath = "/";         // assume the syncbox root
+                    relativePath = new string(((char)0x2F /* '/' */), 1);         // assume the syncbox root
                 }
 
                 if (!(_syncbox.CopiedSettings.HttpTimeoutMilliseconds > 0))
@@ -7419,13 +7419,13 @@ namespace Cloud.REST
 
                         new KeyValuePair<string, string>(CLDefinitions.CLMetadataCloudPath, Uri.EscapeDataString(relativePath.Replace(((char)0x5C /* '\' */), ((char)0x2F /* '/' */)))), // query string parameter for optional path with escaped value
 
-                        new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeDeleted, "false"), // query string parameter for not including deleted objects
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeDeleted, CLDefinitions.CLMetadataFalse), // query string parameter for not including deleted objects
 
-                        new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeCount, "true"), // query string parameter for including counts within each folder
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeCount, CLDefinitions.CLMetadataTrue), // query string parameter for including counts within each folder
 
-                        new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeFolders, "true"), // query string parameter for including folders in the list
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeFolders, CLDefinitions.CLMetadataTrue), // query string parameter for including folders in the list
 
-                        new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeStoredOnly, "true") // query string parameter for including only stored items in the list
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeStoredOnly, CLDefinitions.CLMetadataTrue) // query string parameter for including only stored items in the list
                     });
 
                 // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
@@ -7603,13 +7603,13 @@ namespace Cloud.REST
                             ? new KeyValuePair<string, string>()
                             : new KeyValuePair<string, string>(CLDefinitions.CLMetadataServerId, Uri.EscapeDataString(folderItem.ItemUid)),
 
-                        new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeDeleted, "false"), // query string parameter for not including deleted objects
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeDeleted, CLDefinitions.CLMetadataFalse), // query string parameter for not including deleted objects
 
-                        new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeCount, "true"), // query string parameter for including counts within each folder
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeCount, CLDefinitions.CLMetadataTrue), // query string parameter for including counts within each folder
 
-                        new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeFolders, "true"), // query string parameter for including folders in the list
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeFolders, CLDefinitions.CLMetadataTrue), // query string parameter for including folders in the list
 
-                        new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeStoredOnly, "true") // query string parameter for including only stored items in the list
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeStoredOnly, CLDefinitions.CLMetadataTrue) // query string parameter for including only stored items in the list
                     });
 
                 // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
@@ -10256,7 +10256,7 @@ namespace Cloud.REST
                         // query string parameter for whether to include delete versions in the check, but only set if it's not default (if it's false)
                         (includeDeletedVersions
                             ? new KeyValuePair<string, string>()
-                            : new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeDeleted, "false")),
+                            : new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeDeleted, CLDefinitions.CLMetadataFalse)),
 
                         // query string parameter for the current sync box id, should not need escaping since it should be an integer in string format
                         new KeyValuePair<string, string>(CLDefinitions.QueryStringSyncboxId, _syncbox.SyncboxId.ToString())

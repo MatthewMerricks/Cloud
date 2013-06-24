@@ -548,6 +548,7 @@ namespace Cloud.Static
         public const string CLMetadataToParentUid = "to_parent_uid";
         public const string CLMetadataGenerate = "generate";
         public const string CLMetadataFalse = "false";
+        public const string CLMetadataTrue = "true";
         public const string CLMetadataInline = "inline";
         /// <summary>
         /// Be careful, this may be the wrong key name, you may need the inverse of <see cref="CLDefinitions.CLMetadataIsStored"/>

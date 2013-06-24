@@ -1935,6 +1935,33 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cannot cast state as.
+        /// </summary>
+        internal static string CredentialsBeginLinkDeviceCannotCastStateAs {
+            get {
+                return ResourceManager.GetString("CredentialsBeginLinkDeviceCannotCastStateAs", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot cast state as.
+        /// </summary>
+        internal static string CredentialsBeginLinkDeviceFirstTimeCannotCastStateAs {
+            get {
+                return ResourceManager.GetString("CredentialsBeginLinkDeviceFirstTimeCannotCastStateAs", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot cast state as.
+        /// </summary>
+        internal static string CredentialsBeginUnlinkDeviceCannotCastStateAs {
+            get {
+                return ResourceManager.GetString("CredentialsBeginUnlinkDeviceCannotCastStateAs", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Users.
         /// </summary>
         internal static string DocumentsAndSettingsVista {
@@ -3452,6 +3479,15 @@ namespace Cloud.Static {
         internal static string ExceptionOnDemandLinkDeviceRequestMustNotBeNull {
             get {
                 return ResourceManager.GetString("ExceptionOnDemandLinkDeviceRequestMustNotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to credentials must not be null.
+        /// </summary>
+        internal static string ExceptionOnDemandListStoragePlansCredentialsMustNotBeNull {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandListStoragePlansCredentialsMustNotBeNull", resourceCulture);
             }
         }
         
@@ -7453,6 +7489,42 @@ namespace Cloud.Static {
         internal static string StartMenuFolderNameXP {
             get {
                 return ResourceManager.GetString("StartMenuFolderNameXP", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to clientApplicationId must not be zero.
+        /// </summary>
+        internal static string StoragePlanClientApplicationIdMustNotBeZero {
+            get {
+                return ResourceManager.GetString("StoragePlanClientApplicationIdMustNotBeZero", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to id must not be zero.
+        /// </summary>
+        internal static string StoragePlanIdMustNotBeZero {
+            get {
+                return ResourceManager.GetString("StoragePlanIdMustNotBeZero", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to response ClientApplicationId must not be null.
+        /// </summary>
+        internal static string StoragePlanServerResponseClientApplicationIdMustNotBeNull {
+            get {
+                return ResourceManager.GetString("StoragePlanServerResponseClientApplicationIdMustNotBeNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to response Id must not be null.
+        /// </summary>
+        internal static string StoragePlanServerResponseIdMustNotBeNull {
+            get {
+                return ResourceManager.GetString("StoragePlanServerResponseIdMustNotBeNull", resourceCulture);
             }
         }
         

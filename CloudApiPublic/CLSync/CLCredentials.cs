@@ -1115,7 +1115,7 @@ namespace Cloud
                 if (castState == null)
                 {
                     MessageEvents.FireNewEventMessage(
-                        "Cannot cast state as " + Helpers.GetTypeNameEvenForNulls(castState),
+                        Resources.CredentialsBeginLinkDeviceFirstTimeCannotCastStateAs + ((char)0x20 /* ' ' */) + Helpers.GetTypeNameEvenForNulls(castState),
                         EventMessageLevel.Important,
                         new HaltAllOfCloudSDKErrorInfo());
                 }
@@ -1285,7 +1285,7 @@ namespace Cloud
                 if (castState == null)
                 {
                     MessageEvents.FireNewEventMessage(
-                        "Cannot cast state as " + Helpers.GetTypeNameEvenForNulls(castState),
+                        Resources.CredentialsBeginLinkDeviceCannotCastStateAs + ((char)0x20 /* ' ' */) + Helpers.GetTypeNameEvenForNulls(castState),
                         EventMessageLevel.Important,
                         new HaltAllOfCloudSDKErrorInfo());
                 }
@@ -1453,7 +1453,7 @@ namespace Cloud
                 if (castState == null)
                 {
                     MessageEvents.FireNewEventMessage(
-                        "Cannot cast state as " + Helpers.GetTypeNameEvenForNulls(castState),
+                        Resources.CredentialsBeginUnlinkDeviceCannotCastStateAs + ((char)0x20 /* ' ' */) + Helpers.GetTypeNameEvenForNulls(castState),
                         EventMessageLevel.Important,
                         new HaltAllOfCloudSDKErrorInfo());
                 }

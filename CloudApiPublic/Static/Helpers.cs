@@ -2799,6 +2799,7 @@ namespace Cloud.Static
             { typeof(JsonContracts.FileOrFolderUndelete), JsonContractHelpers.FileOrFolderUndeleteSerializer },
             { typeof(JsonContracts.Service), JsonContractHelpers.ServiceSerializer },
             { typeof(JsonContracts.ServiceAllRequest), JsonContractHelpers.ServiceAllRequestSerializer },
+            { typeof(JsonContracts.PurgePendingFilesRequest), JsonContractHelpers.PurgePendingFilesRequestSerializer },
             #endregion
 
             { typeof(JsonContracts.FileCopy), JsonContractHelpers.FileCopySerializer },

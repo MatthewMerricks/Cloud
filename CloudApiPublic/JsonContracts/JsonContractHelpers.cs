@@ -404,6 +404,20 @@ namespace Cloud.JsonContracts
         private static DataContractJsonSerializer _fileOrFolderMovesSerializer = null;
         private static readonly object FileOrFolderMovesSerializerLocker = new object();
 
+        public static DataContractJsonSerializer PurgePendingFilesRequestSerializer
+        {
+            get
+            {
+                lock (PurgePendingFilesRequestSerializerLocker)
+                {
+                    return _purgePendingFilesRequestSerializer
+                        ?? (_purgePendingFilesRequestSerializer = new DataContractJsonSerializer(typeof(JsonContracts.PurgePendingFilesRequest)));
+                }
+            }
+        }
+        private static DataContractJsonSerializer _purgePendingFilesRequestSerializer = null;
+        private static readonly object PurgePendingFilesRequestSerializerLocker = new object();
+
         public static DataContractJsonSerializer FileOrFolderUndeleteSerializer
         {
             get

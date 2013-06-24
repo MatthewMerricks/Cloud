@@ -789,14 +789,14 @@ namespace Cloud
                 {
                     if (String.IsNullOrEmpty(this.Path))
                     {
-                        throw new AggregateException(Resources.CLHttpRestSyncboxBadPath);
+                        throw new CLInvalidOperationException(CLExceptionCode.Syncing_LiveSyncEngine, Resources.CLHttpRestSyncboxBadPath);
                     }
                     else
                     {
                         CLError syncRootError = Helpers.CheckForBadPath(this.Path);
                         if (syncRootError != null)
                         {
-                            throw new AggregateException(Resources.CLHttpRestSyncboxBadPath, syncRootError.Exceptions);
+                            throw new CLInvalidOperationException(CLExceptionCode.Syncing_LiveSyncEngine, Resources.CLHttpRestSyncboxBadPath, syncRootError.Exceptions);
                         }
                     }
 
@@ -1101,7 +1101,7 @@ namespace Cloud
             {
                 if (Helpers.AllHaltedOnUnrecoverableError)
                 {
-                    throw new InvalidOperationException(Resources.CLCredentialHelpersAllHaltedOnUnrecoverableErrorIsSet);
+                    throw new CLInvalidOperationException(CLExceptionCode.Syncbox_Initializing, Resources.CLCredentialHelpersAllHaltedOnUnrecoverableErrorIsSet);
                 }
 
                 lock (_startLocker)
@@ -1702,7 +1702,7 @@ namespace Cloud
                         }
                         else
                         {
-                            throw new NullReferenceException(Resources.ExceptionCLHttpRestWithoutMetadata);
+                            throw new CLNullReferenceException(CLExceptionCode.OnDemand_NoServerResponse, Resources.ExceptionCLHttpRestWithoutMetadata);
                         }
                     }
 
@@ -1711,7 +1711,7 @@ namespace Cloud
                 }
                 else
                 {
-                    throw new NullReferenceException(Resources.ExceptionCLHttpRestWithoutSessions);
+                    throw new CLNullReferenceException(CLExceptionCode.OnDemand_NoServerResponse, Resources.ExceptionCLHttpRestWithoutSessions);
                 }
 
             }
@@ -2464,6 +2464,71 @@ namespace Cloud
         }
 
         #endregion  // end DeleteFolders (Delete folders in the syncbox)
+
+        #region PurgePendingFiles (Delete files that have not yet been uploaded in the syncbox.)
+        /// <summary>
+        /// Asynchronously starts purging the pending files in the syncbox.  Pending files are files whose metadata has been uploaded, but the file data upload itself has not started or completed.
+        /// </summary>
+        /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing the async callback above.</param>
+        /// <param name="reservedForActiveSync">true: Live sync is active.  User calls are not allowed.</param>
+        /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
+        /// <param name="itemCompletionCallbackUserState">User state to be passed whenever the item completion callback above is fired.</param>
+        /// <param name="itemsToPurge">One or more file items to purge.  If this parameter is null, all of the pending files will be purged in this syncbox.</param>
+        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        public IAsyncResult BeginPurgePendingFiles(
+            AsyncCallback asyncCallback,
+            object asyncCallbackUserState,
+            bool reservedForActiveSync,
+            CLFileItemCompletionCallback itemCompletionCallback,
+            object itemCompletionCallbackUserState,
+            params CLFileItem[] itemsToPurge)
+        {
+            CheckDisposed(isOneOff: true);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.BeginPurgePendingFiles(asyncCallback, asyncCallbackUserState, ReservedForActiveSync, itemCompletionCallback, itemCompletionCallbackUserState, itemsToPurge);
+        }
+
+        /// <summary>
+        /// Finishes purging the pending files in the syncbox, if it has not already finished via its asynchronous result, and outputs the result,
+        /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
+        /// </summary>
+        /// <param name="asyncResult">The asynchronous result provided upon starting the request</param>
+        /// <param name="result">(output) An overall error which occurred during processing, if any</param>
+        /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
+        public CLError EndPurgePendingFiles(IAsyncResult asyncResult, out SyncboxPurgePendingFilesResult result)
+        {
+            CheckDisposed(isOneOff: true);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.EndPurgePendingFiles(asyncResult, out result);
+        }
+
+        /// <summary>
+        /// Purge pending files in the syncbox.  Pending files are files whose metadata has been uploaded, but the file data upload itself has not started or completed.
+        /// </summary>
+        /// <param name="reservedForActiveSync">true: Live sync is active.  User calls are not allowed.</param>
+        /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
+        /// <param name="itemCompletionCallbackUserState">User state to be passed whenever the item completion callback above is fired.</param>
+        /// <param name="itemsToPurge">One or more file items to purge.  If this parameter is null, all of the pending files will be purged in this syncbox.</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        public CLError PurgePendingFiles(
+            bool reservedForActiveSync,
+            CLFileItemCompletionCallback itemCompletionCallback,
+            object itemCompletionCallbackUserState,
+            params CLFileItem[] itemsToPurge)
+        {
+            CheckDisposed(isOneOff: true);
+
+            CLHttpRest httpRestClient;
+            GetInstanceRestClient(out httpRestClient);
+            return httpRestClient.PurgePendingFiles(ReservedForActiveSync, itemCompletionCallback, itemCompletionCallbackUserState, itemsToPurge);
+        }
+
+        #endregion  // end PurgePendingFiles (Delete files that have not yet been uploaded in the syncbox.)
 
         #region AddFolders (Add folders to the syncbox)
         /// <summary>
