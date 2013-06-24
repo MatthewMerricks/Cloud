@@ -2471,7 +2471,6 @@ namespace Cloud
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
         /// <param name="asyncCallbackUserState">User state to pass when firing the async callback above.</param>
-        /// <param name="reservedForActiveSync">true: Live sync is active.  User calls are not allowed.</param>
         /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
         /// <param name="itemCompletionCallbackUserState">User state to be passed whenever the item completion callback above is fired.</param>
         /// <param name="itemsToPurge">One or more file items to purge.  If this parameter is null, all of the pending files will be purged in this syncbox.</param>
@@ -2479,7 +2478,6 @@ namespace Cloud
         public IAsyncResult BeginPurgePendingFiles(
             AsyncCallback asyncCallback,
             object asyncCallbackUserState,
-            bool reservedForActiveSync,
             CLFileItemCompletionCallback itemCompletionCallback,
             object itemCompletionCallbackUserState,
             params CLFileItem[] itemsToPurge)
@@ -2510,13 +2508,11 @@ namespace Cloud
         /// <summary>
         /// Purge pending files in the syncbox.  Pending files are files whose metadata has been uploaded, but the file data upload itself has not started or completed.
         /// </summary>
-        /// <param name="reservedForActiveSync">true: Live sync is active.  User calls are not allowed.</param>
         /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
         /// <param name="itemCompletionCallbackUserState">User state to be passed whenever the item completion callback above is fired.</param>
         /// <param name="itemsToPurge">One or more file items to purge.  If this parameter is null, all of the pending files will be purged in this syncbox.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError PurgePendingFiles(
-            bool reservedForActiveSync,
             CLFileItemCompletionCallback itemCompletionCallback,
             object itemCompletionCallbackUserState,
             params CLFileItem[] itemsToPurge)
