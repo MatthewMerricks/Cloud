@@ -2850,6 +2850,7 @@ namespace Cloud.Static
             { typeof(JsonContracts.SyncboxResponse), JsonContractHelpers.CreateSyncboxSerializer },
             { typeof(JsonContracts.SyncboxMoveFilesOrFoldersResponse), JsonContractHelpers.SyncboxMoveFilesOrFoldersResponseSerializer },
             { typeof(JsonContracts.SyncboxDeleteFilesResponse), JsonContractHelpers.SyncboxDeleteFilesResponseSerializer },
+            { typeof(JsonContracts.SyncboxPurgePendingFilesResponse), JsonContractHelpers.SyncboxPurgePendingFilesResponseSerializer },
             { typeof(JsonContracts.SyncboxListResponse), JsonContractHelpers.ListSyncboxesSerializer },
             { typeof(JsonContracts.StoragePlanListResponse), JsonContractHelpers.ListPlansSerializer },
             { typeof(JsonContracts.SyncboxUpdateStoragePlanResponse), JsonContractHelpers.SyncboxUpdatePlanResponseSerializer },

@@ -831,6 +831,20 @@ namespace Cloud.JsonContracts
         private static DataContractJsonSerializer _syncboxDeleteFilesResponseSerializer = null;
         private static readonly object SyncboxDeleteFilesResponseSerializerLocker = new object();
 
+        public static DataContractJsonSerializer SyncboxPurgePendingFilesResponseSerializer
+        {
+            get
+            {
+                lock (SyncboxPurgePendingFilesResponseSerializerLocker)
+                {
+                    return _syncboxPurgePendingFilesResponseSerializer
+                        ?? (_syncboxPurgePendingFilesResponseSerializer = new DataContractJsonSerializer(typeof(JsonContracts.SyncboxPurgePendingFilesResponse)));
+                }
+            }
+        }
+        private static DataContractJsonSerializer _syncboxPurgePendingFilesResponseSerializer = null;
+        private static readonly object SyncboxPurgePendingFilesResponseSerializerLocker = new object();
+
         public static DataContractJsonSerializer ListSyncboxesSerializer
         {
             get

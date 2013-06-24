@@ -126,6 +126,7 @@ namespace Cloud.Static
         public const string MethodPathOneOffFileDeletes = VersionPrefix + "/sync/file/deletes";                         // POST
         public const string MethodPathOneOffFileAdds = VersionPrefix + "/sync/file/adds";                               // POST
         public const string MethodPathOneOffFileModifies = VersionPrefix + "/sync/file/modifies";                       // POST
+        public const string MethodPathOneOffFilePurgePending = VersionPrefix + "/sync/file/purge_pending";              // POST
         /* duplicate functionality to file move:
         public const string MethodPathOneOffFileRename = VersionPrefix + "/sync/file/rename";                           // POST
  
@@ -624,6 +625,7 @@ namespace Cloud.Static
         public const string RESTRequestFileOrFolderDeletes = "uids";
         public const string RESTRequestFolderAdds = "folders";
         public const string RESTRequestFileAdds = "files";
+        public const string RESTRequestFileUids = "uids";
         public const string RESTRequestFileModifies = "files";
         public const string RESTRequestPath = "path";
 
@@ -638,6 +640,7 @@ namespace Cloud.Static
         // REST Response File
         public const string RESTResponseMoveFilesOrFolders = "moves";
         public const string RESTResponseDeleteFiles = "files";
+        public const string RESTResponsePurgePendingFiles = "files";
 
         // REST Response Folder
         public const string RESTResponseDeleteFolders = "folders";
