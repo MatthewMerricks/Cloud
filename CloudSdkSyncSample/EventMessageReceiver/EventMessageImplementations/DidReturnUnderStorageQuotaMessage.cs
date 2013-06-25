@@ -6,7 +6,7 @@ using Cloud.Static;
 
 namespace SampleLiveSync.EventMessageReceiver
 {
-    public sealed class StorageQuotaExceededMessage : EventMessage<StorageQuotaExceededMessage>
+    public sealed class DidReturnUnderStorageQuotaMessage : EventMessage<DidReturnUnderStorageQuotaMessage>
     {
         #region EventMessage abstract overrides
         public override EventMessageImage Image
@@ -21,12 +21,12 @@ namespace SampleLiveSync.EventMessageReceiver
         {
             get
             {
-                return "Storage quota exceeded";
+                return "Storage usage back under or at quota";
             }
         }
         #endregion
 
-        internal StorageQuotaExceededMessage()
+        internal DidReturnUnderStorageQuotaMessage()
         {
         }
     }

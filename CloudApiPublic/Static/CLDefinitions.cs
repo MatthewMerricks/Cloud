@@ -169,7 +169,7 @@ namespace Cloud.Static
 
         #region Syncbox operations
         public const string MethodPathSyncboxUsage = VersionPrefix + "/sync/syncbox/usage";                             // GET
-    	#endregion
+        #endregion
 
         #region Notification operations
         public const string MethodPathPushSubscribe = VersionPrefix + "/sync/notifications/subscribe";                  // GET
@@ -513,6 +513,8 @@ namespace Cloud.Static
         public const string CLSyncboxUpdatedAfter = "updated_after";
         public const string CLSyncboxStoredBytes = "stored_bytes";
         public const string CLSyncboxPendingBytes = "pending_bytes";
+        public const string CLSyncboxIncludeUsage = "include_usage";
+        public const string CLSyncboxQuotaUsage = "quota_usage";
 
         // Cloud Sync Status
         public const string CLEventTypeAccepted = "ok";

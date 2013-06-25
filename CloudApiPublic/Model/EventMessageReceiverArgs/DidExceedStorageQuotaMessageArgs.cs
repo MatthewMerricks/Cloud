@@ -1,5 +1,5 @@
 ﻿//
-// StorageQuotaExceededMessageArgs.cs
+// DidExceedStorageQuotaMessageArgs.cs
 // Cloud Windows
 //
 // Created By BobS.
@@ -15,7 +15,7 @@ using System.Text;
 
 namespace Cloud.Model
 {
-    internal sealed class StorageQuotaExceededMessageArgs : IStorageQuotaExceededMessage
+    internal sealed class DidExceedStorageQuotaMessageArgs : IDidExceedStorageQuotaMessage
     {
         public EventMessageArgs MessageArgs
         {
@@ -71,10 +71,10 @@ namespace Cloud.Model
         }
         #endregion
 
-        #region IStorageQuotaExceededMessage members
+        #region IDidExceedStorageQuotaMessage members
         #endregion
 
-        internal StorageQuotaExceededMessageArgs(EventMessageArgs MessageArgs)
+        internal DidExceedStorageQuotaMessageArgs(EventMessageArgs MessageArgs)
         {
             if (MessageArgs == null)
             {
@@ -84,9 +84,9 @@ namespace Cloud.Model
             {
                 throw new NullReferenceException("MessageArgs Message cannot be null");
             }
-            if (MessageArgs.Message.Type != EventMessageType.StorageQuotaExceededChanged)
+            if (MessageArgs.Message.Type != EventMessageType.DidExceedStorageQuotaChanged)
             {
-                throw new ArgumentException("MessageArgs Message Type must be StorageQuotaExceededChanged, instead it is " + MessageArgs.Message.Type.ToString());
+                throw new ArgumentException("MessageArgs Message Type must be DidExceedStorageQuotaChanged, instead it is " + MessageArgs.Message.Type.ToString());
             }
 
             this._messageArgs = MessageArgs;

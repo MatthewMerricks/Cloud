@@ -2783,6 +2783,7 @@ namespace Cloud.Static
             { typeof(JsonContracts.To), JsonContractHelpers.ToSerializer },
 
             { typeof(JsonContracts.SyncboxCreateRequest), JsonContractHelpers.SyncboxCreateRequestSerializer },
+            { typeof(JsonContracts.SyncboxStatusRequest), JsonContractHelpers.SyncboxStatusRequestSerializer },
             
             #region one-offs
             { typeof(JsonContracts.FolderAddRequest), JsonContractHelpers.FolderAddSerializer },

@@ -8451,10 +8451,15 @@ namespace Cloud.REST
                     SetCurrentCredentialsCallback = SetCurrentCredentialCallback,
                 };
 
-                SyncboxStatusResponse serverResponse = Helpers.ProcessHttp<JsonContracts.SyncboxStatusResponse>(new JsonContracts.SyncboxIdOnly() // json contract object for purge pending method
-                    {
-                        Id = _syncbox.SyncboxId
-                    },
+                // Now make the REST request content.
+                object requestContent = new JsonContracts.SyncboxStatusRequest()
+                {
+                    Id = _syncbox.SyncboxId,
+                    IncludeUsage = true,
+                };
+
+                SyncboxStatusResponse serverResponse = Helpers.ProcessHttp<JsonContracts.SyncboxStatusResponse>(
+                    requestContent,
                     CLDefinitions.CLPlatformAuthServerURL, // Platform server URL
                     CLDefinitions.MethodPathAuthSyncboxStatus, // sync box status address
                     Helpers.requestMethod.post, // sync box status is a post operation
@@ -8481,6 +8486,14 @@ namespace Cloud.REST
                 if (serverResponse.Syncbox.CreatedAt == null)
                 {
                     throw new CLNullReferenceException(CLExceptionCode.OnDemand_ServerReturnedInvalidItem, Resources.ExceptionOnDemandGetCurrentStatusServerResponseNullSyncboxCreatedAt);
+                }
+                if (serverResponse.Syncbox.Plan == null)
+                {
+                    throw new CLNullReferenceException(CLExceptionCode.OnDemand_ServerReturnedInvalidItem, Resources.ExceptionOnDemandGetCurrentStatusServerResponseNullSyncboxPlan);
+                }
+                if (serverResponse.Syncbox.QuotaUsage == null)
+                {
+                    throw new CLNullReferenceException(CLExceptionCode.OnDemand_ServerReturnedInvalidItem, Resources.ExceptionOnDemandGetCurrentStatusServerResponseNullSyncboxQuotaUsage);
                 }
 
                 //// todo: "success" does not compare with "ok", but do not want to compare strings anyways since some methods are "success" and some are "ok"

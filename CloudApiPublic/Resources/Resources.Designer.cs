@@ -3339,11 +3339,29 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to server returned null response Syncbox Plan.
+        /// </summary>
+        internal static string ExceptionOnDemandGetCurrentStatusServerResponseNullSyncboxPlan {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandGetCurrentStatusServerResponseNullSyncboxPlan", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to server returned null response Syncbox PlanId.
         /// </summary>
         internal static string ExceptionOnDemandGetCurrentStatusServerResponseNullSyncboxPlanId {
             get {
                 return ResourceManager.GetString("ExceptionOnDemandGetCurrentStatusServerResponseNullSyncboxPlanId", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to server returned null response Syncbox Quota_Usage.
+        /// </summary>
+        internal static string ExceptionOnDemandGetCurrentStatusServerResponseNullSyncboxQuotaUsage {
+            get {
+                return ResourceManager.GetString("ExceptionOnDemandGetCurrentStatusServerResponseNullSyncboxQuotaUsage", resourceCulture);
             }
         }
         

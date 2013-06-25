@@ -180,6 +180,8 @@ namespace Cloud
         private readonly Helpers.ReplaceExpiredCredentialsCallback _getNewCredentialsCallback = null;
         private readonly object _getNewCredentialsCallbackUserState = null;
         private readonly IEventMessageReceiver _liveSyncStatusReceiver = null;
+        private bool _isLastStorageQuotaStateExceeded = false;    // quota state.  Send StorageQuota EventMessages every time this flag flips.
+        private bool _isSubscribedToMessageReceiver = false;
 
         #endregion  // end Private Fields
 
@@ -534,6 +536,18 @@ namespace Cloud
                     setPathLocker = null;
                 //}
 
+                // Subscribe to the live sync events if the user wants them.
+                if (_liveSyncStatusReceiver != null)
+                {
+                    CLError errorFromSubscribe = MessageEvents.SubscribeMessageReceiver(this.SyncboxId, _copiedSettings.DeviceId, _liveSyncStatusReceiver);
+                    if (errorFromSubscribe != null)
+                    {
+                        throw new CLInvalidOperationException(CLExceptionCode.Syncbox_SubscribingToLiveSyncStatusReceiver, Resources.ExceptionSyncboxErrorSubscribingToLiveSyncStatusMessages);
+                    }
+
+                    _isSubscribedToMessageReceiver = true;
+                }
+
                 // InitializeInternal throws exception as-is, no wrapping as CLError
                 InitializeInternal(path, shouldUpdateSyncboxStatusFromServer: true);
             }
@@ -826,20 +840,8 @@ namespace Cloud
                         debugFileMonitorMemoryValue = debugFileMonitorMemory.Value;
                     }
 
-                    // Subscribe to the live sync events if the user wants them.
-                    if (_liveSyncStatusReceiver != null)
-                    {
-                        CLError errorFromSubscribe = MessageEvents.SubscribeMessageReceiver(this.SyncboxId, _copiedSettings.DeviceId, _liveSyncStatusReceiver);
-                        if (errorFromSubscribe != null)
-                        {
-                            throw new CLInvalidOperationException(CLExceptionCode.Syncbox_SubscribingToLiveSyncStatusReceiver, Resources.ExceptionSyncboxErrorSubscribingToLiveSyncStatusMessages);
-                        }
-                    }
-
-                    try
-                    {
-                        // Create the sync engine for this syncbox instance
-                        _syncEngine = new CLSyncEngine(this, debugDependenciesValue, copyDatabaseBetweenChangesValue, debugFileMonitorMemoryValue); // syncbox to sync (contains required settings)
+                    // Create the sync engine for this syncbox instance
+                    _syncEngine = new CLSyncEngine(this, debugDependenciesValue, copyDatabaseBetweenChangesValue, debugFileMonitorMemoryValue); // syncbox to sync (contains required settings)
 
                     Nullable<long> copyStorageQuota;
                     long copyQuotaUsage;
@@ -860,75 +862,54 @@ namespace Cloud
                         throw new CLNullReferenceException(CLExceptionCode.Syncbox_StorageQuotaUnknown, Resources.ExceptionCLSyncboxNullStorageQuota);
                     }
 
-                        try
+                    try
+                    {
+                        _syncMode = mode;
+
+                        // Start the sync engine
+                        CLError syncEngineStartError = _syncEngine.Start(
+                            copyQuotaUsage,
+                            (long)copyStorageQuota,
+                            new SyncEngine.OnGetDataUsageCompletionDelegate(OnGetDataUsageCompletion),
+                            statusUpdated: syncStatusChangedCallback, // called when sync status is updated
+                            statusUpdatedUserState: syncStatusChangedCallbackUserState); // the user state passed to the callback above
+
+                        if (syncEngineStartError != null)
                         {
-                            _syncMode = mode;
-
-                            // Start the sync engine
-                            CLError syncEngineStartError = _syncEngine.Start(
-                                copyQuotaUsage,
-                                (long)copyStorageQuota,
-                                new SyncEngine.OnGetDataUsageCompletionDelegate(OnGetDataUsageCompletion),
-                                statusUpdated: syncStatusChangedCallback, // called when sync status is updated
-                                statusUpdatedUserState: syncStatusChangedCallbackUserState); // the user state passed to the callback above
-
-                            if (syncEngineStartError != null)
-                            {
-                                _trace.writeToLog(1, Resources.TraceCLSyncboxStartLiveSyncErrorStartingEngineMsg0Msg1, syncEngineStartError.PrimaryException.Message, syncEngineStartError.PrimaryException.Code);
-                                syncEngineStartError.Log(_copiedSettings.TraceLocation, _copiedSettings.LogErrors);
-                                startExceptionLogged = true;
-                                throw new CLException(syncEngineStartError.PrimaryException.Code, Resources.ExceptionCLSyncboxBeginSyncStartEngine, syncEngineStartError.Exceptions);
-                            }
+                            _trace.writeToLog(1, Resources.TraceCLSyncboxStartLiveSyncErrorStartingEngineMsg0Msg1, syncEngineStartError.PrimaryException.Message, syncEngineStartError.PrimaryException.Code);
+                            syncEngineStartError.Log(_copiedSettings.TraceLocation, _copiedSettings.LogErrors);
+                            startExceptionLogged = true;
+                            throw new CLException(syncEngineStartError.PrimaryException.Code, Resources.ExceptionCLSyncboxBeginSyncStartEngine, syncEngineStartError.Exceptions);
                         }
-                        catch
-                        {
-                            if (this._syncEngine != null)
-                            {
-                                try
-                                {
-                                    this._syncEngine.Stop();
-                                }
-                                catch
-                                {
-                                }
-                                this._syncEngine = null;
-                            }
-
-                            throw;
-                        }
-
-                        // The sync engines started with syncboxes must be tracked statically so we can stop them all when the application terminates (in the ShutDown) method.
-                        _startedSyncEngines.Add(_syncEngine);
-                        _isStarted = true;
-
-                        // Fire the event to the subscribers.
-                        MessageEvents.DetectedSyncboxDidStartLiveSyncChange(
-                            this,
-                            SyncboxId: this.SyncboxId,
-                            DeviceId: this.CopiedSettings.DeviceId);
                     }
                     catch
                     {
-                        // Unsubscribe from live sync status messages.
-                        try
+                        if (this._syncEngine != null)
                         {
-                            // Subscribe to the live sync events if the user wants them.
-                            if (_liveSyncStatusReceiver != null)
+                            try
                             {
-                                CLError errorFromUnsubscribe = MessageEvents.UnsubscribeMessageReceiver(this.SyncboxId, _copiedSettings.DeviceId);
-                                if (errorFromUnsubscribe != null)
-                                {
-                                    _trace.writeToLog(1, Resources.TraceCLSyncboxStartLiveSyncErrorUnsubscribeMsgRcvrMsg0Msg1, errorFromUnsubscribe.PrimaryException.Message, errorFromUnsubscribe.PrimaryException.Code);
-                                }
+                                this._syncEngine.Stop();
                             }
+                            catch
+                            {
+                            }
+                            this._syncEngine = null;
                         }
-                        catch
-                        {
-                        }
-                        
+
                         throw;
                     }
+
+                    // The sync engines started with syncboxes must be tracked statically so we can stop them all when the application terminates (in the ShutDown) method.
+                    _startedSyncEngines.Add(_syncEngine);
+                    _isStarted = true;
+
+                    // Fire the event to the subscribers.
+                    MessageEvents.DetectedSyncboxDidStartLiveSyncChange(
+                        this,
+                        SyncboxId: this.SyncboxId,
+                        DeviceId: this.CopiedSettings.DeviceId);
                 }
+
             }
             catch (Exception ex)
             {
@@ -981,23 +962,6 @@ namespace Cloud
                     // Remove this engine from the tracking list.
                     _syncEngine = null;
                     _startedSyncEngines.Remove(_syncEngine);
-
-                    // Unsubscribe from live sync status messages.
-                    try
-                    {
-                        // Subscribe to the live sync events if the user wants them.
-                        if (_liveSyncStatusReceiver != null)
-                        {
-                            CLError errorFromUnsubscribe = MessageEvents.UnsubscribeMessageReceiver(this.SyncboxId, _copiedSettings.DeviceId);
-                            if (errorFromUnsubscribe != null)
-                            {
-                                _trace.writeToLog(1, Resources.TraceCLSyncboxStopLiveSyncErrorUnsubscribeMsgRcvrMsg0Msg1, errorFromUnsubscribe.PrimaryException.Message, errorFromUnsubscribe.PrimaryException.Code);
-                            }
-                        }
-                    }
-                    catch
-                    {
-                    }
 
                     _isStarted = false;
                 }
@@ -3664,6 +3628,8 @@ namespace Cloud
             {
                 this._storageQuota = response.Limit;
                 this._quotaUsage = response.Local;
+
+                PossiblyFireQuotaMessage();  // maybe fire the quota exceeded or quota OK message.
             }
             finally
             {
@@ -3834,6 +3800,8 @@ namespace Cloud
             {
                 this._storagePlanId = (long)response.Syncbox.PlanId;
                 this._storageQuota = response.Syncbox.StorageQuota;
+
+                PossiblyFireQuotaMessage();  // maybe fire the quota exceeded or quota OK message.
             }
             finally
             {
@@ -3985,10 +3953,47 @@ namespace Cloud
                 this._storagePlanId = (long)response.Syncbox.PlanId;
                 this._createdDate = (DateTime)response.Syncbox.CreatedAt;
                 this._storageQuota = response.Syncbox.StorageQuota;
+                this._quotaUsage = response.Syncbox.QuotaUsage.Local;
+
+                PossiblyFireQuotaMessage();  // maybe fire the quota exceeded or quota OK message.
             }
             finally
             {
                 this._propertyChangeLocker.ExitWriteLock();
+            }
+        }
+
+        /// <summary>
+        /// Determine whether we are over or under quota, and depending on the last quota state,
+        /// fire the quota execeeded message or the quota OK message.  Maintain the last quota state.
+        /// </summary>
+        /// <remarks>Assumes that the _propertyChangedLocker write lock is held.</remarks>
+        private void PossiblyFireQuotaMessage()
+        {
+            // Maybe fire a quota exceeded or quota OK message.
+            if (this._isLastStorageQuotaStateExceeded)
+            {
+                // Was over quota.
+                if (this._quotaUsage <= this._storageQuota)
+                {
+                    // Now back under quota.
+                    this._isLastStorageQuotaStateExceeded = false;
+
+                    // Fire quota OK message
+                    MessageEvents.DetectedDidReturnUnderStorageQuotaChange(this._syncboxId, this._copiedSettings.DeviceId);
+                }
+            }
+            else
+            {
+                // Quota was OK
+                if (this._quotaUsage > this._storageQuota)
+                {
+                    // Now over quota.
+                    this._isLastStorageQuotaStateExceeded = true;
+
+                    // Fire quota over message
+                    MessageEvents.DetectedDidExceedStorageQuotaChange(this._syncboxId, this._copiedSettings.DeviceId);
+                }
             }
         }
         #endregion  // end GetCurrentStatus (update the status of this syncbox from the cloud)
@@ -4399,6 +4404,24 @@ namespace Cloud
                         {
                         }
                     }
+                }
+
+                // Unsubscribe from live sync status messages.
+                try
+                {
+                    // Subscribe to the live sync events if the user wants them.
+                    if (_isSubscribedToMessageReceiver)
+                    {
+                        _isSubscribedToMessageReceiver = false;
+                        CLError errorFromUnsubscribe = MessageEvents.UnsubscribeMessageReceiver(this.SyncboxId, _copiedSettings.DeviceId);
+                        if (errorFromUnsubscribe != null)
+                        {
+                            _trace.writeToLog(1, Resources.TraceCLSyncboxStartLiveSyncErrorUnsubscribeMsgRcvrMsg0Msg1, errorFromUnsubscribe.PrimaryException.Message, errorFromUnsubscribe.PrimaryException.Code);
+                        }
+                    }
+                }
+                catch
+                {
                 }
 
                 // Dispose local unmanaged resources last
