@@ -4211,10 +4211,6 @@ namespace Cloud
                                 throw new CLException(CLExceptionCode.Syncbox_InitialStatus, Resources.ExceptionSyncboxStartStatus, errorFromStatus.Exceptions);
                         }
                     }
-
-                    // when server includes quota information in syncbox\status (called via GetCurrentStatus above), then quota needs to be updated in this object;
-                    // but since the server is missing that information, fill it in via syncbox/usage here:
-                    this.GetDataUsage();
                 }
             }
             catch (Exception ex)
