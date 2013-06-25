@@ -2239,7 +2239,7 @@ namespace Cloud.REST
         /// <param name="reservedForActiveSync">true: Live sync is active.  User calls are not allowed.</param>
         /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
         /// <param name="itemCompletionCallbackUserState">User state to be passed whenever the item completion callback above is fired.</param>
-        /// <param name="itemsToDelete">One or more file items to delete.</param>
+        /// <param name="itemsToPurge">One or more file items to delete.</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
         internal IAsyncResult BeginDeleteFiles(
             AsyncCallback asyncCallback, 
@@ -2312,7 +2312,7 @@ namespace Cloud.REST
         /// <param name="reservedForActiveSync">true: Live sync is active.  User calls are not allowed.</param>
         /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
         /// <param name="itemCompletionCallbackUserState">User state to be passed whenever the item completion callback above is fired.</param>
-        /// <param name="itemsToDelete">One or more file items to delete.</param>
+        /// <param name="itemsToPurge">One or more file items to delete.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
         internal CLError DeleteFiles(
             bool reservedForActiveSync, 
@@ -2790,6 +2790,284 @@ namespace Cloud.REST
         }
 
         #endregion  // end DeleteFolders (Delete folders in the syncbox.)
+
+        #region PurgePendingFiles (Delete files that have not yet been uploaded in the syncbox.)
+        /// <summary>
+        /// Asynchronously starts purging the pending files in the syncbox.  Pending files are files whose metadata has been uploaded, but the file data upload itself has not started or completed.
+        /// </summary>
+        /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing the async callback above.</param>
+        /// <param name="reservedForActiveSync">true: Live sync is active.  User calls are not allowed.</param>
+        /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
+        /// <param name="itemCompletionCallbackUserState">User state to be passed whenever the item completion callback above is fired.</param>
+        /// <param name="itemsToPurge">One or more file items to purge.  If this parameter is null, all of the pending files will be purged in this syncbox.</param>
+        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        internal IAsyncResult BeginPurgePendingFiles(
+            AsyncCallback asyncCallback,
+            object asyncCallbackUserState,
+            bool reservedForActiveSync,
+            CLFileItemCompletionCallback itemCompletionCallback,
+            object itemCompletionCallbackUserState,
+            params CLFileItem[] itemsToPurge)
+        {
+            var asyncThread = DelegateAndDataHolderBase.Create(
+                // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
+                new
+                {
+                    // create the asynchronous result to return
+                    toReturn = new GenericAsyncResult<CLError>(
+                        asyncCallback,
+                        asyncCallbackUserState),
+                    reservedForActiveSync = reservedForActiveSync,
+                    itemCompletionCallback = itemCompletionCallback,
+                    itemCompletionCallbackUserState = itemCompletionCallbackUserState,
+                    itemsToPurge = itemsToPurge
+                },
+                (Data, errorToAccumulate) =>
+                {
+                    // The ThreadProc.
+                    // try/catch to process with the input parameters, on catch set the exception in the asyncronous result
+                    try
+                    {
+                        // alloc and init the syncbox with the passed parameters, storing any error that occurs
+                        CLError overallError = PurgePendingFiles(
+                            Data.reservedForActiveSync,
+                            Data.itemCompletionCallback,
+                            Data.itemCompletionCallbackUserState,
+                            Data.itemsToPurge);
+
+                        Data.toReturn.Complete(overallError, // any overall error that may have occurred during processing
+                            sCompleted: false); // processing did not complete synchronously
+                    }
+                    catch (Exception ex)
+                    {
+                        Data.toReturn.HandleException(
+                            ex, // the exception which was not handled correctly by the CLError wrapping
+                            sCompleted: false); // processing did not complete synchronously
+                    }
+                },
+                null);
+
+            // create the thread from a void (object) parameterized start which wraps the synchronous method call
+            (new Thread(new ThreadStart(asyncThread.VoidProcess))).Start(); // start the asynchronous processing thread which is attached to its data
+
+            // return the asynchronous result
+            return asyncThread.TypedData.toReturn;
+        }
+
+        /// <summary>
+        /// Finishes purging the pending files in the syncbox, if it has not already finished via its asynchronous result, and outputs the result,
+        /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
+        /// </summary>
+        /// <param name="asyncResult">The asynchronous result provided upon starting the request</param>
+        /// <param name="result">(output) An overall error which occurred during processing, if any</param>
+        /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
+        internal CLError EndPurgePendingFiles(IAsyncResult asyncResult, out SyncboxPurgePendingFilesResult result)
+        {
+            return Helpers.EndAsyncOperation<SyncboxPurgePendingFilesResult>(asyncResult, out result);
+        }
+
+        /// <summary>
+        /// Purge pending files in the syncbox.  Pending files are files whose metadata has been uploaded, but the file data upload itself has not started or completed.
+        /// </summary>
+        /// <param name="reservedForActiveSync">true: Live sync is active.  User calls are not allowed.</param>
+        /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
+        /// <param name="itemCompletionCallbackUserState">User state to be passed whenever the item completion callback above is fired.</param>
+        /// <param name="itemsToPurge">One or more file items to purge.  If this parameter is null, all of the pending files will be purged in this syncbox.</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        internal CLError PurgePendingFiles(
+            bool reservedForActiveSync,
+            CLFileItemCompletionCallback itemCompletionCallback,
+            object itemCompletionCallbackUserState,
+            params CLFileItem[] itemsToPurge)
+        {
+            // try/catch to process the request,  On catch return the error
+            try
+            {
+                // This method modifies the syncbox.  It is incompatible with live sync.
+                if (reservedForActiveSync)
+                {
+                    throw new CLInvalidOperationException(CLExceptionCode.OnDemand_LiveSyncIsActive, Resources.CLHttpRestCurrentSyncboxCannotBeModifiedWhileSyncing);
+                }
+
+                IncrementModifyingSyncboxViaPublicAPICalls();
+
+                // Check the parameter
+                if (!(_syncbox.CopiedSettings.HttpTimeoutMilliseconds > 0))
+                {
+                    throw new CLArgumentException(CLExceptionCode.OnDemand_TimeoutMilliseconds, Resources.CLMSTimeoutMustBeGreaterThanZero);
+                }
+
+                string[] jsonContractUidsToPurge = null;
+
+                if (itemsToPurge != null
+                    && itemsToPurge.Length > 0)
+                {
+                    jsonContractUidsToPurge = new string[itemsToPurge.Length];
+
+                    for (int paramIdx = 0; paramIdx < itemsToPurge.Length; paramIdx++)
+                    {
+                        CLFileItem currentFileItem = itemsToPurge[paramIdx];
+                        if (currentFileItem == null)
+                        {
+                            throw new CLArgumentException(CLExceptionCode.OnDemand_FileRename, String.Format(Resources.ExceptionOnDemandFileItemNullAtIndexMsg0, paramIdx.ToString()));
+                        }
+                        if (currentFileItem.Syncbox != _syncbox)
+                        {
+                            throw new CLInvalidOperationException(CLExceptionCode.OnDemand_NotCreatedInThisSyncbox, String.Format(Resources.ExceptionOnDemandCLFileItemNotCreatedInThisSyncboxMsg0, paramIdx));
+                        }
+                        if (currentFileItem.IsFolder)
+                        {
+                            throw new CLInvalidOperationException(CLExceptionCode.OnDemand_FolderItemWhenFileItemExpected, String.Format(Resources.ExceptionOnDemandFolderItemFoundWhenFileItemExpectedMsg0, paramIdx));
+                        }
+                        if (currentFileItem.IsDeleted)
+                        {
+                            throw new CLInvalidOperationException(CLExceptionCode.OnDemand_AlreadyDeleted, String.Format(Resources.ExceptionOnDemandItemWasPreviouslyDeletedMsg0, paramIdx));
+                        }
+
+                        jsonContractUidsToPurge[paramIdx] = currentFileItem.ItemUid;
+                    }
+                }
+
+
+                // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
+                Helpers.RequestNewCredentialsInfo requestNewCredentialsInfo = new Helpers.RequestNewCredentialsInfo()
+                {
+                    ProcessingStateByThreadId = _processingStateByThreadId,
+                    GetNewCredentialsCallback = _getNewCredentialsCallback,
+                    GetNewCredentialsCallbackUserState = _getNewCredentialsCallbackUserState,
+                    GetCurrentCredentialsCallback = GetCurrentCredentialsCallback,
+                    SetCurrentCredentialsCallback = SetCurrentCredentialCallback,
+                };
+
+                // Now make the REST request content.
+                object requestContent = new JsonContracts.PurgePendingFilesRequest()
+                {
+                    SyncboxId = _syncbox.SyncboxId,
+                    Uids = jsonContractUidsToPurge,
+                    DeviceId = _syncbox.CopiedSettings.DeviceId
+                };
+
+                // server method path
+                string serverMethodPath = CLDefinitions.MethodPathOneOffFilePurgePending;
+
+                // Communicate with the server to get the response.
+                JsonContracts.SyncboxPurgePendingFilesResponse responseFromServer;
+                responseFromServer = Helpers.ProcessHttp<JsonContracts.SyncboxPurgePendingFilesResponse>(requestContent, // dynamic type of request content based on method path
+                    CLDefinitions.CLMetaDataServerURL, // base domain is the MDS server
+                    serverMethodPath, // dynamic path to appropriate one-off method
+                    Helpers.requestMethod.post, // one-off methods are all posts
+                    _syncbox.CopiedSettings.HttpTimeoutMilliseconds, // time before communication timeout
+                    null, // not an upload or download
+                    Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
+                    _syncbox.CopiedSettings, // pass the copied settings
+                    _syncbox, // pass the syncbox to use
+                    requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
+                    true);
+
+                // Convert these items to the output array.
+                if (responseFromServer != null && responseFromServer.PurgePendingFilesResponses != null)
+                {
+                    if (responseFromServer.PurgePendingFilesResponses.Length != itemsToPurge.Length)
+                    {
+                        throw new CLException(CLExceptionCode.OnDemand_FileRename, Resources.ExceptionOnDemandResponseArrayLength);
+                    }
+
+                    List<CLFileItem> listFileItems = new List<CLFileItem>();
+                    List<CLError> listErrors = new List<CLError>();
+
+                    for (int responseIdx = 0; responseIdx < responseFromServer.PurgePendingFilesResponses.Length; responseIdx++)
+                    {
+                        try
+                        {
+                            FileChangeResponse currentDeleteResponse = responseFromServer.PurgePendingFilesResponses[responseIdx];
+
+                            if (currentDeleteResponse == null)
+                            {
+                                throw new CLNullReferenceException(CLExceptionCode.OnDemand_MissingResponseField, Resources.ExceptionOnDemandNullItem);
+                            }
+                            if (currentDeleteResponse.Header == null || string.IsNullOrEmpty(currentDeleteResponse.Header.Status))
+                            {
+                                throw new CLNullReferenceException(CLExceptionCode.OnDemand_MissingResponseField, Resources.ExceptionOnDemandNullStatus);
+                            }
+                            if (currentDeleteResponse.Metadata == null)
+                            {
+                                throw new CLNullReferenceException(CLExceptionCode.OnDemand_MissingResponseField, Resources.ExceptionOnDemandNullMetadata);
+                            }
+
+                            switch (currentDeleteResponse.Header.Status)
+                            {
+                                case CLDefinitions.CLEventTypeAccepted:
+                                case CLDefinitions.CLEventTypeAlreadyDeleted:   // user said delete, and it is deleted.  
+                                    CLFileItem resultItem = new CLFileItem(currentDeleteResponse.Metadata, currentDeleteResponse.Header.Action, currentDeleteResponse.Action, _syncbox);
+                                    if (itemCompletionCallback != null)
+                                    {
+                                        try
+                                        {
+                                            itemCompletionCallback(responseIdx, resultItem, error: null, userState: itemCompletionCallbackUserState);
+                                        }
+                                        catch
+                                        {
+                                        }
+                                    }
+                                    break;
+
+                                case CLDefinitions.CLEventTypeNotFound:
+                                    throw new CLException(CLExceptionCode.OnDemand_NotFound, Resources.ExceptionOnDemandNotFound);
+
+                                case CLDefinitions.RESTResponseStatusFailed:
+                                    Exception innerEx;
+                                    string errorMessageString;
+                                    try
+                                    {
+                                        errorMessageString = string.Join(Environment.NewLine, currentDeleteResponse.Metadata.ErrorMessage);
+                                        innerEx = null;
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        errorMessageString = Resources.ExceptionOnDemandDeserializeErrorMessage;
+                                        innerEx = ex;
+                                    }
+
+                                    throw new CLException(CLExceptionCode.OnDemand_ItemError, Resources.ExceptionOnDemandItemError, new Exception(errorMessageString, innerEx));
+
+                                default:
+                                    throw new CLException(CLExceptionCode.OnDemand_UnknownItemStatus, string.Format(Resources.ExceptionOnDemandUnknownItemStatus, currentDeleteResponse.Header.Status));
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            if (itemCompletionCallback != null)
+                            {
+                                try
+                                {
+                                    itemCompletionCallback(responseIdx, completedItem: null, error: ex, userState: itemCompletionCallbackUserState);
+                                }
+                                catch
+                                {
+                                }
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    throw new CLNullReferenceException(CLExceptionCode.OnDemand_FileDelete, Resources.ExceptionCLHttpRestWithoutDeleteResponses);
+                }
+            }
+            catch (Exception ex)
+            {
+                return ex;
+            }
+            finally
+            {
+                DecrementModifyingSyncboxViaPublicAPICalls();
+            }
+
+            return null;
+        }
+
+        #endregion  // end PurgePendingFiles (Delete files that have not yet been uploaded in the syncbox.)
 
         #region AddFolders (Add folders to a particular parent folder in the syncbox.)
         /// <summary>
@@ -6757,7 +7035,7 @@ namespace Cloud.REST
 
                 if (string.IsNullOrEmpty(relativePath))
                 {
-                    relativePath = "/";         // assume the syncbox root
+                    relativePath = new string(((char)0x2F /* '/' */), 1);         // assume the syncbox root
                 }
 
                 if (!(_syncbox.CopiedSettings.HttpTimeoutMilliseconds > 0))
@@ -6777,13 +7055,13 @@ namespace Cloud.REST
 
                         new KeyValuePair<string, string>(CLDefinitions.CLMetadataCloudPath, Uri.EscapeDataString(relativePath.Replace(((char)0x5C /* '\' */), ((char)0x2F /* '/' */)))), // query string parameter for optional path with escaped value
 
-                        new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeDeleted, "false"), // query string parameter for not including deleted objects
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeDeleted, CLDefinitions.CLMetadataFalse), // query string parameter for not including deleted objects
 
-                        new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeCount, "true"), // query string parameter for including counts within each folder
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeCount, CLDefinitions.CLMetadataTrue), // query string parameter for including counts within each folder
 
-                        new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeFolders, "true"), // query string parameter for including folders in the list
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeFolders, CLDefinitions.CLMetadataTrue), // query string parameter for including folders in the list
 
-                        new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeStoredOnly, "true") // query string parameter for including only stored items in the list
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeStoredOnly, CLDefinitions.CLMetadataTrue) // query string parameter for including only stored items in the list
                     });
 
                 // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
@@ -6971,9 +7249,9 @@ namespace Cloud.REST
 
                         new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeDeleted, includeDeleted.ToString()), // query string parameter for not including deleted objects
 
-                        new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeCount, "true"), // query string parameter for including counts within each folder
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeCount, CLDefinitions.CLMetadataTrue), // query string parameter for including counts within each folder
 
-                        new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeFolders, "true"), // query string parameter for including folders in the list
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeFolders, CLDefinitions.CLMetadataTrue), // query string parameter for including folders in the list
 
                         new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeStoredOnly, (!includePending).ToString()) // query string parameter for including only stored items in the list
                     });
@@ -7121,7 +7399,7 @@ namespace Cloud.REST
 
                 if (string.IsNullOrEmpty(relativePath))
                 {
-                    relativePath = "/";         // assume the syncbox root
+                    relativePath = new string(((char)0x2F /* '/' */), 1);         // assume the syncbox root
                 }
 
                 if (!(_syncbox.CopiedSettings.HttpTimeoutMilliseconds > 0))
@@ -7141,13 +7419,13 @@ namespace Cloud.REST
 
                         new KeyValuePair<string, string>(CLDefinitions.CLMetadataCloudPath, Uri.EscapeDataString(relativePath.Replace(((char)0x5C /* '\' */), ((char)0x2F /* '/' */)))), // query string parameter for optional path with escaped value
 
-                        new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeDeleted, "false"), // query string parameter for not including deleted objects
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeDeleted, CLDefinitions.CLMetadataFalse), // query string parameter for not including deleted objects
 
-                        new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeCount, "true"), // query string parameter for including counts within each folder
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeCount, CLDefinitions.CLMetadataTrue), // query string parameter for including counts within each folder
 
-                        new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeFolders, "true"), // query string parameter for including folders in the list
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeFolders, CLDefinitions.CLMetadataTrue), // query string parameter for including folders in the list
 
-                        new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeStoredOnly, "true") // query string parameter for including only stored items in the list
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeStoredOnly, CLDefinitions.CLMetadataTrue) // query string parameter for including only stored items in the list
                     });
 
                 // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
@@ -7325,13 +7603,13 @@ namespace Cloud.REST
                             ? new KeyValuePair<string, string>()
                             : new KeyValuePair<string, string>(CLDefinitions.CLMetadataServerId, Uri.EscapeDataString(folderItem.ItemUid)),
 
-                        new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeDeleted, "false"), // query string parameter for not including deleted objects
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeDeleted, CLDefinitions.CLMetadataFalse), // query string parameter for not including deleted objects
 
-                        new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeCount, "true"), // query string parameter for including counts within each folder
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeCount, CLDefinitions.CLMetadataTrue), // query string parameter for including counts within each folder
 
-                        new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeFolders, "true"), // query string parameter for including folders in the list
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeFolders, CLDefinitions.CLMetadataTrue), // query string parameter for including folders in the list
 
-                        new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeStoredOnly, "true") // query string parameter for including only stored items in the list
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeStoredOnly, CLDefinitions.CLMetadataTrue) // query string parameter for including only stored items in the list
                     });
 
                 // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
@@ -8173,10 +8451,15 @@ namespace Cloud.REST
                     SetCurrentCredentialsCallback = SetCurrentCredentialCallback,
                 };
 
-                SyncboxStatusResponse serverResponse = Helpers.ProcessHttp<JsonContracts.SyncboxStatusResponse>(new JsonContracts.SyncboxIdOnly() // json contract object for purge pending method
-                    {
-                        Id = _syncbox.SyncboxId
-                    },
+                // Now make the REST request content.
+                object requestContent = new JsonContracts.SyncboxStatusRequest()
+                {
+                    Id = _syncbox.SyncboxId,
+                    IncludeUsage = true,
+                };
+
+                SyncboxStatusResponse serverResponse = Helpers.ProcessHttp<JsonContracts.SyncboxStatusResponse>(
+                    requestContent,
                     CLDefinitions.CLPlatformAuthServerURL, // Platform server URL
                     CLDefinitions.MethodPathAuthSyncboxStatus, // sync box status address
                     Helpers.requestMethod.post, // sync box status is a post operation
@@ -8203,6 +8486,14 @@ namespace Cloud.REST
                 if (serverResponse.Syncbox.CreatedAt == null)
                 {
                     throw new CLNullReferenceException(CLExceptionCode.OnDemand_ServerReturnedInvalidItem, Resources.ExceptionOnDemandGetCurrentStatusServerResponseNullSyncboxCreatedAt);
+                }
+                if (serverResponse.Syncbox.Plan == null)
+                {
+                    throw new CLNullReferenceException(CLExceptionCode.OnDemand_ServerReturnedInvalidItem, Resources.ExceptionOnDemandGetCurrentStatusServerResponseNullSyncboxPlan);
+                }
+                if (serverResponse.Syncbox.QuotaUsage == null)
+                {
+                    throw new CLNullReferenceException(CLExceptionCode.OnDemand_ServerReturnedInvalidItem, Resources.ExceptionOnDemandGetCurrentStatusServerResponseNullSyncboxQuotaUsage);
                 }
 
                 //// todo: "success" does not compare with "ok", but do not want to compare strings anyways since some methods are "success" and some are "ok"
@@ -9978,7 +10269,7 @@ namespace Cloud.REST
                         // query string parameter for whether to include delete versions in the check, but only set if it's not default (if it's false)
                         (includeDeletedVersions
                             ? new KeyValuePair<string, string>()
-                            : new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeDeleted, "false")),
+                            : new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeDeleted, CLDefinitions.CLMetadataFalse)),
 
                         // query string parameter for the current sync box id, should not need escaping since it should be an integer in string format
                         new KeyValuePair<string, string>(CLDefinitions.QueryStringSyncboxId, _syncbox.SyncboxId.ToString())

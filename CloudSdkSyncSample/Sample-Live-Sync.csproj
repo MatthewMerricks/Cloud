@@ -77,7 +77,8 @@
     <Compile Include="EventMessageReceiver\BindingEvaluator.cs" />
     <Compile Include="EventMessageReceiver\DelayChangeObservableCollection.cs" />
     <Compile Include="EventMessageReceiver\EventMessage.cs" />
-    <Compile Include="EventMessageReceiver\EventMessageImplementations\StorageQuotaExceededMessage.cs" />
+    <Compile Include="EventMessageReceiver\EventMessageImplementations\DidReturnUnderStorageQuotaMessage.cs" />
+    <Compile Include="EventMessageReceiver\EventMessageImplementations\DidExceedStorageQuotaMessage.cs" />
     <Compile Include="EventMessageReceiver\EventMessageImplementations\DownloadedMessage.cs" />
     <Compile Include="EventMessageReceiver\EventMessageImplementations\DownloadingMessage.cs" />
     <Compile Include="EventMessageReceiver\EventMessageImplementations\ErrorMessage.cs" />
