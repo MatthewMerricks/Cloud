@@ -51,11 +51,10 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup>
-    <SignAssembly>false</SignAssembly>
+    <SignAssembly>true</SignAssembly>
   </PropertyGroup>
   <PropertyGroup>
-    <AssemblyOriginatorKeyFile>
-    </AssemblyOriginatorKeyFile>
+    <AssemblyOriginatorKeyFile>CloudPlatformCodeSigning.pfx</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'ReleaseNoSSL|AnyCPU'">
     <OutputPath>bin\ReleaseNoSSL\</OutputPath>
@@ -440,6 +439,7 @@
     <EmbeddedResource Include="SQLIndexer\IndexDBScripts\10FileSystemObjects.table.sql" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="CloudPlatformCodeSigning.pfx" />
     <None Include="Docs\MainPage.dox" />
     <None Include="FileMonitor\FileMonitorMemory.xsd">
       <SubType>Designer</SubType>
