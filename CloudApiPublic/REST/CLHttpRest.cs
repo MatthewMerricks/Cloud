@@ -3899,7 +3899,8 @@ namespace Cloud.REST
                                                 },
                                                 (innerData, userState, eventId, direction, relativePath, byteProgress, totalByteSize, isError, innerErrorToAccumulate) =>
                                                 {
-                                                    if (innerData.transferStatusCallback != null)
+                                                    if (!isError
+                                                        && innerData.transferStatusCallback != null)
                                                     {
                                                         innerData.transferStatusCallback(
                                                             innerData.inputItemIndex,
@@ -4453,7 +4454,8 @@ namespace Cloud.REST
                                                 },
                                                 (innerData, userState, eventId, direction, relativePath, byteProgress, totalByteSize, isError, innerErrorToAccumulate) =>
                                                 {
-                                                    if (innerData.transferStatusCallback != null)
+                                                    if (!isError
+                                                        && innerData.transferStatusCallback != null)
                                                     {
                                                         innerData.transferStatusCallback(
                                                             innerData.inputItemIndex,

@@ -3549,6 +3549,76 @@ namespace Cloud.Static
             }
             #endregion
 
+            #region uploadDownloadErrorDelegate
+
+            var OnUploadDownloadSendErrorStatus = DelegateAndDataHolderBase<bool>.Create(
+                new
+                {
+                    uploadDownload = uploadDownload,
+                    CopiedSettings = CopiedSettings,
+                    Syncbox = Syncbox,
+                    transferStartTime = transferStartTime
+                },
+                (Data, forWriteRequestError, errorToAccumulate) =>
+                {
+                    // if there was an event for the upload or download, then fire the event callback for a final transfer status
+                    if (Data.uploadDownload != null
+                        && (forWriteRequestError
+                            ? Data.uploadDownload is uploadParams
+                            : Data.uploadDownload is downloadParams))
+                    {
+                        // try/catch fire the event callback for final transfer status, silencing errors
+                        try
+                        {
+                            if (Data.uploadDownload.RelativePathForStatus != null)
+                            {
+                                Data.uploadDownload.StatusCallback(
+                                    new CLStatusFileTransferUpdateParameters(
+                                        Data.transferStartTime, // retrieve the upload start time
+
+                                        // need to send a file size which matches the total uploaded bytes so they are equal to cancel the status
+                                        Data.uploadDownload.ChangeToTransfer.Metadata.HashableProperties.Size ?? 0,
+
+                                        // try to build the same relative path that would be used in the normal status, falling back first to the full path then to an empty string
+                                        Data.uploadDownload.RelativePathForStatus,
+
+                                        // need to send a total uploaded bytes which matches the file size so they are equal to cancel the status
+                                        Data.uploadDownload.ChangeToTransfer.Metadata.HashableProperties.Size ?? 0),
+                                    Data.uploadDownload.ChangeToTransfer, // sender of event (the event itself)
+                                    Data.Syncbox.SyncboxId, // pass in sync box id for filtering
+                                    Data.CopiedSettings.DeviceId); // pass in device id for filtering
+                            }
+                        }
+                        catch
+                        {
+                        }
+
+                        if (Data.uploadDownload.StatusUpdate != null
+                            && Data.uploadDownload.StatusUpdateUserState != null)
+                        {
+                            try
+                            {
+                                if (Data.uploadDownload.RelativePathForStatus != null)
+                                {
+                                    Data.uploadDownload.StatusUpdate(Data.uploadDownload.StatusUpdateUserState,
+                                        Data.uploadDownload.ChangeToTransfer.EventId,
+                                        Data.uploadDownload.ChangeToTransfer.Direction,
+                                        Data.uploadDownload.RelativePathForStatus,
+                                        Data.uploadDownload.ChangeToTransfer.Metadata.HashableProperties.Size ?? 0,
+                                        Data.uploadDownload.ChangeToTransfer.Metadata.HashableProperties.Size ?? 0,
+                                        isError: true);
+                                }
+                            }
+                            catch
+                            {
+                            }
+                        }
+                    }
+                },
+                null);
+
+            #endregion
+
             #region write request
             // if this communication is for a file upload or download, then process its request accordingly
             if (uploadDownload != null)
@@ -3556,7 +3626,7 @@ namespace Cloud.Static
                 // get the request stream
                 Stream httpRequestStream = null;
 
-                // try/finally process the upload request (which actually uploads the file) or download request, finally dispose the request stream if it was set
+                // try/catch/finally process the upload request (which actually uploads the file) or download request, finally dispose the request stream if it was set
                 try
                 {
                     // if the current communication is file upload, then upload the file
@@ -3571,9 +3641,9 @@ namespace Cloud.Static
                                     uploadDownload.ChangeToTransfer.EventId,
                                     uploadDownload.ChangeToTransfer.Direction,
                                     uploadDownload.RelativePathForStatus,
-                                    0,
+                                    /* byteProgress: */ 0,
                                     (long)uploadDownload.ChangeToTransfer.Metadata.HashableProperties.Size,
-                                    false);
+                                    isError: false);
                             }
                             catch
                             {
@@ -3704,14 +3774,13 @@ namespace Cloud.Static
                                             uploadDownload.RelativePathForStatus,
                                             totalBytesUploaded,
                                             (long)uploadDownload.ChangeToTransfer.Metadata.HashableProperties.Size,
-                                            false);
+                                            isError: false);
                                     }
                                     catch
                                     {
                                     }
                                 }
                             }
-
                         }
                         finally
                         {
@@ -3741,6 +3810,12 @@ namespace Cloud.Static
                         // write the request for the download
                         httpRequestStream.Write(requestContentBytes, 0, requestContentBytes.Length);
                     }
+                }
+                catch
+                {
+                    OnUploadDownloadSendErrorStatus.Process(/* forWriteRequestError: */ true);
+
+                    throw;
                 }
                 finally
                 {
@@ -4192,9 +4267,9 @@ namespace Cloud.Static
                                             uploadDownload.ChangeToTransfer.EventId,
                                             uploadDownload.ChangeToTransfer.Direction,
                                             uploadDownload.RelativePathForStatus,
-                                            0,
+                                            /* byteProgress: */ 0,
                                             (long)uploadDownload.ChangeToTransfer.Metadata.HashableProperties.Size,
-                                            false);
+                                            isError: false);
                                     }
                                     catch
                                     {
@@ -4321,7 +4396,7 @@ namespace Cloud.Static
                                                     uploadDownload.RelativePathForStatus,
                                                     totalBytesDownloaded,
                                                     (long)uploadDownload.ChangeToTransfer.Metadata.HashableProperties.Size,
-                                                    false);
+                                                    isError: false);
                                             }
                                             catch
                                             {
@@ -4549,60 +4624,9 @@ namespace Cloud.Static
                 return toReturn;
                 #endregion
             }
-            catch (Exception ex)
+            catch
             {
-                // if there was an event for the upload or download, then fire the event callback for a final transfer status
-                if (uploadDownload != null
-                    && (uploadDownload is uploadParams
-                        || uploadDownload is downloadParams))
-                {
-                    // try/catch fire the event callback for final transfer status, silencing errors
-                    try
-                    {
-                        if (uploadDownload.RelativePathForStatus != null)
-                        {
-                            uploadDownload.StatusCallback(
-                                new CLStatusFileTransferUpdateParameters(
-                                    transferStartTime, // retrieve the upload start time
-
-                                    // need to send a file size which matches the total uploaded bytes so they are equal to cancel the status
-                                    uploadDownload.ChangeToTransfer.Metadata.HashableProperties.Size ?? 0,
-
-                                    // try to build the same relative path that would be used in the normal status, falling back first to the full path then to an empty string
-                                    uploadDownload.RelativePathForStatus,
-
-                                    // need to send a total uploaded bytes which matches the file size so they are equal to cancel the status
-                                    uploadDownload.ChangeToTransfer.Metadata.HashableProperties.Size ?? 0),
-                                uploadDownload.ChangeToTransfer, // sender of event (the event itself)
-                                Syncbox.SyncboxId, // pass in sync box id for filtering
-                                CopiedSettings.DeviceId); // pass in device id for filtering
-                        }
-                    }
-                    catch
-                    {
-                    }
-
-                    if (uploadDownload.StatusUpdate != null
-                        && uploadDownload.StatusUpdateUserState != null)
-                    {
-                        try
-                        {
-                            if (uploadDownload.RelativePathForStatus != null)
-                            {
-                                uploadDownload.StatusUpdate(uploadDownload.StatusUpdateUserState,
-                                    uploadDownload.ChangeToTransfer.EventId,
-                                    uploadDownload.ChangeToTransfer.Direction,
-                                    uploadDownload.RelativePathForStatus,
-                                    uploadDownload.ChangeToTransfer.Metadata.HashableProperties.Size ?? 0,
-                                    uploadDownload.ChangeToTransfer.Metadata.HashableProperties.Size ?? 0,
-                                    false);
-                            }
-                        }
-                        catch
-                        {
-                        }
-                    }
-                }
+                OnUploadDownloadSendErrorStatus.Process(/* forWriteRequestError: */ false);
 
                 // rethrow
                 throw;
@@ -4663,6 +4687,63 @@ namespace Cloud.Static
                     try
                     {
                         httpResponse.Close();
+                    }
+                    catch
+                    {
+                    }
+                }
+            }
+        }
+
+        private static void OnUploadDownloadSendErrorStatus(uploadDownloadParams uploadDownload, ICLSyncSettingsAdvanced CopiedSettings, CLSyncbox Syncbox, DateTime transferStartTime, bool forWriteRequestError)
+        {
+            // if there was an event for the upload or download, then fire the event callback for a final transfer status
+            if (uploadDownload != null
+                && (forWriteRequestError
+                    ? uploadDownload is uploadParams
+                    : uploadDownload is downloadParams))
+            {
+                // try/catch fire the event callback for final transfer status, silencing errors
+                try
+                {
+                    if (uploadDownload.RelativePathForStatus != null)
+                    {
+                        uploadDownload.StatusCallback(
+                            new CLStatusFileTransferUpdateParameters(
+                                transferStartTime, // retrieve the upload start time
+
+                                // need to send a file size which matches the total uploaded bytes so they are equal to cancel the status
+                                uploadDownload.ChangeToTransfer.Metadata.HashableProperties.Size ?? 0,
+
+                                // try to build the same relative path that would be used in the normal status, falling back first to the full path then to an empty string
+                                uploadDownload.RelativePathForStatus,
+
+                                // need to send a total uploaded bytes which matches the file size so they are equal to cancel the status
+                                uploadDownload.ChangeToTransfer.Metadata.HashableProperties.Size ?? 0),
+                            uploadDownload.ChangeToTransfer, // sender of event (the event itself)
+                            Syncbox.SyncboxId, // pass in sync box id for filtering
+                            CopiedSettings.DeviceId); // pass in device id for filtering
+                    }
+                }
+                catch
+                {
+                }
+
+                if (uploadDownload.StatusUpdate != null
+                    && uploadDownload.StatusUpdateUserState != null)
+                {
+                    try
+                    {
+                        if (uploadDownload.RelativePathForStatus != null)
+                        {
+                            uploadDownload.StatusUpdate(uploadDownload.StatusUpdateUserState,
+                                uploadDownload.ChangeToTransfer.EventId,
+                                uploadDownload.ChangeToTransfer.Direction,
+                                uploadDownload.RelativePathForStatus,
+                                uploadDownload.ChangeToTransfer.Metadata.HashableProperties.Size ?? 0,
+                                uploadDownload.ChangeToTransfer.Metadata.HashableProperties.Size ?? 0,
+                                isError: true);
+                        }
                     }
                     catch
                     {
