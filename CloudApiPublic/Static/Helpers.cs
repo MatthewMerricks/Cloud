@@ -3753,7 +3753,7 @@ namespace Cloud.Static
                                         uploadDownload.RelativePathForStatus, // relative path of file
                                         totalBytesUploaded), // bytes uploaded so far
                                     uploadDownload.ChangeToTransfer, // the source of the event (the event itself)
-                                    Syncbox.SyncboxId, // pass in sync box id to allow filtering
+                                    Syncbox != null ? Syncbox.SyncboxId : 0, // pass in sync box id to allow filtering
                                     CopiedSettings.DeviceId); // pass in device id to allow filtering
 
                                 if (uploadDownload.StatusUpdate != null
@@ -4404,7 +4404,7 @@ namespace Cloud.Static
                                                     uploadDownload.RelativePathForStatus, // relative path of file
                                                     totalBytesDownloaded), // current count of completed download bytes
                                             uploadDownload.ChangeToTransfer, // the source of the event, the event itself
-                                            Syncbox.SyncboxId, // pass in sync box id for filtering
+                                            Syncbox != null ? Syncbox.SyncboxId : 0, // pass in sync box id for filtering
                                             CopiedSettings.DeviceId); // pass in device id for filtering
                                     }
                                     // flush file stream to finish the file
@@ -4714,7 +4714,7 @@ namespace Cloud.Static
                                 // need to send a total uploaded bytes which matches the file size so they are equal to cancel the status
                                 uploadDownload.ChangeToTransfer.Metadata.HashableProperties.Size ?? 0),
                             uploadDownload.ChangeToTransfer, // sender of event (the event itself)
-                            Syncbox.SyncboxId, // pass in sync box id for filtering
+                            Syncbox != null ? Syncbox.SyncboxId : 0, // pass in sync box id for filtering
                             CopiedSettings.DeviceId); // pass in device id for filtering
                     }
                 }
