@@ -126,6 +126,7 @@ namespace Cloud.Static
         public const string MethodPathOneOffFileDeletes = VersionPrefix + "/sync/file/deletes";                         // POST
         public const string MethodPathOneOffFileAdds = VersionPrefix + "/sync/file/adds";                               // POST
         public const string MethodPathOneOffFileModifies = VersionPrefix + "/sync/file/modifies";                       // POST
+        public const string MethodPathOneOffFilePurgePending = VersionPrefix + "/sync/file/purge_pending";              // POST
         /* duplicate functionality to file move:
         public const string MethodPathOneOffFileRename = VersionPrefix + "/sync/file/rename";                           // POST
  
@@ -168,7 +169,7 @@ namespace Cloud.Static
 
         #region Syncbox operations
         public const string MethodPathSyncboxUsage = VersionPrefix + "/sync/syncbox/usage";                             // GET
-    	#endregion
+        #endregion
 
         #region Notification operations
         public const string MethodPathPushSubscribe = VersionPrefix + "/sync/notifications/subscribe";                  // GET
@@ -512,6 +513,8 @@ namespace Cloud.Static
         public const string CLSyncboxUpdatedAfter = "updated_after";
         public const string CLSyncboxStoredBytes = "stored_bytes";
         public const string CLSyncboxPendingBytes = "pending_bytes";
+        public const string CLSyncboxIncludeUsage = "include_usage";
+        public const string CLSyncboxQuotaUsage = "quota_usage";
 
         // Cloud Sync Status
         public const string CLEventTypeAccepted = "ok";
@@ -547,6 +550,7 @@ namespace Cloud.Static
         public const string CLMetadataToParentUid = "to_parent_uid";
         public const string CLMetadataGenerate = "generate";
         public const string CLMetadataFalse = "false";
+        public const string CLMetadataTrue = "true";
         public const string CLMetadataInline = "inline";
         /// <summary>
         /// Be careful, this may be the wrong key name, you may need the inverse of <see cref="CLDefinitions.CLMetadataIsStored"/>
@@ -624,6 +628,7 @@ namespace Cloud.Static
         public const string RESTRequestFileOrFolderDeletes = "uids";
         public const string RESTRequestFolderAdds = "folders";
         public const string RESTRequestFileAdds = "files";
+        public const string RESTRequestFileUids = "uids";
         public const string RESTRequestFileModifies = "files";
         public const string RESTRequestPath = "path";
 
@@ -638,6 +643,7 @@ namespace Cloud.Static
         // REST Response File
         public const string RESTResponseMoveFilesOrFolders = "moves";
         public const string RESTResponseDeleteFiles = "files";
+        public const string RESTResponsePurgePendingFiles = "files";
 
         // REST Response Folder
         public const string RESTResponseDeleteFolders = "folders";

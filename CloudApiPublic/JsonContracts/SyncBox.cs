@@ -68,5 +68,12 @@ namespace Cloud.JsonContracts
 
         [DataMember(Name = CLDefinitions.RESTResponseSyncboxMetadata, IsRequired = false)]
         public MetadataDictionary Metadata { get; set; }
+
+        [DataMember(Name = CLDefinitions.RESTResponsePlan, IsRequired = false)]
+        public StoragePlanResponse Plan { get; set; }
+
+        [DataMember(Name = CLDefinitions.CLSyncboxQuotaUsage, IsRequired = false)]
+        public SyncboxUsageResponse QuotaUsage { get; set; }
+
     }
 }

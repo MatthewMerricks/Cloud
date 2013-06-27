@@ -668,21 +668,41 @@ namespace Cloud.Static
             return toReturn;
         }
 
-        public static EventHandledLevel DetectedStorageQuotaExceededChange(
+        public static EventHandledLevel DetectedDidExceedStorageQuotaChange(
             Nullable<long> SyncboxId = null,
             string DeviceId = null)
         {
             EventHandledLevel toReturn = EventHandledLevel.NothingFired;
 
             EventMessageArgs newArgs = new EventMessageArgs(
-                new StorageQuotaExceededMessage(SyncboxId, DeviceId));
+                new DidExceedStorageQuotaMessage(SyncboxId, DeviceId));
 
             FireNewEventMessageInternal(newArgs, ref toReturn);
 
             FireAllInternalReceiversInternal(newArgs, ref toReturn,
                 (IEventMessageReceiver handler, EventMessageArgs newArgs_) =>
                 {
-                    handler.StorageQuotaExceededChanged(new StorageQuotaExceededMessageArgs(newArgs_));
+                    handler.DidExceedStorageQuotaChanged(new DidExceedStorageQuotaMessageArgs(newArgs_));
+                });
+
+            return toReturn;
+        }
+
+        public static EventHandledLevel DetectedDidReturnUnderStorageQuotaChange(
+            Nullable<long> SyncboxId = null,
+            string DeviceId = null)
+        {
+            EventHandledLevel toReturn = EventHandledLevel.NothingFired;
+
+            EventMessageArgs newArgs = new EventMessageArgs(
+                new DidReturnUnderStorageQuotaMessage(SyncboxId, DeviceId));
+
+            FireNewEventMessageInternal(newArgs, ref toReturn);
+
+            FireAllInternalReceiversInternal(newArgs, ref toReturn,
+                (IEventMessageReceiver handler, EventMessageArgs newArgs_) =>
+                {
+                    handler.DidReturnUnderStorageQuotaChanged(new DidReturnUnderStorageQuotaMessageArgs(newArgs_));
                 });
 
             return toReturn;

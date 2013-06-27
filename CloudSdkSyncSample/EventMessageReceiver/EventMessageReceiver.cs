@@ -198,8 +198,10 @@ namespace SampleLiveSync.EventMessageReceiver
         private UploadedMessage uploaded = null;
         // define the message for internet connectiviy change to update the growl, defaulting to none
         private InternetConnectivityMessage connectivity = null;
-        // define the message for storage quota exceeded change to update the growl, defaulting to none
-        private StorageQuotaExceededMessage storageQuotaExceeded = null;
+        // define the message for storage usage exceeded quota change to update the growl, defaulting to none
+        private DidExceedStorageQuotaMessage didExceedStorageQuota = null;
+        // define the message for storage usage back under or at quota change to update the growl, defaulting to none
+        private DidReturnUnderStorageQuotaMessage didReturnUnderStorageQuota = null;
 
         // define the time at which the growl will finish fading into being completely opaque, defaulting to none
         private Nullable<DateTime> firstFadeInCompletion = null;
@@ -549,7 +551,7 @@ namespace SampleLiveSync.EventMessageReceiver
             e.MarkHandled();
         }
 
-        void IEventMessageReceiver.StorageQuotaExceededChanged(IStorageQuotaExceededMessage e)
+        void IEventMessageReceiver.DidExceedStorageQuotaChanged(IDidExceedStorageQuotaMessage e)
         {
             // lock on the growl messages for modification
             lock (_growlMessages)
@@ -558,9 +560,9 @@ namespace SampleLiveSync.EventMessageReceiver
                 bool newMessage;
 
                 // if there is no current message for the storage quota exceeded, then create the new message 
-                if (storageQuotaExceeded == null)
+                if (didExceedStorageQuota == null)
                 {
-                    storageQuotaExceeded = new StorageQuotaExceededMessage();
+                    didExceedStorageQuota = new DidExceedStorageQuotaMessage();
                     newMessage = true;
                 }
                 // else if there was not already an existing message for storage quota exceeded, then update it
@@ -574,8 +576,43 @@ namespace SampleLiveSync.EventMessageReceiver
                 {
                     if (Application.Current != null)
                     {
-                        Application.Current.Dispatcher.BeginInvoke((Action<EventMessage<StorageQuotaExceededMessage>>)AddEventMessageToGrowl, // the method which adds a growl message locks for modification
-                            (EventMessage<StorageQuotaExceededMessage>)storageQuotaExceeded);
+                        Application.Current.Dispatcher.BeginInvoke((Action<EventMessage<DidExceedStorageQuotaMessage>>)AddEventMessageToGrowl, // the method which adds a growl message locks for modification
+                            (EventMessage<DidExceedStorageQuotaMessage>)didExceedStorageQuota);
+                    }
+                }
+            }
+
+            // event was handled
+            e.MarkHandled();
+        }
+
+        void IEventMessageReceiver.DidReturnUnderStorageQuotaChanged(IDidReturnUnderStorageQuotaMessage e)
+        {
+            // lock on the growl messages for modification
+            lock (_growlMessages)
+            {
+                // declare a bool for whether a new growl message needed to be created
+                bool newMessage;
+
+                // if there is no current message for the storage quota exceeded, then create the new message 
+                if (didReturnUnderStorageQuota == null)
+                {
+                    didReturnUnderStorageQuota = new DidReturnUnderStorageQuotaMessage();
+                    newMessage = true;
+                }
+                // else if there was not already an existing message for storage quota exceeded, then update it
+                else
+                {
+                    newMessage = false;
+                }
+
+                // if a new message was created, then add the new message to the growl
+                if (newMessage)
+                {
+                    if (Application.Current != null)
+                    {
+                        Application.Current.Dispatcher.BeginInvoke((Action<EventMessage<DidReturnUnderStorageQuotaMessage>>)AddEventMessageToGrowl, // the method which adds a growl message locks for modification
+                            (EventMessage<DidReturnUnderStorageQuotaMessage>)didReturnUnderStorageQuota);
                     }
                 }
             }

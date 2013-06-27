@@ -79,7 +79,12 @@ namespace Cloud.Interfaces
         /// Fired when storage quota has been exceeded.
         /// </summary>
         /// <param name="e">Message parameters</param>
-        void StorageQuotaExceededChanged(IStorageQuotaExceededMessage e);
+        void DidExceedStorageQuotaChanged(IDidExceedStorageQuotaMessage e);
+        /// <summary>
+        /// Fired when storage quota is back under or at quota.
+        /// </summary>
+        /// <param name="e">Message parameters</param>
+        void DidReturnUnderStorageQuotaChanged(IDidReturnUnderStorageQuotaMessage e);
         /// <summary>
         /// Fired when live syncing has started on a syncbox.
         /// </summary>
@@ -135,7 +140,10 @@ namespace Cloud.Interfaces
         long EventId { get; }
         CLFileItem FileItem { get; }
     }
-    public interface IStorageQuotaExceededMessage : IMinimalMessage
+    public interface IDidExceedStorageQuotaMessage : IMinimalMessage
+    {
+    }
+    public interface IDidReturnUnderStorageQuotaMessage : IMinimalMessage
     {
     }
     public interface ISyncboxDidStartLiveSyncMessage : IMinimalMessage

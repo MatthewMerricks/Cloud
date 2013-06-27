@@ -3435,4 +3435,44 @@
     <value>CLSyncbox: OnPushNotificationConnectionError: Entry. ERROR: No errors.</value>
     <comment>Do not translate</comment>
   </data>
+  <data name="CredentialsBeginLinkDeviceCannotCastStateAs" xml:space="preserve">
+    <value>Cannot cast state as</value>
+    <comment>"state" should not be translated</comment>
+  </data>
+  <data name="CredentialsBeginLinkDeviceFirstTimeCannotCastStateAs" xml:space="preserve">
+    <value>Cannot cast state as</value>
+    <comment>"state" should not be translated</comment>
+  </data>
+  <data name="CredentialsBeginUnlinkDeviceCannotCastStateAs" xml:space="preserve">
+    <value>Cannot cast state as</value>
+    <comment>"state" should not be translated</comment>
+  </data>
+  <data name="ExceptionOnDemandListStoragePlansCredentialsMustNotBeNull" xml:space="preserve">
+    <value>credentials must not be null</value>
+    <comment>"credentials" should not be translated</comment>
+  </data>
+  <data name="StoragePlanClientApplicationIdMustNotBeZero" xml:space="preserve">
+    <value>clientApplicationId must not be zero</value>
+    <comment>"clientApplicationId" should not be translated</comment>
+  </data>
+  <data name="StoragePlanIdMustNotBeZero" xml:space="preserve">
+    <value>id must not be zero</value>
+    <comment>"id" should not be translated</comment>
+  </data>
+  <data name="StoragePlanServerResponseClientApplicationIdMustNotBeNull" xml:space="preserve">
+    <value>response ClientApplicationId must not be null</value>
+    <comment>"ClientApplicationId" should not be translated</comment>
+  </data>
+  <data name="StoragePlanServerResponseIdMustNotBeNull" xml:space="preserve">
+    <value>response Id must not be null</value>
+    <comment>"Id" should not be translated</comment>
+  </data>
+  <data name="ExceptionOnDemandGetCurrentStatusServerResponseNullSyncboxPlan" xml:space="preserve">
+    <value>server returned null response Syncbox Plan</value>
+    <comment>"Syncbox" and "Plan" should not be translated</comment>
+  </data>
+  <data name="ExceptionOnDemandGetCurrentStatusServerResponseNullSyncboxQuotaUsage" xml:space="preserve">
+    <value>server returned null response Syncbox Quota_Usage</value>
+    <comment>"Syncbox" and "Quota_Usage" should not be translated</comment>
+  </data>
 </root>

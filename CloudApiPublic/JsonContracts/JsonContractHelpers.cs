@@ -248,6 +248,20 @@ namespace Cloud.JsonContracts
         private static DataContractJsonSerializer _syncboxCreateRequestSerializer = null;
         private static readonly object SyncboxCreateRequestSerializerLocker = new object();
 
+        public static DataContractJsonSerializer SyncboxStatusRequestSerializer
+        {
+            get
+            {
+                lock (SyncboxStatusRequestSerializerLocker)
+                {
+                    return _syncboxStatusRequestSerializer
+                        ?? (_syncboxStatusRequestSerializer = new DataContractJsonSerializer(typeof(JsonContracts.SyncboxStatusRequest)));
+                }
+            }
+        }
+        private static DataContractJsonSerializer _syncboxStatusRequestSerializer = null;
+        private static readonly object SyncboxStatusRequestSerializerLocker = new object();
+
         public static DataContractJsonSerializer SyncboxAddFoldersResponseSerializer
         {
             get
@@ -403,6 +417,20 @@ namespace Cloud.JsonContracts
         }
         private static DataContractJsonSerializer _fileOrFolderMovesSerializer = null;
         private static readonly object FileOrFolderMovesSerializerLocker = new object();
+
+        public static DataContractJsonSerializer PurgePendingFilesRequestSerializer
+        {
+            get
+            {
+                lock (PurgePendingFilesRequestSerializerLocker)
+                {
+                    return _purgePendingFilesRequestSerializer
+                        ?? (_purgePendingFilesRequestSerializer = new DataContractJsonSerializer(typeof(JsonContracts.PurgePendingFilesRequest)));
+                }
+            }
+        }
+        private static DataContractJsonSerializer _purgePendingFilesRequestSerializer = null;
+        private static readonly object PurgePendingFilesRequestSerializerLocker = new object();
 
         public static DataContractJsonSerializer FileOrFolderUndeleteSerializer
         {
@@ -830,6 +858,20 @@ namespace Cloud.JsonContracts
         }
         private static DataContractJsonSerializer _syncboxDeleteFilesResponseSerializer = null;
         private static readonly object SyncboxDeleteFilesResponseSerializerLocker = new object();
+
+        public static DataContractJsonSerializer SyncboxPurgePendingFilesResponseSerializer
+        {
+            get
+            {
+                lock (SyncboxPurgePendingFilesResponseSerializerLocker)
+                {
+                    return _syncboxPurgePendingFilesResponseSerializer
+                        ?? (_syncboxPurgePendingFilesResponseSerializer = new DataContractJsonSerializer(typeof(JsonContracts.SyncboxPurgePendingFilesResponse)));
+                }
+            }
+        }
+        private static DataContractJsonSerializer _syncboxPurgePendingFilesResponseSerializer = null;
+        private static readonly object SyncboxPurgePendingFilesResponseSerializerLocker = new object();
 
         public static DataContractJsonSerializer ListSyncboxesSerializer
         {

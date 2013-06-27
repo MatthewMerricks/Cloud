@@ -388,7 +388,7 @@ namespace Cloud
                 ? null
                 : (string.IsNullOrEmpty(syncbox.Path)
                     ? null
-                    : (syncbox.Path + "\\" + this._relativePath)));
+                    : (syncbox.Path + ((char)0x5C /* '\\' */) + this._relativePath)));
 
             this._revision = response.Revision;
             this._hash = response.Hash;
@@ -574,7 +574,8 @@ namespace Cloud
             CLFileDownloadTransferStatusCallback transferStatusCallback = castState.Item1;
             object transferStatusCallbackUserState = castState.Item2;
 
-            if (transferStatusCallback != null)
+            if (!isError
+                && transferStatusCallback != null)
             {
                 try
                 {
