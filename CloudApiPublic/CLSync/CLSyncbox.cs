@@ -177,7 +177,7 @@ namespace Cloud
         private bool _isStarted = false;
         private bool Disposed = false;   // This stores if this current instance has been disposed (defaults to not disposed)
         private readonly ReaderWriterLockSlim _propertyChangeLocker = new ReaderWriterLockSlim();  // for locking any reads and writes to the changeable properties.
-        private readonly Helpers.ReplaceExpiredCredentialsCallback _getNewCredentialsCallback = null;
+        private readonly Helpers.ReplaceExpiredCredentials _getNewCredentialsCallback = null;
         private readonly object _getNewCredentialsCallbackUserState = null;
         private readonly IEventMessageReceiver _liveSyncStatusReceiver = null;
 
@@ -476,7 +476,7 @@ namespace Cloud
             string path = null,
             ICLSyncSettings settings = null,
             IEventMessageReceiver liveSyncStatusReceiver = null,
-            Helpers.ReplaceExpiredCredentialsCallback getNewCredentialsCallback = null,
+            Helpers.ReplaceExpiredCredentials getNewCredentialsCallback = null,
             object getNewCredentialsCallbackUserState = null)
         {
 
@@ -553,7 +553,7 @@ namespace Cloud
             CLCredentials credentials,
             ICLSyncSettings settings = null,
             IEventMessageReceiver liveSyncStatusReceiver = null,
-            Helpers.ReplaceExpiredCredentialsCallback getNewCredentialsCallback = null,
+            Helpers.ReplaceExpiredCredentials getNewCredentialsCallback = null,
             object getNewCredentialsCallbackUserState = null)
         {
             Helpers.CheckHalted();
@@ -633,7 +633,7 @@ namespace Cloud
             string path = null,
             ICLSyncSettings settings = null,
             IEventMessageReceiver liveSyncStatusReceiver = null,
-            Helpers.ReplaceExpiredCredentialsCallback getNewCredentialsCallback = null,
+            Helpers.ReplaceExpiredCredentials getNewCredentialsCallback = null,
             object getNewCredentialsCallbackUserState = null)
         {
             Helpers.CheckHalted();
@@ -727,7 +727,7 @@ namespace Cloud
             string path = null,
             ICLSyncSettings settings = null,
             IEventMessageReceiver liveSyncStatusReceiver = null,
-            Helpers.ReplaceExpiredCredentialsCallback getNewCredentialsCallback = null,
+            Helpers.ReplaceExpiredCredentials getNewCredentialsCallback = null,
             object getNewCredentialsCallbackUserState = null)
         {
             Helpers.CheckHalted();
@@ -776,7 +776,7 @@ namespace Cloud
         /// <returns></returns>
         public CLError StartLiveSync(
                 CLSyncMode mode,
-                Helpers.SyncStatusChangedCallback syncStatusChangedCallback = null,
+                System.Threading.WaitCallback syncStatusChangedCallback = null,
                 object syncStatusChangedCallbackUserState = null)
         {
             CheckDisposed();
@@ -866,9 +866,9 @@ namespace Cloud
 
                             // Start the sync engine
                             CLError syncEngineStartError = _syncEngine.Start(
-                                copyQuotaUsage,
-                                (long)copyStorageQuota,
-                                new SyncEngine.OnGetDataUsageCompletionDelegate(OnGetDataUsageCompletion),
+                            copyQuotaUsage,
+                            (long)copyStorageQuota,
+                            new SyncEngine.OnGetDataUsageCompletionDelegate(OnGetDataUsageCompletion),
                                 statusUpdated: syncStatusChangedCallback, // called when sync status is updated
                                 statusUpdatedUserState: syncStatusChangedCallbackUserState); // the user state passed to the callback above
 
@@ -1228,7 +1228,7 @@ namespace Cloud
                     string friendlyName = null,
                     ICLSyncSettings settings = null,
                     IEventMessageReceiver liveSyncStatusReceiver = null,
-                    Helpers.ReplaceExpiredCredentialsCallback getNewCredentialsCallback = null,
+                    Helpers.ReplaceExpiredCredentials getNewCredentialsCallback = null,
                     object getNewCredentialsCallbackUserState = null)
         {
             Helpers.CheckHalted();
@@ -1323,7 +1323,7 @@ namespace Cloud
                     string friendlyName = null,
                     ICLSyncSettings settings = null,
                     IEventMessageReceiver liveSyncStatusReceiver = null,
-                    Helpers.ReplaceExpiredCredentialsCallback getNewCredentialsCallback = null,
+                    Helpers.ReplaceExpiredCredentials getNewCredentialsCallback = null,
                     object getNewCredentialsCallbackUserState = null)
         {
             Helpers.CheckHalted();
@@ -1570,7 +1570,7 @@ namespace Cloud
             CLCredentials credentials,
             ICLCredentialsSettings settings = null,
             IEventMessageReceiver liveSyncStatusReceiver = null,
-            Helpers.ReplaceExpiredCredentialsCallback getNewCredentialsCallback = null,
+            Helpers.ReplaceExpiredCredentials getNewCredentialsCallback = null,
             object getNewCredentialsCallbackUserState = null)
         {
             Helpers.CheckHalted();
@@ -1656,7 +1656,7 @@ namespace Cloud
             out CLSyncbox[] returnedSyncboxes,
             ICLCredentialsSettings settings = null,
             IEventMessageReceiver liveSyncStatusReceiver = null,
-            Helpers.ReplaceExpiredCredentialsCallback getNewCredentialsCallback = null,
+            Helpers.ReplaceExpiredCredentials getNewCredentialsCallback = null,
             object getNewCredentialsCallbackUserState = null)
         {
             Helpers.CheckHalted();

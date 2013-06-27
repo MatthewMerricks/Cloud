@@ -65,14 +65,7 @@ namespace Cloud.Static
         /// </summary>
         /// <param name="userState"></param>
         /// <returns></returns>
-        public delegate CLCredentials ReplaceExpiredCredentialsCallback(object userState);
-
-        /// <summary>
-        /// User callback function to indicate that the syncbox live sync status has changed.
-        /// </summary>
-        /// <param name="userState"></param>
-        /// <returns></returns>
-        public delegate void SyncStatusChangedCallback(object userState);
+        public delegate CLCredentials ReplaceExpiredCredentials(object userState);
 
         internal delegate CLCredentials GetCurrentCredentialsDelegate();
         internal delegate void SetCurrentCredentialDelegate(CLCredentials credentials);
@@ -80,7 +73,7 @@ namespace Cloud.Static
         internal sealed class RequestNewCredentialsInfo
         {
             public Dictionary<int, EnumRequestNewCredentialsStates> ProcessingStateByThreadId { get; set; }
-            public ReplaceExpiredCredentialsCallback GetNewCredentialsCallback { get; set; }
+            public ReplaceExpiredCredentials GetNewCredentialsCallback { get; set; }
             public object GetNewCredentialsCallbackUserState { get; set; }
             public GetCurrentCredentialsDelegate GetCurrentCredentialsCallback { get; set; }
             public SetCurrentCredentialDelegate SetCurrentCredentialsCallback { get; set; }
