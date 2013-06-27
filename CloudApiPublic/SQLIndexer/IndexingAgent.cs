@@ -3337,7 +3337,7 @@ namespace Cloud.SQLIndexer
 
                                                         if (addBatchError != null)
                                                         {
-                                                            toReturn += new AggregateException("One or more errors occurred adding a batch of new events");
+                                                            toReturn += new AggregateException("One or more errors occurred adding a batch of new events", addBatchError.Exceptions);
                                                         }
 
                                                         // no point wasting effort to clear the list for future batches if there will be no future batches

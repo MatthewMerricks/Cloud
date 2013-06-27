@@ -574,7 +574,8 @@ namespace Cloud
             CLFileDownloadTransferStatusCallback transferStatusCallback = castState.Item1;
             object transferStatusCallbackUserState = castState.Item2;
 
-            if (transferStatusCallback != null)
+            if (!isError
+                && transferStatusCallback != null)
             {
                 try
                 {

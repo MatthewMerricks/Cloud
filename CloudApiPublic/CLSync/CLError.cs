@@ -284,10 +284,17 @@ namespace Cloud
                                         // I don't know if it's dangerous to pull out the StackTrace, so I wrap it safely
                                         try
                                         {
-                                            stack = dequeuedException.StackTrace;
+                                            stack = (new System.Diagnostics.StackTrace(dequeuedException, fNeedFileInfo: true)).ToString();
                                         }
                                         catch
                                         {
+                                            try
+                                            {
+                                                stack = dequeuedException.StackTrace;
+                                            }
+                                            catch
+                                            {
+                                            }
                                         }
 
                                         // keep track of how many inner exceptions have recursed to increase tab amount
