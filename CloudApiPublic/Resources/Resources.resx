@@ -2141,10 +2141,6 @@
     <value>IconOverlay: Dispose. ERROR: Exception terminating the BadgeCom initialzation watcher. Msg: &lt;{0}&gt;.</value>
     <comment>"IconOverlay" and "BadgeCom" should not be translated.</comment>
   </data>
-  <data name="IconOverlayDisposeInitialized" xml:space="preserve">
-    <value>IconOverlay: Dispose. Initialized.</value>
-    <comment>"IconOverlay" should not be translated.</comment>
-  </data>
   <data name="IconOverlayDisposeLock" xml:space="preserve">
     <value>IconOverlay: Dispose.  Lock.</value>
     <comment>"IconOverlay" should not be translated.</comment>
@@ -2942,10 +2938,6 @@
   <data name="ExceptionOnDemandLinkDeviceRequestMustNotBeNull" xml:space="preserve">
     <value>Link device request must not be null</value>
   </data>
-  <data name="ExceptionOnDemandListAllSessionCredentialsOneSessionResponseWasInvalid" xml:space="preserve">
-    <value>One of the session responses was invalid</value>
-    <comment>"session" should not be translated</comment>
-  </data>
   <data name="ExceptionOnDemandNoServerResponse" xml:space="preserve">
     <value>No response returned from server</value>
   </data>
@@ -3205,7 +3197,7 @@
     <value>filesToAdd must not be null</value>
     <comment>"filesToAdd" should not be translated</comment>
   </data>
-  <data name="ExceptionOnDemandGetCurrentStatusNullServerResponse" xml:space="preserve">
+  <data name="ExceptionOnDemandNullServerResponse" xml:space="preserve">
     <value>server returned null response</value>
   </data>
   <data name="ExceptionOnDemandGetCurrentStatusServerResponseNullSyncbox" xml:space="preserve">
@@ -3277,5 +3269,210 @@
   <data name="ExceptionOnDemandFilesToModifyMustNotBeNull" xml:space="preserve">
     <value>filesToModify must not be null</value>
     <comment>"filesToModify" should not be translated</comment>
+  </data>
+  <data name="GreaterThanPeriod" xml:space="preserve">
+    <value>&gt;.</value>
+    <comment>Do not translate</comment>
+  </data>
+  <data name="ExceptionCredentialsConvertingServerResponseIndexMsg0" xml:space="preserve">
+    <value>Error converting server response to session index {0}</value>
+    <comment>"session" should not be translated.</comment>
+  </data>
+  <data name="ExceptionCredentialsNoSessionOrSessionsToken" xml:space="preserve">
+    <value>No session or sessions token returned by server</value>
+    <comment>"session" and "sessions" should not be translated</comment>
+  </data>
+  <data name="ExceptionCredentialsNullKeyReturnedByServer" xml:space="preserve">
+    <value>null key returned by server</value>
+    <comment>"key" should not be translated</comment>
+  </data>
+  <data name="ExceptionCredentialsInvalidSyncBoxIdsStringReturnedByServer" xml:space="preserve">
+    <value>Invalid sync_box_ids string value returned by server</value>
+    <comment>"sync_box_ids" should not be translated</comment>
+  </data>
+  <data name="ExceptionCredentialsNoItemsInServicesArrayReturnedByServer" xml:space="preserve">
+    <value>No items in the services array returned by server</value>
+    <comment>"services" should not be translated</comment>
+  </data>
+  <data name="ExceptionCredentialsNoServiceTypeItemReturnedByServer" xml:space="preserve">
+    <value>No service_type item returned by server</value>
+    <comment>"service_type" should not be translated</comment>
+  </data>
+  <data name="ExceptionCredentialsNoServiceTypeSyncItemReturnedByServer" xml:space="preserve">
+    <value>No sync service_type token returned by server</value>
+    <comment>"sync" and "service_type" should not be translated</comment>
+  </data>
+  <data name="ExceptionCredentialsNoSyncBoxIdsItemReturnedByServer" xml:space="preserve">
+    <value>No sync service sync_box_ids token returned by server</value>
+    <comment>"sync", "sync_box_ids" should not be translated</comment>
+  </data>
+  <data name="ExceptionCredentialsNullExpiresAtReturnedByServer" xml:space="preserve">
+    <value>null expiresAt returned by server</value>
+    <comment>"null" and "expiresAt" should not be translated</comment>
+  </data>
+  <data name="ExceptionCredentialsNullSecretReturnedByServer" xml:space="preserve">
+    <value>null secret returned by server</value>
+    <comment>"null" and "secret" should not be translated</comment>
+  </data>
+  <data name="Cloud" xml:space="preserve">
+    <value>Cloud</value>
+    <comment>Do not translate</comment>
+  </data>
+  <data name="ExceptionSyncboxCredentialsMustNotBeNull" xml:space="preserve">
+    <value>credentials must not be null</value>
+    <comment>"credentials" should not be translated</comment>
+  </data>
+  <data name="ExceptionSyncboxSyncboxContractIdMustNotBeNull" xml:space="preserve">
+    <value>syncboxContract Id must not be null</value>
+    <comment>"syncboxContract" and "Id" should not be translated</comment>
+  </data>
+  <data name="ExceptionSyncboxSyncboxContractMustNotBeNull" xml:space="preserve">
+    <value>syncboxContract must not be null</value>
+    <comment>"syncboxContract" should not be translated</comment>
+  </data>
+  <data name="ExceptionSyncboxSyncboxContractPlanIdMustNotBeNull" xml:space="preserve">
+    <value>syncboxContract PlanId must not be null</value>
+    <comment>"syncboxContract" and "PlanId" should not be translated</comment>
+  </data>
+  <data name="ExceptionSyncboxSyncboxIdMustBeSpecified" xml:space="preserve">
+    <value>syncboxId must be specified</value>
+    <comment>"syncboxId" should not be translated</comment>
+  </data>
+  <data name="TraceCLSyncboxCLSyncboxConstructingFromContract" xml:space="preserve">
+    <value>CLSyncbox: CLSyncbox: Constructing from contract...</value>
+    <comment>Do not translate</comment>
+  </data>
+  <data name="ExceptionCLSyncboxErrorResettingSyncDatabase" xml:space="preserve">
+    <value>Error resetting syncing database</value>
+  </data>
+  <data name="ExceptionOnDemandCreateSyncboxNoSyncboxInServerResponse" xml:space="preserve">
+    <value>Server response syncbox must not be null</value>
+    <comment>"syncbox" should not be translated</comment>
+  </data>
+  <data name="ExceptionOnDemandCreateSyncboxNullServerResponse" xml:space="preserve">
+    <value>Response from server must not be null</value>
+  </data>
+  <data name="ExceptionSyncboxPlanMustNotBeNull" xml:space="preserve">
+    <value>plan must not be null</value>
+    <comment>"plan" should not be translated</comment>
+  </data>
+  <data name="TraceCLSyncboxResetLocalCacheErrorExceptionMsg0Msg1" xml:space="preserve">
+    <value>CLSyncbox: ResetLocalCache: ERROR.  Exception.  Msg: {0}. Code: {1}.</value>
+    <comment>Do not translate</comment>
+  </data>
+  <data name="TraceCLSyncboxResetLocalCacheErrorSyncResetMsg0Msg1" xml:space="preserve">
+    <value>CLSyncbox: ResetLocalCache: ERROR: From syncEngine.SyncReset: Msg: {0}. Code {1}.</value>
+    <comment>Do not translate</comment>
+  </data>
+  <data name="TraceCLSyncboxStartLiveErrorExceptionMsg0Msg1" xml:space="preserve">
+    <value>CLSyncbox: StartLiveSync: ERROR.  Exception.  Msg: {0}. Code: {1}.</value>
+    <comment>Do not translate</comment>
+  </data>
+  <data name="TraceCLSyncboxStartLiveSyncErrorStartingEngineMsg0Msg1" xml:space="preserve">
+    <value> CLSyncbox: StartLiveSync: Error starting sync engine. Msg: {0}. Code: {1}.</value>
+    <comment>Do not translate</comment>
+  </data>
+  <data name="TraceCLSyncboxStartLiveSyncErrorUnsubscribeMsgRcvrMsg0Msg1" xml:space="preserve">
+    <value>CLSyncbox: StartLiveSync: ERROR.  From UnsubscribeMessageReceiver.  Msg: &lt;{0}&gt;. Code: {1}.</value>
+    <comment>Do not translate</comment>
+  </data>
+  <data name="TraceCLSyncboxStopLiveErrorExceptionMsg0Msg1" xml:space="preserve">
+    <value>CLSyncbox: StopLiveSync: ERROR.  Exception.  Msg: &lt;{0}&gt;. Code: {1}.</value>
+    <comment>Do not translate</comment>
+  </data>
+  <data name="TraceCLSyncboxStopLiveSyncErrorUnsubscribeMsgRcvrMsg0Msg1" xml:space="preserve">
+    <value>CLSyncbox: StopLiveSync: ERROR.  From UnsubscribeMessageReceiver.  Msg: &lt;{0}&gt;. Code: {1}.</value>
+    <comment>Do not translate</comment>
+  </data>
+  <data name="ExceptionOnDemandServerResponseStatusNull" xml:space="preserve">
+    <value>Server response status must not be null or empty</value>
+    <comment>"status" should not be translated</comment>
+  </data>
+  <data name="ExceptionSyncboxObjectDisposed" xml:space="preserve">
+    <value>Object disposed</value>
+    <comment>"Object" should not be translated</comment>
+  </data>
+  <data name="ExceptionSyncboxPathInvalidCharacters" xml:space="preserve">
+    <value>syncbox path contains invalid characters.</value>
+    <comment>"path" should not be translated</comment>
+  </data>
+  <data name="ExceptionSyncboxPathMustBeSetFirst" xml:space="preserve">
+    <value>path must be set first</value>
+    <comment>"path" should not be translated</comment>
+  </data>
+  <data name="ExceptionSyncboxPathMustNotBeNull" xml:space="preserve">
+    <value>path must not be null</value>
+    <comment>"path" should not be translated</comment>
+  </data>
+  <data name="ExceptionSyncboxPathTooLongMsg0" xml:space="preserve">
+    <value>syncbox path is too long by {0} characters.</value>
+    <comment>"path" should not be translated</comment>
+  </data>
+  <data name="ExceptionSyncboxPushConnErrorWithoutError" xml:space="preserve">
+    <value>Push notification connection error event fired without an error</value>
+  </data>
+  <data name="TraceSyncboxInitializeInternalUnknownErrorCreatingRestClient" xml:space="preserve">
+    <value>Unknown error creating HTTP REST client</value>
+    <comment>"HTTP" and "REST" should not be translated</comment>
+  </data>
+  <data name="TraceSyncboxOnPushConnErrorManualPollErrMsg0Msg1" xml:space="preserve">
+    <value>CLSyncbox: OnPushNotificationConnectionError: Entry. ERROR: Manual poll error message: &lt;{0}&gt;. Manual poll error code: {1}.</value>
+    <comment>Do not translate</comment>
+  </data>
+  <data name="TraceSyncboxOnPushConnErrorsAndCodesMsg0Msg1Msg2Msg3" xml:space="preserve">
+    <value>CLSyncbox: OnPushNotificationConnectionError: Entry. ERROR: Web socket error message: &lt;{0}&gt;. Web socket error code: {1}. Manual poll error message: &lt;{2}&gt;. Manual poll error code: {3}.</value>
+    <comment>Do not translate</comment>
+  </data>
+  <data name="TraceSyncboxOnPushConnErrorsNotifyApp" xml:space="preserve">
+    <value>CLSyncbox: OnPushNotificationConnectionError: Notify the application.</value>
+    <comment>Do not translate</comment>
+  </data>
+  <data name="TraceSyncboxOnPushConnErrorWebSocketErrMsg0Msg1" xml:space="preserve">
+    <value>CLSyncbox: OnPushNotificationConnectionError: Entry. ERROR: Web socket error message: &lt;{0}&gt;. Web socket error code: {1}.</value>
+    <comment>Do not translate</comment>
+  </data>
+  <data name="TraceSyncboxOnPushNotifConnError" xml:space="preserve">
+    <value>CLSyncbox: OnPushNotificationConnectionError: Entry. ERROR: No errors.</value>
+    <comment>Do not translate</comment>
+  </data>
+  <data name="CredentialsBeginLinkDeviceCannotCastStateAs" xml:space="preserve">
+    <value>Cannot cast state as</value>
+    <comment>"state" should not be translated</comment>
+  </data>
+  <data name="CredentialsBeginLinkDeviceFirstTimeCannotCastStateAs" xml:space="preserve">
+    <value>Cannot cast state as</value>
+    <comment>"state" should not be translated</comment>
+  </data>
+  <data name="CredentialsBeginUnlinkDeviceCannotCastStateAs" xml:space="preserve">
+    <value>Cannot cast state as</value>
+    <comment>"state" should not be translated</comment>
+  </data>
+  <data name="ExceptionOnDemandListStoragePlansCredentialsMustNotBeNull" xml:space="preserve">
+    <value>credentials must not be null</value>
+    <comment>"credentials" should not be translated</comment>
+  </data>
+  <data name="StoragePlanClientApplicationIdMustNotBeZero" xml:space="preserve">
+    <value>clientApplicationId must not be zero</value>
+    <comment>"clientApplicationId" should not be translated</comment>
+  </data>
+  <data name="StoragePlanIdMustNotBeZero" xml:space="preserve">
+    <value>id must not be zero</value>
+    <comment>"id" should not be translated</comment>
+  </data>
+  <data name="StoragePlanServerResponseClientApplicationIdMustNotBeNull" xml:space="preserve">
+    <value>response ClientApplicationId must not be null</value>
+    <comment>"ClientApplicationId" should not be translated</comment>
+  </data>
+  <data name="StoragePlanServerResponseIdMustNotBeNull" xml:space="preserve">
+    <value>response Id must not be null</value>
+    <comment>"Id" should not be translated</comment>
+  </data>
+  <data name="ExceptionOnDemandGetCurrentStatusServerResponseNullSyncboxPlan" xml:space="preserve">
+    <value>server returned null response Syncbox Plan</value>
+    <comment>"Syncbox" and "Plan" should not be translated</comment>
+  </data>
+  <data name="ExceptionOnDemandGetCurrentStatusServerResponseNullSyncboxQuotaUsage" xml:space="preserve">
+    <value>server returned null response Syncbox Quota_Usage</value>
+    <comment>"Syncbox" and "Quota_Usage" should not be translated</comment>
   </data>
 </root>

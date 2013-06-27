@@ -65,7 +65,14 @@ namespace Cloud.Static
         /// </summary>
         /// <param name="userState"></param>
         /// <returns></returns>
-        public delegate CLCredentials ReplaceExpiredCredentials(object userState);
+        public delegate CLCredentials ReplaceExpiredCredentialsCallback(object userState);
+
+        /// <summary>
+        /// User callback function to indicate that the syncbox live sync status has changed.
+        /// </summary>
+        /// <param name="userState"></param>
+        /// <returns></returns>
+        public delegate void SyncStatusChangedCallback(object userState);
 
         internal delegate CLCredentials GetCurrentCredentialsDelegate();
         internal delegate void SetCurrentCredentialDelegate(CLCredentials credentials);
@@ -73,7 +80,7 @@ namespace Cloud.Static
         internal sealed class RequestNewCredentialsInfo
         {
             public Dictionary<int, EnumRequestNewCredentialsStates> ProcessingStateByThreadId { get; set; }
-            public ReplaceExpiredCredentials GetNewCredentialsCallback { get; set; }
+            public ReplaceExpiredCredentialsCallback GetNewCredentialsCallback { get; set; }
             public object GetNewCredentialsCallbackUserState { get; set; }
             public GetCurrentCredentialsDelegate GetCurrentCredentialsCallback { get; set; }
             public SetCurrentCredentialDelegate SetCurrentCredentialsCallback { get; set; }
@@ -2096,6 +2103,7 @@ namespace Cloud.Static
         /// <param name="resourceName">The name of the resource.</param>
         /// <param name="targetFileFullPath">The full path of the target file.</param>
         /// <returns>int: 0: success.  Otherwise, error code.</returns>
+        [Obfuscation(Exclude=true)]
         public static int WriteResourceFileToFilesystemFile(Assembly storeAssembly, string resourceName, string targetFileFullPath)
         {
             try
@@ -2775,6 +2783,7 @@ namespace Cloud.Static
             { typeof(JsonContracts.To), JsonContractHelpers.ToSerializer },
 
             { typeof(JsonContracts.SyncboxCreateRequest), JsonContractHelpers.SyncboxCreateRequestSerializer },
+            { typeof(JsonContracts.SyncboxStatusRequest), JsonContractHelpers.SyncboxStatusRequestSerializer },
             
             #region one-offs
             { typeof(JsonContracts.FolderAddRequest), JsonContractHelpers.FolderAddSerializer },
@@ -2791,6 +2800,7 @@ namespace Cloud.Static
             { typeof(JsonContracts.FileOrFolderUndelete), JsonContractHelpers.FileOrFolderUndeleteSerializer },
             { typeof(JsonContracts.Service), JsonContractHelpers.ServiceSerializer },
             { typeof(JsonContracts.ServiceAllRequest), JsonContractHelpers.ServiceAllRequestSerializer },
+            { typeof(JsonContracts.PurgePendingFilesRequest), JsonContractHelpers.PurgePendingFilesRequestSerializer },
             #endregion
 
             { typeof(JsonContracts.FileCopy), JsonContractHelpers.FileCopySerializer },
@@ -2842,11 +2852,10 @@ namespace Cloud.Static
             { typeof(JsonContracts.SyncboxResponse), JsonContractHelpers.CreateSyncboxSerializer },
             { typeof(JsonContracts.SyncboxMoveFilesOrFoldersResponse), JsonContractHelpers.SyncboxMoveFilesOrFoldersResponseSerializer },
             { typeof(JsonContracts.SyncboxDeleteFilesResponse), JsonContractHelpers.SyncboxDeleteFilesResponseSerializer },
+            { typeof(JsonContracts.SyncboxPurgePendingFilesResponse), JsonContractHelpers.SyncboxPurgePendingFilesResponseSerializer },
             { typeof(JsonContracts.SyncboxListResponse), JsonContractHelpers.ListSyncboxesSerializer },
             { typeof(JsonContracts.StoragePlanListResponse), JsonContractHelpers.ListPlansSerializer },
             { typeof(JsonContracts.SyncboxUpdateStoragePlanResponse), JsonContractHelpers.SyncboxUpdatePlanResponseSerializer },
-            { typeof(JsonContracts.CredentialsSessionCreateResponse), JsonContractHelpers.SessionCreateResponseSerializer },
-            { typeof(JsonContracts.CredentialsListSessionsResponse), JsonContractHelpers.ListSessionsSerializer },
             { typeof(JsonContracts.CredentialsSessionGetForKeyResponse), JsonContractHelpers.SessionShowSerializer },
             { typeof(JsonContracts.CredentialsSessionDeleteResponse), JsonContractHelpers.SessionDeleteSerializer },
             { typeof(JsonContracts.NotificationUnsubscribeResponse), JsonContractHelpers.NotificationUnsubscribeResponseSerializer },
@@ -3489,7 +3498,7 @@ namespace Cloud.Static
                 // trace communication for the current request
                 ComTrace.LogCommunication(CopiedSettings.TraceLocation, // location of trace file
                     CopiedSettings.DeviceId, // device id
-                    Syncbox.SyncboxId, // syncbox ID
+                    Syncbox != null ? Syncbox.SyncboxId : 0, // syncbox ID
                     CommunicationEntryDirection.Request, // direction is request
                     serverUrl + serverMethodPath, // location for the server method
                     true, // trace is enabled
@@ -4430,7 +4439,7 @@ namespace Cloud.Static
                             // log communication for stream body
                             ComTrace.LogCommunication(CopiedSettings.TraceLocation, // trace file location
                                 CopiedSettings.DeviceId, // device id
-                                Syncbox.SyncboxId, // syncbox id
+                                Syncbox != null ? Syncbox.SyncboxId : 0, // syncbox id
                                 CommunicationEntryDirection.Response, // communication direction is response
                                 serverUrl + serverMethodPath, // input parameter method path
                                 true, // trace is enabled
@@ -4611,7 +4620,7 @@ namespace Cloud.Static
                             // log communication for string body
                             ComTrace.LogCommunication(CopiedSettings.TraceLocation, // trace file location
                                 CopiedSettings.DeviceId, // device id
-                                Syncbox.SyncboxId, // syncbox id
+                                Syncbox != null ? Syncbox.SyncboxId : 0, // syncbox id
                                 CommunicationEntryDirection.Response, // communication direction is response
                                 serverUrl + serverMethodPath, // input parameter method path
                                 true, // trace is enabled

@@ -43,7 +43,7 @@ namespace Cloud.Sync
         // store event source
         private readonly ISyncDataObject syncData;
         // callback to fire upon any status change
-        private readonly System.Threading.WaitCallback statusUpdated;
+        private readonly Helpers.SyncStatusChangedCallback statusUpdated;
         // userstate to pass to status change callback
         private readonly object statusUpdatedUserState;
         // store settings source
@@ -162,7 +162,7 @@ namespace Cloud.Sync
             long quotaUsage,
             long storageQuota,
             OnGetDataUsageCompletionDelegate OnGetDataUsageCompletion,
-            System.Threading.WaitCallback statusUpdated = null,
+            Helpers.SyncStatusChangedCallback statusUpdated = null,
             object statusUpdatedUserState = null,
             int HttpTimeoutMilliseconds = CLDefinitions.HttpTimeoutDefaultMilliseconds,
             byte MaxNumberOfFailureRetries = 20,
@@ -202,7 +202,7 @@ namespace Cloud.Sync
             CLSyncbox syncbox,
             CLHttpRest httpRestClient,
             bool DependencyDebugging,
-            System.Threading.WaitCallback statusUpdated,
+            Helpers.SyncStatusChangedCallback statusUpdated,
             object statusUpdatedUserState,
             int HttpTimeoutMilliseconds,
             byte MaxNumberOfFailureRetries,
@@ -1153,14 +1153,14 @@ namespace Cloud.Sync
             }
             private readonly GenericHolder<CLSyncCurrentStatus> _statusHolder;
 
-            public System.Threading.WaitCallback StatusUpdated
+            public Helpers.SyncStatusChangedCallback StatusUpdated
             {
                 get
                 {
                     return _statusUpdated;
                 }
             }
-            private readonly System.Threading.WaitCallback _statusUpdated;
+            private readonly Helpers.SyncStatusChangedCallback _statusUpdated;
 
             public object StatusUpdatedUserState
             {
@@ -1210,7 +1210,7 @@ namespace Cloud.Sync
             public StatusAggregationState(
                 GenericHolder<bool> StatusAggregatorRunning,
                 GenericHolder<CLSyncCurrentStatus> StatusHolder,
-                System.Threading.WaitCallback StatusUpdated,
+                Helpers.SyncStatusChangedCallback StatusUpdated,
                 object StatusUpdatedUserState,
                 GenericHolder<DateTime> ThreadStateKillTime,
                 GenericHolder<Timer> ThreadStateKillTimer,

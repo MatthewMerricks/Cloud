@@ -366,8 +366,6 @@
 		<row><td>Microsoft.Practices.ServiceLocation.CSDK.dll</td><td>{397879BD-0C02-409F-A2CE-3E0ED70DAAE7}</td><td>CLOUDSDK1</td><td>2</td><td/><td>microsoft.practices.servicel1</td><td>1</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>Newtonsoft.Json.CSDK.dll</td><td>{E0C5EF41-32D0-40C9-AB8F-1E6BC860FB5F}</td><td>CLOUDSDK1</td><td>2</td><td/><td>newtonsoft.json.csdk.dll</td><td>1</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>RateBar.CSDK.dll</td><td>{58A4D7FD-CD4A-4A6B-8961-4C13785FB229}</td><td>APP</td><td>2</td><td/><td>ratebar.csdk.dll</td><td>1</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>SSCERuntime_x64_ENU.exe</td><td>{A3AF0DC7-1E1C-46C9-9390-5B2ADAA8A167}</td><td>INSTALLDIR</td><td>2</td><td/><td>ssceruntime_x64_enu.exe</td><td>1</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>SSCERuntime_x86_ENU.exe</td><td>{E5D17D83-4A62-43E1-AC34-BC6E2B301C21}</td><td>INSTALLDIR</td><td>2</td><td/><td>ssceruntime_x86_enu.exe</td><td>1</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>Sample_Live_Sync.exe</td><td>{D936F44A-28E5-4073-8640-0CD04AF47C46}</td><td>APP</td><td>2</td><td/><td>sample_live_sync.exe</td><td>1</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>SimpleJson.CSDK.dll</td><td>{715F9DD2-9949-4127-9D0E-4240FB47529B}</td><td>CLOUDSDK1</td><td>2</td><td/><td>simplejson.csdk.dll</td><td>1</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>System.Data.SQLite32.dll</td><td>{9851555E-0347-4AC2-A871-04234993B7F5}</td><td>CLOUDSDK1</td><td>2</td><td/><td>system.data.sqlite32.dll</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
@@ -1944,8 +1942,6 @@
 		<row><td>AlwaysInstall</td><td>Microsoft.Practices.ServiceLocation.CSDK.dll</td></row>
 		<row><td>AlwaysInstall</td><td>Newtonsoft.Json.CSDK.dll</td></row>
 		<row><td>AlwaysInstall</td><td>RateBar.CSDK.dll</td></row>
-		<row><td>AlwaysInstall</td><td>SSCERuntime_x64_ENU.exe</td></row>
-		<row><td>AlwaysInstall</td><td>SSCERuntime_x86_ENU.exe</td></row>
 		<row><td>AlwaysInstall</td><td>Sample_Live_Sync.exe</td></row>
 		<row><td>AlwaysInstall</td><td>SimpleJson.CSDK.dll</td></row>
 		<row><td>AlwaysInstall</td><td>System.Data.SQLite32.dll</td></row>
@@ -1983,8 +1979,6 @@
 		<row><td>samplelivesyncdocs.zip</td><td>ISX_DEFAULTCOMPONENT5</td><td>SAMPLE~1.ZIP|SampleLiveSyncDocs.zip</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\html\SampleLiveSyncDocs.zip</td><td>1</td><td/></row>
 		<row><td>samplelivesyncsource.zip</td><td>ISX_DEFAULTCOMPONENT10</td><td>SAMPLE~1.ZIP|SampleLiveSyncSource.zip</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\SampleLiveSyncSource.zip</td><td>1</td><td/></row>
 		<row><td>simplejson.csdk.dll</td><td>SimpleJson.CSDK.dll</td><td>SIMPLE~1.DLL|SimpleJson.CSDK.dll</td><td>0</td><td/><td/><td>0</td><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\SimpleJson.CSDK.dll</td><td>1</td><td/></row>
-		<row><td>ssceruntime_x64_enu.exe</td><td>SSCERuntime_x64_ENU.exe</td><td>SSCERU~1.EXE|SSCERuntime_x64-ENU.exe</td><td>0</td><td/><td/><td>0</td><td>1</td><td>&lt;ISProjectFolder&gt;\..\3rdParty\bin\Release\SSCERuntime_x64-ENU.exe</td><td>1</td><td/></row>
-		<row><td>ssceruntime_x86_enu.exe</td><td>SSCERuntime_x86_ENU.exe</td><td>SSCERU~1.EXE|SSCERuntime_x86-ENU.exe</td><td>0</td><td/><td/><td>0</td><td>1</td><td>&lt;ISProjectFolder&gt;\..\3rdParty\bin\Release\SSCERuntime_x86-ENU.exe</td><td>1</td><td/></row>
 		<row><td>system.data.sqlite32.dll</td><td>System.Data.SQLite32.dll</td><td>SYSTEM~1.DLL|System.Data.SQLite32.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\System.Data.SQLite32.dll</td><td>1</td><td/></row>
 		<row><td>system.data.sqlite64.dll</td><td>System.Data.SQLite64.dll</td><td>SYSTEM~1.DLL|System.Data.SQLite64.dll</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\System.Data.SQLite64.dll</td><td>1</td><td/></row>
 	</table>
@@ -2268,8 +2262,6 @@
 		<row><td>Microsoft.Practices.ServiceLocation.CSDK.dll</td><td/><td/><td>_67D4A127_01EE_4795_97D5_F70001497330_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>Newtonsoft.Json.CSDK.dll</td><td/><td/><td>_9B7F7F1E_9760_4FA8_8B2B_11AAF943F4FF_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>RateBar.CSDK.dll</td><td/><td/><td>_381DF397_E3B7_40C8_BB53_7722EF03A91F_FILTER</td><td/><td/><td/><td/></row>
-		<row><td>SSCERuntime_x64_ENU.exe</td><td/><td/><td>_90699031_5D1C_4D41_B456_C5BCA0F2D294_FILTER</td><td/><td/><td/><td/></row>
-		<row><td>SSCERuntime_x86_ENU.exe</td><td/><td/><td>_AC1C9F25_0BA8_4BA5_A18F_EF9F6B845D6D_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>Sample_Live_Sync.exe</td><td/><td/><td>_A84C0BBF_665F_4FD7_890F_E77F236CF4BE_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>SimpleJson.CSDK.dll</td><td/><td/><td>_509C3DC4_EF57_4FA9_9971_F2EE123D8441_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>System.Data.SQLite32.dll</td><td/><td/><td>_155E75F6_6836_45FC_A212_14F92B081D5A_FILTER</td><td/><td/><td/><td/></row>
@@ -2656,7 +2648,7 @@
 		<row><td>DVD-18</td><td>Express</td><td>&lt;ISProjectDataFolder&gt;</td><td>Default</td><td>3</td><td>1033</td><td>0</td><td>2</td><td>Intel</td><td/><td>1033</td><td>0</td><td>15.83</td><td>1</td><td>2048</td><td/><td>0</td><td/><td>MediaLocation</td><td/><td>http://</td><td/><td/><td/><td/><td>75805</td><td/><td/><td/><td>3</td></row>
 		<row><td>DVD-5</td><td>Express</td><td>c:\CloudSetupSdkSyncSample</td><td>Default</td><td>3</td><td>1033</td><td>0</td><td>2</td><td>Intel</td><td/><td>1033</td><td>0</td><td>4.38</td><td>1</td><td>2048</td><td/><td>0</td><td/><td>MediaLocation</td><td/><td>http://</td><td/><td/><td/><td/><td>75805</td><td/><td/><td/><td>3</td></row>
 		<row><td>DVD-9</td><td>Express</td><td>&lt;ISProjectDataFolder&gt;</td><td>Default</td><td>3</td><td>1033</td><td>0</td><td>2</td><td>Intel</td><td/><td>1033</td><td>0</td><td>7.95</td><td>1</td><td>2048</td><td/><td>0</td><td/><td>MediaLocation</td><td/><td>http://</td><td/><td/><td/><td/><td>75805</td><td/><td/><td/><td>3</td></row>
-		<row><td>SingleImage</td><td>Express</td><td>c:\CloudSetupSdkSyncSample</td><td>PackageName</td><td>1</td><td>1033</td><td>0</td><td>1</td><td>Intel</td><td/><td>1033</td><td>0</td><td>0</td><td>0</td><td>0</td><td/><td>0</td><td/><td>MediaLocation</td><td/><td>http://</td><td/><td>C:\CertBackup\CloudSigning\CloudPlatformCodeSigning.pfx</td><td/><td>Copyright (C) Cloud.com. All Rights Reserved.</td><td>536980511</td><td/><td/><td/><td>3</td></row>
+		<row><td>SingleImage</td><td>Express</td><td>c:\CloudSetupSdkSyncSample</td><td>PackageName</td><td>1</td><td>1033</td><td>0</td><td>1</td><td>Intel</td><td/><td>1033</td><td>0</td><td>0</td><td>0</td><td>0</td><td/><td>0</td><td/><td>MediaLocation</td><td/><td>http://</td><td/><td/><td/><td>Copyright (C) Cloud.com. All Rights Reserved.</td><td>109597</td><td/><td/><td/><td>3</td></row>
 		<row><td>WebDeployment</td><td>Express</td><td>&lt;ISProjectDataFolder&gt;</td><td>PackageName</td><td>4</td><td>1033</td><td>2</td><td>1</td><td>Intel</td><td/><td>1033</td><td>0</td><td>0</td><td>0</td><td>0</td><td/><td>0</td><td/><td>MediaLocation</td><td/><td>http://</td><td/><td/><td/><td/><td>124941</td><td/><td/><td/><td>3</td></row>
 	</table>
 
@@ -2704,7 +2696,7 @@
 		<row><td>DVD-18</td><td>Express</td><td>0</td><td>http://</td><td>0</td><td>install</td><td>install</td><td>[LocalAppDataFolder]Downloaded Installations</td><td>0</td><td>http://www.installengine.com/Msiengine20</td><td>http://www.installengine.com/Msiengine20</td><td>0</td><td>http://www.installengine.com/cert05/isengine</td><td>0</td><td/><td/><td/><td>3</td><td>http://www.installengine.com/cert05/dotnetfx</td><td>0</td><td>1033</td><td/><td/><td/><td/><td/><td>3</td><td/><td>http://www.installengine.com/Msiengine30</td><td/></row>
 		<row><td>DVD-5</td><td>Express</td><td>0</td><td>http://</td><td>0</td><td>install</td><td>install</td><td>[LocalAppDataFolder]Downloaded Installations</td><td>0</td><td>http://www.installengine.com/Msiengine20</td><td>http://www.installengine.com/Msiengine20</td><td>0</td><td>http://www.installengine.com/cert05/isengine</td><td>0</td><td/><td/><td/><td>3</td><td>http://www.installengine.com/cert05/dotnetfx</td><td>0</td><td>1033</td><td/><td/><td/><td/><td/><td>3</td><td/><td>http://www.installengine.com/Msiengine30</td><td/></row>
 		<row><td>DVD-9</td><td>Express</td><td>0</td><td>http://</td><td>0</td><td>install</td><td>install</td><td>[LocalAppDataFolder]Downloaded Installations</td><td>0</td><td>http://www.installengine.com/Msiengine20</td><td>http://www.installengine.com/Msiengine20</td><td>0</td><td>http://www.installengine.com/cert05/isengine</td><td>0</td><td/><td/><td/><td>3</td><td>http://www.installengine.com/cert05/dotnetfx</td><td>0</td><td>1033</td><td/><td/><td/><td/><td/><td>3</td><td/><td>http://www.installengine.com/Msiengine30</td><td/></row>
-		<row><td>SingleImage</td><td>Express</td><td>0</td><td>http://</td><td>0</td><td>install</td><td>install</td><td>[LocalAppDataFolder]Downloaded Installations</td><td>1</td><td>http://www.installengine.com/Msiengine20</td><td>http://www.installengine.com/Msiengine20</td><td>0</td><td>http://www.installengine.com/cert05/isengine</td><td>0</td><td/><td/><td/><td>3</td><td>http://www.installengine.com/cert05/dotnetfx</td><td>0</td><td>1033</td><td/><td/><td/><td/><td>1024</td><td>3</td><td/><td>http://www.installengine.com/Msiengine30</td><td>6C8D849EEA0D659F</td></row>
+		<row><td>SingleImage</td><td>Express</td><td>0</td><td>http://</td><td>0</td><td>install</td><td>install</td><td>[LocalAppDataFolder]Downloaded Installations</td><td>1</td><td>http://www.installengine.com/Msiengine20</td><td>http://www.installengine.com/Msiengine20</td><td>0</td><td>http://www.installengine.com/cert05/isengine</td><td>0</td><td/><td/><td/><td>3</td><td>http://www.installengine.com/cert05/dotnetfx</td><td>0</td><td>1033</td><td/><td/><td/><td/><td>1024</td><td>3</td><td/><td>http://www.installengine.com/Msiengine30</td><td/></row>
 		<row><td>WebDeployment</td><td>Express</td><td>0</td><td>http://</td><td>0</td><td>setup</td><td>Default</td><td>[LocalAppDataFolder]Downloaded Installations</td><td>2</td><td>http://www.Installengine.com/Msiengine20</td><td>http://www.Installengine.com/Msiengine20</td><td>0</td><td>http://www.installengine.com/cert05/isengine</td><td>2</td><td/><td/><td/><td>3</td><td>http://www.installengine.com/cert05/dotnetfx</td><td>0</td><td>1033</td><td/><td/><td/><td/><td/><td>3</td><td/><td>http://www.installengine.com/Msiengine30</td><td/></row>
 	</table>
 
@@ -4645,7 +4637,7 @@ UwBpAG4AZwBsAGUASQBtAGEAZwBlAAEARQB4AHAAcgBlAHMAcwA=
 		<row><td>PROGRAMFILETOLAUNCHATEND</td><td>[APP]sample_live_sync.exe</td><td/></row>
 		<row><td>ProductCode</td><td>{8B476C3F-CD29-4B06-AD4C-22C14619E258}</td><td/></row>
 		<row><td>ProductName</td><td>CloudSdk</td><td/></row>
-		<row><td>ProductVersion</td><td>0.03.0000.3</td><td/></row>
+		<row><td>ProductVersion</td><td>0.03.0002.0</td><td/></row>
 		<row><td>ProgressType0</td><td>install</td><td/></row>
 		<row><td>ProgressType1</td><td>Installing</td><td/></row>
 		<row><td>ProgressType2</td><td>installed</td><td/></row>

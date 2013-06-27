@@ -41,3 +41,9 @@ latex/
 CloudApiPublic/Help/
 CloudSetupSdkSyncSampleSupport/Help/
 *.cache
+~*
+*.orig
+*.csproj~HEAD
+*.csproj.bak
+*.csproj.user
+*.tmp

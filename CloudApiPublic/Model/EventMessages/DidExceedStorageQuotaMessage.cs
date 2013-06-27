@@ -1,5 +1,5 @@
 ﻿//
-// StorageQuotaExceededMessage.cs
+// DidExceedStorageQuotaMessage.cs
 // Cloud Windows
 //
 // Created By Bobs.
@@ -13,7 +13,7 @@ using System.Text;
 
 namespace Cloud.Model.EventMessages
 {
-    public sealed class StorageQuotaExceededMessage : BaseMessage
+    public sealed class DidExceedStorageQuotaMessage : BaseMessage
     {
         public override string Message
         {
@@ -23,7 +23,7 @@ namespace Cloud.Model.EventMessages
                 {
                     if (MessageHolder.Value == null)
                     {
-                        MessageHolder.Value = "Storage quota has been exceeded.";
+                        MessageHolder.Value = "Storage usage has exceeded the quota.";
                     }
                     return MessageHolder.Value;
                 }
@@ -32,8 +32,8 @@ namespace Cloud.Model.EventMessages
         private readonly GenericHolder<string> MessageHolder = new GenericHolder<string>(null);
         private readonly string _message;
 
-        internal StorageQuotaExceededMessage(Nullable<long> SyncboxId, string DeviceId)
-            : base(EventMessageType.StorageQuotaExceededChanged, SyncboxId, DeviceId)
+        internal DidExceedStorageQuotaMessage(Nullable<long> SyncboxId, string DeviceId)
+            : base(EventMessageType.DidExceedStorageQuotaChanged, SyncboxId, DeviceId)
         {
         }
     }

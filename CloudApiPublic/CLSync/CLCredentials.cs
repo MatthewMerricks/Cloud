@@ -16,6 +16,8 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Net;
+using Newtonsoft.Json.Linq;
+using Cloud.JsonContracts;
 
 namespace Cloud
 {
@@ -82,7 +84,7 @@ namespace Cloud
         private readonly Nullable<DateTime> _expirationDate;
 
         /// <summary>
-        /// The syncbox IDs associated with these credentials.
+        /// The syncbox IDs associated with these credentials.  If this property is null, then all syncboxIDs are associated.
         /// </summary>
         internal HashSet<long> SyncboxIds
         {
@@ -91,7 +93,7 @@ namespace Cloud
                 return _syncboxIds;
             }
         }
-        private readonly HashSet<long> _syncboxIds;
+        private readonly HashSet<long> _syncboxIds = null;
 
         #endregion
 
@@ -191,6 +193,21 @@ namespace Cloud
             }
         }
 
+        /// <summary>
+        /// Private constructor to also include a list of syncbox IDs.
+        /// </summary>
+        private CLCredentials(
+            HashSet<long> syncboxIds,
+            DateTime expiresAt,
+            string key,
+            string secret,
+            string token,
+            ICLCredentialsSettings settings = null) : this(key, secret, token, settings)
+        {
+            this._syncboxIds = syncboxIds;
+            this._expirationDate = expiresAt;
+        }
+
         private static readonly GenericHolder<bool> servicePointManagerConfigured = new GenericHolder<bool>(false);
 
         /// <summary>
@@ -226,7 +243,14 @@ namespace Cloud
 
             this._token = token;
             this._expirationDate = session.ExpiresAt;
-            this._syncboxIds = new HashSet<long>(session.Services[0].SyncboxIds);
+            if (session.Services[0].SyncboxIds == null)
+            {
+                this._syncboxIds = null;
+            }
+            else
+            {
+                this._syncboxIds = new HashSet<long>(session.Services[0].SyncboxIds);
+            }
 
             // copy settings so they don't change while processing; this also defaults some values
             _copiedSettings = (settings == null
@@ -395,8 +419,8 @@ namespace Cloud
                 }
 
                 // Communicate with the server.
-                JsonContracts.CredentialsListSessionsResponse responseFromServer;
-                responseFromServer = Helpers.ProcessHttp<JsonContracts.CredentialsListSessionsResponse>(
+                string responseFromServer;
+                responseFromServer = Helpers.ProcessHttp<string>(
                     /* requestContent */ null, // no request body for listing sessions
                     CLDefinitions.CLPlatformAuthServerURL,
                     CLDefinitions.MethodPathAuthListSessions,
@@ -409,27 +433,23 @@ namespace Cloud
                     Syncbox: null, 
                     isOneOff: false);
 
-                // Convert the server response to the requested output format.
-                if (responseFromServer != null && responseFromServer.Sessions != null)
+                // Convert the server response to a CLCredentials object and pass that back as the response.
+                CLCredentials[] arrayCredentials;
+                CLError errorFromDeserialize = DeserializeSessions(responseFromServer, out arrayCredentials);
+                if (errorFromDeserialize != null)
                 {
-                    List<CLCredentials> listCredentials = new List<CLCredentials>();
-                    foreach (JsonContracts.Session session in responseFromServer.Sessions)
-                    {
-                        if (session != null)
-                        {
-                            listCredentials.Add(new CLCredentials(session, copiedSettings));
-                        }
-                        else
-                        {
-                            throw new CLNullReferenceException(CLExceptionCode.OnDemand_ServerReturnedInvalidItem, Resources.ExceptionOnDemandListAllSessionCredentialsOneSessionResponseWasInvalid);
-                        }
-                    }
-                    activeSessionCredentials = listCredentials.ToArray();
+                    activeSessionCredentials = Helpers.DefaultForType<CLCredentials[]>();
+                }
+                else if (arrayCredentials.Length < 1)
+                {
+                    throw new CLException(CLExceptionCode.OnDemand_ServerResponseNoSession, Resources.ExceptionOnDemandServerResponseNoSession);
                 }
                 else
                 {
-                    throw new CLNullReferenceException(CLExceptionCode.OnDemand_ServerReturnedInvalidItem, Resources.ExceptionCLHttpRestWithoutSessions);
+                    activeSessionCredentials = arrayCredentials;
                 }
+
+                return errorFromDeserialize;
             }
             catch (Exception ex)
             {
@@ -446,15 +466,16 @@ namespace Cloud
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
         /// <param name="asyncCallbackUserState">User state to pass when firing async callback</param>
-        /// <param name="syncboxIds">(optional) IDs of sync boxes to associate with this session.  A null value causes all syncboxes defined for the application to be associated with this session.</param>
-        /// <param name="timeToLiveMinutes">(optional) The number of minutes before the token expires. Default: 2160 minutes (36 hours).  Maximum: 7200 minutes (120 hours).</param>
+        /// <param name="syncboxIds">IDs of sync boxes to associate with this session.  A null value causes all syncboxes defined for the application to be associated with this session.
+        /// May be null.</param>
+        /// <param name="timeToLiveMinutes">The number of minutes before the token expires. Default: 2160 minutes (36 hours).  Maximum: 7200 minutes (120 hours). May be null.</param>
         /// <param name="settings">(optional) settings for optional tracing and specifying the client version to the server.</param>
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginCreateSessionCredentialsForSyncboxIds(
             AsyncCallback asyncCallback,
             object asyncCallbackUserState,
-            HashSet<long> syncboxIds = null,
-            Nullable<long> timeToLiveMinutes = null,
+            HashSet<long> syncboxIds,
+            Nullable<long> timeToLiveMinutes,
             ICLCredentialsSettings settings = null)
         {
             var asyncThread = DelegateAndDataHolderBase.Create(
@@ -522,14 +543,15 @@ namespace Cloud
         /// Creates a session on the server for the current application, and activates the session for a list of syncboxIds.
         /// </summary>
         /// <param name="sessionCredentials">(output) The output session credentials.</param>
-        /// <param name="syncboxIds">(optional) IDs of sync boxes to associate with this session.  A null value causes all syncboxes defined for the application to be associated with this session.</param>
-        /// <param name="timeToLiveMinutes">(optional) The number of minutes before the token expires. Default: 2160 minutes (36 hours).  Maximum: 7200 minutes (120 hours).</param>
+        /// <param name="syncboxIds">IDs of sync boxes to associate with this session.  A null value causes all syncboxes defined for the application to be associated with this session.
+        /// May be null.</param>
+        /// <param name="timeToLiveMinutes">The number of minutes before the token expires. Default: 2160 minutes (36 hours).  Maximum: 7200 minutes (120 hours). May be null.</param>
         /// <param name="settings">(optional) settings for optional tracing and specifying the client version to the server.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError CreateSessionCredentialsForSyncboxIds(
                     out CLCredentials sessionCredentials,
-                    HashSet<long> syncboxIds = null,
-                    Nullable<long> timeToLiveMinutes = null,
+                    HashSet<long> syncboxIds,
+                    Nullable<long> timeToLiveMinutes,
                     ICLCredentialsSettings settings = null)
         {
             // try/catch to process the metadata query, on catch return the error
@@ -552,34 +574,40 @@ namespace Cloud
                 object requestContract = null;
                 if (syncboxIds == null)
                 {
-                    Cloud.JsonContracts.CredentialsSessionCreateAllRequest sessionCreateAll = new JsonContracts.CredentialsSessionCreateAllRequest()
-                    {
-                        Service = new JsonContracts.ServiceAllRequest()
+                    JsonContracts.ServiceAllRequest[] requests = new JsonContracts.ServiceAllRequest[1];
+                    JsonContracts.ServiceAllRequest request = new ServiceAllRequest()
                         {
                             ServiceType = CLDefinitions.RESTRequestSession_Sync,
                             SyncboxIds = CLDefinitions.RESTRequestSession_SyncboxIdsAll,
-                        },
+                        };
+                    requests[0] = request;
+                    Cloud.JsonContracts.CredentialsSessionCreateAllRequest sessionCreateAll = new JsonContracts.CredentialsSessionCreateAllRequest()
+                    {
+                        Services = requests,
                         TokenDuration = timeToLiveMinutes
                     };
                     requestContract = sessionCreateAll;
                 }
                 else
                 {
+                    JsonContracts.Service[] requests = new JsonContracts.Service[1];
+                    JsonContracts.Service request = new Service()
+                    {
+                        ServiceType = CLDefinitions.RESTRequestSession_Sync,
+                        SyncboxIds = syncboxIds.ToArray<long>(),
+                    };
+                    requests[0] = request;
                     Cloud.JsonContracts.CredentialsSessionCreateRequest sessionCreate = new JsonContracts.CredentialsSessionCreateRequest()
                     {
-                        Service = new JsonContracts.Service()
-                        {
-                            ServiceType = CLDefinitions.RESTRequestSession_Sync,
-                            SyncboxIds = syncboxIds.ToArray<long>(),
-                        },
+                        Services = requests,
                         TokenDuration = timeToLiveMinutes
                     };
                     requestContract = sessionCreate;
                 }
 
                 // Communicate with the server
-                JsonContracts.CredentialsSessionCreateResponse responseFromServer;
-                responseFromServer = Helpers.ProcessHttp<JsonContracts.CredentialsSessionCreateResponse>(
+                string responseFromServer;
+                responseFromServer = Helpers.ProcessHttp<string>(
                     requestContract, 
                     CLDefinitions.CLPlatformAuthServerURL,
                     CLDefinitions.MethodPathAuthCreateSession,
@@ -593,21 +621,178 @@ namespace Cloud
                     false);
 
                 // Convert the server response to a CLCredentials object and pass that back as the response.
-                if (responseFromServer != null && responseFromServer.Session != null)
+                CLCredentials[] arrayCredentials;
+                CLError errorFromDeserialize = DeserializeSessions(responseFromServer, out arrayCredentials);
+                if (errorFromDeserialize != null)
                 {
-                    sessionCredentials = new CLCredentials(responseFromServer.Session);
+                    sessionCredentials = Helpers.DefaultForType<CLCredentials>();
                 }
-                else
+                else if (arrayCredentials.Length < 1)
                 {
                     throw new CLException(CLExceptionCode.OnDemand_ServerResponseNoSession, Resources.ExceptionOnDemandServerResponseNoSession);
                 }
+                else
+                {
+                    sessionCredentials = arrayCredentials[0];
+                }
 
+                return errorFromDeserialize;
             }
             catch (Exception ex)
             {
                 sessionCredentials = Helpers.DefaultForType<CLCredentials>();
                 return ex;
             }
+        }
+
+        /// <summary>
+        /// The responses to /session/create and /session/list have overloaded members, so we can't use a standard JsonContract
+        /// to deserialize the server response.  Instead, deserialize the response into a Json hierarchical tree and
+        /// process the tree to create one or more output credentials from the server response. 
+        /// </summary>
+        /// <param name="responseFromServer"></param>
+        /// <param name="arrayCredentials"></param>
+        /// <returns></returns>
+        private CLError DeserializeSessions(string responseFromServer, out CLCredentials[] arrayCredentials)
+        {
+            try
+            {
+                JObject o = JObject.Parse(responseFromServer);
+
+                // Determine whether is is a single session from /session/create, or multiple sessions from /session/list.
+                JToken tokenSession = o[CLDefinitions.RESTResponseSession];
+                JToken tokenSessions = o[CLDefinitions.RESTResponseSession_Sessions];
+                if (tokenSession != null)
+                {
+                    // This is a response with a single session.
+                    CLCredentials credentials;
+                    CLError errorFromDeserialize = DeserializeSession(tokenSession, out credentials);
+                    if (errorFromDeserialize == null)
+                    {
+                        arrayCredentials = new CLCredentials[1];
+                        arrayCredentials[0] = credentials;
+                    }
+                    else
+                    {
+                        arrayCredentials = Helpers.DefaultForType<CLCredentials[]>();
+                    }
+
+                    return errorFromDeserialize;
+                }
+                else if (tokenSessions != null)
+                {
+                    // This is a response with multiple sessions.
+                    arrayCredentials = new CLCredentials[tokenSessions.Count()];
+                    for (int index = 0; index < tokenSessions.Count(); index++)
+                    {
+                        CLCredentials credentials;
+                        CLError errorFromDeserialize = DeserializeSession(tokenSessions.ToArray()[index], out credentials);
+                        if (errorFromDeserialize == null)
+                        {
+                            arrayCredentials[index] = credentials;
+                        }
+                        else
+                        {
+                            throw new CLException(CLExceptionCode.OnDemand_MoveNoServerResponsesOrErrors, 
+                                String.Format(Resources.ExceptionCredentialsConvertingServerResponseIndexMsg0, index));
+                        }
+                    }
+                }
+                else
+                {
+                    throw new CLException(CLExceptionCode.OnDemand_MoveNoServerResponsesOrErrors, Resources.ExceptionCredentialsNoSessionOrSessionsToken);
+                }
+            }
+            catch (Exception ex)
+            {
+                arrayCredentials = Helpers.DefaultForType<CLCredentials[]>();
+                return ex;
+            }
+
+            return null;
+
+        }
+
+        private CLError DeserializeSession(JToken tokenSession, out CLCredentials credentials)
+        {
+            try
+            {
+                string key = (string)tokenSession[CLDefinitions.RESTResponseSession_Key];
+                string secret = (string)tokenSession[CLDefinitions.RESTResponseSession_Secret];
+                string token = (string)tokenSession[CLDefinitions.RESTResponseSession_Token];
+                DateTime expiresAt = (DateTime)tokenSession[CLDefinitions.RESTResponseSession_ExpiresAt];
+                HashSet<long> syncboxIds;
+
+                if (key == null)
+                {
+                    throw new CLException(CLExceptionCode.OnDemand_MoveNoServerResponsesOrErrors, Resources.ExceptionCredentialsNullKeyReturnedByServer);
+                }
+                if (expiresAt == null)
+                {
+                    throw new CLException(CLExceptionCode.OnDemand_MoveNoServerResponsesOrErrors, Resources.ExceptionCredentialsNullExpiresAtReturnedByServer);
+                }
+                if (secret == null)
+                {
+                    throw new CLException(CLExceptionCode.OnDemand_MoveNoServerResponsesOrErrors, Resources.ExceptionCredentialsNullSecretReturnedByServer);
+                }
+
+
+                if (tokenSession[CLDefinitions.RESTRequestSession_Services].Type == JTokenType.String)
+                {
+                    syncboxIds = null;
+                }
+                else
+                {
+                    JToken firstService = tokenSession[CLDefinitions.RESTRequestSession_Services][0];
+                    if (firstService == null)
+                    {
+                        throw new CLException(CLExceptionCode.OnDemand_MoveNoServerResponsesOrErrors, Resources.ExceptionCredentialsNoItemsInServicesArrayReturnedByServer);
+                    }
+
+                    JToken tokenServiceType = firstService[CLDefinitions.JsonServiceType];
+                    if (tokenServiceType == null)
+                    {
+                        throw new CLException(CLExceptionCode.OnDemand_MoveNoServerResponsesOrErrors, Resources.ExceptionCredentialsNoServiceTypeItemReturnedByServer);
+                    }
+
+                    if (((string)tokenServiceType).ToLower() != CLDefinitions.RESTRequestSession_Sync.ToLower())
+                    {
+                        throw new CLException(CLExceptionCode.OnDemand_MoveNoServerResponsesOrErrors, Resources.ExceptionCredentialsNoServiceTypeSyncItemReturnedByServer);
+                    }
+
+                    JToken tokenSyncboxIds = firstService[CLDefinitions.RESTResponseSession_SyncboxIds];
+                    if (tokenSyncboxIds == null)
+                    {
+                        throw new CLException(CLExceptionCode.OnDemand_MoveNoServerResponsesOrErrors, Resources.ExceptionCredentialsNoSyncBoxIdsItemReturnedByServer);
+                    }
+
+                    if (tokenSyncboxIds.Type == JTokenType.String)
+                    {
+                        if (((string)tokenSyncboxIds).ToLower() == CLDefinitions.RESTRequestSession_SyncboxIdsAll)
+                        {
+                            syncboxIds = null;
+                        }
+                        else
+                        {
+                            throw new CLException(CLExceptionCode.OnDemand_MoveNoServerResponsesOrErrors, Resources.ExceptionCredentialsInvalidSyncBoxIdsStringReturnedByServer);
+                        }
+                    }
+                    else
+                    {
+                        long[] tempSyncboxIds;
+                        tempSyncboxIds = tokenSyncboxIds.ToObject<long[]>();
+                        syncboxIds = new HashSet<long>(tempSyncboxIds);
+                    }
+                }
+
+                credentials = new CLCredentials(syncboxIds, expiresAt, key, secret, token, this._copiedSettings);
+            }
+            catch (Exception ex)
+            {
+                credentials = Helpers.DefaultForType<CLCredentials>();
+                return ex;
+            }
+
             return null;
         }
         #endregion  // end CreateSessionForSyncboxIds (create a new set of session credentials using the current credentials)
@@ -930,7 +1115,7 @@ namespace Cloud
                 if (castState == null)
                 {
                     MessageEvents.FireNewEventMessage(
-                        "Cannot cast state as " + Helpers.GetTypeNameEvenForNulls(castState),
+                        Resources.CredentialsBeginLinkDeviceFirstTimeCannotCastStateAs + ((char)0x20 /* ' ' */) + Helpers.GetTypeNameEvenForNulls(castState),
                         EventMessageLevel.Important,
                         new HaltAllOfCloudSDKErrorInfo());
                 }
@@ -1100,7 +1285,7 @@ namespace Cloud
                 if (castState == null)
                 {
                     MessageEvents.FireNewEventMessage(
-                        "Cannot cast state as " + Helpers.GetTypeNameEvenForNulls(castState),
+                        Resources.CredentialsBeginLinkDeviceCannotCastStateAs + ((char)0x20 /* ' ' */) + Helpers.GetTypeNameEvenForNulls(castState),
                         EventMessageLevel.Important,
                         new HaltAllOfCloudSDKErrorInfo());
                 }
@@ -1268,7 +1453,7 @@ namespace Cloud
                 if (castState == null)
                 {
                     MessageEvents.FireNewEventMessage(
-                        "Cannot cast state as " + Helpers.GetTypeNameEvenForNulls(castState),
+                        Resources.CredentialsBeginUnlinkDeviceCannotCastStateAs + ((char)0x20 /* ' ' */) + Helpers.GetTypeNameEvenForNulls(castState),
                         EventMessageLevel.Important,
                         new HaltAllOfCloudSDKErrorInfo());
                 }

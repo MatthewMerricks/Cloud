@@ -9031,7 +9031,7 @@ http://superuser.com/questions/263544/launchd-doesnt-give-apache-xampp-all-privi
       . Review the General_Successful code with David.
   o 5/2/13 Thu:
     - 6:45 - 18:30
-    - Platform design doc responses: podio https://cloudcom2.podio.com/servers/
+    - Platform server document on design doc responses: podio https://cloudcom2.podio.com/servers/
     - Debugging and testing the conflict cases trying to ship the interim release.
   o 5/3/13 Fri:
     - 6:45 - 18:30
@@ -9057,7 +9057,7 @@ http://superuser.com/questions/263544/launchd-doesnt-give-apache-xampp-all-privi
     - Test CFT-0017 needs to be modified for Windows.  It is checking chmod(777).
     - Test CFT-0018 tests symlinks.  Don't run it.
     - Also CFT-0018-2
-    - Test CFT-0024 tests filenames with 255 characters.  Don't run it.
+    - Test CFT-0025 tests filenames with 255 characters.  Don't run it.
     - Test CFT-0028 broke.  Documented it and sent it out.
     - Test CFT-0029 broke too.  I will install the several fixes that David made today.  One of them fixed CFT_0008, which may be the root cause of a lot of this.
   o 5/7/13 Tue:
@@ -9155,15 +9155,866 @@ http://superuser.com/questions/263544/launchd-doesnt-give-apache-xampp-all-privi
     - Built a signed release candidate for everyone to start testing with.
     - Found a serious error via Ruby test 27 that will require redesign in the FileMonitor.  AssigningDependencies used to work with a flat database with no hierarchical requirements.
       The dependencies are reordered in memory, and the current code is attempting to keep the database updates in order.  That is not possible in general.  We need to put everything
-      in order in memory, then make the database insertions in the proper order.  We will go with thee release with a known issue.
+      in order in memory, then make the database insertions in the proper order.  We will go with the release with a known issue.
     - Ruby Tests:
       . 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, NotForWindows, 19, 20, 21, 26
       . 27 broke.  We will go with a known issue for this.
       . 28, 29, NotTested-30, 31, 32 (not badged synced, sometimes), 33.
       . 33 was tough!  Some of the folder creation events were coming in out of order.  Fixed.  Ran it two times, and it takes a LONG time to run.
   o 5/16/13 Thu:
-    - 6:45 - 
-    - 
+    - 6:45 - 18:45
+    - Test, diagnose and bug fix.  We fixed two more significant bugs.
+  o 5/17/13 Fri:
+    - 7:45 - 15:15
+    - Working on moving BadgeCom to 3rdParty.
+    - Verify dll is signed: sn -v x.dll
+    - BadgeCom has been moved to 3rdParty.  
+  o 5/18/13 - 5/19/13: Elliot key.  No work.
+  o 5/20/13 Mon:
+    - 8:45 - 18:45
+    - Very frustrating day.  Gus produced the public API spec.  I implemented all but the events and the AddFile code.  Today I found that they completely
+      reworked it on the Mac to use CLFileItem objects with various fields set instead of old and new paths.  That's essentially the way we had it originally
+      with PostFileChange.  Gus didn't want that, preferring the 90 individual public APIs, but apparently he changed his mind, and nobody said anything to the Windows team.
+    - Reworking the CLSyncbox code to re-require paths at construction, and at UpdatePath times.
+  o 5/21/13 Tue:
+    - 6:45 - 18:30
+    - Still reworking the CLSyncbox code.  It builds and syncing works again!  Pushed.
+    - Rewriting the public API method RenameFiles to use CLFileItem array and array of new names instead of old paths and new paths.  Work in progress.
+  o 5/22/13 Wed:
+    - 6:45 - 18:30
+    - Coding CLHttpRest.RenameFiles.
+    - Debugging with David.  Pending downloads in the database are deleted when restarting sync.
+    - Fixed the DisposedObjectException during shutdown.
+    - RenameFile, RenameFiles, RenameFolder and RenameFolders work.
+    - Two interviews (C# test automation and C# developer).
+  o 5/23/13 Thu:
+    - 6:45 - 19:00
+    - We can get rid of half of our public API methods by using params.  e.g., the user will say DeleteFiles(callback, callbackUserState, fileItem) for one, or DeleteFiles(callback, callbackUserState, fileItems) for multiple.
+    - Coding the public API methods.  Agreed with Gus on the error handling via email.
+  o 5/24/13 Fri:
+    - 6:30 - 18:00
+    - Coding public API members.  All of the new ones work so far in Zach's tests.
+    - Done so far:
+      . RootFolder, ItemForPath, RenameFiles, RenameFolders, MoveFiles, MoveFolders, DeleteFiles, DeleteFolders, AddFolders, AllImageItems.
+  o 5/25/13 Sat:
+    - 6:00 - 14:00
+    - Finished: AllImageItems, AllVideoItems, AllAudioItems, AllDocumentItems, AllPresentationItems, AllPlainTextItems, and AllItemsOfTypes.
+  o 5/26/13 Sun:
+    - 5:30 - 14:00
+    - Realized that we don't have mime-type support in our client, so the All*Items methods don't work.  Windows doesn't support it.  I wrote a memo about this.  I'll try to put together some
+      best-effort code from various web references.
+    - First, continue filling out the rest of CLSyncbox, then look at CLCredential public API methods.
+    - Coded CLSyncbox methods: RecentFiles, CreateSyncbox, DeleteSyncbox, ListAllSyncboxes, GetCurrentStatus.
+  o 5/27/13 Mon:
+    - 5:30 - 14:30
+    - Pushed:
+      . Changed full path to relative path in public API methods: ItemForPath 
+      . Changed to-paths to to_parent_Uids in public API methods CLSyncbox.MoveFiles and MoveFolders.
+    - Pushed: 
+      . Added new public property CLSyncbox.QuotaUsage. 
+      . Renamed public API methods CLSyncbox.GetSyncboxUsage to GetDataUsage and reworked the code. 
+    - Working on AddFiles.
+  o 5/28/13 Tue:
+    - 6:45 - 21:30
+    - Release day.  Horrible.  Finally released 0.2.8 of the Windows SDK.
+  o 5/29/13 Wed:
+    - 9:15 - 17:45
+    - Pair coded all day with David.  AddFiles is coded, but not yet tested.
+  o 5/30/13 Thu:
+    - 6:45 - 17:45
+    - Working on the public API.  Found out that my assumption about having a local syncbox folder in On Demand mode is wrong.  That will cause a lot of refactoring.
+  o 5/31/13 Fri:
+    - 7:45 - 17:30
+    - AddFiles works.  Multiple files work.  Asynchronous operation works.  Cancellation works.
+  o 6/1/13 Sat:
+    - 5:30 - 14:15
+    - Lots of methods implemented.  Mostly, CLHttpRest and CLSyncbox are complete.
+  o 6/2/13 Sun:
+    - 5:30 - 14:00
+    - Finished CLSyncbox and CLHttpRest.
+    - Working on CLFileItem DownloadFile.  It actually downloads now, but takes an exception trying to drive the "AfterDownload" callback.
+  o 6/3/13 Mon:
+    - 7:00 - 18:00
+    - CLFileItem.DownloadFile works.  Implemented the asynchronous versions too.
+    - Checked all APIs that modify the syncbox to make sure that Live Sync is not running.
+    - Checked all APIs to make sure they check for the syncbox being disposed.
+    - Implemented a returned Stream object (with David) to prepare for downloading images.
+  o 6/3/13 Mon:
+    - 7:00 - 18:00
+  o 6/4/13 Tue:
+    - 7:45 - 17:30
+    - I realized that the changes we made to Helpers.ProcessHttpInner for a returned Stream don't take progress callbacks into account.  We reworked the code to support progress callbacks.
+    - The DownloadImageAtSize methods are ready for test.
+  o 6/5/13 Wed:
+    - 7:00 - 17:30
+    - Finished testing DownloadImageAtSize (synchronous) version.  Worked with Leo to fix a server bug.  On the first access of an uploaded file with /sync/image/t generate=inline, the server didn't return
+      a Content_Length header in the response.  Then the server was returning 502's on the first access.
+    - Badging CI 11:
+      . Badging was broken on a test machine.  The only way to fix it is to blow away all shared memory images.
+      . Alternatively, maybe I could find a way to reformat the shared memory section, but how do I synchronize the many processes and threads that may be using it?
+      . Maybe I could make a particular long word (the last word in the segment?) a test-and-set lock.  The process having trouble would test and set this lock, and enter the clearing function.
+        Other processes would need to block on the lock, and not be in the code, but I can't guarantee that.  Another thread might be blocked for some reason while accessing the section.
+      . Also, there would be another reserved word (next to the lock?).  This word would indicate that the memory has been reformatted.  This should be an incrementing version.
+      . So, the clearing process would initialize the memory in some proper fashion, without touching the lock memory.
+      . The clearing process would increment the version and remove the lock.
+      . Other threads would enter, check the version, and reinitialize themselves, and send out new messages saying that they have initialized, and would receive the new badging database.
+      . Workable?  Who knows?
+    - Badging CI 10: Nested folders show syncing in parent folders.
+      . This needs to be debugged.
+  o 6/6/13 Thu:
+    - 8:30 - 18:45
+    - Debugging the badging issue with adding folders multiple levels deep.  Made a number of changes with David.  The problems are in the sync code, due to the big DB refactor, rather than in IconOverlay.
+  o 6/7/13 Fri:
+    - 7:45 - 18:00
+    - All day working on badging.  No progress.
+  o 6/8/13 Sat: (Home)
+    - 6:00 - 15:00
+    - Fixed two nasty badging bugs.  See "Badging" below.
+  o 6/9/13 Sun: (Home)
+    - 5:30 - 14:00
+    - I closed out CI-10.
+    - I tested CI-3, and didn't see the issue.
+    - I think I have found another bug: Upload file A.txt.  Let it sync. Then delete the file in the Cloud folder and let it sync.  Then modify the original file A.txt and copy it into the cloud folder.  The modified
+      file uploads, but it is not badged at all during the upload. When the upload is complete, the badge goes to synced.  Use a medium-sized file to see the effects.
+    - Fixed that bug and pushed.
+    - Implmenented CLStoragePlan.DefaultStoragePlanWithCredentials.
+  o 6/10/13 Mon:
+    - 7:15 - 20:00
+    - Worked with David to correct the errors being returned from CLSyncbox.Start.
+    - Built Release 0.3.0.
+    - Running the Ruby tests:
+      . 0, 1, ...
+    - Put out the release 0.3.0.
+    - Authorization error codes:
+        [30000, "General Authorization Error"]
+        [30001, "Invalid Authorization Signature"]
+        [30002, "User Session Credentials are expired"]
+        [30003, "Signature Validation Failed"]
+        [30004, "Unauthorized access to sync_box"]
+        [30005, "SyncBox no longer exists"]
+        [30006, "Unable to find session credentials"]
+        [30007, "Unable to find SyncBox"]
+    - BREAKING CHANGES for Release 0.3.0:
+      . Renamed CLSyncbox.UpdatePath to InitWithPath.
+      . CLSyncbox.AllocAndInit:
+        o Old:
+             /// <summary>
+             /// Creates and initializes a CLSyncbox object which represents a Syncbox in Cloud, and associates the syncbox with a folder on the local disk.
+             /// </summary>
+             /// <param name="syncboxId">Unique ID of the syncbox generated by Cloud</param>
+             /// <param name="credentials">Credentials to use with this request.</param>
+             /// <param name="syncbox">(output) Created local object representation of the Syncbox</param>
+             /// <param name="path">The full path of the folder on disk to associate with this syncbox. If this parameter is null, the syncbox local disk directory will be %USEERPROFILE%\Cloud. </param>
+             /// <param name="settings">Settings to use with this request. DeviceId is required.</param>
+             /// <param name="getNewCredentialsCallback">(optional) A delegate that will be called to provide new credentials when the current credentials token expires.</param>
+             /// <param name="getNewCredentialsCallbackUserState">(optional) The user state that will be passed back to the getNewCredentialsCallback delegate.</param>
+             /// <returns>Returns any error which occurred during object allocation or initialization, if any, or null.</returns>
+             public static CLError AllocAndInit(
+                 long syncboxId,
+                 CLCredentials credentials,
+                 out CLSyncbox syncbox,
+                 string path,
+                 ICLSyncSettings settings,
+                 Helpers.ReplaceExpiredCredentials getNewCredentialsCallback = null,
+                 object getNewCredentialsCallbackUserState = null)
+        o New:
+            /// <summary>
+            /// Creates and initializes a CLSyncbox object which represents a Syncbox in Cloud, and associates the syncbox with a folder on the local disk.
+            /// </summary>
+            /// <param name="syncboxId">Unique ID of the syncbox generated by Cloud</param>
+            /// <param name="credentials">Credentials to use with this request.</param>
+            /// <param name="syncbox">(output) Created local object representation of the Syncbox</param>
+            /// <param name="path">(optional) The full path of the folder on disk to associate with this syncbox.  The path is used only for live sync.</param>
+            /// <param name="settings">(optional) Settings to use with this request.</param>
+            /// <param name="getNewCredentialsCallback">(optional) A delegate that will be called to provide new credentials when the current credentials token expires.</param>
+            /// <param name="getNewCredentialsCallbackUserState">(optional) The user state that will be passed back to the getNewCredentialsCallback delegate.</param>
+            /// <returns>Returns any error which occurred during object allocation or initialization, if any, or null.</returns>
+            public static CLError AllocAndInit(
+                long syncboxId,
+                CLCredentials credentials,
+                out CLSyncbox syncbox,
+                string path = null,
+                ICLSyncSettings settings = null,
+                Helpers.ReplaceExpiredCredentials getNewCredentialsCallback = null,
+                object getNewCredentialsCallbackUserState = null)
+        o Old:
+            /// <summary>
+            /// Asynchronously begins the factory process to construct an instance of CLSyncbox, initialize it and fill in its properties from the cloud, and associates the cloud syncbox with a folder on the local disk.
+            /// </summary>
+            /// <param name="asyncCallback">Callback method to fire when operation completes.  Can be null.</param>
+            /// <param name="asyncCallbackUserState">Userstate to pass to the callback when it is fired.  Can be null.</param>
+            /// <param name="syncboxId">The cloud syncbox ID to use.</param>
+            /// <param name="credentials">The credentials to use with this request.</param>
+            /// <param name="path">(optional) The full path of the folder on disk to associate with this syncbox.  The path is used only for live sync.</param>
+            /// <param name="settings">(optional) settings to use with this method.</param>
+            /// <param name="getNewCredentialsCallback">(optional) A delegate which will be called to retrieve a new set of credentials when credentials have expired.</param>
+            /// <param name="getNewCredentialsCallbackUserState">(optional) The user state to pass as a parameter to the delegate above.</param>
+            /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
+            /// <remarsk>The SyncboxId/DeviceId pair must be unique on the machine.</remarsk>
+            public static IAsyncResult BeginAllocAndInit(
+                AsyncCallback asyncCallback,
+                object asyncCallbackUserState,
+                long syncboxId,
+                CLCredentials credentials,
+                string path = null,
+                ICLSyncSettings settings = null,
+                Helpers.ReplaceExpiredCredentials getNewCredentialsCallback = null,
+                object getNewCredentialsCallbackUserState = null)
+        o New:
+            /// <summary>
+            /// Asynchronously begins the factory process to construct an instance of CLSyncbox, initialize it and fill in its properties from the cloud, and associates the cloud syncbox with a folder on the local disk.
+            /// </summary>
+            /// <param name="asyncCallback">Callback method to fire when operation completes.  Can be null.</param>
+            /// <param name="asyncCallbackUserState">Userstate to pass to the callback when it is fired.  Can be null.</param>
+            /// <param name="syncboxId">The cloud syncbox ID to use.</param>
+            /// <param name="credentials">The credentials to use with this request.</param>
+            /// <param name="path">(optional) The full path of the folder on disk to associate with this syncbox.  The path is used only for live sync.</param>
+            /// <param name="settings">(optional) settings to use with this method.</param>
+            /// <param name="getNewCredentialsCallback">(optional) A delegate which will be called to retrieve a new set of credentials when credentials have expired.</param>
+            /// <param name="getNewCredentialsCallbackUserState">(optional) The user state to pass as a parameter to the delegate above.</param>
+            /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
+            public static IAsyncResult BeginAllocAndInit(
+                AsyncCallback asyncCallback,
+                object asyncCallbackUserState,
+                long syncboxId,
+                CLCredentials credentials,
+                string path = null,
+                ICLSyncSettings settings = null,
+                Helpers.ReplaceExpiredCredentials getNewCredentialsCallback = null,
+                object getNewCredentialsCallbackUserState = null)
+        o Old:
+          public bool IsSessionToken();
+        o New:
+          public bool IsSessionCredentials();
+        o Old:
+          public IAsyncResult BeginListAllActiveSessions(
+            AsyncCallback asyncCallback,
+            object asyncCallbackUserState,
+            ICLCredentialsSettings settings = null);
+        o New:
+          public IAsyncResult BeginListAllActiveSessionCredentials(
+            AsyncCallback asyncCallback,
+            object asyncCallbackUserState,
+            ICLCredentialsSettings settings = null);
+        o Old:
+          public CLError EndListAllActiveSessions(IAsyncResult asyncResult, out CredentialsListSessionsResult result);
+        o New:
+          public CLError EndListAllActiveSessionCredentials(IAsyncResult asyncResult, out CredentialsListSessionsResult result);
+        o Old:
+          public CLError ListAllActiveSessions(out CLCredentials [] response, ICLCredentialsSettings settings = null);
+        o New:
+          public CLError ListAllActiveSessionCredentials(out CLCredentials [] response, ICLCredentialsSettings settings = null);
+        o Old:
+          public IAsyncResult BeginCreateSessionForSyncboxIds(
+            AsyncCallback asyncCallback,
+            object asyncCallbackUserState,
+            HashSet<long> syncboxIds = null,
+            Nullable<long> tokenDurationMinutes = null,
+            ICLCredentialsSettings settings = null);
+        o New:
+          public IAsyncResult BeginCreateSessionCredentialsForSyncboxIds(
+            AsyncCallback asyncCallback,
+            object asyncCallbackUserState,
+            HashSet<long> syncboxIds = null,
+            Nullable<long> tokenDurationMinutes = null,
+            ICLCredentialsSettings settings = null);
+        o Old:
+          public CLError EndCreateSessionForSyncboxIds(IAsyncResult asyncResult, out CredentialsSessionCreateResult result);
+        o New:
+          public CLError EndCreateSessionCredentialsForSyncboxIds(IAsyncResult asyncResult, out CredentialsSessionCreateResult result);
+        o Old:
+          public CLError CreateSessionForSyncboxIds(
+                    out CLCredentials response,
+                    HashSet<long> syncboxIds = null,
+                    Nullable<long> tokenDurationMinutes = null,
+                    ICLCredentialsSettings settings = null);
+        o New:
+          public CLError CreateSessionCredentialsForSyncboxIds(
+                    out CLCredentials response,
+                    HashSet<long> syncboxIds = null,
+                    Nullable<long> tokenDurationMinutes = null,
+                    ICLCredentialsSettings settings = null);
+        o Old:
+          public IAsyncResult BeginGetSessionForKey(
+            AsyncCallback asyncCallback,
+            object asyncCallbackUserState,
+            string key,
+            ICLCredentialsSettings settings = null);
+        o New:
+          public IAsyncResult BeginSessionCredentialsForKey(
+            AsyncCallback asyncCallback,
+            object asyncCallbackUserState,
+            string key,
+            ICLCredentialsSettings settings = null);
+        o Old:
+          public CLError EndGetSessionForKey(IAsyncResult asyncResult, out CredentialsSessionGetForKeyResult result);
+        o New:
+          public CLError EndSessionCredentialsForKey(IAsyncResult asyncResult, out CredentialsSessionGetForKeyResult result);
+        o Old:
+          public CLError GetSessionForKey(
+                    out CLCredentials response,
+                    string key,
+                    ICLCredentialsSettings settings = null);
+        o New:
+          public CLError SessionCredentialsForKey(
+                    out CLCredentials response,
+                    string key,
+                    ICLCredentialsSettings settings = null);
+        o Old:
+          public IAsyncResult BeginDeleteSessionWithKey(
+            AsyncCallback asyncCallback,
+            object asyncCallbackUserState,
+            string key,
+            ICLCredentialsSettings settings = null);
+        o New:
+          public IAsyncResult BeginDeleteSessionCredentialsWithKey(
+            AsyncCallback asyncCallback,
+            object asyncCallbackUserState,
+            string key,
+            ICLCredentialsSettings settings = null);
+        o Old:
+          public CLError EndDeleteSessionWithKey(IAsyncResult aResult, out CredentialsSessionDeleteResult result);
+        o New:
+          public CLError EndDeleteSessionCredentialsWithKey(IAsyncResult aResult, out CredentialsSessionDeleteResult result);
+        o Old:
+          public CLError DeleteSessionWithKey(
+            string key, 
+            ICLCredentialsSettings settings = null);
+        o New:
+          public CLError DeleteSessionCredentialsWithKey(
+            string key, 
+            ICLCredentialsSettings settings = null);
+        o Old:
+            /// <summary>
+            /// Used as a parameter to CLSyncBox.BeginSync.  These values describe how the syncbox will be synced:
+            ///   - CLSyncModeLive: All files, folders and metadata will be synced all the time (live).
+            ///   - CLSyncModeLiveWithShellExt: As above, with shell extension (badging).
+            ///   - CLSyncModeOnDemand: Only the metadata is synced.  File downloads are on-demand.
+            /// </summary>
+            public enum CLSyncMode : int
+            {
+                CLSyncModeLive,
+                CLSyncModeLiveWithShellExt
+            }
+        o New:
+            /// <summary>
+            /// Used as a parameter to CLSyncbox.StartLiveSync.  These values describe how the syncbox will be synced:
+            ///   - CLSyncModeLive: All files, folders and metadata will be synced all the time (live).
+            ///   - CLSyncModeLiveWithBadgingEnabled: As above, with shell extension (badging).
+            /// </summary>
+            public enum CLSyncMode : int
+            {
+                CLSyncModeLive,
+                CLSyncModeLiveWithBadgingEnabled
+            }
+        o Old:
+            /// <summary>
+            /// Asynchronously starts creating a new Syncbox in the Cloud.
+            /// </summary>
+            /// <param name="asyncCallback">Callback method to fire when the async operation completes.  Can be null.</param>
+            /// <param name="asyncCallbackUserState">Userstate to pass to the async callback when it is fired.  Can be null.</param>
+            /// <param name="completionCallback">Callback method to fire when the operation is complete.  Returns the result.</param>
+            /// <param name="completionCallbackUserState">Userstate to be passed to the completion callback above when it is fired.</param>
+            /// <param name="plan">The storage plan to use with this Syncbox.</param>
+            /// <param name="credentials">The credentials to use with this request.</param>
+            /// <param name="path">(optional) The full path of the folder on disk to associate with this syncbox.  The path is used only for live sync.</param>
+            /// <param name="friendlyName">(optional) The friendly name of the Syncbox.</param>
+            /// <param name="settings">(optional) Settings to use with this method.</param>
+            /// <param name="getNewCredentialsCallback">(optional) The callback function that will provide new credentials with temporary credentials expire.</param>
+            /// <param name="getNewCredentialsCallbackUserState">(optional) The user state that will be passed as a parameter to the callback function above.</param>
+            /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
+            public static IAsyncResult BeginCreateSyncbox(
+                        AsyncCallback asyncCallback,
+                        object asyncCallbackUserState,
+                        CLCreateSyncboxCompletionCallback completionCallback,
+                        object completionCallbackUserState,
+                        CLStoragePlan plan,
+                        CLCredentials credentials,
+                        string path = null,
+                        string friendlyName = null,
+                        ICLSyncSettings settings = null,
+                        Helpers.ReplaceExpiredCredentials getNewCredentialsCallback = null,
+                        object getNewCredentialsCallbackUserState = null)
+        o New:
+            /// <summary>
+            /// Asynchronously starts creating a new Syncbox in the Cloud.
+            /// </summary>
+            /// <param name="asyncCallback">Callback method to fire when the async operation completes.  Can be null.</param>
+            /// <param name="asyncCallbackUserState">Userstate to pass to the async callback when it is fired.  Can be null.</param>
+            /// <param name="plan">The storage plan to use with this Syncbox.</param>
+            /// <param name="credentials">The credentials to use with this request.</param>
+            /// <param name="path">(optional) The full path of the folder on disk to associate with this syncbox.  The path is used only for live sync.</param>
+            /// <param name="friendlyName">(optional) The friendly name of the Syncbox.</param>
+            /// <param name="settings">(optional) Settings to use with this method.</param>
+            /// <param name="getNewCredentialsCallback">(optional) The callback function that will provide new credentials with temporary credentials expire.</param>
+            /// <param name="getNewCredentialsCallbackUserState">(optional) The user state that will be passed as a parameter to the callback function above.</param>
+            /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
+            public static IAsyncResult BeginCreateSyncbox(
+                        AsyncCallback asyncCallback,
+                        object asyncCallbackUserState,
+                        CLStoragePlan plan,
+                        CLCredentials credentials,
+                        string path = null,
+                        string friendlyName = null,
+                        ICLSyncSettings settings = null,
+                        Helpers.ReplaceExpiredCredentials getNewCredentialsCallback = null,
+                        object getNewCredentialsCallbackUserState = null)
+        o Old:
+            /// <summary>
+            /// Create a Syncbox in the syncbox for the current application.  This is a synchronous method.
+            /// </summary>
+            /// <param name="completionCallback">Callback method to fire when the operation is complete.  Returns the result.</param>
+            /// <param name="completionCallbackUserState">Userstate to be passed to the completion callback above when it is fired.</param>
+            /// <param name="plan">The storage plan to use with this Syncbox.</param>
+            /// <param name="credentials">The credentials to use for this request.</param>
+            /// <param name="path">(optional) The path on the local disk to associate with this syncbox.  The path is used only for live sync.</param>
+            /// <param name="syncbox">(output) Response object from communication</param>
+            /// <param name="friendlyName">(optional) The friendly name of the Syncbox.</param>
+            /// <param name="settings">(optional) The settings to use with this method</param>
+            /// <param name="getNewCredentialsCallback">(optional) The callback function that will provide new credentials with temporary credentials expire.</param>
+            /// <param name="getNewCredentialsCallbackUserState">(optional) The user state that will be passed as a parameter to the callback function above.</param>
+            /// <returns>Returns any error that occurred during communication, if any</returns>
+            public static CLError CreateSyncbox(
+                        CLCreateSyncboxCompletionCallback completionCallback,
+                        object completionCallbackUserState,
+                        CLStoragePlan plan,
+                        CLCredentials credentials,
+                        string path = null,
+                        string friendlyName = null,
+                        ICLSyncSettings settings = null,
+                        Helpers.ReplaceExpiredCredentials getNewCredentialsCallback = null,
+                        object getNewCredentialsCallbackUserState = null)
+        o New:
+            /// <summary>
+            /// Create a Syncbox in the syncbox for the current application.  This is a synchronous method.
+            /// </summary>
+            /// <param name="plan">The storage plan to use with this Syncbox.</param>
+            /// <param name="credentials">The credentials to use for this request.</param>
+            /// <param name="syncbox">(output) The created syncbox object.</param>
+            /// <param name="path">(optional) The path on the local disk to associate with this syncbox.  The path is used only for live sync.</param>
+            /// <param name="friendlyName">(optional) The friendly name of the Syncbox.</param>
+            /// <param name="settings">(optional) The settings to use with this method</param>
+            /// <param name="getNewCredentialsCallback">(optional) The callback function that will provide new credentials with temporary credentials expire.</param>
+            /// <param name="getNewCredentialsCallbackUserState">(optional) The user state that will be passed as a parameter to the callback function above.</param>
+            /// <returns>Returns any error that occurred during communication, if any</returns>
+            public static CLError CreateSyncbox(
+                        CLStoragePlan plan,
+                        CLCredentials credentials,
+                        out CLSyncbox syncbox,
+                        string path = null,
+                        string friendlyName = null,
+                        ICLSyncSettings settings = null,
+                        Helpers.ReplaceExpiredCredentials getNewCredentialsCallback = null,
+                        object getNewCredentialsCallbackUserState = null)
+        o Old:
+            /// <summary>
+            /// Asynchronously starts retrieving the specified number of recently modified files (<CLFileItems>s).
+            /// </summary>
+            /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
+            /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
+            /// <param name="completionCallback">Callback method to fire when a page of items is complete.  Return the result.</param>
+            /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion callback above is fired.</param>
+            /// <param name="pageNumber">Beginning page number.  The first page is page 1.</param>
+            /// <param name="itemsPerPage">Items per page.</param>
+            /// <param name="sinceDate">(optional) null to retrieve all of the recents, or specify a date to retrieve items from that date forward.</param>
+            /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
+            public IAsyncResult BeginRecentFiles(
+                AsyncCallback asyncCallback,
+                object asyncCallbackUserState,
+                CLAllItemsCompletionCallback completionCallback,
+                object completionCallbackUserState,
+                long pageNumber,
+                long itemsPerPage,
+                Nullable<DateTime> sinceDate = null)
+        o New:
+            /// <summary>
+            /// Asynchronously starts retrieving the specified number of recently modified files (<CLFileItems>s).
+            /// </summary>
+            /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
+            /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
+            /// <param name="pageNumber">Beginning page number.  The first page is page 1.</param>
+            /// <param name="itemsPerPage">Items per page.</param>
+            /// <param name="sinceDate">(optional) null to retrieve all of the recents, or specify a date to retrieve items from that date forward.</param>
+            /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
+            public IAsyncResult BeginRecentFiles(
+                AsyncCallback asyncCallback,
+                object asyncCallbackUserState,
+                long pageNumber,
+                long itemsPerPage,
+                Nullable<DateTime> sinceDate = null)
+        o Old:
+            /// <summary>
+            /// Retrieve the specified number of recently modified files (<CLFileItems>s).
+            /// </summary>
+            /// <param name="completionCallback">Callback method to fire when a page of items is complete.</param>
+            /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion callback above is fired.  Returns the result.</param>
+            /// <param name="pageNumber">Beginning page number.  The first page is page 1.</param>
+            /// <param name="itemsPerPage">Items per page.</param>
+            /// <param name="sinceDate">(optional) null to retrieve all of the recents, or specify a date to retrieve items from that date forward.</param>
+            /// <returns>Returns any error that occurred during communication, if any</returns>
+            public CLError RecentFiles(CLAllItemsCompletionCallback completionCallback, object completionCallbackUserState, long pageNumber, long itemsPerPage, Nullable<DateTime> sinceDate = null)
+        o New:
+            /// <summary>
+            /// Retrieve the specified number of recently modified files (<CLFileItems>s).
+            /// </summary>
+            /// <param name="pageNumber">Beginning page number.  The first page is page 1.</param>
+            /// <param name="itemsPerPage">Items per page.</param>
+            /// <param name="items">(output) The retrieved items.</param>
+            /// <param name="sinceDate">(optional) null to retrieve all of the recents, or specify a date to retrieve items from that date forward.</param>
+            /// <returns>Returns any error that occurred during communication, if any</returns>
+            public CLError RecentFiles(long pageNumber, long itemsPerPage, out CLFileItem[] items, Nullable<DateTime> sinceDate = null)
+        o Old:
+            /// <summary>
+            /// Asynchronously starts listing syncboxes in the syncbox.
+            /// </summary>
+            /// <param name="asyncCallback">Callback method to fire when operation completes.  Can be null.</param>
+            /// <param name="asyncCallbackUserState">Userstate to pass as a parameter to the callback when it is fired.  Can be null.</param>
+            /// <param name="completionCallback">Callback method to fire when the operation is complete.  Returns the result.</param>
+            /// <param name="completionCallbackUserState">Userstate to be passed to the completion callback above when it is fired.</param>
+            /// <param name="credentials">The credentials to use with this request.</param>
+            /// <param name="settings">(optional) settings to use with this method.</param>
+            /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
+            public static IAsyncResult BeginListAllSyncboxes(
+                AsyncCallback asyncCallback,
+                object asyncCallbackUserState,
+                CLListSyncboxesCompletionCallback completionCallback,
+                object completionCallbackUserState,
+                CLCredentials credentials,
+                ICLCredentialsSettings settings = null)
+        o New:
+            /// <summary>
+            /// Asynchronously starts listing syncboxes in the syncbox.
+            /// </summary>
+            /// <param name="asyncCallback">Callback method to fire when operation completes.</param>
+            /// <param name="asyncCallbackUserState">Userstate to pass as a parameter to the callback when it is fired.</param>
+            /// <param name="credentials">The credentials to use with this request.</param>
+            /// <param name="settings">(optional) settings to use with this method.</param>
+            /// <param name="getNewCredentialsCallback">(optional) The delegate to call for getting new temporary credentials.</param>
+            /// <param name="getNewCredentialsCallbackUserState">(optional) The user state to pass to the delegate above.</param>
+            /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
+            public static IAsyncResult BeginListAllSyncboxes(
+                AsyncCallback asyncCallback,
+                object asyncCallbackUserState,
+                CLCredentials credentials,
+                ICLCredentialsSettings settings = null,
+                Helpers.ReplaceExpiredCredentials getNewCredentialsCallback = null,
+                object getNewCredentialsCallbackUserState = null)
+        o Old:
+            /// <summary>
+            /// List syncboxes in the syncbox for these credentials.  This is a synchronous method.
+            /// </summary>
+            /// <param name="completionCallback">Callback method to fire when the operation is complete.  Returns the result.</param>
+            /// <param name="completionCallbackUserState">Userstate to be passed to the completion callback above when it is fired.</param>
+            /// <param name="credentials">The credentials to use for this request.</param>
+            /// <param name="response">(output) response object from communication</param>
+            /// <param name="settings">(optional) the settings to use with this method</param>
+            /// <param name="getNewCredentialsCallback">The delegate to call for getting new temporary credentials.</param>
+            /// <param name="getNewCredentialsCallbackUserState">The user state to pass to the delegate above.</param>
+            /// <returns>Returns any error that occurred during communication, if any</returns>
+            /// <remarks>The response array may be null, empty, or may contain null items.</remarks>
+            public static CLError ListAllSyncboxes(
+                CLListSyncboxesCompletionCallback completionCallback,
+                object completionCallbackUserState,
+                CLCredentials credentials,
+                ICLCredentialsSettings settings = null,
+                Helpers.ReplaceExpiredCredentials getNewCredentialsCallback = null,
+                object getNewCredentialsCallbackUserState = null)
+        o New:
+            /// <summary>
+            /// List syncboxes in the syncbox for these credentials.  This is a synchronous method.
+            /// </summary>
+            /// <param name="credentials">The credentials to use for this request.</param>
+            /// <param name="returnedSyncboxes">(output) The returned array of syncboxes.</param>
+            /// <param name="settings">(optional) the settings to use with this method</param>
+            /// <param name="getNewCredentialsCallback">(optional) The delegate to call for getting new temporary credentials.</param>
+            /// <param name="getNewCredentialsCallbackUserState">(optional) The user state to pass to the delegate above.</param>
+            /// <returns>Returns any error that occurred during communication, if any</returns>
+            /// <remarks>The response array may be null, empty, or may contain null items.</remarks>
+            public static CLError ListAllSyncboxes(
+                CLCredentials credentials,
+                out CLSyncbox[] returnedSyncboxes,
+                ICLCredentialsSettings settings = null,
+                Helpers.ReplaceExpiredCredentials getNewCredentialsCallback = null,
+                object getNewCredentialsCallbackUserState = null)
+        o Old:
+            /// <summary>
+            /// Asynchronously starts changing the friendly name of this syncbox.  Updates the information in this syncbox object.
+            /// </summary>
+            /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
+            /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
+            /// <param name="completionCallback">Callback method to fire when a page of items is complete.  Return the result.</param>
+            /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion callback above is fired.</param>
+            /// <param name="friendlyName">The new friendly name of this syncbox)</param>
+            /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
+            public IAsyncResult BeginUpdateFriendlyName<T>(
+                AsyncCallback asyncCallback,
+                object asyncCallbackUserState,
+                Action<JsonContracts.SyncboxResponse, T> completionCallback,
+                T completionCallbackUserState,
+                string friendlyName)
+        o New:
+            /// <summary>
+            /// Asynchronously starts changing the friendly name of this syncbox.  Updates the information in this syncbox object.
+            /// </summary>
+            /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
+            /// <param name="asyncCallbackUserState">Userstate to pass when firing the async callback above.</param>
+            /// <param name="friendlyName">The new friendly name of this syncbox)</param>
+            /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
+            public IAsyncResult BeginUpdateFriendlyName<T>(
+                AsyncCallback asyncCallback,
+                object asyncCallbackUserState,
+                string friendlyName)
+        o Old:
+            /// <summary>
+            /// Changes the friendly name of this syncbox.  Updates the information in this syncbox object.
+            /// </summary>
+            /// <param name="completionCallback">Callback method to fire when a page of items is complete.  Return the result.</param>
+            /// <param name="completionCallbackUserState">Userstate to be passed whenever the completion callback above is fired.</param>
+            /// <param name="reservedForActiveSync">true: Live sync is active.  User calls are not allowed.</param>
+            /// <param name="friendlyName">The new friendly name of this syncbox)</param>
+            /// <returns>Returns any error that occurred during communication, if any</returns>
+            public CLError UpdateFriendlyName<T>(
+                Action<JsonContracts.SyncboxResponse, T> completionCallback,
+                T completionCallbackUserState,
+                string friendlyName)
+        o New:
+            /// <summary>
+            /// Changes the friendly name of this syncbox.  Updates the information in this syncbox object.
+            /// </summary>
+            /// <param name="friendlyName">The new friendly name of this syncbox)</param>
+            /// <returns>Returns any error that occurred during communication, if any</returns>
+            public CLError UpdateFriendlyName<T>(
+                string friendlyName)
+        o Old:
+        o New:
+          - AddFileItemParams:
+            . Properties:
+              o CLFileItem ParentFolder: The parent folder in the syncbox to which the file will be added.
+              o string FullPath:  The full path on the disk of the file to add.
+              o string FileName: The new name of the file in the syncbox, within the ParentFolder (includes the filename and extension).
+  o 6/11/13 Tue:
+    - 8:00 - 17:30
+    - Start on the IEventMessageReceiver update for the On Demand public API.
+      . The Mac CLSyncbox uses three delegates:
+        o FileActivityDelegate
+          . (void)syncbox:(CLSyncbox *)syncbox uploadingTotalFileCount:(NSUInteger)totalFileCount remainingFileCount:(NSUInteger)remainingFileCount totalBytesUploaded:(NSUInteger)totalBytesUploaded ofExpectedBytes:(NSUInteger)totalExpectedBytes;
+          . (void)syncbox:(CLSyncbox *)syncbox uploadingFile:(CLFileItem *)uploadingFileItem withBytesUploaded:(NSInteger)bytesUploaded totalBytesUploaded:(NSInteger)totalBytesUploaded ofExpectedBytes:(NSInteger)totalExpectedBytes;
+          . (void)syncbox:(CLSyncbox *)syncbox uploadCompleteForFile:(CLFileItem *)fileItem;
+          . (void)syncbox:(CLSyncbox *)syncbox downloadingTotalFileCount:(NSUInteger)totalFileCount remainingFileCount:(NSUInteger)remainingFileCount totalBytesDownloaded:(NSUInteger)totalBytesDownloaded ofExpectedBytes:(NSUInteger)totalExpectedBytes;
+          . (void)syncbox:(CLSyncbox *)syncbox downloadingFile:(CLFileItem *)downloadingFileItem withBytesDownloaded:(NSInteger)bytesDownloaded totalBytesDownloaded:(NSInteger)totalBytesDownloaded ofExpectedBytes:(NSInteger)totalExpectedBytes;
+          . (void)syncbox:(CLSyncbox *)syncbox downloadCompleteForFile:(CLFileItem *)fileItem;
+        o OnDemandDelegate
+          . (void)syncboxHasChanges:(CLSyncbox *)syncbox;   ==> Received a push notification.
+          . (void)syncboxDidConnectToCloud:(CLSyncbox *)syncbox;  ==> Connected to Push
+          . (void)syncboxWasDisconnectedFromCloud:(CLSyncbox *)syncbox;  ==> Disconnected from push
+          . (void)syncbox:(CLSyncbox *)syncbox onDemandFailedWithError:(NSError *)error;  ==> This reports errors from On Demand sync activity asynchronously.  Why not as an error to the call that did the original request?
+        o LiveSyncDelegate
+          . (void)syncbox:(CLSyncbox *)syncbox liveSyncFailedWithError:(NSError *)error;  ==> live sync engine failures.
+          . (void)syncboxDidStartLiveSync:(CLSyncbox *)syncbox;  
+          . (void)syncboxDidStopLiveSync:(CLSyncbox *)syncbox;
+          . (void)syncboxDidPauseLiveSync:(CLSyncbox *)syncbox;  ==> We don't allow this.
+          . (void)syncboxDidResumeLiveSync:(CLSyncbox *)syncbox;  ==> We don't allow this.
+          . (void)syncbox:(CLSyncbox *)syncbox folderDidChangeFromPath:(NSString *)fromPath toPath:(NSString *)toPath;  ==> The syncbox root folder changed.
+          . (void)syncbox:(CLSyncbox *)syncbox folderWasDeletedFromPath:(NSString *)path;  ==> The syncbox root folder was deleted.
+          . (void)syncboxLiveSyncActivityBegan:(CLSyncbox *)syncbox;  ==> Syncing activity has begun (sync.Run?)
+          . (void)syncbox:(CLSyncbox *)syncbox liveSyncActivityEndedWithUserInfo:(NSDictionary *)userInfo;   => Syncing activity has ended, with a collection of all events that happened during the sync.
+    - Refactored IEventMessageReceiver code to work through CLSyncbox.
+    - Refactored the sample app to use the refactored IEventMessageReceiver.
+  o 6/12/13 Wed:
+    - 6:30 - 17:45
+    - Working on adding a new EventMessage for downloadCompleteForFile(CLFileItem downloadedFile);
+    - Added a new EventMessage:
+      . Model\EventMessageReceiverArgs:  Add a new file.  e.g.: DownloadCompleteMessageArgs.cs.
+      . Model\EventMessages:  Add a new file.  e.g.: DownloadCompleteMessage.cs.
+      . Static\Enums.cs; EventMessageType.  Add a new definition.  e.g.: DownloadCompleteChanged.
+      . Interfaces\IEventMessageReceiver. Add in two places.  See DownloadComplete.
+      . Static\MessageEvents.  Add a section like DetectedDownloadCompleteChange.
+      . Sample-Live-Sync\EventMessageReceiver\EventMessageReceiver.cs: Add a new method to implement e.g.: IEventMeessageReceiver.DownloadCompleteChanged.
+      . Sample-Live-Sync\EventMessageReceiver\EventMessageImplementations: Add a new file. e.g.: DownloadedMessage.cs.
+  o 6/13/13 Thu:
+    - 6:45 - 17:30
+    - Legal issue about open source code.
+    - Replaced SharpZipLib (GPL license with exception) with XipStorer (Microsoft Public License).
+    - Working on gathering all of the license information.
+    - Open source libraries used in the SDK and install/uninstall:
+    	o Json.NET (Newtonsoft.Json) | MIT | http://json.codeplex.com/
+    	o SimpleJson | MIT | http://simplejson.codeplex.com/     Note: We are using V1.0.0 which is licensed under MIT.  The newer version V1.0.0.1 is licensed under Apache 2.0.
+    	o ZipStore | Microsoft Public License (Ms-PL) | http://zipstorer.codeplex.com/license
+    	o RateBar | See license below | http://wrightdev.wordpress.com/2012/06/05/wpf-ratebar/  
+    		- Note: We use this in our sample code and redistribute the unmodified DLL.
+    		- License:  The license for the code is that you may use it in any project and modify it as much as you need. Please reference me somewhere if you have a readme and if 
+    		you'd like to use it for commercial use feel free to do so as long as you leave a comment so I know how many people are using it (and whether I should invest more time improving it!).
+        o Boost C++ Library (Boost Software License)
+    - Finished the hyperlinked PDF document containing all of the open source license info.
+    - The new DownloadComplete message works.
+    - I added a new UploadComplete message, but the code in SyncEngine is still broken.  Currently we are sending storage_key, but we should be sending file_uid and revision.
+  o 6/14/13 Fri:
+    - 6:30 - 7:30 Home
+    - 11:00 - 17:30
+    - Fixed CI 28: DB crash adding a folder with a hidden folder with files.
+    - Sent two private builds to Krisha to test CI 11 and CI 28.
+    - Reworked sync to use UID/revision for uploads.
+    - Got the new UploadCompleted EventMessage working.
+    - Implemented a new SyncboxDidStartLiveSync EventMessage.
+  o 6/15/13 Sat: Home
+    - 5:45 - 14:00
+    - The SyncboxDidStartLiveSync message works.
+    - The SyncboxDidStopLiveSync message works.
+    - Fixed all of the CLExceptions in CLHttpRest.
+  o 6/16/13 Sun: Home
+    - 7:00 - 14:00
+    - Upgraded the SSD in my Samsung Series 9 laptop (with a lot of problems).
+  o 6/17/13 Mon:
+    - 3:00 - 4:30
+    - 8:15 - 16:30
+    - Told Gus I am leaving the organization.
+    - Repurposed the StorageKey field in the sync private class properties to actually hold Revision.  Tested and pushed to master.
+    - Changed the namespaces of a number of classes to be more normalized.  Moved the important classes directly to Cloud.
+  o 6/18/13 Tue:
+    - 6:15 - 8:00
+    - 10:30 - 18:00
+    - Working on ModifyFiles.  Implemented it.
+    - Changed the CreateSession server request and response.
+    - Interview with LCM.
+  o 6/19/13 Wed:
+    - 7:00 - 17:30
+    - Tested ModifyFiles.  It works.
+    - Working on the obfucated build procedure.  Wrote a command file to copy the file only during the build process.  It works.
+    - Interview with Juan.
+  o 6/20/13 Thu:
+    - 8:15 - 17:30
+    - Obfuscation issue where it tries to load SQLite32.dll in a 64-bit process.  Fixed with technical support help.  Their issue.
+    - Accepted LCM position.
+  o 6/21/13 Fri:
+    - 8:15 - 17:15
+    - Finally got badging working again with the obfuscated build.
+    - Integrated obfuscation into Visual Studio.
+    - Built another candidate Release0.3.2 release and sent it out for testing.
+  o 6/22/13 Sat: (home)
+    - 6:00 - 17:15
+    - Working on the new /session/create and /session/list requests and responses.  Finished that.  Tested on 0.3.2 and 0.3.0.3.
+    - Moved all strings to resources in CLSyncbox.
+  o 6/23/13 Sun: (home)
+    - 6:30 - 9:30
+    - Added new class and static property CLSdk.SdkVersion to return the Cloud.dll assembly version.
+    - Renamed delegates ReplaceExpiredCredentials => ReplaceExpiredCredentialsCallback.
+    - Renamed delegate System.Threading.WaitCallback => Helpers.SyncStatusChangedCallback.
+  o 6/24/13 Mon:
+    - 7:00 - 18:00
+    - Created a release candidate against cliff for testing.
+    - Implemented the On Demand public API methods PurgePendingFiles.
+  o 6/25/13 Tue:
+    - 7:00 - 17:00
+    - Apparently I regressed the release yesterday with one of my changes.  Debug that.  The Mac had problems too, so we didn't ship.  Try again today.
+    - Debugged the problem the entire morning.  It turned out to be a server issue (returning null storage quota).  The Mac didn't catch it.  Just ignored it.  Our Windows client behaved as expected.  It
+      determined an over-quota situation and refused to upload new files.
+    - Implemented and tested the DidExceedStorageQuota and DidReturnUnderStorageQuota EventMessages.
+    - Added the include_usage parameter in the /syncbox/status HTTP method call.
+    - Breaking changes for 6/24/13 release:
+      . CLSyncbox.AllocAndInit has a new optional parameter (IEventMessageReceiver liveSyncStatusReceiver).
+      . Cloud.Static.MessageEvents.SubscribeMessageReceiver and UnsubscribeMessageReceiver are now internal.  Subscribe via CLSyncbox.AllocAndInit().
+      . The sample app has been reworked to implement IEventMessageReceiver via CLSyncbox.
+      . CLFileItem moved from namespace Cloud.CLSync to Cloud.
+      . Changed namespace for the following classes from Cloud.CLSync to Cloud.Callbacks
+        o CLFileDownloadTransferStatusCallback
+        o CLFileItemCompletionCallback
+        o CLFileUploadTransferStatusCallback
+      . Changed namespace for the following classes from Cloud.CLSync.CLSyncboxParameters to Cloud.Parameters
+        o AddFileItemParams
+        o AddFolderItemParams
+        o MoveItemParams
+        o RenameItemParams
+        o RenamePathParams
+      . Changed namespace of CLError from Cloud.Model to Cloud.
+      . Changed namespace of CLStoragePlan from Cloud.Model to Cloud.
+      . Changed namespace of CLException from Cloud.Model to Cloud.
+      . Changed namespace of CLHttpException from Cloud.Model to Cloud.
+      . Removed option on CreateSessionCredentialsForSyncboxIds, synboxIds, timeToLiveMinutes.
+      . Renamed the delegate used for replacing expired credentials:
+        o Old: public delegate CLCredentials ReplaceExpiredCredentials(object userState);
+        o New: public delegate CLCredentials ReplaceExpiredCredentialsCallback(object userState);
+      . Renamed delegate System.Threading.WaitCallback => Helpers.SyncStatusChangedCallback.
+  o 6/26/13 Wed:
+    - 7:30 - 
+
+
+    - TODO today.
+      x Implement the JsonSerializers for the new contracts.
+      x Implement ModifyFiles in CLSyncbox.
+      x Implement ListSessions with the new response.
+      x Remove debug code in CLSyncbox.
+      x Test CreateSession and ListSessions against cliff.
+      x Rework build for obfuscation.
+      x Send changes for 0.3.2 to Tarun.
+      x Remove files SSCERuntime_X64/32-ENU.exe from the install.
+      . Implement the new server error codes everywhere.
+      x Clean up strings in CLSyncbox.
+      x Implement CLSyncbox.PurgePendingFiles.
+      x Implement a new storage quota back under limit message.
+      . Rename IsPending to IsStored?
+      x Remove GetDataUsage call in CLSyncbox.
+      . The quota messages don't appear in the sample app list.
+
+
+
+
+    - TODO On Demand
+      x Check in file and folder methods for the proper file or folder type of CLFileItem and throw if not correct.
+      x Check all methods that allow CLFileItems to be passed in: IsDeleted must not be set.
+      . Add remarks about threading.
+      x Remove all AsyncResults that have more than just the CLError defined.
+      x Implement AllItemsOfTypes.
+      . Change all standard exceptions to CLExceptions.
+      . Place all strings in Resources.
+      x Remove CheckHalted calls?
+      x All of the "params" should be safe constructors.  Remove throws.
+      x Check all and return error if nothing input.
+      . Wherever there are multiple optional parameters, call in all combinations?  Or remove the optionality.
+      x Remove CLAllItemsCompletionCallback.
+      x Remove CLListSyncboxesCompletionCallback.
+      x Remove duplicate CLSyncbox.AddFiles?
+      . Make sure all AsyncResults are properly named for the public API.
+      x Implement the async CLFileItem.DownloadFile methods.
+      x Check any CLFileItem reference on public API calls and throw if the _syncbox reference has been disposed.
+      x Also check any CLFileItem reference, and if the _syncbox reference is not "this", throw.
+      . Add XML comments for all of CLFileItem, CLStoragePlan, etc.
+      x Put the following code in all public APIs that can modify the syncbox.
+            try
+            {
+                if (reservedForActiveSync)
+                {
+                    throw new CLInvalidOperationException(CLExceptionCode.OnDemand_LiveSyncIsActive, Resources.CLHttpRestCurrentSyncboxCannotBeModifiedWhileSyncing);
+                }
+                IncrementModifyingSyncboxViaPublicAPICalls();
+                .....
+            }
+            finally
+            {
+                DecrementModifyingSyncboxViaPublicAPICalls();
+            }
+      . Implement batch downloads?
+      x Implement CLFileItem LoadThumbnail and LoadImageWithSize.
+      x David: What is CLHttpRest.GetProgressDownloadFile used for?
+      x David: Progress callbacks on Stream return type.
+      x David: Remove CLHttpRest.EndDownloadFile?
+      . Move Helpers.EndAsyncOperation calls from CLSyncbox and CLFileItem to CLHttpRest.
+      . Helpers.CheckHalted throws, and it is used in many public API methods that return CLError.
+      x Update all asyncResult comments to be non-specific.
+      x David: Ci7.
+      . Change "result" xml documentation for End* methods in CLSyncBox, CLFileItem, CLStorageItem.
+      x David: CLError does not retain original PrimaryException.
+      x In MessageEvents.cs, line 787, make all of these calls asynchronous.
+      . Review: Check for folder items passed to file methods, and vice versa.
+    - TODO IEventMessageReceiver
+      . Rework the PushNotificationError event in CLSyncbox.
+      . 
+
+
+
+
+
+
+
 
 
 
@@ -9919,6 +10770,10 @@ MORE GIT (3/7/12)
   - Revert to a previous commit.
     . In Git Extensions: Right click on the desired commit, Reset Current Branch to Here.  Select Hard.
     . At the command prompt: git push -f
+  - Change case of file name:
+    . Don't do an in-place rename to re-case.
+    . Rename to a temporary name.  Commit locally.  Rename back to the proper case.  Commit locally.
+
     
 WINDBG (8/30/12)
   - To debug CLR on an exeption:
@@ -10024,6 +10879,43 @@ KERNEL DRIVERS (1/27/13)
 XSD BUILD (2/18/13)
   o Run the VS 2012 x86 Native Tools Command Prompt from the Start menu.
   o C:\Source\Projects\win-client\Users\Bob\TestHttpRest\TestHttpRest\Settings>xsd /c /e:SmokeTest /l:cs /n:TestHttpRest.Settings InputParameters.xsd
+
+BADGING (6/8/13)
+  o Interface to Explorer threads is in IconOverlay.cs.
+  o Code everywhere else interacts with that via a badging events queue.  Messages are sent via MessageEvents
+  o Data:
+    . AllBadges is a FilePathDictionary hierarchical dictionary.  It is keyed by path.  If a path doesn't exist in this dictionary, the path is assumed synced (the default).
+    . _currentBadges is a straight Dictionary<FilePath, GenericHolder<cloudAppIconBadgeType>>.  It is used to hold the current badge type for a path.
+    . _currentBadgesSynced is a FilePathDictionary<object> hierarchical dictionary.  If an object is found at a path, the path is synced.  If no object at a path, then not synced.
+    .   
+  o Debugging problem where renaming a higher level folder loses all of the badge in the lower level folders.
+  o On the rename, Explorer immediately won't show the badges because the old path is in the Explorer DB, not the new path.
+  o We should remove all of the badges at the old path, and add back all of the badges in the new path.
+  o It seems that IconOverlay.RenameBadgePath should perform that function, but I believe there is an error in the code.  That function doesn't do anything,
+    because it checks AllBadges for the OldPath, doesn't find it, so the whole function does nothing.  It doesn't find OldPath in AllBadges because
+    AllBadges doesn't have a value for synced paths, and OldPath is synced.
+  o Code lines:
+    - IconOverlay 1007
+    - FilePathDictionary 1101
+  o I fixed the bug listed in the first line above.  I did that by changing the definition of allBadges to remove the null==synced rule.  Now all
+    badges are stored in allBadges, including synced.
+  o Now a new bug: Rename a folder.  The folder goes blank, syncing, then synced.  However the parent folder doesn't follow suit.
+  o Code lines:
+    - IconOverlay 1120: Does UpdateBadgeStateUpTreeStartingWithParentOfNode update the up-path considering the current state of the node that was renamed
+      when the up-paths are the same (in-place rename)?
+    - 
+  o UpdateBadgeStateUpTreeStartingWithParentOfNode:
+    - Loops up the tree calling UpdateBadgeStateAtPath.
+  o UpdateBadgeStateAtPath:
+    - For each of the badge types, calls ShouldIconBeBadged.
+  o ShouldIconBeBadged:
+    - Bug: IconOverlay: 1659.  The else condition should run when it is "synced".
+    - Fixed that bug.
+  o Another bug: Upload file A.txt.  Let it sync. Then delete the file in the Cloud folder and let it sync.  Then modify the original file A.txt and copy it into the cloud folder.  The modified
+    file uploads, but it is not badged at all during the upload. When the upload is complete, the badge goes to synced.  Use a medium-sized file to see the effects.
+    - Put a break point on AddEvents and see why it isn't badged.
+    - Fixed this one.
+
 
 TODO:
   x (3/1/12) Finder should host the API server.
