@@ -32,6 +32,14 @@ namespace Cloud.Model
         /// Current path associated with the file system event
         /// </summary>
         public FilePath NewPath { get; set; }
+        ///// <summary>
+        ///// Server-mapped path of file system object for use in communication to and from the server
+        ///// </summary>
+        //public FilePath ServerNewPath { get; set; }
+        /// <summary>
+        /// For rename events only, this is the old path
+        /// </summary>
+        public FilePath OldPath { get; set; }
 
         internal DownloadCancelledState DownloadCancelled
         {
@@ -57,14 +65,6 @@ namespace Cloud.Model
             CancelledButContinueDownloading = 2
         }
 
-        ///// <summary>
-        ///// Server-mapped path of file system object for use in communication to and from the server
-        ///// </summary>
-        //public FilePath ServerNewPath { get; set; }
-        /// <summary>
-        /// For rename events only, this is the old path
-        /// </summary>
-        public FilePath OldPath { get; set; }
         /// <summary>
         /// Contains data used to compare the file or folder and establish its identity
         /// </summary>
