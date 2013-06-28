@@ -9935,7 +9935,20 @@ http://superuser.com/questions/263544/launchd-doesnt-give-apache-xampp-all-privi
         o New: public delegate CLCredentials ReplaceExpiredCredentialsCallback(object userState);
       . Renamed delegate System.Threading.WaitCallback => Helpers.SyncStatusChangedCallback.
   o 6/26/13 Wed:
-    - 7:30 - 
+    - 7:30 - 17:00
+    - Build update: Deleted unwanted files in the CloudSdkSyncSample directory before zipping for the installation.
+    - Training with the new Windows manager Mark, and also with Zach and Matt.
+    - Went over the AutoBuild repository with Matt.
+    - Synergy videos.
+  o 6/27/13 Thu:
+    - 7:45 - 17:00
+    - David is back from 2-week "honeymoon".
+    - We received three bugs CI 45, 46, 47.  Working on those all day.  Can't reproduce any of them here.  CI 47 is due to the push problem, which still exists.
+  o 6/28/13 Fri:
+    - 7:15 - 
+    - Debugging CI 46: Badging shared memory corruption.
+    
+    
 
 
     - TODO today.
@@ -9954,6 +9967,7 @@ http://superuser.com/questions/263544/launchd-doesnt-give-apache-xampp-all-privi
       . Rename IsPending to IsStored?
       x Remove GetDataUsage call in CLSyncbox.
       . The quota messages don't appear in the sample app list.
+      . Unit test for badging.
 
 
 
@@ -10915,6 +10929,54 @@ BADGING (6/8/13)
     file uploads, but it is not badged at all during the upload. When the upload is complete, the badge goes to synced.  Use a medium-sized file to see the effects.
     - Put a break point on AddEvents and see why it isn't badged.
     - Fixed this one.
+
+BADGECOM SHARED MEMORY CORRUPTION MITIGATION (6/28/13)
+  o Corruption is occuring in shared memory.  This could be my locking issue, a locking issue in Boost, or a logic bug in Boost.
+  o In any case, it is happening, and it can always happen if one of the Explorer modules is abnormally terminated while in a shared memory critical section.
+  o We need to recognize the situation, recover and reinitialize.
+  o Idea:
+    - Currently every process that loads BadgeCom allocates a handle to the shared memory section.
+    - Shouldn't we only open the handle when we need it?
+    - Look into changing the code to keep the shared memory handle closed except when it is in use.
+    - That's a bad idea.  When the last handle is closed, the section is unallocated.
+  o One way to recognize the situation is when an exception occurs in PubSubServer.cpp.
+  o How should we recover?
+  o We will use a simple non-boost control shared memory section.
+  o Recovery requirements:
+    - All threads will synchronize on a lock in the control section.
+    - Add a global flag in the control section: inSharedMemoryCriticalSection. Set this flag first as soon as thread is inside the lock.  Clear it just before exiting the lock.
+      Also, add the owner process ID and thread ID alongside the flag.
+    - Every thread should check to see if this flag is already set inside the lock.  If so, this is a severe error requiring recovery.
+    - Recovery will also be required on any exception.
+    - There will be a single Recovery function.  Only the thread noticing the corruption will perform the recovery.  Other threads will wait for recovery, and will be instructed by the recovering thread about what to do after the wait.
+    - I will implement an intelligent lock (unless I can find one already implemented in Win32).  It will be a non-spin, sleeping mutex with the capability of the poster to set an instruction for each of the waiting threads.
+      In escense, the recovering thread will be the first in, and will perform the recovery, then set an instruction for each of the waiting threads.  The instructions will be:
+      . Proceed to normal processing
+      . Reinitialize to the badging subsystem.
+    - Recovery:
+      . Only the recovery thread will be inside the recovery mutex.
+      . Locate all handles to the shared memory section, and close those handles remotely.  See the Sysinternals Handle.exe source code for how to do this.
+      . Instruct the waiting threads to reinitialize.
+      . Verify that there are no open handles to the shared memory section.
+      . Recreate and reinitialize the shared memory section.
+      . Set a flag to cause a Reinitialize error on return.
+      . Release the mutex.
+      . Return to the caller with the Reinitialize error.
+      . The caller would then reinitialize to the badging system.
+    - Closed handle exception:
+      . When one thread becomes the recovery thread and closes other thread's handles to the shared memory section, there should be only one thread holding a handle, and that should be the
+        thread that caused the corruption?, maybe looping on corrupted shared memory structures.
+      . I would expect that closing a thread's open handle to shared memory would cause an exception when that thread tries to continue processing.
+      . What should we do when that happens?
+      . The recovering thread should store its process ID and thread ID in the control section.
+      . When the handle is closed, that should cause the target thread to take an exception.
+      . The target thread would check its own process and thread ID against the control section.
+      . If the target thread isn't the owning thread, it would exit requesting a reinitialization.
+      . There should be a retry count on reinitialization so we don't end up reinitializing and sending all badging events over and over.
+    - Closing remote handles:
+      . I read somewhere that this is possible, and the above design is dependent on this capability.  Re-research it and find out how this works...
+      . 
+
 
 
 TODO:
