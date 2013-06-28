@@ -1192,19 +1192,22 @@ namespace SampleLiveSync.ViewModels
                         }
 
                         // Get a ViewModel to provide some of the status information to use on our status window.
-                        CLError errorFromCreateEventMessageReceiver = EventMessageReceiver.EventMessageReceiver.AllocAndInit(
-                            receiver: out _eventMessageReceiver, // output the created view model
-                            getHistoricBandwidthSettings: OnGetHistoricBandwidthSettings, // optional to provide the historic upload and download bandwidth to the syncbox.
-                            setHistoricBandwidthSettings: OnSetHistoricBandwidthSettings, // optional to persist the historic upload and download bandwidth to the syncbox.
-                            OverrideImportanceFilterNonErrors: EventMessageLevel.All, // optional to filter the non-error messages delivered to the EventMessageReceiver ListMessages.
-                            OverrideImportanceFilterErrors: EventMessageLevel.All, // optional to filter the error messages delivered to the EventMessageReceiver ListMessages.
-                            OverrideDefaultMaxStatusMessages: 500); // optional to restrict the number of messages in the EventMessageReceiver ListMessages
-
-                        if (errorFromCreateEventMessageReceiver != null)
+                        if (_eventMessageReceiver == null)
                         {
-                            string msgErrorFromCreateEventMessageReceiver = "Error creating the data source for the status window: " + errorFromCreateEventMessageReceiver.PrimaryException.Code + ":" + Environment.NewLine + errorFromCreateEventMessageReceiver.PrimaryException.Message;
-                            _trace.writeToLog(1, "MainViewModel: StartSyncing: Error from EventMessageReceiver.AllocAndInit: {0}.", msgErrorFromCreateEventMessageReceiver);
-                            throw new Exception(msgErrorFromCreateEventMessageReceiver);
+                            CLError errorFromCreateEventMessageReceiver = EventMessageReceiver.EventMessageReceiver.AllocAndInit(
+                                receiver: out _eventMessageReceiver, // output the created view model
+                                getHistoricBandwidthSettings: OnGetHistoricBandwidthSettings, // optional to provide the historic upload and download bandwidth to the syncbox.
+                                setHistoricBandwidthSettings: OnSetHistoricBandwidthSettings, // optional to persist the historic upload and download bandwidth to the syncbox.
+                                OverrideImportanceFilterNonErrors: EventMessageLevel.All, // optional to filter the non-error messages delivered to the EventMessageReceiver ListMessages.
+                                OverrideImportanceFilterErrors: EventMessageLevel.All, // optional to filter the error messages delivered to the EventMessageReceiver ListMessages.
+                                OverrideDefaultMaxStatusMessages: 500); // optional to restrict the number of messages in the EventMessageReceiver ListMessages
+
+                            if (errorFromCreateEventMessageReceiver != null)
+                            {
+                                string msgErrorFromCreateEventMessageReceiver = "Error creating the data source for the status window: " + errorFromCreateEventMessageReceiver.PrimaryException.Code + ":" + Environment.NewLine + errorFromCreateEventMessageReceiver.PrimaryException.Message;
+                                _trace.writeToLog(1, "MainViewModel: StartSyncing: Error from EventMessageReceiver.AllocAndInit: {0}.", msgErrorFromCreateEventMessageReceiver);
+                                throw new Exception(msgErrorFromCreateEventMessageReceiver);
+                            }
                         }
 
                         // create credentials
@@ -1302,6 +1305,9 @@ namespace SampleLiveSync.ViewModels
                         _winSyncStatus.Owner = _mainWindow;
                         _winSyncStatus.Show();
                     }
+
+                    // Clear the sync status messages in the status area
+                    _eventMessageReceiver.ClearStatusMessages();
                 }
             }
             catch (Exception ex)
@@ -1487,14 +1493,6 @@ namespace SampleLiveSync.ViewModels
             {
                 lock (_locker)
                 {
-                    if (_winSyncStatus != null)
-                    {
-                        _winSyncStatus.DataContext = null;
-                        _winSyncStatus.AllowClose = true;
-                        _winSyncStatus.Close();
-                        _winSyncStatus = null;
-                    }
-
                     if (_syncbox != null)
                     {
                         SetSyncboxStartedState(isStartedStateToSet: false);
@@ -1549,6 +1547,15 @@ namespace SampleLiveSync.ViewModels
                 {
                     // Stop syncing if it has been started.
                     StopSyncing();
+
+                    // Close the sync status window.
+                    if (_winSyncStatus != null)
+                    {
+                        _winSyncStatus.DataContext = null;
+                        _winSyncStatus.AllowClose = true;
+                        _winSyncStatus.Close();
+                        _winSyncStatus = null;
+                    }
 
                     // Kill constant scheduling threads which run forever and prevent application shutdown.
                     CLSyncbox.Shutdown();

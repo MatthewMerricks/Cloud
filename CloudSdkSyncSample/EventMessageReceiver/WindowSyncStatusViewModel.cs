@@ -223,7 +223,7 @@ namespace SampleLiveSync.EventMessageReceiver
                     {
                         break;
                     }
-                    
+
                     lock (thisReceiver.UploadEventIdToQueuedUpdateParameters)
                     {
                         if (thisReceiver.UploadEventIdToQueuedUpdateParameters.Count == 0)
@@ -295,7 +295,7 @@ namespace SampleLiveSync.EventMessageReceiver
                     {
                         break;
                     }
-                    
+
                     lock (thisReceiver.DownloadEventIdToQueuedUpdateParameters)
                     {
                         if (thisReceiver.DownloadEventIdToQueuedUpdateParameters.Count == 0)
@@ -635,6 +635,25 @@ namespace SampleLiveSync.EventMessageReceiver
             this.ImportanceFilterNonErrors = ImportanceFilterNonErrors;
             this.ImportanceFilterErrors = ImportanceFilterErrors;
         }
+        #endregion
+
+        #region public methods
+
+        /// <summary>
+        /// Call this method to clear the status messages
+        /// </summary>
+        public void ClearStatusMessages()
+        {
+            if (Dispatcher.CurrentDispatcher == Application.Current.Dispatcher)
+            {
+                ListMessages.Clear();
+            }
+            else
+            {
+                Application.Current.Dispatcher.BeginInvoke((Action)(() => ClearStatusMessages()));
+            }
+        }
+
         #endregion
 
         // code to dispose partial class portion for WindowSyncStatusViewModel
