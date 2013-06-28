@@ -1690,7 +1690,6 @@ namespace Cloud.FileMonitor
                     // initial indexing finds \A, queues for queuing
                     // after initial indexing but before processing indexed values, \A\B is added
                     // ChangesQueueForInitialIndexing[0] -> folder create \A\B
-                    // 
 
                     // dequeue through the list of file system events that were queued during initial indexing
                     while (ChangesQueueForInitialIndexing.Count > 0)
