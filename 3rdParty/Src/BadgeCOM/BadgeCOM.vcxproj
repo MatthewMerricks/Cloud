@@ -172,6 +172,7 @@
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;version.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)..\..\..\3rdParty\bin\Release\Boost_1_52</AdditionalLibraryDirectories>
+      <TypeLibraryFile>$(OutDir)BadgeCom.tlb</TypeLibraryFile>
     </Link>
     <PostBuildEvent>
       <Command>echo ************  START POST BUILD STEP **********************
@@ -927,6 +928,7 @@ echo ************  POST BUILD STEP COMPLETED OK **********************
       <RegisterOutput>false</RegisterOutput>
       <AdditionalDependencies>Psapi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;;version.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)..\..\..\3rdParty\bin\Release64\Boost_1_52</AdditionalLibraryDirectories>
+      <TypeLibraryFile>$(OutDir)BadgeCom.tlb</TypeLibraryFile>
     </Link>
     <PostBuildEvent>
       <Command>echo ************  START POST BUILD STEPS **********************

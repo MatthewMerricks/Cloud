@@ -31,6 +31,7 @@
 #include <boost/functional/hash.hpp>
 #include "Trace.h"
 #include "BadgeCOM_i.h"
+#include "dllmain.h"
 
 #if defined(_WIN32_WCE) && !defined(_CE_DCOM) && !defined(_CE_ALLOW_SINGLE_THREADED_OBJECTS_IN_MTA)
 #error "Single-threaded COM objects are not properly supported on Windows CE platform, such as the Windows Mobile platforms that do not include full DCOM support. Define _CE_ALLOW_SINGLE_THREADED_OBJECTS_IN_MTA to force ATL to support creating single-thread COM object's and allow use of it's single-threaded COM object implementations. The threading model in your rgs file was set to 'Free' as that is the only threading model supported in non DCOM Windows CE platforms."
@@ -64,7 +65,16 @@ public:
 	{
 	}
 
-DECLARE_REGISTRY_RESOURCEID(IDR_PUBSUBSERVER)
+	// Default implementation does not pass _ATL_REGMAP_ENTRY array used in:
+	//DECLARE_REGISTRY_RESOURCEID(IDR_PUBSUBSERVER)
+	// Instead, call UpdateRegistry and pass in some substitutable parameters
+	static HRESULT WINAPI UpdateRegistry(BOOL bRegister)
+	{
+		return _AtlModule.UpdateRegistryFromResource(IDR_PUBSUBSERVER, bRegister, RegEntries);
+	}
+
+
+
 
 
 BEGIN_COM_MAP(CPubSubServer)

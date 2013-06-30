@@ -2,16 +2,16 @@ HKCR
 {
 	BadgeCOM.BadgeIconFailed.1 = s 'BadgeIconFailed Class'
 	{
-		CLSID = s '{49C685C9-CD72-4588-8800-2B30C49723A1}'
+		CLSID = s '%IconFailedGuid%'
 	}
 	BadgeCOM.BadgeIconFailed = s 'BadgeIconFailed Class'
 	{
-		CLSID = s '{49C685C9-CD72-4588-8800-2B30C49723A1}'
+		CLSID = s '%IconFailedGuid%'
 		CurVew = s 'BadgeCOM.BadgeIconFailed.1'
 	}
 	NoRemove CLSID
 	{
-		ForceRemove {49C685C9-CD72-4588-8800-2B30C49723A1} = s 'BadgeIconFailed Class'
+		ForceRemove %IconFailedGuid% = s 'BadgeIconFailed Class'
 		{
 			ProgID = s 'BadgeCOM.BadgeIconFailed.1'
 			VersionIndependentProgID = s 'BadgeCOM.BadgeIconFailed'
@@ -21,7 +21,7 @@ HKCR
 				val ThreadingModel = s 'Apartment'
 			}
 			val AppID = s '%APPID%'
-			TypeLib = s '{B0E0EEB6-3C6D-4F7A-90AE-A0C285F4D8C1}'
+			TypeLib = s '%TypeLibGuid%'
 			Version = s '1.0'
 		}
 	}
@@ -41,7 +41,7 @@ HKLM
           {
             NoRemove ShellIconOverlayIdentifiers
             {
-              ForceRemove BadgeIconFailed = s '{49C685C9-CD72-4588-8800-2B30C49723A1}'
+              ForceRemove BadgeIconFailed = s '%IconFailedGuid%'
               {
               }
             }
