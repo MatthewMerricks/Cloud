@@ -2250,6 +2250,15 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to An error occurred updating the syncbox path in the database index.
+        /// </summary>
+        internal static string ExceptionCLSyncEngineUpdatePath {
+            get {
+                return ResourceManager.GetString("ExceptionCLSyncEngineUpdatePath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Oops. We&apos;re sorry, it seems like something went wrong while creating your account.  The error code is {0}..
         /// </summary>
         internal static string ExceptionCreatingUserRegistrationWithCode {

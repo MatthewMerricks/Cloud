@@ -3475,4 +3475,8 @@
     <value>server returned null response Syncbox Quota_Usage</value>
     <comment>"Syncbox" and "Quota_Usage" should not be translated</comment>
   </data>
+  <data name="ExceptionCLSyncEngineUpdatePath" xml:space="preserve">
+    <value>An error occurred updating the syncbox path in the database index</value>
+    <comment>syncbox should not be translated</comment>
+  </data>
 </root>

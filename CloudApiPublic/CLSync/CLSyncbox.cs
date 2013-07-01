@@ -186,7 +186,7 @@ namespace Cloud
         #endregion  // end Private Fields
 
         #region Internal properties
-	// \cond
+        // \cond
         /// <summary>
         /// Internal client for passing HTTP REST calls to the server
         /// </summary>
@@ -351,14 +351,28 @@ namespace Cloud
         {
             get
             {
-                _propertyChangeLocker.EnterReadLock();
+                try
+                {
+                    _propertyChangeLocker.EnterReadLock();
+                }
+                catch
+                {
+                    return _storagePlanId;
+                }
+
                 try
                 {
                     return _storagePlanId;
                 }
                 finally
                 {
-                    _propertyChangeLocker.ExitReadLock();
+                    try
+                    {
+                        _propertyChangeLocker.ExitReadLock();
+                    }
+                    catch
+                    {
+                    }
                 }
             }
         }
@@ -371,14 +385,28 @@ namespace Cloud
         {
             get
             {
-                _propertyChangeLocker.EnterReadLock();
+                try
+                {
+                    _propertyChangeLocker.EnterReadLock();
+                }
+                catch
+                {
+                    return _createdDate;
+                }
+
                 try
                 {
                     return _createdDate;
                 }
                 finally
                 {
-                    _propertyChangeLocker.ExitReadLock();
+                    try
+                    {
+                        _propertyChangeLocker.ExitReadLock();
+                    }
+                    catch
+                    {
+                    }
                 }
             }
         }
@@ -391,14 +419,28 @@ namespace Cloud
         {
             get
             {
-                _propertyChangeLocker.EnterReadLock();
+                try
+                {
+                    _propertyChangeLocker.EnterReadLock();
+                }
+                catch
+                {
+                    return _quotaUsage;
+                }
+
                 try
                 {
                     return _quotaUsage;
                 }
                 finally
                 {
-                    _propertyChangeLocker.ExitReadLock();
+                    try
+                    {
+                        _propertyChangeLocker.ExitReadLock();
+                    }
+                    catch
+                    {
+                    }
                 }
             }
         }
@@ -411,14 +453,28 @@ namespace Cloud
         {
             get
             {
-                _propertyChangeLocker.EnterReadLock();
+                try
+                {
+                    _propertyChangeLocker.EnterReadLock();
+                }
+                catch
+                {
+                    return _storageQuota;
+                }
+
                 try
                 {
                     return _storageQuota;
                 }
                 finally
                 {
-                    _propertyChangeLocker.ExitReadLock();
+                    try
+                    {
+                        _propertyChangeLocker.ExitReadLock();
+                    }
+                    catch
+                    {
+                    }
                 }
             }
         }
@@ -451,14 +507,15 @@ namespace Cloud
         #endregion  // end Public Properties
 
         #region Public Events
-        
+
+        // &&&& Todo: change all events to use the MessageEvents.cs format for event handler delegates since C# events are inherently not thread-safe
         /// <summary>
         /// Event fired when a serious notification error has occurred.  Push notification is
         /// no longer functional.
         /// </summary>
         public event EventHandler<NotificationErrorEventArgs> PushNotificationError;
 
-       #endregion  // end Public Events
+        #endregion  // end Public Events
 
         #region Private Constructors
 
@@ -533,7 +590,7 @@ namespace Cloud
                 //}
                 //else
                 //{
-                    setPathLocker = null;
+                setPathLocker = null;
                 //}
 
                 // Subscribe to the live sync events if the user wants them.
@@ -650,8 +707,6 @@ namespace Cloud
             Helpers.ReplaceExpiredCredentials getNewCredentialsCallback = null,
             object getNewCredentialsCallbackUserState = null)
         {
-            Helpers.CheckHalted();
-
             var asyncThread = DelegateAndDataHolderBase.Create(
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
                 new
@@ -718,7 +773,6 @@ namespace Cloud
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public static CLError EndAllocAndInit(IAsyncResult asyncResult, out SyncboxAllocAndInitResult result)
         {
-            Helpers.CheckHalted();
             return Helpers.EndAsyncOperation<SyncboxAllocAndInitResult>(asyncResult, out result);
         }
 
@@ -744,10 +798,10 @@ namespace Cloud
             Helpers.ReplaceExpiredCredentials getNewCredentialsCallback = null,
             object getNewCredentialsCallbackUserState = null)
         {
-            Helpers.CheckHalted();
-
             try
             {
+                Helpers.CheckHalted();
+
                 // Fix up the path.  Use String.Empty if the user passed null.
                 if (path == null)
                 {
@@ -793,55 +847,15 @@ namespace Cloud
                 System.Threading.WaitCallback syncStatusChangedCallback = null,
                 object syncStatusChangedCallbackUserState = null)
         {
-            CheckDisposed();
-
             bool startExceptionLogged = false;
 
             try
             {
+                CheckDisposed();
+
                 lock (_startLocker)
                 {
-                    if (String.IsNullOrEmpty(this.Path))
-                    {
-                        throw new CLInvalidOperationException(CLExceptionCode.Syncing_LiveSyncEngine, Resources.CLHttpRestSyncboxBadPath);
-                    }
-                    else
-                    {
-                        CLError syncRootError = Helpers.CheckForBadPath(this.Path);
-                        if (syncRootError != null)
-                        {
-                            throw new CLInvalidOperationException(CLExceptionCode.Syncing_LiveSyncEngine, Resources.CLHttpRestSyncboxBadPath, syncRootError.Exceptions);
-                        }
-                    }
-
-                    if (_isStarted)
-                    {
-                        throw new CLInvalidOperationException(CLExceptionCode.Syncbox_AlreadyStarted, Resources.CLSyncEngineAlreadyStarted);
-                    }
-
-                    if (this._syncEngine != null)
-                    {
-                        throw new CLInvalidOperationException(CLExceptionCode.Syncbox_AlreadyStarted, Resources.ExceptionCLSyncboxBeginSyncExistingEngine);
-                    }
-
-                    bool debugDependenciesValue;
-                    lock (debugDependencies)
-                    {
-                        debugDependenciesValue = debugDependencies.Value;
-                    }
-                    bool copyDatabaseBetweenChangesValue;
-                    lock (copyDatabaseBetweenChanges)
-                    {
-                        copyDatabaseBetweenChangesValue = copyDatabaseBetweenChanges.Value;
-                    }
-                    bool debugFileMonitorMemoryValue;
-                    lock (debugFileMonitorMemory)
-                    {
-                        debugFileMonitorMemoryValue = debugFileMonitorMemory.Value;
-                    }
-
-                    // Create the sync engine for this syncbox instance
-                    _syncEngine = new CLSyncEngine(this, debugDependenciesValue, copyDatabaseBetweenChangesValue, debugFileMonitorMemoryValue); // syncbox to sync (contains required settings)
+                    _syncEngine = SyncEngineChecksAndCreation();
 
                     Nullable<long> copyStorageQuota;
                     long copyQuotaUsage;
@@ -991,42 +1005,16 @@ namespace Cloud
         /// </summary>
         public CLError ResetLocalCache()
         {
-            CheckDisposed();
-
             bool resetSyncErrorLogged = false;
 
             try
             {
+                CheckDisposed();
+
                 lock (_startLocker)
                 {
-                    if (_isStarted)
-                    {
-                        throw new CLInvalidOperationException(CLExceptionCode.Syncbox_AlreadyStarted, Resources.ExceptionCLSyncboxResetLocalCacheAlreadyStarted);
-                    }
-
-                    if (_syncEngine != null)
-                    {
-                        throw new CLInvalidOperationException(CLExceptionCode.Syncbox_AlreadyStarted, Resources.ExceptionCLSyncboxBeginSyncExistingEngine);
-                    }
-
-                    bool debugDependenciesValue;
-                    lock (debugDependencies)
-                    {
-                        debugDependenciesValue = debugDependencies.Value;
-                    }
-                    bool copyDatabaseBetweenChangesValue;
-                    lock (copyDatabaseBetweenChanges)
-                    {
-                        copyDatabaseBetweenChangesValue = copyDatabaseBetweenChanges.Value;
-                    }
-                    bool debugFileMonitorMemoryValue;
-                    lock (debugFileMonitorMemory)
-                    {
-                        debugFileMonitorMemoryValue = debugFileMonitorMemory.Value;
-                    }
-
                     // Create the sync engine for this syncbox instance
-                    CLSyncEngine tempSyncEngine = new CLSyncEngine(this, debugDependenciesValue, copyDatabaseBetweenChangesValue, debugFileMonitorMemoryValue); // syncbox to sync (contains required settings)
+                    CLSyncEngine tempSyncEngine = SyncEngineChecksAndCreation(skipPathChecks: true);
 
                     // Reset the sync engine
                     CLError resetSyncError = tempSyncEngine.SyncReset(this);
@@ -1059,10 +1047,10 @@ namespace Cloud
         /// <returns>Returns any error which occurred in retrieving the sync status, if any</returns>
         public CLError GetSyncCurrentStatus(out CLSyncCurrentStatus status)
         {
-            CheckDisposed();
-
             try
             {
+                CheckDisposed();
+
                 if (Helpers.AllHaltedOnUnrecoverableError)
                 {
                     throw new CLInvalidOperationException(CLExceptionCode.Syncbox_Initializing, Resources.CLCredentialHelpersAllHaltedOnUnrecoverableErrorIsSet);
@@ -1195,8 +1183,6 @@ namespace Cloud
                     Helpers.ReplaceExpiredCredentials getNewCredentialsCallback = null,
                     object getNewCredentialsCallbackUserState = null)
         {
-            Helpers.CheckHalted();
-
             var asyncThread = DelegateAndDataHolderBase.Create(
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
                 new
@@ -1235,7 +1221,7 @@ namespace Cloud
                         Data.toReturn.Complete(
                             new CreateSyncboxResult(
                                 processError,  // any error that may have occurred during processing
-                                syncbox), 
+                                syncbox),
                             sCompleted: false); // processing did not complete synchronously
                     }
                     catch (Exception ex)
@@ -1290,11 +1276,11 @@ namespace Cloud
                     Helpers.ReplaceExpiredCredentials getNewCredentialsCallback = null,
                     object getNewCredentialsCallbackUserState = null)
         {
-            Helpers.CheckHalted();
-
             // try/catch to process the metadata query, on catch return the error
             try
             {
+                Helpers.CheckHalted();
+
                 // Check the input parameters.
                 if (plan == null)
                 {
@@ -1336,7 +1322,7 @@ namespace Cloud
                     validStatusCodes: Helpers.HttpStatusesOkAccepted,
                     CopiedSettings: copiedSettings,
                     Credentials: credentials,
-                    Syncbox: null, 
+                    Syncbox: null,
                     isOneOff: false);
 
                 // Check the server response.
@@ -1350,7 +1336,7 @@ namespace Cloud
                 }
 
                 // Convert the response object to a CLSyncbox and return that.
-                syncbox =  new CLSyncbox(
+                syncbox = new CLSyncbox(
                     syncboxContract: responseFromServer.Syncbox,
                     credentials: credentials,
                     settings: copiedSettings,
@@ -1390,8 +1376,6 @@ namespace Cloud
             CLCredentials credentials,
             ICLCredentialsSettings settings = null)
         {
-            Helpers.CheckHalted();
-
             var asyncThread = DelegateAndDataHolderBase.Create(
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
                 new
@@ -1461,11 +1445,11 @@ namespace Cloud
                     CLCredentials credentials,
                     ICLCredentialsSettings settings = null)
         {
-            Helpers.CheckHalted();
-
             // try/catch to process the query, on catch return the error
             try
             {
+                Helpers.CheckHalted();
+
                 // copy settings so they don't change while processing; this also defaults some values
                 ICLSyncSettingsAdvanced copiedSettings = (settings == null
                     ? AdvancedSyncSettings.CreateDefaultSettings()
@@ -1488,7 +1472,7 @@ namespace Cloud
                     validStatusCodes: Helpers.HttpStatusesOkAccepted,
                     CopiedSettings: copiedSettings,
                     Credentials: credentials,
-                    Syncbox: null, 
+                    Syncbox: null,
                     isOneOff: false);
 
                 // Check the server response.
@@ -1537,8 +1521,6 @@ namespace Cloud
             Helpers.ReplaceExpiredCredentials getNewCredentialsCallback = null,
             object getNewCredentialsCallbackUserState = null)
         {
-            Helpers.CheckHalted();
-
             var asyncThread = DelegateAndDataHolderBase.Create(
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
                 new
@@ -1600,7 +1582,6 @@ namespace Cloud
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public static CLError EndListAllSyncboxes(IAsyncResult asyncResult, out SyncboxListResult result)
         {
-            Helpers.CheckHalted();
             return Helpers.EndAsyncOperation<SyncboxListResult>(asyncResult, out result);
         }
 
@@ -1623,11 +1604,11 @@ namespace Cloud
             Helpers.ReplaceExpiredCredentials getNewCredentialsCallback = null,
             object getNewCredentialsCallbackUserState = null)
         {
-            Helpers.CheckHalted();
-
             // try/catch to process the query, on catch return the error
             try
             {
+                Helpers.CheckHalted();
+
                 // copy settings so they don't change while processing; this also defaults some values
                 ICLSyncSettingsAdvanced copiedSettings = (settings == null
                     ? AdvancedSyncSettings.CreateDefaultSettings()
@@ -1645,7 +1626,7 @@ namespace Cloud
                     validStatusCodes: Helpers.HttpStatusesOkAccepted,
                     CopiedSettings: copiedSettings,
                     Credentials: credentials,
-                    Syncbox: null, 
+                    Syncbox: null,
                     isOneOff: false);
 
                 // Convert the server response to a list of initialized CLSyncboxes.
@@ -1693,15 +1674,45 @@ namespace Cloud
         #region Public Instance Methods
 
         /// <summary>
+        /// Call this when the location of the syncbox folder has changed (while live syncing is stopped) to update the entire index to all new paths based in the new root folder.
+        /// This syncbox should have been created with the old path before the move/rename.
+        /// </summary>
+        /// <param name="newPath"></param>
+        /// <returns>Returns the error which occurred, if any.</returns>
+        public CLError UpdatePath(string newPath)
+        {
+            try
+            {
+                CheckDisposed();
+
+                CLSyncEngine pathUpdateEngine = SyncEngineChecksAndCreation();
+
+                return pathUpdateEngine.UpdatePath(this, newPath);
+            }
+            catch (Exception ex)
+            {
+                return ex;
+            }
+        }
+
+        /// <summary>
         /// Update the credentials for this syncbox.
         /// </summary>
         /// <param name="credentials">The new credentials.</param>
-        /// <returns>Nothing</returns>
-        public void UpdateCredentials(CLCredentials credentials)
+        /// <returns>Any error which occurred, if any.</returns>
+        public CLError UpdateCredentials(CLCredentials credentials)
         {
-            CheckDisposed();
+            try
+            {
+                CheckDisposed();
 
-            Credentials = credentials;
+                Credentials = credentials;
+            }
+            catch (Exception ex)
+            {
+                return ex;
+            }
+            return null;
         }
 
         #endregion // end Public Instance Methods
@@ -1717,9 +1728,12 @@ namespace Cloud
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginRootFolder(AsyncCallback asyncCallback, object asyncCallbackUserState)
         {
-            CheckDisposed(isOneOff: true);
-
             CLHttpRest httpRestClient;
+            CLError getInstanceError = GetInstanceRestClientAndCheckDisposed(out httpRestClient, isOneOff: true);
+            if (getInstanceError != null)
+            {
+
+            }
             GetInstanceRestClient(out httpRestClient);
             return httpRestClient.BeginItemForPath(asyncCallback, asyncCallbackUserState, (/* '/' */ ((char)0x2f)).ToString());
         }
@@ -1733,8 +1747,6 @@ namespace Cloud
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndRootFolder(IAsyncResult asyncResult, out SyncboxGetItemAtPathResult result)
         {
-            CheckDisposed(isOneOff: true);
-
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
             return httpRestClient.EndItemForPath(asyncResult, out result);
@@ -1748,11 +1760,26 @@ namespace Cloud
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError RootFolder(out CLFileItem item)
         {
-            CheckDisposed(isOneOff: true);
+            try
+            {
+                CheckDisposed(isOneOff: true);
 
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.ItemForPath((/* '/' */ ((char)0x2f)).ToString(), out item);
+                CLHttpRest httpRestClient;
+
+                CLError getInstanceError = GetInstanceRestClient(out httpRestClient);
+                if (getInstanceError != null)
+                {
+                    item = Helpers.DefaultForType<CLFileItem>();
+                    return getInstanceError;
+                }
+
+                return httpRestClient.ItemForPath((/* '/' */ ((char)0x2f)).ToString(), out item);
+            }
+            catch (Exception ex)
+            {
+                item = Helpers.DefaultForType<CLFileItem>();
+                return ex;
+            }
         }
 
         #endregion  // end RootFolder (Queries the syncbox for the item at the root path)
@@ -1820,8 +1847,8 @@ namespace Cloud
         /// <param name="relativePath">Relative path in the syncbox.</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
         public IAsyncResult BeginItemForPath(
-            AsyncCallback asyncCallback, 
-            object asyncCallbackUserState, 
+            AsyncCallback asyncCallback,
+            object asyncCallbackUserState,
             string relativePath)
         {
             CheckDisposed(isOneOff: true);
@@ -2223,10 +2250,10 @@ namespace Cloud
         /// <param name="itemsToMove">One or more pairs of item to move and a folder item representing the new parent of the item being moved.</param>
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginMoveFiles(
-            AsyncCallback asyncCallback, 
-            object asyncCallbackUserState, 
-            CLFileItemCompletionCallback itemCompletionCallback, 
-            object itemCompletionCallbackUserState, 
+            AsyncCallback asyncCallback,
+            object asyncCallbackUserState,
+            CLFileItemCompletionCallback itemCompletionCallback,
+            object itemCompletionCallbackUserState,
             params MoveItemParams[] itemsToMove)
         {
             CheckDisposed(isOneOff: true);
@@ -2596,7 +2623,6 @@ namespace Cloud
         /// <param name="itemCompletionCallbackUserState">User state to be passed whenever the item completion callback above is fired.</param>
         /// <param name="transferStatusCallback">Callback method which will be fired when the transfer progress changes for upload.  Can be null</param>
         /// <param name="transferStatusCallbackUserState">User state to be passed whenever the transfer progress callback is fired.  Can be null.</param>
-        /// <param name="cancellationSource">An optional cancellation token which may be used to cancel uploads in progress immediately.  Can be null</param>
         /// <param name="filesToAdd">(params) An array of information for each file to add (full path of the file, parent folder in the syncbox and the name of the file in the syncbox).</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError AddFiles(
@@ -2604,14 +2630,13 @@ namespace Cloud
             object itemCompletionCallbackUserState,
             CLFileUploadTransferStatusCallback transferStatusCallback,
             object transferStatusCallbackUserState,
-            CancellationTokenSource cancellationSource,
             params AddFileItemParams[] filesToAdd)
         {
             CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.AddFiles(ReservedForActiveSync, itemCompletionCallback, itemCompletionCallbackUserState, transferStatusCallback, transferStatusCallbackUserState, cancellationSource, filesToAdd);
+            return httpRestClient.AddFiles(ReservedForActiveSync, itemCompletionCallback, itemCompletionCallbackUserState, transferStatusCallback, transferStatusCallbackUserState, filesToAdd);
         }
 
         #endregion  // end AddFiles (Adds files to the syncbox)
@@ -2669,7 +2694,6 @@ namespace Cloud
         /// <param name="itemCompletionCallbackUserState">User state to be passed whenever the item completion callback above is fired.</param>
         /// <param name="transferStatusCallback">Callback method which will be fired when the transfer progress changes for upload.  Can be null</param>
         /// <param name="transferStatusCallbackUserState">User state to be passed whenever the transfer progress callback is fired.  Can be null.</param>
-        /// <param name="cancellationSource">An optional cancellation token which may be used to cancel uploads in progress immediately.  Can be null</param>
         /// <param name="filesToModify">(params) An array of CLFileItems to modify.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError ModifyFiles(
@@ -2677,14 +2701,13 @@ namespace Cloud
             object itemCompletionCallbackUserState,
             CLFileUploadTransferStatusCallback transferStatusCallback,
             object transferStatusCallbackUserState,
-            CancellationTokenSource cancellationSource,
             params ModifyFileItemParams[] filesToModify)
         {
             CheckDisposed(isOneOff: true);
 
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.ModifyFiles(ReservedForActiveSync, itemCompletionCallback, itemCompletionCallbackUserState, transferStatusCallback, transferStatusCallbackUserState, cancellationSource, filesToModify);
+            return httpRestClient.ModifyFiles(ReservedForActiveSync, itemCompletionCallback, itemCompletionCallbackUserState, transferStatusCallback, transferStatusCallbackUserState, filesToModify);
         }
 
         #endregion  // end AddFiles (Adds files to the syncbox)
@@ -3580,7 +3603,7 @@ namespace Cloud
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
             return httpRestClient.BeginGetDataUsage(
-                asyncCallback, 
+                asyncCallback,
                 asyncCallbackUserState,
                 new Action<JsonContracts.SyncboxUsageResponse, object>(OnGetDataUsageCompletion),
                 this);
@@ -3744,9 +3767,9 @@ namespace Cloud
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
             return httpRestClient.BeginUpdateStoragePlan(
-                asyncCallback, 
-                asyncCallbackUserState, 
-                new Action<JsonContracts.SyncboxUpdateStoragePlanResponse, object>(OnUpdateStoragePlanCompletion), 
+                asyncCallback,
+                asyncCallbackUserState,
+                new Action<JsonContracts.SyncboxUpdateStoragePlanResponse, object>(OnUpdateStoragePlanCompletion),
                 this,
                 ReservedForActiveSync,
                 storagePlan);
@@ -3781,7 +3804,7 @@ namespace Cloud
             CLHttpRest httpRestClient;
             GetInstanceRestClient(out httpRestClient);
             return httpRestClient.UpdateStoragePlan(
-                new Action<JsonContracts.SyncboxUpdateStoragePlanResponse, object>(OnUpdateStoragePlanCompletion), 
+                new Action<JsonContracts.SyncboxUpdateStoragePlanResponse, object>(OnUpdateStoragePlanCompletion),
                 this,
                 ReservedForActiveSync,
                 storagePlan);
@@ -3906,7 +3929,7 @@ namespace Cloud
             GetInstanceRestClient(out httpRestClient);
             return httpRestClient.BeginGetCurrentStatus(asyncCallback, asyncCallbackUserState, new Action<JsonContracts.SyncboxStatusResponse, object>(OnStatusCompletion), this);
         }
-        
+
         /// <summary>
         /// Finishes the asynchronous request, if it has not already finished via its asynchronous result, and outputs the result,
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error).
@@ -4030,12 +4053,79 @@ namespace Cloud
 
         #region Private Instance Support Functions
 
+        private CLError GetInstanceRestClientAndCheckDisposed(out CLHttpRest httpRestClient, bool isOneOff = false)
+        {
+            try
+            {
+                CheckDisposed(isOneOff: isOneOff);
+
+                return GetInstanceRestClient(out httpRestClient);
+            }
+            catch (Exception ex)
+            {
+                httpRestClient = Helpers.DefaultForType<CLHttpRest>();
+                return ex;
+            }
+        }
+
+        /// <summary>
+        /// Creates a CLSyncEngine which is used to either start/stop syncing, to update path, or to wipe the database
+        /// </summary>
+        /// <returns>Returns the created engine</returns>
+        private CLSyncEngine SyncEngineChecksAndCreation(bool skipPathChecks = false)
+        {
+            if (!skipPathChecks)
+            {
+                if (String.IsNullOrEmpty(this.Path))
+                {
+                    throw new CLInvalidOperationException(CLExceptionCode.Syncing_LiveSyncEngine, Resources.CLHttpRestSyncboxBadPath);
+                }
+                else
+                {
+                    CLError syncRootError = Helpers.CheckForBadPath(this.Path);
+                    if (syncRootError != null)
+                    {
+                        throw new CLInvalidOperationException(CLExceptionCode.Syncing_LiveSyncEngine, Resources.CLHttpRestSyncboxBadPath, syncRootError.Exceptions);
+                    }
+                }
+            }
+
+            if (_isStarted)
+            {
+                throw new CLInvalidOperationException(CLExceptionCode.Syncbox_AlreadyStarted, Resources.CLSyncEngineAlreadyStarted);
+            }
+
+            if (this._syncEngine != null)
+            {
+                throw new CLInvalidOperationException(CLExceptionCode.Syncbox_AlreadyStarted, Resources.ExceptionCLSyncboxBeginSyncExistingEngine);
+            }
+
+            bool debugDependenciesValue;
+            lock (debugDependencies)
+            {
+                debugDependenciesValue = debugDependencies.Value;
+            }
+            bool copyDatabaseBetweenChangesValue;
+            lock (copyDatabaseBetweenChanges)
+            {
+                copyDatabaseBetweenChangesValue = copyDatabaseBetweenChanges.Value;
+            }
+            bool debugFileMonitorMemoryValue;
+            lock (debugFileMonitorMemory)
+            {
+                debugFileMonitorMemoryValue = debugFileMonitorMemory.Value;
+            }
+
+            // Create the sync engine for this syncbox instance
+            return new CLSyncEngine(this, debugDependenciesValue, copyDatabaseBetweenChangesValue, debugFileMonitorMemoryValue); // syncbox to sync (contains required settings)
+        }
+
         /// <summary>
         /// Get this syncbox's instance variables which were set via UpdatePathInternal.  Throws if anything is null.
         /// </summary>
         /// <param name="path">(output) The syncbox path.</param>
         /// <param name="httpRestClient">(output) The HTTP REST client.</param>
-        private void GetInstanceVariables(out string path, out CLHttpRest httpRestClient)
+        private CLError GetInstanceVariables(out string path, out CLHttpRest httpRestClient)
         {
             if (setPathLocker != null)
             {
@@ -4057,7 +4147,7 @@ namespace Cloud
             {
                 path = null;
                 httpRestClient = null;
-                throw ex;
+                return ex;
             }
             finally
             {
@@ -4066,13 +4156,14 @@ namespace Cloud
                     Monitor.Exit(setPathLocker);
                 }
             }
+            return null;
         }
 
         /// <summary>
         /// Get this syncbox's HTTP REST instance.  Throws if null.
         /// </summary>
         /// <param name="httpRestClient">(output) The HTTP REST client.</param>
-        private void GetInstanceRestClient(out CLHttpRest httpRestClient)
+        private CLError GetInstanceRestClient(out CLHttpRest httpRestClient)
         {
             if (setPathLocker != null)
             {
@@ -4091,7 +4182,7 @@ namespace Cloud
             catch (Exception ex)
             {
                 httpRestClient = null;
-                throw ex;
+                return ex;
             }
             finally
             {
@@ -4100,6 +4191,7 @@ namespace Cloud
                     Monitor.Exit(setPathLocker);
                 }
             }
+            return null;
         }
 
         /// <summary>
@@ -4110,11 +4202,18 @@ namespace Cloud
         /// if called by constructors to create the CLHttpRest client, fill in missing information from the server, and to create an instance of CLSyncEngine that will
         /// be used by this syncbox instance.
         /// </summary>
-        private void InitializeInternal(string path, bool shouldUpdateSyncboxStatusFromServer)
+        private CLError InitializeInternal(string path, bool shouldUpdateSyncboxStatusFromServer)
         {
-            if (path == null)
+            try
             {
-                throw new CLArgumentNullException(CLExceptionCode.Syncbox_BadPath, Resources.ExceptionSyncboxPathMustNotBeNull);
+                if (path == null)
+                {
+                    throw new CLArgumentNullException(CLExceptionCode.Syncbox_BadPath, Resources.ExceptionSyncboxPathMustNotBeNull);
+                }
+            }
+            catch (Exception ex)
+            {
+                return ex;
             }
 
             if (setPathLocker != null)
@@ -4122,10 +4221,22 @@ namespace Cloud
                 Monitor.Enter(setPathLocker);
             }
 
-            // seperate this try/catch just for throwing the Syncbox_PathAlreadySet code since cleanup on the following try/catch should not cleanup an already initialized syncbox
-            if (setPathHolder != null)
+            try
             {
-                throw new CLException(CLExceptionCode.Syncbox_PathAlreadySet, Resources.ExceptionOnDemandSyncboxPathAlreadySet);
+                // seperate this try/catch just for throwing the Syncbox_PathAlreadySet code since cleanup on the following try/catch should not cleanup an already initialized syncbox
+                if (setPathHolder != null)
+                {
+                    throw new CLException(CLExceptionCode.Syncbox_PathAlreadySet, Resources.ExceptionOnDemandSyncboxPathAlreadySet);
+                }
+            }
+            catch (Exception ex)
+            {
+                if (setPathLocker != null)
+                {
+                    Monitor.Exit(setPathLocker);
+                }
+
+                return ex;
             }
 
             try
@@ -4185,7 +4296,7 @@ namespace Cloud
 
                     throw new CLNullReferenceException(CLExceptionCode.Syncbox_CreateRestClient, nullRestClient);
                 }
-                
+
                 // after removing CLSyncEngine from SetPathProperties, can now set the final setPathHolder here
                 setPathHolder = new SetPathProperties(path, localRestClient);
 
@@ -4218,7 +4329,7 @@ namespace Cloud
                 // cleanup to allow a repeated attempt to initialize
                 setPathHolder = null;
 
-                throw ex;
+                return ex;
             }
             finally
             {
@@ -4227,6 +4338,8 @@ namespace Cloud
                     Monitor.Exit(setPathLocker);
                 }
             }
+
+            return null;
         }
         // \cond
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)] //Hide From Intellisense
@@ -4262,7 +4375,7 @@ namespace Cloud
             return false;
         }
         // \endcond
-        
+
         // \cond
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)] //Hide From Intellisense
         public void ResetReserveForActiveSync()

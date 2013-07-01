@@ -3509,9 +3509,36 @@ namespace Cloud.REST
                 }
             }
         }
-
+        
         /// <summary>
         /// Add files in the syncbox.  Uploads the files to the Cloud.
+        /// </summary>
+        /// <param name="reservedForActiveSync">true: Live sync is active.  User calls are not allowed.</param>
+        /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
+        /// <param name="itemCompletionCallbackUserState">User state to be passed whenever the item completion callback above is fired.</param>
+        /// <param name="transferStatusCallback">Callback method to fire when transfer status is updated for each active item.  Can be null.</param>
+        /// <param name="transferStatusCallbackUserState">User state to be passed whenever the transfer status callback above is fired.  Can be null.</param>
+        /// <param name="filesToAdd">(params) An array of information for each file to add (full path of the file, parent folder in the syncbox and the name of the file in the syncbox).</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        internal CLError AddFiles(
+            bool reservedForActiveSync,
+            CLFileItemCompletionCallback itemCompletionCallback,
+            object itemCompletionCallbackUserState,
+            CLFileUploadTransferStatusCallback transferStatusCallback,
+            object transferStatusCallbackUserState,
+            params AddFileItemParams[] filesToAdd)
+        {
+            return AddFiles(reservedForActiveSync,
+                itemCompletionCallback,
+                itemCompletionCallbackUserState,
+                transferStatusCallback,
+                transferStatusCallbackUserState,
+                null,
+                filesToAdd);
+        }
+
+        /// <summary>
+        /// Private helper to perform actual operation which takes the additional parameter for cancellationSource. Add files in the syncbox.  Uploads the files to the Cloud.
         /// </summary>
         /// <param name="reservedForActiveSync">true: Live sync is active.  User calls are not allowed.</param>
         /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
@@ -3521,7 +3548,7 @@ namespace Cloud.REST
         /// <param name="cancellationSource">The cancellation token which can be used to cancel the file upload operations.  Can be null.</param>
         /// <param name="filesToAdd">(params) An array of information for each file to add (full path of the file, parent folder in the syncbox and the name of the file in the syncbox).</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        internal CLError AddFiles(
+        private CLError AddFiles(
             bool reservedForActiveSync, 
             CLFileItemCompletionCallback itemCompletionCallback, 
             object itemCompletionCallbackUserState,
@@ -4082,9 +4109,36 @@ namespace Cloud.REST
         {
             return Helpers.EndAsyncOperation<SyncboxModifyFilesResult>(asyncResult, out result);
         }
-
+        
         /// <summary>
         /// Modify files in the syncbox.  Uploads the files to the Cloud.
+        /// </summary>
+        /// <param name="reservedForActiveSync">true: Live sync is active.  User calls are not allowed.</param>
+        /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
+        /// <param name="itemCompletionCallbackUserState">User state to be passed whenever the item completion callback above is fired.</param>
+        /// <param name="transferStatusCallback">Callback method to fire when transfer status is updated for each active item.  Can be null.</param>
+        /// <param name="transferStatusCallbackUserState">User state to be passed whenever the transfer status callback above is fired.  Can be null.</param>
+        /// <param name="filesToModify">(params) An array of parameters.  Each parameter contains the CLFileItem representing the file in the syncbox, and the full path on disk of the modified file.</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        internal CLError ModifyFiles(
+            bool reservedForActiveSync,
+            CLFileItemCompletionCallback itemCompletionCallback,
+            object itemCompletionCallbackUserState,
+            CLFileUploadTransferStatusCallback transferStatusCallback,
+            object transferStatusCallbackUserState,
+            params ModifyFileItemParams[] filesToModify)
+        {
+            return ModifyFiles(reservedForActiveSync,
+                itemCompletionCallback,
+                itemCompletionCallbackUserState,
+                transferStatusCallback,
+                transferStatusCallbackUserState,
+                null,
+                filesToModify);
+        }
+
+        /// <summary>
+        /// Private helper to perform actual operation which takes the additional parameter for cancellationSource. Modify files in the syncbox.  Uploads the files to the Cloud.
         /// </summary>
         /// <param name="reservedForActiveSync">true: Live sync is active.  User calls are not allowed.</param>
         /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
@@ -4094,7 +4148,7 @@ namespace Cloud.REST
         /// <param name="cancellationSource">The cancellation token which can be used to cancel the file upload operations.  Can be null.</param>
         /// <param name="filesToModify">(params) An array of parameters.  Each parameter contains the CLFileItem representing the file in the syncbox, and the full path on disk of the modified file.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        internal CLError ModifyFiles(
+        private CLError ModifyFiles(
             bool reservedForActiveSync,
             CLFileItemCompletionCallback itemCompletionCallback,
             object itemCompletionCallbackUserState,

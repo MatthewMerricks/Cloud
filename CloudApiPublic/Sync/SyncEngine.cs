@@ -936,6 +936,10 @@ namespace Cloud.Sync
             {
                 // do not fire halt message since disposal is normal
             }
+            catch (CLObjectDisposedException)
+            {
+                // do not fire halt message since disposal is normal
+            }
             catch (Exception ex)
             {
                 MessageEvents.FireNewEventMessage(
@@ -991,6 +995,10 @@ namespace Cloud.Sync
                 }
             }
             catch (ObjectDisposedException)
+            {
+                // do not fire halt message since disposal is normal
+            }
+            catch (CLObjectDisposedException)
             {
                 // do not fire halt message since disposal is normal
             }
@@ -1490,7 +1498,7 @@ namespace Cloud.Sync
                     // check for halted engine to return error
                     if (Data.commonThisEngine.CheckForMaxCommunicationFailuresHalt())
                     {
-                        return new ObjectDisposedException("SyncEngine already halted from server connection failure");
+                        return new CLInvalidOperationException(CLExceptionCode.Syncing_LiveSyncEngine, "SyncEngine already halted from server connection failure");
                     }
 
                     lock (Data.commonThisEngine.CredentialsErrorDetected)
@@ -1498,16 +1506,16 @@ namespace Cloud.Sync
                         switch (Data.commonThisEngine.CredentialsErrorDetected.Value)
                         {
                             case CredentialsErrorType.ExpiredCredentials:
-                                return new ObjectDisposedException("SyncEngine already halted from an expired token");
+                                return new CLInvalidOperationException(CLExceptionCode.Syncing_LiveSyncEngine, "SyncEngine already halted from an expired token");
 
                             case CredentialsErrorType.OtherError:
-                                return new ObjectDisposedException("SyncEngine already halted from authorization credentials error");
+                                return new CLInvalidOperationException(CLExceptionCode.Syncing_LiveSyncEngine, "SyncEngine already halted from authorization credentials error");
 
                             case CredentialsErrorType.NoError:
                                 return null;
 
                             default:
-                                return new InvalidOperationException("SyncEngine credentials error value is of unknown type: " + Data.commonThisEngine.CredentialsErrorDetected.Value.ToString());
+                                return new CLInvalidOperationException(CLExceptionCode.Syncing_LiveSyncEngine, "SyncEngine credentials error value is of unknown type: " + Data.commonThisEngine.CredentialsErrorDetected.Value.ToString());
                         }
                     }
                 },
@@ -1556,7 +1564,7 @@ namespace Cloud.Sync
                         {
                             if (Data.getIsShutdown.TypedProcess())
                             {
-                                throw new ObjectDisposedException("Unable to start new Sync Run, SyncEngine has been shut down");
+                                throw new CLObjectDisposedException(CLExceptionCode.General_Invalid, "Unable to start new Sync Run, SyncEngine has been shut down");
                             }
 
                             // lock on timer for access to failure queue
@@ -4161,7 +4169,7 @@ namespace Cloud.Sync
                         {
                             try
                             {
-                                throw new ObjectDisposedException("Unable to start new Sync Run, SyncEngine has been shut down");
+                                throw new CLObjectDisposedException(CLExceptionCode.General_Invalid, "Unable to start new Sync Run, SyncEngine has been shut down");
                             }
                             catch (Exception ex)
                             {
@@ -4706,7 +4714,7 @@ namespace Cloud.Sync
 
                 if (isShutdown)
                 {
-                    throw new ObjectDisposedException("this", "Sync already shutdown");
+                    throw new CLObjectDisposedException(CLExceptionCode.General_Invalid, "Sync already shutdown");
                 }
 
                 bool halted;
@@ -5570,6 +5578,11 @@ namespace Cloud.Sync
                 // Don't bubble these exceptions because they are normal during shutdown.
                 return new EventIdAndCompletionProcessor(0, null, null, 0);
             }
+            catch (CLObjectDisposedException)
+            {
+                // Don't bubble these exceptions because they are normal during shutdown.
+                return new EventIdAndCompletionProcessor(0, null, null, 0);
+            }
             catch (Exception ex)
             {
                 // Call the StatusUpdate callback to update the summary information for this upload ("center section" of the status window), unless the status messages were already sent by CLHttpRest.UploadFile.
@@ -6284,6 +6297,11 @@ namespace Cloud.Sync
                 return toReturn2;
             }
             catch (ObjectDisposedException)
+            {
+                // Don't bubble these exceptions because they are normal during shutdown.
+                return new EventIdAndCompletionProcessor(0, null, null, 0);
+            }
+            catch (CLObjectDisposedException)
             {
                 // Don't bubble these exceptions because they are normal during shutdown.
                 return new EventIdAndCompletionProcessor(0, null, null, 0);
@@ -7812,6 +7830,11 @@ namespace Cloud.Sync
                                 (currentEventIsRename ? Data.currentEvent.Value.Header.EventId : null));
                             if (queryDatabaseForPath != null)
                             {
+                                if (queryDatabaseForPath.PrimaryException is CLObjectDisposedException)
+                                {
+                                    throw queryDatabaseForPath.PrimaryException;
+                                }
+
                                 throw new AggregateException("Error grabbing path by server uid", queryDatabaseForPath.Exceptions);
                             }
 
@@ -7848,6 +7871,11 @@ namespace Cloud.Sync
                                     (currentEventIsRename ? Data.currentEvent.Value.Header.EventId : null));
                                 if (queryDatabaseForParentPath != null)
                                 {
+                                    if (queryDatabaseForParentPath.PrimaryException is CLObjectDisposedException)
+                                    {
+                                        throw queryDatabaseForParentPath.PrimaryException;
+                                    }
+
                                     throw new AggregateException("Error grabbing parent path for parent folder server uid", queryDatabaseForParentPath.Exceptions);
                                 }
 
