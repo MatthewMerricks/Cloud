@@ -11,6 +11,7 @@
 #include "resource.h"
 #include "BadgeCOM_i.h"
 #include "dllmain.h"
+#include "GuidDefinitions.h"
 
 CBadgeCOMModule _AtlModule;
 
@@ -21,13 +22,13 @@ HINSTANCE g_hBadgeComInstance = NULL;
 // old BadgeCom.dlls that might be in use by apps based on older versions of the SDK.
 ATL::_ATL_REGMAP_ENTRY RegEntries[] = 
 { 
-	{ OLESTR("TypeLibGuid"), L"{312A39BF-EBC2-479E-A953-68FFBF9FB949}"},
-	{ OLESTR("IconSyncedGuid"), L"{88060121-879A-451C-A1C1-A1FD6DDFC00A}"},
-	{ OLESTR("IconSyncingGuid"), L"{C7254266-AFF7-4E10-9C1C-ED5F529A89D7}"},
-	{ OLESTR("IconFailedGuid"), L"{87174DC8-6847-429F-B92B-155870D7A41D}"},
-	{ OLESTR("IconSelectiveGuid"), L"{BF95811A-D7E7-4BA6-98AA-E1ECBBE1F71A}"},
-	{ OLESTR("PubSubServerGuid"), L"{746113DC-BED4-4A7E-A285-2E64C32864D6}"},
-	{ NULL, NULL} 
+	{Def_TypeLib_Name, Def_TypeLib_Guid},
+	{Def_InterfaceIconSynced_Name, Def_InterfaceIconSynced_Guid},
+	{Def_InterfaceIconSyncing_Name, Def_InterfaceIconSyncing_Guid},
+	{Def_InterfaceIconFailed_Name, Def_InterfaceIconFailed_Guid},
+	{Def_InterfaceIconSelective_Name, Def_InterfaceIconSelective_Guid},
+	{Def_InterfacePubSubServer_Name, Def_InterfacePubSubServer_Guid},
+	{NULL, NULL} 
 };
 
 // DLL Entry Point

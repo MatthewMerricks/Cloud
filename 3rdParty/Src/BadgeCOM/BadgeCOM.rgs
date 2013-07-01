@@ -2,7 +2,7 @@ HKCR
 {
 	NoRemove AppID
 	{
-		'%APPID%' = s 'BadgeCom'
+		APPID = s 'BadgeCom'
 		'BadgeCom.DLL'
 		{
 			val AppID = s '%APPID%'

@@ -1335,6 +1335,7 @@ echo ************  POST BUILD STEP COMPLETED OK **********************
     <ClInclude Include="BoostSemaphore.h" />
     <ClInclude Include="CBadgeNetPubSubEvents.h" />
     <ClInclude Include="dllmain.h" />
+    <ClInclude Include="GuidDefinitions.h" />
     <ClInclude Include="PubSubServer.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="resource1.h" />

@@ -13,7 +13,7 @@
 
 import "oaidl.idl";
 import "ocidl.idl";
-
+import "GuidDefinitions.h";
 
 [
 	uuid(B0E0EEB6-3C6D-4F7A-90AE-A0C285F4D8C1),
