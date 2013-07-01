@@ -421,7 +421,7 @@ namespace Cloud.Sync
                             // if there are any adds in error requeue them to the failure queue;
                             // Log any errors
                             GenericHolder<List<FileChange>> errList = new GenericHolder<List<FileChange>>();
-                            CLError err = thisEngine.syncData.addChangesToProcessingQueue(failedChanges, true, errList);
+                            CLError err = thisEngine.syncData.addChangesToProcessingQueue(failedChanges, insertAtTop: true, errorHolder: errList);
                             if (errList.Value != null)
                             {
                                 bool atLeastOneFailureAdded = false;

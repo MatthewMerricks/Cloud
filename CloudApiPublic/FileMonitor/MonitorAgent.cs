@@ -901,7 +901,7 @@ namespace Cloud.FileMonitor
         /// </summary>
         /// <param name="toApply">FileChange to apply to the local file system</param>
         /// <returns>Returns any error occurred applying the FileChange, if any</returns>
-        internal CLError ApplySyncFromFileChange(FileChange toApply)
+        public CLError ApplySyncFromFileChange(FileChange toApply)
         {
             return ApplySyncFromFileChange<object>(toApply, null, null, null, null);
         }
@@ -912,7 +912,7 @@ namespace Cloud.FileMonitor
         /// </summary>
         /// <param name="toApply">FileChange to apply to the local file system</param>
         /// <returns>Returns any error occurred applying the FileChange, if any</returns>
-        internal CLError ApplySyncFromFileChange<T>(FileChange toApply, Func<T, bool> onAllPathsLockAndReturnWhetherToContinue, Action<T> onBeforeAllPathsUnlock, T userState, object lockerInsideAllPaths)
+        public CLError ApplySyncFromFileChange<T>(FileChange toApply, Func<T, bool> onAllPathsLockAndReturnWhetherToContinue, Action<T> onBeforeAllPathsUnlock, T userState, object lockerInsideAllPaths)
         {
             try
             {
@@ -1460,7 +1460,7 @@ namespace Cloud.FileMonitor
         /// <param name="toAdd">FileChange to queue</param>
         /// <param name="insertAtTop">Send true for the FileChange to be processed first on the queue, otherwise it will be last</param>
         /// <returns>Returns an error that occurred queueing the FileChange, if any</returns>
-        internal CLError AddFileChangeToProcessingQueue(FileChange toAdd, bool insertAtTop, GenericHolder<List<FileChange>> errorHolder)
+        public CLError AddFileChangeToProcessingQueue(FileChange toAdd, bool insertAtTop, GenericHolder<List<FileChange>> errorHolder)
         {
             try
             {
@@ -1490,7 +1490,7 @@ namespace Cloud.FileMonitor
         /// <param name="toAdd">FileChanges to queue</param>
         /// <param name="insertAtTop">Send true for the FileChanges to be processed first on the queue, otherwise they will be last</param>
         /// <returns>Returns an error that occurred queueing the FileChanges, if any</returns>
-        internal CLError AddFileChangesToProcessingQueue(IEnumerable<FileChange> toAdd, bool insertAtTop, GenericHolder<List<FileChange>> errorHolder)
+        public CLError AddFileChangesToProcessingQueue(IEnumerable<FileChange> toAdd, bool insertAtTop, GenericHolder<List<FileChange>> errorHolder)
         {
             CLError toReturn = null;
             try
@@ -2485,7 +2485,7 @@ namespace Cloud.FileMonitor
             return toReturn;
         }
 
-        internal CLError AssignDependencies(IEnumerable<PossiblyStreamableFileChange> toAssign,
+        public CLError AssignDependencies(IEnumerable<PossiblyStreamableFileChange> toAssign,
             IEnumerable<FileChange> currentFailures,
             out IEnumerable<PossiblyStreamableFileChange> outputChanges,
             out IEnumerable<FileChange> outputFailures,
@@ -2708,7 +2708,7 @@ namespace Cloud.FileMonitor
         /// <param name="firstTimeRunning">Whether this is the first time the engine was ran</param>
         /// <param name="failedOutChanges">The possibly null queue containing failed out changes which should be locked if it exists by the method callerl</param>
         /// <returns>Returns error(s) that occurred finalizing the FileChange array, if any</returns>
-        internal CLError GrabPreprocessedChanges(IEnumerable<PossiblyPreexistingFileChangeInError> initialFailures,
+        public CLError GrabPreprocessedChanges(IEnumerable<PossiblyPreexistingFileChangeInError> initialFailures,
             out IEnumerable<PossiblyStreamableFileChange> outputChanges,
             out int outputChangesCount,
             out IEnumerable<PossiblyPreexistingFileChangeInError> outputChangesInError,
@@ -5563,20 +5563,26 @@ namespace Cloud.FileMonitor
                         }
                     };
 
+                // check for same path rename, only other events should be processed
+                Predicate<FileChange> checkEquivalentRename = changeToCheck =>
+                    {
+                        return changeToCheck != null
+                            && changeToCheck.Type == FileChangeType.Renamed
+                            && changeToCheck.NewPath != null // shouldn't be a case here
+                            && changeToCheck.OldPath != null
+                            && FilePathComparer.Instance.Equals(changeToCheck.OldPath, changeToCheck.NewPath);
+                    };
+
                 FileChange senderToAdd;
-                if (sender == null
-                    || sender.Type != FileChangeType.Renamed
-                    || sender.NewPath == null // shouldn't be a case here
-                    || sender.OldPath == null
-                    || !FilePathComparer.Instance.Equals(sender.OldPath, sender.NewPath)) // check for same path rename, only other events should be processed
+                if (checkEquivalentRename(sender))
+                {
+                    senderToAdd = null;
+                }
+                else
                 {
                     senderToAdd = sender;
                     //mergeBatch.Add(sender);
                     //mergeAll.Add(sender);
-                }
-                else
-                {
-                    senderToAdd = null;
                 }
 
                 var recurseHierarchyAndAddSyncFromsToHashSet = DelegateAndDataHolderBase.Create(
@@ -5619,11 +5625,7 @@ namespace Cloud.FileMonitor
                         {
                             FileChange nextMerge = NeedsMergeToSql.Dequeue();
 
-                            if (nextMerge == null
-                                || nextMerge.Type != FileChangeType.Renamed
-                                || nextMerge.NewPath == null
-                                || nextMerge.OldPath == null
-                                || !FilePathComparer.Instance.Equals(nextMerge.OldPath, nextMerge.NewPath)) // check for same path rename, only other events should be processed
+                            if (!checkEquivalentRename(nextMerge))
                             {
                                 mergeAll.Add(nextMerge);
                             }
