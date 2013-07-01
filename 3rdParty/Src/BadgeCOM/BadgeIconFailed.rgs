@@ -7,7 +7,7 @@ HKCR
 	BadgeCOM.BadgeIconFailed = s 'BadgeIconFailed Class'
 	{
 		CLSID = s '%IconFailedGuid%'
-		CurVew = s 'BadgeCOM.BadgeIconFailed.1'
+		CurVer = s 'BadgeCOM.BadgeIconFailed.1'
 	}
 	NoRemove CLSID
 	{

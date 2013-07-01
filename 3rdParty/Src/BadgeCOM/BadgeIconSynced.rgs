@@ -7,7 +7,7 @@ HKCR
 	BadgeCOM.BadgeIconSynced = s 'BadgeIconSynced Class'
 	{
 		CLSID = s '%IconSyncedGuid%'
-		CurVew = s 'BadgeCOM.BadgeIconSynced.1'
+		CurVer = s 'BadgeCOM.BadgeIconSynced.1'
 	}
 	NoRemove CLSID
 	{
