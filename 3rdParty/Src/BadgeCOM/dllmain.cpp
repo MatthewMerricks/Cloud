@@ -23,11 +23,11 @@ HINSTANCE g_hBadgeComInstance = NULL;
 ATL::_ATL_REGMAP_ENTRY RegEntries[] = 
 { 
 	{Def_TypeLib_Name, Def_TypeLib_Guid},
-	{Def_InterfaceIconSynced_Name, Def_InterfaceIconSynced_Guid},
-	{Def_InterfaceIconSyncing_Name, Def_InterfaceIconSyncing_Guid},
-	{Def_InterfaceIconFailed_Name, Def_InterfaceIconFailed_Guid},
-	{Def_InterfaceIconSelective_Name, Def_InterfaceIconSelective_Guid},
-	{Def_InterfacePubSubServer_Name, Def_InterfacePubSubServer_Guid},
+	{Def_ClassIconSynced_Name, Def_ClassIconSynced_Guid},
+	{Def_ClassIconSyncing_Name, Def_ClassIconSyncing_Guid},
+	{Def_ClassIconFailed_Name, Def_ClassIconFailed_Guid},
+	{Def_ClassIconSelective_Name, Def_ClassIconSelective_Guid},
+	{Def_ClassPubSubServer_Name, Def_ClassPubSubServer_Guid},
 	{NULL, NULL} 
 };
 

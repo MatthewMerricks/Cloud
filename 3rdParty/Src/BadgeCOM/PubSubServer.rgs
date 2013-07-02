@@ -2,11 +2,11 @@ HKCR
 {
 	BadgeCOM.PubSubServer = s 'PubSubServer Class'
 	{
-		CLSID = s '%InterfacePubSubServerGuid%'
+		CLSID = s '%ClassPubSubServerGuid%'
 	}
 	NoRemove CLSID
 	{
-		ForceRemove %InterfacePubSubServerGuid% = s 'PubSubServer Class'
+		ForceRemove %ClassPubSubServerGuid% = s 'PubSubServer Class'
 		{
 			ProgID = s 'BadgeCOM.PubSubServer'
 			VersionIndependentProgID = s 'BadgeCOM.PubSubServer'

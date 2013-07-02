@@ -2,16 +2,16 @@ HKCR
 {
 	BadgeCOM.BadgeIconFailed.1 = s 'BadgeIconFailed Class'
 	{
-		CLSID = s '%InterfaceIconFailedGuid%'
+		CLSID = s '%ClassIconFailedGuid%'
 	}
 	BadgeCOM.BadgeIconFailed = s 'BadgeIconFailed Class'
 	{
-		CLSID = s '%InterfaceIconFailedGuid%'
+		CLSID = s '%ClassIconFailedGuid%'
 		CurVer = s 'BadgeCOM.BadgeIconFailed.1'
 	}
 	NoRemove CLSID
 	{
-		ForceRemove %InterfaceIconFailedGuid% = s 'BadgeIconFailed Class'
+		ForceRemove %ClassIconFailedGuid% = s 'BadgeIconFailed Class'
 		{
 			ProgID = s 'BadgeCOM.BadgeIconFailed.1'
 			VersionIndependentProgID = s 'BadgeCOM.BadgeIconFailed'
@@ -41,7 +41,7 @@ HKLM
           {
             NoRemove ShellIconOverlayIdentifiers
             {
-              ForceRemove BadgeIconFailed = s '%InterfaceIconFailedGuid%'
+              ForceRemove BadgeIconFailed = s '%ClassIconFailedGuid%'
               {
               }
             }
