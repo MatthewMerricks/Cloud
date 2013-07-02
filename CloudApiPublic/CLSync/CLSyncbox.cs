@@ -1720,6 +1720,7 @@ namespace Cloud
         #region Public Instance HTTP REST Methods
 
         #region RootFolder (Queries the syncbox for the item at the root path)
+
         /// <summary>
         /// Asynchronously starts querying the syncbox for an item at the syncbox root path; outputs a CLFileItem object.
         /// </summary>
@@ -1732,9 +1733,8 @@ namespace Cloud
             CLError getInstanceError = GetInstanceRestClientAndCheckDisposed(out httpRestClient, isOneOff: true);
             if (getInstanceError != null)
             {
-
+                return Helpers.ErrorOnBeginAsync<SyncboxGetItemAtPathResult>(asyncCallback, asyncCallbackUserState, getInstanceError, _copiedSettings.TraceLocation, _copiedSettings.LogErrors);
             }
-            GetInstanceRestClient(out httpRestClient);
             return httpRestClient.BeginItemForPath(asyncCallback, asyncCallbackUserState, (/* '/' */ ((char)0x2f)).ToString());
         }
 
@@ -1747,10 +1747,17 @@ namespace Cloud
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndRootFolder(IAsyncResult asyncResult, out SyncboxGetItemAtPathResult result)
         {
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.EndItemForPath(asyncResult, out result);
+            try
+            {
+                CheckDisposed(isOneOff: true);
 
+                return GetInstanceRestClient().EndItemForPath(asyncResult, out result);
+            }
+            catch (Exception ex)
+            {
+                result = Helpers.DefaultForType<SyncboxGetItemAtPathResult>();
+                return ex;
+            }
         }
 
         /// <summary>
@@ -1764,16 +1771,7 @@ namespace Cloud
             {
                 CheckDisposed(isOneOff: true);
 
-                CLHttpRest httpRestClient;
-
-                CLError getInstanceError = GetInstanceRestClient(out httpRestClient);
-                if (getInstanceError != null)
-                {
-                    item = Helpers.DefaultForType<CLFileItem>();
-                    return getInstanceError;
-                }
-
-                return httpRestClient.ItemForPath((/* '/' */ ((char)0x2f)).ToString(), out item);
+                return GetInstanceRestClient().ItemForPath((/* '/' */ ((char)0x2f)).ToString(), out item);
             }
             catch (Exception ex)
             {
@@ -1798,10 +1796,12 @@ namespace Cloud
             object asyncCallbackUserState,
             string itemUid)
         {
-            CheckDisposed(isOneOff: true);
-
             CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
+            CLError getInstanceError = GetInstanceRestClientAndCheckDisposed(out httpRestClient, isOneOff: true);
+            if (getInstanceError != null)
+            {
+                return Helpers.ErrorOnBeginAsync<SyncboxGetItemAtItemUidResult>(asyncCallback, asyncCallbackUserState, getInstanceError, _copiedSettings.TraceLocation, _copiedSettings.LogErrors);
+            }
             return httpRestClient.BeginItemForItemUid(asyncCallback, asyncCallbackUserState, itemUid);
         }
 
@@ -1814,11 +1814,15 @@ namespace Cloud
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndItemForItemUid(IAsyncResult asyncResult, out SyncboxGetItemAtItemUidResult result)
         {
-            CheckDisposed(isOneOff: true);
-
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.EndItemForItemUid(asyncResult, out result);
+            try
+            {
+                return GetInstanceRestClient().EndItemForItemUid(asyncResult, out result);
+            }
+            catch (Exception ex)
+            {
+                result = Helpers.DefaultForType<SyncboxGetItemAtItemUidResult>();
+                return ex;
+            }
         }
 
         /// <summary>
@@ -1829,11 +1833,17 @@ namespace Cloud
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError ItemForItemUid(string itemUid, out CLFileItem item)
         {
-            CheckDisposed(isOneOff: true);
+            try
+            {
+                CheckDisposed(isOneOff: true);
 
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.ItemForItemUid(itemUid, out item);
+                return GetInstanceRestClient().ItemForItemUid(itemUid, out item);
+            }
+            catch (Exception ex)
+            {
+                item = Helpers.DefaultForType<CLFileItem>();
+                return ex;
+            }
         }
 
         #endregion  // end ItemForItemUid (Returns a CLFileItem for the syncbox item with the given UID.)
@@ -1851,10 +1861,12 @@ namespace Cloud
             object asyncCallbackUserState,
             string relativePath)
         {
-            CheckDisposed(isOneOff: true);
-
             CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
+            CLError getInstanceError = GetInstanceRestClientAndCheckDisposed(out httpRestClient, isOneOff: true);
+            if (getInstanceError != null)
+            {
+                return Helpers.ErrorOnBeginAsync<SyncboxGetItemAtPathResult>(asyncCallback, asyncCallbackUserState, getInstanceError, _copiedSettings.TraceLocation, _copiedSettings.LogErrors);
+            }
             return httpRestClient.BeginItemForPath(asyncCallback, asyncCallbackUserState, relativePath);
         }
 
@@ -1867,11 +1879,15 @@ namespace Cloud
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndItemForPath(IAsyncResult asyncResult, out SyncboxGetItemAtPathResult result)
         {
-            CheckDisposed(isOneOff: true);
-
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.EndItemForPath(asyncResult, out result);
+            try
+            {
+                return GetInstanceRestClient().EndItemForPath(asyncResult, out result);
+            }
+            catch (Exception ex)
+            {
+                result = Helpers.DefaultForType<SyncboxGetItemAtPathResult>();
+                return ex;
+            }
         }
 
         /// <summary>
@@ -1882,11 +1898,17 @@ namespace Cloud
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError ItemForPath(string relativePath, out CLFileItem item)
         {
-            CheckDisposed(isOneOff: true);
+            try
+            {
+                CheckDisposed(isOneOff: true);
 
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.ItemForPath(relativePath, out item);
+                return GetInstanceRestClient().ItemForPath(relativePath, out item);
+            }
+            catch (Exception ex)
+            {
+                item = Helpers.DefaultForType<CLFileItem>();
+                return ex;
+            }
         }
 
         #endregion  // end ItemForPath (Queries the syncbox for the item at a particular path)
@@ -1904,10 +1926,12 @@ namespace Cloud
             object asyncCallbackUserState,
             string relativePath)
         {
-            CheckDisposed(isOneOff: true);
-
             CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
+            CLError getInstanceError = GetInstanceRestClientAndCheckDisposed(out httpRestClient, isOneOff: true);
+            if (getInstanceError != null)
+            {
+                return Helpers.ErrorOnBeginAsync<SyncboxItemsAtPathResult>(asyncCallback, asyncCallbackUserState, getInstanceError, _copiedSettings.TraceLocation, _copiedSettings.LogErrors);
+            }
             return httpRestClient.BeginItemsForPath(asyncCallback, asyncCallbackUserState, relativePath);
         }
 
@@ -1920,11 +1944,15 @@ namespace Cloud
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndItemsForPath(IAsyncResult asyncResult, out SyncboxItemsAtPathResult result)
         {
-            CheckDisposed(isOneOff: true);
-
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.EndItemsForPath(asyncResult, out result);
+            try
+            {
+                return GetInstanceRestClient().EndItemsForPath(asyncResult, out result);
+            }
+            catch (Exception ex)
+            {
+                result = Helpers.DefaultForType<SyncboxItemsAtPathResult>();
+                return ex;
+            }
         }
 
         /// <summary>
@@ -1935,11 +1963,17 @@ namespace Cloud
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError ItemsForPath(string relativePath, out CLFileItem[] items)
         {
-            CheckDisposed(isOneOff: true);
+            try
+            {
+                CheckDisposed(isOneOff: true);
 
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.ItemsForPath(relativePath, out items);
+                return GetInstanceRestClient().ItemsForPath(relativePath, out items);
+            }
+            catch (Exception ex)
+            {
+                items = Helpers.DefaultForType<CLFileItem[]>();
+                return ex;
+            }
         }
 
         #endregion  // end ItemsForPath (Queries the syncbox for the contents of the folder item at a particular path)
@@ -1970,10 +2004,12 @@ namespace Cloud
             bool includePending,
             bool includeDeleted)
         {
-            CheckDisposed(isOneOff: true);
-
             CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
+            CLError getInstanceError = GetInstanceRestClientAndCheckDisposed(out httpRestClient, isOneOff: true);
+            if (getInstanceError != null)
+            {
+                return Helpers.ErrorOnBeginAsync<SyncboxItemsForFolderItemResult>(asyncCallback, asyncCallbackUserState, getInstanceError, _copiedSettings.TraceLocation, _copiedSettings.LogErrors);
+            }
             return httpRestClient.BeginItemsForFolderItem(asyncCallback, asyncCallbackUserState, folderItem, includePending, includeDeleted);
         }
 
@@ -1988,11 +2024,17 @@ namespace Cloud
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndItemsForFolderItem(IAsyncResult asyncResult, out SyncboxItemsForFolderItemResult result)
         {
-            CheckDisposed(isOneOff: true);
+            try
+            {
+                CheckDisposed(isOneOff: true);
 
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.EndItemsForFolderItem(asyncResult, out result);
+                return GetInstanceRestClient().EndItemsForFolderItem(asyncResult, out result);
+            }
+            catch (Exception ex)
+            {
+                result = Helpers.DefaultForType<SyncboxItemsForFolderItemResult>();
+                return ex;
+            }
         }
 
         /// <summary>
@@ -2013,11 +2055,17 @@ namespace Cloud
             bool includePending,
             bool includeDeleted)
         {
-            CheckDisposed(isOneOff: true);
+            try
+            {
+                CheckDisposed(isOneOff: true);
 
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.ItemsForFolderItem(folderItem, out items, includePending, includeDeleted);
+                return GetInstanceRestClient().ItemsForFolderItem(folderItem, out items, includePending, includeDeleted);
+            }
+            catch (Exception ex)
+            {
+                items = Helpers.DefaultForType<CLFileItem[]>();
+                return ex;
+            }
         }
         // \endcond
 
@@ -2036,10 +2084,12 @@ namespace Cloud
             object asyncCallbackUserState,
             string relativePath = null)
         {
-            CheckDisposed(isOneOff: true);
-
             CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
+            CLError getInstanceError = GetInstanceRestClientAndCheckDisposed(out httpRestClient, isOneOff: true);
+            if (getInstanceError != null)
+            {
+                return Helpers.ErrorOnBeginAsync<SyncboxHierarchyOfFolderAtPathResult>(asyncCallback, asyncCallbackUserState, getInstanceError, _copiedSettings.TraceLocation, _copiedSettings.LogErrors);
+            }
             return httpRestClient.BeginHierarchyOfFolderAtPath(asyncCallback, asyncCallbackUserState, relativePath);
         }
 
@@ -2052,11 +2102,17 @@ namespace Cloud
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndHierarchyOfFolderAtPath(IAsyncResult asyncResult, out SyncboxHierarchyOfFolderAtPathResult result)
         {
-            CheckDisposed(isOneOff: true);
+            try
+            {
+                CheckDisposed(isOneOff: true);
 
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.EndHierarchyOfFolderAtPath(asyncResult, out result);
+                return GetInstanceRestClient().EndHierarchyOfFolderAtPath(asyncResult, out result);
+            }
+            catch (Exception ex)
+            {
+                result = Helpers.DefaultForType<SyncboxHierarchyOfFolderAtPathResult>();
+                return ex;
+            }
         }
 
         /// <summary>
@@ -2069,11 +2125,17 @@ namespace Cloud
             string relativePath,
             out CLFileItem[] items)
         {
-            CheckDisposed(isOneOff: true);
+            try
+            {
+                CheckDisposed(isOneOff: true);
 
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.HierarchyOfFolderAtPath(relativePath, out items);
+                return GetInstanceRestClient().HierarchyOfFolderAtPath(relativePath, out items);
+            }
+            catch (Exception ex)
+            {
+                items = Helpers.DefaultForType<CLFileItem[]>();
+                return ex;
+            }
         }
 
         #endregion  // end HierarchyOfFolderAtPath (Queries the syncbox for the folder hierarchy under the given folder path)
@@ -2091,10 +2153,12 @@ namespace Cloud
             object asyncCallbackUserState,
             CLFileItem folderItem)
         {
-            CheckDisposed(isOneOff: true);
-
             CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
+            CLError getInstanceError = GetInstanceRestClientAndCheckDisposed(out httpRestClient, isOneOff: true);
+            if (getInstanceError != null)
+            {
+                return Helpers.ErrorOnBeginAsync<SyncboxHierarchyOfFolderAtFolderItemResult>(asyncCallback, asyncCallbackUserState, getInstanceError, _copiedSettings.TraceLocation, _copiedSettings.LogErrors);
+            }
             return httpRestClient.BeginHierarchyOfFolderAtFolderItem(asyncCallback, asyncCallbackUserState, folderItem);
         }
 
@@ -2107,11 +2171,17 @@ namespace Cloud
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndHierarchyOfFolderAtFolderItem(IAsyncResult asyncResult, out SyncboxHierarchyOfFolderAtFolderItemResult result)
         {
-            CheckDisposed(isOneOff: true);
+            try
+            {
+                CheckDisposed(isOneOff: true);
 
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.EndHierarchyOfFolderAtFolderItem(asyncResult, out result);
+                return GetInstanceRestClient().EndHierarchyOfFolderAtFolderItem(asyncResult, out result);
+            }
+            catch (Exception ex)
+            {
+                result = Helpers.DefaultForType<SyncboxHierarchyOfFolderAtFolderItemResult>();
+                return ex;
+            }
         }
 
         /// <summary>
@@ -2124,11 +2194,17 @@ namespace Cloud
             CLFileItem folderItem,
             out CLFileItem[] items)
         {
-            CheckDisposed(isOneOff: true);
+            try
+            {
+                CheckDisposed(isOneOff: true);
 
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.HierarchyOfFolderAtFolderItem(folderItem, out items);
+                return GetInstanceRestClient().HierarchyOfFolderAtFolderItem(folderItem, out items);
+            }
+            catch (Exception ex)
+            {
+                items = Helpers.DefaultForType<CLFileItem[]>();
+                return ex;
+            }
         }
 
         #endregion  // end HierarchyOfFolderAtFolderItem (Query the server for the folder hierarchy at a folder item)
@@ -2145,10 +2221,12 @@ namespace Cloud
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginRenameFiles(AsyncCallback asyncCallback, object asyncCallbackUserState, CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, params RenameItemParams[] itemsToRename)
         {
-            CheckDisposed(isOneOff: true);
-
             CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
+            CLError getInstanceError = GetInstanceRestClientAndCheckDisposed(out httpRestClient, isOneOff: true);
+            if (getInstanceError != null)
+            {
+                return Helpers.ErrorOnBeginAsync<SyncboxRenameFilesResult>(asyncCallback, asyncCallbackUserState, getInstanceError, _copiedSettings.TraceLocation, _copiedSettings.LogErrors);
+            }
             return httpRestClient.BeginRenameFiles(asyncCallback, asyncCallbackUserState, ReservedForActiveSync, itemCompletionCallback, itemCompletionCallbackUserState, itemsToRename);
         }
 
@@ -2161,11 +2239,17 @@ namespace Cloud
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndRenameFiles(IAsyncResult asyncResult, out SyncboxRenameFilesResult result)
         {
-            CheckDisposed(isOneOff: true);
+            try
+            {
+                CheckDisposed(isOneOff: true);
 
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.EndRenameFiles(asyncResult, out result);
+                return GetInstanceRestClient().EndRenameFiles(asyncResult, out result);
+            }
+            catch (Exception ex)
+            {
+                result = Helpers.DefaultForType<SyncboxRenameFilesResult>();
+                return ex;
+            }
         }
 
         /// <summary>
@@ -2177,11 +2261,17 @@ namespace Cloud
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError RenameFiles(CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, params RenameItemParams[] itemsToRename)
         {
-            CheckDisposed(isOneOff: true);
+            try
+            {
+                CheckDisposed(isOneOff: true);
 
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.RenameFiles(ReservedForActiveSync, itemCompletionCallback, itemCompletionCallbackUserState, itemsToRename);
+                return GetInstanceRestClient().RenameFiles(ReservedForActiveSync, itemCompletionCallback, itemCompletionCallbackUserState, itemsToRename);
+            }
+            catch (Exception ex)
+            {
+                itemsToRename = Helpers.DefaultForType<RenameItemParams[]>();
+                return ex;
+            }
         }
 
         #endregion  // end RenameFiles (Rename files in-place in the syncbox)
@@ -2198,10 +2288,12 @@ namespace Cloud
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginRenameFolders(AsyncCallback asyncCallback, object asyncCallbackUserState, CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, params RenameItemParams[] itemsToRename)
         {
-            CheckDisposed(isOneOff: true);
-
             CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
+            CLError getInstanceError = GetInstanceRestClientAndCheckDisposed(out httpRestClient, isOneOff: true);
+            if (getInstanceError != null)
+            {
+                return Helpers.ErrorOnBeginAsync<SyncboxRenameFoldersResult>(asyncCallback, asyncCallbackUserState, getInstanceError, _copiedSettings.TraceLocation, _copiedSettings.LogErrors);
+            }
             return httpRestClient.BeginRenameFolders(asyncCallback, asyncCallbackUserState, ReservedForActiveSync, itemCompletionCallback, itemCompletionCallbackUserState, itemsToRename);
         }
 
@@ -2214,11 +2306,17 @@ namespace Cloud
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndRenameFolders(IAsyncResult asyncResult, out SyncboxRenameFoldersResult result)
         {
-            CheckDisposed(isOneOff: true);
+            try
+            {
+                CheckDisposed(isOneOff: true);
 
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.EndRenameFolders(asyncResult, out result);
+                return GetInstanceRestClient().EndRenameFolders(asyncResult, out result);
+            }
+            catch (Exception ex)
+            {
+                result = Helpers.DefaultForType<SyncboxRenameFoldersResult>();
+                return ex;
+            }
         }
 
         /// <summary>
@@ -2230,11 +2328,17 @@ namespace Cloud
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError RenameFolders(CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, params RenameItemParams[] itemsToRename)
         {
-            CheckDisposed(isOneOff: true);
+            try
+            {
+                CheckDisposed(isOneOff: true);
 
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.RenameFolders(ReservedForActiveSync, itemCompletionCallback, itemCompletionCallbackUserState, itemsToRename);
+                return GetInstanceRestClient().RenameFolders(ReservedForActiveSync, itemCompletionCallback, itemCompletionCallbackUserState, itemsToRename);
+            }
+            catch (Exception ex)
+            {
+                itemsToRename = Helpers.DefaultForType<RenameItemParams[]>();
+                return ex;
+            }
         }
 
         #endregion  // end RenameFolders (Rename folders in the syncbox)
@@ -2256,10 +2360,12 @@ namespace Cloud
             object itemCompletionCallbackUserState,
             params MoveItemParams[] itemsToMove)
         {
-            CheckDisposed(isOneOff: true);
-
             CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
+            CLError getInstanceError = GetInstanceRestClientAndCheckDisposed(out httpRestClient, isOneOff: true);
+            if (getInstanceError != null)
+            {
+                return Helpers.ErrorOnBeginAsync<SyncboxMoveFilesResult>(asyncCallback, asyncCallbackUserState, getInstanceError, _copiedSettings.TraceLocation, _copiedSettings.LogErrors);
+            }
             return httpRestClient.BeginMoveFiles(asyncCallback, asyncCallbackUserState, ReservedForActiveSync, itemCompletionCallback, itemCompletionCallbackUserState, itemsToMove);
         }
 
@@ -2272,11 +2378,17 @@ namespace Cloud
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndMoveFiles(IAsyncResult asyncResult, out SyncboxMoveFilesResult result)
         {
-            CheckDisposed(isOneOff: true);
+            try
+            {
+                CheckDisposed(isOneOff: true);
 
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.EndMoveFiles(asyncResult, out result);
+                return GetInstanceRestClient().EndMoveFiles(asyncResult, out result);
+            }
+            catch (Exception ex)
+            {
+                result = Helpers.DefaultForType<SyncboxMoveFilesResult>();
+                return ex;
+            }
         }
 
         /// <summary>
@@ -2288,11 +2400,16 @@ namespace Cloud
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError MoveFiles(CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, params MoveItemParams[] itemsToMove)
         {
-            CheckDisposed(isOneOff: true);
+            try
+            {
+                CheckDisposed(isOneOff: true);
 
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.MoveFiles(ReservedForActiveSync, itemCompletionCallback, itemCompletionCallbackUserState, itemsToMove);
+                return GetInstanceRestClient().MoveFiles(ReservedForActiveSync, itemCompletionCallback, itemCompletionCallbackUserState, itemsToMove);
+            }
+            catch (Exception ex)
+            {
+                return ex;
+            }
         }
 
         #endregion  // end MoveFiles (Move files in the syncbox)
@@ -2309,10 +2426,12 @@ namespace Cloud
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginMoveFolders(AsyncCallback asyncCallback, object asyncCallbackUserState, CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, params MoveItemParams[] itemsToMove)
         {
-            CheckDisposed(isOneOff: true);
-
             CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
+            CLError getInstanceError = GetInstanceRestClientAndCheckDisposed(out httpRestClient, isOneOff: true);
+            if (getInstanceError != null)
+            {
+                return Helpers.ErrorOnBeginAsync<SyncboxMoveFoldersResult>(asyncCallback, asyncCallbackUserState, getInstanceError, _copiedSettings.TraceLocation, _copiedSettings.LogErrors);
+            }
             return httpRestClient.BeginMoveFolders(asyncCallback, asyncCallbackUserState, ReservedForActiveSync, itemCompletionCallback, itemCompletionCallbackUserState, itemsToMove);
         }
 
@@ -2325,11 +2444,17 @@ namespace Cloud
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndMoveFolders(IAsyncResult asyncResult, out SyncboxMoveFoldersResult result)
         {
-            CheckDisposed(isOneOff: true);
+            try
+            {
+                CheckDisposed(isOneOff: true);
 
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.EndMoveFolders(asyncResult, out result);
+                return GetInstanceRestClient().EndMoveFolders(asyncResult, out result);
+            }
+            catch (Exception ex)
+            {
+                result = Helpers.DefaultForType<SyncboxMoveFoldersResult>();
+                return ex;
+            }
         }
 
         /// <summary>
@@ -2341,11 +2466,16 @@ namespace Cloud
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError MoveFolders(CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, params MoveItemParams[] itemsToMove)
         {
-            CheckDisposed(isOneOff: true);
+            try
+            {
+                CheckDisposed(isOneOff: true);
 
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.MoveFolders(ReservedForActiveSync, itemCompletionCallback, itemCompletionCallbackUserState, itemsToMove);
+                return GetInstanceRestClient().MoveFolders(ReservedForActiveSync, itemCompletionCallback, itemCompletionCallbackUserState, itemsToMove);
+            }
+            catch (Exception ex)
+            {
+                return ex;
+            }
         }
 
         #endregion  // end RenameFolders (Rename folders in the syncbox)
@@ -2362,10 +2492,12 @@ namespace Cloud
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginDeleteFiles(AsyncCallback asyncCallback, object asyncCallbackUserState, CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, params CLFileItem[] itemsToDelete)
         {
-            CheckDisposed(isOneOff: true);
-
             CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
+            CLError getInstanceError = GetInstanceRestClientAndCheckDisposed(out httpRestClient, isOneOff: true);
+            if (getInstanceError != null)
+            {
+                return Helpers.ErrorOnBeginAsync<SyncboxDeleteFilesResult>(asyncCallback, asyncCallbackUserState, getInstanceError, _copiedSettings.TraceLocation, _copiedSettings.LogErrors);
+            }
             return httpRestClient.BeginDeleteFiles(asyncCallback, asyncCallbackUserState, ReservedForActiveSync, itemCompletionCallback, itemCompletionCallbackUserState, itemsToDelete);
         }
 
@@ -2378,11 +2510,17 @@ namespace Cloud
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndDeleteFiles(IAsyncResult asyncResult, out SyncboxDeleteFilesResult result)
         {
-            CheckDisposed(isOneOff: true);
+            try
+            {
+                CheckDisposed(isOneOff: true);
 
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.EndDeleteFiles(asyncResult, out result);
+                return GetInstanceRestClient().EndDeleteFiles(asyncResult, out result);
+            }
+            catch (Exception ex)
+            {
+                result = Helpers.DefaultForType<SyncboxDeleteFilesResult>();
+                return ex;
+            }
         }
 
         /// <summary>
@@ -2394,11 +2532,16 @@ namespace Cloud
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError DeleteFiles(CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, params CLFileItem[] itemsToDelete)
         {
-            CheckDisposed(isOneOff: true);
+            try
+            {
+                CheckDisposed(isOneOff: true);
 
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.DeleteFiles(ReservedForActiveSync, itemCompletionCallback, itemCompletionCallbackUserState, itemsToDelete);
+                return GetInstanceRestClient().DeleteFiles(ReservedForActiveSync, itemCompletionCallback, itemCompletionCallbackUserState, itemsToDelete);
+            }
+            catch (Exception ex)
+            {
+                return ex;
+            }
         }
 
         #endregion  // end DeleteFiles (Delete files in the syncbox)
@@ -2415,10 +2558,12 @@ namespace Cloud
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginDeleteFolders(AsyncCallback asyncCallback, object asyncCallbackUserState, CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, params CLFileItem[] itemsToDelete)
         {
-            CheckDisposed(isOneOff: true);
-
             CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
+            CLError getInstanceError = GetInstanceRestClientAndCheckDisposed(out httpRestClient, isOneOff: true);
+            if (getInstanceError != null)
+            {
+                return Helpers.ErrorOnBeginAsync<SyncboxDeleteFoldersResult>(asyncCallback, asyncCallbackUserState, getInstanceError, _copiedSettings.TraceLocation, _copiedSettings.LogErrors);
+            }
             return httpRestClient.BeginDeleteFolders(asyncCallback, asyncCallbackUserState, ReservedForActiveSync, itemCompletionCallback, itemCompletionCallbackUserState, itemsToDelete);
         }
 
@@ -2431,11 +2576,17 @@ namespace Cloud
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndDeleteFolders(IAsyncResult asyncResult, out SyncboxDeleteFoldersResult result)
         {
-            CheckDisposed(isOneOff: true);
+            try
+            {
+                CheckDisposed(isOneOff: true);
 
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.EndDeleteFolders(asyncResult, out result);
+                return GetInstanceRestClient().EndDeleteFolders(asyncResult, out result);
+            }
+            catch (Exception ex)
+            {
+                result = Helpers.DefaultForType<SyncboxDeleteFoldersResult>();
+                return ex;
+            }
         }
 
         /// <summary>
@@ -2447,11 +2598,16 @@ namespace Cloud
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError DeleteFolders(CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, params CLFileItem[] itemsToDelete)
         {
-            CheckDisposed(isOneOff: true);
+            try
+            {
+                CheckDisposed(isOneOff: true);
 
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.DeleteFolders(ReservedForActiveSync, itemCompletionCallback, itemCompletionCallbackUserState, itemsToDelete);
+                return GetInstanceRestClient().DeleteFolders(ReservedForActiveSync, itemCompletionCallback, itemCompletionCallbackUserState, itemsToDelete);
+            }
+            catch (Exception ex)
+            {
+                return ex;
+            }
         }
 
         #endregion  // end DeleteFolders (Delete folders in the syncbox)
@@ -2473,10 +2629,12 @@ namespace Cloud
             object itemCompletionCallbackUserState,
             params CLFileItem[] itemsToPurge)
         {
-            CheckDisposed(isOneOff: true);
-
             CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
+            CLError getInstanceError = GetInstanceRestClientAndCheckDisposed(out httpRestClient, isOneOff: true);
+            if (getInstanceError != null)
+            {
+                return Helpers.ErrorOnBeginAsync<SyncboxPurgePendingFilesResult>(asyncCallback, asyncCallbackUserState, getInstanceError, _copiedSettings.TraceLocation, _copiedSettings.LogErrors);
+            }
             return httpRestClient.BeginPurgePendingFiles(asyncCallback, asyncCallbackUserState, ReservedForActiveSync, itemCompletionCallback, itemCompletionCallbackUserState, itemsToPurge);
         }
 
@@ -2489,11 +2647,17 @@ namespace Cloud
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndPurgePendingFiles(IAsyncResult asyncResult, out SyncboxPurgePendingFilesResult result)
         {
-            CheckDisposed(isOneOff: true);
+            try
+            {
+                CheckDisposed(isOneOff: true);
 
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.EndPurgePendingFiles(asyncResult, out result);
+                return GetInstanceRestClient().EndPurgePendingFiles(asyncResult, out result);
+            }
+            catch (Exception ex)
+            {
+                result = Helpers.DefaultForType<SyncboxPurgePendingFilesResult>();
+                return ex;
+            }
         }
 
         /// <summary>
@@ -2508,11 +2672,16 @@ namespace Cloud
             object itemCompletionCallbackUserState,
             params CLFileItem[] itemsToPurge)
         {
-            CheckDisposed(isOneOff: true);
+            try
+            {
+                CheckDisposed(isOneOff: true);
 
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.PurgePendingFiles(ReservedForActiveSync, itemCompletionCallback, itemCompletionCallbackUserState, itemsToPurge);
+                return GetInstanceRestClient().PurgePendingFiles(ReservedForActiveSync, itemCompletionCallback, itemCompletionCallbackUserState, itemsToPurge);
+            }
+            catch (Exception ex)
+            {
+                return ex;
+            }
         }
 
         #endregion  // end PurgePendingFiles (Delete files that have not yet been uploaded in the syncbox.)
@@ -2529,10 +2698,12 @@ namespace Cloud
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginAddFolders(AsyncCallback asyncCallback, object asyncCallbackUserState, CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, params AddFolderItemParams[] folderItemsToAdd)
         {
-            CheckDisposed(isOneOff: true);
-
             CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
+            CLError getInstanceError = GetInstanceRestClientAndCheckDisposed(out httpRestClient, isOneOff: true);
+            if (getInstanceError != null)
+            {
+                return Helpers.ErrorOnBeginAsync<SyncboxAddFoldersResult>(asyncCallback, asyncCallbackUserState, getInstanceError, _copiedSettings.TraceLocation, _copiedSettings.LogErrors);
+            }
             return httpRestClient.BeginAddFolders(asyncCallback, asyncCallbackUserState, ReservedForActiveSync, itemCompletionCallback, itemCompletionCallbackUserState, folderItemsToAdd);
         }
 
@@ -2545,11 +2716,17 @@ namespace Cloud
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndAddFolders(IAsyncResult asyncResult, out SyncboxAddFoldersResult result)
         {
-            CheckDisposed(isOneOff: true);
+            try
+            {
+                CheckDisposed(isOneOff: true);
 
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.EndAddFolders(asyncResult, out result);
+                return GetInstanceRestClient().EndAddFolders(asyncResult, out result);
+            }
+            catch (Exception ex)
+            {
+                result = Helpers.DefaultForType<SyncboxAddFoldersResult>();
+                return ex;
+            }
         }
 
         /// <summary>
@@ -2561,11 +2738,16 @@ namespace Cloud
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError AddFolders(CLFileItemCompletionCallback itemCompletionCallback, object itemCompletionCallbackUserState, params AddFolderItemParams[] folderItemsToAdd)
         {
-            CheckDisposed(isOneOff: true);
+            try
+            {
+                CheckDisposed(isOneOff: true);
 
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.AddFolders(ReservedForActiveSync, itemCompletionCallback, itemCompletionCallbackUserState, folderItemsToAdd);
+                return GetInstanceRestClient().AddFolders(ReservedForActiveSync, itemCompletionCallback, itemCompletionCallbackUserState, folderItemsToAdd);
+            }
+            catch (Exception ex)
+            {
+                return ex;
+            }
         }
 
         #endregion  // end AddFolders (Add folders to the syncbox)
@@ -2593,10 +2775,12 @@ namespace Cloud
             CancellationTokenSource cancellationSource,
             params AddFileItemParams[] filesToAdd)
         {
-            CheckDisposed(isOneOff: true);
-
             CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
+            CLError getInstanceError = GetInstanceRestClientAndCheckDisposed(out httpRestClient, isOneOff: true);
+            if (getInstanceError != null)
+            {
+                return Helpers.ErrorOnBeginAsync<SyncboxAddFilesResult>(asyncCallback, asyncCallbackUserState, getInstanceError, _copiedSettings.TraceLocation, _copiedSettings.LogErrors);
+            }
             return httpRestClient.BeginAddFiles(asyncCallback, asyncCallbackUserState, ReservedForActiveSync, itemCompletionCallback, itemCompletionCallbackUserState, transferStatusCallback, transferStatusCallbackUserState, cancellationSource, filesToAdd);
         }
 
@@ -2609,11 +2793,17 @@ namespace Cloud
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndAddFiles(IAsyncResult asyncResult, out SyncboxAddFilesResult result)
         {
-            CheckDisposed(isOneOff: true);
+            try
+            {
+                CheckDisposed(isOneOff: true);
 
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.EndAddFiles(asyncResult, out result);
+                return GetInstanceRestClient().EndAddFiles(asyncResult, out result);
+            }
+            catch (Exception ex)
+            {
+                result = Helpers.DefaultForType<SyncboxAddFilesResult>();
+                return ex;
+            }
         }
 
         /// <summary>
@@ -2632,11 +2822,16 @@ namespace Cloud
             object transferStatusCallbackUserState,
             params AddFileItemParams[] filesToAdd)
         {
-            CheckDisposed(isOneOff: true);
+            try
+            {
+                CheckDisposed(isOneOff: true);
 
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.AddFiles(ReservedForActiveSync, itemCompletionCallback, itemCompletionCallbackUserState, transferStatusCallback, transferStatusCallbackUserState, filesToAdd);
+                return GetInstanceRestClient().AddFiles(ReservedForActiveSync, itemCompletionCallback, itemCompletionCallbackUserState, transferStatusCallback, transferStatusCallbackUserState, filesToAdd);
+            }
+            catch (Exception ex)
+            {
+                return ex;
+            }
         }
 
         #endregion  // end AddFiles (Adds files to the syncbox)
@@ -2664,10 +2859,12 @@ namespace Cloud
             CancellationTokenSource cancellationSource,
             params ModifyFileItemParams[] filesToModify)
         {
-            CheckDisposed(isOneOff: true);
-
             CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
+            CLError getInstanceError = GetInstanceRestClientAndCheckDisposed(out httpRestClient, isOneOff: true);
+            if (getInstanceError != null)
+            {
+                return Helpers.ErrorOnBeginAsync<SyncboxModifyFilesResult>(asyncCallback, asyncCallbackUserState, getInstanceError, _copiedSettings.TraceLocation, _copiedSettings.LogErrors);
+            }
             return httpRestClient.BeginModifyFiles(asyncCallback, asyncCallbackUserState, ReservedForActiveSync, itemCompletionCallback, itemCompletionCallbackUserState, transferStatusCallback, transferStatusCallbackUserState, cancellationSource, filesToModify);
         }
 
@@ -2680,11 +2877,17 @@ namespace Cloud
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndModifyFiles(IAsyncResult asyncResult, out SyncboxModifyFilesResult result)
         {
-            CheckDisposed(isOneOff: true);
+            try
+            {
+                CheckDisposed(isOneOff: true);
 
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.EndModifyFiles(asyncResult, out result);
+                return GetInstanceRestClient().EndModifyFiles(asyncResult, out result);
+            }
+            catch (Exception ex)
+            {
+                result = Helpers.DefaultForType<SyncboxModifyFilesResult>();
+                return ex;
+            }
         }
 
         /// <summary>
@@ -2703,16 +2906,24 @@ namespace Cloud
             object transferStatusCallbackUserState,
             params ModifyFileItemParams[] filesToModify)
         {
-            CheckDisposed(isOneOff: true);
+            try
+            {
+                CheckDisposed(isOneOff: true);
 
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.ModifyFiles(ReservedForActiveSync, itemCompletionCallback, itemCompletionCallbackUserState, transferStatusCallback, transferStatusCallbackUserState, filesToModify);
+                return GetInstanceRestClient().ModifyFiles(ReservedForActiveSync, itemCompletionCallback, itemCompletionCallbackUserState, transferStatusCallback, transferStatusCallbackUserState, filesToModify);
+            }
+            catch (Exception ex)
+            {
+                return ex;
+            }
         }
 
         #endregion  // end AddFiles (Adds files to the syncbox)
 
         #region GetAllPending
+
+        // \cond
+
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         /// <summary>
         /// Asynchronously starts querying for all pending files
@@ -2722,15 +2933,21 @@ namespace Cloud
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginGetAllPending(AsyncCallback asyncCallback,
-            object asyncCallbackState,
+            object asyncCallbackUserState,
             int timeoutMilliseconds)
         {
-            CheckDisposed(isOneOff: true);
-
             CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.BeginGetAllPending(asyncCallback, asyncCallbackState, timeoutMilliseconds);
+            CLError getInstanceError = GetInstanceRestClientAndCheckDisposed(out httpRestClient, isOneOff: true);
+            if (getInstanceError != null)
+            {
+                return Helpers.ErrorOnBeginAsync<GetAllPendingResult>(asyncCallback, asyncCallbackUserState, getInstanceError, _copiedSettings.TraceLocation, _copiedSettings.LogErrors);
+            }
+            return httpRestClient.BeginGetAllPending(asyncCallback, asyncCallbackUserState, timeoutMilliseconds);
         }
+
+        // \endcond
+
+        // \cond
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         /// <summary>
@@ -2742,11 +2959,22 @@ namespace Cloud
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndGetAllPending(IAsyncResult asyncResult, out GetAllPendingResult result)
         {
-            CheckDisposed(isOneOff: true);
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.EndGetAllPending(asyncResult, out result);
+            try
+            {
+                CheckDisposed(isOneOff: true);
+
+                return GetInstanceRestClient().EndGetAllPending(asyncResult, out result);
+            }
+            catch (Exception ex)
+            {
+                result = Helpers.DefaultForType<GetAllPendingResult>();
+                return ex;
+            }
         }
+
+        // \endcond
+
+        // \cond
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         /// <summary>
@@ -2757,15 +2985,27 @@ namespace Cloud
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError GetAllPending(int timeoutMilliseconds, out JsonContracts.PendingResponse response)
         {
-            CheckDisposed(isOneOff: true);
+            try
+            {
+                CheckDisposed(isOneOff: true);
 
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.GetAllPending(timeoutMilliseconds, out response);
+                return GetInstanceRestClient().GetAllPending(timeoutMilliseconds, out response);
+            }
+            catch (Exception ex)
+            {
+                response = Helpers.DefaultForType<JsonContracts.PendingResponse>();
+                return ex;
+            }
         }
+
+        // \endcond
+
         #endregion
 
         #region GetFileVersions
+
+        // \cond
+
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         /// <summary>
         /// Asynchronously starts querying the server for all versions of a given file
@@ -2776,19 +3016,25 @@ namespace Cloud
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginGetFileVersions(AsyncCallback asyncCallback,
-            object asyncCallbackState,
+            object asyncCallbackUserState,
             string fileServerId,
             int timeoutMilliseconds)
         {
-            CheckDisposed(isOneOff: true);
-
             CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
+            CLError getInstanceError = GetInstanceRestClientAndCheckDisposed(out httpRestClient, isOneOff: true);
+            if (getInstanceError != null)
+            {
+                return Helpers.ErrorOnBeginAsync<GetFileVersionsResult>(asyncCallback, asyncCallbackUserState, getInstanceError, _copiedSettings.TraceLocation, _copiedSettings.LogErrors);
+            }
             return httpRestClient.BeginGetFileVersions(asyncCallback,
-                asyncCallbackState,
+                asyncCallbackUserState,
                 fileServerId,
                 timeoutMilliseconds);
         }
+
+        // \endcond
+
+        // \cond
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         /// <summary>
@@ -2801,22 +3047,28 @@ namespace Cloud
         /// <param name="includeDeletedVersions">(optional) whether to include file versions which are deleted</param>
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginGetFileVersions(AsyncCallback asyncCallback,
-            object asyncCallbackState,
+            object asyncCallbackUserState,
             string fileServerId,
             int timeoutMilliseconds,
             bool includeDeletedVersions)
         {
-            CheckDisposed(isOneOff: true);
-
             CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
+            CLError getInstanceError = GetInstanceRestClientAndCheckDisposed(out httpRestClient, isOneOff: true);
+            if (getInstanceError != null)
+            {
+                return Helpers.ErrorOnBeginAsync<GetFileVersionsResult>(asyncCallback, asyncCallbackUserState, getInstanceError, _copiedSettings.TraceLocation, _copiedSettings.LogErrors);
+            }
             return httpRestClient.BeginGetFileVersions(asyncCallback,
-                asyncCallbackState,
+                asyncCallbackUserState,
                 fileServerId,
                 timeoutMilliseconds,
                 includeDeletedVersions);
         }
 
+        // \endcond
+
+        // \cond
+
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         /// <summary>
         /// Asynchronously starts querying the server for all versions of a given file
@@ -2828,16 +3080,22 @@ namespace Cloud
         /// <param name="pathToFile">Full path to the file where it would be placed locally within the sync root</param>
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginGetFileVersions(AsyncCallback asyncCallback,
-            object asyncCallbackState,
+            object asyncCallbackUserState,
             int timeoutMilliseconds,
             FilePath pathToFile)
         {
-            CheckDisposed(isOneOff: true);
-
             CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.BeginGetFileVersions(asyncCallback, asyncCallbackState, timeoutMilliseconds, pathToFile);
+            CLError getInstanceError = GetInstanceRestClientAndCheckDisposed(out httpRestClient, isOneOff: true);
+            if (getInstanceError != null)
+            {
+                return Helpers.ErrorOnBeginAsync<GetFileVersionsResult>(asyncCallback, asyncCallbackUserState, getInstanceError, _copiedSettings.TraceLocation, _copiedSettings.LogErrors);
+            }
+            return httpRestClient.BeginGetFileVersions(asyncCallback, asyncCallbackUserState, timeoutMilliseconds, pathToFile);
         }
+
+        // \endcond
+
+        // \cond
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         /// <summary>
@@ -2851,17 +3109,23 @@ namespace Cloud
         /// <param name="includeDeletedVersions">(optional) whether to include file versions which are deleted</param>
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginGetFileVersions(AsyncCallback asyncCallback,
-            object asyncCallbackState,
+            object asyncCallbackUserState,
             int timeoutMilliseconds,
             FilePath pathToFile,
             bool includeDeletedVersions)
         {
-            CheckDisposed(isOneOff: true);
-
             CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.BeginGetFileVersions(asyncCallback, asyncCallbackState, timeoutMilliseconds, pathToFile, includeDeletedVersions);
+            CLError getInstanceError = GetInstanceRestClientAndCheckDisposed(out httpRestClient, isOneOff: true);
+            if (getInstanceError != null)
+            {
+                return Helpers.ErrorOnBeginAsync<GetFileVersionsResult>(asyncCallback, asyncCallbackUserState, getInstanceError, _copiedSettings.TraceLocation, _copiedSettings.LogErrors);
+            }
+            return httpRestClient.BeginGetFileVersions(asyncCallback, asyncCallbackUserState, timeoutMilliseconds, pathToFile, includeDeletedVersions);
         }
+
+        // \endcond
+
+        // \cond
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         /// <summary>
@@ -2874,17 +3138,23 @@ namespace Cloud
         /// <param name="pathToFile">Full path to the file where it would be placed locally within the sync root</param>
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginGetFileVersions(AsyncCallback asyncCallback,
-            object asyncCallbackState,
+            object asyncCallbackUserState,
             string fileServerId,
             int timeoutMilliseconds,
             FilePath pathToFile)
         {
-            CheckDisposed(isOneOff: true);
-
             CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.BeginGetFileVersions(asyncCallback, asyncCallbackState, fileServerId, timeoutMilliseconds, pathToFile);
+            CLError getInstanceError = GetInstanceRestClientAndCheckDisposed(out httpRestClient, isOneOff: true);
+            if (getInstanceError != null)
+            {
+                return Helpers.ErrorOnBeginAsync<GetFileVersionsResult>(asyncCallback, asyncCallbackUserState, getInstanceError, _copiedSettings.TraceLocation, _copiedSettings.LogErrors);
+            }
+            return httpRestClient.BeginGetFileVersions(asyncCallback, asyncCallbackUserState, fileServerId, timeoutMilliseconds, pathToFile);
         }
+
+        // \endcond
+
+        // \cond
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         /// <summary>
@@ -2898,18 +3168,24 @@ namespace Cloud
         /// <param name="includeDeletedVersions">(optional) whether to include file versions which are deleted</param>
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginGetFileVersions(AsyncCallback asyncCallback,
-            object asyncCallbackState,
+            object asyncCallbackUserState,
             string fileServerId,
             int timeoutMilliseconds,
             FilePath pathToFile,
             bool includeDeletedVersions)
         {
-            CheckDisposed(isOneOff: true);
-
             CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.BeginGetFileVersions(asyncCallback, asyncCallbackState, fileServerId, timeoutMilliseconds, pathToFile, includeDeletedVersions);
+            CLError getInstanceError = GetInstanceRestClientAndCheckDisposed(out httpRestClient, isOneOff: true);
+            if (getInstanceError != null)
+            {
+                return Helpers.ErrorOnBeginAsync<GetFileVersionsResult>(asyncCallback, asyncCallbackUserState, getInstanceError, _copiedSettings.TraceLocation, _copiedSettings.LogErrors);
+            }
+            return httpRestClient.BeginGetFileVersions(asyncCallback, asyncCallbackUserState, fileServerId, timeoutMilliseconds, pathToFile, includeDeletedVersions);
         }
+
+        // \endcond
+
+        // \cond
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         /// <summary>
@@ -2921,12 +3197,22 @@ namespace Cloud
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndGetFileVersions(IAsyncResult asyncResult, out GetFileVersionsResult result)
         {
-            CheckDisposed(isOneOff: true);
+            try
+            {
+                CheckDisposed(isOneOff: true);
 
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.EndGetFileVersions(asyncResult, out result);
+                return GetInstanceRestClient().EndGetFileVersions(asyncResult, out result);
+            }
+            catch (Exception ex)
+            {
+                result = Helpers.DefaultForType<GetFileVersionsResult>();
+                return ex;
+            }
         }
+
+        // \endcond
+
+        // \cond
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         /// <summary>
@@ -2938,12 +3224,22 @@ namespace Cloud
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError GetFileVersions(string fileServerId, int timeoutMilliseconds, out JsonContracts.FileVersions response)
         {
-            CheckDisposed(isOneOff: true);
+            try
+            {
+                CheckDisposed(isOneOff: true);
 
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.GetFileVersions(fileServerId, timeoutMilliseconds, out response);
+                return GetInstanceRestClient().GetFileVersions(fileServerId, timeoutMilliseconds, out response);
+            }
+            catch (Exception ex)
+            {
+                response = Helpers.DefaultForType<JsonContracts.FileVersions>();
+                return ex;
+            }
         }
+
+        // \endcond
+
+        // \cond
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         /// <summary>
@@ -2956,12 +3252,22 @@ namespace Cloud
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError GetFileVersions(string fileServerId, int timeoutMilliseconds, out JsonContracts.FileVersions response, bool includeDeletedVersions)
         {
-            CheckDisposed(isOneOff: true);
+            try
+            {
+                CheckDisposed(isOneOff: true);
 
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.GetFileVersions(fileServerId, timeoutMilliseconds, out response, includeDeletedVersions);
+                return GetInstanceRestClient().GetFileVersions(fileServerId, timeoutMilliseconds, out response, includeDeletedVersions);
+            }
+            catch (Exception ex)
+            {
+                response = Helpers.DefaultForType<JsonContracts.FileVersions>();
+                return ex;
+            }
         }
+
+        // \endcond
+
+        // \cond
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         /// <summary>
@@ -2973,12 +3279,22 @@ namespace Cloud
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError GetFileVersions(int timeoutMilliseconds, FilePath pathToFile, out JsonContracts.FileVersions response)
         {
-            CheckDisposed(isOneOff: true);
+            try
+            {
+                CheckDisposed(isOneOff: true);
 
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.GetFileVersions(timeoutMilliseconds, pathToFile, out response);
+                return GetInstanceRestClient().GetFileVersions(timeoutMilliseconds, pathToFile, out response);
+            }
+            catch (Exception ex)
+            {
+                response = Helpers.DefaultForType<JsonContracts.FileVersions>();
+                return ex;
+            }
         }
+
+        // \endcond
+
+        // \cond
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         /// <summary>
@@ -2991,12 +3307,22 @@ namespace Cloud
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError GetFileVersions(int timeoutMilliseconds, FilePath pathToFile, out JsonContracts.FileVersions response, bool includeDeletedVersions)
         {
-            CheckDisposed(isOneOff: true);
+            try
+            {
+                CheckDisposed(isOneOff: true);
 
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.GetFileVersions(timeoutMilliseconds, pathToFile, out response, includeDeletedVersions);
+                return GetInstanceRestClient().GetFileVersions(timeoutMilliseconds, pathToFile, out response, includeDeletedVersions);
+            }
+            catch (Exception ex)
+            {
+                response = Helpers.DefaultForType<JsonContracts.FileVersions>();
+                return ex;
+            }
         }
+
+        // \endcond
+
+        // \cond
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         /// <summary>
@@ -3009,12 +3335,22 @@ namespace Cloud
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError GetFileVersions(string fileServerId, int timeoutMilliseconds, FilePath pathToFile, out JsonContracts.FileVersions response)
         {
-            CheckDisposed(isOneOff: true);
+            try
+            {
+                CheckDisposed(isOneOff: true);
 
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.GetFileVersions(fileServerId, timeoutMilliseconds, pathToFile, out response);
+                return GetInstanceRestClient().GetFileVersions(fileServerId, timeoutMilliseconds, pathToFile, out response);
+            }
+            catch (Exception ex)
+            {
+                response = Helpers.DefaultForType<JsonContracts.FileVersions>();
+                return ex;
+            }
         }
+
+        // \endcond
+
+        // \cond
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         /// <summary>
@@ -3028,12 +3364,21 @@ namespace Cloud
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError GetFileVersions(string fileServerId, int timeoutMilliseconds, FilePath pathToFile, out JsonContracts.FileVersions response, bool includeDeletedVersions)
         {
-            CheckDisposed(isOneOff: true);
+            try
+            {
+                CheckDisposed(isOneOff: true);
 
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.GetFileVersions(fileServerId, timeoutMilliseconds, pathToFile, out response, includeDeletedVersions);
+                return GetInstanceRestClient().GetFileVersions(fileServerId, timeoutMilliseconds, pathToFile, out response, includeDeletedVersions);
+            }
+            catch (Exception ex)
+            {
+                response = Helpers.DefaultForType<JsonContracts.FileVersions>();
+                return ex;
+            }
         }
+
+        // \endcond
+
         #endregion
 
         #region AllImageItems (Gets image items from this syncbox)
@@ -3049,10 +3394,12 @@ namespace Cloud
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginAllImageItems(AsyncCallback asyncCallback, object asyncCallbackUserState, long pageNumber, long itemsPerPage)
         {
-            CheckDisposed(isOneOff: true);
-
             CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
+            CLError getInstanceError = GetInstanceRestClientAndCheckDisposed(out httpRestClient, isOneOff: true);
+            if (getInstanceError != null)
+            {
+                return Helpers.ErrorOnBeginAsync<SyncboxAllImageItemsResult>(asyncCallback, asyncCallbackUserState, getInstanceError, _copiedSettings.TraceLocation, _copiedSettings.LogErrors);
+            }
             return httpRestClient.BeginAllImageItems(asyncCallback, asyncCallbackUserState, pageNumber, itemsPerPage);
         }
 
@@ -3065,11 +3412,17 @@ namespace Cloud
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndAllImageItems(IAsyncResult asyncResult, out SyncboxAllImageItemsResult result)
         {
-            CheckDisposed(isOneOff: true);
+            try
+            {
+                CheckDisposed(isOneOff: true);
 
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.EndAllImageItems(asyncResult, out result);
+                return GetInstanceRestClient().EndAllImageItems(asyncResult, out result);
+            }
+            catch (Exception ex)
+            {
+                result = Helpers.DefaultForType<SyncboxAllImageItemsResult>();
+                return ex;
+            }
         }
 
         /// <summary>
@@ -3081,11 +3434,17 @@ namespace Cloud
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError AllImageItems(long pageNumber, long itemsPerPage, out CLFileItem[] items)
         {
-            CheckDisposed(isOneOff: true);
+            try
+            {
+                CheckDisposed(isOneOff: true);
 
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.AllImageItems(pageNumber, itemsPerPage, out items);
+                return GetInstanceRestClient().AllImageItems(pageNumber, itemsPerPage, out items);
+            }
+            catch (Exception ex)
+            {
+                items = Helpers.DefaultForType<CLFileItem[]>();
+                return ex;
+            }
         }
 
         #endregion  // end AllImageItems (Gets image items from this syncbox)
@@ -3103,10 +3462,12 @@ namespace Cloud
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginAllVideoItems(AsyncCallback asyncCallback, object asyncCallbackUserState, long pageNumber, long itemsPerPage)
         {
-            CheckDisposed(isOneOff: true);
-
             CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
+            CLError getInstanceError = GetInstanceRestClientAndCheckDisposed(out httpRestClient, isOneOff: true);
+            if (getInstanceError != null)
+            {
+                return Helpers.ErrorOnBeginAsync<SyncboxAllVideoItemsResult>(asyncCallback, asyncCallbackUserState, getInstanceError, _copiedSettings.TraceLocation, _copiedSettings.LogErrors);
+            }
             return httpRestClient.BeginAllVideoItems(asyncCallback, asyncCallbackUserState, pageNumber, itemsPerPage);
         }
 
@@ -3119,11 +3480,17 @@ namespace Cloud
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndAllVideoItems(IAsyncResult asyncResult, out SyncboxAllVideoItemsResult result)
         {
-            CheckDisposed(isOneOff: true);
+            try
+            {
+                CheckDisposed(isOneOff: true);
 
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.EndAllVideoItems(asyncResult, out result);
+                return GetInstanceRestClient().EndAllVideoItems(asyncResult, out result);
+            }
+            catch (Exception ex)
+            {
+                result = Helpers.DefaultForType<SyncboxAllVideoItemsResult>();
+                return ex;
+            }
         }
 
         /// <summary>
@@ -3135,11 +3502,17 @@ namespace Cloud
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError AllVideoItems(long pageNumber, long itemsPerPage, out CLFileItem[] items)
         {
-            CheckDisposed(isOneOff: true);
+            try
+            {
+                CheckDisposed(isOneOff: true);
 
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.AllVideoItems(pageNumber, itemsPerPage, out items);
+                return GetInstanceRestClient().AllVideoItems(pageNumber, itemsPerPage, out items);
+            }
+            catch (Exception ex)
+            {
+                items = Helpers.DefaultForType<CLFileItem[]>();
+                return ex;
+            }
         }
 
         #endregion  // end AllVideoItems (Gets video items from this syncbox)
@@ -3157,10 +3530,12 @@ namespace Cloud
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginAllAudioItems(AsyncCallback asyncCallback, object asyncCallbackUserState, long pageNumber, long itemsPerPage)
         {
-            CheckDisposed(isOneOff: true);
-
             CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
+            CLError getInstanceError = GetInstanceRestClientAndCheckDisposed(out httpRestClient, isOneOff: true);
+            if (getInstanceError != null)
+            {
+                return Helpers.ErrorOnBeginAsync<SyncboxAllAudioItemsResult>(asyncCallback, asyncCallbackUserState, getInstanceError, _copiedSettings.TraceLocation, _copiedSettings.LogErrors);
+            }
             return httpRestClient.BeginAllAudioItems(asyncCallback, asyncCallbackUserState, pageNumber, itemsPerPage);
         }
 
@@ -3173,11 +3548,17 @@ namespace Cloud
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndAllAudioItems(IAsyncResult asyncResult, out SyncboxAllAudioItemsResult result)
         {
-            CheckDisposed(isOneOff: true);
+            try
+            {
+                CheckDisposed(isOneOff: true);
 
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.EndAllAudioItems(asyncResult, out result);
+                return GetInstanceRestClient().EndAllAudioItems(asyncResult, out result);
+            }
+            catch (Exception ex)
+            {
+                result = Helpers.DefaultForType<SyncboxAllAudioItemsResult>();
+                return ex;
+            }
         }
 
         /// <summary>
@@ -3189,11 +3570,17 @@ namespace Cloud
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError AllAudioItems(long pageNumber, long itemsPerPage, out CLFileItem[] items)
         {
-            CheckDisposed(isOneOff: true);
+            try
+            {
+                CheckDisposed(isOneOff: true);
 
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.AllAudioItems(pageNumber, itemsPerPage, out items);
+                return GetInstanceRestClient().AllAudioItems(pageNumber, itemsPerPage, out items);
+            }
+            catch (Exception ex)
+            {
+                items = Helpers.DefaultForType<CLFileItem[]>();
+                return ex;
+            }
         }
 
         #endregion  // end AllAudioItems (Gets audio items from this syncbox)
@@ -3211,10 +3598,12 @@ namespace Cloud
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginAllDocumentItems(AsyncCallback asyncCallback, object asyncCallbackUserState, long pageNumber, long itemsPerPage)
         {
-            CheckDisposed(isOneOff: true);
-
             CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
+            CLError getInstanceError = GetInstanceRestClientAndCheckDisposed(out httpRestClient, isOneOff: true);
+            if (getInstanceError != null)
+            {
+                return Helpers.ErrorOnBeginAsync<SyncboxAllDocumentItemsResult>(asyncCallback, asyncCallbackUserState, getInstanceError, _copiedSettings.TraceLocation, _copiedSettings.LogErrors);
+            }
             return httpRestClient.BeginAllDocumentItems(asyncCallback, asyncCallbackUserState, pageNumber, itemsPerPage);
         }
 
@@ -3227,11 +3616,17 @@ namespace Cloud
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndAllDocumentItems(IAsyncResult asyncResult, out SyncboxAllDocumentItemsResult result)
         {
-            CheckDisposed(isOneOff: true);
+            try
+            {
+                CheckDisposed(isOneOff: true);
 
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.EndAllDocumentItems(asyncResult, out result);
+                return GetInstanceRestClient().EndAllDocumentItems(asyncResult, out result);
+            }
+            catch (Exception ex)
+            {
+                result = Helpers.DefaultForType<SyncboxAllDocumentItemsResult>();
+                return ex;
+            }
         }
 
         /// <summary>
@@ -3245,11 +3640,17 @@ namespace Cloud
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError AllDocumentItems(long pageNumber, long itemsPerPage, out CLFileItem[] items)
         {
-            CheckDisposed(isOneOff: true);
+            try
+            {
+                CheckDisposed(isOneOff: true);
 
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.AllDocumentItems(pageNumber, itemsPerPage, out items);
+                return GetInstanceRestClient().AllDocumentItems(pageNumber, itemsPerPage, out items);
+            }
+            catch (Exception ex)
+            {
+                items = Helpers.DefaultForType<CLFileItem[]>();
+                return ex;
+            }
         }
 
         #endregion  // end AllDocumentItems (Gets document items from this syncbox)
@@ -3267,10 +3668,12 @@ namespace Cloud
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginAllPresentationItems(AsyncCallback asyncCallback, object asyncCallbackUserState, long pageNumber, long itemsPerPage)
         {
-            CheckDisposed(isOneOff: true);
-
             CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
+            CLError getInstanceError = GetInstanceRestClientAndCheckDisposed(out httpRestClient, isOneOff: true);
+            if (getInstanceError != null)
+            {
+                return Helpers.ErrorOnBeginAsync<SyncboxAllPresentationItemsResult>(asyncCallback, asyncCallbackUserState, getInstanceError, _copiedSettings.TraceLocation, _copiedSettings.LogErrors);
+            }
             return httpRestClient.BeginAllPresentationItems(asyncCallback, asyncCallbackUserState, pageNumber, itemsPerPage);
         }
 
@@ -3283,11 +3686,17 @@ namespace Cloud
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndAllPresentationItems(IAsyncResult asyncResult, out SyncboxAllPresentationItemsResult result)
         {
-            CheckDisposed(isOneOff: true);
+            try
+            {
+                CheckDisposed(isOneOff: true);
 
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.EndAllPresentationItems(asyncResult, out result);
+                return GetInstanceRestClient().EndAllPresentationItems(asyncResult, out result);
+            }
+            catch (Exception ex)
+            {
+                result = Helpers.DefaultForType<SyncboxAllPresentationItemsResult>();
+                return ex;
+            }
         }
 
         /// <summary>
@@ -3299,11 +3708,17 @@ namespace Cloud
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError AllPresentationItems(long pageNumber, long itemsPerPage, out CLFileItem[] items)
         {
-            CheckDisposed(isOneOff: true);
+            try
+            {
+                CheckDisposed(isOneOff: true);
 
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.AllPresentationItems(pageNumber, itemsPerPage, out items);
+                return GetInstanceRestClient().AllPresentationItems(pageNumber, itemsPerPage, out items);
+            }
+            catch (Exception ex)
+            {
+                items = Helpers.DefaultForType<CLFileItem[]>();
+                return ex;
+            }
         }
 
         #endregion  // end AllPresentationItems (Gets presentation items from this syncbox)
@@ -3321,10 +3736,12 @@ namespace Cloud
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginAllPlainTextItems(AsyncCallback asyncCallback, object asyncCallbackUserState, long pageNumber, long itemsPerPage)
         {
-            CheckDisposed(isOneOff: true);
-
             CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
+            CLError getInstanceError = GetInstanceRestClientAndCheckDisposed(out httpRestClient, isOneOff: true);
+            if (getInstanceError != null)
+            {
+                return Helpers.ErrorOnBeginAsync<SyncboxAllTextItemsResult>(asyncCallback, asyncCallbackUserState, getInstanceError, _copiedSettings.TraceLocation, _copiedSettings.LogErrors);
+            }
             return httpRestClient.BeginAllPlainTextItems(asyncCallback, asyncCallbackUserState, pageNumber, itemsPerPage);
         }
 
@@ -3337,11 +3754,17 @@ namespace Cloud
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndAllPlainTextItems(IAsyncResult asyncResult, out SyncboxAllTextItemsResult result)
         {
-            CheckDisposed(isOneOff: true);
+            try
+            {
+                CheckDisposed(isOneOff: true);
 
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.EndAllPlainTextItems(asyncResult, out result);
+                return GetInstanceRestClient().EndAllPlainTextItems(asyncResult, out result);
+            }
+            catch (Exception ex)
+            {
+                result = Helpers.DefaultForType<SyncboxAllTextItemsResult>();
+                return ex;
+            }
         }
 
         /// <summary>
@@ -3353,11 +3776,17 @@ namespace Cloud
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError AllPlainTextItems(long pageNumber, long itemsPerPage, out CLFileItem[] items)
         {
-            CheckDisposed(isOneOff: true);
+            try
+            {
+                CheckDisposed(isOneOff: true);
 
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.AllPlainTextItems(pageNumber, itemsPerPage, out items);
+                return GetInstanceRestClient().AllPlainTextItems(pageNumber, itemsPerPage, out items);
+            }
+            catch (Exception ex)
+            {
+                items = Helpers.DefaultForType<CLFileItem[]>();
+                return ex;
+            }
         }
 
         #endregion  // end AllTextItems (Gets text items from this syncbox)
@@ -3375,10 +3804,12 @@ namespace Cloud
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginAllArchivetItems(AsyncCallback asyncCallback, object asyncCallbackUserState, long pageNumber, long itemsPerPage)
         {
-            CheckDisposed(isOneOff: true);
-
             CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
+            CLError getInstanceError = GetInstanceRestClientAndCheckDisposed(out httpRestClient, isOneOff: true);
+            if (getInstanceError != null)
+            {
+                return Helpers.ErrorOnBeginAsync<SyncboxAllArchiveItemsResult>(asyncCallback, asyncCallbackUserState, getInstanceError, _copiedSettings.TraceLocation, _copiedSettings.LogErrors);
+            }
             return httpRestClient.BeginAllArchiveItems(asyncCallback, asyncCallbackUserState, pageNumber, itemsPerPage);
         }
 
@@ -3391,11 +3822,17 @@ namespace Cloud
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndAllArchiveItems(IAsyncResult asyncResult, out SyncboxAllArchiveItemsResult result)
         {
-            CheckDisposed(isOneOff: true);
+            try
+            {
+                CheckDisposed(isOneOff: true);
 
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.EndAllArchiveItems(asyncResult, out result);
+                return GetInstanceRestClient().EndAllArchiveItems(asyncResult, out result);
+            }
+            catch (Exception ex)
+            {
+                result = Helpers.DefaultForType<SyncboxAllArchiveItemsResult>();
+                return ex;
+            }
         }
 
         /// <summary>
@@ -3407,11 +3844,17 @@ namespace Cloud
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError AllArchiveItems(long pageNumber, long itemsPerPage, out CLFileItem[] items)
         {
-            CheckDisposed(isOneOff: true);
+            try
+            {
+                CheckDisposed(isOneOff: true);
 
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.AllArchiveItems(pageNumber, itemsPerPage, out items);
+                return GetInstanceRestClient().AllArchiveItems(pageNumber, itemsPerPage, out items);
+            }
+            catch (Exception ex)
+            {
+                items = Helpers.DefaultForType<CLFileItem[]>();
+                return ex;
+            }
         }
 
         #endregion  // end AllArchiveItems (Gets archive items from this syncbox)
@@ -3434,10 +3877,12 @@ namespace Cloud
             long itemsPerPage,
             params string[] extensions)
         {
-            CheckDisposed(isOneOff: true);
-
             CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
+            CLError getInstanceError = GetInstanceRestClientAndCheckDisposed(out httpRestClient, isOneOff: true);
+            if (getInstanceError != null)
+            {
+                return Helpers.ErrorOnBeginAsync<SyncboxAllItemsOfTypesResult>(asyncCallback, asyncCallbackUserState, getInstanceError, _copiedSettings.TraceLocation, _copiedSettings.LogErrors);
+            }
             return httpRestClient.BeginAllItemsOfTypes(asyncCallback, asyncCallbackUserState, pageNumber, itemsPerPage, extensions);
         }
 
@@ -3451,11 +3896,17 @@ namespace Cloud
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndAllItemsOfTypes(IAsyncResult asyncResult, out SyncboxAllItemsOfTypesResult result)
         {
-            CheckDisposed(isOneOff: true);
+            try
+            {
+                CheckDisposed(isOneOff: true);
 
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.EndAllItemsOfTypes(asyncResult, out result);
+                return GetInstanceRestClient().EndAllItemsOfTypes(asyncResult, out result);
+            }
+            catch (Exception ex)
+            {
+                result = Helpers.DefaultForType<SyncboxAllItemsOfTypesResult>();
+                return ex;
+            }
         }
 
         /// <summary>
@@ -3468,11 +3919,17 @@ namespace Cloud
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError AllItemsOfTypes(long pageNumber, long itemsPerPage, out CLFileItem[] items, params string[] extensions)
         {
-            CheckDisposed(isOneOff: true);
+            try
+            {
+                CheckDisposed(isOneOff: true);
 
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.AllItemsOfTypes(pageNumber, itemsPerPage, out items, extensions);
+                return GetInstanceRestClient().AllItemsOfTypes(pageNumber, itemsPerPage, out items, extensions);
+            }
+            catch (Exception ex)
+            {
+                items = Helpers.DefaultForType<CLFileItem[]>();
+                return ex;
+            }
         }
 
         #endregion  // end AllItemsOfTypes (Get file items with various extensions from this syncbox)
@@ -3494,10 +3951,12 @@ namespace Cloud
             long itemsPerPage,
             Nullable<DateTime> sinceDate = null)
         {
-            CheckDisposed(isOneOff: true);
-
             CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
+            CLError getInstanceError = GetInstanceRestClientAndCheckDisposed(out httpRestClient, isOneOff: true);
+            if (getInstanceError != null)
+            {
+                return Helpers.ErrorOnBeginAsync<SyncboxRecentFilesSinceDateResult>(asyncCallback, asyncCallbackUserState, getInstanceError, _copiedSettings.TraceLocation, _copiedSettings.LogErrors);
+            }
             return httpRestClient.BeginRecentFilesSinceDate(asyncCallback, asyncCallbackUserState, pageNumber, itemsPerPage, sinceDate);
         }
 
@@ -3510,11 +3969,17 @@ namespace Cloud
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndRecentFilesSinceDate(IAsyncResult asyncResult, out SyncboxRecentFilesSinceDateResult result)
         {
-            CheckDisposed(isOneOff: true);
+            try
+            {
+                CheckDisposed(isOneOff: true);
 
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.EndRecentFilesSinceDate(asyncResult, out result);
+                return GetInstanceRestClient().EndRecentFilesSinceDate(asyncResult, out result);
+            }
+            catch (Exception ex)
+            {
+                result = Helpers.DefaultForType<SyncboxRecentFilesSinceDateResult>();
+                return ex;
+            }
         }
 
         /// <summary>
@@ -3527,11 +3992,17 @@ namespace Cloud
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError RecentFilesSinceDate(long pageNumber, long itemsPerPage, out CLFileItem[] items, Nullable<DateTime> sinceDate = null)
         {
-            CheckDisposed(isOneOff: true);
+            try
+            {
+                CheckDisposed(isOneOff: true);
 
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.RecentFilesSinceDate(pageNumber, itemsPerPage, out items, sinceDate);
+                return GetInstanceRestClient().RecentFilesSinceDate(pageNumber, itemsPerPage, out items, sinceDate);
+            }
+            catch (Exception ex)
+            {
+                items = Helpers.DefaultForType<CLFileItem[]>();
+                return ex;
+            }
         }
 
         #endregion  // end RecentFilesSincDate (Retrieves the specified number of recently modified <CLFileItems>s.)
@@ -3549,10 +4020,12 @@ namespace Cloud
             object asyncCallbackUserState,
             long returnLimit)
         {
-            CheckDisposed(isOneOff: true);
-
             CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
+            CLError getInstanceError = GetInstanceRestClientAndCheckDisposed(out httpRestClient, isOneOff: true);
+            if (getInstanceError != null)
+            {
+                return Helpers.ErrorOnBeginAsync<SyncboxRecentFilesResult>(asyncCallback, asyncCallbackUserState, getInstanceError, _copiedSettings.TraceLocation, _copiedSettings.LogErrors);
+            }
             return httpRestClient.BeginRecentFiles(asyncCallback, asyncCallbackUserState, returnLimit);
         }
 
@@ -3565,11 +4038,17 @@ namespace Cloud
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndRecentFiles(IAsyncResult asyncResult, out SyncboxRecentFilesResult result)
         {
-            CheckDisposed(isOneOff: true);
+            try
+            {
+                CheckDisposed(isOneOff: true);
 
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.EndRecentFiles(asyncResult, out result);
+                return GetInstanceRestClient().EndRecentFiles(asyncResult, out result);
+            }
+            catch (Exception ex)
+            {
+                result = Helpers.DefaultForType<SyncboxRecentFilesResult>();
+                return ex;
+            }
         }
 
         /// <summary>
@@ -3580,11 +4059,17 @@ namespace Cloud
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError RecentFiles(long returnLimit, out CLFileItem[] items)
         {
-            CheckDisposed(isOneOff: true);
+            try
+            {
+                CheckDisposed(isOneOff: true);
 
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.RecentFiles(returnLimit, out items);
+                return GetInstanceRestClient().RecentFiles(returnLimit, out items);
+            }
+            catch (Exception ex)
+            {
+                items = Helpers.DefaultForType<CLFileItem[]>();
+                return ex;
+            }
         }
 
         #endregion  // end RecentFiles (Retrieves the specified number of recently modified <CLFileItems>s.)
@@ -3598,10 +4083,12 @@ namespace Cloud
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginGetDataUsage(AsyncCallback asyncCallback, object asyncCallbackUserState)
         {
-            CheckDisposed(isOneOff: true);
-
             CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
+            CLError getInstanceError = GetInstanceRestClientAndCheckDisposed(out httpRestClient, isOneOff: true);
+            if (getInstanceError != null)
+            {
+                return Helpers.ErrorOnBeginAsync<SyncboxUsageResult>(asyncCallback, asyncCallbackUserState, getInstanceError, _copiedSettings.TraceLocation, _copiedSettings.LogErrors);
+            }
             return httpRestClient.BeginGetDataUsage(
                 asyncCallback,
                 asyncCallbackUserState,
@@ -3618,11 +4105,17 @@ namespace Cloud
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndGetDataUsage(IAsyncResult asyncResult, out SyncboxUsageResult result)
         {
-            CheckDisposed(isOneOff: true);
+            try
+            {
+                CheckDisposed(isOneOff: true);
 
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.EndGetDataUsage(asyncResult, out result);
+                return GetInstanceRestClient().EndGetDataUsage(asyncResult, out result);
+            }
+            catch (Exception ex)
+            {
+                result = Helpers.DefaultForType<SyncboxUsageResult>();
+                return ex;
+            }
         }
 
         /// <summary>
@@ -3631,11 +4124,16 @@ namespace Cloud
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError GetDataUsage()
         {
-            CheckDisposed(isOneOff: true);
+            try
+            {
+                CheckDisposed(isOneOff: true);
 
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.GetDataUsage(new Action<JsonContracts.SyncboxUsageResponse, object>(OnGetDataUsageCompletion), this);
+                return GetInstanceRestClient().GetDataUsage(new Action<JsonContracts.SyncboxUsageResponse, object>(OnGetDataUsageCompletion), this);
+            }
+            catch (Exception ex)
+            {
+                return ex;
+            }
         }
 
         /// <summary>
@@ -3645,18 +4143,24 @@ namespace Cloud
         /// <param name="userState"></param>
         private void OnGetDataUsageCompletion(JsonContracts.SyncboxUsageResponse response, object userState)
         {
-            // Update this object's properties atomically.
-            this._propertyChangeLocker.EnterWriteLock();
             try
             {
-                this._storageQuota = response.Limit;
-                this._quotaUsage = response.Local;
+                // Update this object's properties atomically.
+                this._propertyChangeLocker.EnterWriteLock();
+                try
+                {
+                    this._storageQuota = response.Limit;
+                    this._quotaUsage = response.Local;
 
-                PossiblyFireQuotaMessage();  // maybe fire the quota exceeded or quota OK message.
+                    PossiblyFireQuotaMessage();  // maybe fire the quota exceeded or quota OK message.
+                }
+                finally
+                {
+                    this._propertyChangeLocker.ExitWriteLock();
+                }
             }
-            finally
+            catch
             {
-                this._propertyChangeLocker.ExitWriteLock();
             }
         }
         #endregion  // end GetDataUsage (get the usage information for this syncbox from the cloud)
@@ -3666,40 +4170,44 @@ namespace Cloud
         /// Asynchronously updates the extended metadata on a sync box
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when operation completes</param>
-        /// <param name="asyncCallbackState">User state to pass when firing async callback</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing async callback</param>
         /// <param name="metadata">string keys to serializable object values to store as extra metadata to the sync box</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         internal IAsyncResult BeginUpdateSyncboxExtendedMetadata<T>(AsyncCallback asyncCallback,
-            object asyncCallbackState,
+            object asyncCallbackUserState,
             IDictionary<string, T> metadata,
             int timeoutMilliseconds)
         {
-            CheckDisposed(isOneOff: true);
-
             CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.BeginUpdateSyncboxExtendedMetadata(asyncCallback, asyncCallbackState, metadata, timeoutMilliseconds);
+            CLError getInstanceError = GetInstanceRestClientAndCheckDisposed(out httpRestClient, isOneOff: true);
+            if (getInstanceError != null)
+            {
+                return Helpers.ErrorOnBeginAsync<SyncboxUpdateExtendedMetadataResult>(asyncCallback, asyncCallbackUserState, getInstanceError, _copiedSettings.TraceLocation, _copiedSettings.LogErrors);
+            }
+            return httpRestClient.BeginUpdateSyncboxExtendedMetadata(asyncCallback, asyncCallbackUserState, metadata, timeoutMilliseconds);
         }
 
         /// <summary>
         /// Asynchronously updates the extended metadata on a sync box
         /// </summary>
         /// <param name="asyncCallback">Callback method to fire when operation completes</param>
-        /// <param name="asyncCallbackState">User state to pass when firing async callback</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing async callback</param>
         /// <param name="metadata">string keys to serializable object values to store as extra metadata to the sync box</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         internal IAsyncResult BeginUpdateSyncboxExtendedMetadata(AsyncCallback asyncCallback,
-            object asyncCallbackState,
+            object asyncCallbackUserState,
             JsonContracts.MetadataDictionary metadata,
             int timeoutMilliseconds)
         {
-            CheckDisposed(isOneOff: true);
-
             CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.BeginUpdateSyncboxExtendedMetadata(asyncCallback, asyncCallbackState, metadata, timeoutMilliseconds);
+            CLError getInstanceError = GetInstanceRestClientAndCheckDisposed(out httpRestClient, isOneOff: true);
+            if (getInstanceError != null)
+            {
+                return Helpers.ErrorOnBeginAsync<SyncboxUpdateExtendedMetadataResult>(asyncCallback, asyncCallbackUserState, getInstanceError, _copiedSettings.TraceLocation, _copiedSettings.LogErrors);
+            }
+            return httpRestClient.BeginUpdateSyncboxExtendedMetadata(asyncCallback, asyncCallbackUserState, metadata, timeoutMilliseconds);
         }
 
         /// <summary>
@@ -3711,11 +4219,17 @@ namespace Cloud
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         internal CLError EndUpdateSyncboxExtendedMetadata(IAsyncResult asyncResult, out SyncboxUpdateExtendedMetadataResult result)
         {
-            CheckDisposed(isOneOff: true);
+            try
+            {
+                CheckDisposed(isOneOff: true);
 
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.EndUpdateSyncboxExtendedMetadata(asyncResult, out result);
+                return GetInstanceRestClient().EndUpdateSyncboxExtendedMetadata(asyncResult, out result);
+            }
+            catch (Exception ex)
+            {
+                result = Helpers.DefaultForType<SyncboxUpdateExtendedMetadataResult>();
+                return ex;
+            }
         }
 
         /// <summary>
@@ -3727,11 +4241,17 @@ namespace Cloud
         /// <returns>Returns any error that occurred during communication, if any</returns>
         internal CLError UpdateSyncboxExtendedMetadata<T>(IDictionary<string, T> metadata, int timeoutMilliseconds, out JsonContracts.SyncboxResponse response)
         {
-            CheckDisposed(isOneOff: true);
+            try
+            {
+                CheckDisposed(isOneOff: true);
 
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.UpdateSyncboxExtendedMetadata(metadata, timeoutMilliseconds, out response);
+                return GetInstanceRestClient().UpdateSyncboxExtendedMetadata(metadata, timeoutMilliseconds, out response);
+            }
+            catch (Exception ex)
+            {
+                response = Helpers.DefaultForType<JsonContracts.SyncboxResponse>();
+                return ex;
+            }
         }
 
         /// <summary>
@@ -3743,11 +4263,17 @@ namespace Cloud
         /// <returns>Returns any error that occurred during communication, if any</returns>
         internal CLError SyncboxUpdateExtendedMetadata(JsonContracts.MetadataDictionary metadata, int timeoutMilliseconds, out JsonContracts.SyncboxResponse response)
         {
-            CheckDisposed(isOneOff: true);
+            try
+            {
+                CheckDisposed(isOneOff: true);
 
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.UpdateSyncboxExtendedMetadata(metadata, timeoutMilliseconds, out response);
+                return GetInstanceRestClient().UpdateSyncboxExtendedMetadata(metadata, timeoutMilliseconds, out response);
+            }
+            catch (Exception ex)
+            {
+                response = Helpers.DefaultForType<JsonContracts.SyncboxResponse>();
+                return ex;
+            }
         }
         #endregion
 
@@ -3762,10 +4288,12 @@ namespace Cloud
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginUpdateStoragePlan(AsyncCallback asyncCallback, object asyncCallbackUserState, CLStoragePlan storagePlan)
         {
-            CheckDisposed(isOneOff: true);
-
             CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
+            CLError getInstanceError = GetInstanceRestClientAndCheckDisposed(out httpRestClient, isOneOff: true);
+            if (getInstanceError != null)
+            {
+                return Helpers.ErrorOnBeginAsync<SyncboxUpdateStoragePlanResult>(asyncCallback, asyncCallbackUserState, getInstanceError, _copiedSettings.TraceLocation, _copiedSettings.LogErrors);
+            }
             return httpRestClient.BeginUpdateStoragePlan(
                 asyncCallback,
                 asyncCallbackUserState,
@@ -3784,11 +4312,17 @@ namespace Cloud
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndUpdateStoragePlan(IAsyncResult asyncResult, out SyncboxUpdateStoragePlanResult result)
         {
-            CheckDisposed(isOneOff: true);
+            try
+            {
+                CheckDisposed(isOneOff: true);
 
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.EndUpdateStoragePlan(asyncResult, out result);
+                return GetInstanceRestClient().EndUpdateStoragePlan(asyncResult, out result);
+            }
+            catch (Exception ex)
+            {
+                result = Helpers.DefaultForType<SyncboxUpdateStoragePlanResult>();
+                return ex;
+            }
         }
 
         /// <summary>
@@ -3799,15 +4333,20 @@ namespace Cloud
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError UpdateStoragePlan(CLStoragePlan storagePlan)
         {
-            CheckDisposed(isOneOff: true);
+            try
+            {
+                CheckDisposed(isOneOff: true);
 
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.UpdateStoragePlan(
-                new Action<JsonContracts.SyncboxUpdateStoragePlanResponse, object>(OnUpdateStoragePlanCompletion),
-                this,
-                ReservedForActiveSync,
-                storagePlan);
+                return GetInstanceRestClient().UpdateStoragePlan(
+                    new Action<JsonContracts.SyncboxUpdateStoragePlanResponse, object>(OnUpdateStoragePlanCompletion),
+                    this,
+                    ReservedForActiveSync,
+                    storagePlan);
+            }
+            catch (Exception ex)
+            {
+                return ex;
+            }
         }
 
         /// <summary>
@@ -3846,10 +4385,12 @@ namespace Cloud
             object asyncCallbackUserState,
             string friendlyName)
         {
-            CheckDisposed(isOneOff: true);
-
             CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
+            CLError getInstanceError = GetInstanceRestClientAndCheckDisposed(out httpRestClient, isOneOff: true);
+            if (getInstanceError != null)
+            {
+                return Helpers.ErrorOnBeginAsync<SyncboxUpdateFriendlyNameResult>(asyncCallback, asyncCallbackUserState, getInstanceError, _copiedSettings.TraceLocation, _copiedSettings.LogErrors);
+            }
             return httpRestClient.BeginUpdateFriendlyName(
                 asyncCallback,
                 asyncCallbackUserState,
@@ -3868,11 +4409,17 @@ namespace Cloud
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndUpdateFriendlyName(IAsyncResult asyncResult, out SyncboxUpdateFriendlyNameResult result)
         {
-            CheckDisposed(isOneOff: true);
+            try
+            {
+                CheckDisposed(isOneOff: true);
 
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.EndUpdateFriendlyName(asyncResult, out result);
+                return GetInstanceRestClient().EndUpdateFriendlyName(asyncResult, out result);
+            }
+            catch (Exception ex)
+            {
+                result = Helpers.DefaultForType<SyncboxUpdateFriendlyNameResult>();
+                return ex;
+            }
         }
 
         /// <summary>
@@ -3883,15 +4430,20 @@ namespace Cloud
         public CLError UpdateFriendlyName<T>(
             string friendlyName)
         {
-            CheckDisposed(isOneOff: true);
+            try
+            {
+                CheckDisposed(isOneOff: true);
 
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.UpdateFriendlyName(
-                ReservedForActiveSync,
-                new Action<JsonContracts.SyncboxResponse, object>(OnUpdateFriendlyNameCompletion),
-                this,
-                friendlyName);
+                return GetInstanceRestClient().UpdateFriendlyName(
+                    ReservedForActiveSync,
+                    new Action<JsonContracts.SyncboxResponse, object>(OnUpdateFriendlyNameCompletion),
+                    this,
+                    friendlyName);
+            }
+            catch (Exception ex)
+            {
+                return ex;
+            }
         }
 
         /// <summary>
@@ -3923,10 +4475,12 @@ namespace Cloud
         /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
         public IAsyncResult BeginGetCurrentStatus(AsyncCallback asyncCallback, object asyncCallbackUserState)
         {
-            CheckDisposed(isOneOff: true);
-
             CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
+            CLError getInstanceError = GetInstanceRestClientAndCheckDisposed(out httpRestClient, isOneOff: true);
+            if (getInstanceError != null)
+            {
+                return Helpers.ErrorOnBeginAsync<SyncboxStatusResult>(asyncCallback, asyncCallbackUserState, getInstanceError, _copiedSettings.TraceLocation, _copiedSettings.LogErrors);
+            }
             return httpRestClient.BeginGetCurrentStatus(asyncCallback, asyncCallbackUserState, new Action<JsonContracts.SyncboxStatusResponse, object>(OnStatusCompletion), this);
         }
 
@@ -3940,11 +4494,17 @@ namespace Cloud
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndGetCurrentStatus(IAsyncResult asyncResult, out SyncboxStatusResult result)
         {
-            CheckDisposed(isOneOff: true);
+            try
+            {
+                CheckDisposed(isOneOff: true);
 
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.EndGetCurrentStatus(asyncResult, out result);
+                return GetInstanceRestClient().EndGetCurrentStatus(asyncResult, out result);
+            }
+            catch (Exception ex)
+            {
+                result = Helpers.DefaultForType<SyncboxStatusResult>();
+                return ex;
+            }
         }
 
         /// <summary>
@@ -3954,13 +4514,17 @@ namespace Cloud
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError GetCurrentStatus()
         {
-            CheckDisposed(isOneOff: true);
+            try
+            {
+                CheckDisposed(isOneOff: true);
 
-            CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            return httpRestClient.GetCurrentStatus(new Action<JsonContracts.SyncboxStatusResponse, object>(OnStatusCompletion), null);
+                return GetInstanceRestClient().GetCurrentStatus(new Action<JsonContracts.SyncboxStatusResponse, object>(OnStatusCompletion), null);
+            }
+            catch (Exception ex)
+            {
+                return ex;
+            }
         }
-
 
         /// <summary>
         /// Called back when the HTTP request completes.
@@ -3985,6 +4549,40 @@ namespace Cloud
                 this._propertyChangeLocker.ExitWriteLock();
             }
         }
+
+        #endregion  // end GetCurrentStatus (update the status of this syncbox from the cloud)
+
+        /// <summary>
+        /// Initializes a CLSyncbox which was created by the SDK. For example, ListAllSyncboxes allocates instances of CLSyncbox, but does not initialize them for usage.
+        /// </summary>
+        /// <param name="path">(optional) The full path of the folder on disk to associate with this syncbox.  The path is used only for live sync.</param>
+        /// <returns>Returns any error that occurred, or null</returns>
+        /// <remarks>Each instance of CLSyncbox can only be initialized once, either by AllocAndInit or by InitWithPath.</remarks>
+        public CLError InitWithPath(string path = null)
+        {
+            try
+            {
+                CheckDisposed();
+
+                // Fix up the path.  Use String.Empty if the user passed null.
+                if (path == null)
+                {
+                    path = String.Empty;
+                }
+
+                InitializeInternal(path, shouldUpdateSyncboxStatusFromServer: true);
+            }
+            catch (Exception ex)
+            {
+                return ex;
+            }
+
+            return null;
+        }
+
+        #endregion  // end Public Instance HTTP REST Methods
+
+        #region Private Instance Support Functions
 
         /// <summary>
         /// Determine whether we are over or under quota, and depending on the last quota state,
@@ -4019,39 +4617,6 @@ namespace Cloud
                 }
             }
         }
-        #endregion  // end GetCurrentStatus (update the status of this syncbox from the cloud)
-
-        /// <summary>
-        /// Initializes a CLSyncbox which was created by the SDK. For example, ListAllSyncboxes allocates instances of CLSyncbox, but does not initialize them for usage.
-        /// </summary>
-        /// <param name="path">(optional) The full path of the folder on disk to associate with this syncbox.  The path is used only for live sync.</param>
-        /// <returns>Returns any error that occurred, or null</returns>
-        /// <remarks>Each instance of CLSyncbox can only be initialized once, either by AllocAndInit or by InitWithPath.</remarks>
-        public CLError InitWithPath(string path = null)
-        {
-            CheckDisposed();
-
-            // Fix up the path.  Use String.Empty if the user passed null.
-            if (path == null)
-            {
-                path = String.Empty;
-            }
-
-            try
-            {
-                InitializeInternal(path, shouldUpdateSyncboxStatusFromServer: true);
-            }
-            catch (Exception ex)
-            {
-                return ex;
-            }
-
-            return null;
-        }
-
-        #endregion  // end Public Instance HTTP REST Methods
-
-        #region Private Instance Support Functions
 
         private CLError GetInstanceRestClientAndCheckDisposed(out CLHttpRest httpRestClient, bool isOneOff = false)
         {
@@ -4059,13 +4624,15 @@ namespace Cloud
             {
                 CheckDisposed(isOneOff: isOneOff);
 
-                return GetInstanceRestClient(out httpRestClient);
+                httpRestClient = GetInstanceRestClient();
             }
             catch (Exception ex)
             {
                 httpRestClient = Helpers.DefaultForType<CLHttpRest>();
                 return ex;
             }
+
+            return null;
         }
 
         /// <summary>
@@ -4160,10 +4727,9 @@ namespace Cloud
         }
 
         /// <summary>
-        /// Get this syncbox's HTTP REST instance.  Throws if null.
+        /// Get this syncbox's HTTP REST instance. Throws if null.
         /// </summary>
-        /// <param name="httpRestClient">(output) The HTTP REST client.</param>
-        private CLError GetInstanceRestClient(out CLHttpRest httpRestClient)
+        private CLHttpRest GetInstanceRestClient()
         {
             if (setPathLocker != null)
             {
@@ -4177,12 +4743,7 @@ namespace Cloud
                     throw new CLNullReferenceException(CLExceptionCode.Syncbox_BadPath, Resources.ExceptionSyncboxPathMustBeSetFirst);
                 }
 
-                httpRestClient = setPathHolder.HttpRestClient;
-            }
-            catch (Exception ex)
-            {
-                httpRestClient = null;
-                return ex;
+                return setPathHolder.HttpRestClient;
             }
             finally
             {
@@ -4191,7 +4752,6 @@ namespace Cloud
                     Monitor.Exit(setPathLocker);
                 }
             }
-            return null;
         }
 
         /// <summary>
@@ -4202,18 +4762,11 @@ namespace Cloud
         /// if called by constructors to create the CLHttpRest client, fill in missing information from the server, and to create an instance of CLSyncEngine that will
         /// be used by this syncbox instance.
         /// </summary>
-        private CLError InitializeInternal(string path, bool shouldUpdateSyncboxStatusFromServer)
+        private void InitializeInternal(string path, bool shouldUpdateSyncboxStatusFromServer)
         {
-            try
+            if (path == null)
             {
-                if (path == null)
-                {
-                    throw new CLArgumentNullException(CLExceptionCode.Syncbox_BadPath, Resources.ExceptionSyncboxPathMustNotBeNull);
-                }
-            }
-            catch (Exception ex)
-            {
-                return ex;
+                throw new CLArgumentNullException(CLExceptionCode.Syncbox_BadPath, Resources.ExceptionSyncboxPathMustNotBeNull);
             }
 
             if (setPathLocker != null)
@@ -4228,19 +4781,7 @@ namespace Cloud
                 {
                     throw new CLException(CLExceptionCode.Syncbox_PathAlreadySet, Resources.ExceptionOnDemandSyncboxPathAlreadySet);
                 }
-            }
-            catch (Exception ex)
-            {
-                if (setPathLocker != null)
-                {
-                    Monitor.Exit(setPathLocker);
-                }
 
-                return ex;
-            }
-
-            try
-            {
                 //TODO: Remove this when the sync engine support case insensitive paths.
                 // This was required because OSD code was providing paths that started with a lower case drive letter.
                 if (path.Length >= 2 && path[1] == ':')
@@ -4265,7 +4806,19 @@ namespace Cloud
                         throw new CLArgumentException(CLExceptionCode.Syncbox_BadPath, Resources.ExceptionSyncboxPathInvalidCharacters, errorBadPath.Exceptions);
                     }
                 }
+            }
+            catch
+            {
+                if (setPathLocker != null)
+                {
+                    Monitor.Exit(setPathLocker);
+                }
 
+                throw;
+            }
+
+            try
+            {
                 // Set the path early because the CLHttpRest factory needs it.
                 setPathHolder = new SetPathProperties(path, null);
 
@@ -4324,12 +4877,12 @@ namespace Cloud
                     }
                 }
             }
-            catch (Exception ex)
+            catch
             {
                 // cleanup to allow a repeated attempt to initialize
                 setPathHolder = null;
 
-                return ex;
+                throw;
             }
             finally
             {
@@ -4338,8 +4891,6 @@ namespace Cloud
                     Monitor.Exit(setPathLocker);
                 }
             }
-
-            return null;
         }
         // \cond
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)] //Hide From Intellisense
@@ -4360,8 +4911,9 @@ namespace Cloud
         public bool TryReserveForActiveSync()
         {
             CLHttpRest httpRestClient;
-            GetInstanceRestClient(out httpRestClient);
-            if (!httpRestClient.IsModifyingSyncboxViaPublicAPICalls)
+            CLError getInstanceError = GetInstanceRestClientAndCheckDisposed(out httpRestClient);
+            if (getInstanceError != null
+                && !httpRestClient.IsModifyingSyncboxViaPublicAPICalls)
             {
                 lock (_reservedForActiveSync)
                 {

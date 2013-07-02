@@ -11,6 +11,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 
 namespace Cloud.REST
@@ -69,6 +70,7 @@ namespace Cloud.REST
     /// <summary>
     /// Holds result properties
     /// </summary>
+    [Obfuscation(Exclude = true)]
     public sealed class DownloadFileResult : BaseCLHttpRestResult
     {
         // construct with all readonly properties
@@ -79,10 +81,17 @@ namespace Cloud.REST
     /// <summary>
     /// Holds result properties
     /// </summary>
+    [Obfuscation(Exclude = true)]
     public sealed class UploadFileResult : BaseCLHttpRestResult<string>
     {
+        /// <summary>
+        /// Determines whether upload failed due to a mismatched hash detected during transfer. This is caused by the file being modified during upload.
+        /// </summary>
         public bool HashMismatchFound {
-            get { return _hashMismatchFound; }
+            get
+            {
+                return _hashMismatchFound;
+            }
         }
 
         private bool _hashMismatchFound;
@@ -98,6 +107,7 @@ namespace Cloud.REST
     /// <summary>
     /// Holds result properties
     /// </summary>
+    [Obfuscation(Exclude = true)]
     public sealed class GetMetadataResult : BaseCLHttpRestResult<JsonContracts.SyncboxMetadataResponse>
     {
         // construct with all readonly properties
@@ -108,6 +118,7 @@ namespace Cloud.REST
     /// <summary>
     /// Holds result properties
     /// </summary>
+    [Obfuscation(Exclude = true)]
     public sealed class GetAllPendingResult : BaseCLHttpRestResult<JsonContracts.PendingResponse>
     {
         // construct with all readonly properties
@@ -118,6 +129,7 @@ namespace Cloud.REST
     /// <summary>
     /// Holds result properties
     /// </summary>
+    [Obfuscation(Exclude = true)]
     public sealed class FileChangeResult : BaseCLHttpRestResult<JsonContracts.FileChangeResponse>
     {
         // construct with all readonly properties
@@ -128,6 +140,7 @@ namespace Cloud.REST
     /// <summary>
     /// Holds result properties
     /// </summary>
+    [Obfuscation(Exclude = true)]
     public sealed class UndoDeletionFileChangeResult : BaseCLHttpRestResult<JsonContracts.FileChangeResponse>
     {
         // construct with all readonly properties
@@ -138,6 +151,7 @@ namespace Cloud.REST
     /// <summary>
     /// Holds result properties
     /// </summary>
+    [Obfuscation(Exclude = true)]
     public sealed class GetFileVersionsResult : BaseCLHttpRestResult<JsonContracts.FileVersions>
     {
         // construct with all readonly properties
@@ -148,6 +162,7 @@ namespace Cloud.REST
     /// <summary>
     /// Holds result properties
     /// </summary>
+    [Obfuscation(Exclude = true)]
     public sealed class CopyFileResult : BaseCLHttpRestResult<JsonContracts.FileChangeResponse>
     {
         // construct with all readonly properties
@@ -158,6 +173,7 @@ namespace Cloud.REST
     /// <summary>
     /// Holds result properties
     /// </summary>
+    [Obfuscation(Exclude = true)]
     public sealed class PurgePendingResult : BaseCLHttpRestResult<JsonContracts.PendingResponse>
     {
         // construct with all readonly properties
@@ -168,6 +184,7 @@ namespace Cloud.REST
     /// <summary>
     /// Holds result properties
     /// </summary>
+    [Obfuscation(Exclude = true)]
     public sealed class CreateSyncboxResult
     {
         /// <summary>
@@ -205,6 +222,7 @@ namespace Cloud.REST
     /// <summary>
     /// Holds result properties
     /// </summary>
+    [Obfuscation(Exclude = true)]
     public sealed class FileItemDownloadFileResult
     {
         /// <summary>
@@ -242,6 +260,7 @@ namespace Cloud.REST
     /// <summary>
     /// Holds result properties
     /// </summary>
+    [Obfuscation(Exclude = true)]
     public sealed class SyncboxAllocAndInitResult
     {
         /// <summary>
@@ -279,6 +298,7 @@ namespace Cloud.REST
     /// <summary>
     /// Holds result properties
     /// </summary>
+    [Obfuscation(Exclude = true)]
     public sealed class ListStoragePlansResult
     {
         /// <summary>
@@ -316,6 +336,7 @@ namespace Cloud.REST
     /// <summary>
     /// Holds result properties
     /// </summary>
+    [Obfuscation(Exclude = true)]
     public sealed class ListStoragePlanResult
     {
         /// <summary>
@@ -353,6 +374,7 @@ namespace Cloud.REST
     /// <summary>
     /// Holds result properties
     /// </summary>
+    [Obfuscation(Exclude = true)]
     public sealed class CredentialsListSessionsResult
     {
         /// <summary>
@@ -390,6 +412,7 @@ namespace Cloud.REST
     /// <summary>
     /// Holds result properties
     /// </summary>
+    [Obfuscation(Exclude = true)]
     public sealed class CredentialsSessionCreateResult
     {
         /// <summary>
@@ -427,6 +450,7 @@ namespace Cloud.REST
     /// <summary>
     /// Holds result properties
     /// </summary>
+    [Obfuscation(Exclude = true)]
     public sealed class CredentialsSessionGetForKeyResult
     {
         /// <summary>
@@ -464,6 +488,7 @@ namespace Cloud.REST
     /// <summary>
     /// Holds result properties
     /// </summary>
+    [Obfuscation(Exclude = true)]
     public sealed class SyncboxRenameFilesResult
     {
         /// <summary>
@@ -488,6 +513,7 @@ namespace Cloud.REST
     /// <summary>
     /// Holds result properties
     /// </summary>
+    [Obfuscation(Exclude = true)]
     public sealed class SyncboxUpdateFriendlyNameResult
     {
         /// <summary>
@@ -512,6 +538,7 @@ namespace Cloud.REST
     /// <summary>
     /// Holds result properties
     /// </summary>
+    [Obfuscation(Exclude = true)]
     public sealed class SyncboxStatusResult
     {
         /// <summary>
@@ -536,6 +563,7 @@ namespace Cloud.REST
     /// <summary>
     /// Holds result properties
     /// </summary>
+    [Obfuscation(Exclude = true)]
     public sealed class SyncboxUsageResult
     {
         /// <summary>
@@ -560,6 +588,7 @@ namespace Cloud.REST
     /// <summary>
     /// Holds result properties
     /// </summary>
+    [Obfuscation(Exclude = true)]
     public sealed class SyncboxUpdateStoragePlanResult
     {
         /// <summary>
@@ -585,6 +614,7 @@ namespace Cloud.REST
     /// <summary>
     /// Holds result properties
     /// </summary>
+    [Obfuscation(Exclude = true)]
     public sealed class SyncboxGetItemAtPathResult
     {
         /// <summary>
@@ -622,6 +652,7 @@ namespace Cloud.REST
     /// <summary>
     /// Holds result properties
     /// </summary>
+    [Obfuscation(Exclude = true)]
     public sealed class FileItemDownloadImageResult
     {
         /// <summary>
@@ -659,6 +690,7 @@ namespace Cloud.REST
     /// <summary>
     /// Holds result properties
     /// </summary>
+    [Obfuscation(Exclude = true)]
     public sealed class SyncboxGetItemAtItemUidResult
     {
         /// <summary>
@@ -696,6 +728,7 @@ namespace Cloud.REST
     /// <summary>
     /// Holds result properties
     /// </summary>
+    [Obfuscation(Exclude = true)]
     public sealed class SyncboxItemsAtPathResult
     {
         /// <summary>
@@ -733,6 +766,7 @@ namespace Cloud.REST
     /// <summary>
     /// Holds result properties
     /// </summary>
+    [Obfuscation(Exclude = true)]
     public sealed class SyncboxHierarchyOfFolderAtPathResult
     {
         /// <summary>
@@ -770,6 +804,7 @@ namespace Cloud.REST
     /// <summary>
     /// Holds result properties
     /// </summary>
+    [Obfuscation(Exclude = true)]
     public sealed class SyncboxItemsForFolderItemResult
     {
         /// <summary>
@@ -807,6 +842,7 @@ namespace Cloud.REST
     /// <summary>
     /// Holds result properties
     /// </summary>
+    [Obfuscation(Exclude = true)]
     public sealed class SyncboxHierarchyOfFolderAtFolderItemResult
     {
         /// <summary>
@@ -844,6 +880,7 @@ namespace Cloud.REST
     /// <summary>
     /// Holds result properties
     /// </summary>
+    [Obfuscation(Exclude = true)]
     public sealed class SyncboxMoveFilesResult
     {
         /// <summary>
@@ -868,6 +905,7 @@ namespace Cloud.REST
     /// <summary>
     /// Holds result properties
     /// </summary>
+    [Obfuscation(Exclude = true)]
     public sealed class SyncboxDeleteFilesResult
     {
         /// <summary>
@@ -892,6 +930,7 @@ namespace Cloud.REST
     /// <summary>
     /// Holds result properties
     /// </summary>
+    [Obfuscation(Exclude = true)]
     public sealed class SyncboxPurgePendingFilesResult
     {
         /// <summary>
@@ -916,6 +955,7 @@ namespace Cloud.REST
     /// <summary>
     /// Holds result properties
     /// </summary>
+    [Obfuscation(Exclude = true)]
     public sealed class SyncboxAllImageItemsResult
     {
         /// <summary>
@@ -953,6 +993,7 @@ namespace Cloud.REST
     /// <summary>
     /// Holds result properties
     /// </summary>
+    [Obfuscation(Exclude = true)]
     public sealed class SyncboxAllVideoItemsResult
     {
         /// <summary>
@@ -990,6 +1031,7 @@ namespace Cloud.REST
     /// <summary>
     /// Holds result properties
     /// </summary>
+    [Obfuscation(Exclude = true)]
     public sealed class SyncboxAllAudioItemsResult
     {
         /// <summary>
@@ -1027,6 +1069,7 @@ namespace Cloud.REST
     /// <summary>
     /// Holds result properties
     /// </summary>
+    [Obfuscation(Exclude = true)]
     public sealed class SyncboxListResult
     {
         /// <summary>
@@ -1064,6 +1107,7 @@ namespace Cloud.REST
     /// <summary>
     /// Holds result properties
     /// </summary>
+    [Obfuscation(Exclude = true)]
     public sealed class SyncboxAllDocumentItemsResult
     {
         /// <summary>
@@ -1101,6 +1145,7 @@ namespace Cloud.REST
     /// <summary>
     /// Holds result properties
     /// </summary>
+    [Obfuscation(Exclude = true)]
     public sealed class SyncboxAllPresentationItemsResult
     {
         /// <summary>
@@ -1138,6 +1183,7 @@ namespace Cloud.REST
     /// <summary>
     /// Holds result properties
     /// </summary>
+    [Obfuscation(Exclude = true)]
     public sealed class SyncboxAllTextItemsResult
     {
         /// <summary>
@@ -1175,6 +1221,7 @@ namespace Cloud.REST
     /// <summary>
     /// Holds result properties
     /// </summary>
+    [Obfuscation(Exclude = true)]
     public sealed class SyncboxAllArchiveItemsResult
     {
         /// <summary>
@@ -1212,6 +1259,7 @@ namespace Cloud.REST
     /// <summary>
     /// Holds result properties
     /// </summary>
+    [Obfuscation(Exclude = true)]
     public sealed class SyncboxRecentFilesResult
     {
         /// <summary>
@@ -1249,6 +1297,7 @@ namespace Cloud.REST
     /// <summary>
     /// Holds result properties
     /// </summary>
+    [Obfuscation(Exclude = true)]
     public sealed class SyncboxRecentFilesSinceDateResult
     {
         /// <summary>
@@ -1286,6 +1335,7 @@ namespace Cloud.REST
     /// <summary>
     /// Holds result properties
     /// </summary>
+    [Obfuscation(Exclude = true)]
     public sealed class SyncboxAllItemsOfTypesResult
     {
         /// <summary>
@@ -1323,6 +1373,7 @@ namespace Cloud.REST
     /// <summary>
     /// Holds result properties
     /// </summary>
+    [Obfuscation(Exclude = true)]
     public sealed class SyncboxDeleteResult
     {
         /// <summary>
@@ -1347,6 +1398,7 @@ namespace Cloud.REST
     /// <summary>
     /// Holds result properties
     /// </summary>
+    [Obfuscation(Exclude = true)]
     public sealed class SyncboxRenameFoldersResult
     {
         /// <summary>
@@ -1371,6 +1423,7 @@ namespace Cloud.REST
     /// <summary>
     /// Holds result properties
     /// </summary>
+    [Obfuscation(Exclude = true)]
     public sealed class SyncboxMoveFoldersResult
     {
         /// <summary>
@@ -1395,6 +1448,7 @@ namespace Cloud.REST
     /// <summary>
     /// Holds result properties
     /// </summary>
+    [Obfuscation(Exclude = true)]
     public sealed class SyncboxDeleteFoldersResult
     {
         /// <summary>
@@ -1419,6 +1473,7 @@ namespace Cloud.REST
     /// <summary>
     /// Holds result properties
     /// </summary>
+    [Obfuscation(Exclude = true)]
     public sealed class SyncboxAddFoldersResult
     {
         /// <summary>
@@ -1443,6 +1498,7 @@ namespace Cloud.REST
     /// <summary>
     /// Holds result properties
     /// </summary>
+    [Obfuscation(Exclude = true)]
     public sealed class SyncboxAddFilesResult
     {
         /// <summary>
@@ -1467,6 +1523,7 @@ namespace Cloud.REST
     /// <summary>
     /// Holds result properties
     /// </summary>
+    [Obfuscation(Exclude = true)]
     public sealed class SyncboxModifyFilesResult
     {
         /// <summary>
@@ -1491,6 +1548,7 @@ namespace Cloud.REST
     /// <summary>
     /// Holds result properties
     /// </summary>
+    [Obfuscation(Exclude = true)]
     public sealed class CredentialsSessionDeleteResult
     {
         /// <summary>
@@ -1515,6 +1573,7 @@ namespace Cloud.REST
     /// <summary>
     /// Holds result properties
     /// </summary>
+    [Obfuscation(Exclude = true)]
     public sealed class SyncboxUpdateExtendedMetadataResult : BaseCLHttpRestResult<JsonContracts.SyncboxResponse>
     {
         // construct with all readonly properties
@@ -1525,6 +1584,7 @@ namespace Cloud.REST
     /// <summary>
     /// Holds result properties
     /// </summary>
+    [Obfuscation(Exclude = true)]
     public sealed class LinkDeviceFirstTimeResult : BaseCLHttpRestResult<JsonContracts.LinkDeviceFirstTimeResponse>
     {
         // construct with all readonly properties
@@ -1535,6 +1595,7 @@ namespace Cloud.REST
     /// <summary>
     /// Holds result properties
     /// </summary>
+    [Obfuscation(Exclude = true)]
     public sealed class LinkDeviceResult : BaseCLHttpRestResult<JsonContracts.LinkDeviceResponse>
     {
         // construct with all readonly properties
@@ -1545,6 +1606,7 @@ namespace Cloud.REST
     /// <summary>
     /// Holds result properties
     /// </summary>
+    [Obfuscation(Exclude = true)]
     public sealed class UnlinkDeviceResult : BaseCLHttpRestResult<JsonContracts.UnlinkDeviceResponse>
     {
         // construct with all readonly properties

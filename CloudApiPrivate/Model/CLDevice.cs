@@ -13,18 +13,13 @@ using Cloud.Static;
 
 namespace CloudApiPrivate.Model
 {
-    public class CLDevice
+    public sealed class CLDevice
     {
         public string DeviceName { get; set; }
         public string Udid { get; set; }
         public string FriendlyName
         {
             get { return DeviceName; }
-        }
-        
-        public CLDevice()
-        {
-            throw new NotSupportedException("Default constructor not supported.");
         }
 
         public CLDevice(string name)

@@ -23,11 +23,6 @@ namespace win_client.Common
         public BalloonIcon IconType;           // the type of the standard icon: None, Info, Warning or Error.
         public Icon CustomIcon;                // if not null, the custom icon to display (overrides iconType above).
 
-        public CLBalloonTooltipNotification()
-        {
-            throw new NotSupportedException("Default constructor not supported.");
-        }
-
         public CLBalloonTooltipNotification(string title, string text, BalloonIcon iconType, Icon customIcon)
         {
             Title = title;

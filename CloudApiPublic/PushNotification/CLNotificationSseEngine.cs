@@ -143,11 +143,6 @@ namespace Cloud.PushNotification
             _delegateSendManualPoll = delegateSendManualPoll;
         }
 
-        public CLNotificationSseEngine()
-        {
-            throw new NotSupportedException(Resources.CLNotificationsSseEngineDefaultConstructorNotSupported);
-        }
-
         #endregion
 
         #region Public methods

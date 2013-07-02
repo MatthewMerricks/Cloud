@@ -436,54 +436,27 @@ namespace Cloud
             object transferStatusCallbackUserState,
             CancellationTokenSource cancellationSource)
         {
-            Helpers.CheckHalted();
+            // Make a holder for the callers transfer status callback and user state.
+            Tuple<CLFileDownloadTransferStatusCallback, object> userTransferStatusParamHolder = new Tuple<CLFileDownloadTransferStatusCallback, object>(transferStatusCallback, transferStatusCallbackUserState);
 
-            var asyncThread = DelegateAndDataHolderBase.Create(
-                // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
-                new
-                {
-                    // create the asynchronous result to return
-                    toReturn = new GenericAsyncResult<FileItemDownloadFileResult>(
-                        asyncCallback,
-                        asyncCallbackUserState),
-                    transferStatusCallback = transferStatusCallback,
-                    transferStatusCallbackUserState = transferStatusCallbackUserState,
-                    cancellationSource = cancellationSource,
-                },
-                (Data, errorToAccumulate) =>
-                {
-                    // The ThreadProc.
-                    // try/catch to process with the input parameters, on catch set the exception in the asyncronous result
-                    try
-                    {
-                        // alloc and init the syncbox with the passed parameters, storing any error that occurs
-                        string fullPathDownloadedTempFile;
-                        CLError processError = DownloadFile(
-                            out fullPathDownloadedTempFile,
-                            Data.transferStatusCallback,
-                            Data.transferStatusCallbackUserState,
-                            Data.cancellationSource);
+            // Build a holder to receive the full path of the downloaded temp file.
+            GenericHolder<string> fullPathDownloadedTempFileHolder = new GenericHolder<string>(null);
 
-                        Data.toReturn.Complete(
-                            new FileItemDownloadFileResult(
-                                processError,  // any error that may have occurred during processing
-                                fullPathDownloadedTempFile),
-                            sCompleted: false); // processing did not complete synchronously
-                    }
-                    catch (Exception ex)
-                    {
-                        Data.toReturn.HandleException(
-                            ex, // the exception which was not handled correctly by the CLError wrapping
-                            sCompleted: false); // processing did not complete synchronously
-                    }
-                },
-                null);
-
-            // create the thread from a void (object) parameterized start which wraps the synchronous method call
-            (new Thread(new ThreadStart(asyncThread.VoidProcess))).Start(); // start the asynchronous processing thread which is attached to its data
-
-            // return the asynchronous result
-            return asyncThread.TypedData.toReturn;
+            return _httpRestClient.BeginDownloadFile(
+                asyncCallback,
+                asyncCallbackUserState,
+                ConstructFileChangeForDownload(),
+                this.ItemUid,
+                this.Revision,
+                /* moveFileUponCompletion: */ OnAfterDownloadToTempFile,
+                /* moveFileUponCompletionState: */ fullPathDownloadedTempFileHolder,
+                /* timeoutMilliseconds: */ _copiedSettings.HttpTimeoutMilliseconds,
+                /* statusUpdate: */ TransferStatusCallback,
+                /* statusUpdateUserState: */ userTransferStatusParamHolder,
+                /* beforeDownload: */ null,
+                /* beforeDownloadState: */ null,
+                /* shutdownToken: */ cancellationSource,
+                needsScheduling: true);
         }
 
         /// <summary>
@@ -495,7 +468,6 @@ namespace Cloud
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndDownloadFile(IAsyncResult asyncResult, out DownloadFileResult result)
         {
-            Helpers.CheckHalted();
             return _httpRestClient.EndDownloadFile(asyncResult, out result);
         }
 
@@ -508,24 +480,12 @@ namespace Cloud
         /// <param name="fullPathDownloadedTempFile">(output) The full path of the downloaded file in the temp download directory.</param>
         /// <param name="transferStatusCallback">The callback to fire with tranfer status updates.  May be null.</param>
         /// <param name="transferStatusCallbackUserState">The user state to pass to the transfer status callback above.  May be null.</param>
-        /// <param name="cancellationSource">A cancellation token source object that can be used to cancel the download operation.  May be null</param>
         /// <returns>CLError: Any error, or null.</returns>
         public CLError DownloadFile(
             out string fullPathDownloadedTempFile,
             CLFileDownloadTransferStatusCallback transferStatusCallback,
-            object transferStatusCallbackUserState,
-            CancellationTokenSource cancellationSource)
+            object transferStatusCallbackUserState)
         {
-            Helpers.CheckHalted();
-
-            // Build the file change to represent the file to download.
-            FileChange fcToDownload = new FileChange()
-            {
-                Direction = SyncDirection.From,
-                Metadata = new FileMetadata(this),
-                NewPath = RelativePath,
-            };
-
             // Make a holder for the callers transfer status callback and user state.
             Tuple<CLFileDownloadTransferStatusCallback, object> userTransferStatusParamHolder = new Tuple<CLFileDownloadTransferStatusCallback, object>(transferStatusCallback, transferStatusCallbackUserState);
 
@@ -534,18 +494,15 @@ namespace Cloud
 
             // Download the file.
             CLError errorFromDownloadFile = _httpRestClient.DownloadFile(
-                fcToDownload,
+                ConstructFileChangeForDownload(),
                 this.ItemUid,
                 this.Revision,
-                moveFileUponCompletion: OnAfterDownloadToTempFile,
-                moveFileUponCompletionState: fullPathDownloadedTempFileHolder,
-                timeoutMilliseconds: _copiedSettings.HttpTimeoutMilliseconds,
-                beforeDownload: null,
-                beforeDownloadState: null,
-                shutdownToken: cancellationSource,
-                customDownloadFolderFullPath: null,
-                statusUpdate: TransferStatusCallback,
-                statusUpdateUserState: userTransferStatusParamHolder);
+                /* moveFileUponCompletion: */ OnAfterDownloadToTempFile,
+                /* moveFileUponCompletionState: */ fullPathDownloadedTempFileHolder,
+                /* timeoutMilliseconds: */ _copiedSettings.HttpTimeoutMilliseconds,
+                /* statusUpdate: */ TransferStatusCallback,
+                /* statusUpdateUserState: */ userTransferStatusParamHolder,
+                needsScheduling: true);
 
             // Output the full path of the downloaded file on success
             if (errorFromDownloadFile == null)
@@ -558,6 +515,19 @@ namespace Cloud
             }
 
             return errorFromDownloadFile;
+        }
+
+        /// <summary>
+        /// Build the file change to represent the file to download.
+        /// </summary>
+        private FileChange ConstructFileChangeForDownload()
+        {
+            return new FileChange()
+            {
+                Direction = SyncDirection.From,
+                Metadata = new FileMetadata(this),
+                NewPath = RelativePath,
+            };
         }
 
         /// <summary>
@@ -640,8 +610,6 @@ namespace Cloud
             object transferStatusCallbackUserState,
             CancellationTokenSource cancellationSource)
         {
-            Helpers.CheckHalted();
-
             var asyncThread = DelegateAndDataHolderBase.Create(
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
                 new
@@ -701,7 +669,6 @@ namespace Cloud
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndDownloadImageOfSize(IAsyncResult asyncResult, out FileItemDownloadImageResult result)
         {
-            Helpers.CheckHalted();
             return _httpRestClient.EndDownloadImageOfSize(asyncResult, out result);
         }
 
@@ -721,8 +688,6 @@ namespace Cloud
             object transferStatusCallbackUserState,
             CancellationTokenSource cancellationSource)
         {
-            Helpers.CheckHalted();
-
             return _httpRestClient.DownloadImageOfSize(this, imageSize, out imageStream, transferStatusCallback, transferStatusCallbackUserState, cancellationSource);
         }
 
@@ -746,17 +711,5 @@ namespace Cloud
 
         //#endregion  // end Folder Contents
         #endregion  // end Public Methods
-
-        #region Private Methods
-
-        /// <summary>
-        /// Throw an exception if halted.
-        /// </summary>
-        private void CheckHalted()
-        {
-            Helpers.CheckHalted();
-        }
-
-        #endregion
     }
 }
