@@ -5653,7 +5653,7 @@ namespace Cloud.Static
 
                 errorResult = new GenericAsyncResult<TResult>(asyncCallback, asyncCallbackUserState);
 
-                ConstructorInfo[] tResultConstructors = typeof(TResult).GetConstructors(BindingFlags.NonPublic);
+                ConstructorInfo[] tResultConstructors = typeof(TResult).GetConstructors(BindingFlags.NonPublic | BindingFlags.Instance);
 
                 for (int constructorIndex = 0; constructorIndex < tResultConstructors.Length; constructorIndex++)
                 {

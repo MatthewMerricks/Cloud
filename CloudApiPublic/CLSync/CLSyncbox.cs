@@ -1749,8 +1749,6 @@ namespace Cloud
         {
             try
             {
-                CheckDisposed(isOneOff: true);
-
                 return GetInstanceRestClient().EndItemForPath(asyncResult, out result);
             }
             catch (Exception ex)
@@ -2026,8 +2024,6 @@ namespace Cloud
         {
             try
             {
-                CheckDisposed(isOneOff: true);
-
                 return GetInstanceRestClient().EndItemsForFolderItem(asyncResult, out result);
             }
             catch (Exception ex)
@@ -2104,8 +2100,6 @@ namespace Cloud
         {
             try
             {
-                CheckDisposed(isOneOff: true);
-
                 return GetInstanceRestClient().EndHierarchyOfFolderAtPath(asyncResult, out result);
             }
             catch (Exception ex)
@@ -2173,8 +2167,6 @@ namespace Cloud
         {
             try
             {
-                CheckDisposed(isOneOff: true);
-
                 return GetInstanceRestClient().EndHierarchyOfFolderAtFolderItem(asyncResult, out result);
             }
             catch (Exception ex)
@@ -2241,8 +2233,6 @@ namespace Cloud
         {
             try
             {
-                CheckDisposed(isOneOff: true);
-
                 return GetInstanceRestClient().EndRenameFiles(asyncResult, out result);
             }
             catch (Exception ex)
@@ -2308,8 +2298,6 @@ namespace Cloud
         {
             try
             {
-                CheckDisposed(isOneOff: true);
-
                 return GetInstanceRestClient().EndRenameFolders(asyncResult, out result);
             }
             catch (Exception ex)
@@ -2380,8 +2368,6 @@ namespace Cloud
         {
             try
             {
-                CheckDisposed(isOneOff: true);
-
                 return GetInstanceRestClient().EndMoveFiles(asyncResult, out result);
             }
             catch (Exception ex)
@@ -2446,8 +2432,6 @@ namespace Cloud
         {
             try
             {
-                CheckDisposed(isOneOff: true);
-
                 return GetInstanceRestClient().EndMoveFolders(asyncResult, out result);
             }
             catch (Exception ex)
@@ -2512,8 +2496,6 @@ namespace Cloud
         {
             try
             {
-                CheckDisposed(isOneOff: true);
-
                 return GetInstanceRestClient().EndDeleteFiles(asyncResult, out result);
             }
             catch (Exception ex)
@@ -2578,8 +2560,6 @@ namespace Cloud
         {
             try
             {
-                CheckDisposed(isOneOff: true);
-
                 return GetInstanceRestClient().EndDeleteFolders(asyncResult, out result);
             }
             catch (Exception ex)
@@ -2649,8 +2629,6 @@ namespace Cloud
         {
             try
             {
-                CheckDisposed(isOneOff: true);
-
                 return GetInstanceRestClient().EndPurgePendingFiles(asyncResult, out result);
             }
             catch (Exception ex)
@@ -2718,8 +2696,6 @@ namespace Cloud
         {
             try
             {
-                CheckDisposed(isOneOff: true);
-
                 return GetInstanceRestClient().EndAddFolders(asyncResult, out result);
             }
             catch (Exception ex)
@@ -2795,8 +2771,6 @@ namespace Cloud
         {
             try
             {
-                CheckDisposed(isOneOff: true);
-
                 return GetInstanceRestClient().EndAddFiles(asyncResult, out result);
             }
             catch (Exception ex)
@@ -2879,8 +2853,6 @@ namespace Cloud
         {
             try
             {
-                CheckDisposed(isOneOff: true);
-
                 return GetInstanceRestClient().EndModifyFiles(asyncResult, out result);
             }
             catch (Exception ex)
@@ -2961,8 +2933,6 @@ namespace Cloud
         {
             try
             {
-                CheckDisposed(isOneOff: true);
-
                 return GetInstanceRestClient().EndGetAllPending(asyncResult, out result);
             }
             catch (Exception ex)
@@ -3199,8 +3169,6 @@ namespace Cloud
         {
             try
             {
-                CheckDisposed(isOneOff: true);
-
                 return GetInstanceRestClient().EndGetFileVersions(asyncResult, out result);
             }
             catch (Exception ex)
@@ -3414,8 +3382,6 @@ namespace Cloud
         {
             try
             {
-                CheckDisposed(isOneOff: true);
-
                 return GetInstanceRestClient().EndAllImageItems(asyncResult, out result);
             }
             catch (Exception ex)
@@ -3482,8 +3448,6 @@ namespace Cloud
         {
             try
             {
-                CheckDisposed(isOneOff: true);
-
                 return GetInstanceRestClient().EndAllVideoItems(asyncResult, out result);
             }
             catch (Exception ex)
@@ -3550,8 +3514,6 @@ namespace Cloud
         {
             try
             {
-                CheckDisposed(isOneOff: true);
-
                 return GetInstanceRestClient().EndAllAudioItems(asyncResult, out result);
             }
             catch (Exception ex)
@@ -3618,8 +3580,6 @@ namespace Cloud
         {
             try
             {
-                CheckDisposed(isOneOff: true);
-
                 return GetInstanceRestClient().EndAllDocumentItems(asyncResult, out result);
             }
             catch (Exception ex)
@@ -3688,8 +3648,6 @@ namespace Cloud
         {
             try
             {
-                CheckDisposed(isOneOff: true);
-
                 return GetInstanceRestClient().EndAllPresentationItems(asyncResult, out result);
             }
             catch (Exception ex)
@@ -3756,8 +3714,6 @@ namespace Cloud
         {
             try
             {
-                CheckDisposed(isOneOff: true);
-
                 return GetInstanceRestClient().EndAllPlainTextItems(asyncResult, out result);
             }
             catch (Exception ex)
@@ -3824,8 +3780,6 @@ namespace Cloud
         {
             try
             {
-                CheckDisposed(isOneOff: true);
-
                 return GetInstanceRestClient().EndAllArchiveItems(asyncResult, out result);
             }
             catch (Exception ex)
@@ -3898,8 +3852,6 @@ namespace Cloud
         {
             try
             {
-                CheckDisposed(isOneOff: true);
-
                 return GetInstanceRestClient().EndAllItemsOfTypes(asyncResult, out result);
             }
             catch (Exception ex)
@@ -3971,8 +3923,6 @@ namespace Cloud
         {
             try
             {
-                CheckDisposed(isOneOff: true);
-
                 return GetInstanceRestClient().EndRecentFilesSinceDate(asyncResult, out result);
             }
             catch (Exception ex)
@@ -4040,8 +3990,6 @@ namespace Cloud
         {
             try
             {
-                CheckDisposed(isOneOff: true);
-
                 return GetInstanceRestClient().EndRecentFiles(asyncResult, out result);
             }
             catch (Exception ex)
@@ -4107,8 +4055,6 @@ namespace Cloud
         {
             try
             {
-                CheckDisposed(isOneOff: true);
-
                 return GetInstanceRestClient().EndGetDataUsage(asyncResult, out result);
             }
             catch (Exception ex)
@@ -4221,8 +4167,6 @@ namespace Cloud
         {
             try
             {
-                CheckDisposed(isOneOff: true);
-
                 return GetInstanceRestClient().EndUpdateSyncboxExtendedMetadata(asyncResult, out result);
             }
             catch (Exception ex)
@@ -4314,8 +4258,6 @@ namespace Cloud
         {
             try
             {
-                CheckDisposed(isOneOff: true);
-
                 return GetInstanceRestClient().EndUpdateStoragePlan(asyncResult, out result);
             }
             catch (Exception ex)
@@ -4411,8 +4353,6 @@ namespace Cloud
         {
             try
             {
-                CheckDisposed(isOneOff: true);
-
                 return GetInstanceRestClient().EndUpdateFriendlyName(asyncResult, out result);
             }
             catch (Exception ex)
@@ -4496,8 +4436,6 @@ namespace Cloud
         {
             try
             {
-                CheckDisposed(isOneOff: true);
-
                 return GetInstanceRestClient().EndGetCurrentStatus(asyncResult, out result);
             }
             catch (Exception ex)

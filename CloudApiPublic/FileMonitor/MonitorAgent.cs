@@ -4219,6 +4219,11 @@ namespace Cloud.FileMonitor
 
                                             if (newUidError != null)
                                             {
+                                                if (newUidError.PrimaryException is CLObjectDisposedException)
+                                                {
+                                                    throw newUidError.PrimaryException;
+                                                }
+
                                                 throw new AggregateException("Unable to create new ServerUid", newUidError.Exceptions);
                                             }
 
@@ -4622,6 +4627,11 @@ namespace Cloud.FileMonitor
 
                                         if (createServerUidError != null)
                                         {
+                                            if (createServerUidError.PrimaryException is CLObjectDisposedException)
+                                            {
+                                                throw createServerUidError.PrimaryException;
+                                            }
+
                                             throw new AggregateException("Error creating ServerUid", createServerUidError.Exceptions);
                                         }
 

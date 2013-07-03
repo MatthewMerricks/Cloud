@@ -2710,6 +2710,11 @@ namespace Cloud.SQLIndexer
 
                                         if (queryUidError != null)
                                         {
+                                            if (queryUidError.PrimaryException is CLObjectDisposedException)
+                                            {
+                                                throw queryUidError.PrimaryException;
+                                            }
+
                                             throw new AggregateException(string.Format("Unable to query ServerUid with id {0}", currentCommunicatedChange.FileChange.Metadata.ServerUidId), queryUidError.Exceptions);
                                         }
 
@@ -5683,6 +5688,11 @@ namespace Cloud.SQLIndexer
 
                         if (queryUidError != null)
                         {
+                            if (queryUidError.PrimaryException is CLObjectDisposedException)
+                            {
+                                throw queryUidError.PrimaryException;
+                            }
+
                             throw new AggregateException(string.Format("Unable to query ServerUid with id {0}", parentFolderMetadata.ServerUidId), queryUidError.Exceptions);
                         }
 
@@ -5903,6 +5913,11 @@ namespace Cloud.SQLIndexer
 
                             if (queryUidError != null)
                             {
+                                if (queryUidError.PrimaryException is CLObjectDisposedException)
+                                {
+                                    throw queryUidError.PrimaryException;
+                                }
+
                                 throw new AggregateException(string.Format("Unable to query ServerUid with id {0}", parentFolderMetadata.ServerUidId), queryUidError.Exceptions);
                             }
 
@@ -5991,6 +6006,11 @@ namespace Cloud.SQLIndexer
 
                                 if (queryUidError != null)
                                 {
+                                    if (queryUidError.PrimaryException is CLObjectDisposedException)
+                                    {
+                                        throw queryUidError.PrimaryException;
+                                    }
+
                                     throw new AggregateException(string.Format("Unable to query ServerUid with id {0}", parentFolderMetadata.ServerUidId), queryUidError.Exceptions);
                                 }
 
@@ -6035,6 +6055,11 @@ namespace Cloud.SQLIndexer
 
                             if (queryUidError != null)
                             {
+                                if (queryUidError.PrimaryException is CLObjectDisposedException)
+                                {
+                                    throw queryUidError.PrimaryException;
+                                }
+
                                 throw new AggregateException(string.Format("Unable to query ServerUid with id {0}", parentFolderMetadata.ServerUidId), queryUidError.Exceptions);
                             }
 
