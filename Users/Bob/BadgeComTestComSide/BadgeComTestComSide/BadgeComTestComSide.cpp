@@ -2,7 +2,7 @@
 //
 
 #include "stdafx.h"
-#import "C:\Cloud\CloudSDK-Windows\3rdParty\Src\BadgeCOM\x64\Release64\BadgeCom.tlb" named_guids
+#import "C:\Cloud\CloudSDK-Windows\3rdParty\bin\Release64\BadgeCom.tlb" 
 
 // {46991ec7-7e83-4e3a-8e21-757792bba5c4	}
 DEFINE_GUID(CLSID_IBadgeIconSyncing, 0x46991ec7, 0x7e83, 0x4e3a, 0x8e, 0x21, 0x75, 0x77, 0x92, 0xbb, 0xa5, 0xc4);
@@ -31,13 +31,13 @@ int _tmain(int argc, _TCHAR* argv[])
 	IDispatch *pDisp;
 	IUnknown *pUnknown;
 	HRESULT hResult;
-	OLECHAR *nameSyncing = L"GetPriority";
+	LPWSTR nameSyncing; 
 	DISPID dispIdSyncing;
 	UINT uiTypeInfoCount = 8888;
 	ITypeInfo *ppTInfo;
 	LP_MyVtbl *lpVtbl;
 	int nOverlayIndex = 2;
-	DWORD dwFlags = 0;
+	unsigned long dwFlags = 0;
 		
 	CComBSTR comBstr(L"GetPriority");
 
