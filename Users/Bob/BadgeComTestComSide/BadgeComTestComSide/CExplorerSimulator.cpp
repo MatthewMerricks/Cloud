@@ -22,50 +22,18 @@ CExplorerSimulator::CExplorerSimulator(void)
         // Initialize private fields
 		CLTRACE(9, "CExplorerSimulator: CExplorerSimulator: Entry.");
 		_nExplorerIndex = -1;											// simulated Explorer index
-		_handleIconFailed = NULL;
-		_handleIconSynced = NULL;
-		_handleIconSyncing = NULL;
-		_handleIconSelective = NULL;
 		_fRequestExit = false;
+		_fInitialized;
 		_hr = NULL;
 		_pathIconFileFailed[0] = NULL;
 		_pathIconFileSynced[0] = NULL;
 		_pathIconFileSyncing[0] = NULL;
 		_pathIconFileSelective[0] = NULL;
 
-        // Initialize the COM system
-        _hr = CoInitializeEx(NULL, COINIT_MULTITHREADED);
-		if (_hr != S_OK)
-		{
-			CLTRACE(9, "CExplorerSimulator: CExplorerSimulator: ERROR: CoInitialize returned %d.", _hr);
-			return;
-		}
-
-        // Create a class factory to instantiate an instance of CPubSubServer.
-        IClassFactory *pIClassFactory = NULL;
-		CLTRACE(9, "CExplorerSimulator: CExplorerSimulator: Call CoGetClassObject.");
-        hr = CoGetClassObject(CLSID_PubSubServer, CLSCTX_ALL, NULL, IID_IClassFactory, (LPVOID *)&pIClassFactory);
-        if (SUCCEEDED(hr) && pIClassFactory != NULL)
-        {
-            // Instantiate an instance of CPubSubServer
-		    CLTRACE(9, "CExplorerSimulator: CExplorerSimulator: Call CreateInstance."); 
-            hr = pIClassFactory->CreateInstance(NULL, IID_IPubSubServer, (LPVOID *)&_pPubSubServer);
-            if (!SUCCEEDED(hr) || _pPubSubServer == NULL)
-            {
-    		    CLTRACE(1, "CExplorerSimulator: CExplorerSimulator: ERROR.  PubSubServer not instantiated. Throw."); 
-                throw new std::exception("Error creating an instance of CPubSubServer");
-            }
-
-            // Release the class factory
-  		    CLTRACE(9, "CExplorerSimulator: CExplorerSimulator: Allocated _pPubSubServer: %p.", _pPubSubServer); 
-            pIClassFactory->Release();
-            pIClassFactory = NULL;
-        }
-        else
-        {
-    		CLTRACE(1, "CExplorerSimulator: CExplorerSimulator: ERROR.  Creating class factory. Throw."); 
-            throw new std::exception("Error creating a class factory for CPubSubServer.  hr: %d.", hr);
-        }
+		_pSynced = NULL;
+		_pSyncing = NULL;
+		_pFailed = NULL;
+		_pSelective = NULL;
     }
     catch (const std::exception &ex)
     {
@@ -88,11 +56,7 @@ CExplorerSimulator::~CExplorerSimulator(void)
     try
     {
 		CLTRACE(9, "CExplorerSimulator: ~CExplorerSimulator: Entry.");
-		_fRequestSubscribingThreadExit = true;              // preemptive strike
-		_fRequestWorkerThreadExit = true;
-        _fTerminating = true;
-        KillSubscribingThread();
-        KillWatchingThread();
+		Terminate();
     }
     catch (const std::exception &ex)
     {
@@ -102,36 +66,55 @@ CExplorerSimulator::~CExplorerSimulator(void)
     {
 		CLTRACE(1, "CExplorerSimulator: ~CExplorerSimulator: ERROR: C++ exception.");
     }
-
-    try
-    {
-        // Free the CPubSubServer COM object
-        if (_pPubSubServer != NULL)
-        {
-			_pPubSubServer->Terminate();
-            _pPubSubServer->Release();
-            CoUninitialize();
-            _pPubSubServer = NULL;
-        }
-    }
-    catch (const std::exception &ex)
-    {
-		CLTRACE(1, "CExplorerSimulator: ~CExplorerSimulator: ERROR: Exception(2).  Message: %s.", ex.what());
-    }
-    catch (...)
-    {
-		CLTRACE(1, "CExplorerSimulator: ~CExplorerSimulator: ERROR: C++ exception(2).");
-    }
 }
 
 /// <summary>
 /// Initialize.  Initialize the PubSubEventsServer.
 /// </summary>
-void CExplorerSimulator::Initialize(int nSimulatedExplorerIndex)
+void CExplorerSimulator::Initialize(int nSimulatedExplorerIndex, int nBadgeType)
 {
     try
     {
 		CLTRACE(9, "CExplorerSimulator: Initialize: Entry. Index: %d.", nSimulatedExplorerIndex);
+
+		if (nSimulatedExplorerIndex < 0)
+		{
+			throw new std::exception("Invalid explorer index");
+		}
+		if (nBadgeType < cloudAppBadgeSynced || nBadgeType > cloudAppBadgeSyncSelective)
+		{
+			throw new std::exception("Invalid badge type");
+		}
+
+		_nExplorerIndex = nSimulatedExplorerIndex;
+		_nBadgeType = nBadgeType;
+
+		// Initialize the COM system
+        _hr = CoInitializeEx(NULL, COINIT_MULTITHREADED);
+		if (_hr != S_OK)
+		{
+			CLTRACE(9, "CExplorerSimulator: CExplorerSimulator: ERROR: CoInitialize returned %d.", _hr);
+			return;
+		}
+
+		// Get a smart pointer to the interface
+		switch (nBadgeType)
+		{
+			case cloudAppBadgeSynced:
+				_pSynced = new BadgeCOMLib::IBadgeIconSyncedPtr(__uuidof(BadgeCOMLib::BadgeIconSynced));
+				break;
+			case cloudAppBadgeSyncing:
+				_pSyncing = new BadgeCOMLib::IBadgeIconSyncingPtr(__uuidof(BadgeCOMLib::BadgeIconSyncing));
+				break;
+			case cloudAppBadgeFailed:
+				_pFailed = new BadgeCOMLib::IBadgeIconFailedPtr(__uuidof(BadgeCOMLib::BadgeIconFailed));
+				break;
+			case cloudAppBadgeSelective:
+				_pSelective = new BadgeCOMLib::IBadgeIconSelectivePtr(__uuidof(BadgeCOMLib::BadgeIconSelective));
+				break;
+		}
+
+
     }
     catch (const std::exception &ex)
     {
@@ -188,7 +171,7 @@ void CExplorerSimulator::SubscribingThreadProc(LPVOID pUserState)
             }
             if (result == RC_SUBSCRIBE_GOT_EVENT)
             {
-                switch (eventSubType)
+                switch (_nBadgeType)
                 {
                     case BadgeNet_AddSyncboxFolderPath:
 						try
