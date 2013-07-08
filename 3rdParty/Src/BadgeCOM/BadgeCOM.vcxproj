@@ -920,6 +920,7 @@ echo ************  POST BUILD STEP COMPLETED OK **********************
       <TypeLibraryName>$(IntDir)BadgeCOM.tlb</TypeLibraryName>
       <DllDataFileName>
       </DllDataFileName>
+      <TargetEnvironment>X64</TargetEnvironment>
     </Midl>
     <ResourceCompile>
       <Culture>0x0409</Culture>

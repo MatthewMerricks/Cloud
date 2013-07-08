@@ -31,9 +31,9 @@ library BadgeCOMLib
 	    pointer_default(unique)
     ]
     interface IBadgeIconSyncing : IDispatch{
-		[helpstring("method GetOverlayInfo")] HRESULT GetOverlayInfo([out] LPWSTR pwszIconFile, [in] int cchMax, [out] int *pIndex, [out] DWORD *pdwFlags);
-		[helpstring("method GetPriority")] HRESULT GetPriority([out] int *pPriority);
-		[helpstring("method IsMemberOf")] HRESULT IsMemberOf([in] LPCWSTR pwszPath, [in] DWORD dwAttrib);
+		[helpstring("method IsMemberOf")] HRESULT __stdcall IsMemberOf([in] LPCWSTR pwszPath, [in] DWORD dwAttrib);
+		[helpstring("method GetOverlayInfo")] HRESULT __stdcall GetOverlayInfo([in, out] LPWSTR pwszIconFile, [in] int cchMax, [out] int *pIndex, [out] DWORD *pdwFlags);
+		[helpstring("method GetPriority")] HRESULT __stdcall GetPriority([out] int *pPriority);
     };
     [
 	    object,
@@ -43,9 +43,9 @@ library BadgeCOMLib
 	    pointer_default(unique)
     ]
     interface IBadgeIconSynced : IDispatch{
-		[helpstring("method GetOverlayInfo")] HRESULT GetOverlayInfo([out] LPWSTR pwszIconFile, [in] int cchMax, [out] int *pIndex, [out] DWORD *pdwFlags);
-		[helpstring("method GetPriority")] HRESULT GetPriority([out] int *pPriority);
-		[helpstring("method IsMemberOf")] HRESULT IsMemberOf([in] LPCWSTR pwszPath, [in] DWORD dwAttrib);
+		[helpstring("method IsMemberOf")] HRESULT __stdcall IsMemberOf([in] LPCWSTR pwszPath, [in] DWORD dwAttrib);
+		[helpstring("method GetOverlayInfo")] HRESULT __stdcall GetOverlayInfo([in, out] LPWSTR pwszIconFile, [in] int cchMax, [out] int *pIndex, [out] DWORD *pdwFlags);
+		[helpstring("method GetPriority")] HRESULT __stdcall GetPriority([out] int *pPriority);
     };
     [
 	    object,
@@ -55,9 +55,9 @@ library BadgeCOMLib
 	    pointer_default(unique)
     ]
     interface IBadgeIconSelective : IDispatch{
-		[helpstring("method GetOverlayInfo")] HRESULT GetOverlayInfo([out] LPWSTR pwszIconFile, [in] int cchMax, [out] int *pIndex, [out] DWORD *pdwFlags);
-		[helpstring("method GetPriority")] HRESULT GetPriority([out] int *pPriority);
-		[helpstring("method IsMemberOf")] HRESULT IsMemberOf([in] LPCWSTR pwszPath, [in] DWORD dwAttrib);
+		[helpstring("method IsMemberOf")] HRESULT __stdcall IsMemberOf([in] LPCWSTR pwszPath, [in] DWORD dwAttrib);
+		[helpstring("method GetOverlayInfo")] HRESULT __stdcall GetOverlayInfo([in, out] LPWSTR pwszIconFile, [in] int cchMax, [out] int *pIndex, [out] DWORD *pdwFlags);
+		[helpstring("method GetPriority")] HRESULT __stdcall GetPriority([out] int *pPriority);
     };
     [
 	    object,
@@ -67,9 +67,9 @@ library BadgeCOMLib
 	    pointer_default(unique)
     ]
     interface IBadgeIconFailed : IDispatch{
-		[helpstring("method GetOverlayInfo")] HRESULT GetOverlayInfo([out] LPWSTR pwszIconFile, [in] int cchMax, [out] int *pIndex, [out] DWORD *pdwFlags);
-		[helpstring("method GetPriority")] HRESULT GetPriority([out] int *pPriority);
-		[helpstring("method IsMemberOf")] HRESULT IsMemberOf([in] LPCWSTR pwszPath, [in] DWORD dwAttrib);
+		[helpstring("method IsMemberOf")] HRESULT __stdcall IsMemberOf([in] LPCWSTR pwszPath, [in] DWORD dwAttrib);
+		[helpstring("method GetOverlayInfo")] HRESULT __stdcall GetOverlayInfo([in, out] LPWSTR pwszIconFile, [in] int cchMax, [out] int *pIndex, [out] DWORD *pdwFlags);
+		[helpstring("method GetPriority")] HRESULT __stdcall GetPriority([out] int *pPriority);
     };
     [
 	    object,

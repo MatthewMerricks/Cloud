@@ -9,6 +9,7 @@
 
 #include <stdio.h>
 #include <tchar.h>
+#include <iostream>
 
 
 #define _ATL_CSTRING_EXPLICIT_CONSTRUCTORS      // some CString constructors will be explicit
@@ -17,4 +18,8 @@
 #include <atlstr.h>
 
 // TODO: reference additional headers your program requires here
-#include <initguid.h>
+#include "CExplorerSimulator.h"
+
+// Imports
+#import "C:\Cloud\CloudSDK-Windows\3rdParty\bin\Release64\BadgeCom.tlb" named_guids 
+
