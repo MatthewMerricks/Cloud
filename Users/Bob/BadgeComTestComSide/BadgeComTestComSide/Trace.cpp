@@ -1,5 +1,4 @@
 #include "stdafx.h"
-#include "Trace.h"
 
 using namespace std;
 
@@ -23,7 +22,7 @@ Trace* Trace::getInstance()
 
             // Determine the trace directory
             wchar_t wszBuffer[MAX_PATH];
-            BOOL result = SHGetSpecialFolderPath(NULL, wszBuffer, CSIDL_LOCAL_APPDATA, false /* don't create the folder */ );
+            BOOL result = SHGetSpecialFolderPathW(NULL, wszBuffer, CSIDL_LOCAL_APPDATA, false /* don't create the folder */ );
             if(!result)
             {
                 // Error.  Leave trace disabled.
@@ -224,7 +223,7 @@ void Trace::PerhapsChangeTraceFilename()
     	    WCHAR wsTime[200];
 		    WCHAR wsBuff[200];
     	    wcsftime(wsTime, sizeof(wsTime) / sizeof(WCHAR), L"%Y-%m-%d", &timeinfo);
-		    wsprintf(wsBuff, L"\\Trace-%ls-CloudShellExt.log", wsTime);
+		    wsprintfW(wsBuff, L"\\Trace-%ls-CloudShellExt.log", wsTime);
 		    _wsTraceFileFullPath = _wsTraceDirectory + wsBuff;
 
             // Start another thread to delete old trace files.
@@ -300,7 +299,7 @@ void Trace::DeleteOldTraceFilesThreadProc(LPVOID pUserState)
                                     if (dateFile <= dateCutoff)
                                     {
                                         // Delete this file
-                                        DeleteFile(thisFileFullPath.c_str());
+                                        DeleteFileW(thisFileFullPath.c_str());
                                     }
                                 }
                             }
@@ -330,8 +329,8 @@ void Trace::DeleteOldTraceFilesThreadProc(LPVOID pUserState)
 /// </summary>
 int Trace::GetFileList(std::wstring &wsSearchKey, std::vector<std::wstring> &outList)
 {
-    WIN32_FIND_DATA fd;
-    HANDLE h = FindFirstFile(wsSearchKey.c_str(), &fd);
+    WIN32_FIND_DATAW fd;
+    HANDLE h = FindFirstFileW(wsSearchKey.c_str(), &fd);
 
     if(h == INVALID_HANDLE_VALUE)
     {
@@ -341,7 +340,7 @@ int Trace::GetFileList(std::wstring &wsSearchKey, std::vector<std::wstring> &out
     while(true)
     {
         outList.push_back(fd.cFileName);
-        if(FindNextFile(h, &fd) == FALSE)
+        if(FindNextFileW(h, &fd) == FALSE)
         {
             break;
         }

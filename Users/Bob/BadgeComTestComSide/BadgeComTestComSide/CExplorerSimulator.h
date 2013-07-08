@@ -6,9 +6,6 @@
 // Copyright (c) Cloud.com. All rights reserved.
 
 #pragma once
-#include <boost\signal.hpp>
-#include <boost\thread.hpp>
-#include "Trace.h"
 
 class CExplorerSimulator
 {
@@ -19,6 +16,7 @@ private:
 	HANDLE _threadWorkerHandle;
     boost::mutex _locker;
     BOOL _fRequestExit;
+	BOOL _fExited;
 	BOOL _fInitialized;
 	HRESULT _hr;
 
@@ -37,22 +35,23 @@ private:
 	DWORD _flagsIconSyncing;
 	DWORD _flagsIconSelective;
 
+	int _priorityIconFailed;
+	int _priorityIconSynced;
+	int _priorityIconSyncing;
+	int _priorityIconSelective;
+
 	BadgeCOMLib::IBadgeIconSyncedPtr _pSynced;
 	BadgeCOMLib::IBadgeIconSyncingPtr _pSyncing;
 	BadgeCOMLib::IBadgeIconFailedPtr _pFailed;
 	BadgeCOMLib::IBadgeIconSelectivePtr _pSelective;
 
-public:
-	// Definitions
-	enum EnumCloudAppIconBadgeType
-	{
-		cloudAppBadgeNone=0,
-	    cloudAppBadgeSynced,
-	    cloudAppBadgeSyncing,
-	    cloudAppBadgeFailed,
-	    cloudAppBadgeSelective
-	} ;
+private:
+	static void WorkerThreadProc(LPVOID pUserState);
+	bool randomBool();
+	void SendRequestsToIsMemberOf();
+	BOOL QueryShouldBadgePath(std::wstring path);
 
+public:
     // Life cycle
     CExplorerSimulator(void);
     ~CExplorerSimulator(void);
@@ -60,10 +59,5 @@ public:
     // Methods
 	void Initialize(int nSimulatedExplorerIndex, int nBadgeType);
 	void Terminate();
-
-	void WorkerThreadProc(LPVOID pUserState);
-
-
-
 };
 
