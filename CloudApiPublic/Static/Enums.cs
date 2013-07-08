@@ -855,19 +855,6 @@ namespace Cloud.Static
     }
 
     /// <summary>
-    /// Status of querying index by EventId
-    /// </summary>
-    public enum FileChangeQueryStatus
-    {
-        Success,
-        ErrorMultipleResults,
-        ErrorNotFound,
-        ErrorNoIndexer,
-        ErrorUnknown,
-        ErrorDisposed
-    }
-
-    /// <summary>
     /// Enumeration for direction of sync
     /// </summary>
     public enum SyncDirection : byte

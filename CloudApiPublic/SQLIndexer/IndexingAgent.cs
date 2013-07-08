@@ -745,9 +745,8 @@ namespace Cloud.SQLIndexer
         /// <param name="eventId">EventId key to lookup</param>
         /// <param name="queryResult">(output) Result FileChange from EventId lookup</param>
         /// <param name="isPending">(output) Result whether event is pending from EventId lookup</param>
-        /// <param name="status">(output) Status of quering the database</param>
         /// <returns>Returns any error which occurred querying the database, if any</returns>
-        public CLError QueryFileChangeByEventId(long eventId, out FileChange queryResult, out bool isPending, out FileChangeQueryStatus status)
+        public CLError QueryFileChangeByEventId(long eventId, out FileChange queryResult, out bool isPending)
         {
             if (disposed)
             {
@@ -759,8 +758,6 @@ namespace Cloud.SQLIndexer
                 {
                     queryResult = Helpers.DefaultForType<FileChange>();
                     isPending = Helpers.DefaultForType<bool>();
-                    status = FileChangeQueryStatus.ErrorDisposed;
-
                     return ex;
                 }
             }
@@ -769,7 +766,7 @@ namespace Cloud.SQLIndexer
             {
                 if (eventId <= 0)
                 {
-                    throw new ArgumentException("eventId cannot be equal to or less than zero");
+                    throw new CLArgumentException(CLExceptionCode.General_Arguments, "eventId cannot be equal to or less than zero");
                 }
 
                 using (ISQLiteConnection indexDB = CreateAndOpenCipherConnection())
@@ -832,8 +829,7 @@ namespace Cloud.SQLIndexer
                     {
                         if (resultFound)
                         {
-                            status = FileChangeQueryStatus.ErrorMultipleResults;
-                            return SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Multiple objects found for given eventId");
+                            throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "Multiple objects found for given eventId");
                         }
 
                         resultFound = true;
@@ -874,11 +870,7 @@ namespace Cloud.SQLIndexer
 
                     if (!resultFound)
                     {
-                        status = FileChangeQueryStatus.ErrorNotFound;
-                    }
-                    else
-                    {
-                        status = FileChangeQueryStatus.Success;
+                        throw new CLKeyNotFoundException(CLExceptionCode.General_ObjectNotExpectedType, "FileChange not found for given eventId");
                     }
                 }
             }
@@ -886,8 +878,6 @@ namespace Cloud.SQLIndexer
             {
                 queryResult = Helpers.DefaultForType<FileChange>();
                 isPending = Helpers.DefaultForType<bool>();
-                status = FileChangeQueryStatus.ErrorUnknown;
-
                 return ex;
             }
             return null;
@@ -919,20 +909,39 @@ namespace Cloud.SQLIndexer
             try
             {
                 this.indexedPath = getPath();
-                ThreadPool.QueueUserWorkItem(state => 
+
+                var callBuildIndex = DelegateAndDataHolderBase<object>.Create(
+                    new
                     {
-                        try 
-	                    {
-                            this.BuildIndex((Action<IEnumerable<KeyValuePair<FilePath, FileMetadata>>, IEnumerable<FileChange>>)state);
-	                    }
-	                    catch (Exception ex)
-	                    {
+                        indexCompletionCallback = indexCompletionCallback,
+                        thisAgent = this
+                    },
+                    (Data, doNothingWith, errorToAccumulate) =>
+                    {
+                        try
+                        {
+                            Data.thisAgent.BuildIndex(Data.indexCompletionCallback);
+                        }
+                        catch (Exception ex)
+                        {
                             CLError error = new AggregateException("Error building the index", ex);
                             error.Log(_trace.TraceLocation, _trace.LogErrors);
                             _trace.writeToLog(1, "IndexingAgent: StartInitialIndexing: ERROR: Exception: Error building the initial index. Msg: <{0}>.", ex.Message);
-	                    }
+
+                            if (!(ex is CLObjectDisposedException))
+                            {
+                                MessageEvents.FireNewEventMessage(
+                                    "Initial building of the database index failed",
+                                    EventMessageLevel.Important,
+                                    new HaltAllOfCloudSDKErrorInfo(),
+                                    Data.thisAgent.syncbox,
+                                    Data.thisAgent.syncbox.CopiedSettings.DeviceId);
+                            }
+                        }
                     },
-                    indexCompletionCallback);
+                    null);
+
+                ThreadPool.QueueUserWorkItem(new WaitCallback(callBuildIndex.VoidProcess));
             }
             catch (Exception ex)
             {
@@ -1317,17 +1326,20 @@ namespace Cloud.SQLIndexer
         ///// <returns>Returns an error that occurred retrieving the file system state, if any</returns>
         //public CLError GetLastSyncStates(out FilePathDictionary<SyncedObject> syncStates)
         //{
-            //if (disposed)
-            //{
-            //    try
-            //    {
-            //        throw new CLObjectDisposedException(CLExceptionCode.General_Invalid, Resources.IndexingAgentThisIndexingAgent);
-            //    }
-            //    catch (Exception ex)
-            //    {
-            //        return ex;
-            //    }
-            //}
+        //  if (disposed)
+        //  {
+        //    try
+        //    {
+        //
+        //        make sure caller forwards CLObjectDisposedException:
+        //
+        //        throw new CLObjectDisposedException(CLExceptionCode.General_Invalid, Resources.IndexingAgentThisIndexingAgent);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return ex;
+        //    }
+        //  }
         //    throw new NotImplementedException("2");
         //    //ExternalSQLLocker.EnterReadLock();
         //    //try
@@ -1572,17 +1584,21 @@ namespace Cloud.SQLIndexer
         ///// <param name="changeEvents">Outputs the unprocessed events</param>
         ///// <returns>Returns an error that occurred filling the unprocessed events, if any</returns>
         //public CLError GetPendingEvents(out List<KeyValuePair<FilePath, FileChange>> changeEvents)
-        //{            //if (disposed)
-            //{
-            //    try
-            //    {
-            //        throw new CLObjectDisposedException(CLExceptionCode.General_Invalid, Resources.IndexingAgentThisIndexingAgent);
-            //    }
-            //    catch (Exception ex)
-            //    {
-            //        return ex;
-            //    }
-            //}
+        //{
+        //  if (disposed)
+        //  {
+        //    try
+        //    {
+        //
+        //        make sure caller forwards CLObjectDisposedException:
+        //
+        //        throw new CLObjectDisposedException(CLExceptionCode.General_Invalid, Resources.IndexingAgentThisIndexingAgent);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return ex;
+        //    }
+        //  }
         //
         //
         //    ExternalSQLLocker.EnterReadLock();
@@ -1650,28 +1666,30 @@ namespace Cloud.SQLIndexer
         //    return null;
         //}
 
-        /// <summary>
-        /// Adds an unprocessed change since the last sync as a new event to the database,
-        /// EventId property of the input event is set after database update
-        /// </summary>
-        /// <param name="newEvents">Change to add</param>
-        /// <returns>Returns error that occurred when adding the event to database, if any</returns>
-        public CLError AddEvents(IEnumerable<FileChange> newEvents, SQLTransactionalBase existingTransaction = null)
-        {
-            if (disposed)
-            {
-                try
-                {
-                    throw new CLObjectDisposedException(CLExceptionCode.General_Invalid, Resources.IndexingAgentThisIndexingAgent);
-                }
-                catch (Exception ex)
-                {
-                    return ex;
-                }
-            }
+        ///// <summary>
+        ///// Adds an unprocessed change since the last sync as a new event to the database,
+        ///// EventId property of the input event is set after database update
+        ///// </summary>
+        ///// <param name="newEvents">Change to add</param>
+        ///// <returns>Returns error that occurred when adding the event to database, if any</returns>
+        //public CLError AddEvents(IEnumerable<FileChange> newEvents, SQLTransactionalBase existingTransaction = null)
+        //{
+        //    if (disposed)
+        //    {
+        //        try
+        //        {
+        //            make sure caller forwards CLObjectDisposedException:
+        //
+        //            throw new CLObjectDisposedException(CLExceptionCode.General_Invalid, Resources.IndexingAgentThisIndexingAgent);
+        //        }
+        //        catch (Exception ex)
+        //        {
+        //            return ex;
+        //        }
+        //    }
 
-            return AddEvents(null, newEvents, existingTransaction);
-        }
+        //    return AddEvents(null, newEvents, existingTransaction);
+        //}
         private CLError AddEvents(Nullable<long> syncCounter, IEnumerable<FileChange> newEvents, SQLTransactionalBase existingTransaction, bool addCreateAtOldPathIfNotFound = false)
         {
             SQLTransactionalImplementation castTransaction = existingTransaction as SQLTransactionalImplementation;
@@ -2569,7 +2587,7 @@ namespace Cloud.SQLIndexer
         /// <param name="syncId">New sync Id from server</param>
         /// <param name="syncedEventIds">Enumerable of event ids processed in sync</param>
         /// <param name="syncCounter">Output sync counter local identity</param>
-        /// <param name="newRootPath">Optional new root path for location of sync root, must be set on first sync</param>
+        /// <param name="rootFolderUID">Optional new root path for location of sync root, must be set on first sync</param>
         /// <returns>Returns an error that occurred during recording the sync, if any</returns>
         public CLError RecordCompletedSync(IEnumerable<PossiblyChangedFileChange> communicatedChanges, string syncId, IEnumerable<long> syncedEventIds, out long syncCounter, string rootFolderUID = null)
         {
@@ -2631,8 +2649,22 @@ namespace Cloud.SQLIndexer
 
             try
             {
-                using (SQLTransactionalImplementation connAndTran = GetNewTransactionPrivate())
+                KeyValuePair<SQLTransactionalBase, CLError> tranWithError = GetNewTransactionPrivate();
+
+                try
                 {
+                    if (tranWithError.Value != null)
+                    {
+                        throw tranWithError.Value.PrimaryException; // exception should only be a CLObjectDisposedException
+                    }
+
+                    SQLTransactionalImplementation connAndTran = tranWithError.Key as SQLTransactionalImplementation;
+
+                    if (connAndTran == null)
+                    {
+                        throw new CLNullReferenceException(CLExceptionCode.Syncing_Database, Resources.ExceptionIndexingAgentRecordCompletedSyncNullTransaction);
+                    }
+
                     SqlSync newSync = new SqlSync()
                     {
                         SID = syncId
@@ -2734,6 +2766,11 @@ namespace Cloud.SQLIndexer
 
                         if (mergeChangedError != null)
                         {
+                            if (mergeChangedError.PrimaryException is CLObjectDisposedException)
+                            {
+                                throw mergeChangedError.PrimaryException;
+                            }
+
                             throw new AggregateException("An error occurred merging a batch of communicated changes before completing a new sync", mergeChangedError.Exceptions);
                         }
 
@@ -2798,6 +2835,11 @@ namespace Cloud.SQLIndexer
                         CLError markCompletionError = MarkEventAsCompletedOnPreviousSync(synchronouslyCompletedEventId, connAndTran);
                         if (markCompletionError != null)
                         {
+                            if (markCompletionError.PrimaryException is CLObjectDisposedException)
+                            {
+                                throw markCompletionError.PrimaryException;
+                            }
+
                             throw new AggregateException("Error marking Event at synchronouslyCompletedEventId completed on RecordCompleted", markCompletionError.Exceptions);
                         }
                     }
@@ -2805,6 +2847,19 @@ namespace Cloud.SQLIndexer
                     LastSyncId = syncId;
 
                     connAndTran.Commit();
+                }
+                finally
+                {
+                    if (tranWithError.Key != null)
+                    {
+                        try
+                        {
+                            tranWithError.Key.Dispose();
+                        }
+                        catch
+                        {
+                        }
+                    }
                 }
             }
             catch (Exception ex)
@@ -2848,7 +2903,7 @@ namespace Cloud.SQLIndexer
         /// <summary>
         /// Creates a new transactional object which can be passed back into database access calls and externalizes the ability to dispose or commit the transaction
         /// </summary>
-        public SQLTransactionalBase GetNewTransaction()
+        public KeyValuePair<SQLTransactionalBase, CLError> GetNewTransaction()
         {
             if (disposed)
             {
@@ -2859,7 +2914,7 @@ namespace Cloud.SQLIndexer
                 catch (Exception ex)
                 {
                     // &&&& todo: since this cannot return the disposed exception, make sure the caller checks for null to throws an appropriate dispose exception
-                    return null;
+                    return new KeyValuePair<SQLTransactionalBase, CLError>(null, ex);
                 }
             }
 
@@ -2908,25 +2963,26 @@ namespace Cloud.SQLIndexer
             return GetNewTransactionPrivate();
         }
 
-        private SQLTransactionalImplementation GetNewTransactionPrivate()
+        private KeyValuePair<SQLTransactionalBase, CLError> GetNewTransactionPrivate()
         {
-            if (disposed)
+            try
             {
-                try
+                if (disposed)
                 {
                     throw new CLObjectDisposedException(CLExceptionCode.General_Invalid, Resources.IndexingAgentThisIndexingAgent);
                 }
-                catch
-                {
-                    // &&&& todo: since this cannot return the disposed exception, make sure the caller checks for null to throws an appropriate dispose exception
-                    return null;
-                }
-            }
 
-            ISQLiteConnection indexDB;
-            return new SQLTransactionalImplementation(
-                indexDB = CreateAndOpenCipherConnection(),
-                indexDB.BeginTransaction(System.Data.IsolationLevel.Serializable));
+                ISQLiteConnection indexDB;
+                return new KeyValuePair<SQLTransactionalBase, CLError>(
+                    new SQLTransactionalImplementation(
+                        indexDB = CreateAndOpenCipherConnection(),
+                        indexDB.BeginTransaction(System.Data.IsolationLevel.Serializable)),
+                    null);
+            }
+            catch (Exception ex)
+            {
+                return new KeyValuePair<SQLTransactionalBase, CLError>(null, ex);
+            }
         }
 
         /// <summary>
@@ -3326,6 +3382,13 @@ namespace Cloud.SQLIndexer
 
                                                         if (removeBatchError != null)
                                                         {
+                                                            if (removeBatchError.PrimaryException is CLObjectDisposedException)
+                                                            {
+                                                                toReturn = null; // clear error so when disposed exception is added it will be primary exception in the error
+
+                                                                throw removeBatchError.PrimaryException;
+                                                            }
+
                                                             toReturn += new AggregateException("One or more errors occurred removing a batch of events by ids", removeBatchError.Exceptions);
                                                         }
 
@@ -3342,6 +3405,13 @@ namespace Cloud.SQLIndexer
 
                                                         if (addBatchError != null)
                                                         {
+                                                            if (addBatchError.PrimaryException is CLObjectDisposedException)
+                                                            {
+                                                                toReturn = null; // clears toReturn so the aggregated disposed exception will be the primary exception for the returned error
+
+                                                                throw addBatchError.PrimaryException;
+                                                            }
+
                                                             toReturn += new AggregateException("One or more errors occurred adding a batch of new events", addBatchError.Exceptions);
                                                         }
 
@@ -3886,10 +3956,17 @@ namespace Cloud.SQLIndexer
             {
                 if (castTransaction == null)
                 {
+                    // backup the existing error so if CreateAndOpenCipherConnection throws an object disposed exception, it till be the primary exception
+                    CLError toReturnBackup = toReturn;
+                    toReturn = null;
+
                     ISQLiteConnection indexDB;
                     castTransaction = new SQLTransactionalImplementation(
                         indexDB = CreateAndOpenCipherConnection(),
                         indexDB.BeginTransaction(System.Data.IsolationLevel.Serializable));
+
+                    // put the stored error back since the disposed exception did not occur
+                    toReturn = toReturnBackup;
                 }
 
                 //// don't think I need to change the SyncCounter ever when just completing an event, it should already be set
@@ -4554,9 +4631,13 @@ namespace Cloud.SQLIndexer
                 {
                     MarkBadgeSyncedAfterEventCompletion(storeExistingChangeType, storeNewPath, storeOldPath, storeWhetherEventIsASyncFrom);
                 }
+                catch (CLObjectDisposedException ex)
+                {
+                    toReturn = ex;  // replace error entirely so that primary exception is the object disposed exception
+                }
                 catch (Exception ex)
                 {
-                    toReturn += ex;
+                    // no-op; // failing to badge synced is not a serious error
                 }
             }
 
@@ -5177,14 +5258,7 @@ namespace Cloud.SQLIndexer
         {
             if (disposed)
             {
-                try
-                {
-                    throw new CLObjectDisposedException(CLExceptionCode.General_Invalid, Resources.IndexingAgentThisIndexingAgent);
-                }
-                catch
-                {
-                    return;
-                }
+                throw new CLObjectDisposedException(CLExceptionCode.General_Invalid, Resources.IndexingAgentThisIndexingAgent);
             }
 
             Action<FilePath> setBadgeSynced = syncedPath =>
@@ -5273,21 +5347,45 @@ namespace Cloud.SQLIndexer
             }
         }
 
+        //private ISQLiteConnection CreateAndOpenCipherConnectionAndCheckErrors()
+        //{
+        //    ISQLiteConnection indexDB;
+        //    KeyValuePair<ISQLiteConnection, CLError> connAndError = CreateAndOpenCipherConnection();
+
+        //    if (connAndError.Value != null)
+        //    {
+        //        if (connAndError.Value.PrimaryException is CLObjectDisposedException)
+        //        {
+        //            throw connAndError.Value.PrimaryException;
+        //        }
+
+        //        throw new CLException(CLExceptionCode.Syncing_Database, Resources.ExceptionIndexingAgentErrorOnCreateAndOpenCipherConnection, connAndError.Value.Exceptions);
+        //    }
+
+        //    if (connAndError.Key == null)
+        //    {
+        //        throw new CLNullReferenceException(CLExceptionCode.Syncing_Database, Resources.ExceptionIndexingAgentCreateAndOpenCipherConnectionNullConnection);
+        //    }
+
+        //    indexDB = connAndError.Key;
+        //    return indexDB;
+        //}
+
         private ISQLiteConnection CreateAndOpenCipherConnection(bool enforceForeignKeyConstraints = true)
         {
             if (disposed)
             {
-                try
-                {
-                    throw new CLObjectDisposedException(CLExceptionCode.General_Invalid, Resources.IndexingAgentThisIndexingAgent);
-                }
-                catch
-                {
-                    return null;
-                }
+                throw new CLObjectDisposedException(CLExceptionCode.General_Invalid, Resources.IndexingAgentThisIndexingAgent);
             }
 
-            return StaticCreateAndOpenCipherConnection(enforceForeignKeyConstraints, indexDBLocation);
+            ISQLiteConnection toReturn = StaticCreateAndOpenCipherConnection(enforceForeignKeyConstraints, indexDBLocation);
+
+            if (toReturn == null)
+            {
+                throw new CLNullReferenceException(CLExceptionCode.Syncing_Database, Resources.ExceptionIndexingAgentCreateAndOpenCipherConnectionNullConnection);
+            }
+
+            return toReturn;
         }
 
         private static ISQLiteConnection StaticCreateAndOpenCipherConnection(bool enforceForeignKeyConstraints, string indexDBLocation)
@@ -5396,7 +5494,15 @@ namespace Cloud.SQLIndexer
                     : lastSync.SyncCounter);
 
                 // Update the exposed last sync id string under a lock
-                LastSyncLocker.EnterWriteLock();
+                bool writeEntered = false;
+                try
+                {
+                    LastSyncLocker.EnterWriteLock();
+                    writeEntered = true;
+                }
+                catch
+                {
+                }
                 try
                 {
                     this.LastSyncId = (lastSync == null
@@ -5405,7 +5511,16 @@ namespace Cloud.SQLIndexer
                 }
                 finally
                 {
-                    LastSyncLocker.ExitWriteLock();
+                    if (writeEntered)
+                    {
+                        try
+                        {
+                            LastSyncLocker.ExitWriteLock();
+                        }
+                        catch
+                        {
+                        }
+                    }
                 }
 
                 Dictionary<long, string> objectIdsToFullPath = new Dictionary<long, string>();
@@ -6103,20 +6218,41 @@ namespace Cloud.SQLIndexer
                     }
                 }
             }
-            catch (UnauthorizedAccessException ex)
+            catch (CLObjectDisposedException ex)
             {
-                if (outermostMethodCall)
+                throw ex;
+            }
+            catch (Exception ex)
+            {
+                CLError recurseDirectoryError = ex;
+                recurseDirectoryError.Log(
+                    syncbox.CopiedSettings.TraceLocation,
+                    syncbox.CopiedSettings.LogErrors);
+
+                if (ex is UnauthorizedAccessException
+                    && outermostMethodCall)
                 {
-                    // TODO: may not wish to cause the entire SDK to halt here, instead this should only halt the current engine
+                    MessageEvents.DetectedSyncboxLiveSyncFailedWithErrorChange(
+                        this.syncbox,
+                        recurseDirectoryError,
+                        this.syncbox.SyncboxId,
+                        this.syncbox.CopiedSettings.DeviceId);
+
+                    throw ex;
+                }
+                else
+                {
                     MessageEvents.FireNewEventMessage(
-                        "Unable to scan files/folders in Cloud folder. Location not accessible:" + Environment.NewLine + ex.Message,
-                        EventMessageLevel.Important,
-                        new HaltAllOfCloudSDKErrorInfo(),
+                        string.Format(
+                            "An error occurred traversing a directory looking for changes on initial indexing. Directory path: {0}. Error message: {1}.",
+                            currentDirectoryFullPath ?? "{null}",
+                            ex.Message),
+                        EventMessageLevel.Regular,
+                        new GeneralErrorInfo(),
                         this.syncbox,
                         this.syncbox.CopiedSettings.DeviceId);
                 }
             }
-            catch { }
 
             // If this method call was the outermost one (not recursed),
             // then the uncoveredChanges list was depleted of all traversed paths leaving
@@ -6148,7 +6284,16 @@ namespace Cloud.SQLIndexer
                             changeList.Remove(currentUncoveredChange.Value);
                             if (currentUncoveredChange.Value.EventId > 0)
                             {
-                                RemoveEventCallback(currentUncoveredChange.Value.EventId);
+                                CLError removeError = RemoveEventCallback(currentUncoveredChange.Value.EventId);
+                                if (removeError != null)
+                                {
+                                    if (removeError.PrimaryException is CLObjectDisposedException)
+                                    {
+                                        throw removeError.PrimaryException;
+                                    }
+
+                                    throw new CLException(CLExceptionCode.Syncing_Database, Resources.ExceptionIndexingAgentRecurseIndexDirectoryRemoveEvent, removeError.Exceptions);
+                                }
                             }
                         }
 
@@ -6208,6 +6353,17 @@ namespace Cloud.SQLIndexer
                         //        changeEnumsBackward = null;
                         //    }
                         //}
+
+                        if (LastSyncLocker != null)
+                        {
+                            try
+                            {
+                                LastSyncLocker.Dispose();
+                            }
+                            catch
+                            {
+                            }
+                        }
                     }
 
                     disposed = true;

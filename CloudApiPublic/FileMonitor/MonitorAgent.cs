@@ -121,8 +121,10 @@ namespace Cloud.FileMonitor
         // Store currently monitored folder path, append to the relative paths of files/folders for the correct path
         private string CurrentFolderPath;
 
-        // Locker allowing simultaneous reads on CurrentFolderPath and only locking on rare condition when root folder path is changed
-        private readonly ReaderWriterLockSlim CurrentFolderPathLocker = new ReaderWriterLockSlim();
+        //// uncomment lock constructor once a CopyHookHandler is created and NotifyRootRename method is uncommented
+        //
+        //// Locker allowing simultaneous reads on CurrentFolderPath and only locking on rare condition when root folder path is changed
+        //private readonly ReaderWriterLockSlim CurrentFolderPathLocker = new ReaderWriterLockSlim();
 
         // System objects that runs the file system monitoring (FolderWatcher for folder renames, FileWatcher for all files and folders that aren't renamed):
         private FileSystemWatcher FolderWatcher = null;
@@ -1107,26 +1109,17 @@ namespace Cloud.FileMonitor
                                             CLError updateCreationTimeError = SyncData.mergeToSql(Helpers.EnumerateSingleItem(new FileChangeMerge(toApply)));
                                             if (updateCreationTimeError != null)
                                             {
-                                                try
+                                                Helpers.RunActionWithRetries<string>(
+                                                    directoryToDelete => Directory.Delete(directoryToDelete),  // undo only the deepest directory created since that is the one which will need to succeed when the FileChange comes around again for creation
+                                                    creationPathString,
+                                                    throwExceptionOnFailure: false);
+
+                                                if (updateCreationTimeError.PrimaryException is CLObjectDisposedException)
                                                 {
-                                                    Directory.Delete(creationPathString);
-                                                    try
-                                                    {
-                                                        throw new AggregateException(Resources.MonitorAgentErrorUpdatingCreationTimeForFolderToEventDatabase, updateCreationTimeError.Exceptions);
-                                                    }
-                                                    catch (Exception ex)
-                                                    {
-                                                        creationToRethrow = ex;
-                                                        throw ex;
-                                                    }
+                                                    throw updateCreationTimeError.PrimaryException;
                                                 }
-                                                catch
-                                                {
-                                                    if (creationToRethrow != null)
-                                                    {
-                                                        throw creationToRethrow;
-                                                    }
-                                                }
+
+                                                throw new AggregateException(Resources.MonitorAgentErrorUpdatingCreationTimeForFolderToEventDatabase, updateCreationTimeError.Exceptions);
                                             }
 
                                             ChangeAllPathsBase.IndexSet(this, toApply.NewPath,
@@ -1373,6 +1366,11 @@ namespace Cloud.FileMonitor
                             {
                                 if (exOnMainSwitch != null)
                                 {
+                                    if (exOnMainSwitch is CLObjectDisposedException)
+                                    {
+                                        throw exOnMainSwitch;
+                                    }
+
                                     throw new AggregateException(Resources.MonitorAgentExceptionOnMainApplySyncFromFileChangeSwitchandExceptionononBeforeAllPathsUnlock,
                                         exOnMainSwitch,
                                         ex);
@@ -1594,7 +1592,14 @@ namespace Cloud.FileMonitor
 
             // Locks all new file system events from being processed until the initial index is processed,
             // afterwhich they will no longer queue up and instead process normally going forward
-            InitialIndexLocker.EnterWriteLock();
+            try
+            {
+                InitialIndexLocker.EnterWriteLock();
+            }
+            catch (ObjectDisposedException ex)
+            {
+                throw new CLObjectDisposedException(CLExceptionCode.Syncing_FileMonitor, Resources.ExceptionLockDisposed, ex);
+            }
 
             try
             {
@@ -1697,12 +1702,20 @@ namespace Cloud.FileMonitor
                         // take the currently dequeued file system event and run it back through for processing
 
                         ChangesQueueHolder currentChange = ChangesQueueForInitialIndexing.Dequeue();
-                        CheckMetadataAgainstFile(currentChange.newPath,
-                            currentChange.oldPath,
-                            currentChange.changeType,
-                            currentChange.folderOnly,
-                            alreadyHoldingIndexLock: true,
-                            queueToStartProcessing: true);
+
+                        try
+                        {
+                            CheckMetadataAgainstFile(currentChange.newPath,
+                                currentChange.oldPath,
+                                currentChange.changeType,
+                                currentChange.folderOnly,
+                                alreadyHoldingIndexLock: true,
+                                queueToStartProcessing: true);
+                        }
+                        catch (Exception ex)
+                        {
+                            HandleCheckMetadataDiskError(ex, currentChange.newPath);
+                        }
                     }
 
                     // null the pointer for the initial index queue so it can be cleared from memory
@@ -1724,7 +1737,14 @@ namespace Cloud.FileMonitor
             }
             finally
             {
-                InitialIndexLocker.ExitWriteLock();
+                try
+                {
+                    InitialIndexLocker.ExitWriteLock();
+                }
+                catch (ObjectDisposedException ex)
+                {
+                    throw new CLObjectDisposedException(CLExceptionCode.Syncing_FileMonitor, Resources.ExceptionLockDisposed, ex);
+                }
             }
 
             // the initial manual notification for the initial sync from could have come in before intial indexing completed,
@@ -1793,8 +1813,22 @@ namespace Cloud.FileMonitor
                 HashSet<FileChange> addOrModifyInSql = new HashSet<FileChange>();
                 List<KeyValuePair<FileChange, FileChange>> eventIdSwaps = new List<KeyValuePair<FileChange, FileChange>>();
 
-                using (SQLTransactionalBase sqlTran = Indexer.GetNewTransaction())
+                KeyValuePair<SQLTransactionalBase, CLError> tranWithError = Indexer.GetNewTransaction();
+
+                try
                 {
+                    if (tranWithError.Value != null)
+                    {
+                        throw tranWithError.Value.PrimaryException; // should be only a CLObjectDisposedException
+                    }
+
+                    SQLTransactionalBase sqlTran = tranWithError.Key;
+
+                    if (sqlTran == null)
+                    {
+                        throw new CLNullReferenceException(CLExceptionCode.Syncing_FileMonitor, Resources.ExceptionFileMonitorAssignDependenciesNullTransaction);
+                    }
+
                     PulledChanges = new HashSet<FileChangeWithDependencies>();
                     try
                     {
@@ -1819,7 +1853,7 @@ namespace Cloud.FileMonitor
                                         {
                                             case FileChangeType.Created:
                                             case FileChangeType.Modified:
-                                            CLError creationModificationCheckError = CreationModificationDependencyCheck(OuterFileChange, InnerFileChange, PulledChanges, out DisposeChanges, out ContinueProcessing, sqlTran, addOrModifyInSql);
+                                                CLError creationModificationCheckError = CreationModificationDependencyCheck(OuterFileChange, InnerFileChange, PulledChanges, out DisposeChanges, out ContinueProcessing, sqlTran, addOrModifyInSql);
                                                 if (creationModificationCheckError != null)
                                                 {
                                                     toReturn += new AggregateException(Resources.MonitorAgentErrorInCreationModifactionDependencyCheck, creationModificationCheckError.Exceptions);
@@ -1898,8 +1932,8 @@ namespace Cloud.FileMonitor
                                                         }
                                                     }
                                                 }
-                                            	else
-                                            	{
+                                                else
+                                                {
                                                     _trace.writeToMemory(() => _trace.trcFmtStr(2, Resources.MonitorAgentAssignDependenciesErrorCurrentOriginalMappingNotFound));
                                                 }
                                             }
@@ -1969,6 +2003,12 @@ namespace Cloud.FileMonitor
                                     CLError mergeDependencyAddsOrModifiesError = Indexer.MergeEventsIntoDatabase(mergeToSqlBatch.Select(currentToMerge => new FileChangeMerge(currentToMerge)), sqlTran);
                                     if (mergeDependencyAddsOrModifiesError != null)
                                     {
+                                        if (mergeDependencyAddsOrModifiesError.PrimaryException is CLObjectDisposedException)
+                                        {
+                                            toReturn = null; // clear out the error so when the object disposed exception is added, it will be the primary exception
+                                            throw mergeDependencyAddsOrModifiesError.PrimaryException;
+                                        }
+
                                         toReturn += new CLException(CLExceptionCode.Syncing_Database, Resources.ExceptionMonitorAgentAssignDependenciesMergeToSql, mergeDependencyAddsOrModifiesError.Exceptions);
                                     }
                                 }
@@ -1985,6 +2025,12 @@ namespace Cloud.FileMonitor
                                 }
                                 catch (Exception ex)
                                 {
+                                    if (ex is CLObjectDisposedException)
+                                    {
+                                        toReturn = null;
+                                        throw ex; // will set toReturn equal to ex since we cleared it and then appended one exception fresh
+                                    }
+
                                     toReturn += new CLException(CLExceptionCode.Syncing_Database, Resources.ExceptionMonitorAgentAssignDependenciesEventIdSwap, ex);
                                 }
                             }
@@ -2049,12 +2095,18 @@ namespace Cloud.FileMonitor
                                     sqlTran);
                                 if (updateSQLError != null)
                                 {
-                                	// condition for all the exceptions being keys which were not found to delete (possible if we end up deleting the same event id twice, which isn't really an error)
-                                	if (!updateSQLError.Exceptions
+                                    if (updateSQLError.PrimaryException is CLObjectDisposedException)
+                                    {
+                                        toReturn = null; // clear out the error so when the object disposed exception is added, it will be the primary exception
+                                        throw updateSQLError.PrimaryException;
+                                    }
+
+                                    // condition for all the exceptions being keys which were not found to delete (possible if we end up deleting the same event id twice, which isn't really an error)
+                                    if (!updateSQLError.Exceptions
                                         /* ! */.All(currentAggregate => currentAggregate is AggregateException && ((AggregateException)currentAggregate).InnerExceptions.All(currentInnerException => currentInnerException is KeyNotFoundException)))
-                                	{
+                                    {
                                         toReturn += new AggregateException(Resources.MonitorAgentSQLUpdateError, updateSQLError.Exceptions);
-                                	}
+                                    }
                                 }
                             }
                             catch (Exception ex)
@@ -2064,6 +2116,19 @@ namespace Cloud.FileMonitor
                         }
 
                         sqlTran.Commit();
+                    }
+                }
+                finally
+                {
+                    if (tranWithError.Key != null)
+                    {
+                        try
+                        {
+                            tranWithError.Key.Dispose();
+                        }
+                        catch
+                        {
+                        }
                     }
                 }
             }
@@ -2485,217 +2550,227 @@ namespace Cloud.FileMonitor
             return toReturn;
         }
 
-        public CLError AssignDependencies(IEnumerable<PossiblyStreamableFileChange> toAssign,
-            IEnumerable<FileChange> currentFailures,
-            out IEnumerable<PossiblyStreamableFileChange> outputChanges,
-            out IEnumerable<FileChange> outputFailures,
-            List<FileChange> failedOutChanges)
-        {
-            CLError toReturn = null;
-            try
-            {
-                HashSet<FileChangeWithDependencies> PulledChanges;
-                Func<FileChangeSource, PossiblyStreamableFileChange, Dictionary<FileChangeWithDependencies, KeyValuePair<GenericHolder<bool>, StreamContext>>, Dictionary<FileChangeWithDependencies, KeyValuePair<FileChange, FileChangeSource>>, FileChangeWithDependencies> convertChange = (originalSource, inputChange, streamMappings, originalChangeMappings) =>
-                    {
-                        if (inputChange.FileChange is FileChangeWithDependencies)
-                        {
-                            streamMappings[(FileChangeWithDependencies)inputChange.FileChange] = new KeyValuePair<GenericHolder<bool>, StreamContext>(new GenericHolder<bool>(false), inputChange.StreamContext);
-                            originalChangeMappings[(FileChangeWithDependencies)inputChange.FileChange] = new KeyValuePair<FileChange, FileChangeSource>(inputChange.FileChange, originalSource);
-                            return (FileChangeWithDependencies)inputChange.FileChange;
-                        }
+        //// commented out since all processing except for completing uploads has been moved to pre-processing
+        //
+        //public CLError AssignDependencies(IEnumerable<PossiblyStreamableFileChange> toAssign,
+        //    IEnumerable<FileChange> currentFailures,
+        //    out IEnumerable<PossiblyStreamableFileChange> outputChanges,
+        //    out IEnumerable<FileChange> outputFailures,
+        //    List<FileChange> failedOutChanges)
+        //{
+        //    CLError toReturn = null;
+        //    try
+        //    {
+        //        HashSet<FileChangeWithDependencies> PulledChanges;
+        //        Func<FileChangeSource, PossiblyStreamableFileChange, Dictionary<FileChangeWithDependencies, KeyValuePair<GenericHolder<bool>, StreamContext>>, Dictionary<FileChangeWithDependencies, KeyValuePair<FileChange, FileChangeSource>>, FileChangeWithDependencies> convertChange = (originalSource, inputChange, streamMappings, originalChangeMappings) =>
+        //            {
+        //                if (inputChange.FileChange is FileChangeWithDependencies)
+        //                {
+        //                    streamMappings[(FileChangeWithDependencies)inputChange.FileChange] = new KeyValuePair<GenericHolder<bool>, StreamContext>(new GenericHolder<bool>(false), inputChange.StreamContext);
+        //                    originalChangeMappings[(FileChangeWithDependencies)inputChange.FileChange] = new KeyValuePair<FileChange, FileChangeSource>(inputChange.FileChange, originalSource);
+        //                    return (FileChangeWithDependencies)inputChange.FileChange;
+        //                }
 
-                        FileChangeWithDependencies outputChange;
-                        CLError conversionError = FileChangeWithDependencies.CreateAndInitialize(
-                            inputChange.FileChange,
-                            /* initialDependencies */ null,
-                            out outputChange,
-                            fileDownloadMoveLocker: inputChange.FileChange.fileDownloadMoveLocker);
-                        if (conversionError != null)
-                        {
-                            throw new AggregateException(Resources.MonitorAgentErrorCreatingFileChangeToFileChangeWithDependencies, conversionError.Exceptions);
-                        }
-                        originalChangeMappings[outputChange] = new KeyValuePair<FileChange, FileChangeSource>(inputChange.FileChange, originalSource);
-                        streamMappings[outputChange] = new KeyValuePair<GenericHolder<bool>, StreamContext>(new GenericHolder<bool>(false), inputChange.StreamContext);
-                        return outputChange;
-                    };
-                Dictionary<FileChangeWithDependencies, KeyValuePair<GenericHolder<bool>, StreamContext>> originalFileStreams = new Dictionary<FileChangeWithDependencies, KeyValuePair<GenericHolder<bool>, StreamContext>>();
+        //                FileChangeWithDependencies outputChange;
+        //                CLError conversionError = FileChangeWithDependencies.CreateAndInitialize(
+        //                    inputChange.FileChange,
+        //                    /* initialDependencies */ null,
+        //                    out outputChange,
+        //                    fileDownloadMoveLocker: inputChange.FileChange.fileDownloadMoveLocker);
+        //                if (conversionError != null)
+        //                {
+        //                    throw new AggregateException(Resources.MonitorAgentErrorCreatingFileChangeToFileChangeWithDependencies, conversionError.Exceptions);
+        //                }
+        //                originalChangeMappings[outputChange] = new KeyValuePair<FileChange, FileChangeSource>(inputChange.FileChange, originalSource);
+        //                streamMappings[outputChange] = new KeyValuePair<GenericHolder<bool>, StreamContext>(new GenericHolder<bool>(false), inputChange.StreamContext);
+        //                return outputChange;
+        //            };
+        //        Dictionary<FileChangeWithDependencies, KeyValuePair<GenericHolder<bool>, StreamContext>> originalFileStreams = new Dictionary<FileChangeWithDependencies, KeyValuePair<GenericHolder<bool>, StreamContext>>();
 
-                Dictionary<FileChangeWithDependencies, KeyValuePair<FileChange, FileChangeSource>> OriginalFileChangeMappings = new Dictionary<FileChangeWithDependencies, KeyValuePair<FileChange, FileChangeSource>>();
+        //        Dictionary<FileChangeWithDependencies, KeyValuePair<FileChange, FileChangeSource>> OriginalFileChangeMappings = new Dictionary<FileChangeWithDependencies, KeyValuePair<FileChange, FileChangeSource>>();
 
-                KeyValuePair<FileChangeSource, FileChangeWithDependencies>[] assignmentsWithDependencies = toAssign
-                    .Select(currentToAssign => new KeyValuePair<FileChangeSource, FileChangeWithDependencies>(FileChangeSource.ProcessingChanges, convertChange(FileChangeSource.ProcessingChanges, currentToAssign, originalFileStreams, OriginalFileChangeMappings)))
-                    .Concat(currentFailures.Select(currentFailure => new KeyValuePair<FileChangeSource, FileChangeWithDependencies>(FileChangeSource.FailureQueue, convertChange(FileChangeSource.FailureQueue, new PossiblyStreamableFileChange(currentFailure, null), originalFileStreams, OriginalFileChangeMappings))))
-                    .Concat((failedOutChanges ?? Enumerable.Empty<FileChange>()).Select(currentFailedOut => new KeyValuePair<FileChangeSource, FileChangeWithDependencies>(FileChangeSource.FailedOutList, convertChange(FileChangeSource.FailedOutList, new PossiblyStreamableFileChange(currentFailedOut, null), originalFileStreams, OriginalFileChangeMappings))))
-                    .OrderBy(currentSourcedChange => currentSourcedChange.Value.EventId)
-                    .ToArray();
+        //        KeyValuePair<FileChangeSource, FileChangeWithDependencies>[] assignmentsWithDependencies = toAssign
+        //            .Select(currentToAssign => new KeyValuePair<FileChangeSource, FileChangeWithDependencies>(FileChangeSource.ProcessingChanges, convertChange(FileChangeSource.ProcessingChanges, currentToAssign, originalFileStreams, OriginalFileChangeMappings)))
+        //            .Concat(currentFailures.Select(currentFailure => new KeyValuePair<FileChangeSource, FileChangeWithDependencies>(FileChangeSource.FailureQueue, convertChange(FileChangeSource.FailureQueue, new PossiblyStreamableFileChange(currentFailure, null), originalFileStreams, OriginalFileChangeMappings))))
+        //            .Concat((failedOutChanges ?? Enumerable.Empty<FileChange>()).Select(currentFailedOut => new KeyValuePair<FileChangeSource, FileChangeWithDependencies>(FileChangeSource.FailedOutList, convertChange(FileChangeSource.FailedOutList, new PossiblyStreamableFileChange(currentFailedOut, null), originalFileStreams, OriginalFileChangeMappings))))
+        //            .OrderBy(currentSourcedChange => currentSourcedChange.Value.EventId)
+        //            .ToArray();
 
-                // advanced trace
-                if ((this._syncbox.CopiedSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
-                {
-                    //// no queued changes for post-communication dependency processing
-                    //List<FileChange> logQueued = null;
-                    List<FileChange> logFailure = null;
-                    List<FileChange> logProcessing = null;
-                    List<FileChange> logFailedOut = null;
+        //        // advanced trace
+        //        if ((this._syncbox.CopiedSettings.TraceType & TraceType.FileChangeFlow) == TraceType.FileChangeFlow)
+        //        {
+        //            //// no queued changes for post-communication dependency processing
+        //            //List<FileChange> logQueued = null;
+        //            List<FileChange> logFailure = null;
+        //            List<FileChange> logProcessing = null;
+        //            List<FileChange> logFailedOut = null;
 
-                    for (int logIndex = 0; logIndex < assignmentsWithDependencies.Length; logIndex++)
-                    {
-                        switch (assignmentsWithDependencies[logIndex].Key)
-                        {
-                            //// no queued changes for post-communication dependency processing
-                            //case FileChangeSource.QueuedChanges:
-                            //    if (logQueued == null)
-                            //    {
-                            //        logQueued = new List<FileChange>(Helpers.EnumerateSingleItem(assignmentsWithDependencies[logIndex].Value));
-                            //    }
-                            //    else
-                            //    {
-                            //        logQueued.Add(assignmentsWithDependencies[logIndex].Value);
-                            //    }
-                            //    break;
+        //            for (int logIndex = 0; logIndex < assignmentsWithDependencies.Length; logIndex++)
+        //            {
+        //                switch (assignmentsWithDependencies[logIndex].Key)
+        //                {
+        //                    //// no queued changes for post-communication dependency processing
+        //                    //case FileChangeSource.QueuedChanges:
+        //                    //    if (logQueued == null)
+        //                    //    {
+        //                    //        logQueued = new List<FileChange>(Helpers.EnumerateSingleItem(assignmentsWithDependencies[logIndex].Value));
+        //                    //    }
+        //                    //    else
+        //                    //    {
+        //                    //        logQueued.Add(assignmentsWithDependencies[logIndex].Value);
+        //                    //    }
+        //                    //    break;
 
-                            case FileChangeSource.FailureQueue:
-                                if (logFailure == null)
-                                {
-                                    logFailure = new List<FileChange>(Helpers.EnumerateSingleItem(assignmentsWithDependencies[logIndex].Value));
-                                }
-                                else
-                                {
-                                    logFailure.Add(assignmentsWithDependencies[logIndex].Value);
-                                }
-                                break;
+        //                    case FileChangeSource.FailureQueue:
+        //                        if (logFailure == null)
+        //                        {
+        //                            logFailure = new List<FileChange>(Helpers.EnumerateSingleItem(assignmentsWithDependencies[logIndex].Value));
+        //                        }
+        //                        else
+        //                        {
+        //                            logFailure.Add(assignmentsWithDependencies[logIndex].Value);
+        //                        }
+        //                        break;
 
-                            case FileChangeSource.ProcessingChanges:
-                                if (logProcessing == null)
-                                {
-                                    logProcessing = new List<FileChange>(Helpers.EnumerateSingleItem(assignmentsWithDependencies[logIndex].Value));
-                                }
-                                else
-                                {
-                                    logProcessing.Add(assignmentsWithDependencies[logIndex].Value);
-                                }
-                                break;
+        //                    case FileChangeSource.ProcessingChanges:
+        //                        if (logProcessing == null)
+        //                        {
+        //                            logProcessing = new List<FileChange>(Helpers.EnumerateSingleItem(assignmentsWithDependencies[logIndex].Value));
+        //                        }
+        //                        else
+        //                        {
+        //                            logProcessing.Add(assignmentsWithDependencies[logIndex].Value);
+        //                        }
+        //                        break;
 
-                            case FileChangeSource.FailedOutList:
-                                if (logFailedOut == null)
-                                {
-                                    logFailedOut = new List<FileChange>(Helpers.EnumerateSingleItem(assignmentsWithDependencies[logIndex].Value));
-                                }
-                                else
-                                {
-                                    logFailedOut.Add(assignmentsWithDependencies[logIndex].Value);
-                                }
-                                break;
-                        }
-                    }
+        //                    case FileChangeSource.FailedOutList:
+        //                        if (logFailedOut == null)
+        //                        {
+        //                            logFailedOut = new List<FileChange>(Helpers.EnumerateSingleItem(assignmentsWithDependencies[logIndex].Value));
+        //                        }
+        //                        else
+        //                        {
+        //                            logFailedOut.Add(assignmentsWithDependencies[logIndex].Value);
+        //                        }
+        //                        break;
+        //                }
+        //            }
 
-                    //// no queued changes for post-communication dependency processing
-                    //if (logQueued != null)
-                    //{
-                    //    ComTrace.LogFileChangeFlow(
-                    //        this._syncbox.CopiedSettings.TraceLocation,
-                    //        this._syncbox.CopiedSettings.DeviceId,
-                    //        this._syncbox.SyncboxId,
-                    //        FileChangeFlowEntryPositionInFlow.FileMonitorAssignDependenciesQueuedChanges,
-                    //        logQueued);
-                    //}
+        //            //// no queued changes for post-communication dependency processing
+        //            //if (logQueued != null)
+        //            //{
+        //            //    ComTrace.LogFileChangeFlow(
+        //            //        this._syncbox.CopiedSettings.TraceLocation,
+        //            //        this._syncbox.CopiedSettings.DeviceId,
+        //            //        this._syncbox.SyncboxId,
+        //            //        FileChangeFlowEntryPositionInFlow.FileMonitorAssignDependenciesQueuedChanges,
+        //            //        logQueued);
+        //            //}
 
-                    if (logFailure != null)
-                    {
-                        ComTrace.LogFileChangeFlow(
-                            this._syncbox.CopiedSettings.TraceLocation,
-                            this._syncbox.CopiedSettings.DeviceId,
-                            this._syncbox.SyncboxId,
-                            FileChangeFlowEntryPositionInFlow.FileMonitorAssignDependenciesFailureQueue,
-                            logFailure);
-                    }
+        //            if (logFailure != null)
+        //            {
+        //                ComTrace.LogFileChangeFlow(
+        //                    this._syncbox.CopiedSettings.TraceLocation,
+        //                    this._syncbox.CopiedSettings.DeviceId,
+        //                    this._syncbox.SyncboxId,
+        //                    FileChangeFlowEntryPositionInFlow.FileMonitorAssignDependenciesFailureQueue,
+        //                    logFailure);
+        //            }
 
-                    if (logProcessing != null)
-                    {
-                        ComTrace.LogFileChangeFlow(
-                            this._syncbox.CopiedSettings.TraceLocation,
-                            this._syncbox.CopiedSettings.DeviceId,
-                            this._syncbox.SyncboxId,
-                            FileChangeFlowEntryPositionInFlow.FileMonitorAssignDependenciesProcessingChanges,
-                            logProcessing);
-                    }
+        //            if (logProcessing != null)
+        //            {
+        //                ComTrace.LogFileChangeFlow(
+        //                    this._syncbox.CopiedSettings.TraceLocation,
+        //                    this._syncbox.CopiedSettings.DeviceId,
+        //                    this._syncbox.SyncboxId,
+        //                    FileChangeFlowEntryPositionInFlow.FileMonitorAssignDependenciesProcessingChanges,
+        //                    logProcessing);
+        //            }
 
-                    if (logFailedOut != null)
-                    {
-                        ComTrace.LogFileChangeFlow(
-                            this._syncbox.CopiedSettings.TraceLocation,
-                            this._syncbox.CopiedSettings.DeviceId,
-                            this._syncbox.SyncboxId,
-                            FileChangeFlowEntryPositionInFlow.FileMonitorAssignDependenciesFailedOutList,
-                            logFailedOut);
-                    }
-                }
+        //            if (logFailedOut != null)
+        //            {
+        //                ComTrace.LogFileChangeFlow(
+        //                    this._syncbox.CopiedSettings.TraceLocation,
+        //                    this._syncbox.CopiedSettings.DeviceId,
+        //                    this._syncbox.SyncboxId,
+        //                    FileChangeFlowEntryPositionInFlow.FileMonitorAssignDependenciesFailedOutList,
+        //                    logFailedOut);
+        //            }
+        //        }
 
-                toReturn = AssignDependencies(assignmentsWithDependencies,
-                    OriginalFileChangeMappings,
-                    out PulledChanges,
-                    originalQueuedChangesIndexesByInMemoryIds: null);
+        //        toReturn = AssignDependencies(assignmentsWithDependencies,
+        //            OriginalFileChangeMappings,
+        //            out PulledChanges,
+        //            originalQueuedChangesIndexesByInMemoryIds: null);
 
-                List<PossiblyStreamableFileChange> outputChangeList = new List<PossiblyStreamableFileChange>();
-                List<FileChange> outputFailureList = new List<FileChange>();
+        //        if (toReturn != null
+        //            && toReturn.PrimaryException is CLObjectDisposedException)
+        //        {
+        //            CLException toRethrow = toReturn.PrimaryException; // store exception since reference will be nulled
+        //            toReturn = null; // null reference so when disposal exception is added, it will be primary
+        //            throw toRethrow; // rethrow the disposed exception
+        //        }
 
-                foreach (KeyValuePair<FileChangeSource, FileChangeWithDependencies> currentAssignment in assignmentsWithDependencies)
-                {
-                    if (PulledChanges == null
-                        || !PulledChanges.Contains(currentAssignment.Value))
-                    {
-                        if (currentAssignment.Key == FileChangeSource.FailureQueue)
-                        {
-                            outputFailureList.Add(currentAssignment.Value);
-                        }
-                        else if (currentAssignment.Key == FileChangeSource.FailedOutList)
-                        {
-                            // no need for null-check failedOutChanges since there would be no FileChangeSource for FailedOutList if there was no FailedOut changes
-                            failedOutChanges.Add(currentAssignment.Value);
-                        }
-                        else
-                        {
-                            KeyValuePair<GenericHolder<bool>, StreamContext> originalStreamContext;
-                            if (originalFileStreams.TryGetValue(currentAssignment.Value, out originalStreamContext))
-                            {
-                                originalStreamContext.Key.Value = true;
-                                outputChangeList.Add(new PossiblyStreamableFileChange(currentAssignment.Value, originalStreamContext.Value));
-                            }
-                            else
-                            {
-                                outputChangeList.Add(new PossiblyStreamableFileChange(currentAssignment.Value, null));
-                            }
-                        }
-                    }
-                }
+        //        List<PossiblyStreamableFileChange> outputChangeList = new List<PossiblyStreamableFileChange>();
+        //        List<FileChange> outputFailureList = new List<FileChange>();
 
-                foreach (KeyValuePair<GenericHolder<bool>, StreamContext> streamValue in originalFileStreams.Values)
-                {
-                    if (streamValue.Key.Value == false
-                        && streamValue.Value != null)
-                    {
-                        try
-                        {
-                            streamValue.Value.Dispose();
-                        }
-                        catch (Exception ex)
-                        {
-                            toReturn += ex;
-                        }
-                    }
-                }
+        //        foreach (KeyValuePair<FileChangeSource, FileChangeWithDependencies> currentAssignment in assignmentsWithDependencies)
+        //        {
+        //            if (PulledChanges == null
+        //                || !PulledChanges.Contains(currentAssignment.Value))
+        //            {
+        //                if (currentAssignment.Key == FileChangeSource.FailureQueue)
+        //                {
+        //                    outputFailureList.Add(currentAssignment.Value);
+        //                }
+        //                else if (currentAssignment.Key == FileChangeSource.FailedOutList)
+        //                {
+        //                    // no need for null-check failedOutChanges since there would be no FileChangeSource for FailedOutList if there was no FailedOut changes
+        //                    failedOutChanges.Add(currentAssignment.Value);
+        //                }
+        //                else
+        //                {
+        //                    KeyValuePair<GenericHolder<bool>, StreamContext> originalStreamContext;
+        //                    if (originalFileStreams.TryGetValue(currentAssignment.Value, out originalStreamContext))
+        //                    {
+        //                        originalStreamContext.Key.Value = true;
+        //                        outputChangeList.Add(new PossiblyStreamableFileChange(currentAssignment.Value, originalStreamContext.Value));
+        //                    }
+        //                    else
+        //                    {
+        //                        outputChangeList.Add(new PossiblyStreamableFileChange(currentAssignment.Value, null));
+        //                    }
+        //                }
+        //            }
+        //        }
 
-                outputChanges = outputChangeList;
-                outputFailures = outputFailureList;
-            }
-            catch (Exception ex)
-            {
-                outputChanges = Helpers.DefaultForType<IEnumerable<PossiblyStreamableFileChange>>();
-                outputFailures = Helpers.DefaultForType<IEnumerable<FileChange>>();
-                toReturn += ex;
-            }
-            return toReturn;
-        }
+        //        foreach (KeyValuePair<GenericHolder<bool>, StreamContext> streamValue in originalFileStreams.Values)
+        //        {
+        //            if (streamValue.Key.Value == false
+        //                && streamValue.Value != null)
+        //            {
+        //                try
+        //                {
+        //                    streamValue.Value.Dispose();
+        //                }
+        //                catch (Exception ex)
+        //                {
+        //                    toReturn += ex;
+        //                }
+        //            }
+        //        }
+
+        //        outputChanges = outputChangeList;
+        //        outputFailures = outputFailureList;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        outputChanges = Helpers.DefaultForType<IEnumerable<PossiblyStreamableFileChange>>();
+        //        outputFailures = Helpers.DefaultForType<IEnumerable<FileChange>>();
+        //        toReturn += ex;
+        //    }
+        //    return toReturn;
+        //}
 
         /// <summary>
         /// Method to be called within the context of the main lock of the Sync service
@@ -3007,6 +3082,11 @@ namespace Cloud.FileMonitor
 
                         if (assignmentError != null)
                         {
+                            if (assignmentError.PrimaryException is CLObjectDisposedException)
+                            {
+                                throw assignmentError.PrimaryException;
+                            }
+
                             throw new AggregateException("Error on inner AssignDependencies", assignmentError.Exceptions);
                         }
 
@@ -3167,6 +3247,11 @@ namespace Cloud.FileMonitor
                                                                 CLError writeNewMetadataError = castState.MergeEventsIntoDatabase(Helpers.EnumerateSingleItem(new FileChangeMerge(innerDependencyFileChange)));
                                                                 if (writeNewMetadataError != null)
                                                                 {
+                                                                    if (writeNewMetadataError.PrimaryException is CLObjectDisposedException)
+                                                                    {
+                                                                        throw writeNewMetadataError.PrimaryException;
+                                                                    }
+
                                                                     throw new AggregateException(Resources.MonitorAgentWritingUpdatedFileUploadMetadataToSQL, writeNewMetadataError.Exceptions);
                                                                 }
                                                             }
@@ -3221,6 +3306,19 @@ namespace Cloud.FileMonitor
                         CLError queuedChangesSqlError = Indexer.MergeEventsIntoDatabase(queuedChangesNeedMergeToSql.Select(currentQueuedChangeToSql => currentQueuedChangeToSql.Key));
                         if (queuedChangesSqlError != null)
                         {
+                            if (queuedChangesSqlError.PrimaryException is CLObjectDisposedException)
+                            {
+                                toReturn = null; // clear out the error so when the object disposed exception is added, it will be the primary exception
+                                throw queuedChangesSqlError.PrimaryException;
+                            }
+
+                            MessageEvents.FireNewEventMessage(
+                                Resources.ExceptionMonitorAgentGrabPreprocessedChangesErrorOnMergeSql,
+                                EventMessageLevel.Important,
+                                new HaltAllOfCloudSDKErrorInfo(),
+                                _syncbox,
+                                _syncbox.CopiedSettings.DeviceId);
+
                             toReturn += new AggregateException(Resources.MonitorAgentErrorAddingQueuedChangesWithinProcessingFailedChangesDependencyTreeToSQL, queuedChangesSqlError.Exceptions);
                         }
                         foreach (KeyValuePair<FileChangeMerge, FileChange> mergedToSql in queuedChangesNeedMergeToSql)
@@ -3497,39 +3595,41 @@ namespace Cloud.FileMonitor
             return null;
         }
 
-        /// <summary>
-        /// Call this function when an interprocess receiver gets a call from a
-        /// CopyHookHandler COM object that the root folder has moved or been renamed;
-        /// no need to stop and start the file monitor
-        /// </summary>
-        /// <param name="newPath">new location of root folder</param>
-        public CLError NotifyRootRename(string newPath)
-        {
-            try
-            {
-                // lock on current object for changing RunningStatus so it cannot be stopped/started simultaneously
-                lock (this)
-                {
-                    // enter locker for CurrentFolderPath (rare event, should rarely lock)
-                    CurrentFolderPathLocker.EnterWriteLock();
-                    try
-                    {
-                        // alter path
-                        CurrentFolderPath = newPath;
-                    }
-                    finally
-                    {
-                        // exit locker for CurrentFolderPath
-                        CurrentFolderPathLocker.ExitWriteLock();
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                return ex;
-            }
-            return null;
-        }
+        //// &&&& todo: CopyHookHandler has not been implemented; for the interum, changes to the root folder are protected by a folder lock
+        //
+        ///// <summary>
+        ///// Call this function when an interprocess receiver gets a call from a
+        ///// CopyHookHandler COM object that the root folder has moved or been renamed;
+        ///// no need to stop and start the file monitor
+        ///// </summary>
+        ///// <param name="newPath">new location of root folder</param>
+        //public CLError NotifyRootRename(string newPath)
+        //{
+        //    try
+        //    {
+        //        // lock on current object for changing RunningStatus so it cannot be stopped/started simultaneously
+        //        lock (this)
+        //        {
+        //            // enter locker for CurrentFolderPath (rare event, should rarely lock)
+        //            CurrentFolderPathLocker.EnterWriteLock();
+        //            try
+        //            {
+        //                // alter path
+        //                CurrentFolderPath = newPath;
+        //            }
+        //            finally
+        //            {
+        //                // exit locker for CurrentFolderPath
+        //                CurrentFolderPathLocker.ExitWriteLock();
+        //            }
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return ex;
+        //    }
+        //    return null;
+        //}
 
         /// <summary>
         /// Call this to cleanup FileSystemWatchers such as on application shutdown,
@@ -3578,13 +3678,15 @@ namespace Cloud.FileMonitor
                     {
                     }
 
-                    try
-                    {
-                        CurrentFolderPathLocker.Dispose();
-                    }
-                    catch
-                    {
-                    }
+                    //// uncomment lock disposal once a CopyHookHandler is created and NotifyRootRename method is uncommented
+                    //
+                    //try
+                    //{
+                    //    CurrentFolderPathLocker.Dispose();
+                    //}
+                    //catch
+                    //{
+                    //}
                 }
 
                 lock (QueuesTimer.TimerRunningLocker)
@@ -3718,12 +3820,15 @@ namespace Cloud.FileMonitor
 
                 do
                 {
-                    // Enter read lock of CurrentFolderPath (doesn't lock other threads unless lock is entered for write on rare condition of path changing)
-                    currentAgent.CurrentFolderPathLocker.EnterReadLock();
+                    //// uncomment locking code and ensure ObjectDisposedException protection once a CopyHookHandler is created and NotifyRootRename method is uncommented
+                    //
+                    //// Enter read lock of CurrentFolderPath (doesn't lock other threads unless lock is entered for write on rare condition of path changing)
+                    //currentAgent.CurrentFolderPathLocker.EnterReadLock();
+                    string newPath = null;
                     try
                     {
                         // rebuild filePath from current root path and the relative path portion of the change event
-                        string newPath = currentAgent.CurrentFolderPath + currentToProcess.Key.FullPath.Substring(currentAgent.InitialFolderPath.Length);
+                        newPath = currentAgent.CurrentFolderPath + currentToProcess.Key.FullPath.Substring(currentAgent.InitialFolderPath.Length);
                         // previous path for renames only
                         string oldPath;
                         // set previous path only if change is a rename
@@ -3750,14 +3855,17 @@ namespace Cloud.FileMonitor
                         // Processes the file system event against the file data and current file index
                         currentAgent.CheckMetadataAgainstFile(newPath, oldPath, currentToProcess.Key.ChangeType, currentToProcess.Value);
                     }
-                    catch
+                    catch (Exception ex)
                     {
+                        currentAgent.HandleCheckMetadataDiskError(ex, newPath);
                     }
-                    finally
-                    {
-                        // Exit read lock of CurrentFolderPath
-                        currentAgent.CurrentFolderPathLocker.ExitReadLock();
-                    }
+                    //// uncomment locking code and ensure ObjectDisposedException protection once a CopyHookHandler is created and NotifyRootRename method is uncommented
+                    //
+                    //finally
+                    //{
+                    //    // Exit read lock of CurrentFolderPath
+                    //    currentAgent.CurrentFolderPathLocker.ExitReadLock();
+                    //}
                 } while (continueProcessing());
             }
         }
@@ -4769,12 +4877,19 @@ namespace Cloud.FileMonitor
                             {
                                 foreach (DirectoryInfo subDirectory in folder.EnumerateDirectories())
                                 {
-                                    CheckMetadataAgainstFile(subDirectory.FullName,
-                                        /* oldPath: */ null,
-                                        WatcherChangeTypes.Created,
-                                        folderOnly: true,
-                                        alreadyHoldingIndexLock: true,
-                                        queueToStartProcessing: queueToStartProcessing);
+                                    try
+                                    {
+                                        CheckMetadataAgainstFile(subDirectory.FullName,
+                                            /* oldPath: */ null,
+                                            WatcherChangeTypes.Created,
+                                            folderOnly: true,
+                                            alreadyHoldingIndexLock: true,
+                                            queueToStartProcessing: queueToStartProcessing);
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        HandleCheckMetadataDiskError(ex, subDirectory.FullName);
+                                    }
                                 }
                             }
                             catch
@@ -4786,12 +4901,19 @@ namespace Cloud.FileMonitor
                             {
                                 foreach (FileInfo innerFile in folder.EnumerateFiles())
                                 {
-                                    CheckMetadataAgainstFile(innerFile.FullName,
-                                        /* oldPath: */ null,
-                                        WatcherChangeTypes.Created,
-                                        folderOnly: false,
-                                        alreadyHoldingIndexLock: true,
-                                        queueToStartProcessing: queueToStartProcessing);
+                                    try
+                                    {
+                                        CheckMetadataAgainstFile(innerFile.FullName,
+                                            /* oldPath: */ null,
+                                            WatcherChangeTypes.Created,
+                                            folderOnly: false,
+                                            alreadyHoldingIndexLock: true,
+                                            queueToStartProcessing: queueToStartProcessing);
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        HandleCheckMetadataDiskError(ex, innerFile.FullName);
+                                    }
                                 }
                             }
                             catch
@@ -4808,6 +4930,22 @@ namespace Cloud.FileMonitor
                     InitialIndexLocker.ExitReadLock();
                 }
             }
+        }
+
+        private void HandleCheckMetadataDiskError(Exception ex, string path)
+        {
+            MessageEvents.FireNewEventMessage(
+                string.Format(
+                    Resources.ExceptionMonitorAgentCheckDiskPath0Message1,
+                    path ?? "{null}",
+                    ex.Message ?? "{null}"),
+                EventMessageLevel.Minor,
+                new GeneralErrorInfo(),
+                _syncbox,
+                _syncbox.CopiedSettings.DeviceId);
+
+            CLError error = ex;
+            error.Log(_syncbox.CopiedSettings.TraceLocation, _syncbox.CopiedSettings.LogErrors);
         }
 
         private void MoveOldPathsToNewPaths(FilePathHierarchicalNode<FileMetadata> oldPathHierarchy, FilePath oldPath, FilePath newPath)
@@ -5791,7 +5929,7 @@ namespace Cloud.FileMonitor
 
                                 // errors may be more common now that our database is hierarchichal and simple event ordering problems could throw an error adding to database (file before parent folder),
                                 // TODO: better error recovery instead of halting whole SDK
-                                if (!this._isStopping)
+                                if (!(mergeError.PrimaryException is CLObjectDisposedException))
                                 {
                                     MessageEvents.FireNewEventMessage(
                                         Resources.MonitorAgentAnErrorOccurredAddingAFileSystemEventToTheDatabase + Environment.NewLine +
