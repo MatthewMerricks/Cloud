@@ -4992,7 +4992,7 @@ namespace Cloud
         {
             CLHttpRest httpRestClient;
             CLError getInstanceError = GetInstanceRestClientAndCheckDisposed(out httpRestClient);
-            if (getInstanceError != null
+            if (getInstanceError == null
                 && !httpRestClient.IsModifyingSyncboxViaPublicAPICalls)
             {
                 lock (_reservedForActiveSync)

@@ -1411,7 +1411,10 @@ namespace Cloud.REST
             }
             finally
             {
-                DecrementModifyingSyncboxViaPublicAPICalls();
+                if (!reservedForActiveSync)
+                {
+                    DecrementModifyingSyncboxViaPublicAPICalls();
+                }
             }
 
             return null;
@@ -1710,7 +1713,10 @@ namespace Cloud.REST
             }
             finally
             {
-                DecrementModifyingSyncboxViaPublicAPICalls();
+                if (!reservedForActiveSync)
+                {
+                    DecrementModifyingSyncboxViaPublicAPICalls();
+                }
             }
 
             return null;
@@ -2006,7 +2012,10 @@ namespace Cloud.REST
             }
             finally
             {
-                DecrementModifyingSyncboxViaPublicAPICalls();
+                if (!reservedForActiveSync)
+                {
+                    DecrementModifyingSyncboxViaPublicAPICalls();
+                }
             }
 
             return null;
@@ -2303,7 +2312,10 @@ namespace Cloud.REST
             }
             finally
             {
-                DecrementModifyingSyncboxViaPublicAPICalls();
+                if (!reservedForActiveSync)
+                {
+                    DecrementModifyingSyncboxViaPublicAPICalls();
+                }
             }
 
             return null;
@@ -2581,7 +2593,10 @@ namespace Cloud.REST
             }
             finally
             {
-                DecrementModifyingSyncboxViaPublicAPICalls();
+                if (!reservedForActiveSync)
+                {
+                    DecrementModifyingSyncboxViaPublicAPICalls();
+                }
             }
 
             return null;
@@ -2864,7 +2879,10 @@ namespace Cloud.REST
             }
             finally
             {
-                DecrementModifyingSyncboxViaPublicAPICalls();
+                if (!reservedForActiveSync)
+                {
+                    DecrementModifyingSyncboxViaPublicAPICalls();
+                }
             }
 
             return null;
@@ -3142,7 +3160,10 @@ namespace Cloud.REST
             }
             finally
             {
-                DecrementModifyingSyncboxViaPublicAPICalls();
+                if (!reservedForActiveSync)
+                {
+                    DecrementModifyingSyncboxViaPublicAPICalls();
+                }
             }
 
             return null;
@@ -3436,7 +3457,10 @@ namespace Cloud.REST
             }
             finally
             {
-                DecrementModifyingSyncboxViaPublicAPICalls();
+                if (!reservedForActiveSync)
+                {
+                    DecrementModifyingSyncboxViaPublicAPICalls();
+                }
             }
 
             return null;
@@ -4095,7 +4119,10 @@ namespace Cloud.REST
             }
             finally
             {
-                DecrementModifyingSyncboxViaPublicAPICalls();
+                if (!reservedForActiveSync)
+                {
+                    DecrementModifyingSyncboxViaPublicAPICalls();
+                }
             }
 
             return null;
@@ -4677,7 +4704,10 @@ namespace Cloud.REST
             }
             finally
             {
-                DecrementModifyingSyncboxViaPublicAPICalls();
+                if (!reservedForActiveSync)
+                {
+                    DecrementModifyingSyncboxViaPublicAPICalls();
+                }
             }
 
             return null;
@@ -8293,7 +8323,10 @@ namespace Cloud.REST
             }
             finally
             {
-                DecrementModifyingSyncboxViaPublicAPICalls();
+                if (!reservedForActiveSync)
+                {
+                    DecrementModifyingSyncboxViaPublicAPICalls();
+                }
             }
 
             return null;
@@ -8479,7 +8512,10 @@ namespace Cloud.REST
             }
             finally
             {
-                DecrementModifyingSyncboxViaPublicAPICalls();
+                if (!reservedForActiveSync)
+                {
+                    DecrementModifyingSyncboxViaPublicAPICalls();
+                }
             }
 
             return null;
@@ -8653,10 +8689,6 @@ namespace Cloud.REST
             catch (Exception ex)
             {
                 return ex;
-            }
-            finally
-            {
-                DecrementModifyingSyncboxViaPublicAPICalls();
             }
 
             return null;
