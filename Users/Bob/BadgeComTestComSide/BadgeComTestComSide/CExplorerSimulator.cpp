@@ -25,10 +25,21 @@ CExplorerSimulator::CExplorerSimulator(void)
 		_fRequestExit = false;
 		_fInitialized;
 		_hr = NULL;
-		_pathIconFileFailed[0] = NULL;
-		_pathIconFileSynced[0] = NULL;
-		_pathIconFileSyncing[0] = NULL;
-		_pathIconFileSelective[0] = NULL;
+
+		_pathIconFileFailed[0] = L'\0';
+		_pathIconFileSynced[0] = L'\0';
+		_pathIconFileSyncing[0] = L'\0';
+		_pathIconFileSelective[0] = L'\0';
+
+		_indexIconFailed = -1;
+		_indexIconSynced = -1;
+		_indexIconSyncing = -1;
+		_indexIconSelective = -1;
+
+		_flagsIconFailed = 0;
+		_flagsIconSynced = 0;
+		_flagsIconSyncing = 0;
+		_flagsIconSelective = 0;
 
 		_pSynced = NULL;
 		_pSyncing = NULL;
@@ -81,7 +92,7 @@ void CExplorerSimulator::Initialize(int nSimulatedExplorerIndex, int nBadgeType)
 		{
 			throw new std::exception("Invalid explorer index");
 		}
-		if (nBadgeType < cloudAppBadgeSynced || nBadgeType > cloudAppBadgeSyncSelective)
+		if (nBadgeType < cloudAppBadgeSynced || nBadgeType > cloudAppBadgeSelective)
 		{
 			throw new std::exception("Invalid badge type");
 		}
@@ -97,11 +108,18 @@ void CExplorerSimulator::Initialize(int nSimulatedExplorerIndex, int nBadgeType)
 			return;
 		}
 
-		// Get a smart pointer to the interface
+		// Initialize to the interface
 		switch (nBadgeType)
 		{
 			case cloudAppBadgeSynced:
 				_pSynced = new BadgeCOMLib::IBadgeIconSyncedPtr(__uuidof(BadgeCOMLib::BadgeIconSynced));
+				_hr = _pSynced->GetOverlayInfo(_pathIconFileSynced, 0, &_indexIconSynced, &_flagsIconSynced);
+				if (_hr != S_OK)
+				{
+					CLTRACE(9, "CExplorerSimulator: CExplorerSimulator: ERROR: Synced GetOverlayInfo returned %d.", _hr);
+					throw new std::exception("Error from synced GetOverlayInfo");
+				}
+				if (_indexIconSynced != 
 				break;
 			case cloudAppBadgeSyncing:
 				_pSyncing = new BadgeCOMLib::IBadgeIconSyncingPtr(__uuidof(BadgeCOMLib::BadgeIconSyncing));

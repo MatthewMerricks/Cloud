@@ -21,10 +21,21 @@ private:
     BOOL _fRequestExit;
 	BOOL _fInitialized;
 	HRESULT _hr;
+
 	WCHAR _pathIconFileFailed[255];
 	WCHAR _pathIconFileSynced[255];
 	WCHAR _pathIconFileSyncing[255];
 	WCHAR _pathIconFileSelective[255];
+
+	int _indexIconFailed;
+	int _indexIconSynced;
+	int _indexIconSyncing;
+	int _indexIconSelective;
+
+	DWORD _flagsIconFailed;
+	DWORD _flagsIconSynced;
+	DWORD _flagsIconSyncing;
+	DWORD _flagsIconSelective;
 
 	BadgeCOMLib::IBadgeIconSyncedPtr _pSynced;
 	BadgeCOMLib::IBadgeIconSyncingPtr _pSyncing;
