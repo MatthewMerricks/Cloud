@@ -2223,6 +2223,15 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to A sync engine was not found involved in active syncing.
+        /// </summary>
+        internal static string ExceptionCLSyncboxQueryFileChangeByEventIdNullEngine {
+            get {
+                return ResourceManager.GetString("ExceptionCLSyncboxQueryFileChangeByEventIdNullEngine", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Stop the syncbox before resetting local cache.
         /// </summary>
         internal static string ExceptionCLSyncboxResetLocalCacheAlreadyStarted {
@@ -2444,6 +2453,15 @@ namespace Cloud.Static {
         internal static string ExceptionFileItemUnknownAction {
             get {
                 return ResourceManager.GetString("ExceptionFileItemUnknownAction", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Indexer GetNewTransaction returned without an error but also without a transaction.
+        /// </summary>
+        internal static string ExceptionFileMonitorAssignDependenciesNullTransaction {
+            get {
+                return ResourceManager.GetString("ExceptionFileMonitorAssignDependenciesNullTransaction", resourceCulture);
             }
         }
         
@@ -2880,6 +2898,42 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Attempting to open a database connection returned no connection.
+        /// </summary>
+        internal static string ExceptionIndexingAgentCreateAndOpenCipherConnectionNullConnection {
+            get {
+                return ResourceManager.GetString("ExceptionIndexingAgentCreateAndOpenCipherConnectionNullConnection", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to An error occurred opening a database connection.
+        /// </summary>
+        internal static string ExceptionIndexingAgentErrorOnCreateAndOpenCipherConnection {
+            get {
+                return ResourceManager.GetString("ExceptionIndexingAgentErrorOnCreateAndOpenCipherConnection", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Indexer GetNewTransactionPrivate returned without an error but also without a transaction.
+        /// </summary>
+        internal static string ExceptionIndexingAgentRecordCompletedSyncNullTransaction {
+            get {
+                return ResourceManager.GetString("ExceptionIndexingAgentRecordCompletedSyncNullTransaction", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to An error occurred removing an event by its id.
+        /// </summary>
+        internal static string ExceptionIndexingAgentRecurseIndexDirectoryRemoveEvent {
+            get {
+                return ResourceManager.GetString("ExceptionIndexingAgentRecurseIndexDirectoryRemoveEvent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to This ListRemoveAllEnumerator has already been disposed.
         /// </summary>
         internal static string ExceptionListRemoveAllEnumeratorDisposed {
@@ -2894,6 +2948,15 @@ namespace Cloud.Static {
         internal static string ExceptionListRemoveAllEnumeratorReset {
             get {
                 return ResourceManager.GetString("ExceptionListRemoveAllEnumeratorReset", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to enter or exit disposed lock.
+        /// </summary>
+        internal static string ExceptionLockDisposed {
+            get {
+                return ResourceManager.GetString("ExceptionLockDisposed", resourceCulture);
             }
         }
         
@@ -2925,11 +2988,29 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to An error occurred checking the disk in response to a change; path: {0}, message: {1}.
+        /// </summary>
+        internal static string ExceptionMonitorAgentCheckDiskPath0Message1 {
+            get {
+                return ResourceManager.GetString("ExceptionMonitorAgentCheckDiskPath0Message1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Unable to cast innerState as IndexingAgent.
         /// </summary>
         internal static string ExceptionMonitorAgentGrabPreprocessedChangesCastInnerState {
             get {
                 return ResourceManager.GetString("ExceptionMonitorAgentGrabPreprocessedChangesCastInnerState", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to An error occurred merging events into the database when grabbing preprocessed changes.
+        /// </summary>
+        internal static string ExceptionMonitorAgentGrabPreprocessedChangesErrorOnMergeSql {
+            get {
+                return ResourceManager.GetString("ExceptionMonitorAgentGrabPreprocessedChangesErrorOnMergeSql", resourceCulture);
             }
         }
         
@@ -3975,6 +4056,15 @@ namespace Cloud.Static {
         internal static string ExceptionSyncboxSyncboxIdMustBeSpecified {
             get {
                 return ResourceManager.GetString("ExceptionSyncboxSyncboxIdMustBeSpecified", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to An error occurred cancelling out an event in the database.
+        /// </summary>
+        internal static string ExceptionSyncEngineContinueToRetryErrorCancellingEvent {
+            get {
+                return ResourceManager.GetString("ExceptionSyncEngineContinueToRetryErrorCancellingEvent", resourceCulture);
             }
         }
         
