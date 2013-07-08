@@ -1089,10 +1089,6 @@
     <value>Already initialized</value>
     <comment>Translate</comment>
   </data>
-  <data name="CLNotificationManualPollingEngineDefaultConstructorNotSupported" xml:space="preserve">
-    <value>Default constructor not supported</value>
-    <comment>Translate</comment>
-  </data>
   <data name="CLNotificationManualPollingEngineDelegateSendManualPollMustNotBeNull" xml:space="preserve">
     <value>delegateSendManualPoll must not be null</value>
     <comment>"delegateSendManual" should not be translated</comment>
@@ -1720,10 +1716,6 @@
   <data name="CLNotificationSseEngineWebExceptionThrownWithoutAResponse" xml:space="preserve">
     <value>WebException thrown without a Response</value>
     <comment>"WebException" should not be translated.</comment>
-  </data>
-  <data name="CLNotificationsSseEngineDefaultConstructorNotSupported" xml:space="preserve">
-    <value>Default constructor not supported</value>
-    <comment>Translate</comment>
   </data>
   <data name="CLNotificationSseEngineDelegateSendNotificationsDelegateSendManualPollMustNotBeNull" xml:space="preserve">
     <value>delegateSendManualPoll must not be null</value>
@@ -3474,5 +3466,25 @@
   <data name="ExceptionOnDemandGetCurrentStatusServerResponseNullSyncboxQuotaUsage" xml:space="preserve">
     <value>server returned null response Syncbox Quota_Usage</value>
     <comment>"Syncbox" and "Quota_Usage" should not be translated</comment>
+  </data>
+  <data name="ExceptionCLHttpRestDownloadFileBeginNoResult" xml:space="preserve">
+    <value>EndDownloadFile returned no error but output no result</value>
+    <comment>EndDownloadFile should not be translated</comment>
+  </data>
+  <data name="ExceptionCLHttpRestDownloadFileNullBeginResponse" xml:space="preserve">
+    <value>BeginDownloadFile returned a null IAsyncResult</value>
+    <comment>BeginDownloadFile and IAsyncResult should not be translated</comment>
+  </data>
+  <data name="ExceptionCLSyncEngineUpdatePath" xml:space="preserve">
+    <value>An error occurred updating the syncbox path in the database index</value>
+    <comment>syncbox should not be translated</comment>
+  </data>
+  <data name="ExceptionHelpersErrorOnBeginAsyncNoConstructor" xml:space="preserve">
+    <value>Unable to create asynchronous result from error since no appropriate constructors were found</value>
+    <comment>error should not be translated</comment>
+  </data>
+  <data name="ExceptionHelpersErrorOnBeginAsyncNullError" xml:space="preserve">
+    <value>error must not be null</value>
+    <comment>error should not be translated</comment>
   </data>
 </root>

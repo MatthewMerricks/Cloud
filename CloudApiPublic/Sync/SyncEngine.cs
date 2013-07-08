@@ -421,7 +421,7 @@ namespace Cloud.Sync
                             // if there are any adds in error requeue them to the failure queue;
                             // Log any errors
                             GenericHolder<List<FileChange>> errList = new GenericHolder<List<FileChange>>();
-                            CLError err = thisEngine.syncData.addChangesToProcessingQueue(failedChanges, true, errList);
+                            CLError err = thisEngine.syncData.addChangesToProcessingQueue(failedChanges, insertAtTop: true, errorHolder: errList);
                             if (errList.Value != null)
                             {
                                 bool atLeastOneFailureAdded = false;
@@ -936,6 +936,10 @@ namespace Cloud.Sync
             {
                 // do not fire halt message since disposal is normal
             }
+            catch (CLObjectDisposedException)
+            {
+                // do not fire halt message since disposal is normal
+            }
             catch (Exception ex)
             {
                 MessageEvents.FireNewEventMessage(
@@ -991,6 +995,10 @@ namespace Cloud.Sync
                 }
             }
             catch (ObjectDisposedException)
+            {
+                // do not fire halt message since disposal is normal
+            }
+            catch (CLObjectDisposedException)
             {
                 // do not fire halt message since disposal is normal
             }
@@ -1490,7 +1498,7 @@ namespace Cloud.Sync
                     // check for halted engine to return error
                     if (Data.commonThisEngine.CheckForMaxCommunicationFailuresHalt())
                     {
-                        return new ObjectDisposedException("SyncEngine already halted from server connection failure");
+                        return new CLInvalidOperationException(CLExceptionCode.Syncing_LiveSyncEngine, "SyncEngine already halted from server connection failure");
                     }
 
                     lock (Data.commonThisEngine.CredentialsErrorDetected)
@@ -1498,16 +1506,16 @@ namespace Cloud.Sync
                         switch (Data.commonThisEngine.CredentialsErrorDetected.Value)
                         {
                             case CredentialsErrorType.ExpiredCredentials:
-                                return new ObjectDisposedException("SyncEngine already halted from an expired token");
+                                return new CLInvalidOperationException(CLExceptionCode.Syncing_LiveSyncEngine, "SyncEngine already halted from an expired token");
 
                             case CredentialsErrorType.OtherError:
-                                return new ObjectDisposedException("SyncEngine already halted from authorization credentials error");
+                                return new CLInvalidOperationException(CLExceptionCode.Syncing_LiveSyncEngine, "SyncEngine already halted from authorization credentials error");
 
                             case CredentialsErrorType.NoError:
                                 return null;
 
                             default:
-                                return new InvalidOperationException("SyncEngine credentials error value is of unknown type: " + Data.commonThisEngine.CredentialsErrorDetected.Value.ToString());
+                                return new CLInvalidOperationException(CLExceptionCode.Syncing_LiveSyncEngine, "SyncEngine credentials error value is of unknown type: " + Data.commonThisEngine.CredentialsErrorDetected.Value.ToString());
                         }
                     }
                 },
@@ -1556,7 +1564,7 @@ namespace Cloud.Sync
                         {
                             if (Data.getIsShutdown.TypedProcess())
                             {
-                                throw new ObjectDisposedException("Unable to start new Sync Run, SyncEngine has been shut down");
+                                throw new CLObjectDisposedException(CLExceptionCode.General_Invalid, "Unable to start new Sync Run, SyncEngine has been shut down");
                             }
 
                             // lock on timer for access to failure queue
@@ -4161,7 +4169,7 @@ namespace Cloud.Sync
                         {
                             try
                             {
-                                throw new ObjectDisposedException("Unable to start new Sync Run, SyncEngine has been shut down");
+                                throw new CLObjectDisposedException(CLExceptionCode.General_Invalid, "Unable to start new Sync Run, SyncEngine has been shut down");
                             }
                             catch (Exception ex)
                             {
@@ -4706,7 +4714,7 @@ namespace Cloud.Sync
 
                 if (isShutdown)
                 {
-                    throw new ObjectDisposedException("this", "Sync already shutdown");
+                    throw new CLObjectDisposedException(CLExceptionCode.General_Invalid, "Sync already shutdown");
                 }
 
                 bool halted;
@@ -5570,6 +5578,11 @@ namespace Cloud.Sync
                 // Don't bubble these exceptions because they are normal during shutdown.
                 return new EventIdAndCompletionProcessor(0, null, null, 0);
             }
+            catch (CLObjectDisposedException)
+            {
+                // Don't bubble these exceptions because they are normal during shutdown.
+                return new EventIdAndCompletionProcessor(0, null, null, 0);
+            }
             catch (Exception ex)
             {
                 // Call the StatusUpdate callback to update the summary information for this upload ("center section" of the status window), unless the status messages were already sent by CLHttpRest.UploadFile.
@@ -6284,6 +6297,11 @@ namespace Cloud.Sync
                 return toReturn2;
             }
             catch (ObjectDisposedException)
+            {
+                // Don't bubble these exceptions because they are normal during shutdown.
+                return new EventIdAndCompletionProcessor(0, null, null, 0);
+            }
+            catch (CLObjectDisposedException)
             {
                 // Don't bubble these exceptions because they are normal during shutdown.
                 return new EventIdAndCompletionProcessor(0, null, null, 0);
@@ -7278,6 +7296,11 @@ namespace Cloud.Sync
 
                 if (getUidError != null)
                 {
+                    if (getUidError.PrimaryException is CLObjectDisposedException)
+                    {
+                        throw getUidError.PrimaryException;
+                    }
+
                     throw new AggregateException("Unable to retrieve ServerUid from database", getUidError.Exceptions);
                 }
 
@@ -7613,6 +7636,11 @@ namespace Cloud.Sync
 
                                 if (updateServerUidError != null)
                                 {
+                                    if (updateServerUidError.PrimaryException is CLObjectDisposedException)
+                                    {
+                                        throw updateServerUidError.PrimaryException;
+                                    }
+
                                     throw new AggregateException(string.Format("Error updating ServerUid for ServerUidId {0}", serverUidId), updateServerUidError.Exceptions);
                                 }
                             }
@@ -7634,6 +7662,11 @@ namespace Cloud.Sync
 
                             if (updateServerUidError != null)
                             {
+                                if (updateServerUidError.PrimaryException is CLObjectDisposedException)
+                                {
+                                    throw updateServerUidError.PrimaryException;
+                                }
+
                                 throw new AggregateException("Error updating ServerUid", updateServerUidError.Exceptions);
                             }
                         }
@@ -7812,6 +7845,11 @@ namespace Cloud.Sync
                                 (currentEventIsRename ? Data.currentEvent.Value.Header.EventId : null));
                             if (queryDatabaseForPath != null)
                             {
+                                if (queryDatabaseForPath.PrimaryException is CLObjectDisposedException)
+                                {
+                                    throw queryDatabaseForPath.PrimaryException;
+                                }
+
                                 throw new AggregateException("Error grabbing path by server uid", queryDatabaseForPath.Exceptions);
                             }
 
@@ -7848,6 +7886,11 @@ namespace Cloud.Sync
                                     (currentEventIsRename ? Data.currentEvent.Value.Header.EventId : null));
                                 if (queryDatabaseForParentPath != null)
                                 {
+                                    if (queryDatabaseForParentPath.PrimaryException is CLObjectDisposedException)
+                                    {
+                                        throw queryDatabaseForParentPath.PrimaryException;
+                                    }
+
                                     throw new AggregateException("Error grabbing parent path for parent folder server uid", queryDatabaseForParentPath.Exceptions);
                                 }
 
@@ -8919,6 +8962,11 @@ namespace Cloud.Sync
                                                                     out removedServerUidIdToInvalidate);
                                                                 if (updateRevisionError != null)
                                                                 {
+                                                                    if (updateRevisionError.PrimaryException is CLObjectDisposedException)
+                                                                    {
+                                                                        throw updateRevisionError.PrimaryException;
+                                                                    }
+
                                                                     throw new AggregateException("Error updating revision only", updateRevisionError.Exceptions);
                                                                 }
 
@@ -9058,6 +9106,11 @@ namespace Cloud.Sync
 
                                                                             if (innerCreateServerUidError != null)
                                                                             {
+                                                                                if (innerCreateServerUidError.PrimaryException is CLObjectDisposedException)
+                                                                                {
+                                                                                    throw innerCreateServerUidError.PrimaryException;
+                                                                                }
+
                                                                                 throw new AggregateException("Error creating ServerUid", innerCreateServerUidError.Exceptions);
                                                                             }
 
@@ -9121,6 +9174,11 @@ namespace Cloud.Sync
 
                                                                             if (errorFromUpdateServerUid != null)
                                                                             {
+                                                                                if (errorFromUpdateServerUid.PrimaryException is CLObjectDisposedException)
+                                                                                {
+                                                                                    throw errorFromUpdateServerUid.PrimaryException;
+                                                                                }
+		
                                                                                 throw new AggregateException("Error updating ServerUid", errorFromUpdateServerUid.Exceptions);
                                                                             }
 
@@ -9477,6 +9535,11 @@ namespace Cloud.Sync
 
                                                             if (createServerUidError != null)
                                                             {
+                                                                if (createServerUidError.PrimaryException is CLObjectDisposedException)
+                                                                {
+                                                                    throw createServerUidError.PrimaryException;
+                                                                }
+
                                                                 throw new AggregateException("Error creating ServerUid", createServerUidError.Exceptions);
                                                             }
 
@@ -9942,12 +10005,16 @@ namespace Cloud.Sync
                                                                     // <David fix for a file creation with an old path> file creations should not have an old path (only for renames)
                                                                     currentChange.OldPath = null;
 
-
                                                                     long serverUidId;
                                                                     CLError createServerUidError = syncData.CreateNewServerUid(serverUid: null, revision: null, serverUidId: out serverUidId);  // no transaction
 
                                                                     if (createServerUidError != null)
                                                                     {
+                                                                        if (createServerUidError.PrimaryException is CLObjectDisposedException)
+                                                                        {
+                                                                            throw createServerUidError.PrimaryException;
+                                                                        }
+
                                                                         throw new AggregateException("Error creating ServerUid", createServerUidError.Exceptions);
                                                                     }
 
@@ -10144,6 +10211,11 @@ namespace Cloud.Sync
 
                                                                     if (revertToNewUidError != null)
                                                                     {
+                                                                        if (revertToNewUidError.PrimaryException is CLObjectDisposedException)
+                                                                        {
+                                                                            throw revertToNewUidError.PrimaryException;
+                                                                        }
+
                                                                         throw new AggregateException("Cannot create new ServerUid", revertToNewUidError.Exceptions);
                                                                     }
 
@@ -11038,6 +11110,11 @@ namespace Cloud.Sync
 
                                                             if (innerCreateServerUidError != null)
                                                             {
+                                                                if (innerCreateServerUidError.PrimaryException is CLObjectDisposedException)
+                                                                {
+                                                                    throw innerCreateServerUidError.PrimaryException;
+                                                                }
+
                                                                 throw new AggregateException("Error creating ServerUid", innerCreateServerUidError.Exceptions);
                                                             }
 
@@ -11103,6 +11180,11 @@ namespace Cloud.Sync
 
                                                             if (updateServerUidError != null)
                                                             {
+                                                                if (updateServerUidError.PrimaryException is CLObjectDisposedException)
+                                                                {
+                                                                    throw updateServerUidError.PrimaryException;
+                                                                }
+
                                                                 throw new AggregateException("Error updating ServerUid", updateServerUidError.Exceptions);
                                                             }
 

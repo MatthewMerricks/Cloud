@@ -12,7 +12,7 @@ namespace Cloud.Model
     /// <summary>
     /// An object of this class represents a Cloud account.
     /// </summary>
-    public class CLAccount
+    public sealed class CLAccount
     {
         #region "Properties"
 
@@ -25,11 +25,6 @@ namespace Cloud.Model
         #endregion
 
         #region "Life Cycle"
-
-        public CLAccount()
-        {
-            throw new NotSupportedException("Default constructor not supported.");
-        }
 
         public CLAccount(string username, string first, string last, string password)
         {

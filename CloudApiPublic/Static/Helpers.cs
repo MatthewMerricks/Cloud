@@ -5636,6 +5636,97 @@ namespace Cloud.Static
         }
         #endregion
 
+        #region ErrorOnBeginAsync
+        /// <summary>
+        /// Constructs a typed async result synchronously for an initial error condition
+        /// </summary>
+        internal static IAsyncResult ErrorOnBeginAsync<TResult>(AsyncCallback asyncCallback, object asyncCallbackUserState, CLError error, string logLocation, bool loggingEnabled) where TResult : class
+        {
+            GenericAsyncResult<TResult> errorResult = null;
+
+            try
+            {
+                if (error == null)
+                {
+                    throw new CLArgumentNullException(CLExceptionCode.General_Arguments, Resources.ExceptionHelpersErrorOnBeginAsyncNullError);
+                }
+
+                errorResult = new GenericAsyncResult<TResult>(asyncCallback, asyncCallbackUserState);
+
+                ConstructorInfo[] tResultConstructors = typeof(TResult).GetConstructors(BindingFlags.NonPublic | BindingFlags.Instance);
+
+                for (int constructorIndex = 0; constructorIndex < tResultConstructors.Length; constructorIndex++)
+                {
+                    ConstructorInfo currentTResultConstructor = tResultConstructors[constructorIndex];
+                    if (currentTResultConstructor != null)
+                    {
+                        ParameterInfo[] tResultConstructorParameters = currentTResultConstructor.GetParameters();
+
+                        bool errorTypeFound = false;
+                        List<object> parameterDefaultsOrError = null;
+
+                        for (int parameterIndex = 0; parameterIndex < tResultConstructorParameters.Length; parameterIndex++)
+                        {
+                            ParameterInfo currentTResultConstructorParameter = tResultConstructorParameters[parameterIndex];
+
+                            object defaultValueOrError;
+
+                            if (currentTResultConstructorParameter.ParameterType == typeof(CLError))
+                            {
+                                defaultValueOrError = error;
+
+                                errorTypeFound = true;
+                            }
+                            else
+                            {
+                                defaultValueOrError = Helpers.DefaultForType(currentTResultConstructorParameter.ParameterType);
+                            }
+
+                            if (parameterDefaultsOrError == null)
+                            {
+                                parameterDefaultsOrError = new List<object>(Helpers.EnumerateSingleItem(defaultValueOrError));
+                            }
+                            else
+                            {
+                                parameterDefaultsOrError.Add(defaultValueOrError);
+                            }
+                        }
+
+                        if (errorTypeFound)
+                        {
+                            errorResult.Complete(
+                                (TResult)currentTResultConstructor.Invoke(parameterDefaultsOrError.ToArray()),
+                                sCompleted: true);
+
+                            return errorResult;
+                        }
+                    }
+                }
+
+                throw new CLInvalidOperationException(CLExceptionCode.General_Invalid,
+                    Resources.ExceptionHelpersErrorOnBeginAsyncNoConstructor);
+            }
+            catch (Exception ex)
+            {
+                CLError castEx = ex;
+                castEx.Log(logLocation, loggingEnabled);
+
+                if (errorResult != null)
+                {
+                    try
+                    {
+                        errorResult.Dispose();
+                    }
+                    catch
+                    {
+                    }
+                }
+
+                return null;
+            }
+        }
+        #endregion
+
         #region EndAsyncOperation
         /// <summary>
         /// Finishes creating the session on the server for the current application if it has not already finished via its asynchronous result and outputs the result,
@@ -5646,8 +5737,6 @@ namespace Cloud.Static
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         internal static CLError EndAsyncOperation<TResult>(IAsyncResult aResult, out TResult result) where TResult : class
         {
-            CheckHalted();
-
             // declare the specific type of asynchronous result for session creation
             GenericAsyncResult<TResult> castAResult;
 
@@ -5703,6 +5792,7 @@ namespace Cloud.Static
         #endregion
 
         #region CheckHalted
+
         internal static void CheckHalted()
         {
             if (AllHaltedOnUnrecoverableError)

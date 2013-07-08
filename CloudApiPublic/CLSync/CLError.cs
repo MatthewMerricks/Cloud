@@ -265,13 +265,19 @@ namespace Cloud
 
                                 // create a queue for exceptions which need to be logged with stacktrace and recursive inner exception messages
                                 Queue<Exception> loggableExceptions = new Queue<Exception>();
+                                HashSet<Exception> alreadyLoggedExceptions = new HashSet<Exception>();
+                                Action<Exception, HashSet<Exception>, Queue<Exception>> addExceptionIfNotAlreadyLogged = (toAdd, loggedExceptions, exceptionsToLog) =>
+                                    {
+                                        if (toAdd != null
+                                            && loggedExceptions.Add(toAdd)) // ensure toAdd is not already added before enqueueing exception for logging
+                                        {
+                                            exceptionsToLog.Enqueue(toAdd);
+                                        }
+                                    };
 
                                 foreach (CLException currentException in _exceptions)
                                 {
-                                    if (currentException != null)
-                                    {
-                                        loggableExceptions.Enqueue(currentException);
-                                    }
+                                    addExceptionIfNotAlreadyLogged(currentException, alreadyLoggedExceptions, loggableExceptions);
                                     
                                     // loop while there are still exceptions to log in the queue
                                     while (loggableExceptions.Count > 0)
@@ -358,7 +364,7 @@ namespace Cloud
                                                 foreach (Exception aggregatedException in
                                                     dequeuedAsAggregate.InnerExceptions)
                                                 {
-                                                    loggableExceptions.Enqueue(aggregatedException);
+                                                    addExceptionIfNotAlreadyLogged(aggregatedException, alreadyLoggedExceptions, loggableExceptions);
                                                 }
                                             }
 

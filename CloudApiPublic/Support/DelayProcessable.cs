@@ -6,6 +6,7 @@
 // Copyright (c) Cloud.com. All rights reserved.
 
 using Cloud.Model;
+using Cloud.Static;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -113,7 +114,7 @@ namespace Cloud.Support
             {
                 if (ProcessingTerminated)
                 {
-                    throw new ObjectDisposedException("ProcessingTerminated");
+                    throw new CLObjectDisposedException(CLExceptionCode.General_Invalid, "ProcessingTerminated");
                 }
             }
             finally

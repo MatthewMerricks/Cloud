@@ -112,7 +112,7 @@ namespace Cloud.SQLIndexer
             {
                 if (disposed)
                 {
-                    throw new ObjectDisposedException(Resources.IndexingAgentThisIndexingAgent);
+                    throw new CLObjectDisposedException(CLExceptionCode.General_Invalid, Resources.IndexingAgentThisIndexingAgent);
                 }
 
                 _trace.writeToLog(9, "IndexingAgent: Entry: CreateNewServerUid: serverUid: {0}. revision: {1}. existingTransaction: {2}.", serverUid, revision, existingTransaction == null ? "null" : "notNull");
@@ -189,7 +189,7 @@ namespace Cloud.SQLIndexer
             {
                 if (disposed)
                 {
-                    throw new ObjectDisposedException(Resources.IndexingAgentThisIndexingAgent);
+                    throw new CLObjectDisposedException(CLExceptionCode.General_Invalid, Resources.IndexingAgentThisIndexingAgent);
                 }
 
                 _trace.writeToLog(9, "IndexingAgent: Entry: UpdateServerUid: serverUidId: {0}. serverUid: {1}. revision: {2}. existingTransaction: {3}.", serverUidId, serverUid, revision, existingTransaction == null ? "null" : "notNull");
@@ -415,7 +415,7 @@ namespace Cloud.SQLIndexer
             {
                 if (disposed)
                 {
-                    throw new ObjectDisposedException(Resources.IndexingAgentThisIndexingAgent);
+                    throw new CLObjectDisposedException(CLExceptionCode.General_Invalid, Resources.IndexingAgentThisIndexingAgent);
                 }
 
                 _trace.writeToLog(9, "IndexingAgent: Entry: QueryServerUid: serverUidId: {0}. existingTransaction: {1}.", serverUidId, existingTransaction == null ? "null" : "notNull");
@@ -524,7 +524,7 @@ namespace Cloud.SQLIndexer
             {
                 if (disposed)
                 {
-                    throw new ObjectDisposedException(Resources.IndexingAgentThisIndexingAgent);
+                    throw new CLObjectDisposedException(CLExceptionCode.General_Invalid, Resources.IndexingAgentThisIndexingAgent);
                 }
 
                 _trace.writeToLog(9, "IndexingAgent: Entry: QueryOrCreateServerUid: serverUid: {0}. revision: {1}. syncFromFileModify {2}. existingTransaction: {3}.", serverUid, revision, syncFromFileModify, existingTransaction == null ? "null" : "notNull");
@@ -642,7 +642,7 @@ namespace Cloud.SQLIndexer
             {
                 try
                 {
-                    throw new ObjectDisposedException(Resources.IndexingAgentThisIndexingAgent);
+                    throw new CLObjectDisposedException(CLExceptionCode.General_Invalid, Resources.IndexingAgentThisIndexingAgent);
                 }
                 catch (Exception ex)
                 {
@@ -753,7 +753,7 @@ namespace Cloud.SQLIndexer
             {
                 try
                 {
-                    throw new ObjectDisposedException(Resources.IndexingAgentThisIndexingAgent);
+                    throw new CLObjectDisposedException(CLExceptionCode.General_Invalid, Resources.IndexingAgentThisIndexingAgent);
                 }
                 catch (Exception ex)
                 {
@@ -908,7 +908,7 @@ namespace Cloud.SQLIndexer
             {
                 try
                 {
-                    throw new ObjectDisposedException(Resources.IndexingAgentThisIndexingAgent);
+                    throw new CLObjectDisposedException(CLExceptionCode.General_Invalid, Resources.IndexingAgentThisIndexingAgent);
                 }
                 catch (Exception ex)
                 {
@@ -947,7 +947,7 @@ namespace Cloud.SQLIndexer
             {
                 try
                 {
-                    throw new ObjectDisposedException(Resources.IndexingAgentThisIndexingAgent);
+                    throw new CLObjectDisposedException(CLExceptionCode.General_Invalid, Resources.IndexingAgentThisIndexingAgent);
                 }
                 catch
                 {
@@ -1094,7 +1094,7 @@ namespace Cloud.SQLIndexer
             {
                 try
                 {
-                    throw new ObjectDisposedException(Resources.IndexingAgentThisIndexingAgent);
+                    throw new CLObjectDisposedException(CLExceptionCode.General_Invalid, Resources.IndexingAgentThisIndexingAgent);
                 }
                 catch (Exception ex)
                 {
@@ -1209,7 +1209,7 @@ namespace Cloud.SQLIndexer
             {
                 try
                 {
-                    throw new ObjectDisposedException(Resources.IndexingAgentThisIndexingAgent);
+                    throw new CLObjectDisposedException(CLExceptionCode.General_Invalid, Resources.IndexingAgentThisIndexingAgent);
                 }
                 catch (Exception ex)
                 {
@@ -1321,7 +1321,7 @@ namespace Cloud.SQLIndexer
             //{
             //    try
             //    {
-            //        throw new ObjectDisposedException(Resources.IndexingAgentThisIndexingAgent);
+            //        throw new CLObjectDisposedException(CLExceptionCode.General_Invalid, Resources.IndexingAgentThisIndexingAgent);
             //    }
             //    catch (Exception ex)
             //    {
@@ -1435,7 +1435,7 @@ namespace Cloud.SQLIndexer
             {
                 try
                 {
-                    throw new ObjectDisposedException(Resources.IndexingAgentThisIndexingAgent);
+                    throw new CLObjectDisposedException(CLExceptionCode.General_Invalid, Resources.IndexingAgentThisIndexingAgent);
                 }
                 catch (Exception ex)
                 {
@@ -1576,7 +1576,7 @@ namespace Cloud.SQLIndexer
             //{
             //    try
             //    {
-            //        throw new ObjectDisposedException(Resources.IndexingAgentThisIndexingAgent);
+            //        throw new CLObjectDisposedException(CLExceptionCode.General_Invalid, Resources.IndexingAgentThisIndexingAgent);
             //    }
             //    catch (Exception ex)
             //    {
@@ -1662,7 +1662,7 @@ namespace Cloud.SQLIndexer
             {
                 try
                 {
-                    throw new ObjectDisposedException(Resources.IndexingAgentThisIndexingAgent);
+                    throw new CLObjectDisposedException(CLExceptionCode.General_Invalid, Resources.IndexingAgentThisIndexingAgent);
                 }
                 catch (Exception ex)
                 {
@@ -1680,7 +1680,7 @@ namespace Cloud.SQLIndexer
             {
                 if (disposed)
                 {
-                    throw new ObjectDisposedException(Resources.IndexingAgentThisIndexingAgent);
+                    throw new CLObjectDisposedException(CLExceptionCode.General_Invalid, Resources.IndexingAgentThisIndexingAgent);
                 }
 
                 if (existingTransaction != null
@@ -2245,7 +2245,7 @@ namespace Cloud.SQLIndexer
             {
                 try
                 {
-                    throw new ObjectDisposedException(Resources.IndexingAgentThisIndexingAgent);
+                    throw new CLObjectDisposedException(CLExceptionCode.General_Invalid, Resources.IndexingAgentThisIndexingAgent);
                 }
                 catch (Exception ex)
                 {
@@ -2269,7 +2269,7 @@ namespace Cloud.SQLIndexer
             {
                 if (disposed)
                 {
-                    throw new ObjectDisposedException(Resources.IndexingAgentThisIndexingAgent);
+                    throw new CLObjectDisposedException(CLExceptionCode.General_Invalid, Resources.IndexingAgentThisIndexingAgent);
                 }
 
                 if (eventIds == null)
@@ -2577,7 +2577,7 @@ namespace Cloud.SQLIndexer
             {
                 try
                 {
-                    throw new ObjectDisposedException(Resources.IndexingAgentThisIndexingAgent);
+                    throw new CLObjectDisposedException(CLExceptionCode.General_Invalid, Resources.IndexingAgentThisIndexingAgent);
                 }
                 catch (Exception ex)
                 {
@@ -2710,6 +2710,11 @@ namespace Cloud.SQLIndexer
 
                                         if (queryUidError != null)
                                         {
+                                            if (queryUidError.PrimaryException is CLObjectDisposedException)
+                                            {
+                                                throw queryUidError.PrimaryException;
+                                            }
+
                                             throw new AggregateException(string.Format("Unable to query ServerUid with id {0}", currentCommunicatedChange.FileChange.Metadata.ServerUidId), queryUidError.Exceptions);
                                         }
 
@@ -2821,7 +2826,7 @@ namespace Cloud.SQLIndexer
             {
                 try
                 {
-                    throw new ObjectDisposedException(Resources.IndexingAgentThisIndexingAgent);
+                    throw new CLObjectDisposedException(CLExceptionCode.General_Invalid, Resources.IndexingAgentThisIndexingAgent);
                 }
                 catch (Exception ex)
                 {
@@ -2849,7 +2854,7 @@ namespace Cloud.SQLIndexer
             {
                 try
                 {
-                    throw new ObjectDisposedException(Resources.IndexingAgentThisIndexingAgent);
+                    throw new CLObjectDisposedException(CLExceptionCode.General_Invalid, Resources.IndexingAgentThisIndexingAgent);
                 }
                 catch (Exception ex)
                 {
@@ -2909,7 +2914,7 @@ namespace Cloud.SQLIndexer
             {
                 try
                 {
-                    throw new ObjectDisposedException(Resources.IndexingAgentThisIndexingAgent);
+                    throw new CLObjectDisposedException(CLExceptionCode.General_Invalid, Resources.IndexingAgentThisIndexingAgent);
                 }
                 catch
                 {
@@ -2935,7 +2940,7 @@ namespace Cloud.SQLIndexer
             {
                 try
                 {
-                    throw new ObjectDisposedException(Resources.IndexingAgentThisIndexingAgent);
+                    throw new CLObjectDisposedException(CLExceptionCode.General_Invalid, Resources.IndexingAgentThisIndexingAgent);
                 }
                 catch (Exception ex)
                 {
@@ -2996,7 +3001,7 @@ namespace Cloud.SQLIndexer
             {
                 if (disposed)
                 {
-                    throw new ObjectDisposedException(Resources.IndexingAgentThisIndexingAgent);
+                    throw new CLObjectDisposedException(CLExceptionCode.General_Invalid, Resources.IndexingAgentThisIndexingAgent);
                 }
 
                 if (existingTransaction != null
@@ -3804,7 +3809,7 @@ namespace Cloud.SQLIndexer
             {
                 try
                 {
-                    throw new ObjectDisposedException(Resources.IndexingAgentThisIndexingAgent);
+                    throw new CLObjectDisposedException(CLExceptionCode.General_Invalid, Resources.IndexingAgentThisIndexingAgent);
                 }
                 catch (Exception ex)
                 {
@@ -4567,7 +4572,7 @@ namespace Cloud.SQLIndexer
             {
                 try
                 {
-                    throw new ObjectDisposedException(Resources.IndexingAgentThisIndexingAgent);
+                    throw new CLObjectDisposedException(CLExceptionCode.General_Invalid, Resources.IndexingAgentThisIndexingAgent);
                 }
                 catch (Exception ex)
                 {
@@ -4655,7 +4660,7 @@ namespace Cloud.SQLIndexer
             {
                 try
                 {
-                    throw new ObjectDisposedException(Resources.IndexingAgentThisIndexingAgent);
+                    throw new CLObjectDisposedException(CLExceptionCode.General_Invalid, Resources.IndexingAgentThisIndexingAgent);
                 }
                 catch
                 {
@@ -4749,6 +4754,11 @@ namespace Cloud.SQLIndexer
 
                                         if (createRootServerUid != null)
                                         {
+                                            if (createRootServerUid.PrimaryException is CLObjectDisposedException)
+                                            {
+                                                throw createRootServerUid.PrimaryException;
+                                            }
+
                                             throw new AggregateException("Unable to create ServerUid", createRootServerUid.Exceptions);
                                         }
 
@@ -5169,7 +5179,7 @@ namespace Cloud.SQLIndexer
             {
                 try
                 {
-                    throw new ObjectDisposedException(Resources.IndexingAgentThisIndexingAgent);
+                    throw new CLObjectDisposedException(CLExceptionCode.General_Invalid, Resources.IndexingAgentThisIndexingAgent);
                 }
                 catch
                 {
@@ -5269,7 +5279,7 @@ namespace Cloud.SQLIndexer
             {
                 try
                 {
-                    throw new ObjectDisposedException(Resources.IndexingAgentThisIndexingAgent);
+                    throw new CLObjectDisposedException(CLExceptionCode.General_Invalid, Resources.IndexingAgentThisIndexingAgent);
                 }
                 catch
                 {
@@ -5327,7 +5337,7 @@ namespace Cloud.SQLIndexer
             {
                 try
                 {
-                    throw new ObjectDisposedException(Resources.IndexingAgentThisIndexingAgent);
+                    throw new CLObjectDisposedException(CLExceptionCode.General_Invalid, Resources.IndexingAgentThisIndexingAgent);
                 }
                 catch
                 {
@@ -5678,6 +5688,11 @@ namespace Cloud.SQLIndexer
 
                         if (queryUidError != null)
                         {
+                            if (queryUidError.PrimaryException is CLObjectDisposedException)
+                            {
+                                throw queryUidError.PrimaryException;
+                            }
+
                             throw new AggregateException(string.Format("Unable to query ServerUid with id {0}", parentFolderMetadata.ServerUidId), queryUidError.Exceptions);
                         }
 
@@ -5784,7 +5799,7 @@ namespace Cloud.SQLIndexer
             {
                 try
                 {
-                    throw new ObjectDisposedException(Resources.IndexingAgentThisIndexingAgent);
+                    throw new CLObjectDisposedException(CLExceptionCode.General_Invalid, Resources.IndexingAgentThisIndexingAgent);
                 }
                 catch
                 {
@@ -5898,6 +5913,11 @@ namespace Cloud.SQLIndexer
 
                             if (queryUidError != null)
                             {
+                                if (queryUidError.PrimaryException is CLObjectDisposedException)
+                                {
+                                    throw queryUidError.PrimaryException;
+                                }
+
                                 throw new AggregateException(string.Format("Unable to query ServerUid with id {0}", parentFolderMetadata.ServerUidId), queryUidError.Exceptions);
                             }
 
@@ -5914,6 +5934,11 @@ namespace Cloud.SQLIndexer
 
                         if (createServerUidError != null)
                         {
+                            if (createServerUidError.PrimaryException is CLObjectDisposedException)
+                            {
+                                throw createServerUidError.PrimaryException;
+                            }
+
                             throw new AggregateException("Error creating new ServerUid", createServerUidError.Exceptions);
                         }
 
@@ -5981,6 +6006,11 @@ namespace Cloud.SQLIndexer
 
                                 if (queryUidError != null)
                                 {
+                                    if (queryUidError.PrimaryException is CLObjectDisposedException)
+                                    {
+                                        throw queryUidError.PrimaryException;
+                                    }
+
                                     throw new AggregateException(string.Format("Unable to query ServerUid with id {0}", parentFolderMetadata.ServerUidId), queryUidError.Exceptions);
                                 }
 
@@ -6025,6 +6055,11 @@ namespace Cloud.SQLIndexer
 
                             if (queryUidError != null)
                             {
+                                if (queryUidError.PrimaryException is CLObjectDisposedException)
+                                {
+                                    throw queryUidError.PrimaryException;
+                                }
+
                                 throw new AggregateException(string.Format("Unable to query ServerUid with id {0}", parentFolderMetadata.ServerUidId), queryUidError.Exceptions);
                             }
 
@@ -6041,6 +6076,11 @@ namespace Cloud.SQLIndexer
 
                         if (createServerUidError != null)
                         {
+                            if (createServerUidError.PrimaryException is CLObjectDisposedException)
+                            {
+                                throw createServerUidError.PrimaryException;
+                            }
+
                             throw new AggregateException("Error creating new ServerUid", createServerUidError.Exceptions);
                         }
 

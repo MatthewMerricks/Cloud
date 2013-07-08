@@ -23,14 +23,11 @@ internal class GenericAsyncResult<T> : IAsyncResult, IDisposable
     internal GenericAsyncResult(
         AsyncCallback aCallback,
         object aState,
-        object internalState = null,
-        bool sCompleted = false)
+        object internalState = null)
     {
         this._aCallback = aCallback;
         this._aState = aState;
         this._internalState = internalState;
-        this._completed = sCompleted;
-        this._sCompleted = sCompleted;
     }
 
     #region IAsyncResult Members

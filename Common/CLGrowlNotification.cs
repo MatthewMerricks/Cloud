@@ -25,11 +25,6 @@ namespace win_client.Common
         public int? TimeoutMilliseconds;
         public bool WasClosed { get; private set; }
 
-        public CLGrowlNotification()
-        {
-            throw new NotImplementedException("Default constructor not supported.");
-        }
-
         public CLGrowlNotification(UIElement wpfControl, PopupAnimation animation, int? timeoutMilliseconds)
         {
             WpfControl = wpfControl;

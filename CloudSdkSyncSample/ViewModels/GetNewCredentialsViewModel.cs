@@ -16,7 +16,7 @@ using System.Windows.Threading;
 
 namespace SampleLiveSync.ViewModels
 {
-    public class GetNewCredentialsViewModel : WorkspaceViewModel
+    public sealed class GetNewCredentialsViewModel : WorkspaceViewModel
     {
         #region Fields
         
@@ -49,11 +49,6 @@ namespace SampleLiveSync.ViewModels
 
             // Initialize trace
             CLTrace.Initialize(Properties.Settings.Default.TraceFolderFullPath, "SampleLiveSync", "log", Properties.Settings.Default.TraceLevel, Properties.Settings.Default.LogErrors);
-        }
-
-        public GetNewCredentialsViewModel()
-        {
-            throw new NotSupportedException("Default constructor not supported.");
         }
 
         #endregion

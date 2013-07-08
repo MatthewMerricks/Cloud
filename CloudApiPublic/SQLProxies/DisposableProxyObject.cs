@@ -5,6 +5,8 @@
 // Created By DavidBruck.
 // Copyright (c) Cloud.com. All rights reserved.
 
+using Cloud.Model;
+using Cloud.Static;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -27,7 +29,7 @@ namespace Cloud.SQLProxies
         {
             if (_disposed)
             {
-                throw new ObjectDisposedException(filePath == null && memberName == null
+                throw new CLObjectDisposedException(CLExceptionCode.General_Invalid, filePath == null && memberName == null
                     ? "Code was not compiled with C# 5 or greater (VS 2012 or greater)"
                     : (filePath == null ? string.Empty : (AfterLastBackslash(filePath) + (memberName == null ? string.Empty : " "))) + (memberName == null ? string.Empty : memberName));
             }

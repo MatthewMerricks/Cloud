@@ -71,14 +71,6 @@ namespace Cloud.Model
         #region Constructors
 
         /// <summary>
-        /// The default constructor is not supported.  Use 
-        /// </summary>
-        public CLStoragePlan()
-        {
-            throw new CLNotSupportedException(CLExceptionCode.OnDemand_NotSupported, Resources.CLNotificationManualPollingEngineDefaultConstructorNotSupported);
-        }
-
-        /// <summary>
         /// Private constructor to set all of the fields. Use CLStoragePlan.List or CLStoragePlan.Default to create a CLStoragePlan object.
         /// </summary>
         /// <param name="id">ID of this storage plan in the cloud.</param>
@@ -101,8 +93,6 @@ namespace Cloud.Model
             Nullable<DateTime> planCreatedAt,
             Nullable<DateTime> planUpdatedAt)
         {
-            Helpers.CheckHalted();
-
             if (id == 0)
             {
                 throw new CLArgumentNullException(CLExceptionCode.OnDemand_InvalidParameters, Resources.StoragePlanIdMustNotBeZero);
@@ -138,7 +128,6 @@ namespace Cloud.Model
                 throw new CLNullReferenceException(CLExceptionCode.OnDemand_ServerResponseNoClientApplicationId, Resources.StoragePlanServerResponseClientApplicationIdMustNotBeNull);
             }
 
-
             PlanId = (long)response.Id;
             Name = response.Name;
             Tier = response.Tier;
@@ -153,6 +142,7 @@ namespace Cloud.Model
         #endregion  // end Constructors
 
         #region Public Factories
+
         #region DefaultStoragePlanWithCredentials (returns the default plan for the credentials)
 
         /// <summary>
@@ -169,8 +159,6 @@ namespace Cloud.Model
             CLCredentials credentials,
             ICLCredentialsSettings settings = null)
         {
-            Helpers.CheckHalted();
-
             var asyncThread = DelegateAndDataHolderBase.Create(
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
                 new
@@ -227,8 +215,6 @@ namespace Cloud.Model
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public static CLError EndListStoragePlansWithCredentials(IAsyncResult aResult, out ListStoragePlanResult result)
         {
-            Helpers.CheckHalted();
-
             return Helpers.EndAsyncOperation<ListStoragePlanResult>(aResult, out result);
         }
 
@@ -300,8 +286,6 @@ namespace Cloud.Model
             CLCredentials credentials, 
             ICLCredentialsSettings settings = null)
         {
-            Helpers.CheckHalted();
-
             var asyncThread = DelegateAndDataHolderBase.Create(
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
                 new
@@ -358,8 +342,6 @@ namespace Cloud.Model
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public static CLError EndListStoragePlansWithCredentials(IAsyncResult aResult, out ListStoragePlansResult result)
         {
-            Helpers.CheckHalted();
-
             return Helpers.EndAsyncOperation<ListStoragePlansResult>(aResult, out result);
         }
 
@@ -372,8 +354,6 @@ namespace Cloud.Model
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public static CLError ListStoragePlansWithCredentials(CLCredentials credentials, out CLStoragePlan[] response, ICLCredentialsSettings settings = null)
         {
-            Helpers.CheckHalted();
-
             // try/catch to process the metadata query, on catch return the error
             try
             {

@@ -23,7 +23,7 @@ using Cloud.Parameters;
 
 namespace SampleLiveSync.ViewModels
 {
-    public class MainViewModel : WorkspaceViewModel
+    public sealed class MainViewModel : WorkspaceViewModel
     {
         #region Fields
         
@@ -84,11 +84,6 @@ namespace SampleLiveSync.ViewModels
 
             // Bind to MessageEvents for special message handling cases
             MessageEvents.NewEventMessage += MessageEvents_NewEventMessage;
-        }
-
-        public MainViewModel()
-        {
-            throw new NotSupportedException("Default constructor not supported.");
         }
 
         #endregion

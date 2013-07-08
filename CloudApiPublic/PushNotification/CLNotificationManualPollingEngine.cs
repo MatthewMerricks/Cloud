@@ -91,11 +91,6 @@ namespace Cloud.PushNotification
             }
         }
 
-        public CLNotificationManualPollingEngine()
-        {
-            throw new NotSupportedException(Resources.CLNotificationManualPollingEngineDefaultConstructorNotSupported);
-        }
-
         #endregion
 
         #region Public methods

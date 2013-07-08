@@ -565,15 +565,6 @@ namespace Cloud.Static {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Default constructor not supported.
-        /// </summary>
-        internal static string CLNotificationManualPollingEngineDefaultConstructorNotSupported {
-            get {
-                return ResourceManager.GetString("CLNotificationManualPollingEngineDefaultConstructorNotSupported", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to delegateSendManualPoll must not be null.
         /// </summary>
         internal static string CLNotificationManualPollingEngineDelegateSendManualPollMustNotBeNull {
@@ -1359,15 +1350,6 @@ namespace Cloud.Static {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Default constructor not supported.
-        /// </summary>
-        internal static string CLNotificationsSseEngineDefaultConstructorNotSupported {
-            get {
-                return ResourceManager.GetString("CLNotificationsSseEngineDefaultConstructorNotSupported", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Unknown engine index.
         /// </summary>
         internal static string CLNotificationUnknownEngineIndex {
@@ -2043,6 +2025,24 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to EndDownloadFile returned no error but output no result.
+        /// </summary>
+        internal static string ExceptionCLHttpRestDownloadFileBeginNoResult {
+            get {
+                return ResourceManager.GetString("ExceptionCLHttpRestDownloadFileBeginNoResult", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to BeginDownloadFile returned a null IAsyncResult.
+        /// </summary>
+        internal static string ExceptionCLHttpRestDownloadFileNullBeginResponse {
+            get {
+                return ResourceManager.GetString("ExceptionCLHttpRestDownloadFileNullBeginResponse", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to A newer version of the file already exists and is available for download.
         /// </summary>
         internal static string ExceptionCLHttpRestDownloadNewerVersion {
@@ -2246,6 +2246,15 @@ namespace Cloud.Static {
         internal static string ExceptionCLSyncEngineObCaseInsensitive {
             get {
                 return ResourceManager.GetString("ExceptionCLSyncEngineObCaseInsensitive", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to An error occurred updating the syncbox path in the database index.
+        /// </summary>
+        internal static string ExceptionCLSyncEngineUpdatePath {
+            get {
+                return ResourceManager.GetString("ExceptionCLSyncEngineUpdatePath", resourceCulture);
             }
         }
         
@@ -2534,6 +2543,24 @@ namespace Cloud.Static {
         internal static string ExceptionHelpersDictionaryTryGetValueResultInvalid {
             get {
                 return ResourceManager.GetString("ExceptionHelpersDictionaryTryGetValueResultInvalid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to create asynchronous result from error since no appropriate constructors were found.
+        /// </summary>
+        internal static string ExceptionHelpersErrorOnBeginAsyncNoConstructor {
+            get {
+                return ResourceManager.GetString("ExceptionHelpersErrorOnBeginAsyncNoConstructor", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to error must not be null.
+        /// </summary>
+        internal static string ExceptionHelpersErrorOnBeginAsyncNullError {
+            get {
+                return ResourceManager.GetString("ExceptionHelpersErrorOnBeginAsyncNullError", resourceCulture);
             }
         }
         

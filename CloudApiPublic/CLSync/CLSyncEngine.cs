@@ -107,7 +107,7 @@ namespace Cloud
         }
 
         /// <summary>
-        /// ¡¡ Do not use this method. Besides just completely wiping the index database, this also removes the database file which may be important for tracing/debugging; instead use WipeIndex !!
+        /// Forwards to WipeIndex which resets the database file
         /// </summary>
         /// <param name="syncbox">Syncbox to reset</param>
         /// <returns>Returns any error that occurred deleting the index database file, if any</returns>
@@ -133,7 +133,7 @@ namespace Cloud
                 if (checkBadPath != null)
                 {
                     _trace.writeToLog(1, Resources.CLSyncEngineResetError0, checkBadPath.PrimaryException.Message);
-                    return new ArgumentException(Resources.CLSyncEngineSyncboxPathRepsBadPath, checkBadPath.PrimaryException);
+                    throw new ArgumentException(Resources.CLSyncEngineSyncboxPathRepsBadPath, checkBadPath.PrimaryException);
                 }
 
                 int tooLongChars;
@@ -141,7 +141,7 @@ namespace Cloud
                 if (checkPathLength != null)
                 {
                     _trace.writeToLog(1, Resources.CLSyncEngineResetError0, checkPathLength.PrimaryException.Message);
-                    return new ArgumentException(Resources.CLSyncEngineSyncboxPathSettingsTooLong, checkPathLength.PrimaryException);
+                    throw new ArgumentException(Resources.CLSyncEngineSyncboxPathSettingsTooLong, checkPathLength.PrimaryException);
                 }
 
                 IndexingAgent deleteAgent;
@@ -159,7 +159,7 @@ namespace Cloud
 
                 if (deleteDatabaseError != null)
                 {
-                    return new AggregateException("Error wiping the backing database", deleteDatabaseError.Exceptions);
+                    throw new AggregateException("Error wiping the backing database", deleteDatabaseError.Exceptions);
                 }
 
                 try
@@ -188,6 +188,68 @@ namespace Cloud
                 return ex;
             }
 
+            return null;
+        }
+
+        /// <summary>
+        /// Forwards to ChangeSyncboxPath in the indexer
+        /// </summary>
+        public CLError UpdatePath(CLSyncbox syncbox, string newPath)
+        {
+            try
+            {
+                if (Helpers.AllHaltedOnUnrecoverableError)
+                {
+                    throw new InvalidOperationException(Resources.CLSyncEngineHelpersAllHaltedOnUnrecoverableErrorIsSet);
+                }
+
+                if (syncbox == null)
+                {
+                    throw new NullReferenceException(Resources.SyncboxMustNotBeNull);
+                }
+
+                // Initialize trace in case it is not already initialized.
+                CLTrace.Initialize(syncbox.CopiedSettings.TraceLocation, "Cloud", Resources.IconOverlayLog, syncbox.CopiedSettings.TraceLevel, syncbox.CopiedSettings.LogErrors);
+                _trace.writeToLog(1, Resources.CLSyncEngineSyncResetEntry);
+
+                CLError checkBadPath = Helpers.CheckForBadPath(syncbox.Path)
+                    ?? Helpers.CheckForBadPath(newPath);
+                if (checkBadPath != null)
+                {
+                    _trace.writeToLog(1, Resources.CLSyncEngineResetError0, checkBadPath.PrimaryException.Message);
+                    throw new ArgumentException(Resources.CLSyncEngineSyncboxPathRepsBadPath, checkBadPath.PrimaryException);
+                }
+
+                int tooLongChars;
+                CLError checkPathLength = Helpers.CheckSyncboxPathLength(syncbox.Path, out tooLongChars)
+                    ?? Helpers.CheckSyncboxPathLength(newPath, out tooLongChars);
+                if (checkPathLength != null)
+                {
+                    _trace.writeToLog(1, Resources.CLSyncEngineResetError0, checkPathLength.PrimaryException.Message);
+                    throw new ArgumentException(Resources.CLSyncEngineSyncboxPathSettingsTooLong, checkPathLength.PrimaryException);
+                }
+
+                IndexingAgent updateAgent;
+                CLError createIndexerError = IndexingAgent.CreateNewAndInitialize(
+                    out updateAgent,
+                    syncbox,
+                    copyDatabaseBetweenChanges: this.copyDatabaseBetweenChanges);
+
+                if (createIndexerError != null)
+                {
+                    throw new AggregateException(Resources.ExceptionSyncboxCreateIndex, createIndexerError.Exceptions);
+                }
+
+                CLError updatePathError = updateAgent.ChangeSyncboxPath(newPath);
+                if (updatePathError != null)
+                {
+                    throw new AggregateException(Resources.ExceptionCLSyncEngineUpdatePath, updatePathError.Exceptions);
+                }
+            }
+            catch (Exception ex)
+            {
+                return ex;
+            }
             return null;
         }
 

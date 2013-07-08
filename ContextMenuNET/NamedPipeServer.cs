@@ -130,6 +130,9 @@ namespace ContextMenuNET
                 catch (ObjectDisposedException)
                 {
                 }
+                catch (CLObjectDisposedException)
+                {
+                }
             }
             //CLTrace.Instance.writeToLog(1, "NamedPipeServer: ServerLoop: Exit thread.");
         }

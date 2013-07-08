@@ -456,7 +456,6 @@ namespace Cloud
                 activeSessionCredentials = Helpers.DefaultForType<CLCredentials []>();
                 return ex;
             }
-            return null;
         }
         #endregion (query the cloud for all active sessions for these credentials)
 
@@ -710,7 +709,6 @@ namespace Cloud
             }
 
             return null;
-
         }
 
         private CLError DeserializeSession(JToken tokenSession, out CLCredentials credentials)
@@ -1075,6 +1073,7 @@ namespace Cloud
         //// --------- adding \cond and \endcond makes the section in between hidden from doxygen
 
         // \cond
+
         #region LinkDeviceFirstTime
 
         /// <summary>
