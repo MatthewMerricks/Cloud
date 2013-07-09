@@ -96,11 +96,11 @@ void CExplorerSimulator::Initialize(int nSimulatedExplorerIndex, int nBadgeType)
 
 		if (nSimulatedExplorerIndex < 0)
 		{
-			throw new std::exception("Invalid explorer index");
+			throw std::exception("Invalid explorer index");
 		}
 		if (nBadgeType < cloudAppBadgeSynced || nBadgeType > cloudAppBadgeSelective)
 		{
-			throw new std::exception("Invalid badge type");
+			throw std::exception("Invalid badge type");
 		}
 
 
@@ -126,7 +126,7 @@ void CExplorerSimulator::Initialize(int nSimulatedExplorerIndex, int nBadgeType)
                         );
             if (handle == NULL)
             {
-                throw new std::exception("Error creating thread");
+                throw std::exception("Error creating thread");
             }
 
             _threadWorkerHandle = handle;
@@ -165,7 +165,7 @@ void CExplorerSimulator::WorkerThreadProc(LPVOID pUserState)
 	if (pUserState == NULL)
 	{
     	CLTRACE(1, "CExplorerSimulator: WorkerThreadProc: ERROR: User state is NULL.");
-		throw new std::exception("pUserState must not be NULL");
+		throw std::exception("pUserState must not be NULL");
 	}
 
     // Cast the user state to an object instance
@@ -191,17 +191,17 @@ void CExplorerSimulator::WorkerThreadProc(LPVOID pUserState)
 				if (pThis->_hr != S_OK)
 				{
 					CLTRACE(9, "CExplorerSimulator: WorkerThreadProc: ERROR: Synced GetOverlayInfo returned %d.", pThis->_hr);
-					throw new std::exception("Error from Synced GetOverlayInfo");
+					throw std::exception("Error from Synced GetOverlayInfo");
 				}
 				if (pThis->_indexIconSynced != 1)
 				{
 					CLTRACE(9, "CExplorerSimulator: WorkerThreadProc: ERROR: Synced GetOverlayInfo returned icon index %d.", pThis->_indexIconSynced);
-					throw new std::exception("Bad icon index from Synced GetOverlayInfo");
+					throw std::exception("Bad icon index from Synced GetOverlayInfo");
 				}
 				if (pThis->_flagsIconSynced != 3)
 				{
 					CLTRACE(9, "CExplorerSimulator: WorkerThreadProc: ERROR: Synced GetOverlayInfo returned icon flags %d.", pThis->_flagsIconSynced);
-					throw new std::exception("Bad icon flags from Synced GetOverlayInfo");
+					throw std::exception("Bad icon flags from Synced GetOverlayInfo");
 				}
 
 				// Get the icon priority.
@@ -209,12 +209,12 @@ void CExplorerSimulator::WorkerThreadProc(LPVOID pUserState)
 				if (pThis->_hr != S_OK)
 				{
 					CLTRACE(9, "CExplorerSimulator: WorkerThreadProc: ERROR: Synced GetPriority returned %d.", pThis->_hr);
-					throw new std::exception("Error from Synced GetPriority");
+					throw std::exception("Error from Synced GetPriority");
 				}
 				if (pThis->_priorityIconSynced != 0)
 				{
 					CLTRACE(9, "CExplorerSimulator: WorkerThreadProc: ERROR: Synced GetPriority returned icon priority %d.", pThis->_priorityIconSynced);
-					throw new std::exception("Bad icon priority from Synced GetPriority");
+					throw std::exception("Bad icon priority from Synced GetPriority");
 				}
 				break;
 
@@ -225,17 +225,17 @@ void CExplorerSimulator::WorkerThreadProc(LPVOID pUserState)
 				if (pThis->_hr != S_OK)
 				{
 					CLTRACE(9, "CExplorerSimulator: WorkerThreadProc: ERROR: Syncing GetOverlayInfo returned %d.", pThis->_hr);
-					throw new std::exception("Error from Syncing GetOverlayInfo");
+					throw std::exception("Error from Syncing GetOverlayInfo");
 				}
-				if (pThis->_indexIconSyncing != 1)
+				if (pThis->_indexIconSyncing != 0)
 				{
 					CLTRACE(9, "CExplorerSimulator: WorkerThreadProc: ERROR: Syncing GetOverlayInfo returned icon index %d.", pThis->_indexIconSyncing);
-					throw new std::exception("Bad icon index from Syncing GetOverlayInfo");
+					throw std::exception("Bad icon index from Syncing GetOverlayInfo");
 				}
 				if (pThis->_flagsIconSyncing != 3)
 				{
 					CLTRACE(9, "CExplorerSimulator: WorkerThreadProc: ERROR: Syncing GetOverlayInfo returned icon flags %d.", pThis->_flagsIconSyncing);
-					throw new std::exception("Bad icon flags from Syncing GetOverlayInfo");
+					throw std::exception("Bad icon flags from Syncing GetOverlayInfo");
 				}
 
 				// Get the icon priority.
@@ -243,12 +243,12 @@ void CExplorerSimulator::WorkerThreadProc(LPVOID pUserState)
 				if (pThis->_hr != S_OK)
 				{
 					CLTRACE(9, "CExplorerSimulator: WorkerThreadProc: ERROR: Syncing GetPriority returned %d.", pThis->_hr);
-					throw new std::exception("Error from Syncing GetPriority");
+					throw std::exception("Error from Syncing GetPriority");
 				}
 				if (pThis->_priorityIconSyncing != 0)
 				{
 					CLTRACE(9, "CExplorerSimulator: WorkerThreadProc: ERROR: Syncing GetPriority returned icon priority %d.", pThis->_priorityIconSyncing);
-					throw new std::exception("Bad icon priority from Syncing GetPriority");
+					throw std::exception("Bad icon priority from Syncing GetPriority");
 				}
 				break;
 
@@ -259,17 +259,17 @@ void CExplorerSimulator::WorkerThreadProc(LPVOID pUserState)
 				if (pThis->_hr != S_OK)
 				{
 					CLTRACE(9, "CExplorerSimulator: WorkerThreadProc: ERROR: Failed GetOverlayInfo returned %d.", pThis->_hr);
-					throw new std::exception("Error from Failed GetOverlayInfo");
+					throw std::exception("Error from Failed GetOverlayInfo");
 				}
-				if (pThis->_indexIconFailed != 1)
+				if (pThis->_indexIconFailed != 3)
 				{
 					CLTRACE(9, "CExplorerSimulator: WorkerThreadProc: ERROR: Failed GetOverlayInfo returned icon index %d.", pThis->_indexIconFailed);
-					throw new std::exception("Bad icon index from Failed GetOverlayInfo");
+					throw std::exception("Bad icon index from Failed GetOverlayInfo");
 				}
 				if (pThis->_flagsIconFailed != 3)
 				{
 					CLTRACE(9, "CExplorerSimulator: WorkerThreadProc: ERROR: Failed GetOverlayInfo returned icon flags %d.", pThis->_flagsIconFailed);
-					throw new std::exception("Bad icon flags from Failed GetOverlayInfo");
+					throw std::exception("Bad icon flags from Failed GetOverlayInfo");
 				}
 
 				// Get the icon priority.
@@ -277,12 +277,12 @@ void CExplorerSimulator::WorkerThreadProc(LPVOID pUserState)
 				if (pThis->_hr != S_OK)
 				{
 					CLTRACE(9, "CExplorerSimulator: WorkerThreadProc: ERROR: Failed GetPriority returned %d.", pThis->_hr);
-					throw new std::exception("Error from Failed GetPriority");
+					throw std::exception("Error from Failed GetPriority");
 				}
 				if (pThis->_priorityIconFailed != 0)
 				{
 					CLTRACE(9, "CExplorerSimulator: WorkerThreadProc: ERROR: Failed GetPriority returned icon priority %d.", pThis->_priorityIconFailed);
-					throw new std::exception("Bad icon priority from Failed GetPriority");
+					throw std::exception("Bad icon priority from Failed GetPriority");
 				}
 				break;
 
@@ -293,17 +293,17 @@ void CExplorerSimulator::WorkerThreadProc(LPVOID pUserState)
 				if (pThis->_hr != S_OK)
 				{
 					CLTRACE(9, "CExplorerSimulator: WorkerThreadProc: ERROR: Selective GetOverlayInfo returned %d.", pThis->_hr);
-					throw new std::exception("Error from Selective GetOverlayInfo");
+					throw std::exception("Error from Selective GetOverlayInfo");
 				}
-				if (pThis->_indexIconSelective != 1)
+				if (pThis->_indexIconSelective != 2)
 				{
 					CLTRACE(9, "CExplorerSimulator: WorkerThreadProc: ERROR: Selective GetOverlayInfo returned icon index %d.", pThis->_indexIconSelective);
-					throw new std::exception("Bad icon index from Selective GetOverlayInfo");
+					throw std::exception("Bad icon index from Selective GetOverlayInfo");
 				}
 				if (pThis->_flagsIconSelective != 3)
 				{
 					CLTRACE(9, "CExplorerSimulator: WorkerThreadProc: ERROR: Selective GetOverlayInfo returned icon flags %d.", pThis->_flagsIconSelective);
-					throw new std::exception("Bad icon flags from Selective GetOverlayInfo");
+					throw std::exception("Bad icon flags from Selective GetOverlayInfo");
 				}
 
 				// Get the icon priority.
@@ -311,12 +311,12 @@ void CExplorerSimulator::WorkerThreadProc(LPVOID pUserState)
 				if (pThis->_hr != S_OK)
 				{
 					CLTRACE(9, "CExplorerSimulator: WorkerThreadProc: ERROR: Selective GetPriority returned %d.", pThis->_hr);
-					throw new std::exception("Error from Selective GetPriority");
+					throw std::exception("Error from Selective GetPriority");
 				}
 				if (pThis->_priorityIconSelective != 0)
 				{
 					CLTRACE(9, "CExplorerSimulator: WorkerThreadProc: ERROR: Selective GetPriority returned icon priority %d.", pThis->_priorityIconSelective);
-					throw new std::exception("Bad icon priority from Selective GetPriority");
+					throw std::exception("Bad icon priority from Selective GetPriority");
 				}
 				break;
 		}
@@ -324,12 +324,6 @@ void CExplorerSimulator::WorkerThreadProc(LPVOID pUserState)
 		// Initialized now.  Start querying BadgeCom for files that should be badged.
 		while (!pThis->_fRequestExit)
 		{
-			// Exit if we should.
-			if (pThis->_fRequestExit)
-			{
-				break;
-			}
-
 			// Send 10 requests for this badge type rapidly, all from the same folder.
 			pThis->SendRequestsToIsMemberOf();
 
@@ -413,7 +407,11 @@ BOOL CExplorerSimulator::QueryShouldBadgePath(std::wstring path)
 			if (_hr != S_OK && _hr != S_FALSE)
 			{
 				CLTRACE(9, "CExplorerSimulator: QueryShouldBadgePath: ERROR: Synced IsMemberOf returned %d.", _hr);
-				throw new std::exception("Error from Synced IsMemberOf");
+				throw std::exception("Error from Synced IsMemberOf");
+			}
+			if (_hr == S_OK)
+			{
+				CLTRACE(9, "CExplorerSimulator: QueryShouldBadgePath: BadgeIt Synced.  Path: %s.", path.c_str());
 			}
 			break;
 
@@ -422,7 +420,11 @@ BOOL CExplorerSimulator::QueryShouldBadgePath(std::wstring path)
 			if (_hr != S_OK && _hr != S_FALSE)
 			{
 				CLTRACE(9, "CExplorerSimulator: QueryShouldBadgePath: ERROR: Syncing IsMemberOf returned %d.", _hr);
-				throw new std::exception("Error from Syncing IsMemberOf");
+				throw std::exception("Error from Syncing IsMemberOf");
+			}
+			if (_hr == S_OK)
+			{
+				CLTRACE(9, "CExplorerSimulator: QueryShouldBadgePath: BadgeIt Syncing.  Path: %s.", path.c_str());
 			}
 			break;
 
@@ -431,7 +433,11 @@ BOOL CExplorerSimulator::QueryShouldBadgePath(std::wstring path)
 			if (_hr != S_OK && _hr != S_FALSE)
 			{
 				CLTRACE(9, "CExplorerSimulator: QueryShouldBadgePath: ERROR: Failed IsMemberOf returned %d.", _hr);
-				throw new std::exception("Error from Failed IsMemberOf");
+				throw std::exception("Error from Failed IsMemberOf");
+			}
+			if (_hr == S_OK)
+			{
+				CLTRACE(9, "CExplorerSimulator: QueryShouldBadgePath: BadgeIt Failed.  Path: %s.", path.c_str());
 			}
 			break;
 
@@ -440,7 +446,11 @@ BOOL CExplorerSimulator::QueryShouldBadgePath(std::wstring path)
 			if (_hr != S_OK && _hr != S_FALSE)
 			{
 				CLTRACE(9, "CExplorerSimulator: QueryShouldBadgePath: ERROR: Selective IsMemberOf returned %d.", _hr);
-				throw new std::exception("Error from Selective IsMemberOf");
+				throw std::exception("Error from Selective IsMemberOf");
+			}
+			if (_hr == S_OK)
+			{
+				CLTRACE(9, "CExplorerSimulator: QueryShouldBadgePath: BadgeIt Selective.  Path: %s.", path.c_str());
 			}
 			break;
 	}

@@ -18,8 +18,8 @@
 	} ;
 
 	const int nMaxItemsAtLevel = 10;
-	const int nExplorersToSimulate = 1;
-	const int nMaxBadgeTypeToSimulate = cloudAppBadgeSynced;
+	const int nExplorersToSimulate = 4;
+	const int nMaxBadgeTypeToSimulate = cloudAppBadgeSelective;
 
 
 #ifdef MAIN_MODULE

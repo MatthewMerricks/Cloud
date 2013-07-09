@@ -77,6 +77,7 @@ namespace BadgeComTestNetSide
                         int index2 = _random.Next(nMaxItemsAtLevel);
                         int index3 = _random.Next(nMaxItemsAtLevel);
                         bool willSetPath = _random.Next(100) > 3 ? true : false;
+                        //TODO: The high number is exclusive.  We should add one, but the Selective badge type has not been properly tested in IconOverlay.
                         int nBadgeType = _random.Next((int)cloudAppIconBadgeType.cloudAppBadgeSynced, (int)cloudAppIconBadgeType.cloudAppBadgeSyncSelective);
                         GenericHolder<cloudAppIconBadgeType> badgeType = new GenericHolder<cloudAppIconBadgeType>((cloudAppIconBadgeType)nBadgeType);
                         FilePath filePath = new FilePath(_paths[index1, index2, index3]);
@@ -147,7 +148,7 @@ namespace BadgeComTestNetSide
 			        for (int index3 = 0; index3 < nMaxItemsAtLevel; index3++)
 			        {
 
-				        paths[index1, index2, index3] = leadIn + "Level1_LongLongName_" + index1.ToString() + "\\" + "Level2_LongLongName_" + index2.ToString() + "\\" + "Level3_LongLongName_" + index3.ToString() + ".txt";
+				        paths[index1, index2, index3] = leadIn + "\\Level1_LongLongName_" + index1.ToString() + "\\" + "Level2_LongLongName_" + index2.ToString() + "\\" + "Level3_LongLongName_" + index3.ToString() + ".txt";
 			        }
 		        }
 	        }

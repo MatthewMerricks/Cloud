@@ -50,7 +50,7 @@ STDMETHODIMP CPubSubServer::Initialize()
 			//if (!fIsSane)
 			//{
 			//	pszExceptionStateTracker = "Throw";
-			//	throw new std::exception("ERROR: Shared memory segment is corrupted.");
+			//	throw std::exception("ERROR: Shared memory segment is corrupted.");
 			//}
 
 			// Trace the sizes of the shared memory types.
@@ -190,7 +190,7 @@ STDMETHODIMP CPubSubServer::Publish(EnumEventType EventType, EnumEventSubType Ev
 					if (itGuidSubscriptionPair->second.uSignature1_ != _kuSubscriptionSignature || itGuidSubscriptionPair->second.uSignature2_ != _kuSubscriptionSignature)
 					{
 						CLTRACE(1, "PubSubServer: Publish: Bad subscription signature.");
-						throw new std::exception("Bad subscription signature");
+						throw std::exception("Bad subscription signature");
 					}
 
 					CLTRACE(9, "PubSubServer: Publish: Subscriber with GUID<%ls> is subscribed to this event.", CComBSTR(itGuidSubscriptionPair->first));
@@ -272,7 +272,7 @@ STDMETHODIMP CPubSubServer::Publish(EnumEventType EventType, EnumEventSubType Ev
 
 							if (!outOptrFoundSubscription->pSemaphoreSubscription_)
 							{
-								throw new std::exception("Subscription semaphore has been destructed");
+								throw std::exception("Subscription semaphore has been destructed");
 							}
 
 							// Post the subscription's semaphore.
@@ -280,7 +280,7 @@ STDMETHODIMP CPubSubServer::Publish(EnumEventType EventType, EnumEventSubType Ev
 							interprocess_semaphore *pSemaphore = outOptrFoundSubscription->pSemaphoreSubscription_.get();
 							if (pSemaphore == NULL)
 							{
-								throw new std::exception("Local subscription pointer is null");
+								throw std::exception("Local subscription pointer is null");
 							}
 							pszExceptionStateTracker = "Post the subscription";
 							pSemaphore->post();
@@ -446,7 +446,7 @@ STDMETHODIMP CPubSubServer::Subscribe(
 					// Check the event signature.
 					if (itEvent->Signature1_ != _kuEventSignature || itEvent->Signature2_ != _kuEventSignature)
 					{
-						throw new std::exception("Bad event signature");
+						throw std::exception("Bad event signature");
 					}
 
 					// Pass back the event
@@ -505,7 +505,7 @@ STDMETHODIMP CPubSubServer::Subscribe(
 					guid_subscription_map *mapGuidSubscription = _pSegment->construct<guid_subscription_map>(anonymous_instance)(comparator, alloc_inst);
 					if (mapGuidSubscription == NULL)
 					{
-						throw new std::exception("ERROR: mapGuidSubscrition is NULL");
+						throw std::exception("ERROR: mapGuidSubscrition is NULL");
 					}
 
 					// Add a pair_guid_subscription to the inner map just constructed.
@@ -540,7 +540,7 @@ STDMETHODIMP CPubSubServer::Subscribe(
 			{
 				if (!outOptrFoundSubscription->pSemaphoreSubscription_)
 				{
-					throw new std::exception("Subscription semaphore has been destructed");
+					throw std::exception("Subscription semaphore has been destructed");
 				}
 
 				pFoundSemaphore = outOptrFoundSubscription->pSemaphoreSubscription_.get();
@@ -731,7 +731,7 @@ STDMETHODIMP CPubSubServer::CancelSubscriptionsForProcessId(ULONG ProcessId, Enu
 						if (itSubscription->second.uSignature1_ != _kuSubscriptionSignature || itSubscription->second.uSignature2_ != _kuSubscriptionSignature)
 						{
 							CLTRACE(1, "PubSubServer: CancelSubscriptionsForProcessId: Bad subscription signature.");
-							throw new std::exception("Bad subscription signature");
+							throw std::exception("Bad subscription signature");
 						}
 
 						if (itSubscription->second.uSubscribingProcessId_ == ProcessId)
@@ -863,7 +863,7 @@ STDMETHODIMP CPubSubServer::CancelWaitingSubscription(EnumEventType EventType, G
 					CComBSTR(outOptrFoundSubscription->guidSubscriber_));
 				if (!outOptrFoundSubscription->pSemaphoreSubscription_)
 				{
-					throw new std::exception("Subscription semaphore has been destructed");
+					throw std::exception("Subscription semaphore has been destructed");
 				}
 
 				outOptrFoundSubscription->fCancelled_ = true;
@@ -872,7 +872,7 @@ STDMETHODIMP CPubSubServer::CancelWaitingSubscription(EnumEventType EventType, G
 				interprocess_semaphore *pSemaphore = outOptrFoundSubscription->pSemaphoreSubscription_.get();
 				if (pSemaphore == NULL)
 				{
-					throw new std::exception("Local subscription pointer is null");
+					throw std::exception("Local subscription pointer is null");
 				}
 				pszExceptionStateTracker = "Post the subscription's semaphore";
 				pSemaphore->post();
@@ -905,7 +905,7 @@ STDMETHODIMP CPubSubServer::CancelWaitingSubscription(EnumEventType EventType, G
 
 							if (!outOptrFoundSubscription->pSemaphoreSubscription_)
 							{
-								throw new std::exception("Subscription semaphore has been destructed");
+								throw std::exception("Subscription semaphore has been destructed");
 							}
 							outOptrFoundSubscription->fCancelled_ = true;
 
@@ -913,7 +913,7 @@ STDMETHODIMP CPubSubServer::CancelWaitingSubscription(EnumEventType EventType, G
 							interprocess_semaphore *pSemaphore = outOptrFoundSubscription->pSemaphoreSubscription_.get();
 							if (pSemaphore == NULL)
 							{
-								throw new std::exception("Local subscription pointer is null");
+								throw std::exception("Local subscription pointer is null");
 							}
 							pSemaphore->post();
 							continue;
@@ -1071,7 +1071,7 @@ void CPubSubServer::DeleteSubscriptionById(Base * pBase, CPubSubServer::UniqueSu
 				if (itMapInner->second.uSignature1_ != _kuSubscriptionSignature || itMapInner->second.uSignature2_ != _kuSubscriptionSignature)
 				{
 					CLTRACE(1, "PubSubServer: DeleteSubscriptionById: Bad subscription signature.");
-					throw new std::exception("Bad subscription signature");
+					throw std::exception("Bad subscription signature");
 				}
 
 				CLTRACE(9, "PubSubServer: DeleteSubscriptionById: Delete subscription.  EventType: %d. GUID: %ls.", subscriptionId.eventType, CComBSTR(subscriptionId.guid));
@@ -1122,7 +1122,7 @@ BOOL CPubSubServer::FindSubscription(EnumEventType EventType, GUID guidSubscribe
 				if (itMapInner->second.uSignature1_ != _kuSubscriptionSignature || itMapInner->second.uSignature2_ != _kuSubscriptionSignature)
 				{
 					CLTRACE(1, "PubSubServer: FindSubscription: Bad subscription signature.");
-					throw new std::exception("Bad subscription signature");
+					throw std::exception("Bad subscription signature");
 				}
 
 				CLTRACE(9, "PubSubServer: FindSubscription: Found subscription.");
@@ -1162,7 +1162,7 @@ void CPubSubServer::TraceCurrentStateOfSharedMemory(Base *pBase)
 				if (itSubscription->second.uSignature1_ != _kuSubscriptionSignature || itSubscription->second.uSignature2_ != _kuSubscriptionSignature)
 				{
 					CLTRACE(1, "PubSubServer: TraceCurrentStateOfSharedMemory: Bad subscription signature.");
-					throw new std::exception("Bad subscription signature");
+					throw std::exception("Bad subscription signature");
 				}
 
 				// Log this subscription
@@ -1183,7 +1183,7 @@ void CPubSubServer::TraceCurrentStateOfSharedMemory(Base *pBase)
 					// Check the event signature.
 					if (itEvent->Signature1_ != _kuEventSignature || itEvent->Signature2_ != _kuEventSignature)
 					{
-						throw new std::exception("Bad event signature");
+						throw std::exception("Bad event signature");
 					}
 
 					CLTRACE(9, "PubSubServer: TraceCurrentStateOfSharedMemory: Event: EventType: %d. ProcessId: %lx. ThreadId: %lx. EventSubType: %d. BadgeType: %d. FullPath: %ls. GuidPublisher: %ls.", 
@@ -1265,7 +1265,7 @@ STDMETHODIMP CPubSubServer::CleanUpUnusedResources(EnumPubSubServerCleanUpUnused
 						if (itPairGuidSubscription->second.uSignature1_ != _kuSubscriptionSignature || itPairGuidSubscription->second.uSignature2_ != _kuSubscriptionSignature)
 						{
 							CLTRACE(1, "PubSubServer: CleanUpUnusedResources: Bad subscription signature.");
-							throw new std::exception("Bad subscription signature");
+							throw std::exception("Bad subscription signature");
 						}
 
 						// Log this subscription
@@ -1389,7 +1389,7 @@ STDMETHODIMP CPubSubServer::Terminate()
 						if (itSubscription->second.uSignature1_ != _kuSubscriptionSignature || itSubscription->second.uSignature2_ != _kuSubscriptionSignature)
 						{
 							CLTRACE(1, "PubSubServer: Terminate: Bad subscription signature.");
-							throw new std::exception("Bad subscription signature");
+							throw std::exception("Bad subscription signature");
 						}
 
 						// Log this subscription.
@@ -1493,7 +1493,7 @@ std::string CPubSubServer::GetSharedMemoryNameWithVersion()
 		DWORD size = GetModuleFileName(g_hBadgeComInstance, fileName, _MAX_PATH);
 		if (size == 0)
 		{
-			throw new std::exception("GetModuleFileName failed");
+			throw std::exception("GetModuleFileName failed");
 		}
 		fileName[size] = NULL;
 
@@ -1502,14 +1502,14 @@ std::string CPubSubServer::GetSharedMemoryNameWithVersion()
 		size = GetFileVersionInfoSize(fileName, &handle);
 		if (size == 0)
 		{
-			throw new std::exception("No file version information size returned");
+			throw std::exception("No file version information size returned");
 		}
 
 		// Get the version info itself
 		versionInfo = new BYTE[size + 1];
 		if (!GetFileVersionInfo(fileName, handle, size, versionInfo))
 		{
-			throw new std::exception("No file version information returned");
+			throw std::exception("No file version information returned");
 		}
 
 		// We have version information.  Extract it.
@@ -1518,7 +1518,7 @@ std::string CPubSubServer::GetSharedMemoryNameWithVersion()
 		BOOL fRc = VerQueryValue(versionInfo, L"\\", (void**)&vsfi, &len);
 		if (!fRc)
 		{
-			throw new std::exception("VerQueryValue error.  Name or resource is invalid");
+			throw std::exception("VerQueryValue error.  Name or resource is invalid");
 		}
 
 		// Extract the version info.

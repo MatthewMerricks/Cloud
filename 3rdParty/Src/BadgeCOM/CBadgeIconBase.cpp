@@ -23,7 +23,7 @@
 CBadgeIconBase::CBadgeIconBase()
 {
     CLTRACE(1, "CBadgeIconBase: CBadgeIconBase: ERROR: Default constructor not supported.");   
-    throw new std::exception("Default contstructor not supported");
+    throw std::exception("Default contstructor not supported");
 }
 
 /// <Summary>
@@ -166,7 +166,7 @@ void CBadgeIconBase::InitializeBadgeNetPubSubEventsViaThread()
                     );
         if (handle == NULL)
         {
-            throw new std::exception("Error creating thread");
+            throw std::exception("Error creating thread");
         }
     }
     catch (const std::exception &ex)
@@ -319,7 +319,7 @@ void CBadgeIconBase::OnEventAddBadgePath(BSTR fullPath, EnumCloudAppIconBadgeTyp
                     if (itPathValue->second.badgeType != _badgeType)
                     {
             		    CLTRACE(9, "CBadgeIconBase: OnEventAddBadgePath: ERROR: Invalid badge type found: %d.", itPathValue->second.badgeType);
-                        throw new std::exception("Invalid badgeType: " + itPathValue->second.badgeType);
+                        throw std::exception("Invalid badgeType: " + itPathValue->second.badgeType);
                     }
 
                     // Find this processId in the dictionary.
@@ -407,7 +407,7 @@ BOOL CBadgeIconBase::OnEventRemoveBadgePath(BSTR fullPath, ULONG processIdPublis
                 if (itPathValue->second.badgeType != _badgeType)
                 {
             		CLTRACE(9, "CBadgeIconBase: OnEventRemoveBadgePath: ERROR: Invalid badge type found: %d.", itPathValue->second.badgeType);
-                    throw new std::exception("Invalid badgeType: " + itPathValue->second.badgeType);
+                    throw std::exception("Invalid badgeType: " + itPathValue->second.badgeType);
                 }
 
                 // Find this processId in the dictionary for this path.
@@ -531,7 +531,7 @@ void CBadgeIconBase::OnEventAddSyncboxFolderPath(BSTR fullPath, EnumCloudAppIcon
                 if (itPathValue->second.badgeType != cloudAppBadgeNone)
                 {
             		CLTRACE(9, "CBadgeIconBase: OnEventAddSyncboxFolderPath: ERROR: Invalid badge type found: %d.", itPathValue->second.badgeType);
-                    throw new std::exception("Invalid badgeType: " + itPathValue->second.badgeType);
+                    throw std::exception("Invalid badgeType: " + itPathValue->second.badgeType);
                 }
 
                 // Find this processId in the dictionary.
@@ -626,7 +626,7 @@ void CBadgeIconBase::OnEventRemoveSyncboxFolderPath(BSTR fullPath, EnumCloudAppI
                 if (itPathValue->second.badgeType != cloudAppBadgeNone)
                 {
             		CLTRACE(9, "CBadgeIconBase: OnEventRemoveSyncboxFolderPath: ERROR: Invalid badge type found: %d.", itPathValue->second.badgeType);
-                    throw new std::exception("Invalid badgeType: " + itPathValue->second.badgeType);
+                    throw std::exception("Invalid badgeType: " + itPathValue->second.badgeType);
                 }
 
                 // Find this processId in the dictionary for this path.
@@ -737,7 +737,7 @@ void CBadgeIconBase::OnEventSubscriptionWatcherFailed()
                     );
         if (handle == NULL)
         {
-            throw new std::exception("Error creating thread");
+            throw std::exception("Error creating thread");
         }
 
         _threadSubscriptionRestart = handle;
@@ -989,7 +989,7 @@ void CBadgeIconBase::InitializeBadgeNetPubSubEvents()
         if (!SUCCEEDED(hr))
         {
     		CLTRACE(1, "CBadgeIconBase: InitializeBadgeNetPubSubEvents: ERROR: Creating GUID. hr: %d.", hr);
-            throw new std::exception("Error creating GUID");
+            throw std::exception("Error creating GUID");
         }
   		CLTRACE(9, "CBadgeIconBase: InitializeBadgeNetPubSubEvents: Publisher's GUID: %ls.", CComBSTR(_guidPublisher));
 
@@ -1057,11 +1057,11 @@ int CBadgeIconBase::GetCurrentProcessNameAndProcessId(CHAR *szOutProcessName, in
 		// Check the parameters
 		if (szOutProcessName == NULL)
 		{
-			throw new std::exception("szOutProcessName must not be null");
+			throw std::exception("szOutProcessName must not be null");
 		}
 		if (dwOutProcessId == NULL)
 		{
-			throw new std::exception("dwOutProcessId must not be null");
+			throw std::exception("dwOutProcessId must not be null");
 		}
 
 		// Get the current process ID
