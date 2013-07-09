@@ -324,9 +324,6 @@ namespace Cloud.Sync
         // lock on FailureTimer.TimerRunningLocker for all access
         private readonly Queue<FileChange> FailedChangesQueue = new Queue<FileChange>();
 
-        // Private flag to indicate that sync is stopping.  Used to interrupt "object is disposed" exceptions.
-        private bool _isStopping = false;
-
         // Timer to handle wait callbacks to requeue failures to reprocess
         private ProcessingQueuesTimer FailedOutTimer
         {
@@ -2074,6 +2071,11 @@ namespace Cloud.Sync
                     CLError completeEventError = Data.commonThisEngine.syncData.completeSingleEvent((long)Data.eventIdToComplete.Value);
                     if (completeEventError != null)
                     {
+                        if (completeEventError.PrimaryException is CLObjectDisposedException)
+                        {
+                            throw completeEventError.PrimaryException;
+                        }
+
                         try
                         {
                             throw new CLException(CLExceptionCode.Syncing_Database, "Error on completeSingleEvent", completeEventError.Exceptions);
@@ -2092,15 +2094,12 @@ namespace Cloud.Sync
                             }
                         }
 
-                        if (!this._isStopping)
-                        {
-                            MessageEvents.FireNewEventMessage(
-                                "syncData.completeSingleEvent returned an error after completing an event: " + completeEventError.PrimaryException.Message,
-                                EventMessageLevel.Important,
-                                new HaltAllOfCloudSDKErrorInfo(),
-                                Data.syncbox,
-                                Data.deviceId);
-                        }
+                        MessageEvents.FireNewEventMessage(
+                            "syncData.completeSingleEvent returned an error after completing an event: " + completeEventError.PrimaryException.Message,
+                            EventMessageLevel.Important,
+                            new HaltAllOfCloudSDKErrorInfo(),
+                            Data.syncbox,
+                            Data.deviceId);
 
                         return true;
                     }
@@ -2624,6 +2623,11 @@ namespace Cloud.Sync
                             // if an error occurred storing the completion, then log it
                             if (sqlCompleteError != null)
                             {
+                                if (sqlCompleteError.PrimaryException is CLObjectDisposedException)
+                                {
+                                    throw sqlCompleteError.PrimaryException;
+                                }
+
                                 sqlCompleteError.Log(eventCompletion.Result.SyncSettings.TraceLocation, eventCompletion.Result.SyncSettings.LogErrors);
                             }
                         }
@@ -3251,6 +3255,11 @@ namespace Cloud.Sync
                                         CLError parentServerUidError = Data.commonThisEngine.syncData.GetServerUidByNewPath(currentChangeToCommunicate.FileChange.NewPath.Parent.ToString(), out parentServerUid);
                                         if (parentServerUidError != null)
                                         {
+                                            if (parentServerUidError.PrimaryException is CLObjectDisposedException)
+                                            {
+                                                throw parentServerUidError.PrimaryException;
+                                            }
+
                                             throw new AggregateException("Error finding parent folder server uid for current event parent folder path", parentServerUidError.Exceptions);
                                         }
                                         if (parentServerUid == null)
@@ -3265,7 +3274,14 @@ namespace Cloud.Sync
                     }
                     catch (Exception ex)
                     {
-                        errorToAccumulate.Value += ex;
+                        if (ex is CLObjectDisposedException)
+                        {
+                            errorToAccumulate.Value = ex; // replace the error with just the object disposed exception so it will be the primary exception
+                        }
+                        else
+                        {
+                            errorToAccumulate.Value += ex;
+                        }
                         return true;
                     }
 
@@ -3537,7 +3553,7 @@ namespace Cloud.Sync
                     {
                         errorToAccumulate.Value += new AggregateException("Error on completeSyncSql", completeSyncError.Exceptions);
 
-                        if (!this._isStopping)
+                        if (!(completeSyncError.PrimaryException is CLObjectDisposedException))
                         {
                             MessageEvents.FireNewEventMessage(
                             "syncData.completeSyncSql returned an error after communicating changes: " + completeSyncError.PrimaryException.Message,
@@ -3604,216 +3620,216 @@ namespace Cloud.Sync
 
             #endregion
 
-            #region assignDependenciesAfterCommunication
+            #region assignDependenciesAfterCommunication (commented out since all processing except for completing uploads has been moved to pre-processing)
 
-            var assignDependenciesAfterCommunication = DelegateAndDataHolderBase.Create(
-                new
-                {
-                    commonThisEngine = this,
-                    verifyUnderFailureTimerLock = verifyUnderFailureTimerLock,
-                    commonTopLevelErrors = commonTopLevelErrors,
-                    commonNullErrorFoundInFailureQueue = commonNullErrorFoundInFailureQueue,
-                    commonSuccessfulEventIds = commonSuccessfulEventIds,
-                    commonThingsThatWereDependenciesToQueue = commonThingsThatWereDependenciesToQueue,
-                    commonIncompleteChanges = commonIncompleteChanges,
-                    commonChangesInError = commonChangesInError,
-                    commonDequeuedFailuresIncludingNulls = commonDequeuedFailuresIncludingNulls,
-                    commonOutputChanges = commonOutputChanges,
-                    commonErrorsToQueue = commonErrorsToQueue,
-                    traceChangesEnumerableWithFlowState = traceChangesEnumerableWithFlowState,
-                    oneLineChangeFlowTrace = oneLineChangeFlowTrace,
-                    positionInChangeFlow = positionInChangeFlow,
-                    changesToTrace = changesToTrace
-                },
-                (Data, errorToAccumulate) =>
-                {
-                    Data.verifyUnderFailureTimerLock.Process();
+            //var assignDependenciesAfterCommunication = DelegateAndDataHolderBase.Create(
+            //    new
+            //    {
+            //        commonThisEngine = this,
+            //        verifyUnderFailureTimerLock = verifyUnderFailureTimerLock,
+            //        commonTopLevelErrors = commonTopLevelErrors,
+            //        commonNullErrorFoundInFailureQueue = commonNullErrorFoundInFailureQueue,
+            //        commonSuccessfulEventIds = commonSuccessfulEventIds,
+            //        commonThingsThatWereDependenciesToQueue = commonThingsThatWereDependenciesToQueue,
+            //        commonIncompleteChanges = commonIncompleteChanges,
+            //        commonChangesInError = commonChangesInError,
+            //        commonDequeuedFailuresIncludingNulls = commonDequeuedFailuresIncludingNulls,
+            //        commonOutputChanges = commonOutputChanges,
+            //        commonErrorsToQueue = commonErrorsToQueue,
+            //        traceChangesEnumerableWithFlowState = traceChangesEnumerableWithFlowState,
+            //        oneLineChangeFlowTrace = oneLineChangeFlowTrace,
+            //        positionInChangeFlow = positionInChangeFlow,
+            //        changesToTrace = changesToTrace
+            //    },
+            //    (Data, errorToAccumulate) =>
+            //    {
+            //        Data.verifyUnderFailureTimerLock.Process();
 
-                    Data.commonNullErrorFoundInFailureQueue.Value = false;
+            //        Data.commonNullErrorFoundInFailureQueue.Value = false;
 
-                    // Define a boolean to store whether an error was requeued, defaulting to false
-                    bool atLeastOneErrorAdded = false;
+            //        // Define a boolean to store whether an error was requeued, defaulting to false
+            //        bool atLeastOneErrorAdded = false;
 
-                    // Try/finally to reassign dependencies (between changes left to complete, errors that need to be reprocessed, changes which cannot be processed because they are uploads without streams, and changes in the event source which should also be compared)
-                    // On finally, if an error was requeued, start the failure queue timer
-                    try
-                    {
-                        // Try/catch to reassign dependencies (between changes left to complete, errors that need to be reprocessed, changes which cannot be processed because they are uploads without streams, and changes in the event source which should also be compared)
-                        // On catch, requeue changes which were dequeued from the error queue and rethrow the exception
-                        try
-                        {
-                            // Sort list of successully completed event ids so it can be used for binary search
-                            Data.commonSuccessfulEventIds.Sort();
+            //        // Try/finally to reassign dependencies (between changes left to complete, errors that need to be reprocessed, changes which cannot be processed because they are uploads without streams, and changes in the event source which should also be compared)
+            //        // On finally, if an error was requeued, start the failure queue timer
+            //        try
+            //        {
+            //            // Try/catch to reassign dependencies (between changes left to complete, errors that need to be reprocessed, changes which cannot be processed because they are uploads without streams, and changes in the event source which should also be compared)
+            //            // On catch, requeue changes which were dequeued from the error queue and rethrow the exception
+            //            try
+            //            {
+            //                // Sort list of successully completed event ids so it can be used for binary search
+            //                Data.commonSuccessfulEventIds.Sort();
 
-                            // Create a list of file upload changes which cannot be processed because they are missing streams
-                            List<PossiblyStreamableFileChange> uploadFilesWithoutStreams = new List<PossiblyStreamableFileChange>(
-                                (Data.commonThingsThatWereDependenciesToQueue.Value ?? Enumerable.Empty<FileChange>())
-                                    .Select(uploadFileWithoutStream => new PossiblyStreamableFileChange(uploadFileWithoutStream, null))); // reselected to appropriate format
+            //                // Create a list of file upload changes which cannot be processed because they are missing streams
+            //                List<PossiblyStreamableFileChange> uploadFilesWithoutStreams = new List<PossiblyStreamableFileChange>(
+            //                    (Data.commonThingsThatWereDependenciesToQueue.Value ?? Enumerable.Empty<FileChange>())
+            //                        .Select(uploadFileWithoutStream => new PossiblyStreamableFileChange(uploadFileWithoutStream, null))); // reselected to appropriate format
 
-                            CLError postCommunicationDependencyError;
+            //                CLError postCommunicationDependencyError;
 
-                            //Func<FileChange, GenericHolder<bool>, bool> checkForNullAndMark = (toCheck, nullFound) =>
-                            //{
-                            //    if (toCheck == null)
-                            //    {
-                            //        nullErrorFound.Value = true;
-                            //        return false;
-                            //    }
+            //                //Func<FileChange, GenericHolder<bool>, bool> checkForNullAndMark = (toCheck, nullFound) =>
+            //                //{
+            //                //    if (toCheck == null)
+            //                //    {
+            //                //        nullErrorFound.Value = true;
+            //                //        return false;
+            //                //    }
 
-                            //    return true;
-                            //};
+            //                //    return true;
+            //                //};
 
-                            lock (Data.commonThisEngine.FailedOutTimer.TimerRunningLocker)
-                            {
-                                bool previousFailedOutChange = Data.commonThisEngine.FailedOutChanges.Count > 0;
+            //                lock (Data.commonThisEngine.FailedOutTimer.TimerRunningLocker)
+            //                {
+            //                    bool previousFailedOutChange = Data.commonThisEngine.FailedOutChanges.Count > 0;
 
-                                // Declare enumerable for errors to set after dependency calculations
-                                // (will be top level a.k.a. not have any dependencies)
-                                IEnumerable<FileChange> topLevelErrors;
+            //                    // Declare enumerable for errors to set after dependency calculations
+            //                    // (will be top level a.k.a. not have any dependencies)
+            //                    IEnumerable<FileChange> topLevelErrors;
 
-                                IEnumerable<PossiblyStreamableFileChange> outputChanges;
+            //                    IEnumerable<PossiblyStreamableFileChange> outputChanges;
 
-                                // Assign dependencies through a callback to the event source,
-                                // between changes left to complete, errors that need to be reprocessed, changes which cannot be processed because they are uploads without streams, and changes in the event source which should also be compared;
-                                // Store any error returned
-                                postCommunicationDependencyError = Data.commonThisEngine.syncData.dependencyAssignment(
+            //                    // Assign dependencies through a callback to the event source,
+            //                    // between changes left to complete, errors that need to be reprocessed, changes which cannot be processed because they are uploads without streams, and changes in the event source which should also be compared;
+            //                    // Store any error returned
+            //                    postCommunicationDependencyError = Data.commonThisEngine.syncData.dependencyAssignment(
 
-                                    // first pass the enumerable of processing changes from the incomplete changes and the changes which cannot be processed due to a lack of Stream
-                                    (Data.commonIncompleteChanges.Value ?? Enumerable.Empty<PossiblyStreamableAndPossiblyChangedFileChange>())
-                                        .Select(currentIncompleteChange => new PossiblyStreamableFileChange(currentIncompleteChange.FileChange, currentIncompleteChange.StreamContext))
-                                        .Concat(uploadFilesWithoutStreams),
+            //                        // first pass the enumerable of processing changes from the incomplete changes and the changes which cannot be processed due to a lack of Stream
+            //                        (Data.commonIncompleteChanges.Value ?? Enumerable.Empty<PossiblyStreamableAndPossiblyChangedFileChange>())
+            //                            .Select(currentIncompleteChange => new PossiblyStreamableFileChange(currentIncompleteChange.FileChange, currentIncompleteChange.StreamContext))
+            //                            .Concat(uploadFilesWithoutStreams),
 
-                                    // second pass the enumerable of errors from the changes which had an error during communication and the changes that were in the queue for reprocessing
-                                    Data.commonDequeuedFailuresIncludingNulls.Value
+            //                        // second pass the enumerable of errors from the changes which had an error during communication and the changes that were in the queue for reprocessing
+            //                        Data.commonDequeuedFailuresIncludingNulls.Value
 
-                                        // filter for non-nulls, also if a null is found then mark it
-                                        .Where(dequeuedFailure =>
-                                            {
-                                                if (dequeuedFailure == null)
-                                                {
-                                                    Data.commonNullErrorFoundInFailureQueue.Value = true;
-                                                    return false;
-                                                }
-                                                return true;
-                                            })
-                                        .Concat((Data.commonChangesInError.Value ?? Enumerable.Empty<PossiblyStreamableAndPossiblyChangedFileChangeWithError>())
-                                        .Select(currentChangeInError => currentChangeInError.FileChange)
-                                        .Where(currentChangeInError => currentChangeInError != null)),// FileChange could be null for errors if there was an exeption but no FileChange was built
+            //                            // filter for non-nulls, also if a null is found then mark it
+            //                            .Where(dequeuedFailure =>
+            //                                {
+            //                                    if (dequeuedFailure == null)
+            //                                    {
+            //                                        Data.commonNullErrorFoundInFailureQueue.Value = true;
+            //                                        return false;
+            //                                    }
+            //                                    return true;
+            //                                })
+            //                            .Concat((Data.commonChangesInError.Value ?? Enumerable.Empty<PossiblyStreamableAndPossiblyChangedFileChangeWithError>())
+            //                            .Select(currentChangeInError => currentChangeInError.FileChange)
+            //                            .Where(currentChangeInError => currentChangeInError != null)),// FileChange could be null for errors if there was an exeption but no FileChange was built
 
-                                    // output changes to process
-                                    out outputChanges,
+            //                        // output changes to process
+            //                        out outputChanges,
 
-                                    // output changes to put into failure queue for reprocessing
-                                    out topLevelErrors,
+            //                        // output changes to put into failure queue for reprocessing
+            //                        out topLevelErrors,
 
-                                    FailedOutChanges);
+            //                        FailedOutChanges);
 
-                                Data.commonOutputChanges.Value = outputChanges;
-                                Data.commonTopLevelErrors.Value = topLevelErrors;
+            //                    Data.commonOutputChanges.Value = outputChanges;
+            //                    Data.commonTopLevelErrors.Value = topLevelErrors;
 
-                                if (previousFailedOutChange
-                                    && Data.commonThisEngine.FailedOutChanges.Count == 0)
-                                {
-                                    Data.commonThisEngine.FailedOutTimer.TriggerTimerCompletionImmediately();
-                                }
-                            }
+            //                    if (previousFailedOutChange
+            //                        && Data.commonThisEngine.FailedOutChanges.Count == 0)
+            //                    {
+            //                        Data.commonThisEngine.FailedOutTimer.TriggerTimerCompletionImmediately();
+            //                    }
+            //                }
 
-                            // if there was an error assigning dependencies, then rethrow exception for null outputs or aggregate error to return and continue for non-null outputs
-                            if (postCommunicationDependencyError != null)
-                            {
-                                // if either output is null, then rethrow the exception
-                                if (Data.commonOutputChanges.Value == null
-                                    || Data.commonTopLevelErrors.Value == null)
-                                {
-                                    throw new AggregateException("Error on dependencyAssignment and outputs are not set", postCommunicationDependencyError.Exceptions);
-                                }
-                                // else if both outputs were not null, then aggregate the exception to the return error
-                                else
-                                {
-                                    errorToAccumulate.Value += new AggregateException("Error on dependencyAssignment", postCommunicationDependencyError.Exceptions);
-                                }
-                            }
+            //                // if there was an error assigning dependencies, then rethrow exception for null outputs or aggregate error to return and continue for non-null outputs
+            //                if (postCommunicationDependencyError != null)
+            //                {
+            //                    // if either output is null, then rethrow the exception
+            //                    if (Data.commonOutputChanges.Value == null
+            //                        || Data.commonTopLevelErrors.Value == null)
+            //                    {
+            //                        throw new AggregateException("Error on dependencyAssignment and outputs are not set", postCommunicationDependencyError.Exceptions);
+            //                    }
+            //                    // else if both outputs were not null, then aggregate the exception to the return error
+            //                    else
+            //                    {
+            //                        errorToAccumulate.Value += new AggregateException("Error on dependencyAssignment", postCommunicationDependencyError.Exceptions);
+            //                    }
+            //                }
 
-                            // outputChanges now contains the dependency-assigned changes left to process after communication (from incompleteChanges)
+            //                // outputChanges now contains the dependency-assigned changes left to process after communication (from incompleteChanges)
 
-                            // if there were any changes to process, then set redefine the thingsThatWereDependenciesToQueue and outputChanges appropriately
-                            if (Data.commonOutputChanges.Value != null)
-                            {
-                                // if there were any file changes which could not be uploaded due to a missing stream,
-                                // then assign thingsThatWereDependenciesToQueue by processing changes which were changes that could not be processed
-                                if (uploadFilesWithoutStreams.Count > 0)
-                                {
-                                    Data.commonThingsThatWereDependenciesToQueue.Value = Data.commonOutputChanges.Value
-                                        .Select(outputChange => outputChange.FileChange)
-                                        .Intersect(Data.commonThingsThatWereDependenciesToQueue.Value);
-                                }
+            //                // if there were any changes to process, then set redefine the thingsThatWereDependenciesToQueue and outputChanges appropriately
+            //                if (Data.commonOutputChanges.Value != null)
+            //                {
+            //                    // if there were any file changes which could not be uploaded due to a missing stream,
+            //                    // then assign thingsThatWereDependenciesToQueue by processing changes which were changes that could not be processed
+            //                    if (uploadFilesWithoutStreams.Count > 0)
+            //                    {
+            //                        Data.commonThingsThatWereDependenciesToQueue.Value = Data.commonOutputChanges.Value
+            //                            .Select(outputChange => outputChange.FileChange)
+            //                            .Intersect(Data.commonThingsThatWereDependenciesToQueue.Value);
+            //                    }
 
-                                // if the enumerable of dependency changes to requeue has been cleared out (exists but contains nothing), then redefine to null
-                                if (Data.commonThingsThatWereDependenciesToQueue.Value != null
-                                    && !Data.commonThingsThatWereDependenciesToQueue.Value.Any())
-                                {
-                                    Data.commonThingsThatWereDependenciesToQueue.Value = null;
-                                }
+            //                    // if the enumerable of dependency changes to requeue has been cleared out (exists but contains nothing), then redefine to null
+            //                    if (Data.commonThingsThatWereDependenciesToQueue.Value != null
+            //                        && !Data.commonThingsThatWereDependenciesToQueue.Value.Any())
+            //                    {
+            //                        Data.commonThingsThatWereDependenciesToQueue.Value = null;
+            //                    }
 
-                                // if the resulting enumerable of dependency changes to requeue remains, then set the processing changes to the changes not in that enumerable
-                                if (Data.commonThingsThatWereDependenciesToQueue.Value != null)
-                                {
-                                    Data.commonOutputChanges.Value = Data.commonOutputChanges.Value.Where(outputChange => !Data.commonThingsThatWereDependenciesToQueue.Value.Contains(outputChange.FileChange));
-                                }
-                            }
+            //                    // if the resulting enumerable of dependency changes to requeue remains, then set the processing changes to the changes not in that enumerable
+            //                    if (Data.commonThingsThatWereDependenciesToQueue.Value != null)
+            //                    {
+            //                        Data.commonOutputChanges.Value = Data.commonOutputChanges.Value.Where(outputChange => !Data.commonThingsThatWereDependenciesToQueue.Value.Contains(outputChange.FileChange));
+            //                    }
+            //                }
 
-                            // For advanced trace, DependencyAssignmentOutputChanges and DependencyAssignmentTopLevelErrors
-                            Data.oneLineChangeFlowTrace(FileChangeFlowEntryPositionInFlow.DependencyAssignmentOutputChanges, Data.commonOutputChanges.Value.Select(outputChange => outputChange.FileChange), Data.traceChangesEnumerableWithFlowState, Data.positionInChangeFlow, Data.changesToTrace);
-                            Data.oneLineChangeFlowTrace(FileChangeFlowEntryPositionInFlow.DependencyAssignmentTopLevelErrors, Data.commonTopLevelErrors.Value, Data.traceChangesEnumerableWithFlowState, Data.positionInChangeFlow, Data.changesToTrace);
+            //                // For advanced trace, DependencyAssignmentOutputChanges and DependencyAssignmentTopLevelErrors
+            //                Data.oneLineChangeFlowTrace(FileChangeFlowEntryPositionInFlow.DependencyAssignmentOutputChanges, Data.commonOutputChanges.Value.Select(outputChange => outputChange.FileChange), Data.traceChangesEnumerableWithFlowState, Data.positionInChangeFlow, Data.changesToTrace);
+            //                Data.oneLineChangeFlowTrace(FileChangeFlowEntryPositionInFlow.DependencyAssignmentTopLevelErrors, Data.commonTopLevelErrors.Value, Data.traceChangesEnumerableWithFlowState, Data.positionInChangeFlow, Data.changesToTrace);
 
-                            // outputChanges now excludes any FileChanges which overlapped with the existing list of thingsThatWereDependenciesToQueue
-                            // (because that means the changes are file uploads without FileStreams and cannot be processed now)
+            //                // outputChanges now excludes any FileChanges which overlapped with the existing list of thingsThatWereDependenciesToQueue
+            //                // (because that means the changes are file uploads without FileStreams and cannot be processed now)
 
-                            Data.commonErrorsToQueue.Value = new List<PossiblyStreamableAndPossiblyPreexistingErrorFileChange>((Data.commonOutputChanges.Value ?? Enumerable.Empty<PossiblyStreamableFileChange>())
-                                .Select(currentOutputChange => new PossiblyStreamableAndPossiblyPreexistingErrorFileChange(false, currentOutputChange.FileChange, currentOutputChange.StreamContext)));
+            //                Data.commonErrorsToQueue.Value = new List<PossiblyStreamableAndPossiblyPreexistingErrorFileChange>((Data.commonOutputChanges.Value ?? Enumerable.Empty<PossiblyStreamableFileChange>())
+            //                    .Select(currentOutputChange => new PossiblyStreamableAndPossiblyPreexistingErrorFileChange(false, currentOutputChange.FileChange, currentOutputChange.StreamContext)));
 
-                            // errorsToQueue now contains the outputChanges from after communication and dependency assignment
-                            // (errors from communication and dependency assignment will be added immediately to failure queue
+            //                // errorsToQueue now contains the outputChanges from after communication and dependency assignment
+            //                // (errors from communication and dependency assignment will be added immediately to failure queue
 
-                            // Loop through errors returned from reassigning dependencies to requeue for failure processing
-                            foreach (FileChange currentTopLevelError in Data.commonTopLevelErrors.Value ?? Enumerable.Empty<FileChange>())
-                            {
-                                // Requeue change for failure processing
-                                Data.commonThisEngine.FailedChangesQueue.Enqueue(currentTopLevelError);
+            //                // Loop through errors returned from reassigning dependencies to requeue for failure processing
+            //                foreach (FileChange currentTopLevelError in Data.commonTopLevelErrors.Value ?? Enumerable.Empty<FileChange>())
+            //                {
+            //                    // Requeue change for failure processing
+            //                    Data.commonThisEngine.FailedChangesQueue.Enqueue(currentTopLevelError);
 
-                                // Mark that a change was queued for failure processing
-                                atLeastOneErrorAdded = true;
-                            }
-                        }
-                        catch
-                        {
-                            // On error of assigning dependencies,
-                            // put all the original failure queue items back in the failure queue;
-                            // finally, rethrow the exception
-                            for (int currentQueueIndex = 0; currentQueueIndex < Data.commonDequeuedFailuresIncludingNulls.Value.Length; currentQueueIndex++)
-                            {
-                                Data.commonThisEngine.FailedChangesQueue.Enqueue(Data.commonDequeuedFailuresIncludingNulls.Value[currentQueueIndex]);
+            //                    // Mark that a change was queued for failure processing
+            //                    atLeastOneErrorAdded = true;
+            //                }
+            //            }
+            //            catch
+            //            {
+            //                // On error of assigning dependencies,
+            //                // put all the original failure queue items back in the failure queue;
+            //                // finally, rethrow the exception
+            //                for (int currentQueueIndex = 0; currentQueueIndex < Data.commonDequeuedFailuresIncludingNulls.Value.Length; currentQueueIndex++)
+            //                {
+            //                    Data.commonThisEngine.FailedChangesQueue.Enqueue(Data.commonDequeuedFailuresIncludingNulls.Value[currentQueueIndex]);
 
-                                atLeastOneErrorAdded = true;
-                            }
-                            throw;
-                        }
-                    }
-                    finally
-                    {
-                        // No matter what, if even one change had been requeued to the failure queue, then start the failure queue timer
-                        if (atLeastOneErrorAdded)
-                        {
-                            Data.commonThisEngine.FailureTimer.StartTimerIfNotRunning();
-                        }
-                        else if (Data.commonNullErrorFoundInFailureQueue.Value)
-                        {
-                            Data.commonThisEngine.FailedChangesQueue.Enqueue(null);
-                            Data.commonThisEngine.FailureTimer.StartTimerIfNotRunning();
-                        }
-                    }
-                },
-                toReturn);
+            //                    atLeastOneErrorAdded = true;
+            //                }
+            //                throw;
+            //            }
+            //        }
+            //        finally
+            //        {
+            //            // No matter what, if even one change had been requeued to the failure queue, then start the failure queue timer
+            //            if (atLeastOneErrorAdded)
+            //            {
+            //                Data.commonThisEngine.FailureTimer.StartTimerIfNotRunning();
+            //            }
+            //            else if (Data.commonNullErrorFoundInFailureQueue.Value)
+            //            {
+            //                Data.commonThisEngine.FailedChangesQueue.Enqueue(null);
+            //                Data.commonThisEngine.FailureTimer.StartTimerIfNotRunning();
+            //            }
+            //        }
+            //    },
+            //    toReturn);
 
             #endregion
 
@@ -4135,6 +4151,10 @@ namespace Cloud.Sync
                 }
 
                 Exception disconnectedException = checkInternetConnection.TypedProcess();
+                if (disconnectedException is CLObjectDisposedException)
+                {
+                    return disconnectedException;
+                }
                 bool internetDisconnected = (disconnectedException != null);
                 // notify internet state only once the time when the connection status changes 
                 if (_lastInternetDisconnected != internetDisconnected)
@@ -4313,6 +4333,11 @@ namespace Cloud.Sync
                             // if an exception occurred during server communication, then aggregate it into the return error
                             if (commonCommunicationException.Value != null)
                             {
+		                        if (commonCommunicationException.Value is CLObjectDisposedException)
+		                        {
+                                    return commonCommunicationException.Value; // short-circuit the rest of sync run since the exception was caused by shutdown
+		                        }
+
                                 toReturn.Value += commonCommunicationException.Value;
                             }
                             // else if no exception occurred during server communication and the server was not contacted for a new sync id, then only update status
@@ -4794,14 +4819,6 @@ namespace Cloud.Sync
         private readonly GenericHolder<CLSyncCurrentStatus> StatusHolder = new GenericHolder<CLSyncCurrentStatus>(null);
 
         /// <summary>
-        /// Call this when the user is stopping sync to give early warning to prevent spurious notification of errors.
-        /// </summary>
-        public void Stopping()
-        {
-            _isStopping = true;
-        }
-
-        /// <summary>
         /// Call this to terminate all sync threads including active uploads and downloads;
         /// after calling this, a restart is required to sync again
         /// </summary>
@@ -5007,6 +5024,12 @@ namespace Cloud.Sync
                                 }
                                 catch (Exception ex)
                                 {
+                                    if (ex is CLObjectDisposedException)
+                                    {
+                                        appendErrors.Value = null; // clear out the error so when the object disposed exception is added it will be the primary exception
+                                        throw ex;
+                                    }
+
                                     // add exception followed by Stream to return error (order is important, if the return error was null then the first thing added determines the error description)
                                     appendErrors.Value += ex;
                                     appendErrors.Value += errorToQueue.Stream;
@@ -5211,6 +5234,11 @@ namespace Cloud.Sync
                         // if an error occurred performing the event, rethrow the error
                         if (applyChangeError != null)
                         {
+                            if (applyChangeError.PrimaryException is CLObjectDisposedException)
+                            {
+                                throw applyChangeError.PrimaryException;
+                            }
+
                             try
                             {
                                 MessageEvents.FireNewEventMessage(
@@ -5499,6 +5527,11 @@ namespace Cloud.Sync
                             CLError mergeDeletionError = castState.SyncData.mergeToSql(Helpers.EnumerateSingleItem(new FileChangeMerge(MergeTo: null, MergeFrom: castState.FileToUpload)));
                             if (mergeDeletionError == null)
                             {
+                                if (mergeDeletionError.PrimaryException is CLObjectDisposedException)
+                                {
+                                    throw mergeDeletionError.PrimaryException;
+                                }
+
                                 // clear status
                                 //
                                 if (castState != null
@@ -7602,6 +7635,11 @@ namespace Cloud.Sync
 
                             if (searchExistingServerUidIdForPendingSyncToCreateError != null)
                             {
+                                if (searchExistingServerUidIdForPendingSyncToCreateError.PrimaryException is CLObjectDisposedException)
+                                {
+                                    throw searchExistingServerUidIdForPendingSyncToCreateError.PrimaryException;
+                                }
+
                                 throw new AggregateException("Error searching for existing, pending, sync to, creation for name and parent \"uid\"", searchExistingServerUidIdForPendingSyncToCreateError.Exceptions);
                             }
 
@@ -7621,6 +7659,11 @@ namespace Cloud.Sync
 
                                 if (queryServerUidError != null)
                                 {
+                                    if (queryServerUidError.PrimaryException is CLObjectDisposedException)
+                                    {
+                                        throw queryServerUidError.PrimaryException;
+                                    }
+
                                     throw new AggregateException("Error creating ServerUid", queryServerUidError.Exceptions);
                                 }
                             }
@@ -8869,6 +8912,11 @@ namespace Cloud.Sync
                                                     // if there was an error querying the database for existing metadata, then rethrow the error
                                                     if (queryMetadataError != null)
                                                     {
+                                                        if (queryMetadataError.PrimaryException is CLObjectDisposedException)
+                                                        {
+                                                            throw queryMetadataError.PrimaryException;
+                                                        }
+
                                                         throw new AggregateException("Error querying SqlIndexer for sync state by path: " + currentChange.OldPath.ToString() +
                                                             " and revision: " + ReturnAndPossiblyFillUidAndRevision(uidStorage, syncData, currentChange.Metadata.ServerUidId).Revision, queryMetadataError.Exceptions);
                                                     }
@@ -9013,6 +9061,11 @@ namespace Cloud.Sync
                                                             // if an error occurred merging the new FileChange with the event source database, then rethrow the error
                                                             if (newPathCreationError != null)
                                                             {
+                                                                if (newPathCreationError.PrimaryException is CLObjectDisposedException)
+                                                                {
+                                                                    throw newPathCreationError.PrimaryException;
+                                                                }
+
                                                                 throw new AggregateException("Error merging new file creation change in response to not finding existing metadata at sync from rename old path", newPathCreationError.Exceptions);
                                                             }
 
@@ -9202,12 +9255,22 @@ namespace Cloud.Sync
                                                                                 CLError mergeDuplicateChange = syncData.mergeToSql(Helpers.EnumerateSingleItem(new FileChangeMerge(duplicateChange)));
                                                                                 if (mergeDuplicateChange != null)
                                                                                 {
+                                                                                    if (mergeDuplicateChange.PrimaryException is CLObjectDisposedException)
+                                                                                    {
+                                                                                        throw mergeDuplicateChange.PrimaryException;
+                                                                                    }
+
                                                                                     throw new AggregateException("Error writing duplicate file change to database after communication: " + mergeDuplicateChange.PrimaryException.Message, mergeDuplicateChange.Exceptions);
                                                                                 }
 
                                                                                 CLError completeDuplicateChange = syncData.completeSingleEvent(duplicateChange.EventId);
                                                                                 if (completeDuplicateChange != null)
                                                                                 {
+                                                                                    if (completeDuplicateChange.PrimaryException is CLObjectDisposedException)
+                                                                                    {
+                                                                                        throw completeDuplicateChange.PrimaryException;
+                                                                                    }
+
                                                                                     throw new AggregateException("Error marking duplicate file change complete in database: " + completeDuplicateChange.PrimaryException.Message, completeDuplicateChange.Exceptions);
                                                                                 }
                                                                             }
@@ -10111,8 +10174,22 @@ namespace Cloud.Sync
                                                                         }
                                                                     }
 
-                                                                    using (Cloud.SQLIndexer.Model.SQLTransactionalBase sqlTran = syncData.GetNewTransaction())
+                                                                    KeyValuePair<Cloud.SQLIndexer.Model.SQLTransactionalBase, CLError> tranAndError = syncData.GetNewTransaction();
+
+                                                                    try
                                                                     {
+                                                                        if (tranAndError.Value != null)
+                                                                        {
+                                                                            throw tranAndError.Value.PrimaryException;
+                                                                        }
+
+                                                                        Cloud.SQLIndexer.Model.SQLTransactionalBase sqlTran = tranAndError.Key;
+
+                                                                        if (sqlTran == null)
+                                                                        {
+                                                                            throw new CLNullReferenceException(CLExceptionCode.Syncing_LiveSyncEngine, Resources.ExceptionFileMonitorAssignDependenciesNullTransaction);
+                                                                        }
+                                                                    
                                                                         // remove the previous conflict change from the event source database, storing any error that occurred
                                                                         //
                                                                         // make sure removal uses a FileChange with the originalConflictPath since the paths are used in badging to clear out the original location's badge
@@ -10127,6 +10204,11 @@ namespace Cloud.Sync
                                                                         // if an error occurred removing the previous conflict change, then rethrow the error
                                                                         if (removalOfPreviousChange != null)
                                                                         {
+                                                                            if (removalOfPreviousChange.PrimaryException is CLObjectDisposedException)
+                                                                            {
+                                                                                throw removalOfPreviousChange.PrimaryException;
+                                                                            }
+
                                                                             throw new AggregateException("Error removing the existing FileChange for a conflict", removalOfPreviousChange.Exceptions);
                                                                         }
 
@@ -10135,6 +10217,11 @@ namespace Cloud.Sync
                                                                         // if there was an error adding the local rename change, then readd the reverted conflict change to the event source database and rethrow the error
                                                                         if (addRenameToConflictPath != null)
                                                                         {
+                                                                            if (addRenameToConflictPath.PrimaryException is CLObjectDisposedException)
+                                                                            {
+                                                                                throw addRenameToConflictPath.PrimaryException;
+                                                                            }
+
                                                                             currentChange.Type = storeType;
                                                                             currentChange.NewPath = storePath;
                                                                             // Update the serverUid record here.
@@ -10155,6 +10242,11 @@ namespace Cloud.Sync
                                                                         // if an error occurred writing the original conflict as a file creation, then remove the added rename change and readd the reverted conflict change to the event source database and rethrow the error
                                                                         if (addModifiedConflictAsCreate != null)
                                                                         {
+                                                                            if (addModifiedConflictAsCreate.PrimaryException is CLObjectDisposedException)
+                                                                            {
+                                                                                throw addModifiedConflictAsCreate.PrimaryException;
+                                                                            }
+
                                                                             currentChange.EventId = storeEventId;
                                                                             currentChange.Type = storeType;
                                                                             currentChange.NewPath = storePath;
@@ -10182,6 +10274,19 @@ namespace Cloud.Sync
 
                                                                         // need to remove the badge at the conflict path here since when the rename completes it will try to move the badge to the rename location and get blocked
                                                                         MessageEvents.ApplyFileChangeMergeToChangeState(this, new FileChangeMerge(null, currentChange));   // Message to invoke BadgeNet.IconOverlay.QueueNewEventBadge(currentMergeToFrom.MergeTo, currentMergeToFrom.MergeFrom)
+                                                                    }
+                                                                    finally
+                                                                    {
+                                                                        if (tranAndError.Key != null)
+                                                                        {
+                                                                            try
+                                                                            {
+                                                                                tranAndError.Key.Dispose();
+                                                                            }
+                                                                            catch
+                                                                            {
+                                                                            }
+                                                                        }
                                                                     }
 
                                                                     // store the succesfully created rename change with the modified conflict change as the current change to process
@@ -10718,6 +10823,11 @@ namespace Cloud.Sync
 
                                 if (queryServerUidError != null)
                                 {
+                                    if (queryServerUidError.PrimaryException is CLObjectDisposedException)
+                                    {
+                                        throw queryServerUidError.PrimaryException;
+                                    }
+
                                     throw new AggregateException("Error querying or creating ServerUid", queryServerUidError.Exceptions);
                                 }
 
@@ -10927,6 +11037,11 @@ namespace Cloud.Sync
                                         // if there was an error querying the database for existing metadata, then rethrow the error
                                         if (queryMetadataError != null)
                                         {
+                                            if (queryMetadataError.PrimaryException is CLObjectDisposedException)
+                                            {
+                                                throw queryMetadataError.PrimaryException;
+                                            }
+
                                             throw new AggregateException("Error querying SqlIndexer for sync state by path: " + currentChange.OldPath.ToString() +
                                                 " and revision: " + ReturnAndPossiblyFillUidAndRevision(uidStorage, syncData, currentChange.Metadata.ServerUidId).Revision, queryMetadataError.Exceptions);
                                         }
@@ -11015,6 +11130,11 @@ namespace Cloud.Sync
 
                                             if (queryServerUidError != null)
                                             {
+                                                if (queryServerUidError.PrimaryException is CLObjectDisposedException)
+                                                {
+                                                    throw queryServerUidError.PrimaryException;
+                                                }
+
                                                 throw new AggregateException("Error querying or creating ServerUid", queryServerUidError.Exceptions);
                                             }
 
@@ -11043,6 +11163,11 @@ namespace Cloud.Sync
                                             // if an error occurred merging the new FileChange with the event source database, then rethrow the error
                                             if (newPathCreationError != null)
                                             {
+                                                if (newPathCreationError.PrimaryException is CLObjectDisposedException)
+                                                {
+                                                    throw newPathCreationError.PrimaryException;
+                                                }
+
                                                 throw new AggregateException("Error merging new file creation change in response to not finding existing metadata at sync from rename old path", newPathCreationError.Exceptions);
                                             }
 
@@ -11208,12 +11333,22 @@ namespace Cloud.Sync
                                                                 CLError mergeDuplicateChange = syncData.mergeToSql(Helpers.EnumerateSingleItem(new FileChangeMerge(duplicateChange)));
                                                                 if (mergeDuplicateChange != null)
                                                                 {
+                                                                    if (mergeDuplicateChange.PrimaryException is CLObjectDisposedException)
+                                                                    {
+                                                                        throw mergeDuplicateChange.PrimaryException;
+                                                                    }
+
                                                                     throw new AggregateException("Error writing duplicate file change to database after communication: " + mergeDuplicateChange.PrimaryException.Message, mergeDuplicateChange.Exceptions);
                                                                 }
 
                                                                 CLError completeDuplicateChange = syncData.completeSingleEvent(duplicateChange.EventId);
                                                                 if (completeDuplicateChange != null)
                                                                 {
+                                                                    if (completeDuplicateChange.PrimaryException is CLObjectDisposedException)
+                                                                    {
+                                                                        throw completeDuplicateChange.PrimaryException;
+                                                                    }
+
                                                                     throw new AggregateException("Error marking duplicate file change complete in database: " + completeDuplicateChange.PrimaryException.Message, completeDuplicateChange.Exceptions);
                                                                 }
                                                             }
@@ -11697,7 +11832,16 @@ namespace Cloud.Sync
                     toRetry.FileChange.DoNotAddToSQLIndex = false;
 
                     // remove the cancelled out event from the event source database
-                    syncData.mergeToSql(Helpers.EnumerateSingleItem(new FileChangeMerge(null, toRetry.FileChange)));
+                    CLError removeCancelledEventError = syncData.mergeToSql(Helpers.EnumerateSingleItem(new FileChangeMerge(null, toRetry.FileChange)));
+                    if (removeCancelledEventError != null)
+                    {
+                        if (removeCancelledEventError.PrimaryException is CLObjectDisposedException)
+                        {
+                            throw removeCancelledEventError.PrimaryException;
+                        }
+
+                        throw new CLException(CLExceptionCode.Syncing_LiveSyncEngine, Resources.ExceptionSyncEngineContinueToRetryErrorCancellingEvent, removeCancelledEventError.Exceptions);
+                    }
 
                     FileChangeWithDependencies castNotFound = toRetry.FileChange as FileChangeWithDependencies;
                     if (castNotFound != null
@@ -11735,7 +11879,6 @@ namespace Cloud.Sync
 
                 // stop retrying the FileChange via the FailureQueue
                 return false;
-
             }
         }
 

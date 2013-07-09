@@ -66,20 +66,24 @@ namespace Cloud.FileMonitor.SyncImplementation
             return this.Indexer.SearchExistingServerUidIdForPendingSyncToCreate(name, parentFolderServerUid, out existingServerUidId);
         }
         
-        /// <summary>
-        /// ¡¡ Call this carefully, completely wipes index database (use when user deletes local repository or relinks) !!
-        /// </summary>
-        /// <param name="newRootPath">Full path string to directory to sync without any trailing slash (except for drive letter root)</param>
-        /// <returns>Returns any error that occurred while wiping the database index</returns>
-        public CLError WipeIndex(string newRootPath)
-        {
-            return this.Indexer.WipeIndex(newRootPath);
-        }
+        //// unnecessary interface method, since this is forwarded through a direct reference to IndexingAgent from CLSyncEngine
+        //
+        ///// <summary>
+        ///// ¡¡ Call this carefully, completely wipes index database (use when user deletes local repository or relinks) !!
+        ///// </summary>
+        ///// <param name="newRootPath">Full path string to directory to sync without any trailing slash (except for drive letter root)</param>
+        ///// <returns>Returns any error that occurred while wiping the database index</returns>
+        //public CLError WipeIndex(string newRootPath)
+        //{
+        //    return this.Indexer.WipeIndex(newRootPath);
+        //}
 
-        public CLError ChangeSyncboxPath(string newSyncboxPath)
-        {
-            return this.Indexer.ChangeSyncboxPath(newSyncboxPath);
-        }
+        //// unnecessary interface method, since this is forwarded through a direct reference to IndexingAgent from CLSyncEngine
+        //
+        //public CLError ChangeSyncboxPath(string newSyncboxPath)
+        //{
+        //    return this.Indexer.ChangeSyncboxPath(newSyncboxPath);
+        //}
 
         /// <summary>
         /// The SyncData constructor.  Specify the file monitor agent and
@@ -145,7 +149,7 @@ namespace Cloud.FileMonitor.SyncImplementation
         /// <summary>
         /// Creates a new transactional object which can be passed back into database access calls and externalizes the ability to dispose or commit the transaction
         /// </summary>
-        public SQLTransactionalBase GetNewTransaction()
+        public KeyValuePair<SQLTransactionalBase, CLError> GetNewTransaction()
         {
             return Indexer.GetNewTransaction();
         }
@@ -173,39 +177,58 @@ namespace Cloud.FileMonitor.SyncImplementation
         {
             get
             {
-                Indexer.LastSyncLocker.EnterReadLock();
+                bool readEntered = false;
+                try
+                {
+                    Indexer.LastSyncLocker.EnterReadLock();
+                    readEntered = true;
+                }
+                catch
+                {
+                }
                 try
                 {
                     return Indexer.LastSyncId;
                 }
                 finally
                 {
-                    Indexer.LastSyncLocker.ExitReadLock();
+                    if (readEntered)
+                    {
+                        try
+                        {
+                            Indexer.LastSyncLocker.ExitReadLock();
+                        }
+                        catch
+                        {
+                        }
+                    }
                 }
             }
         }
 
-        /// <summary>
-        /// Assign file change event dependencies.
-        /// </summary>
-        /// <param name="toAssign">The set of file change events for which to assign dependencies.</param>
-        /// <param name="currentFailures">The current set of file change events in error.</param>
-        /// <param name="outputChanges">(output) The new set of top-level file change events to process.</param>
-        /// <param name="outputFailures">(output) The new set of file change events in error.</param>
-        /// <param name="failedOutChanges">(optional) The list containing failed out changes which should be locked if it exists by the method caller</param>
-        /// <returns>An aggregated error or null.</returns>
-        public CLError dependencyAssignment(IEnumerable<PossiblyStreamableFileChange> toAssign,
-            IEnumerable<FileChange> currentFailures,
-            out IEnumerable<PossiblyStreamableFileChange> outputChanges,
-            out IEnumerable<FileChange> outputFailures,
-            List<FileChange> failedOutChanges = null)
-        {
-            return Monitor.AssignDependencies(toAssign,
-                currentFailures,
-                out outputChanges,
-                out outputFailures,
-                failedOutChanges);
-        }
+        //// commented out since all processing except for completing uploads has been moved to pre-processing
+        //
+        ///// <summary>
+        ///// Assign file change event dependencies.
+        ///// </summary>
+        ///// <param name="toAssign">The set of file change events for which to assign dependencies.</param>
+        ///// <param name="currentFailures">The current set of file change events in error.</param>
+        ///// <param name="outputChanges">(output) The new set of top-level file change events to process.</param>
+        ///// <param name="outputFailures">(output) The new set of file change events in error.</param>
+        ///// <param name="failedOutChanges">(optional) The list containing failed out changes which should be locked if it exists by the method caller</param>
+        ///// <returns>An aggregated error or null.</returns>
+        //public CLError dependencyAssignment(IEnumerable<PossiblyStreamableFileChange> toAssign,
+        //    IEnumerable<FileChange> currentFailures,
+        //    out IEnumerable<PossiblyStreamableFileChange> outputChanges,
+        //    out IEnumerable<FileChange> outputFailures,
+        //    List<FileChange> failedOutChanges = null)
+        //{
+        //    return Monitor.AssignDependencies(toAssign,
+        //        currentFailures,
+        //        out outputChanges,
+        //        out outputFailures,
+        //        failedOutChanges);
+        //}
 
         /// <summary>
         /// Applies a Sync_From FileChange to the local file system i.e. a folder creation would cause the local FileSystem to create a folder locally;

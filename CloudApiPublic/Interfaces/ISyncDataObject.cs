@@ -20,17 +20,21 @@ namespace Cloud.Interfaces
     [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
     public interface ISyncDataObject
     {
-        /// <summary>
-        /// ¡¡ Call this carefully, completely wipes index database (use when user deletes local repository or relinks) !!
-        /// </summary>
-        /// <param name="newRootPath">Full path string to directory to sync without any trailing slash (except for drive letter root)</param>
-        /// <returns>Returns any error that occurred while wiping the database index</returns>
-        CLError WipeIndex(string newRootPath);
-        
-        /// <summary>
-        /// Call this when the location of the sync folder has changed (while syncing is stopped) to update the entire index to all new paths based in the new root folder
-        /// </summary>
-        CLError ChangeSyncboxPath(string newSyncboxPath);
+        //// unnecessary interface method, since this is forwarded through a direct reference to IndexingAgent from CLSyncEngine
+        //
+        ///// <summary>
+        ///// ¡¡ Call this carefully, completely wipes index database (use when user deletes local repository or relinks) !!
+        ///// </summary>
+        ///// <param name="newRootPath">Full path string to directory to sync without any trailing slash (except for drive letter root)</param>
+        ///// <returns>Returns any error that occurred while wiping the database index</returns>
+        //CLError WipeIndex(string newRootPath);
+
+        //// unnecessary interface method, since this is forwarded through a direct reference to IndexingAgent from CLSyncEngine
+        //
+        ///// <summary>
+        ///// Call this when the location of the sync folder has changed (while syncing is stopped) to update the entire index to all new paths based in the new root folder
+        ///// </summary>
+        //CLError ChangeSyncboxPath(string newSyncboxPath);
 
         /// <summary>
         /// Callback from SyncEngine to retrieve events to process, with dependencies assigned;
@@ -67,7 +71,7 @@ namespace Cloud.Interfaces
         /// <summary>
         /// Creates a new transactional object which can be passed back into database access calls and externalizes the ability to dispose or commit the transaction
         /// </summary>
-        SQLTransactionalBase GetNewTransaction();
+        KeyValuePair<SQLTransactionalBase, CLError> GetNewTransaction();
 
         /// <summary>
         /// Callback from SyncEngine for updating database with changes to FileChanges
@@ -106,22 +110,24 @@ namespace Cloud.Interfaces
         /// </summary>
         string getLastSyncId { get; }
 
-        /// <summary>
-        /// Callback from SyncEngine to assign dependencies between provided processing changes (toAssign), currentFailures, and any events queued in the event source for the next grabChangesFromFileSystemMonitor callback;
-        /// For events pulled from the queue for the next grabChangesFromFileSystemMonitor callback into one of the outputs, make sure to not return them on the next grabChangesFromFileSystemMonitor callback unless added back again via addChangesToProcessingQueue callback;
-        /// Any streams which are not returned in outputChanges (at the highest level only) should be disposed
-        /// </summary>
-        /// <param name="toAssign">Processing changes (may have dependencies)</param>
-        /// <param name="currentFailures">Current failures which would be reprocessed later (may have dependencies)</param>
-        /// <param name="outputChanges">(output) Changes without dependencies (highest level) to process only with original streams from toAssign input (do not start new streams); dependencies should have no streams</param>
-        /// <param name="outputFailures">(output) Changes which will be placed back into the failure queue for reprocessing later</param>
-        /// <param name="failedOutChanges">(optional) The list containing failed out changes which should be locked if it exists by the method caller</param>
-        /// <returns>Should return any error that occurred while rebuilding the dependency trees, should not throw any exception</returns>
-        CLError dependencyAssignment(IEnumerable<PossiblyStreamableFileChange> toAssign,
-            IEnumerable<FileChange> currentFailures,
-            out IEnumerable<PossiblyStreamableFileChange> outputChanges,
-            out IEnumerable<FileChange> outputFailures,
-            List<FileChange> failedOutChanges = null);
+        //// commented out since all processing except for completing uploads has been moved to pre-processing
+        //
+        ///// <summary>
+        ///// Callback from SyncEngine to assign dependencies between provided processing changes (toAssign), currentFailures, and any events queued in the event source for the next grabChangesFromFileSystemMonitor callback;
+        ///// For events pulled from the queue for the next grabChangesFromFileSystemMonitor callback into one of the outputs, make sure to not return them on the next grabChangesFromFileSystemMonitor callback unless added back again via addChangesToProcessingQueue callback;
+        ///// Any streams which are not returned in outputChanges (at the highest level only) should be disposed
+        ///// </summary>
+        ///// <param name="toAssign">Processing changes (may have dependencies)</param>
+        ///// <param name="currentFailures">Current failures which would be reprocessed later (may have dependencies)</param>
+        ///// <param name="outputChanges">(output) Changes without dependencies (highest level) to process only with original streams from toAssign input (do not start new streams); dependencies should have no streams</param>
+        ///// <param name="outputFailures">(output) Changes which will be placed back into the failure queue for reprocessing later</param>
+        ///// <param name="failedOutChanges">(optional) The list containing failed out changes which should be locked if it exists by the method caller</param>
+        ///// <returns>Should return any error that occurred while rebuilding the dependency trees, should not throw any exception</returns>
+        //CLError dependencyAssignment(IEnumerable<PossiblyStreamableFileChange> toAssign,
+        //    IEnumerable<FileChange> currentFailures,
+        //    out IEnumerable<PossiblyStreamableFileChange> outputChanges,
+        //    out IEnumerable<FileChange> outputFailures,
+        //    List<FileChange> failedOutChanges = null);
 
         /// <summary>
         /// Callback from SyncEngine to perform the action of a FileChange locally (i.e. for a Sync From Folder Creation, actually create the folder on disk);
