@@ -31,8 +31,8 @@ int _tmain(int argc, _TCHAR* argv[])
 	{
 		for (int indexBadgeType = cloudAppBadgeSynced; indexBadgeType <= nMaxBadgeTypeToSimulate; indexBadgeType++)
 		{
-			pSimulators[indexExplorer][indexBadgeType] = new CExplorerSimulator();
-			pSimulators[indexExplorer][indexBadgeType]->Initialize(indexExplorer, indexBadgeType);
+			pSimulators[indexExplorer][indexBadgeType - 1] = new CExplorerSimulator();
+			pSimulators[indexExplorer][indexBadgeType - 1]->Initialize(indexExplorer, indexBadgeType);
 		}
 	}
 
@@ -43,9 +43,9 @@ int _tmain(int argc, _TCHAR* argv[])
 	// Stop the test workers.
 	for (int indexExplorer = 0; indexExplorer < nExplorersToSimulate; indexExplorer++)
 	{
-		for (int indexBadgeType = cloudAppBadgeSynced; indexBadgeType <= cloudAppBadgeSelective; indexBadgeType++)
+		for (int indexBadgeType = cloudAppBadgeSynced; indexBadgeType <= nMaxBadgeTypeToSimulate; indexBadgeType++)
 		{
-			pSimulators[indexExplorer][indexBadgeType]->Terminate();
+			pSimulators[indexExplorer][indexBadgeType - 1]->Terminate();
 		}
 	}
 

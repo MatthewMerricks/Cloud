@@ -36,7 +36,9 @@ namespace Cloud.BadgeNET
     /// <summary>
     /// IconOverlay is responsible for keeping a list of badges and synchronizing them with BadgeCOM (the Windows shell extensions for icon overlays)
     /// </summary>
-    internal sealed class IconOverlay : IDisposable
+    // \cond
+    [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)] //Hide From Intellisense
+    public sealed class IconOverlay : IDisposable
     {
         private CLTrace _trace;
         private ICLSyncSettingsAdvanced _syncSettings;
@@ -2230,4 +2232,5 @@ namespace Cloud.BadgeNET
         }
         #endregion
     }
+    // \endcond
 }
