@@ -265,6 +265,7 @@ namespace Cloud
                 try
                 {
                     _propertyChangeLocker.EnterReadLock();
+                    readEntered = true;
                 }
                 catch
                 {
