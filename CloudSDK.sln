@@ -85,6 +85,9 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZCopyObfuscatedCloudDll", "ZCopyObfuscatedCloudDll\ZCopyObfuscatedCloudDll.csproj", "{6EDE6C37-169A-4217-B99D-468DD8D8B558}"
 EndProject
 Project("{6A33194D-4951-4609-9DFA-157124CDCEF8}") = "ObfuscateCloud", "ObfuscateCloud\ObfuscateCloud.dsoprojx", "{6A33194D-4951-4609-9DFA-157124CDCEF8}"
+	ProjectSection(ProjectDependencies) = postProject
+		{CBFD5A87-0104-472C-8411-95DA030CDE6E} = {CBFD5A87-0104-472C-8411-95DA030CDE6E}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
