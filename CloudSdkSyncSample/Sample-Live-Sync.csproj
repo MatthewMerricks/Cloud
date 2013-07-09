@@ -41,11 +41,10 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
   <PropertyGroup>
-    <SignAssembly>false</SignAssembly>
+    <SignAssembly>true</SignAssembly>
   </PropertyGroup>
   <PropertyGroup>
-    <AssemblyOriginatorKeyFile>
-    </AssemblyOriginatorKeyFile>
+    <AssemblyOriginatorKeyFile>CloudPlatformCodeSigning.pfx</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
     <!--AUTO-BUILD CLOUD.DLL TAG-->
@@ -166,6 +165,7 @@
     <None Include="app.manifest">
       <SubType>Designer</SubType>
     </None>
+    <None Include="CloudPlatformCodeSigning.pfx" />
     <None Include="TraceConfig\CloudTraceLevel.ini" />
     <None Include="TraceConfig\EnableTrace.ini" />
     <None Include="Properties\Settings.settings">

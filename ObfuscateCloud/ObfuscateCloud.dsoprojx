@@ -1,0 +1,123 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
+  <PropertyGroup>
+    <DeepSeaExtensionsPath Condition=" '$(DeepSeaExtensionsPath)' == '' ">$(MSBuildExtensionsPath)\DeepSea Obfuscator\v4</DeepSeaExtensionsPath>
+    <RootNamespace>ObfuscateCloud</RootNamespace>
+    <KeyFile>C:\CertBackup\CloudSigning\CloudPlatformCodeSigning.pfx</KeyFile>
+    <KeyPassword>
+    </KeyPassword>
+    <ConfigFile>C:\Cloud\CloudSDK-Windows\CloudApiPublic\Cloud.dsoconfig</ConfigFile>
+    <OutputType>Library</OutputType>
+    <AssemblyName>Cloud</AssemblyName>
+  </PropertyGroup>
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition="'$(Platform)' == '' ">AnyCPU</Platform>
+    <Name>DeepSea Obfuscation Project</Name>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{6A33194D-4951-4609-9DFA-157124CDCEF8}</ProjectGuid>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+    <OutputPath>bin\Debug\</OutputPath>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+    <OutputPath>bin\Release\</OutputPath>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="BadgeCOMLib, Version=0.2.6.2, Culture=neutral, PublicKeyToken=840eb90fa4503c3c, processorArchitecture=MSIL">
+      <HintPath>..\3rdParty\bin\Release\BadgeCOMLib.dll</HintPath>
+    </Reference>
+    <Reference Include="Interop.Shell32, Version=1.0.0.0, Culture=neutral, PublicKeyToken=840eb90fa4503c3c, processorArchitecture=MSIL">
+      <HintPath>..\3rdParty\bin\Release\Interop.Shell32.dll</HintPath>
+      <SpecificVersion>True</SpecificVersion>
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </Reference>
+    <Reference Include="Microsoft.Net.Http.CSDK, Version=0.3.0.0, Culture=neutral, PublicKeyToken=840eb90fa4503c3c, processorArchitecture=MSIL">
+      <HintPath>..\3rdParty\bin\Release\Microsoft.Net.Http.CSDK.dll</HintPath>
+      <SpecificVersion>True</SpecificVersion>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.Practices.ServiceLocation.CSDK, Version=1.0.0.0, Culture=neutral, PublicKeyToken=840eb90fa4503c3c, processorArchitecture=MSIL">
+      <HintPath>..\3rdParty\bin\Release\Microsoft.Practices.ServiceLocation.CSDK.dll</HintPath>
+      <SpecificVersion>True</SpecificVersion>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.VisualBasic" />
+    <Reference Include="Newtonsoft.Json.CSDK, Version=4.5.0.0, Culture=neutral, PublicKeyToken=840eb90fa4503c3c, processorArchitecture=MSIL">
+      <HintPath>..\3rdParty\bin\Release\Newtonsoft.Json.CSDK.dll</HintPath>
+      <SpecificVersion>True</SpecificVersion>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+    <Reference Include="SimpleJson.CSDK, Version=0.1.0.0, Culture=neutral, PublicKeyToken=840eb90fa4503c3c, processorArchitecture=MSIL">
+      <HintPath>..\3rdParty\bin\Release\SimpleJson.CSDK.dll</HintPath>
+      <Aliases>global,SimpleJsonBase</Aliases>
+      <SpecificVersion>True</SpecificVersion>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Data.Entity" />
+    <Reference Include="System.Data.SQLite32, Version=1.0.84.0, Culture=neutral, PublicKeyToken=840eb90fa4503c3c, processorArchitecture=x86">
+      <HintPath>..\3rdParty\bin\Release\System.Data.SQLite32.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Data.SQLite64, Version=1.0.84.0, Culture=neutral, PublicKeyToken=840eb90fa4503c3c, processorArchitecture=AMD64">
+      <HintPath>..\3rdParty\bin\Release64\System.Data.SQLite64.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Management" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.Security" />
+    <Reference Include="System.Transactions" />
+    <Reference Include="System.Xaml" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+    <Reference Include="WindowsBase" />
+  </ItemGroup>
+  <ItemGroup>
+    <InputAssembly Include="..\CloudApiPublic\bin\Release\Cloud.dll" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.Common.targets" />
+  <Import Project="$(DeepSeaExtensionsPath)\DeepSea.Obfuscator.Project.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>
+      echo ************  START POST BUILD STEPS **********************
+
+      REM ----- Copy the CloudApiPublic binaries only for the Release build  -----------------
+      if /I $(ConfigurationName) == Debug goto DoneWithCloudApiPublic
+
+      REM ----------------------
+      set ErrorTracker=1
+      echo copy $(TargetPath) $(SolutionDir)CloudSdkSyncSample\bin\Release\$(TargetFileName)
+      copy $(TargetPath) $(SolutionDir)CloudSdkSyncSample\bin\Release\$(TargetFileName)
+      if errorlevel 1 goto BuildEventFailed
+
+      set ErrorTracker=2
+      echo copy $(TargetPath) $(SolutionDir)CloudSdkSyncSample\bin\Debug\$(TargetFileName)
+      copy $(TargetPath) $(SolutionDir)CloudSdkSyncSample\bin\Debug\$(TargetFileName)
+      if errorlevel 1 goto BuildEventFailed
+
+
+      :DoneWithCloudApiPublic
+
+
+      REM ---- PLACE THIS CODE AT THE END
+      REM Exit properly because the build will not fail
+      REM unless the final step exits with an error code
+      goto BuildEventOK
+      :BuildEventFailed
+      echo POSTBUILDSTEP for $(ProjectName) FAILED at step %ErrorTracker%
+      set ErrorTracker=
+      echo ************  POST BUILD STEP COMPLETED WITH ERROR **********************
+      exit 1
+      :BuildEventOK
+      echo POSTBUILDSTEP for $(ProjectName) COMPLETED OK
+      echo ************  POST BUILD STEP COMPLETED OK **********************
+    </PostBuildEvent>
+  </PropertyGroup>
+</Project>
