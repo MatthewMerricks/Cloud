@@ -144,6 +144,34 @@ namespace Cloud.Model
         }
         private Queue<FileChange> _failedChangesQueue;
 
+        public ProcessingQueuesTimer FailedOutTimer
+        {
+            get
+            {
+                if (!_fileChange.IsValid
+                    || !IsValid)
+                {
+                    throw new ArgumentException("Cannot retrieve property values on an invalid PossiblyStreamableFileChangeWithSyncData");
+                }
+                return _failedOutTimer;
+            }
+        }
+        private ProcessingQueuesTimer _failedOutTimer;
+
+        public List<FileChange> FailedOutChanges
+        {
+            get
+            {
+                if (!_fileChange.IsValid
+                    || !IsValid)
+                {
+                    throw new ArgumentException("Cannot retrieve property values on an invalid PossiblyStreamableFileChangeWithSyncData");
+                }
+                return _failedOutChanges;
+            }
+        }
+        private List<FileChange> _failedOutChanges;
+
         public bool IsValid
         {
             get
@@ -153,7 +181,7 @@ namespace Cloud.Model
         }
         private bool _isValid;
 
-        public PossiblyStreamableFileChangeWithSyncData(Queue<FileChange> FailedChangesQueue, byte MaxNumberOfFailureRetries, byte MaxNumberOfNotFounds, ProcessingQueuesTimer DownloadErrorTimer, PossiblyStreamableFileChange FileChange, ISyncDataObject SyncData, CLSyncbox Syncbox, string TempDownloadFolderPath = null, Nullable<Guid> TempDownloadFileId = null)
+        public PossiblyStreamableFileChangeWithSyncData(Queue<FileChange> FailedChangesQueue, byte MaxNumberOfFailureRetries, byte MaxNumberOfNotFounds, ProcessingQueuesTimer DownloadErrorTimer, PossiblyStreamableFileChange FileChange, ISyncDataObject SyncData, CLSyncbox Syncbox, ProcessingQueuesTimer FailedOutTimer, List<FileChange> FailedOutChanges, string TempDownloadFolderPath = null, Nullable<Guid> TempDownloadFileId = null)
         {
             if (SyncData == null)
             {
@@ -182,6 +210,8 @@ namespace Cloud.Model
             this._maxNumberOfFailureRetries = MaxNumberOfFailureRetries;
             this._maxNumberOfNotFounds = MaxNumberOfNotFounds;
             this._failedChangesQueue = FailedChangesQueue;
+            this._failedOutTimer = FailedOutTimer;
+            this._failedOutChanges = FailedOutChanges;
         }
     }
 }

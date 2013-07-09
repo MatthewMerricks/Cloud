@@ -3833,100 +3833,100 @@ namespace Cloud.Sync
 
             #endregion
 
-            #region completeSynchronousChangesAfterCommunicationAndReturnRemainingAsynchronousTasks
+            #region completeSynchronousChangesAfterCommunicationAndReturnRemainingAsynchronousTasks (commented out since all processing except for completing uploads has been moved to pre-processing)
 
-            var completeSynchronousChangesAfterCommunicationAndReturnRemainingAsynchronousTasks = DelegateAndDataHolderBase.Create(
-                new
-                {
-                    commonThisEngine = this,
-                    commonSynchronouslyProcessed = commonSynchronouslyProcessed,
-                    commonOutputChanges = commonOutputChanges,
-                    commonSuccessfulEventIds = commonSuccessfulEventIds,
-                    commonThingsThatWereDependenciesToQueue = commonThingsThatWereDependenciesToQueue,
-                    commonTempDownloadsFolder = commonTempDownloadsFolder,
-                    completeEventInSqlAndReturnWhetherErrorOccurred = completeEventInSqlAndReturnWhetherErrorOccurred
-                },
-                (Data, errorToAccumulate) =>
-                {
-                    List<PossiblyStreamableFileChangeWithUploadDownloadTask> asyncTasksToRun = new List<PossiblyStreamableFileChangeWithUploadDownloadTask>();
+            //var completeSynchronousChangesAfterCommunicationAndReturnRemainingAsynchronousTasks = DelegateAndDataHolderBase.Create(
+            //    new
+            //    {
+            //        commonThisEngine = this,
+            //        commonSynchronouslyProcessed = commonSynchronouslyProcessed,
+            //        commonOutputChanges = commonOutputChanges,
+            //        commonSuccessfulEventIds = commonSuccessfulEventIds,
+            //        commonThingsThatWereDependenciesToQueue = commonThingsThatWereDependenciesToQueue,
+            //        commonTempDownloadsFolder = commonTempDownloadsFolder,
+            //        completeEventInSqlAndReturnWhetherErrorOccurred = completeEventInSqlAndReturnWhetherErrorOccurred
+            //    },
+            //    (Data, errorToAccumulate) =>
+            //    {
+            //        List<PossiblyStreamableFileChangeWithUploadDownloadTask> asyncTasksToRun = new List<PossiblyStreamableFileChangeWithUploadDownloadTask>();
 
-                    // Create a new list for changes which can be performed synchronously
-                    Data.commonSynchronouslyProcessed.Value = new List<FileChange>();
+            //        // Create a new list for changes which can be performed synchronously
+            //        Data.commonSynchronouslyProcessed.Value = new List<FileChange>();
 
-                    // Synchronously complete all local operations without dependencies (exclude file upload/download) and record successful events;
-                    // If a completed event has dependencies, stick them on the end of the current batch;
-                    // If an event fails to complete, leave it on errorsToQueue so it will be added to the failure queue later
-                    foreach (PossiblyStreamableFileChange topLevelChange in Data.commonOutputChanges.Value)
-                    {
-                        // Declare event id for a successfully performed synchronous change
-                        Nullable<long> successfulEventId;
-                        // Declare Task for uploading or downloading files to perform asynchronously
-                        Nullable<AsyncUploadDownloadTask> asyncTask;
+            //        // Synchronously complete all local operations without dependencies (exclude file upload/download) and record successful events;
+            //        // If a completed event has dependencies, stick them on the end of the current batch;
+            //        // If an event fails to complete, leave it on errorsToQueue so it will be added to the failure queue later
+            //        foreach (PossiblyStreamableFileChange topLevelChange in Data.commonOutputChanges.Value)
+            //        {
+            //            // Declare event id for a successfully performed synchronous change
+            //            Nullable<long> successfulEventId;
+            //            // Declare Task for uploading or downloading files to perform asynchronously
+            //            Nullable<AsyncUploadDownloadTask> asyncTask;
 
-                        // run private method which handles performing the action of a single FileChange, storing any exceptions thrown (which are caught and returned)
-                        Exception completionException = Data.commonThisEngine.CompleteFileChange(
-                            topLevelChange, // change to perform
-                            Data.commonThisEngine.FailureTimer, // timer for failure queue
-                            out successfulEventId, // output successful event id or null
-                            out asyncTask, // out async upload or download task to perform or null
-                            Data.commonTempDownloadsFolder, // full path location of folder to store temp file downloads
-                            uidStorage);   // stored uids
+            //            // run private method which handles performing the action of a single FileChange, storing any exceptions thrown (which are caught and returned)
+            //            Exception completionException = Data.commonThisEngine.CompleteFileChange(
+            //                topLevelChange, // change to perform
+            //                Data.commonThisEngine.FailureTimer, // timer for failure queue
+            //                out successfulEventId, // output successful event id or null
+            //                out asyncTask, // out async upload or download task to perform or null
+            //                Data.commonTempDownloadsFolder, // full path location of folder to store temp file downloads
+            //                uidStorage);   // stored uids
 
-                        // if there was a non-null and valid event id output as succesful,
-                        // then add to synchronous list, add to success list, remove from errors, and check and concatenate any dependent FileChanges
-                        if (successfulEventId != null
-                            && (long)successfulEventId > 0)
-                        {
-                            // add change to synchronous list
-                            Data.commonSynchronouslyProcessed.Value.Add(topLevelChange.FileChange);
+            //            // if there was a non-null and valid event id output as succesful,
+            //            // then add to synchronous list, add to success list, remove from errors, and check and concatenate any dependent FileChanges
+            //            if (successfulEventId != null
+            //                && (long)successfulEventId > 0)
+            //            {
+            //                // add change to synchronous list
+            //                Data.commonSynchronouslyProcessed.Value.Add(topLevelChange.FileChange);
 
-                            // add successful id for completed event
-                            Data.commonSuccessfulEventIds.Add((long)successfulEventId);
+            //                // add successful id for completed event
+            //                Data.commonSuccessfulEventIds.Add((long)successfulEventId);
 
-                            Data.completeEventInSqlAndReturnWhetherErrorOccurred.TypedData.eventIdToComplete.Value = (long)successfulEventId;
-                            if (Data.completeEventInSqlAndReturnWhetherErrorOccurred.TypedProcess())
-                            {
-                                return null; // serious error if unable to complete an event in the database, engine now scheduled to halt so return null for no more sync or async processing
-                            }
+            //                Data.completeEventInSqlAndReturnWhetherErrorOccurred.TypedData.eventIdToComplete.Value = (long)successfulEventId;
+            //                if (Data.completeEventInSqlAndReturnWhetherErrorOccurred.TypedProcess())
+            //                {
+            //                    return null; // serious error if unable to complete an event in the database, engine now scheduled to halt so return null for no more sync or async processing
+            //                }
 
-                            // try to cast the successful change as one with dependencies
-                            FileChangeWithDependencies changeWithDependencies = topLevelChange.FileChange as FileChangeWithDependencies;
-                            // if change was one with dependencies and has a dependency, then concatenate the dependencies into thingsThatWereDependenciesToQueue
-                            if (changeWithDependencies != null
-                                && changeWithDependencies.DependenciesCount > 0)
-                            {
-                                if (Data.commonThingsThatWereDependenciesToQueue.Value == null)
-                                {
-                                    Data.commonThingsThatWereDependenciesToQueue.Value = changeWithDependencies.Dependencies;
-                                }
-                                else
-                                {
-                                    Data.commonThingsThatWereDependenciesToQueue.Value = Data.commonThingsThatWereDependenciesToQueue.Value.Concat(changeWithDependencies.Dependencies);
-                                }
-                            }
-                        }
-                        // else if there was not a valid successful event id, then process for errors or async tasks
-                        else
-                        {
-                            // if there was an exception, aggregate into returned error
-                            if (completionException != null)
-                            {
-                                errorToAccumulate.Value += completionException;
-                            }
+            //                // try to cast the successful change as one with dependencies
+            //                FileChangeWithDependencies changeWithDependencies = topLevelChange.FileChange as FileChangeWithDependencies;
+            //                // if change was one with dependencies and has a dependency, then concatenate the dependencies into thingsThatWereDependenciesToQueue
+            //                if (changeWithDependencies != null
+            //                    && changeWithDependencies.DependenciesCount > 0)
+            //                {
+            //                    if (Data.commonThingsThatWereDependenciesToQueue.Value == null)
+            //                    {
+            //                        Data.commonThingsThatWereDependenciesToQueue.Value = changeWithDependencies.Dependencies;
+            //                    }
+            //                    else
+            //                    {
+            //                        Data.commonThingsThatWereDependenciesToQueue.Value = Data.commonThingsThatWereDependenciesToQueue.Value.Concat(changeWithDependencies.Dependencies);
+            //                    }
+            //                }
+            //            }
+            //            // else if there was not a valid successful event id, then process for errors or async tasks
+            //            else
+            //            {
+            //                // if there was an exception, aggregate into returned error
+            //                if (completionException != null)
+            //                {
+            //                    errorToAccumulate.Value += completionException;
+            //                }
 
-                            // if there was an async task to perform, then add it to list to start
-                            if (asyncTask != null)
-                            {
-                                // add task to list to start
-                                asyncTasksToRun.Add(new PossiblyStreamableFileChangeWithUploadDownloadTask(topLevelChange,
-                                    (AsyncUploadDownloadTask)asyncTask));
-                            }
-                        }
-                    }
+            //                // if there was an async task to perform, then add it to list to start
+            //                if (asyncTask != null)
+            //                {
+            //                    // add task to list to start
+            //                    asyncTasksToRun.Add(new PossiblyStreamableFileChangeWithUploadDownloadTask(topLevelChange,
+            //                        (AsyncUploadDownloadTask)asyncTask));
+            //                }
+            //            }
+            //        }
 
-                    return asyncTasksToRun;
-                },
-                toReturn);
+            //        return asyncTasksToRun;
+            //    },
+            //    toReturn);
 
             #endregion
 
@@ -4952,32 +4952,6 @@ namespace Cloud.Sync
                                         }
                                         else
                                         {
-                                            // define recursing action to reset failure counters for a FileChange (and any inner FileChanges)
-                                            Action<FileChange, object> recurseResetCounters = (currentLevelChange, thisAction) =>
-                                            {
-                                                Action<FileChange, object> castAction;
-                                                if ((castAction = thisAction as Action<FileChange, object>) != null)
-                                                {
-                                                    currentLevelChange.NotFoundForStreamCounter = 0;
-                                                    currentLevelChange.FailureCounter = 0;
-                                                    currentLevelChange.FileIsTooBig = false;
-
-                                                    FileChangeWithDependencies castChange = currentLevelChange as FileChangeWithDependencies;
-                                                    if (castChange != null
-                                                        && castChange.DependenciesCount > 0)
-                                                    {
-                                                        foreach (FileChange recurseChange in castChange.Dependencies)
-                                                        {
-                                                            if (recurseChange != null)
-                                                            {
-                                                                castAction(recurseChange, thisAction);
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            };
-
-
                                             // if there is a failed out change to add, then reset its failure counters recursively and add the change to the list of those failed out
                                             bool skipAddChangesToFailedOutQueue = (errorToQueue.FileChange == null || errorToQueue.FileChange.NotFoundForStreamCounter >= MaxNumberOfNotFounds);
                                             if (!skipAddChangesToFailedOutQueue)
@@ -4993,7 +4967,7 @@ namespace Cloud.Sync
                                                         syncbox.CopiedSettings.DeviceId);
                                                 }
 
-                                                recurseResetCounters(errorToQueue.FileChange, recurseResetCounters);
+                                                RecurseResetFailureCounters(errorToQueue.FileChange);
 
                                                 if (failedOutChanges == null)
                                                 {
@@ -5065,6 +5039,29 @@ namespace Cloud.Sync
             }
 
             return filteredErrorsList;
+        }
+
+        /// <summary>
+        /// define recursing action to reset failure counters for a FileChange (and any inner FileChanges)
+        /// </summary>
+        private static void RecurseResetFailureCounters(FileChange currentLevelChange)
+        {
+            if (currentLevelChange != null)
+            {
+                currentLevelChange.NotFoundForStreamCounter = 0;
+                currentLevelChange.FailureCounter = 0;
+                currentLevelChange.FileIsTooBig = false;
+
+                FileChangeWithDependencies castChange = currentLevelChange as FileChangeWithDependencies;
+                if (castChange != null
+                    && castChange.DependenciesCount > 0)
+                {
+                    foreach (FileChange recurseChange in castChange.Dependencies)
+                    {
+                        RecurseResetFailureCounters(recurseChange);
+                    }
+                }
+            }
         }
 
         // private method which handles performing the action of a single FileChange, storing any exceptions thrown (which are caught and returned)
@@ -5221,7 +5218,9 @@ namespace Cloud.Sync
                                         FailedChangesQueue = FailedChangesQueue,
                                         RemoveFileChangeEvents = RemoveFileChangeFromUpDownEvent,
                                         RestClient = httpRestClient,
-                                        UploadDownloadServerConnectionFailureCount = UploadDownloadConnectionFailures
+                                        UploadDownloadServerConnectionFailureCount = UploadDownloadConnectionFailures,
+                                        FailedOutTimer = FailedOutTimer,
+                                        FailedOutChanges = FailedOutChanges
                                     }),
                                     asyncTaskThreadId);
                         }
@@ -5304,6 +5303,8 @@ namespace Cloud.Sync
                                 RestClient = httpRestClient,
                                 UploadDownloadServerConnectionFailureCount = UploadDownloadConnectionFailures,
                                 UidStorage = uidStorage,
+                                FailedOutTimer = FailedOutTimer,
+                                FailedOutChanges = FailedOutChanges
                             }),
                         asyncTaskThreadId);
                 }
@@ -5752,7 +5753,9 @@ namespace Cloud.Sync
                                 castState.StreamContext, // upload stream for failed event
                                 ignoreStreamException: true), // ignore stream exception because we set the reference castState.UploadStream to null when it is normally disposed
                             castState.SyncData, // event source for updating when needed
-                            castState.Syncbox), // settings for tracing or logging errors
+                            castState.Syncbox, // settings for tracing or logging errors
+                            castState.FailedOutTimer,
+                            castState.FailedOutChanges),
                         "Error in upload Task, see inner exception", // exception message
                         ex); // original exception
 
@@ -5849,6 +5852,15 @@ namespace Cloud.Sync
                 else
                 {
                     isErrorSerious = true;
+
+                    RecurseResetFailureCounters(exceptionState.FileChange.FileChange);
+
+                    lock (exceptionState.FailedOutTimer.TimerRunningLocker)
+                    {
+                        exceptionState.FailedOutChanges.Add(exceptionState.FileChange.FileChange);
+
+                        exceptionState.FailedOutTimer.StartTimerIfNotRunning();
+                    }
                 }
 
                 // if ContinueToRetry output freed dependencies to process, process them
@@ -6529,7 +6541,9 @@ namespace Cloud.Sync
                             castState.FailureTimer, // timer for failure queue
                             new PossiblyStreamableFileChange(castState.FileToDownload, null), // event which failed
                             castState.SyncData, // event source for updating when needed
-                            castState.Syncbox), // settings for tracing or logging errors
+                            castState.Syncbox, // settings for tracing or logging errors
+                            castState.FailedOutTimer,
+                            castState.FailedOutChanges),
                         "Error in download Task, see inner exception", // exception message
                         ex); // original exception
 
@@ -6785,6 +6799,15 @@ namespace Cloud.Sync
                     else
                     {
                         isErrorSerious = true;
+
+                        RecurseResetFailureCounters(exceptionState.FileChange.FileChange);
+
+                        lock (exceptionState.FailedOutTimer.TimerRunningLocker)
+                        {
+                            exceptionState.FailedOutChanges.Add(exceptionState.FileChange.FileChange);
+
+                            exceptionState.FailedOutTimer.StartTimerIfNotRunning();
+                        }
                     }
 
                     // try/catch to clear out the temp download, failing silently
@@ -6906,6 +6929,8 @@ namespace Cloud.Sync
             public Action<FileChange> RemoveFileChangeEvents { get; set; }
             public CLHttpRest RestClient { get; set; }
             public GenericHolder<byte> UploadDownloadServerConnectionFailureCount { get; set; }
+            public ProcessingQueuesTimer FailedOutTimer { get; set; }
+            public List<FileChange> FailedOutChanges { get; set; }
         }
         /// <summary>
         /// Data object to be sent to the code that runs for the upload task
@@ -6928,6 +6953,8 @@ namespace Cloud.Sync
             public CLHttpRest RestClient { get; set; }
             public GenericHolder<byte> UploadDownloadServerConnectionFailureCount { get; set; }
             public Dictionary<long, UidRevisionHolder> UidStorage { get; set; }
+            public ProcessingQueuesTimer FailedOutTimer { get; set; }
+            public List<FileChange> FailedOutChanges { get; set; }
         }
         /// <summary>
         /// Async HTTP operation holder used to help make async calls synchronous
