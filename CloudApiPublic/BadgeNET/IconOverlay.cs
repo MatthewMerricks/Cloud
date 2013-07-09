@@ -83,7 +83,9 @@ namespace Cloud.BadgeNET
         /// <param name="initialList">(optional) list to start with for badged objects, filepaths in keys must not be null nor empty</param>
         /// <param name="syncSettings">The settings to use for this instance.</param>
         /// <param name="syncbox">The syncbox to use for this instance.</param>
-        public CLError Initialize(ICLSyncSettings syncSettings, CLSyncbox syncbox, IEnumerable<KeyValuePair<FilePath, GenericHolder<cloudAppIconBadgeType>>> initialList = null)
+        /// <param name="initialList">(optional) The initial badge list to use.</param>
+        /// <param name="checkSyncMode">(optional) True: Check the SyncMode.</param>
+        public CLError Initialize(ICLSyncSettings syncSettings, CLSyncbox syncbox, IEnumerable<KeyValuePair<FilePath, GenericHolder<cloudAppIconBadgeType>>> initialList = null, bool checkSyncMode = true)
         {
             try
             {
@@ -99,7 +101,7 @@ namespace Cloud.BadgeNET
                 CLTrace.Initialize(_syncSettings.TraceLocation, Resources.IconOverlayCloud, Resources.IconOverlayLog, _syncSettings.TraceLevel, _syncSettings.LogErrors);
 
                 // Just exit if badging is not enabled.
-                if (!(syncbox.SyncMode == CLSyncMode.CLSyncModeLiveWithBadgingEnabled))
+                if (checkSyncMode && !(syncbox.SyncMode == CLSyncMode.CLSyncModeLiveWithBadgingEnabled))
                 {
                     _trace.writeToLog(9, Resources.IconOverlayBadgingIsNotEnabledExit);
                     return null;

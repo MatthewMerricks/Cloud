@@ -20,8 +20,8 @@ int _tmain(int argc, _TCHAR* argv[])
 	#pragma region Main Entry Point
 
 	// Fill the in-syncbox strings
-	FillPathArray(L"C:\\Users\\Robertste\\Cloud\\", pathsInSyncbox);
-	FillPathArray(L"C:\\Users\\Robertste\\CloudX\\", pathsOutOfSyncbox);
+	FillPathArray(L"C:\\Users\\robertste\\Cloud\\", pathsInSyncbox);
+	FillPathArray(L"C:\\Users\\robertste\\CloudX\\", pathsOutOfSyncbox);
 
 	// Initialize the random generator
 	srand(time(0));
