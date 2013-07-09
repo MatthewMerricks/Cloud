@@ -3487,4 +3487,36 @@
     <value>error must not be null</value>
     <comment>error should not be translated</comment>
   </data>
+  <data name="ExceptionCLSyncboxQueryFileChangeByEventIdNullEngine" xml:space="preserve">
+    <value>A sync engine was not found involved in active syncing</value>
+  </data>
+  <data name="ExceptionFileMonitorAssignDependenciesNullTransaction" xml:space="preserve">
+    <value>Indexer GetNewTransaction returned without an error but also without a transaction</value>
+    <comment>Indexer and GetNewTransaction should not be translated</comment>
+  </data>
+  <data name="ExceptionIndexingAgentCreateAndOpenCipherConnectionNullConnection" xml:space="preserve">
+    <value>Attempting to open a database connection returned no connection</value>
+  </data>
+  <data name="ExceptionIndexingAgentErrorOnCreateAndOpenCipherConnection" xml:space="preserve">
+    <value>An error occurred opening a database connection</value>
+  </data>
+  <data name="ExceptionIndexingAgentRecordCompletedSyncNullTransaction" xml:space="preserve">
+    <value>Indexer GetNewTransactionPrivate returned without an error but also without a transaction</value>
+    <comment>Indexer and GetNewTransactionPrivate should not be translated</comment>
+  </data>
+  <data name="ExceptionIndexingAgentRecurseIndexDirectoryRemoveEvent" xml:space="preserve">
+    <value>An error occurred removing an event by its id</value>
+  </data>
+  <data name="ExceptionLockDisposed" xml:space="preserve">
+    <value>Unable to enter or exit disposed lock</value>
+  </data>
+  <data name="ExceptionMonitorAgentCheckDiskPath0Message1" xml:space="preserve">
+    <value>An error occurred checking the disk in response to a change; path: {0}, message: {1}</value>
+  </data>
+  <data name="ExceptionMonitorAgentGrabPreprocessedChangesErrorOnMergeSql" xml:space="preserve">
+    <value>An error occurred merging events into the database when grabbing preprocessed changes</value>
+  </data>
+  <data name="ExceptionSyncEngineContinueToRetryErrorCancellingEvent" xml:space="preserve">
+    <value>An error occurred cancelling out an event in the database</value>
+  </data>
 </root>

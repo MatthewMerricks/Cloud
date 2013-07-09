@@ -73,7 +73,7 @@ namespace Cloud
         /// <param name="isPending">(output) Result whether event is pending from EventId lookup</param>
         /// <param name="status">(output) Status of quering the database</param>
         /// <returns>Returns any error which occurred querying the database, if any</returns>
-        public CLError QueryFileChangeByEventId(long eventId, out FileChange queryResult, out bool isPending, out FileChangeQueryStatus status)
+        public CLError QueryFileChangeByEventId(long eventId, out FileChange queryResult, out bool isPending)
         {
             try
             {
@@ -88,20 +88,23 @@ namespace Cloud
                     {
                         queryResult = Helpers.DefaultForType<FileChange>();
                         isPending = Helpers.DefaultForType<bool>();
-                        status = FileChangeQueryStatus.ErrorNoIndexer;
-                        return new NullReferenceException(Resources.CLSyncEngineIndexerCannotBeNull);
+                        try
+                        {
+                            throw new CLNullReferenceException(CLExceptionCode.Syncbox_NotStarted, Resources.CLSyncEngineIndexerCannotBeNull);
+                        }
+                        catch (Exception ex)
+                        {
+                            return ex;
+                        }
                     }
-                    else
-                    {
-                        return _indexer.QueryFileChangeByEventId(eventId, out queryResult, out isPending, out status);
-                    }
+
+                    return _indexer.QueryFileChangeByEventId(eventId, out queryResult, out isPending);
                 }
             }
             catch (Exception ex)
             {
                 queryResult = Helpers.DefaultForType<FileChange>();
                 isPending = Helpers.DefaultForType<bool>();
-                status = FileChangeQueryStatus.ErrorUnknown;
                 return ex;
             }
         }
@@ -149,27 +152,44 @@ namespace Cloud
                     out deleteAgent,
                     syncbox);
 
-                //// DO NOT CHECK ERROR, we may wish to delete the database BECAUSE it is corrupted
-                //if (createIndexerError != null)
-                //{
-                //    return new AggregateException("Error creating the local indexer to wipe its backing database", createIndexerError.Exceptions);
-                //}
-
-                CLError deleteDatabaseError = deleteAgent.WipeIndex(syncbox.Path);
-
-                if (deleteDatabaseError != null)
-                {
-                    throw new AggregateException("Error wiping the backing database", deleteDatabaseError.Exceptions);
-                }
-
                 try
                 {
-                    deleteAgent.Dispose();
+                    // indexing agent will not be disposed upon construction, so no need to check for CLObjectDisposedException here
+
+                    // DO NOT CHECK ERROR (if deleteAgent was returned), we may wish to delete the database BECAUSE it is corrupted
+                    if (createIndexerError != null
+                        && deleteAgent == null)
+                    {
+                        try
+                        {
+                            throw new AggregateException("Error creating the local indexer to wipe its backing database", createIndexerError.Exceptions);
+                        }
+                        catch (Exception ex)
+                        {
+                            return ex;
+                        }
+                    }
+
+                    CLError deleteDatabaseError = deleteAgent.WipeIndex(syncbox.Path);
+
+                    if (deleteDatabaseError != null)
+                    {
+                        throw new AggregateException("Error wiping the backing database", deleteDatabaseError.Exceptions);
+                    }
                 }
-                catch
+                finally
                 {
+                    if (deleteAgent != null)
+                    {
+                        try
+                        {
+                            deleteAgent.Dispose();
+                        }
+                        catch
+                        {
+                        }
+                    }
                 }
-                deleteAgent = null;
 
                 // Delete the temp download directory recursively, but not the directory itself.
                 string sTempDownloadFolderToUse = Helpers.GetTempFileDownloadPath(syncbox.CopiedSettings, syncbox.SyncboxId);
@@ -235,15 +255,33 @@ namespace Cloud
                     syncbox,
                     copyDatabaseBetweenChanges: this.copyDatabaseBetweenChanges);
 
-                if (createIndexerError != null)
+                try
                 {
-                    throw new AggregateException(Resources.ExceptionSyncboxCreateIndex, createIndexerError.Exceptions);
-                }
+                    if (createIndexerError != null)
+                    {
+                        // indexing agent will not be disposed upon construction, so no need to check for CLObjectDisposedException here
 
-                CLError updatePathError = updateAgent.ChangeSyncboxPath(newPath);
-                if (updatePathError != null)
+                        throw new AggregateException(Resources.ExceptionSyncboxCreateIndex, createIndexerError.Exceptions);
+                    }
+
+                    CLError updatePathError = updateAgent.ChangeSyncboxPath(newPath);
+                    if (updatePathError != null)
+                    {
+                        throw new AggregateException(Resources.ExceptionCLSyncEngineUpdatePath, updatePathError.Exceptions);
+                    }
+                }
+                finally
                 {
-                    throw new AggregateException(Resources.ExceptionCLSyncEngineUpdatePath, updatePathError.Exceptions);
+                    if (updateAgent != null)
+                    {
+                        try
+                        {
+                            updateAgent.Dispose();
+                        }
+                        catch
+                        {
+                        }
+                    }
                 }
             }
             catch (Exception ex)
@@ -539,6 +577,8 @@ namespace Cloud
                 }
                 if (indexCreationError != null)
                 {
+                    // indexing agent will not be disposed upon construction, so no need to check for CLObjectDisposedException here
+
 	                _trace.writeToLog(1,
     	                Resources.CLSyncEngineErrorException2Msg0Code1,
         	            indexCreationError.PrimaryException.Message,
@@ -963,10 +1003,6 @@ namespace Cloud
             lock (_locker)
             {
                 // Notify the components that we are stopping.
-                if (_syncEngine != null)
-                {
-                    _syncEngine.Stopping();
-                }
                 if (_monitor != null)
                 {
                     _monitor.Stopping();

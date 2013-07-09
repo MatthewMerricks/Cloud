@@ -352,7 +352,7 @@ namespace Cloud.Static
             EventMessageLevel Level = EventMessageLevel.Minor,
             BaseErrorInfo Error = null,
             CLSyncbox Syncbox = null,
-            string DeviceId = null)
+            string DeviceId = null) // device id shouldn't be required anymore since it can be pulled from Syncbox.CopiedSettings.DeviceId
         {
             if (Error != null
                 && Error.ErrorType == ErrorMessageType.HaltAllOfCloudSDK)

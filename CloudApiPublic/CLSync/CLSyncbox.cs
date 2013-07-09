@@ -261,14 +261,30 @@ namespace Cloud
         {
             get
             {
-                _propertyChangeLocker.EnterReadLock();
+                bool readEntered = false;
+                try
+                {
+                    _propertyChangeLocker.EnterReadLock();
+                }
+                catch
+                {
+                }
                 try
                 {
                     return _friendlyName;
                 }
                 finally
                 {
-                    _propertyChangeLocker.ExitReadLock();
+                    if (readEntered)
+                    {
+                        try
+                        {
+                            _propertyChangeLocker.ExitReadLock();
+                        }
+                        catch
+                        {
+                        }
+                    }
                 }
             }
         }
@@ -351,27 +367,30 @@ namespace Cloud
         {
             get
             {
+                bool readEntered = false;
                 try
                 {
                     _propertyChangeLocker.EnterReadLock();
+                    readEntered = true;
                 }
                 catch
                 {
-                    return _storagePlanId;
                 }
-
                 try
                 {
                     return _storagePlanId;
                 }
                 finally
                 {
-                    try
+                    if (readEntered)
                     {
-                        _propertyChangeLocker.ExitReadLock();
-                    }
-                    catch
-                    {
+                        try
+                        {
+                            _propertyChangeLocker.ExitReadLock();
+                        }
+                        catch
+                        {
+                        }
                     }
                 }
             }
@@ -385,27 +404,30 @@ namespace Cloud
         {
             get
             {
+                bool readEntered = false;
                 try
                 {
                     _propertyChangeLocker.EnterReadLock();
+                    readEntered = true;
                 }
                 catch
                 {
-                    return _createdDate;
                 }
-
                 try
                 {
                     return _createdDate;
                 }
                 finally
                 {
-                    try
+                    if (readEntered)
                     {
-                        _propertyChangeLocker.ExitReadLock();
-                    }
-                    catch
-                    {
+                        try
+                        {
+                            _propertyChangeLocker.ExitReadLock();
+                        }
+                        catch
+                        {
+                        }
                     }
                 }
             }
@@ -419,27 +441,30 @@ namespace Cloud
         {
             get
             {
+                bool readEntered = false;
                 try
                 {
                     _propertyChangeLocker.EnterReadLock();
+                    readEntered = true;
                 }
                 catch
                 {
-                    return _quotaUsage;
                 }
-
                 try
                 {
                     return _quotaUsage;
                 }
                 finally
                 {
-                    try
+                    if (readEntered)
                     {
-                        _propertyChangeLocker.ExitReadLock();
-                    }
-                    catch
-                    {
+                        try
+                        {
+                            _propertyChangeLocker.ExitReadLock();
+                        }
+                        catch
+                        {
+                        }
                     }
                 }
             }
@@ -453,27 +478,30 @@ namespace Cloud
         {
             get
             {
+                bool readEntered = false;
                 try
                 {
                     _propertyChangeLocker.EnterReadLock();
+                    readEntered = true;
                 }
                 catch
                 {
-                    return _storageQuota;
                 }
-
                 try
                 {
                     return _storageQuota;
                 }
                 finally
                 {
-                    try
+                    if (readEntered)
                     {
-                        _propertyChangeLocker.ExitReadLock();
-                    }
-                    catch
-                    {
+                        try
+                        {
+                            _propertyChangeLocker.ExitReadLock();
+                        }
+                        catch
+                        {
+                        }
                     }
                 }
             }
@@ -860,7 +888,15 @@ namespace Cloud
                     Nullable<long> copyStorageQuota;
                     long copyQuotaUsage;
 
-                    _propertyChangeLocker.EnterReadLock();
+                    bool readEntered = false;
+                    try
+                    {
+                        _propertyChangeLocker.EnterReadLock();
+                        readEntered = true;
+                    }
+                    catch
+                    {
+                    }
                     try
                     {
                         copyStorageQuota = _storageQuota;
@@ -868,7 +904,16 @@ namespace Cloud
                     }
                     finally
                     {
-                        _propertyChangeLocker.ExitReadLock();
+                        if (readEntered)
+                        {
+                            try
+                            {
+                                _propertyChangeLocker.ExitReadLock();
+                            }
+                            catch
+                            {
+                            }
+                        }
                     }
 
                     if (copyStorageQuota == null)
@@ -1713,6 +1758,40 @@ namespace Cloud
                 return ex;
             }
             return null;
+        }
+
+        /// <summary>
+        /// Query for the latest status for an event in live syncing using its id.
+        /// </summary>
+        /// <param name="eventId">Identifier of an event in live syncing.</param>
+        /// <param name="queryResult">(output) The FileChange event in live syncing.</param>
+        /// <param name="isPending">(output) Whether the event is still pending or not.</param>
+        /// <returns>Returns any error which occurred retrieving the event, if any.</returns>
+        public CLError QueryFileChangeByEventId(long eventId, out FileChange queryResult, out bool isPending)
+        {
+            try
+            {
+                CheckDisposed();
+
+                CLSyncEngine storeEngine;
+
+                lock (_startLocker)
+                {
+                    storeEngine = _syncEngine;
+                    if (storeEngine == null)
+                    {
+                        throw new CLNullReferenceException(CLExceptionCode.Syncbox_NotStarted, Resources.ExceptionCLSyncboxQueryFileChangeByEventIdNullEngine);
+                    }
+                }
+
+                return storeEngine.QueryFileChangeByEventId(eventId, out queryResult, out isPending);
+            }
+            catch (Exception ex)
+            {
+                queryResult = Helpers.DefaultForType<FileChange>();
+                isPending = Helpers.DefaultForType<bool>();
+                return ex;
+            }
         }
 
         #endregion // end Public Instance Methods
@@ -4089,24 +4168,35 @@ namespace Cloud
         /// <param name="userState"></param>
         private void OnGetDataUsageCompletion(JsonContracts.SyncboxUsageResponse response, object userState)
         {
+            // Update this object's properties atomically.
+            bool writeLockEntered = false;
             try
             {
-                // Update this object's properties atomically.
                 this._propertyChangeLocker.EnterWriteLock();
-                try
-                {
-                    this._storageQuota = response.Limit;
-                    this._quotaUsage = response.Local;
-
-                    PossiblyFireQuotaMessage();  // maybe fire the quota exceeded or quota OK message.
-                }
-                finally
-                {
-                    this._propertyChangeLocker.ExitWriteLock();
-                }
+                writeLockEntered = true;
             }
             catch
             {
+            }
+            try
+            {
+                this._storageQuota = response.Limit;
+                this._quotaUsage = response.Local;
+
+                PossiblyFireQuotaMessage();  // maybe fire the quota exceeded or quota OK message.
+            }
+            finally
+            {
+                if (writeLockEntered)
+                {
+                    try
+                    {
+                        this._propertyChangeLocker.ExitWriteLock();
+                    }
+                    catch
+                    {
+                    }
+                }
             }
         }
         #endregion  // end GetDataUsage (get the usage information for this syncbox from the cloud)
@@ -4299,7 +4389,15 @@ namespace Cloud
         private void OnUpdateStoragePlanCompletion(JsonContracts.SyncboxUpdateStoragePlanResponse response, object userState)
         {
             // Update this object's properties atomically.
-            this._propertyChangeLocker.EnterWriteLock();
+            bool writeLockEntered = false;
+            try
+            {
+                this._propertyChangeLocker.EnterWriteLock();
+                writeLockEntered = true;
+            }
+            catch
+            {
+            }
             try
             {
                 this._storagePlanId = (long)response.Syncbox.PlanId;
@@ -4309,7 +4407,16 @@ namespace Cloud
             }
             finally
             {
-                this._propertyChangeLocker.ExitWriteLock();
+                if (writeLockEntered)
+                {
+                    try
+                    {
+                        this._propertyChangeLocker.ExitWriteLock();
+                    }
+                    catch
+                    {
+                    }
+                }
             }
         }
         #endregion  // end (changes the storage plan associated with this syncbox in the syncbox)
@@ -4394,14 +4501,31 @@ namespace Cloud
         private void OnUpdateFriendlyNameCompletion(JsonContracts.SyncboxResponse response, object userState)
         {
             // Update this object's properties atomically.
-            this._propertyChangeLocker.EnterWriteLock();
+            bool writeLockEntered = false;
+            try
+            {
+                this._propertyChangeLocker.EnterWriteLock();
+                writeLockEntered = true;
+            }
+            catch
+            {
+            }
             try
             {
                 this._friendlyName = response.Syncbox.FriendlyName;
             }
             finally
             {
-                this._propertyChangeLocker.ExitWriteLock();
+                if (writeLockEntered)
+                {
+                    try
+                    {
+                        this._propertyChangeLocker.ExitWriteLock();
+                    }
+                    catch
+                    {
+                    }
+                }
             }
         }
         #endregion  // end UpdateFriendlyName (change the friendly name of this syncbox)
@@ -4471,7 +4595,16 @@ namespace Cloud
         /// <param name="userState"></param>
         private void OnStatusCompletion(JsonContracts.SyncboxStatusResponse response, object userState)
         {
-            this._propertyChangeLocker.EnterWriteLock();
+            bool writeLockEntered = false;
+
+            try
+            {
+                this._propertyChangeLocker.EnterWriteLock();
+                writeLockEntered = true;
+            }
+            catch
+            {
+            }
             try
             {
                 this._friendlyName = response.Syncbox.FriendlyName;
@@ -4484,7 +4617,16 @@ namespace Cloud
             }
             finally
             {
-                this._propertyChangeLocker.ExitWriteLock();
+                if (writeLockEntered)
+                {
+                    try
+                    {
+                        this._propertyChangeLocker.ExitWriteLock();
+                    }
+                    catch
+                    {
+                    }
+                }
             }
         }
 

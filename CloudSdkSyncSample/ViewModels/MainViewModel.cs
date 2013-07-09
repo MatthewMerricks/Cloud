@@ -1847,6 +1847,30 @@ namespace SampleLiveSync.ViewModels
 
                     break;
 
+                case EventMessageType.SyncboxLiveSyncFailedWithErrorChanged: // syncbox halted type
+                    // cast as syncbox halted
+                    Cloud.Model.EventMessages.SyncboxLiveSyncFailedWithErrorMessage syncboxHaltedMessage = (Cloud.Model.EventMessages.SyncboxLiveSyncFailedWithErrorMessage)e.Message;
+
+                    // Live syncing for a syncbox has halted; notify with the syncbox identifiers and the error
+
+                    if (NotifyException != null)
+                    {
+                        NotifyException(this,
+                            new NotificationEventArgs<CLError>()
+                            {
+                                Data = syncboxHaltedMessage.Error,
+                                Message = String.Format("Live syncing of a syncbox has halted. Syncbox id: {0}. Device id: {1}. Error message: {2}.",
+                                    (e.Message.SyncboxId == null
+                                        ? "{null}"
+                                        : ((long)e.Message.SyncboxId).ToString()),
+                                    e.Message.DeviceId ?? "{null}",
+                                    (syncboxHaltedMessage.Error == null
+                                        ? "{null}"
+                                        : syncboxHaltedMessage.Error.PrimaryException.Message ?? "{null}"))
+                            });
+                    }
+                    break;
+
                 case EventMessageType.Informational: // information type
                     //// cast as information
                     //Cloud.Model.EventMessages.InformationalMessage infoMessage = (Cloud.Model.EventMessages.InformationalMessage)e.Message;
