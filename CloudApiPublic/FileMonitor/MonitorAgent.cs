@@ -1451,35 +1451,37 @@ namespace Cloud.FileMonitor
             }
         }
 
-        /// <summary>
-        /// Adds a FileChange to the ProcessingQueue;
-        /// will also trigger a sync if one isn't already scheduled to run
-        /// </summary>
-        /// <param name="toAdd">FileChange to queue</param>
-        /// <param name="insertAtTop">Send true for the FileChange to be processed first on the queue, otherwise it will be last</param>
-        /// <returns>Returns an error that occurred queueing the FileChange, if any</returns>
-        public CLError AddFileChangeToProcessingQueue(FileChange toAdd, bool insertAtTop, GenericHolder<List<FileChange>> errorHolder)
-        {
-            try
-            {
-                if (toAdd == null)
-                {
-                    throw new NullReferenceException(Resources.MonitorAgentToAddCannotBeNull);
-                }
-                return AddFileChangesToProcessingQueue(new FileChange[] { toAdd }, insertAtTop, errorHolder);
-            }
-            catch (Exception ex)
-            {
-                if (toAdd != null)
-                {
-                    errorHolder.Value = new List<FileChange>(1)
-                    {
-                        toAdd
-                    };
-                }
-                return ex;
-            }
-        }
+        //// commented out method because it was unused
+        //
+        ///// <summary>
+        ///// Adds a FileChange to the ProcessingQueue;
+        ///// will also trigger a sync if one isn't already scheduled to run
+        ///// </summary>
+        ///// <param name="toAdd">FileChange to queue</param>
+        ///// <param name="insertAtTop">Send true for the FileChange to be processed first on the queue, otherwise it will be last</param>
+        ///// <returns>Returns an error that occurred queueing the FileChange, if any</returns>
+        //public CLError AddFileChangeToProcessingQueue(FileChange toAdd, bool insertAtTop, GenericHolder<List<FileChange>> errorHolder)
+        //{
+        //    try
+        //    {
+        //        if (toAdd == null)
+        //        {
+        //            throw new NullReferenceException(Resources.MonitorAgentToAddCannotBeNull);
+        //        }
+        //        return AddFileChangesToProcessingQueue(new FileChange[] { toAdd }, insertAtTop, errorHolder);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        if (toAdd != null)
+        //        {
+        //            errorHolder.Value = new List<FileChange>(1)
+        //            {
+        //                toAdd
+        //            };
+        //        }
+        //        return ex;
+        //    }
+        //}
 
         /// <summary>
         /// Adds FileChanges to the ProcessingQueue;
