@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
+  <PropertyGroup>
+    <DeepSeaExtensionsPath Condition=" '$(DeepSeaExtensionsPath)' == '' ">$(MSBuildExtensionsPath)\DeepSea Obfuscator\v4</DeepSeaExtensionsPath>
+    <RootNamespace>ObfuscateCloud</RootNamespace>
+  </PropertyGroup>
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition="'$(Platform)' == '' ">AnyCPU</Platform>
+    <Name>DeepSea Obfuscation Project</Name>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{6A33194D-4951-4609-9DFA-157124CDCEF8}</ProjectGuid>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+    <OutputPath>bin\Debug\</OutputPath>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+    <OutputPath>bin\Release\</OutputPath>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Cloud, Version=0.3.2.1, Culture=neutral, PublicKeyToken=null">
+      <Name>Cloud</Name>
+      <AssemblyName>Cloud.dll</AssemblyName>
+    </Reference>
+  </ItemGroup>
+  <Import Project="$(DeepSeaExtensionsPath)\DeepSea.Obfuscator.Project.targets" />
+</Project>
