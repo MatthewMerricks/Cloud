@@ -3519,4 +3519,12 @@
   <data name="ExceptionSyncEngineContinueToRetryErrorCancellingEvent" xml:space="preserve">
     <value>An error occurred cancelling out an event in the database</value>
   </data>
+  <data name="ExceptionMonitorAgentBeginProcessingNullcurrentChange" xml:space="preserve">
+    <value>currentChange cannot be null</value>
+    <comment>currentChange should not be translated</comment>
+  </data>
+  <data name="ExceptionMonitorAgentBeginProcessingNullcurrentChangeNewPath" xml:space="preserve">
+    <value>currentChange NewPath cannot be null</value>
+    <comment>currentChange and NewPath should not be translated</comment>
+  </data>
 </root>
