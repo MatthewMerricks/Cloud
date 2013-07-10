@@ -1633,6 +1633,11 @@ namespace Cloud.FileMonitor
                                 {
                                     throw new CLNullReferenceException(CLExceptionCode.Syncing_FileMonitor, Resources.ExceptionMonitorAgentBeginProcessingNullcurrentChangeNewPath);
                                 }
+                                if (currentChange.Type == FileChangeType.Renamed
+                                    && currentChange.OldPath == null)
+                                {
+                                    throw new CLNullReferenceException(CLExceptionCode.Syncing_FileMonitor, Resources.ExceptionMonitorAgentBeginProcessingNullRenamecurrentChangeOldPath);
+                                }
 
                                 switch (currentChange.Type)
                                 {

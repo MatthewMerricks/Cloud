@@ -3006,6 +3006,15 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to currentChange OldPath cannot be null if Type is FileChangeType.Renamed.
+        /// </summary>
+        internal static string ExceptionMonitorAgentBeginProcessingNullRenamecurrentChangeOldPath {
+            get {
+                return ResourceManager.GetString("ExceptionMonitorAgentBeginProcessingNullRenamecurrentChangeOldPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to An error occurred checking the disk in response to a change; path: {0}, message: {1}.
         /// </summary>
         internal static string ExceptionMonitorAgentCheckDiskPath0Message1 {

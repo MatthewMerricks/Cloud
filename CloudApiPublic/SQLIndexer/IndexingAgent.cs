@@ -1730,6 +1730,15 @@ namespace Cloud.SQLIndexer
                         {
                             throw new NullReferenceException("The Metadata property of every newEvent cannot be null");
                         }
+                        if (currentEvent.NewPath == null)
+                        {
+                            throw new NullReferenceException("The NewPath property of every newEvent cannot be null");
+                        }
+                        if (currentEvent.Type == FileChangeType.Renamed
+                            && currentEvent.OldPath == null)
+                        {
+                            throw new NullReferenceException("The OldPath property of every newEvent with Type FileChangeType.Renamed cannot be null");
+                        }
 
                         newEventsList.Add(currentEvent);
                     }
@@ -2122,6 +2131,12 @@ namespace Cloud.SQLIndexer
                     // then process database addition
                     foreach (var newEvent in currentBatchToAddList)
                     {
+                        if (newEvent.change.Type == FileChangeType.Renamed
+                            && newEvent.previousId == null)
+                        {
+                            throw SQLConstructors.SQLiteException(WrappedSQLiteErrorCode.Misuse, "newEvent must have a previousId if change Type is FileChangeType.Renamed");
+                        }
+
                         eventCounter++;
                         orderToChange.Add(eventCounter, new KeyValuePair<FileChange, GenericHolder<long>>(newEvent.change, new GenericHolder<long>()));
 
