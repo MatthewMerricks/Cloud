@@ -63,6 +63,7 @@ class ATL_NO_VTABLE CPubSubServer :
 public:
 	CPubSubServer()
 	{
+		_fIsTerminating = false;
 	}
 
 	// Default implementation does not pass _ATL_REGMAP_ENTRY array used in:
@@ -274,6 +275,7 @@ private:
     std::string GetSharedMemoryNameWithVersion();
     std::wstring GetSharedMemoryNameWithVersionWide();
 	void Debug32BitProcess();  //@@@@@@@@@@@ DEBUG ONLY.  REMOVE.  @@@@@@@@@@@
+	BOOL _fIsTerminating;
 
 	// Private instance fields
 	std::vector<UniqueSubscription> _trackedSubscriptionIds;		// list of subscriptions created by this instance

@@ -162,6 +162,8 @@ void CExplorerSimulator::Initialize(int nSimulatedExplorerIndex, int nBadgeType)
 /// </summary>
 void CExplorerSimulator::WorkerThreadProc(LPVOID pUserState)
 {
+	char *pszExceptionStateTracker = "Start";
+
 	if (pUserState == NULL)
 	{
     	CLTRACE(1, "CExplorerSimulator: WorkerThreadProc: ERROR: User state is NULL.");
@@ -186,7 +188,10 @@ void CExplorerSimulator::WorkerThreadProc(LPVOID pUserState)
 		{
 			case cloudAppBadgeSynced:
 				// Get the path to the icon resource assembly, the icon index and the icon flags, and initialize BadgeCom.
+				pszExceptionStateTracker = "IBadgeIconSyncedPtr";
 				pThis->_pSynced = new BadgeCOMLib::IBadgeIconSyncedPtr(__uuidof(BadgeCOMLib::BadgeIconSynced));
+
+				pszExceptionStateTracker = "_pSynced->GetOverlayInfo";
 				pThis->_hr = pThis->_pSynced->GetOverlayInfo(pThis->_pathIconFileSynced, 0, &(pThis->_indexIconSynced), &(pThis->_flagsIconSynced));
 				if (pThis->_hr != S_OK)
 				{
@@ -205,6 +210,7 @@ void CExplorerSimulator::WorkerThreadProc(LPVOID pUserState)
 				}
 
 				// Get the icon priority.
+				pszExceptionStateTracker = "_pSynced->GetPriority";
 				pThis->_hr = pThis->_pSynced->GetPriority(&(pThis->_priorityIconSynced));
 				if (pThis->_hr != S_OK)
 				{
@@ -220,7 +226,10 @@ void CExplorerSimulator::WorkerThreadProc(LPVOID pUserState)
 
 			case cloudAppBadgeSyncing:
 				// Get the path to the icon resource assembly, the icon index and the icon flags, and initialize BadgeCom.
+				pszExceptionStateTracker = "IBadgeIconSyncingPtr";
 				pThis->_pSyncing = new BadgeCOMLib::IBadgeIconSyncingPtr(__uuidof(BadgeCOMLib::BadgeIconSyncing));
+
+				pszExceptionStateTracker = "_pSyncing->GetOverlayInfo";
 				pThis->_hr = pThis->_pSyncing->GetOverlayInfo(pThis->_pathIconFileSyncing, 0, &(pThis->_indexIconSyncing), &(pThis->_flagsIconSyncing));
 				if (pThis->_hr != S_OK)
 				{
@@ -239,6 +248,7 @@ void CExplorerSimulator::WorkerThreadProc(LPVOID pUserState)
 				}
 
 				// Get the icon priority.
+				pszExceptionStateTracker = "_pSyncing->GetPriority";
 				pThis->_hr = pThis->_pSyncing->GetPriority(&(pThis->_priorityIconSyncing));
 				if (pThis->_hr != S_OK)
 				{
@@ -254,7 +264,10 @@ void CExplorerSimulator::WorkerThreadProc(LPVOID pUserState)
 
 			case cloudAppBadgeFailed:
 				// Get the path to the icon resource assembly, the icon index and the icon flags, and initialize BadgeCom.
+				pszExceptionStateTracker = "IBadgeIconFailedPtr";
 				pThis->_pFailed = new BadgeCOMLib::IBadgeIconFailedPtr(__uuidof(BadgeCOMLib::BadgeIconFailed));
+
+				pszExceptionStateTracker = "_pFailed->GetOverlayInfo";
 				pThis->_hr = pThis->_pFailed->GetOverlayInfo(pThis->_pathIconFileFailed, 0, &(pThis->_indexIconFailed), &(pThis->_flagsIconFailed));
 				if (pThis->_hr != S_OK)
 				{
@@ -273,6 +286,7 @@ void CExplorerSimulator::WorkerThreadProc(LPVOID pUserState)
 				}
 
 				// Get the icon priority.
+				pszExceptionStateTracker = "_pFailed->GetPriority";
 				pThis->_hr = pThis->_pFailed->GetPriority(&(pThis->_priorityIconFailed));
 				if (pThis->_hr != S_OK)
 				{
@@ -288,7 +302,10 @@ void CExplorerSimulator::WorkerThreadProc(LPVOID pUserState)
 
 			case cloudAppBadgeSelective:
 				// Get the path to the icon resource assembly, the icon index and the icon flags, and initialize BadgeCom.
+				pszExceptionStateTracker = "IBadgeIconSelectivePtr";
 				pThis->_pSelective = new BadgeCOMLib::IBadgeIconSelectivePtr(__uuidof(BadgeCOMLib::BadgeIconSelective));
+
+				pszExceptionStateTracker = "_pSelective->GetOverlayInfo";
 				pThis->_hr = pThis->_pSelective->GetOverlayInfo(pThis->_pathIconFileSelective, 0, &(pThis->_indexIconSelective), &(pThis->_flagsIconSelective));
 				if (pThis->_hr != S_OK)
 				{
@@ -307,6 +324,7 @@ void CExplorerSimulator::WorkerThreadProc(LPVOID pUserState)
 				}
 
 				// Get the icon priority.
+				pszExceptionStateTracker = "_pSelective->GetPriority";
 				pThis->_hr = pThis->_pSelective->GetPriority(&(pThis->_priorityIconSelective));
 				if (pThis->_hr != S_OK)
 				{
@@ -325,6 +343,7 @@ void CExplorerSimulator::WorkerThreadProc(LPVOID pUserState)
 		while (!pThis->_fRequestExit)
 		{
 			// Send 10 requests for this badge type rapidly, all from the same folder.
+			pszExceptionStateTracker = "SendRequestsToIsMemberOf";
 			pThis->SendRequestsToIsMemberOf();
 
 			Sleep(200);
@@ -336,7 +355,55 @@ void CExplorerSimulator::WorkerThreadProc(LPVOID pUserState)
     }
     catch (...)
     {
-		CLTRACE(1, "CExplorerSimulator: WorkerThreadProc: ERROR: C++ exception.");
+		CLTRACE(1, "CExplorerSimulator: WorkerThreadProc: ERROR: C++ exception. Tracker: %s", pszExceptionStateTracker);
+    }
+
+	// Release the COM objects.
+	try
+	{
+		// Release the COM object
+		switch (pThis->_nBadgeType)
+		{
+			case cloudAppBadgeSynced:
+				CLTRACE(9, "CExplorerSimulator: WorkerThreadProc: Release _pSynced.");
+				//pThis->_pSynced->Release();
+				CLTRACE(9, "CExplorerSimulator: WorkerThreadProc: After release _pSynced.");
+				pThis->_pSynced = NULL;
+				CLTRACE(9, "CExplorerSimulator: WorkerThreadProc: After NULL _pSynced.");
+				break;
+
+			case cloudAppBadgeSyncing:
+				CLTRACE(9, "CExplorerSimulator: WorkerThreadProc: Release _pSyncing.");
+				//pThis->_pSyncing->Release();
+				CLTRACE(9, "CExplorerSimulator: WorkerThreadProc: After release _pSyncing.");
+				pThis->_pSyncing = NULL;
+				CLTRACE(9, "CExplorerSimulator: WorkerThreadProc: After NULL _pSyncing.");
+				break;
+
+			case cloudAppBadgeFailed:
+				CLTRACE(9, "CExplorerSimulator: WorkerThreadProc: Release _pFailed.");
+				//pThis->_pFailed->Release();
+				CLTRACE(9, "CExplorerSimulator: WorkerThreadProc: After release _pFailed.");
+				pThis->_pFailed = NULL;
+				CLTRACE(9, "CExplorerSimulator: WorkerThreadProc: After NULL _pFailed.");
+				break;
+
+			case cloudAppBadgeSelective:
+				CLTRACE(9, "CExplorerSimulator: WorkerThreadProc: Release _pSelective.");
+				//pThis->_pSelective->Release();
+				CLTRACE(9, "CExplorerSimulator: WorkerThreadProc: After release _pSelective.");
+				pThis->_pSelective = NULL;
+				CLTRACE(9, "CExplorerSimulator: WorkerThreadProc: After NULL _pSelective.");
+				break;
+		}
+	}
+    catch (const std::exception &ex)
+    {
+		CLTRACE(1, "CExplorerSimulator: WorkerThreadProc: ERROR: Exception (2).  Message: %s.", ex.what());
+    }
+    catch (...)
+    {
+		CLTRACE(1, "CExplorerSimulator: WorkerThreadProc: ERROR: C++ exception (2).");
     }
 
 	CLTRACE(9, "CExplorerSimulator: WorkerThreadProc: Thread exit.");
@@ -348,13 +415,21 @@ void CExplorerSimulator::WorkerThreadProc(LPVOID pUserState)
 /// </summary>
 void CExplorerSimulator::Terminate()
 {
+	CLTRACE(9, "CExplorerSimulator: Terminate: Entry.  Simulator index: %d.  BadgeType: %d.", _nExplorerIndex, _nBadgeType);
+	if (_fRequestExit)
+	{
+		CLTRACE(9, "CExplorerSimulator: Terminate: Already terminated.  Return.");
+		return;
+	}
 	_fRequestExit = true;
 
 	// Wait for this thread to exit.
 	while (!_fExited)
 	{
-		Sleep(0);
+		Sleep(50);
 	}
+
+	CLTRACE(9, "CExplorerSimulator: Terminate: Exit.");
 }
 
 bool CExplorerSimulator::randomBool() {
@@ -399,61 +474,102 @@ void CExplorerSimulator::SendRequestsToIsMemberOf()
 
 BOOL CExplorerSimulator::QueryShouldBadgePath(std::wstring path)
 {
-	// Query the IsMemberOf member of the interface.  It returns S_OK to badge the icon, or S_FALSE for no badge.
-	switch (_nBadgeType)
+	char *pszExceptionStateTracker = "Start";
+
+	try
 	{
-		case cloudAppBadgeSynced:
-			_hr = _pSynced->IsMemberOf((LPWSTR)path.c_str(), 0);
-			if (_hr != S_OK && _hr != S_FALSE)
-			{
-				CLTRACE(9, "CExplorerSimulator: QueryShouldBadgePath: ERROR: Synced IsMemberOf returned %d.", _hr);
-				throw std::exception("Error from Synced IsMemberOf");
-			}
-			if (_hr == S_OK)
-			{
-				CLTRACE(9, "CExplorerSimulator: QueryShouldBadgePath: BadgeIt Synced.  Path: %s.", path.c_str());
-			}
-			break;
+		// Query the IsMemberOf member of the interface.  It returns S_OK to badge the icon, or S_FALSE for no badge.
+		switch (_nBadgeType)
+		{
+			case cloudAppBadgeSynced:
+				pszExceptionStateTracker = "_pSynced->IsMemberOf";
+				_hr = _pSynced->IsMemberOf((LPWSTR)path.c_str(), 0);
+				if (_hr != S_OK && _hr != S_FALSE)
+				{
+					CLTRACE(9, "CExplorerSimulator: QueryShouldBadgePath: ERROR: Synced IsMemberOf returned %d.", _hr);
+					throw std::exception("Error from Synced IsMemberOf");
+				}
+				if (_hr == S_OK)
+				{
+					CLTRACE(9, "CExplorerSimulator: QueryShouldBadgePath: BadgeIt Synced.  Path: %s.", path.c_str());
+					g_ulIsMemberOfQueryTotalCountTrue++;
+				}
+				else
+				{
+					g_ulIsMemberOfQueryTotalCountFalse++;
+				}
+				g_ulIsMemberOfQueryTotalCount++;
+				break;
 
-		case cloudAppBadgeSyncing:
-			_hr = _pSyncing->IsMemberOf((LPWSTR)path.c_str(), 0);
-			if (_hr != S_OK && _hr != S_FALSE)
-			{
-				CLTRACE(9, "CExplorerSimulator: QueryShouldBadgePath: ERROR: Syncing IsMemberOf returned %d.", _hr);
-				throw std::exception("Error from Syncing IsMemberOf");
-			}
-			if (_hr == S_OK)
-			{
-				CLTRACE(9, "CExplorerSimulator: QueryShouldBadgePath: BadgeIt Syncing.  Path: %s.", path.c_str());
-			}
-			break;
+			case cloudAppBadgeSyncing:
+				pszExceptionStateTracker = "_pSyncing->IsMemberOf";
+				_hr = _pSyncing->IsMemberOf((LPWSTR)path.c_str(), 0);
+				if (_hr != S_OK && _hr != S_FALSE)
+				{
+					CLTRACE(9, "CExplorerSimulator: QueryShouldBadgePath: ERROR: Syncing IsMemberOf returned %d.", _hr);
+					throw std::exception("Error from Syncing IsMemberOf");
+				}
+				if (_hr == S_OK)
+				{
+					CLTRACE(9, "CExplorerSimulator: QueryShouldBadgePath: BadgeIt Syncing.  Path: %s.", path.c_str());
+					g_ulIsMemberOfQueryTotalCountTrue++;
+				}
+				else
+				{
+					g_ulIsMemberOfQueryTotalCountFalse++;
+				}
+				g_ulIsMemberOfQueryTotalCount++;
+				break;
 
-		case cloudAppBadgeFailed:
-			_hr = _pFailed->IsMemberOf((LPWSTR)path.c_str(), 0);
-			if (_hr != S_OK && _hr != S_FALSE)
-			{
-				CLTRACE(9, "CExplorerSimulator: QueryShouldBadgePath: ERROR: Failed IsMemberOf returned %d.", _hr);
-				throw std::exception("Error from Failed IsMemberOf");
-			}
-			if (_hr == S_OK)
-			{
-				CLTRACE(9, "CExplorerSimulator: QueryShouldBadgePath: BadgeIt Failed.  Path: %s.", path.c_str());
-			}
-			break;
+			case cloudAppBadgeFailed:
+				pszExceptionStateTracker = "_pFailed->IsMemberOf";
+				_hr = _pFailed->IsMemberOf((LPWSTR)path.c_str(), 0);
+				if (_hr != S_OK && _hr != S_FALSE)
+				{
+					CLTRACE(9, "CExplorerSimulator: QueryShouldBadgePath: ERROR: Failed IsMemberOf returned %d.", _hr);
+					throw std::exception("Error from Failed IsMemberOf");
+				}
+				if (_hr == S_OK)
+				{
+					CLTRACE(9, "CExplorerSimulator: QueryShouldBadgePath: BadgeIt Failed.  Path: %s.", path.c_str());
+					g_ulIsMemberOfQueryTotalCountTrue++;
+				}
+				else
+				{
+					g_ulIsMemberOfQueryTotalCountFalse++;
+				}
+				g_ulIsMemberOfQueryTotalCount++;
+				break;
 
-		case cloudAppBadgeSelective:
-			_hr = _pSelective->IsMemberOf((LPWSTR)path.c_str(), 0);
-			if (_hr != S_OK && _hr != S_FALSE)
-			{
-				CLTRACE(9, "CExplorerSimulator: QueryShouldBadgePath: ERROR: Selective IsMemberOf returned %d.", _hr);
-				throw std::exception("Error from Selective IsMemberOf");
-			}
-			if (_hr == S_OK)
-			{
-				CLTRACE(9, "CExplorerSimulator: QueryShouldBadgePath: BadgeIt Selective.  Path: %s.", path.c_str());
-			}
-			break;
+			case cloudAppBadgeSelective:
+				pszExceptionStateTracker = "_pSelective->IsMemberOf";
+				_hr = _pSelective->IsMemberOf((LPWSTR)path.c_str(), 0);
+				if (_hr != S_OK && _hr != S_FALSE)
+				{
+					CLTRACE(9, "CExplorerSimulator: QueryShouldBadgePath: ERROR: Selective IsMemberOf returned %d.", _hr);
+					throw std::exception("Error from Selective IsMemberOf");
+				}
+				if (_hr == S_OK)
+				{
+					CLTRACE(9, "CExplorerSimulator: QueryShouldBadgePath: BadgeIt Selective.  Path: %s.", path.c_str());
+					g_ulIsMemberOfQueryTotalCountTrue++;
+				}
+				else
+				{
+					g_ulIsMemberOfQueryTotalCountFalse++;
+				}
+				g_ulIsMemberOfQueryTotalCount++;
+				break;
+		}
 	}
+    catch (const std::exception &ex)
+    {
+		CLTRACE(1, "CExplorerSimulator: QueryShouldBadgePath: ERROR: Exception.  Message: %s.", ex.what());
+    }
+    catch (...)
+    {
+		CLTRACE(1, "CExplorerSimulator: QueryShouldBadgePath: ERROR: C++ exception. Tracker: %s", pszExceptionStateTracker);
+    }
 
 	return _hr == S_OK ? true : false;
 }

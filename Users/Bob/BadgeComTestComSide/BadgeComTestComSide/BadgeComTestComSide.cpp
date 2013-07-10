@@ -4,6 +4,9 @@
 #define MAIN_MODULE
 #include "stdafx.h"
 
+// Debug trace
+#define CLTRACE(intPriority, szFormat, ...) Trace::getInstance()->write(intPriority, szFormat, __VA_ARGS__)
+
 
 std::wstring ConvertInt2String(int nNumber2Convert);
 void FillPathArray(std::wstring leadIn, std::wstring paths[nMaxItemsAtLevel][nMaxItemsAtLevel][nMaxItemsAtLevel]);
@@ -31,8 +34,10 @@ int _tmain(int argc, _TCHAR* argv[])
 	{
 		for (int indexBadgeType = cloudAppBadgeSynced; indexBadgeType <= nMaxBadgeTypeToSimulate; indexBadgeType++)
 		{
+			CLTRACE(9, "BadgeComTestComSide: _tmain: Construct CExplorerSimulator for indexExplorer: %d, indexBadgeType: %d.", indexExplorer, indexBadgeType);
 			pSimulators[indexExplorer][indexBadgeType - 1] = new CExplorerSimulator();
 			pSimulators[indexExplorer][indexBadgeType - 1]->Initialize(indexExplorer, indexBadgeType);
+			CLTRACE(9, "BadgeComTestComSide: _tmain: After Initialize CExplorerSimulator for indexExplorer: %d, indexBadgeType: %d.", indexExplorer, indexBadgeType);
 		}
 	}
 
@@ -45,7 +50,10 @@ int _tmain(int argc, _TCHAR* argv[])
 	{
 		for (int indexBadgeType = cloudAppBadgeSynced; indexBadgeType <= nMaxBadgeTypeToSimulate; indexBadgeType++)
 		{
-			pSimulators[indexExplorer][indexBadgeType - 1]->Terminate();
+			CLTRACE(9, "BadgeComTestComSide: _tmain: Delete CExplorerSimulator for indexExplorer: %d, indexBadgeType: %d.", indexExplorer, indexBadgeType);
+			delete pSimulators[indexExplorer][indexBadgeType - 1];
+			CLTRACE(9, "BadgeComTestComSide: _tmain: After delete CExplorerSimulator for indexExplorer: %d, indexBadgeType: %d.", indexExplorer, indexBadgeType);
+			pSimulators[indexExplorer][indexBadgeType - 1] = NULL;
 		}
 	}
 

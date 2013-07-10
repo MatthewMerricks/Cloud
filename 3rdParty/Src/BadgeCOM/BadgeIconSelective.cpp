@@ -66,8 +66,10 @@ CBadgeIconSelective::~CBadgeIconSelective()
 #endif // DEBUG_ENABLE_ONLY_SYNCED_BADGING
 		//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&  DEBUG REMOVE &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 
+		CLTRACE(9, "CBadgeIconSelective: ~CBadgeIconSelective: Entry.");
         if (_pBaseShellExtension != NULL)
         {
+    		CLTRACE(9, "CBadgeIconSelective: ~CBadgeIconSelective: Destruct base.");
             _pBaseShellExtension->~CBadgeIconBase();
             _pBaseShellExtension = NULL;
         }

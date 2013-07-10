@@ -70,7 +70,7 @@ CBadgeIconFailed::~CBadgeIconFailed()
         CLTRACE(9, "CBadgeIconFailed: ~CBadgeIconFailed: Entry.");
         if (_pBaseShellExtension != NULL)
         {
-    		CLTRACE(9, "CBadgeIconFailed: CBadgeIconFailed: Destruct base.");
+    		CLTRACE(9, "CBadgeIconFailed: ~CBadgeIconFailed: Destruct base.");
             _pBaseShellExtension->~CBadgeIconBase();
             _pBaseShellExtension = NULL;
         }

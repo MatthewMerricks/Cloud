@@ -138,7 +138,7 @@ void CBadgeNetPubSubEvents::Initialize()
 		CLTRACE(9, "CBadgeNetPubSubEvents: Initialize: Entry.");
         if (_pPubSubServer == NULL)
         {
-            throw std::exception("Call Initialize() first");
+            throw std::exception("_pPubSubServer was not constructed");
         }
 
         // Initialize the PubSubServer

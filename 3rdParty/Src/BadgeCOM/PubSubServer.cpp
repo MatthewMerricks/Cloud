@@ -177,6 +177,15 @@ STDMETHODIMP CPubSubServer::Publish(EnumEventType EventType, EnumEventSubType Ev
 		pBase->mutexSharedMemory_.lock();
 		try
 		{
+			// Don't run if terminating.
+			if (_fIsTerminating)
+			{
+				CLTRACE(1, "PubSubServer: Publish: ERROR: Terminating.  Exit.");
+				pBase->mutexSharedMemory_.unlock();
+				*returnValue = RC_PUBLISH_ERROR;
+				return S_OK;
+			}
+
 			// Locate the inner map for this event type.
 			CLTRACE(9, "PubSubServer: Publish: Inside lock.");
 			pszExceptionStateTracker = "Locate inner map";
@@ -224,6 +233,7 @@ STDMETHODIMP CPubSubServer::Publish(EnumEventType EventType, EnumEventSubType Ev
 				BOOL fSubscriptionRemoved = false;
 				BOOL fSubscriptionNotFound = false;
 
+				pszExceptionStateTracker = "Get shared memory lock";
 				pBase->mutexSharedMemory_.lock();
 				try
 				{
@@ -406,8 +416,18 @@ STDMETHODIMP CPubSubServer::Subscribe(
 		pBase->mutexSharedMemory_.lock();
 		try
 		{
-			// Look for this subscription.
 			CLTRACE(9, "PubSubServer: Subscribe: Inside lock.");
+
+			// Don't run if terminating.
+			if (_fIsTerminating)
+			{
+				CLTRACE(1, "PubSubServer: Publish: ERROR: Terminating.  Exit.");
+				pBase->mutexSharedMemory_.unlock();
+				*returnValue = RC_SUBSCRIBE_ERROR;
+				return S_OK;
+			}
+
+			// Look for this subscription.
 			eventtype_map_guid_subscription_map::iterator outItEventType2GuidSubscriptionMap;
 			guid_subscription_map::iterator outItGuidSubscriptionPair;
 			offset_ptr<Subscription> outOptrFoundSubscription;
@@ -715,7 +735,17 @@ STDMETHODIMP CPubSubServer::CancelSubscriptionsForProcessId(ULONG ProcessId, Enu
 			pBase->mutexSharedMemory_.lock();
 			try
 			{
-				CLTRACE(9, "PubSubServer: CancelSubscriptionsForProcessId: Inside lock.");
+				CLTRACE(9, "PubSubServer: CancelSubscriptionsForProcessId: Inside lock.");\
+
+				// Don't run if terminating.
+				if (_fIsTerminating)
+				{
+					CLTRACE(1, "PubSubServer: Publish: ERROR: Terminating.  Exit.");
+					pBase->mutexSharedMemory_.unlock();
+					*returnValue = RC_CANCELBYPROCESSID_ERROR;
+					return S_OK;
+				}
+
 				pszExceptionStateTracker = "Call clear";
 				subscriptionIdsForProcess.clear();
 
@@ -845,8 +875,18 @@ STDMETHODIMP CPubSubServer::CancelWaitingSubscription(EnumEventType EventType, G
 		pBase->mutexSharedMemory_.lock();
 		try
 		{
-			// Look for this subscription.
 			CLTRACE(9, "PubSubServer: CancelWaitingSubscription: Inside lock.");
+
+			// Don't run if terminating.
+			if (_fIsTerminating)
+			{
+				CLTRACE(1, "PubSubServer: CancelWaitingSubscription: ERROR: Terminating.  Exit.");
+				pBase->mutexSharedMemory_.unlock();
+				*returnValue = RC_CANCEL_ERROR;
+				return S_OK;
+			}
+
+			// Look for this subscription.
 			eventtype_map_guid_subscription_map::iterator outItEventType2GuidSubscriptionMap;
 			guid_subscription_map::iterator outItGuidSubscriptionPair;
 			offset_ptr<Subscription> outOptrFoundSubscription;
@@ -1249,6 +1289,15 @@ STDMETHODIMP CPubSubServer::CleanUpUnusedResources(EnumPubSubServerCleanUpUnused
 			pBase->mutexSharedMemory_.lock();
 			try
 			{
+				// Don't run if terminating.
+				if (_fIsTerminating)
+				{
+					CLTRACE(1, "PubSubServer: CleanUpUnusedResources: ERROR: Terminating.  Exit.");
+					pBase->mutexSharedMemory_.unlock();
+					*returnValue = RC_CLEANUPUNUSEDRESOURCES_ERROR;
+					return S_OK;
+				}
+
 				ULONG processId = GetCurrentProcessId();
 				ULONG threadId = GetCurrentThreadId();
 
@@ -1367,8 +1416,12 @@ STDMETHODIMP CPubSubServer::Terminate()
 			pBase->mutexSharedMemory_.lock();
 			try
 			{
-				// Delete all of the subscriptions made by this instance.
 				CLTRACE(9, "PubSubServer: Terminate: Inside lock.");
+
+				// Mark terminating.
+				_fIsTerminating = true;
+
+				// Delete all of the subscriptions made by this instance.
 				pszExceptionStateTracker = "Delete subscriptions";
 				for (std::vector<UniqueSubscription>::iterator it = _trackedSubscriptionIds.begin(); it != _trackedSubscriptionIds.end(); ++it)
 				{
@@ -1425,23 +1478,24 @@ STDMETHODIMP CPubSubServer::Terminate()
 	}
 
 	// Release the shared memory segment if all instances are finished with it.
-	pszExceptionStateTracker = "Release segment";
-	try
-	{
-		if (_pSegment != NULL)
-		{
-			_pSegment->~basic_managed_windows_shared_memory();
-			_pSegment = NULL;
-		}
-	}
-	catch (const std::exception &ex)
-	{
-		CLTRACE(1, "PubSubServer: Terminate: ERROR: Exception(2).  Message: %s. Tracker: %s.", ex.what(), pszExceptionStateTracker);
-	}
-	catch (...)
-	{
-		CLTRACE(1, "PubSubServer: Terminate: ERROR: C++ exception(2). Tracker: %s.", pszExceptionStateTracker);
-	}
+	//TODO: _pSegment is static.  Check to make sure that all instances are finished with it before releasing it.
+	//pszExceptionStateTracker = "Release segment";
+	//try
+	//{
+	//	if (_pSegment != NULL)
+	//	{
+	//		_pSegment->~basic_managed_windows_shared_memory();
+	//		_pSegment = NULL;
+	//	}
+	//}
+	//catch (const std::exception &ex)
+	//{
+	//	CLTRACE(1, "PubSubServer: Terminate: ERROR: Exception(2).  Message: %s. Tracker: %s.", ex.what(), pszExceptionStateTracker);
+	//}
+	//catch (...)
+	//{
+	//	CLTRACE(1, "PubSubServer: Terminate: ERROR: C++ exception(2). Tracker: %s.", pszExceptionStateTracker);
+	//}
 
 	CLTRACE(9, "PubSubServer: Terminate: Exit.");
 	return S_OK;
