@@ -57,6 +57,30 @@ int _tmain(int argc, _TCHAR* argv[])
 		}
 	}
 
+	// Output the statistics.
+	std::cout << "Statistics:" << std::endl;
+	std::cout << "    Total queries:" << g_ulIsMemberOfQueryTotalCount << std::endl;
+	std::cout << "    Total positive queries:" << g_ulIsMemberOfQueryTotalCountTrue << std::endl;
+	std::cout << "    Total negative queries:" << g_ulIsMemberOfQueryTotalCountFalse << std::endl;
+	std::cout << std::endl;
+	std::cout << "    Total Synced queries:" << g_ulIsMemberOfQuerySyncedTotalCount << std::endl;
+	std::cout << "    Total Synced positive queries:" << g_ulIsMemberOfQuerySyncedTotalCountTrue << std::endl;
+	std::cout << "    Total Synced negative queries:" << g_ulIsMemberOfQuerySyncedTotalCountFalse << std::endl;
+	std::cout << std::endl;
+	std::cout << "    Total Syncing queries:" << g_ulIsMemberOfQuerySyncingTotalCount << std::endl;
+	std::cout << "    Total Syncing positive queries:" << g_ulIsMemberOfQuerySyncingTotalCountTrue << std::endl;
+	std::cout << "    Total Syncing negative queries:" << g_ulIsMemberOfQuerySyncingTotalCountFalse << std::endl;
+	std::cout << std::endl;
+	std::cout << "    Total Failed queries:" << g_ulIsMemberOfQueryFailedTotalCount << std::endl;
+	std::cout << "    Total Failed positive queries:" << g_ulIsMemberOfQueryFailedTotalCountTrue << std::endl;
+	std::cout << "    Total Failed negative queries:" << g_ulIsMemberOfQueryFailedTotalCountFalse << std::endl;
+	std::cout << std::endl;
+	std::cout << "    Total Selective queries:" << g_ulIsMemberOfQuerySelectiveTotalCount << std::endl;
+	std::cout << "    Total Selective positive queries:" << g_ulIsMemberOfQuerySelectiveTotalCountTrue << std::endl;
+	std::cout << "    Total Selective negative queries:" << g_ulIsMemberOfQuerySelectiveTotalCountFalse << std::endl;
+	std::cout << "Press any key to continue....";
+	std::cin.ignore();
+
 	return 0;
 
 	#pragma endregion

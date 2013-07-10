@@ -493,12 +493,15 @@ BOOL CExplorerSimulator::QueryShouldBadgePath(std::wstring path)
 				{
 					CLTRACE(9, "CExplorerSimulator: QueryShouldBadgePath: BadgeIt Synced.  Path: %s.", path.c_str());
 					g_ulIsMemberOfQueryTotalCountTrue++;
+					g_ulIsMemberOfQuerySyncedTotalCountTrue++;
 				}
 				else
 				{
 					g_ulIsMemberOfQueryTotalCountFalse++;
+					g_ulIsMemberOfQuerySyncedTotalCountFalse++;
 				}
 				g_ulIsMemberOfQueryTotalCount++;
+				g_ulIsMemberOfQuerySyncedTotalCount++;
 				break;
 
 			case cloudAppBadgeSyncing:
@@ -513,12 +516,15 @@ BOOL CExplorerSimulator::QueryShouldBadgePath(std::wstring path)
 				{
 					CLTRACE(9, "CExplorerSimulator: QueryShouldBadgePath: BadgeIt Syncing.  Path: %s.", path.c_str());
 					g_ulIsMemberOfQueryTotalCountTrue++;
+					g_ulIsMemberOfQuerySyncingTotalCountTrue++;
 				}
 				else
 				{
 					g_ulIsMemberOfQueryTotalCountFalse++;
+					g_ulIsMemberOfQuerySyncingTotalCountFalse++;
 				}
 				g_ulIsMemberOfQueryTotalCount++;
+				g_ulIsMemberOfQuerySyncingTotalCount++;
 				break;
 
 			case cloudAppBadgeFailed:
@@ -533,12 +539,15 @@ BOOL CExplorerSimulator::QueryShouldBadgePath(std::wstring path)
 				{
 					CLTRACE(9, "CExplorerSimulator: QueryShouldBadgePath: BadgeIt Failed.  Path: %s.", path.c_str());
 					g_ulIsMemberOfQueryTotalCountTrue++;
+					g_ulIsMemberOfQueryFailedTotalCountTrue++;
 				}
 				else
 				{
 					g_ulIsMemberOfQueryTotalCountFalse++;
+					g_ulIsMemberOfQueryFailedTotalCountFalse++;
 				}
 				g_ulIsMemberOfQueryTotalCount++;
+				g_ulIsMemberOfQueryFailedTotalCount++;
 				break;
 
 			case cloudAppBadgeSelective:
@@ -553,12 +562,15 @@ BOOL CExplorerSimulator::QueryShouldBadgePath(std::wstring path)
 				{
 					CLTRACE(9, "CExplorerSimulator: QueryShouldBadgePath: BadgeIt Selective.  Path: %s.", path.c_str());
 					g_ulIsMemberOfQueryTotalCountTrue++;
+					g_ulIsMemberOfQuerySelectiveTotalCountTrue++;
 				}
 				else
 				{
 					g_ulIsMemberOfQueryTotalCountFalse++;
+					g_ulIsMemberOfQuerySelectiveTotalCountFalse++;
 				}
 				g_ulIsMemberOfQueryTotalCount++;
+				g_ulIsMemberOfQuerySelectiveTotalCount++;
 				break;
 		}
 	}
