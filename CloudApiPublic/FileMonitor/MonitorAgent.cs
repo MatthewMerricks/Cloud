@@ -1627,6 +1627,20 @@ namespace Cloud.FileMonitor
                                 // take the new change to process and update the current, in-memory index;
                                 // also queue it for processing
 
+                                if (currentChange == null)
+                                {
+                                    throw new CLNullReferenceException(CLExceptionCode.Syncing_FileMonitor, Resources.ExceptionMonitorAgentBeginProcessingNullcurrentChange);
+                                }
+                                if (currentChange.NewPath == null)
+                                {
+                                    throw new CLNullReferenceException(CLExceptionCode.Syncing_FileMonitor, Resources.ExceptionMonitorAgentBeginProcessingNullcurrentChangeNewPath);
+                                }
+                                if (currentChange.Type == FileChangeType.Renamed
+                                    && currentChange.OldPath == null)
+                                {
+                                    throw new CLNullReferenceException(CLExceptionCode.Syncing_FileMonitor, Resources.ExceptionMonitorAgentBeginProcessingNullRenamecurrentChangeOldPath);
+                                }
+
                                 switch (currentChange.Type)
                                 {
                                     case FileChangeType.Created:
