@@ -2070,6 +2070,15 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to serverUid must not be null.
+        /// </summary>
+        internal static string ExceptionCLHttpRestNullUid {
+            get {
+                return ResourceManager.GetString("ExceptionCLHttpRestNullUid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The server responded without an array of add file responses.
         /// </summary>
         internal static string ExceptionCLHttpRestWithoutAddFilesResponses {
