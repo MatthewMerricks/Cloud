@@ -3527,6 +3527,10 @@
     <value>currentChange NewPath cannot be null</value>
     <comment>currentChange and NewPath should not be translated</comment>
   </data>
+  <data name="ExceptionCLHttpRestNullUid" xml:space="preserve">
+    <value>serverUid must not be null</value>
+    <comment>serverUid should not be translated</comment>
+  </data>
   <data name="ExceptionMonitorAgentBeginProcessingNullRenamecurrentChangeOldPath" xml:space="preserve">
     <value>currentChange OldPath cannot be null if Type is FileChangeType.Renamed</value>
     <comment>currentChange, OldPath, Type, FileChangeType, and Renamed should not be translated</comment>
