@@ -18,16 +18,18 @@ namespace BadgeComTestNetSide
 	    const int nMaxItemsAtLevel = 10;
 	    const int nExplorersToSimulate = 1;
 	    const int nMaxBadgeTypeToSimulate = (int)cloudAppIconBadgeType.cloudAppBadgeSynced;
-        const int nMaxTestThreads = 4;
+        const int nMaxTestThreads = 16;
 
         static IconOverlay _iconOverlay = null;
-        static CLSyncbox _syncbox = null;
         static string[,,] _paths = new string[nMaxItemsAtLevel, nMaxItemsAtLevel, nMaxItemsAtLevel];
         static Random _random = new Random();
         static CLTrace _trace = CLTrace.Instance;
         static Task[] _tasks = new Task[nMaxTestThreads];
         static CancellationTokenSource[] _cancelTokenSources = new CancellationTokenSource[nMaxTestThreads];
         static CancellationToken[] _cancelTokens = new CancellationToken[nMaxTestThreads];
+        static ulong g_ulTotalBadgeOperations = 0;
+        static ulong g_ulTotalBadgeSetOperations = 0;
+        static ulong g_ulTotalBadgeDeleteOperations = 0;
 
         static void Main(string[] args)
         {
@@ -144,6 +146,8 @@ namespace BadgeComTestNetSide
                                 {
                                     throw new AggregateException("Error from setBadgeType", errorFromSetBadgeType.Exceptions);
                                 }
+
+                                g_ulTotalBadgeSetOperations++;
                             }
                             else
                             {
@@ -153,7 +157,11 @@ namespace BadgeComTestNetSide
                                 {
                                     throw new AggregateException("Error from DeleteBadgePathe", errorFromDeleteBadgePath.Exceptions);
                                 }
+
+                                g_ulTotalBadgeDeleteOperations++;
                             }
+
+                            g_ulTotalBadgeOperations++;
                         }
                     }
                     catch (Exception ex)
@@ -213,6 +221,16 @@ namespace BadgeComTestNetSide
             {
             }
 
+            // Write out the statistics.
+            Console.WriteLine("Statistics:");
+            Console.WriteLine("    Threads: " + nMaxTestThreads.ToString());
+            Console.WriteLine("    Total badging operations: " + g_ulTotalBadgeOperations.ToString());
+            Console.WriteLine("    Total badging set operations: " + g_ulTotalBadgeSetOperations.ToString());
+            Console.WriteLine("    Total badging delete operations: " + g_ulTotalBadgeDeleteOperations.ToString());
+            Console.WriteLine("Press any key to continue...");
+            Console.ReadLine();
+
+            // Exit.
             _trace.writeToLog(9, "BadgeComTestNetSide: Main: Exit.");
         }
 
