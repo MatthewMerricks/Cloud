@@ -2988,6 +2988,33 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to currentChange cannot be null.
+        /// </summary>
+        internal static string ExceptionMonitorAgentBeginProcessingNullcurrentChange {
+            get {
+                return ResourceManager.GetString("ExceptionMonitorAgentBeginProcessingNullcurrentChange", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to currentChange NewPath cannot be null.
+        /// </summary>
+        internal static string ExceptionMonitorAgentBeginProcessingNullcurrentChangeNewPath {
+            get {
+                return ResourceManager.GetString("ExceptionMonitorAgentBeginProcessingNullcurrentChangeNewPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to currentChange OldPath cannot be null if Type is FileChangeType.Renamed.
+        /// </summary>
+        internal static string ExceptionMonitorAgentBeginProcessingNullRenamecurrentChangeOldPath {
+            get {
+                return ResourceManager.GetString("ExceptionMonitorAgentBeginProcessingNullRenamecurrentChangeOldPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to An error occurred checking the disk in response to a change; path: {0}, message: {1}.
         /// </summary>
         internal static string ExceptionMonitorAgentCheckDiskPath0Message1 {
