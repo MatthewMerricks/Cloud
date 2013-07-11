@@ -72,6 +72,10 @@ namespace CloudApiPrivate.Common
                 {
                     exists = false;
                 }
+                catch (DirectoryNotFoundException) // even though we're checking a file's length, it can give a directory exception if the parent is not there
+                {
+                    exists = false;
+                }
                 catch
                 {
                 }
