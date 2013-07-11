@@ -1184,6 +1184,10 @@ namespace Cloud.FileMonitor
                                             {
                                                 deleteHappened = false;
                                             }
+                                            catch (DirectoryNotFoundException) // even though we're deleting a file, it can give a directory exception if the parent is not there
+                                            {
+                                                deleteHappened = false;
+                                            }
                                         }
 
                                         if (deleteHappened)
@@ -3985,6 +3989,10 @@ namespace Cloud.FileMonitor
                                 {
                                     exists = false;
                                 }
+                                catch (DirectoryNotFoundException) // even though we're checking a file's length, it can give a directory exception if the parent is not there
+                                {
+                                    exists = false;
+                                }
                                 catch
                                 {
                                 }
@@ -4008,6 +4016,18 @@ namespace Cloud.FileMonitor
                         // move is accomplished by changing the input param references so we now have a renamed change with their required oldpath\newpath combination
                         if (isFolder)
                         {
+                            // Windows 8 fix where 3 folders (or more) with files in each in the root are moved into another folder at the same time using drag-drop in explorer;
+                            // system sends a strange `Changed` event for the 3rd folder where it would normally send a `Deleted` event like it does for folders 1 and 2 -> leads to `Halted`
+                            if (changeType == WatcherChangeTypes.Changed)
+                            {
+                                if (!exists
+                                    && newIndexed
+                                    && newIndexedValue.HashableProperties.IsFolder)
+                                {
+                                    changeType = WatcherChangeTypes.Deleted;
+                                }
+                            }
+
                             switch (changeType)
                             {
                                 case WatcherChangeTypes.Created:
