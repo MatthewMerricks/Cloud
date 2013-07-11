@@ -665,6 +665,7 @@ namespace Cloud.REST
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
                 new
                 {
+                    thisRestClient = this,
                     // create the asynchronous result to return
                     toReturn = new GenericAsyncResult<FileItemDownloadImageResult>(
                         asyncCallback,
@@ -683,7 +684,7 @@ namespace Cloud.REST
                     {
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
                         Stream stream;
-                        CLError overallError = DownloadImageOfSize(
+                        CLError overallError = Data.thisRestClient.DownloadImageOfSize(
                             Data.fileItem,
                             Data.imageSize,
                             out stream,
@@ -847,11 +848,12 @@ namespace Cloud.REST
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
                 new
                 {
+                    thisRestClient = this,
                     // create the asynchronous result to return
                     toReturn = new GenericAsyncResult<SyncboxGetItemAtPathResult>(
                         asyncCallback,
                         asyncCallbackUserState),
-                    relativePath = relativePath,
+                    relativePath = relativePath
                 },
                 (Data, errorToAccumulate) =>
                 {
@@ -861,7 +863,7 @@ namespace Cloud.REST
                     {
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
                         CLFileItem fileItem;
-                        CLError overallError = ItemForPath(
+                        CLError overallError = Data.thisRestClient.ItemForPath(
                             Data.relativePath,
                             out fileItem);
 
@@ -992,6 +994,7 @@ namespace Cloud.REST
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
                 new
                 {
+                    thisRestClient = this,
                     // create the asynchronous result to return
                     toReturn = new GenericAsyncResult<SyncboxGetItemAtItemUidResult>(
                         asyncCallback,
@@ -1006,7 +1009,7 @@ namespace Cloud.REST
                     {
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
                         CLFileItem fileItem;
-                        CLError overallError = ItemForItemUid(
+                        CLError overallError = Data.thisRestClient.ItemForItemUid(
                             Data.itemUid,
                             out fileItem);
 
@@ -1142,6 +1145,7 @@ namespace Cloud.REST
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
                 new
                 {
+                    thisRestClient = this,
                     // create the asynchronous result to return
                     toReturn = new GenericAsyncResult<CLError>(
                         asyncCallback,
@@ -1158,7 +1162,7 @@ namespace Cloud.REST
                     try
                     {
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
-                        CLError overallError = RenameFiles(
+                        CLError overallError = Data.thisRestClient.RenameFiles(
                             Data.reservedForActiveSync,
                             Data.itemCompletionCallback,
                             Data.itemCompletionCallbackUserState,
@@ -1445,6 +1449,7 @@ namespace Cloud.REST
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
                 new
                 {
+                    thisRestClient = this,
                     // create the asynchronous result to return
                     toReturn = new GenericAsyncResult<CLError>(
                         asyncCallback,
@@ -1461,7 +1466,7 @@ namespace Cloud.REST
                     try
                     {
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
-                        CLError overallError = RenameFolders(
+                        CLError overallError = Data.thisRestClient.RenameFolders(
                             Data.reservedForActiveSync,
                             Data.itemCompletionCallback,
                             Data.itemCompletionCallbackUserState,
@@ -1747,6 +1752,7 @@ namespace Cloud.REST
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
                 new
                 {
+                    thisRestClient = this,
                     // create the asynchronous result to return
                     toReturn = new GenericAsyncResult<CLError>(
                         asyncCallback,
@@ -1763,7 +1769,7 @@ namespace Cloud.REST
                     try
                     {
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
-                        CLError overallError = MoveFiles(
+                        CLError overallError = Data.thisRestClient.MoveFiles(
                             Data.reservedForActiveSync,
                             Data.itemCompletionCallback,
                             Data.itemCompletionCallbackUserState,
@@ -2046,6 +2052,7 @@ namespace Cloud.REST
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
                 new
                 {
+                    thisRestClient = this,
                     // create the asynchronous result to return
                     toReturn = new GenericAsyncResult<CLError>(
                         asyncCallback,
@@ -2062,7 +2069,7 @@ namespace Cloud.REST
                     try
                     {
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
-                        CLError overallError = MoveFolders(
+                        CLError overallError = Data.thisRestClient.MoveFolders(
                             Data.reservedForActiveSync,
                             Data.itemCompletionCallback,
                             Data.itemCompletionCallbackUserState,
@@ -2346,6 +2353,7 @@ namespace Cloud.REST
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
                 new
                 {
+                    thisRestClient = this,
                     // create the asynchronous result to return
                     toReturn = new GenericAsyncResult<CLError>(
                         asyncCallback,
@@ -2362,7 +2370,7 @@ namespace Cloud.REST
                     try
                     {
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
-                        CLError overallError = DeleteFiles(
+                        CLError overallError = Data.thisRestClient.DeleteFiles(
                             Data.reservedForActiveSync,
                             Data.itemCompletionCallback,
                             Data.itemCompletionCallbackUserState,
@@ -2627,6 +2635,7 @@ namespace Cloud.REST
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
                 new
                 {
+                    thisRestClient = this,
                     // create the asynchronous result to return
                     toReturn = new GenericAsyncResult<CLError>(
                         asyncCallback,
@@ -2643,7 +2652,7 @@ namespace Cloud.REST
                     try
                     {
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
-                        CLError overallError = DeleteFolders(
+                        CLError overallError = Data.thisRestClient.DeleteFolders(
                             Data.reservedForActiveSync,
                             Data.itemCompletionCallback,
                             Data.itemCompletionCallbackUserState,
@@ -2913,6 +2922,7 @@ namespace Cloud.REST
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
                 new
                 {
+                    thisRestClient = this,
                     // create the asynchronous result to return
                     toReturn = new GenericAsyncResult<CLError>(
                         asyncCallback,
@@ -2929,7 +2939,7 @@ namespace Cloud.REST
                     try
                     {
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
-                        CLError overallError = PurgePendingFiles(
+                        CLError overallError = Data.thisRestClient.PurgePendingFiles(
                             Data.reservedForActiveSync,
                             Data.itemCompletionCallback,
                             Data.itemCompletionCallbackUserState,
@@ -3194,6 +3204,7 @@ namespace Cloud.REST
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
                 new
                 {
+                    thisRestClient = this,
                     // create the asynchronous result to return
                     toReturn = new GenericAsyncResult<CLError>(
                         asyncCallback,
@@ -3210,7 +3221,7 @@ namespace Cloud.REST
                     try
                     {
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
-                        CLError overallError = AddFolders(
+                        CLError overallError = Data.thisRestClient.AddFolders(
                             Data.reservedForActiveSync,
                             Data.itemCompletionCallback,
                             Data.itemCompletionCallbackUserState,
@@ -3497,6 +3508,7 @@ namespace Cloud.REST
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
                 new
                 {
+                    thisRestClient = this,
                     // create the asynchronous result to return
                     toReturn = new GenericAsyncResult<SyncboxAddFilesResult>(
                         asyncCallback,
@@ -3516,7 +3528,7 @@ namespace Cloud.REST
                     try
                     {
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
-                        CLError overallError = AddFiles(
+                        CLError overallError = Data.thisRestClient.AddFiles(
                             Data.reservedForActiveSync,
                             Data.itemCompletionCallback,
                             Data.itemCompletionCallbackUserState,
@@ -4005,6 +4017,7 @@ namespace Cloud.REST
                                 var uploadForTask = DelegateAndDataHolderBase.Create(
                                     new
                                     {
+                                        thisRestClient = this,
                                         inputItemIndex = fileLeftToUpload.Item4,
                                         uploadStreamContext = uploadStreams[fileLeftToUpload.Item4].context,
                                         uploadChange = fileLeftToUpload.Item2,
@@ -4045,7 +4058,7 @@ namespace Cloud.REST
 
                                             string unusedMessage;
                                             bool hashMismatchFound;
-                                            CLError uploadError = UploadFile(
+                                            CLError uploadError = Data.thisRestClient.UploadFile(
                                                 Data.uploadStreamContext,
                                                 Data.uploadChange,
                                                 Data.completedItem.ItemUid,
@@ -4158,6 +4171,7 @@ namespace Cloud.REST
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
                 new
                 {
+                    thisRestClient = this,
                     // create the asynchronous result to return
                     toReturn = new GenericAsyncResult<SyncboxModifyFilesResult>(
                         asyncCallback,
@@ -4177,7 +4191,7 @@ namespace Cloud.REST
                     try
                     {
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
-                        CLError overallError = ModifyFiles(
+                        CLError overallError = Data.thisRestClient.ModifyFiles(
                             Data.reservedForActiveSync,
                             Data.itemCompletionCallback,
                             Data.itemCompletionCallbackUserState,
@@ -4590,6 +4604,7 @@ namespace Cloud.REST
                                 var uploadForTask = DelegateAndDataHolderBase.Create(
                                     new
                                     {
+                                        thisRestClient = this,
                                         inputItemIndex = fileLeftToUpload.Item4,
                                         uploadStreamContext = uploadStreams[fileLeftToUpload.Item4].context,
                                         uploadChange = fileLeftToUpload.Item2,
@@ -4630,7 +4645,7 @@ namespace Cloud.REST
 
                                             string unusedMessage;
                                             bool hashMismatchFound;
-                                            CLError uploadError = UploadFile(
+                                            CLError uploadError = Data.thisRestClient.UploadFile(
                                                 Data.uploadStreamContext,
                                                 Data.uploadChange,
                                                 Data.completedItem.ItemUid,
@@ -5261,6 +5276,7 @@ namespace Cloud.REST
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
                 new
                 {
+                    thisRestClient = this,
                     // create the asynchronous result to return
                     toReturn = new GenericAsyncResult<SyncboxAllImageItemsResult>(
                         asyncCallback,
@@ -5276,7 +5292,7 @@ namespace Cloud.REST
                     {
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
                         CLFileItem[] items;
-                        CLError overallError = AllImageItems(
+                        CLError overallError = Data.thisRestClient.AllImageItems(
                             Data.pageNumber,
                             Data.itemsPerPage,
                             out items);
@@ -5429,12 +5445,13 @@ namespace Cloud.REST
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
                 new
                 {
+                    thisRestClient = this,
                     // create the asynchronous result to return
                     toReturn = new GenericAsyncResult<SyncboxAllVideoItemsResult>(
                         asyncCallback,
                         asyncCallbackUserState),
                     pageNumber = pageNumber,
-                    itemsPerPage = itemsPerPage,
+                    itemsPerPage = itemsPerPage
                 },
                 (Data, errorToAccumulate) =>
                 {
@@ -5444,7 +5461,7 @@ namespace Cloud.REST
                     {
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
                         CLFileItem[] items;
-                        CLError overallError = AllVideoItems(
+                        CLError overallError = Data.thisRestClient.AllVideoItems(
                             Data.pageNumber,
                             Data.itemsPerPage,
                             out items);
@@ -5596,12 +5613,13 @@ namespace Cloud.REST
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
                 new
                 {
+                    thisRestClient = this,
                     // create the asynchronous result to return
                     toReturn = new GenericAsyncResult<SyncboxAllAudioItemsResult>(
                         asyncCallback,
                         asyncCallbackUserState),
                     pageNumber = pageNumber,
-                    itemsPerPage = itemsPerPage,
+                    itemsPerPage = itemsPerPage
                 },
                 (Data, errorToAccumulate) =>
                 {
@@ -5611,7 +5629,7 @@ namespace Cloud.REST
                     {
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
                         CLFileItem[] items;
-                        CLError overallError = AllAudioItems(
+                        CLError overallError = Data.thisRestClient.AllAudioItems(
                             Data.pageNumber,
                             Data.itemsPerPage,
                             out items);
@@ -5763,6 +5781,7 @@ namespace Cloud.REST
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
                 new
                 {
+                    thisRestClient = this,
                     // create the asynchronous result to return
                     toReturn = new GenericAsyncResult<SyncboxAllDocumentItemsResult>(
                         asyncCallback,
@@ -5778,7 +5797,7 @@ namespace Cloud.REST
                     {
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
                         CLFileItem[] items;
-                        CLError overallError = AllDocumentItems(
+                        CLError overallError = Data.thisRestClient.AllDocumentItems(
                             Data.pageNumber,
                             Data.itemsPerPage,
                             out items);
@@ -5930,6 +5949,7 @@ namespace Cloud.REST
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
                 new
                 {
+                    thisRestClient = this,
                     // create the asynchronous result to return
                     toReturn = new GenericAsyncResult<SyncboxAllPresentationItemsResult>(
                         asyncCallback,
@@ -5945,7 +5965,7 @@ namespace Cloud.REST
                     {
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
                         CLFileItem[] items;
-                        CLError overallError = AllPresentationItems(
+                        CLError overallError = Data.thisRestClient.AllPresentationItems(
                             Data.pageNumber,
                             Data.itemsPerPage,
                             out items);
@@ -6097,12 +6117,13 @@ namespace Cloud.REST
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
                 new
                 {
+                    thisRestClient = this,
                     // create the asynchronous result to return
                     toReturn = new GenericAsyncResult<SyncboxAllTextItemsResult>(
                         asyncCallback,
                         asyncCallbackUserState),
                     pageNumber = pageNumber,
-                    itemsPerPage = itemsPerPage,
+                    itemsPerPage = itemsPerPage
                 },
                 (Data, errorToAccumulate) =>
                 {
@@ -6112,7 +6133,7 @@ namespace Cloud.REST
                     {
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
                         CLFileItem[] items;
-                        CLError overallError = AllPlainTextItems(
+                        CLError overallError = Data.thisRestClient.AllPlainTextItems(
                             Data.pageNumber,
                             Data.itemsPerPage,
                             out items);
@@ -6264,12 +6285,13 @@ namespace Cloud.REST
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
                 new
                 {
+                    thisRestClient = this,
                     // create the asynchronous result to return
                     toReturn = new GenericAsyncResult<SyncboxAllArchiveItemsResult>(
                         asyncCallback,
                         asyncCallbackUserState),
                     pageNumber = pageNumber,
-                    itemsPerPage = itemsPerPage,
+                    itemsPerPage = itemsPerPage
                 },
                 (Data, errorToAccumulate) =>
                 {
@@ -6279,7 +6301,7 @@ namespace Cloud.REST
                     {
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
                         CLFileItem[] items;
-                        CLError overallError = AllArchiveItems(
+                        CLError overallError = Data.thisRestClient.AllArchiveItems(
                             Data.pageNumber,
                             Data.itemsPerPage,
                             out items);
@@ -6437,6 +6459,7 @@ namespace Cloud.REST
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
                 new
                 {
+                    thisRestClient = this,
                     // create the asynchronous result to return
                     toReturn = new GenericAsyncResult<SyncboxAllItemsOfTypesResult>(
                         asyncCallback,
@@ -6453,7 +6476,7 @@ namespace Cloud.REST
                     {
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
                         CLFileItem[] items;
-                        CLError overallError = AllItemsOfTypes(
+                        CLError overallError = Data.thisRestClient.AllItemsOfTypes(
                             Data.pageNumber,
                             Data.itemsPerPage,
                             out items,
@@ -6640,6 +6663,7 @@ namespace Cloud.REST
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
                 new
                 {
+                    thisRestClient = this,
                     // create the asynchronous result to return
                     toReturn = new GenericAsyncResult<SyncboxRecentFilesSinceDateResult>(
                         asyncCallback,
@@ -6656,7 +6680,7 @@ namespace Cloud.REST
                     {
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
                         CLFileItem[] items;
-                        CLError overallError = RecentFilesSinceDate(
+                        CLError overallError = Data.thisRestClient.RecentFilesSinceDate(
                             Data.pageNumber,
                             Data.itemsPerPage,
                             out items,
@@ -6825,6 +6849,7 @@ namespace Cloud.REST
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
                 new
                 {
+                    thisRestClient = this,
                     // create the asynchronous result to return
                     toReturn = new GenericAsyncResult<SyncboxRecentFilesResult>(
                         asyncCallback,
@@ -6839,7 +6864,7 @@ namespace Cloud.REST
                     {
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
                         CLFileItem[] items;
-                        CLError overallError = RecentFiles(
+                        CLError overallError = Data.thisRestClient.RecentFiles(
                             Data.returnLimit,
                             out items);
 
@@ -6990,12 +7015,13 @@ namespace Cloud.REST
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
                 new
                 {
+                    thisRestClient = this,
                     // create the asynchronous result to return
                     toReturn = new GenericAsyncResult<CLError>(
                         asyncCallback,
                         asyncCallbackUserState),
                     completionCallback = completionCallback,
-                    completionCallbackUserState = completionCallbackUserState,
+                    completionCallbackUserState = completionCallbackUserState
                 },
                 (Data, errorToAccumulate) =>
                 {
@@ -7004,7 +7030,7 @@ namespace Cloud.REST
                     try
                     {
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
-                        CLError overallError = GetDataUsage(
+                        CLError overallError = Data.thisRestClient.GetDataUsage(
                             Data.completionCallback,
                             Data.completionCallbackUserState);
 
@@ -7132,6 +7158,7 @@ namespace Cloud.REST
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
                 new
                 {
+                    thisRestClient = this,
                     // create the asynchronous result to return
                     toReturn = new GenericAsyncResult<SyncboxItemsAtPathResult>(
                         asyncCallback,
@@ -7147,7 +7174,7 @@ namespace Cloud.REST
                         // declare the specific type of result for this operation
                         CLFileItem[] response;
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
-                        CLError processError = ItemsForPath(
+                        CLError processError = Data.thisRestClient.ItemsForPath(
                             Data.relativePath,
                             out response);
 
@@ -7306,6 +7333,7 @@ namespace Cloud.REST
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
                 new
                 {
+                    thisRestClient = this,
                     // create the asynchronous result to return
                     toReturn = new GenericAsyncResult<SyncboxItemsForFolderItemResult>(
                         asyncCallback,
@@ -7323,7 +7351,7 @@ namespace Cloud.REST
                         // declare the specific type of result for this operation
                         CLFileItem[] response;
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
-                        CLError processError = ItemsForFolderItem(
+                        CLError processError = Data.thisRestClient.ItemsForFolderItem(
                             Data.folderItem,
                             out response,
                             Data.includePending,
@@ -7496,6 +7524,7 @@ namespace Cloud.REST
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
                 new
                 {
+                    thisRestClient = this,
                     // create the asynchronous result to return
                     toReturn = new GenericAsyncResult<SyncboxHierarchyOfFolderAtPathResult>(
                         asyncCallback,
@@ -7511,7 +7540,7 @@ namespace Cloud.REST
                         // declare the specific type of result for this operation
                         CLFileItem[] response;
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
-                        CLError processError = HierarchyOfFolderAtPath(
+                        CLError processError = Data.thisRestClient.HierarchyOfFolderAtPath(
                             Data.relativePath,
                             out response);
 
@@ -7668,11 +7697,12 @@ namespace Cloud.REST
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
                 new
                 {
+                    thisRestClient = this,
                     // create the asynchronous result to return
                     toReturn = new GenericAsyncResult<SyncboxHierarchyOfFolderAtFolderItemResult>(
                         asyncCallback,
                         asyncCallbackUserState),
-                    folderItem = folderItem,
+                    folderItem = folderItem
                 },
                 (Data, errorToAccumulate) =>
                 {
@@ -7683,7 +7713,7 @@ namespace Cloud.REST
                         // declare the specific type of result for this operation
                         CLFileItem[] items;
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
-                        CLError processError = HierarchyOfFolderAtFolderItem(
+                        CLError processError = Data.thisRestClient.HierarchyOfFolderAtFolderItem(
                             Data.folderItem,
                             out items);
 
@@ -8173,12 +8203,13 @@ namespace Cloud.REST
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
                 new
                 {
+                    thisRestClient = this,
                     // create the asynchronous result to return
                     toReturn = toReturn,
                     completionCallback = completionCallback,
                     completionCallbackUserState = completionCallbackUserState,
                     reservedForActiveSync = reservedForActiveSync,
-                    storagePlan = storagePlan,
+                    storagePlan = storagePlan
                 },
                 (Data, errorToAccumulate) =>
                 {
@@ -8187,7 +8218,7 @@ namespace Cloud.REST
                     try
                     {
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
-                        CLError overallError = UpdateStoragePlan(
+                        CLError overallError = Data.thisRestClient.UpdateStoragePlan(
                             Data.completionCallback,
                             Data.completionCallbackUserState,
                             Data.reservedForActiveSync,
@@ -8357,6 +8388,7 @@ namespace Cloud.REST
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
                 new
                 {
+                    thisRestClient = this,
                     // create the asynchronous result to return
                     toReturn = new GenericAsyncResult<CLError>(
                         asyncCallback,
@@ -8364,7 +8396,7 @@ namespace Cloud.REST
                     reservedForActiveSync = reservedForActiveSync,
                     completionCallback = completionCallback,
                     completionCallbackUserState = completionCallbackUserState,
-                    friendlyName = friendlyName,
+                    friendlyName = friendlyName
                 },
                 (Data, errorToAccumulate) =>
                 {
@@ -8373,7 +8405,7 @@ namespace Cloud.REST
                     try
                     {
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
-                        CLError overallError = UpdateFriendlyName(
+                        CLError overallError = Data.thisRestClient.UpdateFriendlyName(
                             Data.reservedForActiveSync,
                             Data.completionCallback,
                             Data.completionCallbackUserState,
@@ -8542,12 +8574,13 @@ namespace Cloud.REST
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
                 new
                 {
+                    thisRestClient = this,
                     // create the asynchronous result to return
                     toReturn = new GenericAsyncResult<CLError>(
                         asyncCallback,
                         asyncCallbackUserState),
                     completionCallback = completionCallback,
-                    completionCallbackUserState = completionCallbackUserState,
+                    completionCallbackUserState = completionCallbackUserState
                 },
                 (Data, errorToAccumulate) =>
                 {
@@ -8556,7 +8589,7 @@ namespace Cloud.REST
                     try
                     {
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
-                        CLError overallError = GetCurrentStatus(
+                        CLError overallError = Data.thisRestClient.GetCurrentStatus(
                             Data.completionCallback,
                             Data.completionCallbackUserState);
 
@@ -8699,7 +8732,9 @@ namespace Cloud.REST
         #endregion
 
         #region internal API calls
+
         #region unregioned
+
         /// <summary>
         /// Sends a list of sync events to the server.  The events must be batched in groups of 1,000 or less.
         /// </summary>
@@ -10665,6 +10700,159 @@ namespace Cloud.REST
             return null;
         }
         #endregion
+
+        #region ContentsUnderFolderUid
+
+        /// <summary>
+        /// Asynchronously starts querying folder contents at a relative syncbox path.
+        /// </summary>
+        /// <param name="asyncCallback">Callback method to fire when operation completes</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing async callback</param>
+        /// <param name="folderItem">The CLFileItem representing the folder to query.  If folderItem is null, the contents of the synbox root folder will be returned.</param>
+        /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
+        internal IAsyncResult BeginContentsUnderFolderUid(
+            AsyncCallback asyncCallback,
+            object asyncCallbackUserState,
+            string serverUid)
+        {
+            var asyncThread = DelegateAndDataHolderBase.Create(
+                // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
+                new
+                {
+                    thisRestClient = this,
+                    // create the asynchronous result to return
+                    toReturn = new GenericAsyncResult<ContentsUnderFolderUidResult>(
+                        asyncCallback,
+                        asyncCallbackUserState),
+                    serverUid = serverUid
+                },
+                (Data, errorToAccumulate) =>
+                {
+                    // The ThreadProc.
+                    // try/catch to process with the input parameters, on catch set the exception in the asyncronous result
+                    try
+                    {
+                        // declare the specific type of result for this operation
+                        JsonContracts.SyncboxFolderContentsResponse response;
+                        // alloc and init the syncbox with the passed parameters, storing any error that occurs
+                        CLError processError = Data.thisRestClient.ContentsUnderFolderUid(
+                            Data.serverUid,
+                            out response);
+
+                        Data.toReturn.Complete(
+                            new ContentsUnderFolderUidResult(
+                                processError, // any error that may have occurred during processing
+                                response), // the specific type of result for this operation
+                            sCompleted: false); // processing did not complete synchronously
+                    }
+                    catch (Exception ex)
+                    {
+                        Data.toReturn.HandleException(
+                            ex, // the exception which was not handled correctly by the CLError wrapping
+                            sCompleted: false); // processing did not complete synchronously
+                    }
+                },
+                null);
+
+            // create the thread from a void (object) parameterized start which wraps the synchronous method call
+            (new Thread(new ThreadStart(asyncThread.VoidProcess))).Start(); // start the asynchronous processing thread which is attached to its data
+
+            // return the asynchronous result
+            return asyncThread.TypedData.toReturn;
+        }
+
+        /// <summary>
+        /// Finishes getting folder contents if it has not already finished via its asynchronous result and outputs the result,
+        /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
+        /// </summary>
+        /// <param name="asyncResult">The asynchronous result provided upon starting getting folder contents</param>
+        /// <param name="result">(output) The result from folder contents</param>
+        /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
+        internal CLError EndContentsUnderFolderUid(IAsyncResult asyncResult, out ContentsUnderFolderUidResult result)
+        {
+            return Helpers.EndAsyncOperation<ContentsUnderFolderUidResult>(asyncResult, out result);
+        }
+
+        /// <summary>
+        /// Queries server for folder contents at a relative syncbox path.
+        /// </summary>
+        /// <param name="folderItem">The CLFileItem representing the folder to query.  If folderItem is null, the syncbox root folder will be queried.</param>
+        /// <param name="items">(output) response object from communication</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        internal CLError ContentsUnderFolderUid(
+            string serverUid,
+            out JsonContracts.SyncboxFolderContentsResponse response)
+        {
+            // try/catch to process the folder contents query, on catch return the error
+            try
+            {
+                // check input parameters
+                if (!(_syncbox.CopiedSettings.HttpTimeoutMilliseconds > 0))
+                {
+                    throw new CLArgumentException(CLExceptionCode.OnDemand_TimeoutMilliseconds, Resources.CLMSTimeoutMustBeGreaterThanZero);
+                }
+                if (string.IsNullOrEmpty(serverUid))
+                {
+                    throw new CLInvalidOperationException(CLExceptionCode.General_Invalid, Resources.ExceptionCLHttpRestNullUid);
+                }
+
+                // build the location of the folder contents retrieval method on the server dynamically
+                string serverMethodPath =
+                    CLDefinitions.MethodPathGetFolderContents + // path
+                    Helpers.QueryStringBuilder(new[]
+                    {
+                        // query string parameter for the current sync box id, should not need escaping since it should be an integer in string format
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringSyncboxId, _syncbox.SyncboxId.ToString()),
+
+                        // do not limit depth (default is 'all', but send it anyways)
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringDepth, CLDefinitions.RESTRequestSession_SyncboxIdsAll), // query string parameter for optional depth limit
+
+                        // Fill in the uid only if it is supplied.
+                        new KeyValuePair<string, string>(CLDefinitions.CLMetadataServerId, Uri.EscapeDataString(serverUid)),
+
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeDeleted, CLDefinitions.CLMetadataFalse), // query string parameter for not including deleted objects
+
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeCount, CLDefinitions.CLMetadataFalse), // query string parameter for including counts within each folder
+
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeFolders, CLDefinitions.CLMetadataTrue), // query string parameter for including folders in the list
+
+                        new KeyValuePair<string, string>(CLDefinitions.QueryStringIncludeStoredOnly, CLDefinitions.CLMetadataTrue) // query string parameter for including only stored items in the list
+                    });
+
+                // If the user wants to handle temporary tokens, we will build the extra optional parameters to pass to ProcessHttp.
+                Helpers.RequestNewCredentialsInfo requestNewCredentialsInfo = new Helpers.RequestNewCredentialsInfo()
+                {
+                    ProcessingStateByThreadId = _processingStateByThreadId,
+                    GetNewCredentialsCallback = _getNewCredentialsCallback,
+                    GetNewCredentialsCallbackUserState = _getNewCredentialsCallbackUserState,
+                    GetCurrentCredentialsCallback = GetCurrentCredentialsCallback,
+                    SetCurrentCredentialsCallback = SetCurrentCredentialCallback,
+                };
+
+                // Communicate with the server to get the response.
+                response = Helpers.ProcessHttp<JsonContracts.SyncboxFolderContentsResponse>(
+                    null, // HTTP Get method does not have content
+                    CLDefinitions.CLMetaDataServerURL, // base domain is the MDS server
+                    serverMethodPath, // path to query folder contents (dynamic adding query string)
+                    Helpers.requestMethod.get, // query folder contents is a get
+                    _syncbox.CopiedSettings.HttpTimeoutMilliseconds, // time before communication timeout
+                    null, // not an upload or download
+                    Helpers.HttpStatusesOkAccepted, // use the hashset for ok/accepted as successful HttpStatusCodes
+                    _syncbox.CopiedSettings, // pass the copied settings
+                    _syncbox, // pass the syncbox
+                    requestNewCredentialsInfo,   // pass the optional parameters to support temporary token reallocation.
+                    true);
+            }
+            catch (Exception ex)
+            {
+                response = Helpers.DefaultForType<JsonContracts.SyncboxFolderContentsResponse>();
+                return ex;
+            }
+            return null;
+        }
+
+        #endregion
+
         #endregion
     }
 }
