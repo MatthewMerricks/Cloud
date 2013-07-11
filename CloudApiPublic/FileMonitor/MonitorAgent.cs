@@ -1184,6 +1184,10 @@ namespace Cloud.FileMonitor
                                             {
                                                 deleteHappened = false;
                                             }
+                                            catch (DirectoryNotFoundException) // even though we're deleting a file, it can give a directory exception if the parent is not there
+                                            {
+                                                deleteHappened = false;
+                                            }
                                         }
 
                                         if (deleteHappened)
@@ -3980,6 +3984,10 @@ namespace Cloud.FileMonitor
                                     fileLength = file.Length;
                                 }
                                 catch (FileNotFoundException)
+                                {
+                                    exists = false;
+                                }
+                                catch (DirectoryNotFoundException) // even though we're checking a file's length, it can give a directory exception if the parent is not there
                                 {
                                     exists = false;
                                 }
