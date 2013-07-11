@@ -839,6 +839,13 @@ namespace Cloud.REST
         }
     }
 
+    [Obfuscation(Exclude = true)]
+    internal sealed class ContentsUnderFolderUidResult : BaseCLHttpRestResult<JsonContracts.SyncboxFolderContentsResponse>
+    {
+        internal ContentsUnderFolderUidResult(CLError Error, JsonContracts.SyncboxFolderContentsResponse Response)
+            : base(Error, Response) { }
+    }
+
     /// <summary>
     /// Holds result properties
     /// </summary>
