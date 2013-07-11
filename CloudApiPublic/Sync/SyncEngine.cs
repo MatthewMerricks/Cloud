@@ -7879,13 +7879,7 @@ namespace Cloud.Sync
                                     : ((PossiblyStreamableFileChange)Data.matchedChange.Value).FileChange.Metadata.ParentFolderServerUid);
 
                         FilePath localDictionaryPath;
-                        // first condition on ConvertedRenameToAdd is for when client deletes a folder and in the same communication batch receives a
-                        // rename of something which was in that folder to outside and thus the item rename was converted to an add
-                        if (Data.currentEvent.Value.ConvertedRenameToAdd)
-                        {
-                            localDictionaryPath = null;
-                        }
-                        else if (!Data.serverUidsToPath.TryGetValue(currentEventServerUid, out localDictionaryPath))
+                        if (!Data.serverUidsToPath.TryGetValue(currentEventServerUid, out localDictionaryPath))
                         {
                             string localDictionaryPathString;
                             CLError queryDatabaseForPath = Data.commonThisEngine.syncData.GetCalculatedFullPathByServerUid(
@@ -8362,101 +8356,6 @@ namespace Cloud.Sync
                     // if there are events in the response to process, then loop through all events looking for duplicates between Sync From and Sync To
                     if (deserializedResponse.Events.Length > 0)
                     {
-                        // before server fixes a logic issue where it can send a rename out of a folder which was deleted in an earlier event,
-                        // find illogical renames after parent deletions and convert them to adds:
-                        for (int deleteIdx = 0; deleteIdx < deserializedResponse.Events.Length; deleteIdx++)
-                        {
-                            FileChangeResponse currentDeserializedResponse = deserializedResponse.Events[deleteIdx];
-                            if (currentDeserializedResponse != null
-                                && currentDeserializedResponse.Header != null
-                                && currentDeserializedResponse.Metadata != null
-                                && !string.IsNullOrEmpty(currentDeserializedResponse.Metadata.ServerUid)
-                                && !string.IsNullOrEmpty(currentDeserializedResponse.Header.Status) // SyncDirection.To
-                                && (currentDeserializedResponse.Metadata.IsFolder ?? ParseEventStringToIsFolder(currentDeserializedResponse.Header.Action ?? currentDeserializedResponse.Action)) // folder
-                                && ParseEventStringToType(currentDeserializedResponse.Header.Action ?? currentDeserializedResponse.Action) == FileChangeType.Deleted) // delete
-                            {
-                                for (int renameIdx = deleteIdx + 1; renameIdx < deserializedResponse.Events.Length; renameIdx++)
-                                {
-                                    FileChangeResponse checkRenameResponse = deserializedResponse.Events[renameIdx];
-                                    if (checkRenameResponse != null
-                                        && checkRenameResponse.Header != null
-                                        && checkRenameResponse.Metadata != null
-                                        && !string.IsNullOrEmpty(checkRenameResponse.Metadata.ServerUid)
-                                        && string.IsNullOrEmpty(checkRenameResponse.Header.Status) // SyncDirection.From
-                                        && ParseEventStringToType(checkRenameResponse.Header.Action ?? checkRenameResponse.Action) == FileChangeType.Renamed) // rename
-                                    {
-                                        FilePath localDictionaryPath;
-                                        if (!serverUidsToPath.TryGetValue(checkRenameResponse.Metadata.ServerUid, out localDictionaryPath))
-                                        {
-                                            string localDictionaryPathString;
-                                            syncData.GetCalculatedFullPathByServerUid(
-                                                checkRenameResponse.Metadata.ServerUid,
-                                                out localDictionaryPathString);
-                                            localDictionaryPath = localDictionaryPathString;
-                                        }
-
-                                        while (localDictionaryPath != null
-                                            && localDictionaryPath.Parent != null)
-                                        {
-                                            localDictionaryPath = localDictionaryPath.Parent;
-
-                                            string parentServerUid;
-                                            if (!pathsToServerUid.TryGetValue(localDictionaryPath, out parentServerUid))
-                                            {
-                                                syncData.GetServerUidByNewPath(localDictionaryPath.ToString(), out parentServerUid);
-                                            }
-
-                                            if (string.IsNullOrEmpty(parentServerUid))
-                                            {
-                                                localDictionaryPath = null;
-                                            }
-                                            else if (parentServerUid == currentDeserializedResponse.Metadata.ServerUid)
-                                            {
-                                                string newAction; // will be an add of some type
-
-                                                if (CLDefinitions.SyncHeaderIsFolders.Contains(checkRenameResponse.Header.Action ?? checkRenameResponse.Action))
-                                                {
-                                                    newAction = CLDefinitions.CLEventTypeAddFolder;
-                                                }
-                                                else if (CLDefinitions.SyncHeaderIsLinks.Contains(checkRenameResponse.Header.Action ?? checkRenameResponse.Action))
-                                                {
-                                                    newAction = CLDefinitions.CLEventTypeAddLink;
-                                                }
-                                                else // is files
-                                                {
-                                                    newAction = CLDefinitions.CLEventTypeAddFile;
-                                                }
-
-                                                // converts rename to add
-                                                if (checkRenameResponse.Header.Action != null)
-                                                {
-                                                    checkRenameResponse.Header.Action = newAction;
-                                                }
-                                                if (checkRenameResponse.Action != null)
-                                                {
-                                                    checkRenameResponse.Action = newAction;
-                                                }
-                                                checkRenameResponse.ConvertedRenameToAdd = true;
-
-                                                localDictionaryPath = null;
-                                            }
-                                            else
-                                            {
-                                                if (!serverUidsToPath.TryGetValue(parentServerUid, out localDictionaryPath))
-                                                {
-                                                    string localDictionaryPathString;
-                                                    syncData.GetCalculatedFullPathByServerUid(
-                                                        parentServerUid,
-                                                        out localDictionaryPathString);
-                                                    localDictionaryPath = localDictionaryPathString;
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-
                         AppendRandomSubSecondTicksToSyncFromFolderCreationTimes(deserializedResponse.Events);
 
                         // create a list for the indexes of events for Sync From

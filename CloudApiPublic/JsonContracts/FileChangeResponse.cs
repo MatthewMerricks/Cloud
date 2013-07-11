@@ -56,21 +56,5 @@ namespace Cloud.JsonContracts
 
         [DataMember(Name = CLDefinitions.CLSyncEventHeader, IsRequired = false)]
         public Header Header { get; set; }
-
-        /// <summary>
-        /// Property is not part of the json data contract. Set from false to true if rename had to be converted to an add before processing.
-        /// </summary>
-        public bool ConvertedRenameToAdd
-        {
-            get
-            {
-                return _convertedRenameToAdd;
-            }
-            set
-            {
-                _convertedRenameToAdd = value;
-            }
-        }
-        private bool _convertedRenameToAdd = false;
     }
 }
