@@ -66,8 +66,10 @@ CBadgeIconSyncing::~CBadgeIconSyncing()
 
     try
     {
+		CLTRACE(9, "CBadgeIconSyncing: ~CBadgeIconSyncing: Entry.");
         if (_pBaseShellExtension != NULL)
         {
+    		CLTRACE(9, "CBadgeIconSyncing: ~CBadgeIconSyncing: Destruct base.");
             _pBaseShellExtension->~CBadgeIconBase();
             _pBaseShellExtension = NULL;
         }

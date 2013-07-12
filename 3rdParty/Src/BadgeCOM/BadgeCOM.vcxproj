@@ -172,6 +172,7 @@
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;version.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)..\..\..\3rdParty\bin\Release\Boost_1_52</AdditionalLibraryDirectories>
+      <TypeLibraryFile>$(OutDir)BadgeCom.tlb</TypeLibraryFile>
     </Link>
     <PostBuildEvent>
       <Command>echo ************  START POST BUILD STEP **********************
@@ -232,6 +233,12 @@ if errorlevel 1 goto BuildEventFailed
 
 REM ----------------------------------------------------------------
 set ErrorTracker=5
+echo copy $(OutDir)$(TargetName).tlb $(SolutionDir)..\..\..\3rdParty\bin\$(Configuration)\$(TargetName).tlb
+copy $(OutDir)$(TargetName).tlb $(SolutionDir)..\..\..\3rdParty\bin\$(Configuration)\$(TargetName).tlb
+if errorlevel 1 goto BuildEventFailed
+
+REM ----------------------------------------------------------------
+set ErrorTracker=6
 echo regsvr32.exe /u /s $(SolutionDir)..\..\..\3rdParty\bin\$(Configuration)\$(TargetName).dll
 regsvr32.exe /u /s $(SolutionDir)..\..\..\3rdParty\bin\$(Configuration)\$(TargetName).dll
 REM do not jump to error condition and reset error level since it is fine if regsvr32.exe fails to unregister dll
@@ -248,7 +255,8 @@ echo ************  POST BUILD STEP COMPLETED WITH ERROR **********************
 exit 1
 :BuildEventOK
 echo POSTBUILDSTEP for $(ProjectName) COMPLETED OK
-echo ************  POST BUILD STEP COMPLETED OK **********************</Command>
+echo ************  POST BUILD STEP COMPLETED OK **********************
+</Command>
     </PostBuildEvent>
     <PreBuildEvent>
       <Command>echo ************  START PRE BUILD STEPS **********************
@@ -912,6 +920,7 @@ echo ************  POST BUILD STEP COMPLETED OK **********************
       <TypeLibraryName>$(IntDir)BadgeCOM.tlb</TypeLibraryName>
       <DllDataFileName>
       </DllDataFileName>
+      <TargetEnvironment>X64</TargetEnvironment>
     </Midl>
     <ResourceCompile>
       <Culture>0x0409</Culture>
@@ -927,6 +936,7 @@ echo ************  POST BUILD STEP COMPLETED OK **********************
       <RegisterOutput>false</RegisterOutput>
       <AdditionalDependencies>Psapi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;;version.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)..\..\..\3rdParty\bin\Release64\Boost_1_52</AdditionalLibraryDirectories>
+      <TypeLibraryFile>$(OutDir)BadgeCom.tlb</TypeLibraryFile>
     </Link>
     <PostBuildEvent>
       <Command>echo ************  START POST BUILD STEPS **********************
@@ -951,24 +961,30 @@ if errorlevel 1 goto BuildEventFailed
 
 REM ----------------------------------------------------------------
 set ErrorTracker=4
+echo copy $(OutDir)$(TargetName).tlb $(SolutionDir)..\..\..\3rdParty\bin\$(Configuration)\
+copy $(OutDir)$(TargetName).tlb $(SolutionDir)..\..\..\3rdParty\bin\$(Configuration)\
+if errorlevel 1 goto BuildEventFailed
+
+REM ----------------------------------------------------------------
+set ErrorTracker=5
 echo if not exist $(SolutionDir)..\..\..\CloudSdkSyncSample\bin\Release\$(PlatformShortName) mkdir $(SolutionDir)..\..\..\CloudSdkSyncSample\bin\Release\$(PlatformShortName)
 if not exist $(SolutionDir)..\..\..\CloudSdkSyncSample\bin\Release\$(PlatformShortName) mkdir $(SolutionDir)..\..\..\CloudSdkSyncSample\bin\Release\$(PlatformShortName)
 if errorlevel 1 goto BuildEventFailed
 
 REM ----------------------------------------------------------------
-set ErrorTracker=5
+set ErrorTracker=6
 echo copy $(OutDir)$(TargetName).dll $(SolutionDir)..\..\..\CloudSdkSyncSample\bin\Release\$(PlatformShortName)
 copy $(OutDir)$(TargetName).dll $(SolutionDir)..\..\..\CloudSdkSyncSample\bin\Release\$(PlatformShortName)
 if errorlevel 1 goto BuildEventFailed
 
 REM ----------------------------------------------------------------
-set ErrorTracker=6
+set ErrorTracker=7
 echo if not exist $(SolutionDir)..\..\..\CloudSdkSyncSample\bin\Debug\$(PlatformShortName) mkdir $(SolutionDir)..\..\..\CloudSdkSyncSample\bin\Debug\$(PlatformShortName)
 if not exist $(SolutionDir)..\..\..\CloudSdkSyncSample\bin\Debug\$(PlatformShortName) mkdir $(SolutionDir)..\..\..\CloudSdkSyncSample\bin\Debug\$(PlatformShortName)
 if errorlevel 1 goto BuildEventFailed
 
 REM ----------------------------------------------------------------
-set ErrorTracker=7
+set ErrorTracker=8
 echo copy $(OutDir)$(TargetName).dll $(SolutionDir)..\..\..\CloudSdkSyncSample\bin\Debug\$(PlatformShortName)
 copy $(OutDir)$(TargetName).dll $(SolutionDir)..\..\..\CloudSdkSyncSample\bin\Debug\$(PlatformShortName)
 if errorlevel 1 goto BuildEventFailed
@@ -985,6 +1001,7 @@ exit 1
 :BuildEventOK
 echo POSTBUILDSTEP for $(ProjectName) COMPLETED OK
 echo ************  POST BUILD STEP COMPLETED OK **********************
+
 </Command>
     </PostBuildEvent>
     <PreBuildEvent>
@@ -1333,6 +1350,7 @@ echo ************  POST BUILD STEP COMPLETED OK **********************
     <ClInclude Include="BoostSemaphore.h" />
     <ClInclude Include="CBadgeNetPubSubEvents.h" />
     <ClInclude Include="dllmain.h" />
+    <ClInclude Include="GuidDefinitions.h" />
     <ClInclude Include="PubSubServer.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="resource1.h" />

@@ -37,7 +37,7 @@ CBadgeNetPubSubEvents::CBadgeNetPubSubEvents(void) : _semWaitForSubscriptionThre
         if (!SUCCEEDED(hr))
         {
     		CLTRACE(1, "CBadgeNetPubSubEvents: CBadgeNetPubSubEvents: ERROR: Creating GUID. hr: %d.", hr);
-            throw new std::exception("Error creating GUID");
+            throw std::exception("Error creating GUID");
         }
 		CLTRACE(9, "CBadgeNetPubSubEvents: CBadgeNetPubSubEvents: Subscriber guid: %ls.", CComBSTR(_guidSubscriber));
 
@@ -57,7 +57,7 @@ CBadgeNetPubSubEvents::CBadgeNetPubSubEvents(void) : _semWaitForSubscriptionThre
             if (!SUCCEEDED(hr) || _pPubSubServer == NULL)
             {
     		    CLTRACE(1, "CBadgeNetPubSubEvents: CBadgeNetPubSubEvents: ERROR.  PubSubServer not instantiated. Throw."); 
-                throw new std::exception("Error creating an instance of CPubSubServer");
+                throw std::exception("Error creating an instance of CPubSubServer");
             }
 
             // Release the class factory
@@ -68,7 +68,7 @@ CBadgeNetPubSubEvents::CBadgeNetPubSubEvents(void) : _semWaitForSubscriptionThre
         else
         {
     		CLTRACE(1, "CBadgeNetPubSubEvents: CBadgeNetPubSubEvents: ERROR.  Creating class factory. Throw."); 
-            throw new std::exception("Error creating a class factory for CPubSubServer.  hr: %d.", hr);
+            throw std::exception("Error creating a class factory for CPubSubServer.  hr: %d.", hr);
         }
     }
     catch (const std::exception &ex)
@@ -138,7 +138,7 @@ void CBadgeNetPubSubEvents::Initialize()
 		CLTRACE(9, "CBadgeNetPubSubEvents: Initialize: Entry.");
         if (_pPubSubServer == NULL)
         {
-            throw new std::exception("Call Initialize() first");
+            throw std::exception("_pPubSubServer was not constructed");
         }
 
         // Initialize the PubSubServer
@@ -168,7 +168,7 @@ void CBadgeNetPubSubEvents::PublishEventToBadgeNet(EnumEventType eventType, Enum
 		CLTRACE(9, "CBadgeNetPubSubEvents: PublishEventToBadgeNet: Entry. EventType: %d. EventSubType: %d. BadgeType: %d.", eventType, eventSubType, badgeType);
         if (_pPubSubServer == NULL || fullPath == NULL)
         {
-            throw new std::exception("Call Initialize() first, and fullPath must not be null");
+            throw std::exception("Call Initialize() first, and fullPath must not be null");
         }
 
 		// We're alive.
@@ -243,7 +243,7 @@ void CBadgeNetPubSubEvents::SubscribingThreadProc(LPVOID pUserState)
 		if (pUserState == NULL)
 		{
     		CLTRACE(1, "CBadgeNetPubSubEvents: SubscribingThreadProc: ERROR: User state is NULL.");
-            throw new std::exception("pUserState must not be NULL");
+            throw std::exception("pUserState must not be NULL");
 		}
 
         // Loop waiting for events.
@@ -267,7 +267,7 @@ void CBadgeNetPubSubEvents::SubscribingThreadProc(LPVOID pUserState)
             if (!SUCCEEDED(hr))
             {
         		CLTRACE(1, "CBadgeNetPubSubEvents: SubscribingThreadProc: ERROR: From Subscribe.  hr: %d.", hr);
-                throw new std::exception("Error from Subscribe");
+                throw std::exception("Error from Subscribe");
             }
             if (result == RC_SUBSCRIBE_GOT_EVENT)
             {
@@ -420,7 +420,7 @@ void CBadgeNetPubSubEvents::WatchingThreadProc(LPVOID pUserState)
 		if (pUserState == NULL)
 		{
     		CLTRACE(1, "CBadgeNetPubSubEvents: WatchingThreadProc: ERROR: User state is NULL.");
-			throw new std::exception("pUserState must not be NULL");
+			throw std::exception("pUserState must not be NULL");
 		}
 
         BOOL fRestartSubscribingThread;
@@ -731,7 +731,7 @@ BOOL CBadgeNetPubSubEvents::StartSubscribingThread()
                         );
             if (handle == NULL)
             {
-                throw new std::exception("Error creating thread");
+                throw std::exception("Error creating thread");
             }
 
             _threadSubscribingHandle = handle;
@@ -798,7 +798,7 @@ void CBadgeNetPubSubEvents::StartWatchingThread()
                         );
             if (handle == NULL)
             {
-                throw new std::exception("Error creating thread");
+                throw std::exception("Error creating thread");
             }
 
             _threadWatchingHandle = handle;

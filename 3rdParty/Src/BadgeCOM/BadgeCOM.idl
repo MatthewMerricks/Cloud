@@ -13,10 +13,10 @@
 
 import "oaidl.idl";
 import "ocidl.idl";
-
+#include "GuidDefinitions.h"
 
 [
-	uuid(B0E0EEB6-3C6D-4F7A-90AE-A0C285F4D8C1),
+	Def_TypeLib_Uuid,   // uuid(xxxxx),
 	version(1.0),
 ]
 library BadgeCOMLib
@@ -25,44 +25,56 @@ library BadgeCOMLib
 
     [
 	    object,
-	    uuid(46991EC7-7E83-4E3A-8E21-757792BBA5C4),
+	    Def_InterfaceIconSyncing_Uuid,  // uuid(xxxxx),
 	    dual,
 	    nonextensible,
 	    pointer_default(unique)
     ]
     interface IBadgeIconSyncing : IDispatch{
+		[helpstring("method IsMemberOf")] HRESULT __stdcall IsMemberOf([in] LPCWSTR pwszPath, [in] DWORD dwAttrib);
+		[helpstring("method GetOverlayInfo")] HRESULT __stdcall GetOverlayInfo([in, out] LPWSTR pwszIconFile, [in] int cchMax, [out] int *pIndex, [out] DWORD *pdwFlags);
+		[helpstring("method GetPriority")] HRESULT __stdcall GetPriority([out] int *pPriority);
     };
     [
 	    object,
-	    uuid(0CC774F1-545A-4129-8B09-8655C5370F54),
+	    Def_InterfaceIconSynced_Uuid,  // uuid(xxxxx),
 	    dual,
 	    nonextensible,
 	    pointer_default(unique)
     ]
     interface IBadgeIconSynced : IDispatch{
+		[helpstring("method IsMemberOf")] HRESULT __stdcall IsMemberOf([in] LPCWSTR pwszPath, [in] DWORD dwAttrib);
+		[helpstring("method GetOverlayInfo")] HRESULT __stdcall GetOverlayInfo([in, out] LPWSTR pwszIconFile, [in] int cchMax, [out] int *pIndex, [out] DWORD *pdwFlags);
+		[helpstring("method GetPriority")] HRESULT __stdcall GetPriority([out] int *pPriority);
     };
     [
 	    object,
-	    uuid(77D3D99A-1EF6-41F7-A247-229939ADC1D9),
+	    Def_InterfaceIconSelective_Uuid,  // uuid(xxxxx),
 	    dual,
 	    nonextensible,
 	    pointer_default(unique)
     ]
     interface IBadgeIconSelective : IDispatch{
+		[helpstring("method IsMemberOf")] HRESULT __stdcall IsMemberOf([in] LPCWSTR pwszPath, [in] DWORD dwAttrib);
+		[helpstring("method GetOverlayInfo")] HRESULT __stdcall GetOverlayInfo([in, out] LPWSTR pwszIconFile, [in] int cchMax, [out] int *pIndex, [out] DWORD *pdwFlags);
+		[helpstring("method GetPriority")] HRESULT __stdcall GetPriority([out] int *pPriority);
     };
     [
 	    object,
-	    uuid(2A204983-6DE7-42D2-BBB1-FCD5FCBD8026),
+	    Def_InterfaceIconFailed_Uuid,  // uuid(xxxxx),
 	    dual,
 	    nonextensible,
 	    pointer_default(unique)
     ]
     interface IBadgeIconFailed : IDispatch{
+		[helpstring("method IsMemberOf")] HRESULT __stdcall IsMemberOf([in] LPCWSTR pwszPath, [in] DWORD dwAttrib);
+		[helpstring("method GetOverlayInfo")] HRESULT __stdcall GetOverlayInfo([in, out] LPWSTR pwszIconFile, [in] int cchMax, [out] int *pIndex, [out] DWORD *pdwFlags);
+		[helpstring("method GetPriority")] HRESULT __stdcall GetPriority([out] int *pPriority);
     };
     [
 	    object,
-	    uuid(7ADF06AF-3F02-4686-9704-B94A1667D284),
-        dual,
+	    Def_InterfacePubSubServer_Uuid,  // uuid(xxxxx),
+	    dual,
 	    nonextensible,
 	    pointer_default(unique)
     ]
@@ -167,35 +179,35 @@ library BadgeCOMLib
     };
 
 	[
-		uuid(37E0ECAE-BEA1-4096-9D84-440A7C9AC9E4)		
+		Def_ClassIconSyncing_Uuid  // uuid(xxxxx)		
 	]
 	coclass BadgeIconSyncing
 	{
 		[default] interface IBadgeIconSyncing;
 	};
 	[
-		uuid(16FDC851-D9B0-4591-B54A-9A50D58226CC)		
+		Def_ClassIconSynced_Uuid  // uuid(xxxxx)		
 	]
 	coclass BadgeIconSynced
 	{
 		[default] interface IBadgeIconSynced;
 	};
 	[
-		uuid(A46EB4D6-B7F7-4255-912F-C151D78E26F8)		
+		Def_ClassIconSelective_Uuid  // uuid(xxxxx)		
 	]
 	coclass BadgeIconSelective
 	{
 		[default] interface IBadgeIconSelective;
 	};
 	[
-		uuid(49C685C9-CD72-4588-8800-2B30C49723A1)		
+		Def_ClassIconFailed_Uuid  // uuid(xxxxx)		
 	]
 	coclass BadgeIconFailed
 	{
 		[default] interface IBadgeIconFailed;
 	};
 	[
-		uuid(53AC487B-051C-476F-AE8A-FE660AA427B8)		
+		Def_ClassPubSubServer_Uuid  // uuid(xxxxx)		
 	]
 	coclass PubSubServer
 	{

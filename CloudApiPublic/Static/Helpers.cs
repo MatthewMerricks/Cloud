@@ -208,6 +208,11 @@ namespace Cloud.Static
                 dependencyFileChangeNotFound = true;
                 throw;
             }
+            catch (DirectoryNotFoundException) // even though we're grabbing a file's stream, it can give a directory exception if the parent is not there
+            {
+                dependencyFileChangeNotFound = true;
+                throw;
+            }
 
             try
             {

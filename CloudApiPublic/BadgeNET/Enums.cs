@@ -18,7 +18,9 @@ namespace Cloud.BadgeNET
     /// Types of badges for icon overlays, view the associated comment before changing existing enumerated values
     /// </summary>
     [Obfuscation (Exclude=true)]
-    internal enum cloudAppIconBadgeType : byte
+    // \cond
+    [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)] //Hide From Intellisense
+    public enum cloudAppIconBadgeType : byte
     {
         cloudAppBadgeNone = 0, // clears a badge overlay, if any
         cloudAppBadgeSynced = 1, // sets a badge with a checkmark or similar metaphor.
@@ -26,4 +28,5 @@ namespace Cloud.BadgeNET
         cloudAppBadgeFailed = 3, // sets a badge with an x indicating failure to sync.
         cloudAppBadgeSyncSelective = 4, // sets a badge with an - indicating file/folder is selected not to sync.
     }
+    // \endcond
 }
