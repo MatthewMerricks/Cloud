@@ -8630,10 +8630,28 @@ namespace Cloud.Sync
                                         // later handling in the conflict processing.  The SyncFrom event will be added to the duplicate event list so it will 
                                         // be ignored in normal processing.  We will handle it specially in the conflict processing.
                                         syncToConflictEventToSyncFromRelatedEvent[syncToConflictEvent] = fromEvent;
-                                    }
 
-                                    // from event is duplicate, add its index to duplicates
-                                    duplicatedEvents.Add(currentSyncFromEventIndex);
+                                        // from event is not actually be a duplicate, but it will be pulled out of the above collection when processing the sync to 'conflict' event
+                                        duplicatedEvents.Add(currentSyncFromEventIndex);
+                                    }
+                                    else if (syncToConflictEvent.Header.Action == fromEvent.Header.Action
+                                        && ((syncToConflictEvent.Metadata.CreatedDate == null && fromEvent.Metadata.CreatedDate == null)
+                                            || (syncToConflictEvent.Metadata.CreatedDate != null && fromEvent.Metadata.CreatedDate != null
+                                                && DateTime.Compare((DateTime)syncToConflictEvent.Metadata.CreatedDate, (DateTime)fromEvent.Metadata.CreatedDate) == 0))
+                                        && ((syncToConflictEvent.Metadata.ModifiedDate == null && fromEvent.Metadata.ModifiedDate == null)
+                                            || (syncToConflictEvent.Metadata.ModifiedDate != null && fromEvent.Metadata.ModifiedDate != null
+                                                && DateTime.Compare((DateTime)syncToConflictEvent.Metadata.ModifiedDate, (DateTime)fromEvent.Metadata.ModifiedDate) == 0))
+                                        && StringComparer.OrdinalIgnoreCase.Equals(syncToConflictEvent.Metadata.Name, fromEvent.Metadata.Name)
+                                        && syncToConflictEvent.Metadata.ParentUid == fromEvent.Metadata.ParentUid
+                                        && (syncToConflictEvent.Metadata.IsFolder == null
+                                            || fromEvent.Metadata.IsFolder == null
+                                            || syncToConflictEvent.Metadata.IsFolder == fromEvent.Metadata.IsFolder)
+                                        && syncToConflictEvent.Metadata.Size == fromEvent.Metadata.Size
+                                        && syncToConflictEvent.Metadata.Hash == fromEvent.Metadata.Hash)
+                                    {
+                                        // from event is duplicate, add its index to duplicates
+                                        duplicatedEvents.Add(currentSyncFromEventIndex);
+                                    }
                                 }
                             }
                             catch
