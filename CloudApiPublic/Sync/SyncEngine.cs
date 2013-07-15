@@ -7425,84 +7425,117 @@ namespace Cloud.Sync
 
                 // define a dictionary which will store FileChanges from the failure queue to allow lookup of metadata when needed (renames from server do not include metadata),
                 // default to null (will be initialized and filled in by a function when and if it is needed and retrieved in the same state until the end of the method)
-                FilePathDictionary<FileChange> failuresDict = null;
+                GenericHolder<FilePathDictionary<FileChange>> failuresDict = new GenericHolder<FilePathDictionary<FileChange>>(null);
                 // define a function to initialize and fill in the failuresDict for lookup of metadata when needed (runs only when needed to prevent unnecessary logic under the failure queue locker)
-                Func<FilePathDictionary<FileChange>> getFailuresDict = () =>
-                {
-                    // if the failuresDict has not already been initialized, then initialize it and fill it out
-                    if (failuresDict == null)
+                var getFailuresDict = DelegateAndDataHolderBase.Create(
+                    new
                     {
-                        // initialize the failuresDict and store any error that occurs in the process
-                        CLError createFailuresDictError = FilePathDictionary<FileChange>.CreateAndInitialize((syncbox.Path ?? string.Empty),
-                            out failuresDict);
-                        // if an error occurred initializing the failuresDict, then rethrow the error
-                        if (createFailuresDictError != null)
+                        failuresDict = failuresDict,
+                        syncbox = syncbox,
+                        FailureTimer = FailureTimer,
+                        FailedChangesQueue = FailedChangesQueue,
+                        FailedOutTimer = FailedOutTimer,
+                        FailedOutChanges = FailedOutChanges
+                    },
+                    (Data, errorToAccumulate) =>
+                    {
+                        // if the failuresDict has not already been initialized, then initialize it and fill it out
+                        if (Data.failuresDict.Value == null)
                         {
-                            throw new AggregateException("Error creating failuresDict", createFailuresDictError.Exceptions);
-                        }
-                        // lock on failure queue timer for modifying the failure queue
-                        lock (FailureTimer.TimerRunningLocker)
-                        {
-                            // loop through the events in the failure queue
-                            foreach (FileChange currentInError in FailedChangesQueue)
+                            FilePathDictionary<FileChange> tempFailuresDict;
+                            // initialize the failuresDict and store any error that occurs in the process
+                            CLError createFailuresDictError = FilePathDictionary<FileChange>.CreateAndInitialize((Data.syncbox.Path ?? string.Empty),
+                                out tempFailuresDict);
+                            // if an error occurred initializing the failuresDict, then rethrow the error
+                            if (createFailuresDictError != null)
                             {
-                                // add the current failed event to the failuresDict dictionary via a recursive function which also adds any inner dependencies
-                                AddChangeToDictionary(failuresDict, currentInError);
+                                throw new AggregateException("Error creating failuresDict", createFailuresDictError.Exceptions);
+                            }
+                            Data.failuresDict.Value = tempFailuresDict;
+                            // lock on failure queue timer for modifying the failure queue
+                            lock (Data.FailureTimer.TimerRunningLocker)
+                            {
+                                // loop through the events in the failure queue
+                                foreach (FileChange currentInError in Data.FailedChangesQueue)
+                                {
+                                    // add the current failed event to the failuresDict dictionary via a recursive function which also adds any inner dependencies
+                                    AddChangeToDictionary(tempFailuresDict, currentInError);
+                                }
+                            }
+                            // lock on failed out queue timer for modifying the failed out queue
+                            lock (Data.FailedOutTimer.TimerRunningLocker)
+                            {
+                                if (Data.FailedOutChanges != null)
+                                {
+                                    // loop through the events in the failed out queue
+                                    foreach (FileChange currentInError in Data.FailedOutChanges)
+                                    {
+                                        // add the current failed out event to the failuresDict dictionary via a recursive function which also adds any inner dependencies
+                                        AddChangeToDictionary(tempFailuresDict, currentInError);
+                                    }
+                                }
                             }
                         }
-                    }
-                    // return the previously initialized or newly initialized failure dictionary
-                    return failuresDict;
-                };
+                        // return the previously initialized or newly initialized failure dictionary
+                        return Data.failuresDict.Value;
+                    },
+                    null);
 
                 // define a dictionary which will store FileChanges which are asynchronously processing for uploads or downloads to allow lookup of metadata when needed (renames from the server do not include metadata),
                 // default to null (will be initialized and filled in by a function when and if it is needed and retrieved in the same state until the end of the method)
-                FilePathDictionary<FileChange> runningUpDownChangesDict = null;
+                GenericHolder<FilePathDictionary<FileChange>> runningUpDownChangesDict = new GenericHolder<FilePathDictionary<FileChange>>(null);
                 // define a function to initialize and fill in the failuresDict for lookup of metadata when needed (runs only when needed to prevent unnecessary logic under the UpDownEvent locker)
-                Func<FilePathDictionary<FileChange>> getRunningUpDownChangesDict = () =>
-                {
-                    // if the runningUpDownChangesDict has not already been initialized, then initialize it and fill it out
-                    if (runningUpDownChangesDict == null)
+                var getRunningUpDownChangesDict = DelegateAndDataHolderBase.Create(
+                    new
                     {
-                        // create a list to store the changes which are currently uploading or downloading
-                        List<FileChange> runningUpDownChanges = new List<FileChange>();
-                        // retrieve the changes which are currently uploading or downloading via UpDownEvent (all under the UpDownEvent locker)
-                        RunUpDownEvent(
-                            new FileChange.UpDownEventArgs((currentUpDown, innerState) =>
-                            {
-                                List<FileChange> castState = innerState as List<FileChange>;
-                                if (castState == null)
+                        thisEngine = this,
+                        runningUpDownChangesDict = runningUpDownChangesDict,
+                        syncbox = syncbox
+                    },
+                    (Data, errorToAccumulate) =>
+                    {
+                        // if the runningUpDownChangesDict has not already been initialized, then initialize it and fill it out
+                        if (Data.runningUpDownChangesDict.Value == null)
+                        {
+                            // create a list to store the changes which are currently uploading or downloading
+                            List<FileChange> runningUpDownChanges = new List<FileChange>();
+                            var upDownEventAction = DelegateAndDataHolderBase<FileChange, object>.Create(
+                                new
                                 {
-                                    MessageEvents.FireNewEventMessage(
-                                        "Unable to cast innerState as List<FileChange>",
-                                        EventMessageLevel.Important,
-                                        new HaltAllOfCloudSDKErrorInfo());
-                                }
-                                else
+                                    runningUpDownChanges = runningUpDownChanges
+                                },
+                                (innerData, currentUpDown, innerState, innerErrorToAccumulate) =>
                                 {
-                                    castState.Add(currentUpDown);
-                                }
-                            }),
-                            runningUpDownChanges);
+                                    innerData.runningUpDownChanges.Add(currentUpDown);
+                                },
+                                null);
+                            // retrieve the changes which are currently uploading or downloading via UpDownEvent (all under the UpDownEvent locker)
+                            Data.thisEngine.RunUpDownEvent(
+                                new FileChange.UpDownEventArgs(
+                                    new Action<FileChange, object>(upDownEventAction.VoidProcess)),
+                                    userState: null);
 
-                        // initialize the runningUpDownChangesDict and store any error that occurs in the process
-                        CLError createUpDownDictError = FilePathDictionary<FileChange>.CreateAndInitialize((syncbox.Path ?? string.Empty),
-                            out runningUpDownChangesDict);
-                        // if an error occurred initializing the runningUpDownChangesDict, then rethrow the error
-                        if (createUpDownDictError != null)
-                        {
-                            throw new AggregateException("Error creating upDownDict", createUpDownDictError.Exceptions);
+                            // initialize the runningUpDownChangesDict and store any error that occurs in the process
+                            FilePathDictionary<FileChange> tempRunningUpDownChangesDict;
+                            CLError createUpDownDictError = FilePathDictionary<FileChange>.CreateAndInitialize((Data.syncbox.Path ?? string.Empty),
+                                out tempRunningUpDownChangesDict);
+                            // if an error occurred initializing the runningUpDownChangesDict, then rethrow the error
+                            if (createUpDownDictError != null)
+                            {
+                                throw new AggregateException("Error creating upDownDict", createUpDownDictError.Exceptions);
+                            }
+                            Data.runningUpDownChangesDict.Value = tempRunningUpDownChangesDict;
+                            // loop through the events which are uploading or downloading
+                            foreach (FileChange currentUpDownChange in runningUpDownChanges)
+                            {
+                                // add the uploading or downloading event to the runningUpDownChangesDict dictionary via a recursive function which also adds any inner dependencies
+                                AddChangeToDictionary(tempRunningUpDownChangesDict, currentUpDownChange);
+                            }
                         }
-                        // loop through the events which are uploading or downloading
-                        foreach (FileChange currentUpDownChange in runningUpDownChanges)
-                        {
-                            // add the uploading or downloading event to the runningUpDownChangesDict dictionary via a recursive function which also adds any inner dependencies
-                            AddChangeToDictionary(runningUpDownChangesDict, currentUpDownChange);
-                        }
-                    }
-                    // return the previously initialized or newly initialized uploading/downloading changes dictionary
-                    return runningUpDownChangesDict;
-                };
+                        // return the previously initialized or newly initialized uploading/downloading changes dictionary
+                        return Data.runningUpDownChangesDict.Value;
+                    },
+                    null);
 
                 #region delegate definitions for creating FileChange objects from existing objects or from events
                 convertSyncToEventToFileChangePart1ForNullEventMetadata implementationConvertSyncToEventToFileChangePart1ForNullEventMetadata =
@@ -8988,12 +9021,12 @@ namespace Cloud.Sync
                                                         : Enumerable.Empty<FileChange>()) // else if a match is not found, then use an empty enumeration
 
                                                     // search the current UpDownEvents for one matching the current event's previous path (comparing against the UpDownEvent's NewPath)
-                                                    .Concat((getRunningUpDownChangesDict().TryGetValue(currentChange.OldPath, out foundOldPath)
+                                                    .Concat((getRunningUpDownChangesDict.TypedProcess().TryGetValue(currentChange.OldPath, out foundOldPath)
                                                         ? new FileChange[] { foundOldPath } // if a match is found, then include the found result
                                                         : Enumerable.Empty<FileChange>()) // else if a match is not found, then use an empty enumeration
 
                                                         // then search the current failures for the one matching the current event's previous path (comparing against the failed event's NewPath)
-                                                        .Concat(getFailuresDict().TryGetValue(currentChange.OldPath, out foundOldPath)
+                                                        .Concat(getFailuresDict.TypedProcess().TryGetValue(currentChange.OldPath, out foundOldPath)
                                                             ? new FileChange[] { foundOldPath } // if a match is found, then include the found result
                                                             : Enumerable.Empty<FileChange>()) // else if a match is not found, then use an empty enumeration
 
@@ -11129,12 +11162,12 @@ namespace Cloud.Sync
                                             : Enumerable.Empty<FileChange>()) // else if a match is not found, then use an empty enumeration
 
                                         // search the current UpDownEvents for one matching the current event's previous path (comparing against the UpDownEvent's NewPath)
-                                        .Concat(((getRunningUpDownChangesDict().TryGetValue(currentChange.OldPath, out foundOldPath)
+                                        .Concat(((getRunningUpDownChangesDict.TypedProcess().TryGetValue(currentChange.OldPath, out foundOldPath)
                                             ? Helpers.EnumerateSingleItem(foundOldPath) // if a match is found, then include the found result
                                             : Enumerable.Empty<FileChange>())) // else if a match is not found, then use an empty enumeration
 
                                             // then search the current failures for the one matching the current event's previous path (comparing against the failed event's NewPath)
-                                            .Concat(getFailuresDict().TryGetValue(currentChange.OldPath, out foundOldPath)
+                                            .Concat(getFailuresDict.TypedProcess().TryGetValue(currentChange.OldPath, out foundOldPath)
                                                 ? Helpers.EnumerateSingleItem(foundOldPath) // if a match is found, then include the found result
                                                 : Enumerable.Empty<FileChange>()) // else if a match is not found, then use an empty enumeration
 
