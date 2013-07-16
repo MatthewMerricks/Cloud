@@ -459,6 +459,24 @@ namespace Cloud.Static
         }
 
         /// <summary>
+        /// Wow64DisableWow64FsRedirection should be called before FindFirstFileEx and Wow64RevertWow64FsRedirection should be called after initial indexing completes
+        /// </summary>
+        /// <param name="OldValue">Do not modify data at target of pointer! Save to pass for Wow64RevertWow64FsRedirection.</param>
+        /// <returns>Returns whether redirection occurred.</returns>
+        [DllImport(kernel32, SetLastError = true)]
+        public static extern bool Wow64DisableWow64FsRedirection(
+            [Out] out IntPtr OldValue);
+
+        /// <summary>
+        /// Wow64DisableWow64FsRedirection should be called before FindFirstFileEx and Wow64RevertWow64FsRedirection should be called after initial indexing completes
+        /// </summary>
+        /// <param name="OldValue">Pass back pointer retrieved from Wow64DisableWow64FsRedirection.</param>
+        /// <returns>Returns whether redirection was reverted.</returns>
+        [DllImport(kernel32, SetLastError = true)]
+        public static extern bool Wow64RevertWow64FsRedirection(
+            [In] IntPtr OldValue);
+
+        /// <summary>
         /// Searches a directory for a file or subdirectory with a name that matches a specific name (or partial name if wildcards are used).
         /// </summary>
         /// <param name="lpFileName">The directory or path, and the file name, which can include wildcard characters, for example, an asterisk (*) or a question mark (?). </param>
