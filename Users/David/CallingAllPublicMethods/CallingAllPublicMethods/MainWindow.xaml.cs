@@ -22,6 +22,13 @@ namespace CallingAllPublicMethods
     {
         public MainWindow()
         {
+            #region debug only code remove this section
+            MessageBox.Show("Debug only code: remove this section");
+            CallingAllPublicMethods.Models.DesignDependencyObject.SetIsInDesignMode(true);
+            CallingAllPublicMethods.ViewModels.MainViewModel mainVM = Application.Current.Resources["MainViewModel"] as CallingAllPublicMethods.ViewModels.MainViewModel;
+            mainVM.SyncboxViewModel.SelectedSyncbox = new Models.CLSyncboxProxy(syncbox: null);
+            #endregion
+
             InitializeComponent();
         }
     }

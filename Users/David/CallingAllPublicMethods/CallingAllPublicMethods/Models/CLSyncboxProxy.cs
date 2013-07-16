@@ -40,6 +40,17 @@ namespace CallingAllPublicMethods.Models
             }
         }
 
+        public Nullable<long> StoragePlanId
+        {
+            get
+            {
+                return ((_syncbox == null
+                        || _syncbox.StoragePlanId == null)
+                    ? (Nullable<long>)null
+                    : _syncbox.StoragePlanId);
+            }
+        }
+
         public CLSyncboxProxy(CLSyncbox syncbox)
         {
             Debug.Assert(

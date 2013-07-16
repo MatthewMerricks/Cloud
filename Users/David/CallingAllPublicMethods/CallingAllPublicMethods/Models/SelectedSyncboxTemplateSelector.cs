@@ -16,9 +16,10 @@ namespace CallingAllPublicMethods.Models
 
         public override DataTemplate SelectTemplate(object item, DependencyObject container)
         {
-            SyncboxViewModel castItem = item as SyncboxViewModel;
+            Nullable<KeyValuePair<SyncboxViewModel, CLSyncboxProxy>> castItem = item as Nullable<KeyValuePair<SyncboxViewModel, CLSyncboxProxy>>;
             if (castItem == null
-                || castItem.SelectedSyncbox == null)
+                || ((KeyValuePair<SyncboxViewModel, CLSyncboxProxy>)castItem).Key == null
+                || ((KeyValuePair<SyncboxViewModel, CLSyncboxProxy>)castItem).Key.SelectedSyncbox == null)
             {
                 return NullSyncboxTemplate;
             }

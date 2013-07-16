@@ -1,0 +1,40 @@
+﻿<UserControl x:Class="CallingAllPublicMethods.Controls.SelectedConfigurationControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:viewModels="clr-namespace:CallingAllPublicMethods.ViewModels"
+             mc:Ignorable="d"
+             d:DataContext="{d:DesignInstance Type=viewModels:ConfigurationsViewModel, IsDesignTimeCreatable=True}"
+             d:DesignHeight="300" d:DesignWidth="300">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="5" />
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="5" />
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="5" />
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="5" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="5" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="5" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="5" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="5" />
+        </Grid.RowDefinitions>
+        <Label Grid.Row="1" Grid.Column="1" Content="Key:" />
+        <TextBox Grid.Row="1" Grid.Column="3" Text="{Binding ModifyableKey}" />
+        <Label Grid.Row="3" Grid.Column="1" Content="Secret:" />
+        <TextBox Grid.Row="3" Grid.Column="3" Text="{Binding ModifyableSecret}" />
+        <Label Grid.Row="5" Grid.Column="1" Content="Token:" />
+        <TextBox Grid.Row="5" Grid.Column="3" Text="{Binding ModifyableToken}" />
+        <StackPanel Grid.Row="7" Grid.Column="1" Grid.ColumnSpan="3" HorizontalAlignment="Right" Orientation="Horizontal">
+            <Button Content="Save" Command="{Binding SaveCredentials}" />
+            <Button Content="Revert" Margin="10,0,0,0" Command="{Binding RevertCredentials}" />
+        </StackPanel>
+    </Grid>
+</UserControl>
