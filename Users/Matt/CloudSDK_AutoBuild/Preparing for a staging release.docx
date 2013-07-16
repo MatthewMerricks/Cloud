@@ -1,0 +1,157 @@
+{\rtf1\ansi\ansicpg1252\deff0\nouicompat\deflang1033{\fonttbl{\f0\fnil\fcharset0 Calibri;}{\f1\fnil Calibri;}{\f2\fnil\fcharset0 Consolas;}{\f3\fnil\fcharset0 Courier New;}{\f4\fnil\fcharset2 Symbol;}}
+{\colortbl ;\red255\green0\blue0;\red0\green77\blue187;\red0\green0\blue0;\red255\green192\blue0;\red255\green255\blue255;\red0\green176\blue80;\red0\green0\blue255;}
+{\*\generator Riched20 6.2.9200}\viewkind4\uc1 
+\pard\sa200\sl276\slmult1\f0\fs22\lang9 NOTE:  \ldblquote Build\rdblquote  does not mean \ldblquote Rebuild\rdblquote .  Don\rquote t ever \ldblquote Rebuild\rdblquote .\par
+\par
+Preparing for a staging release:\par
+1)  Inspect the Sample-Live-Sync directory hierarchy and remove any *.pdb and *.zip files, and \cf1\b any other non-public files.  **What does this mean? not in script\cf0\b0\par
+Exit Visual Studio in the Cloud_SDK solution.\par
+
+\pard\sl240\slmult1 2)  Check out the master branch:\par
+
+\pard{\pntext\f4\'B7\tab}{\*\pn\pnlvlblt\pnf4\pnindent360{\pntxtb\'B7}}\fi-360\li720\sa200\sl276\slmult1 Make sure that all current work has been committed and staged to master.\par
+{\pntext\f4\'B7\tab}Make sure you are current on the master branch.\par
+
+\pard\sa200\sl276\slmult1 Pull master.\par
+
+\pard\sl240\slmult1 Make a new branch for the release: \par
+
+\pard{\pntext\f4\'B7\tab}{\*\pn\pnlvlblt\pnf4\pnindent360{\pntxtb\'B7}}\fi-360\li720\sl240\slmult1 git branch 20130218A0Release0_1_6\par
+{\pntext\f4\'B7\tab}git checkout 20130218A0Release0_1_6\par
+{\pntext\f4\'B7\tab}git push  -u origin 20130218A0Release0_1_6\par
+{\pntext\f4\'B7\tab}To delete a branch:\par
+
+\pard{\pntext\f4\'B7\tab}{\*\pn\pnlvlblt\pnf4\pnindent360{\pntxtb\'B7}}\fi-360\li1440\sl240\slmult1 Git branch - -d <branch>\par
+{\pntext\f4\'B7\tab}Git push origin - -delete <branch\par
+
+\pard\sl240\slmult1\par
+Start Visual Studio in the Cloud_SDK solution.\cf2\par
+\cf0\par
+\cf1 Change to the ReleaseSampleAppOnly configuration.  **Why do we do this, not in script.\cf0\par
+\par
+
+\pard\sa200\sl276\slmult1 Change the define in CLDefinitions from development cliff servers to the cloud.com servers. (CloudApiPublic\\Static\\CLDefinitions: define PRODUCTION_BACKEND.\par
+Increment the version build number of any 3\super rd\nosupersub  party DLL built from source if it was changed, but this should have been done during normal development by the time it got to master.  \par
+Change the Sample-Live-Sync, CloudApiPublic and CloudSetupSdkSyncSample, and CloudSetupSdkSyncSampleSupport Assembly and File Versions to the current release.  E.g., 0.1.2.0.  \par
+\cf3 For CloudSetupSdkSyncSample, click Project Assistant, and then Application Information.  Set the application version.\cf4\par
+\cf0 Set the project for signing (CloudApiPublic, CloudSetupSdkSyncSampleSupport, CloudSetupSdkSyncSample).  C:\\CertBackup\\CloudSigning   \par
+For signing CloudSetupSdkSyncSample - > open the project tree in VS Solution explorer  -> select the Prepare for release node and double click \ldblquote releases\rdblquote   Then in the Releases window Select the Single Image Node.  This will bring up a new screen with a tab for \ldblquote Signing\rdblquote  Digital Certificate File should point to the same ptx file as is used in the other signed projects \f1\endash\f0  Cert Password is stored in desk, and Sign Output Files to \f1\ldblquote\f0 Setup.exe and Windows Installer Package\par
+Close Visual Studio.\par
+Review the changes before the push below to validate what\rquote s being added.\par
+Push the release branch to remote. DO NOT CHECK-IN SIGNING FILES* TO GITHUB!!!!!! Including .pfx files copied to the projects where you changed the settings.  These should be ignored by gitignore, but remove them anyway.\par
+\tab *  By SIGNING FILES I do not mean the changes to the projects to turn on signing, but instead the certificates or keys\par
+\par
+Staging release procedure:\par
+Start Visual Studio in the CloudSDK solution.\par
+Run REBUILD (not a typo) on the project ZGacUninstall.  That will remove all of our old DLLs from the GAC.\par
+\cf2 To select a configuration you can do this in the csproj xml file.\cf0\par
+In Debug solution configuration, choose the clean solution selection from the build menu.  Check that it succeeded.\par
+In ReleaseSampleAppOnly solution configuration, choose the clean solution selection from the build menu.  Check that it succeeded.\par
+Stay in ReleaseSampleAppOnly solution configuration.\par
+Open the CloudApiPublic properties pane and select \ldblquote Obfuscate this assembly\rdblquote , and set the \ldblquote Password of strong name key file\rdblquote .\par
+\cf1\par
+
+\pard\sl240\slmult1\cf0 Check the CloudApiPublic and Sample-Live-Sync references(CloudApiPublic should appear with no warning symbol for the BadgeCOMLib reference, but Sample-Live-Sync should actually have a warning symbol on the Cloud reference since its correct version requirement should be for the new version of CloudApiPublic which hasn\rquote t been built yet)\par
+\par
+
+\pard{\pntext\f4\'B7\tab}{\*\pn\pnlvlblt\pnf4\pnindent360{\pntxtb\'B7}}\fi-360\li720\sl240\slmult1\cf1 Unload the Sample-Live-Sync project, edit the XML project file and change the Cloud.dll reference version to the proper version.  e.g.: 0.1.8.0.  Make it like \ldblquote\highlight5\f2\fs19 <Reference Include="Cloud, Version=0.2.8.0, Culture=neutral, PublicKeyToken=840eb90fa4503c3c, processorArchitecture=MSIL" />\highlight0\rdblquote\f0\fs22\par
+{\pntext\f4\'B7\tab}Remove the \cf6 SpecificVersion \cf1 line for the Cloud.dll reference.\par
+
+\pard\sl240\slmult1 TODO:  talked with zach and he said this needs to be done.  I do not think it needs to be done, the version number should be updated when you rebuild and the project, and the SpecificVersion tag is already set to false, thus having the same effect as removing it.\cf0\par
+
+\pard{\pntext\f4\'B7\tab}{\*\pn\pnlvlblt\pnf4\pnindent360{\pntxtb\'B7}}\fi-360\li720\sl240\slmult1 Reload the Sample-Live-Sync project.\par
+{\pntext\f4\'B7\tab}\cf1 Set the Sample-Live-Sync project as the Startup Project.\cf0\par
+
+\pard\sl240\slmult1\cf1 **Dont think this is necessary we are not building the sln, this setting does not effect the project settings\par
+TODO: not sure where this setting is saved, possibly in the local users settings, vss file i beleive, this is not in the sln or proj files.\cf0\par
+
+\pard{\pntext\f4\'B7\tab}{\*\pn\pnlvlblt\pnf4\pnindent360{\pntxtb\'B7}}\fi-360\li720\sl240\slmult1 In the Sample-Live-Sync project, make sure that specific versions are selected for Cloud.dll and all of the .CSDK DLLs, and that the references specify the proper versions.  NOTE: The Cloud.dll reference will have a yellow exclamation mark because it has not been built yet.\par
+{\pntext\f4\'B7\tab}If they do not specify the proper versions (they probably won\rquote t), unload the project and edit the version number manually.  \par
+
+\pard{\pntext\f4\'B7\tab}{\*\pn\pnlvlblt\pnf4\pnindent360{\pntxtb\'B7}}\fi-360\li1440\sl240\slmult1 If it asks you to remove the project from the InstallShield .isl file, always answer \ldblquote NO\rdblquote .\par
+{\pntext\f4\'B7\tab}If you unloaded the project, reload the project after saving the changes.  Answer \ldblquote YES\rdblquote  to close the XML project window.\par
+{\pntext\f4\'B7\tab}Unloading Sample-Live-Sync and reloading the project will switch the startup project solution.  Make the Sample-Live-Sync the startup project again.\par
+
+\pard\li720\sl240\slmult1\par
+
+\pard\sa200\sl276\slmult1 Build CloudApiPublic project, check for build success.  Also check that obfuscation ran by inspecting the output window.  Look for \ldblquote Completed in x.xx seconds\rdblquote .\par
+Switch to Debug solution configuration\par
+Build Sample-Live-Sync project, check for build success\par
+Switch to ReleaseSampleAppOnly solution configuration\par
+\cf6 Check the Sample-Live-Sync project references and make sure that the Cloud.dll reference is \ldblquote specific version\rdblquote , and that it is the correct version.\par
+**I thought we changed above to remove Specific Version??\cf0\par
+Build Sample-Live-Sync project, check for build success\par
+Make sure that no Explorer or command window is open to any folder below c:\\Cloud\\CloudSDK-Windows\\CloudSetupSdkSyncSample.\par
+Build CloudSetupSdkSyncSample project and check for build success.\par
+Check html\\index.htm.  Go through the classes and namespaces to make sure that no new internal classes or namespaces appear.\par
+Copy CloudSdkSetup.exe from the setup project output to a convenient location like C:\\\par
+Resource hack the copied CloudSdkSetup.exe:\par
+
+\pard{\pntext\f4\'B7\tab}{\*\pn\pnlvlblt\pnf4\pnindent360{\pntxtb\'B7}}\fi-360\li765\sa200\sl276\slmult1\cf1 Select the Icon Group -> 100 -> 0.  Right-click and select Replace Resource.  Click \ldblquote Open file with new icon\rdblquote  and replace the resource with ~\\Artwork\\cloudForInstallShield.ico.\par
+{\pntext\f4\'B7\tab}Select Version Info -> 1 -> 0.  Change the OriginalFilename field to an empty string in and compile the script.\par
+{\pntext\f4\'B7\tab}Save changes as CloudSdkSetup.exe in the same \ldblquote copied to\rdblquote  location \par
+
+\pard\sa200\sl276\slmult1 **This needs further clarification.\par
+TODO: try to do this prior to autobuild\par
+\cf0 In the previous VS Developer Command Prompt windows, change directory to where you placed the \ldblquote copied to and modified\rdblquote  CloudSdkSetup.exe.\par
+Run these commands in command prompt (replace <password> with the certificate password):\par
+
+\pard{\pntext\f4\'B7\tab}{\*\pn\pnlvlblt\pnf4\pnindent360{\pntxtb\'B7}}\fi-360\li720\sa200\sl276\slmult1 signtool remove /c CloudSdkSetup.exe\par
+{\pntext\f4\'B7\tab}signtool sign /f C:\\CertBackup\\CloudSigning\\CloudPlatformCodeSigning.pfx /p <password> CloudSdkSetup.exe\par
+
+\pard\sa200\sl276\slmult1\cf1 **Why is this used instead of CloudSigning.pfx file, I have not seen the CloudSigning.pfx file used in this proccess\cf0\par
+
+\pard{\pntext\f4\'B7\tab}{\*\pn\pnlvlblt\pnf4\pnindent360{\pntxtb\'B7}}\fi-360\li720\sa200\sl276\slmult1 cls to clear the screen.\par
+
+\pard\sa200\sl276\slmult1 Zip CloudSdkSetup.exe into a zip file with the naming convention CloudSDK-v0.1.2>.zip where the \ldblquote 0.1.2\rdblquote  is the \ldblquote version.release.build\rdblquote .  The build should be incremented at each release.  The others are incremented by management decision.\par
+The zip file is the completed release.\par
+
+\pard{\pntext\f4\'B7\tab}{\*\pn\pnlvlblt\pnf4\pnindent360{\pntxtb\'B7}}\fi-360\li720\sa200\sl276\slmult1 Copy the file to c:\\Source\\Projects\\ArchivedCloudSdkReleases on the build machine.\par
+{\pntext\f4\'B7\tab}Then use search in win-client (or an automated tool) to gather the current .pdb files and move them into the ArchivedCloudSdkReleases as well in a \ldblquote PDBs\rdblquote  directory.\par
+{\pntext\f4\'B7\tab}Also copy the release folder to a local backup drive on the build machine ({{\field{\*\fldinst{HYPERLINK "\\\\\\\\10.3.0.28\\\\Builds"}}{\fldrslt{\\\\10.3.0.28\\Builds\ul0\cf0}}}}\f0\fs22 ).\par
+{\pntext\f4\'B7\tab}Also copy the release folder to a network drive which is routinely backed up.\par
+
+\pard\sa200\sl276\slmult1 Delete the .pfx files copied to the CloudApiPublic and CloudSetupSdkSyuncSampleSupport projects where you changed the settings.\par
+
+\pard{\pntext\f4\'B7\tab}{\*\pn\pnlvlblt\pnf4\pnindent360{\pntxtb\'B7}}\fi-360\li720\sa200\sl276\slmult1 To do this: \ldblquote Rebuild\rdblquote  (OK in this case) the project \ldblquote ZDeleteLicenseFilesOnly\rdblquote .\par
+
+\pard\sa200\sl276\slmult1 Close the Visual Studio win-client solution.\par
+\cf1 Push the release branch to remote. DO NOT CHECK-IN SIGNING FILES* TO GITHUB!!!!!! Including .pfx files copied to the projects where you changed the settings.  These should be ignored by gitignore, but remove them anyway.\par
+\tab *  By SIGNING FILES I do not mean the changes to the projects to turn on signing, but instead the certificates or keys\par
+**This text appears verbatim twice in this document, does this step really need to be completed twice.\cf0\par
+ Tag the last commit to the yyyymmddRelease0.2.8 branch with this release number (e.g., Release0.1.2).\par
+
+\pard{\pntext\f4\'B7\tab}{\*\pn\pnlvlblt\pnf4\pnindent360{\pntxtb\'B7}}\fi-360\li600\sl240\slmult1\tx916\tx1832\tx2748\tx3664\tx4580\tx5496\tx6412\tx7328\tx8244\tx9160\tx10076\tx10992\tx11908\tx12824\tx13740\tx14656 Delete a local and remote tag named 12345:\par
+
+\pard{\pntext\f4\'B7\tab}{\*\pn\pnlvlblt\pnf4\pnindent360{\pntxtb\'B7}}\fi-360\li1440\sl240\slmult1\tx916\tx1832\tx2748\tx3664\tx4580\tx5496\tx6412\tx7328\tx8244\tx9160\tx10076\tx10992\tx11908\tx12824\tx13740\tx14656 git tag -d 12345\par
+{\pntext\f4\'B7\tab}git push origin :refs/tags/12345\par
+
+\pard{\pntext\f4\'B7\tab}{\*\pn\pnlvlblt\pnf4\pnindent360{\pntxtb\'B7}}\fi-360\li600\sl240\slmult1\tx916\tx1832\tx2748\tx3664\tx4580\tx5496\tx6412\tx7328\tx8244\tx9160\tx10076\tx10992\tx11908\tx12824\tx13740\tx14656 Create a local tag named 12345 and push it to remote:\par
+
+\pard{\pntext\f4\'B7\tab}{\*\pn\pnlvlblt\pnf4\pnindent360{\pntxtb\'B7}}\fi-360\li1440\sl240\slmult1\tx916\tx1832\tx2748\tx3664\tx4580\tx5496\tx6412\tx7328\tx8244\tx9160\tx10076\tx10992\tx11908\tx12824\tx13740\tx14656 git tag 12345\par
+{\pntext\f4\'B7\tab}git push \f1\endash\f0 tags\par
+
+\pard\sl240\slmult1\tx916\tx1832\tx2748\tx3664\tx4580\tx5496\tx6412\tx7328\tx8244\tx9160\tx10076\tx10992\tx11908\tx12824\tx13740\tx14656\cf2\par
+\par
+\par
+**TODO: should this be in the auto build, it contains testing, which will most likely not be able to be automated.  \\/\\/\\/\\/\\/\\/\\/\\/\\/\\/\\/\par
+\cf0\par
+
+\pard\sa200\sl276\slmult1\cf2 When the release has been tested, merge the release branch back into master, but don\rquote t merge the signing changes or the switch to the cloudstaging.us URL.\par
+
+\pard{\pntext\f4\'B7\tab}{\*\pn\pnlvlblt\pnf4\pnindent360{\pntxtb\'B7}}\fi-360\li720\sl240\slmult1 git checkout master\par
+{\pntext\f4\'B7\tab}git merge --no-commit --no-ff   <BranchName>.\par
+{\pntext\f4\'B7\tab}Use GIT Extensions to selectively merge modules.  The CloudSetupSdkSyncSample.isl file must be manually merged to remove the signing changes, but leave the version number change.\f3\fs20\par
+{\pntext\f4\'B7\tab}\f0\fs22 git push\f3\fs20\par
+
+\pard\sa200\sl276\slmult1\f0\fs22\par
+Test the following before release:\par
+
+\pard{\pntext\f4\'B7\tab}{\*\pn\pnlvlblt\pnf4\pnindent360{\pntxtb\'B7}}\fi-360\li720\sa200\sl276\slmult1 COL private SQL CE ClientApiTest.exe program.\par
+{\pntext\f4\'B7\tab}Zach\rquote s Windows client SDK functional test.\par
+{\pntext\f4\'B7\tab}Installation and operation on all supported Windows platforms.\par
+
+\pard\sa200\sl276\slmult1\cf0\par
+\par
+}
+ 
