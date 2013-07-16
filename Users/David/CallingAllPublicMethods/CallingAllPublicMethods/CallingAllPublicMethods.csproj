@@ -59,7 +59,9 @@
     <Compile Include="Controls\SelectedSyncboxControl.xaml.cs">
       <DependentUpon>SelectedSyncboxControl.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Models\CLSyncboxActions\CLSyncboxAction.cs" />
     <Compile Include="Models\CLSyncboxProxy.cs" />
+    <Compile Include="Models\DesignDependencyObject.cs" />
     <Compile Include="Models\SelectedSyncboxTemplateSelector.cs" />
     <Compile Include="ViewModels\MainViewModel.cs" />
     <Compile Include="ViewModels\SyncboxViewModel.cs" />
