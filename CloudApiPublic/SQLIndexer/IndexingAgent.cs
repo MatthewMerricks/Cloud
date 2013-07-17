@@ -4649,7 +4649,7 @@ namespace Cloud.SQLIndexer
                 {
                     toReturn = ex;  // replace error entirely so that primary exception is the object disposed exception
                 }
-                catch (Exception ex)
+                catch // (Exception ex)
                 {
                     // no-op; // failing to badge synced is not a serious error
                 }

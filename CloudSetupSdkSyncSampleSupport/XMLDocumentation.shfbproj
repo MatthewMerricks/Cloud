@@ -28,7 +28,7 @@
     <CleanIntermediates>True</CleanIntermediates>
     <ComponentConfigurations>
       <ComponentConfig id="IntelliSense Component" enabled="True">
-        <component id="IntelliSense Component" type="SandcastleBuilder.Components.IntelliSenseComponent" assembly="{@SHFBFolder}SandcastleBuilder.Components.dll">
+        <component id="IntelliSense Component" type="Microsoft.Ddue.Tools.IntelliSenseComponent" assembly="{@SandcastlePath}ProductionTools\BuildComponents.dll">
           <!-- Output options (optional)
 					 Attributes:
 							Include Namespaces (false by default)

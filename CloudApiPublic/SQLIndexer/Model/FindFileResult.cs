@@ -77,8 +77,18 @@ namespace Cloud.SQLIndexer.Model
 
             NativeMethods.WIN32_FIND_DATA fileData;
             SafeSearchHandle searchHandle = null;
+            IntPtr disableRedirectionPtr = IntPtr.Zero;
+            bool fsRedirected = false;
             try
             {
+                try
+                {
+                    fsRedirected = NativeMethods.Wow64DisableWow64FsRedirection(out disableRedirectionPtr);
+                }
+                catch
+                {
+                }
+
                 // The FINDEX_ADDITIONAL_FLAGS.FIND_FIRST_EX_LARGE_FETCH flag is OS-dependent.  If this call fails, all of sync must be stopped
                 // dead in its tracks.
                 // For Windows 7 and up or Windows 2008 Server R2 and up (otherwise use FINDEX_ADDITIONAL_FLAGS.None).
@@ -136,7 +146,39 @@ namespace Cloud.SQLIndexer.Model
                 if (searchHandle != null
                     && !searchHandle.IsInvalid)
                 {
-                    searchHandle.Dispose();
+                    try
+                    {
+                        searchHandle.Dispose();
+                    }
+                    catch
+                    {
+                    }
+                }
+
+                if (disableRedirectionPtr != IntPtr.Zero)
+                {
+                    Predicate<IntPtr> safeRevertion = innerDisableRedirectionPtr =>
+                        {
+                            try
+                            {
+                                return NativeMethods.Wow64RevertWow64FsRedirection(innerDisableRedirectionPtr);
+                            }
+                            catch
+                            {
+                                return false; // default to false to attempt memory cleanup of pointer on error
+                            }
+                        };
+                    if (!fsRedirected
+                        || !safeRevertion(disableRedirectionPtr))
+                    {
+                        try
+                        {
+                            System.Runtime.InteropServices.Marshal.FreeHGlobal(disableRedirectionPtr);
+                        }
+                        catch
+                        {
+                        }
+                    }
                 }
             }
 

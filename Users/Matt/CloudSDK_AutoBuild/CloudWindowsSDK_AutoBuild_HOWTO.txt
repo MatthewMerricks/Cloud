@@ -1,0 +1,28 @@
+'Citrix - Cloud Group
+'Created By Matthew Merricks, 06/2013
+'Auto Build Script for the Windows SDK Solution.  Used for preparing for a staging release.
+'See the original document for further clarification, "Preparing for a staging realease.docx"
+'All steps in this script will be proceded by the text explanation from the original how to document.
+
+HOW TO
+
+To run the AutoBuild proccess you will need the CloudWindowsSDK_AutoBuild.vbs file on your machine.  You can edit this file by opening it up in Notepad++ or most IDEs, also if you right click the file and select Edit, Windows will open up the script in notepad and you can edit it there.
+
+You will want to update the Version Number, for the build you are doing.  This information is at the top of the script, under Variables > User Defined.
+Also you will see the variable Source_FolderPath, this will be the location of the CloudSDK.sln or what is commonly considered the Master root for this GitHub repository.  Once these variables are set correctly you can run the script.
+
+To run the script you MUST open up an ADMINISTRATOR Command Prompt, to do this right click on the Command Prompt application and select Run As Administrator.  Once the command prompt is open Navigate to the directoy where the CloudWindowsSDK_AutoBuild.vbs is located.  Then type 
+
+cscript CloudWindowsSDK_AutoBuild.vbs 
+
+to run the script.
+
+If you would like to debug the script or step through it line by line simply enable Just In Time Debugging (JIT) with the command line value.
+
+cscript /x /d CloudWindowsSDK_AutoBuild.vbs 
+
+this should pop up a window that allows you to select the IDE you want to debug with.  Just choose your favorite instance of Visual Studio and it will automatically debug into the script file.
+
+All information is logged to the Command Window.  If the script fails you will be notified and the script will Exit immediately, since all of the steps build on eachother, one step will fail if a previous step was not completed correctly.  All steps that complete succesfully will be noted with the word PASS below that steps description.
+
+If you are looking to run the script locally without signing, then you can use the AutoBuild script.  If the script does not find the Signing keys in the correct location, it will give you a warning and ask you if you still want to proceed without signing.  To proceed press Enter and continue.
