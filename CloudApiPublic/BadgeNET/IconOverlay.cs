@@ -229,8 +229,7 @@ namespace Cloud.BadgeNET
                                     Message: Resources.IconOverlayExplorerIconBadgingHasFailed,
                                     Level: EventMessageLevel.Important,
                                     Error: new GeneralErrorInfo(),
-                                    Syncbox: Data.innerSyncbox,
-                                    DeviceId: Data.commonThisOverlay._syncSettings.DeviceId);
+                                    Syncbox: Data.innerSyncbox);
                             }
                             Data.commonThisOverlay._trace.writeToLog(9, Resources.IconOverlayThreadInitExitThread);
                         },
@@ -333,8 +332,7 @@ namespace Cloud.BadgeNET
                     Message: Resources.IconOverlayExplorerIconBadgingHasFailed,
                     Level: EventMessageLevel.Important,
                     Error: null,
-                    Syncbox: syncbox,
-                    DeviceId: _syncSettings.DeviceId);
+                    Syncbox: syncbox);
                 return ex;
             }
             _trace.writeToLog(9, Resources.IconOverlaypInitializeReturnSuccess);
