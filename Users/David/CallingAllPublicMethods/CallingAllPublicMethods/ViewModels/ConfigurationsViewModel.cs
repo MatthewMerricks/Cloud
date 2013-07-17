@@ -1,4 +1,5 @@
 ﻿using CallingAllPublicMethods.Models;
+using CallingAllPublicMethods.Static;
 using Cloud;
 using Cloud.Model;
 using Cloud.Support;
@@ -324,11 +325,11 @@ namespace CallingAllPublicMethods.ViewModels
                 lastNonNullConfiguration = _selectedConfiguration = initialConfigurations.Items[0];
                 RevertCredentialsHandler(parameter: null);
             }
-            _saveCredentials = new RelayCommand<object>(new Action<object>(SaveCredentialsHandler));
-            _revertCredentials = new RelayCommand<object>(new Action<object>(RevertCredentialsHandler));
-            _addConfiguration = new RelayCommand<object>(new Action<object>(AddConfigurationHandler));
-            _removeConfiguration = new RelayCommand<object>(new Action<object>(RemoveConfigurationHandler));
-            _configurations_LostFocus = new RelayCommand<ComboBox>(new Action<ComboBox>(Configurations_LostFocusHandler));
+            _saveCredentials = new RelayCommand<object>(SaveCredentialsHandler);
+            _revertCredentials = new RelayCommand<object>(RevertCredentialsHandler);
+            _addConfiguration = new RelayCommand<object>(AddConfigurationHandler);
+            _removeConfiguration = new RelayCommand<object>(RemoveConfigurationHandler);
+            _configurations_LostFocus = new RelayCommand<ComboBox>(Configurations_LostFocusHandler);
         }
 
         private static readonly object ConfigurationsLocker = new object();
@@ -343,11 +344,35 @@ namespace CallingAllPublicMethods.ViewModels
                         new ConfigurationType()
                         {
                             Id = 1,
+
+                            //// staging:
+                            //
+                            Name = DesignTimeData.ConfigurationNameStaging,
+
                             Credentials = new CredentialsType()
                             {
-                                Key = "beefbeefbeefbeefbeefbeefbeefbeefbeefbeefbeefbeefbeefbeefbeefbeef",
-                                Secret = "feedfeedfeedfeedfeedfeedfeedfeedfeedfeedfeedfeedfeedfeedfeedfeed",
-                                Token = "fadefadefadefadefadefadefadefadefadefadefadefadefadefadefadefade"
+                                //// staging:
+                                //
+                                Key = DesignTimeData.ConfigurationKeyStaging,
+                                Secret = DesignTimeData.ConfigurationSecretStaging
+
+                                //// fake:
+                                //
+                                //Key = DesignTimeData.ConfigurationKeyFake,
+                                //Secret = DesignTimeData.ConfigurationSecretFake,
+                                //Token = DesignTimeData.ConfigurationTokenFake
+                            },
+                            SelectedSyncbox = new SyncboxType()
+                            {
+                                //// staging:
+                                //
+                                DeviceId = DesignTimeData.ConfigurationDeviceIdStaging,
+                                SyncboxId = DesignTimeData.ConfigurationSyncboxIdStaging
+
+                                //// fake:
+                                //
+                                //DeviceId = DesignTimeData.ConfigurationDeviceIdFake,
+                                //SyncboxId = DesignTimeData.ConfigurationSyncboxIdFake
                             }
                         }
                     }

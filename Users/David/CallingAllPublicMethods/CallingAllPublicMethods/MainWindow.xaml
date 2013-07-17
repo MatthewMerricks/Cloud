@@ -20,6 +20,8 @@
             <RowDefinition Height="5" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="5" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="5" />
         </Grid.RowDefinitions>
         <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal">
             <Label Content="Configuration:" />
@@ -43,7 +45,9 @@
         </StackPanel>
         <controls:SelectedConfigurationControl Grid.Row="3" Grid.Column="1"
                                                DataContext="{Binding ConfigurationsViewModel}" />
-        <controls:SelectedSyncboxControl Grid.Row="5" Grid.Column="1"
+        <controls:CreateOrListSyncboxes Grid.Row="5" Grid.Column="1"
+                                        DataContext="{Binding AllocateSyncboxViewModel}" />
+        <controls:SelectedSyncboxControl Grid.Row="7" Grid.Column="1"
                                          DataContext="{Binding SyncboxViewModel}" />
     </Grid>
 </Window>

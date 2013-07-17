@@ -60,6 +60,9 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Controls\CreateOrListSyncboxes.xaml.cs">
+      <DependentUpon>CreateOrListSyncboxes.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Controls\SelectedConfigurationControl.xaml.cs">
       <DependentUpon>SelectedConfigurationControl.xaml</DependentUpon>
     </Compile>
@@ -69,7 +72,10 @@
     <Compile Include="Converters\BoolToVisibilityConverter.cs" />
     <Compile Include="Converters\CombineSyncboxViewModelWithSelectedSyncboxConverter.cs" />
     <Compile Include="Converters\NullableLongToStringConverter.cs" />
+    <Compile Include="Models\AllocateSyncboxActions\AllocateSyncboxAction.cs" />
+    <Compile Include="Models\AllocateSyncboxActions\ListSyncboxesAction.cs" />
     <Compile Include="Models\CLSyncboxActions\CLSyncboxAction.cs" />
+    <Compile Include="Models\CLSyncboxPickedEventArgs.cs" />
     <Compile Include="Models\CLSyncboxProxy.cs" />
     <Compile Include="Models\Configuration.cs">
       <DependentUpon>Configuration.xsd</DependentUpon>
@@ -78,10 +84,19 @@
     <Compile Include="Models\InteractiveCommand.cs" />
     <Compile Include="Models\PartialConfigurationType.cs" />
     <Compile Include="Models\SelectedSyncboxTemplateSelector.cs" />
+    <Compile Include="Popups\SelectSyncboxFromListPopup.xaml.cs">
+      <DependentUpon>SelectSyncboxFromListPopup.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Static\DesignTimeData.cs" />
     <Compile Include="Static\Helpers.cs" />
+    <Compile Include="ViewModels\AllocateSyncboxViewModel.cs" />
     <Compile Include="ViewModels\ConfigurationsViewModel.cs" />
     <Compile Include="ViewModels\MainViewModel.cs" />
     <Compile Include="ViewModels\SyncboxViewModel.cs" />
+    <Page Include="Controls\CreateOrListSyncboxes.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Controls\SelectedConfigurationControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -102,6 +117,10 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Page Include="Popups\SelectSyncboxFromListPopup.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs">

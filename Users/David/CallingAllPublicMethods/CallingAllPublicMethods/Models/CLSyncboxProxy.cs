@@ -19,7 +19,7 @@ namespace CallingAllPublicMethods.Models
         }
         private readonly CLSyncbox _syncbox;
 
-        public long CLSyncboxId
+        public long SyncboxId
         {
             get
             {
@@ -40,14 +40,24 @@ namespace CallingAllPublicMethods.Models
             }
         }
 
-        public Nullable<long> StoragePlanId
+        public long StoragePlanId
+        {
+            get
+            {
+                return (_syncbox == null
+                    ? 1
+                    : _syncbox.StoragePlanId);
+            }
+        }
+
+        public string DeviceId
         {
             get
             {
                 return ((_syncbox == null
-                        || _syncbox.StoragePlanId == null)
-                    ? (Nullable<long>)null
-                    : _syncbox.StoragePlanId);
+                        || _syncbox.CopiedSettings.DeviceId == null)
+                    ? "{null}"
+                    : _syncbox.CopiedSettings.DeviceId);
             }
         }
 

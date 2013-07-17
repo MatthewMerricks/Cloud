@@ -95,7 +95,7 @@ namespace CallingAllPublicMethods.ViewModels
                 }
             }
         }
-        private CLSyncboxProxy _selectedSyncbox = 
+        private CLSyncboxProxy _selectedSyncbox =
             (DesignDependencyObject.IsInDesignTool
                 ? new CLSyncboxProxy(syncbox: null)
                 : null);
@@ -180,7 +180,7 @@ namespace CallingAllPublicMethods.ViewModels
 
         public SyncboxViewModel()
         {
-            _syncboxActions_SelectionChanged = new RelayCommand<SelectionChangedEventArgs>(new Action<SelectionChangedEventArgs>(SyncboxActions_SelectionChangedHandler));
+            _syncboxActions_SelectionChanged = new RelayCommand<SelectionChangedEventArgs>(SyncboxActions_SelectionChangedHandler);
         }
     }
 }

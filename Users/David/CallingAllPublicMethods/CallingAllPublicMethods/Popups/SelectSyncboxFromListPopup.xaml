@@ -1,0 +1,80 @@
+﻿<Window x:Class="CallingAllPublicMethods.Popups.SelectSyncboxFromListPopup"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:viewModels="clr-namespace:CallingAllPublicMethods.ViewModels"
+        xmlns:static="clr-namespace:CallingAllPublicMethods.Static"
+        mc:Ignorable="d"
+        d:DataContext="{d:DesignInstance Type=viewModels:AllocateSyncboxViewModel, IsDesignTimeCreatable=True}"
+        Title="Select Syncbox From List" Height="300" Width="500"
+        static:Helpers.DialogResult="{Binding ListPopupDialogResult}">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="5" />
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="5" />
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="5" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="5" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="5" />
+        </Grid.RowDefinitions>
+        <Label Grid.Column="1" Grid.Row="1" Content="Syncboxes:" />
+        <DataGrid Grid.Column="1" Grid.Row="2" Name="SyncboxesDataGrid" AlternatingRowBackground="LightGray" ItemsSource="{Binding KnownCLSyncboxes}" AutoGenerateColumns="False" SelectionMode="Single">
+            <DataGrid.Columns>
+                <DataGridTextColumn Binding="{Binding SyncboxId}" Header="Id" />
+                <DataGridTextColumn Binding="{Binding FriendlyName}" Header="FriendlyName" />
+                <DataGridTextColumn Binding="{Binding DeviceId}" Header="DeviceId" />
+                <DataGridTextColumn Binding="{Binding StoragePlanId}" Header="StoragePlanId" />
+                <DataGridTemplateColumn Header="Delete">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <Button Content="Delete" Command="{Binding ElementName=SyncboxesDataGrid, Path=DataContext.DeleteSyncbox}"
+                                    CommandParameter="{Binding}" />
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+            </DataGrid.Columns>
+        </DataGrid>
+        <Grid Grid.Column="1" Grid.Row="4">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="5" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="5" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="10" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="10" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <Label Grid.Column="0" Content="DeviceId:" />
+            <Grid Grid.Column="2">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="2" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="2" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="2" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="2" />
+                </Grid.RowDefinitions>
+                <Border Grid.ColumnSpan="3" Background="Red" Visibility="{Binding DeviceIdInvalid, Converter={StaticResource BoolToVisibilityConverter}}" />
+                <Border Grid.Row="1" Background="Red" Visibility="{Binding DeviceIdInvalid, Converter={StaticResource BoolToVisibilityConverter}}" />
+                <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding ModifyableDeviceId}" />
+                <Border Grid.Row="1" Grid.Column="2" Background="Red" Visibility="{Binding DeviceIdInvalid, Converter={StaticResource BoolToVisibilityConverter}}" />
+                <Border Grid.Row="2" Grid.ColumnSpan="3" Background="Red" Visibility="{Binding DeviceIdInvalid, Converter={StaticResource BoolToVisibilityConverter}}" />
+            </Grid>
+            <Button Grid.Column="4" Content="Refresh" Command="{Binding ListPopup_Refresh}" />
+            <Button Content="Select Syncbox" Command="{Binding ListPopup_SyncboxSelected}"
+                    CommandParameter="{Binding SelectedItem, ElementName=SyncboxesDataGrid}"
+                    Grid.Column="6" />
+            <Button Grid.Column="8" Content="Cancel" Command="{Binding ListPopup_Cancelled}" />
+        </Grid>
+    </Grid>
+</Window>

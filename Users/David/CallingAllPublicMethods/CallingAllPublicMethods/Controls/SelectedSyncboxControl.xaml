@@ -8,7 +8,7 @@
              xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
              mc:Ignorable="d" 
              d:DataContext="{d:DesignInstance Type=viewModels:SyncboxViewModel, IsDesignTimeCreatable=True}"
-             d:DesignHeight="300" d:DesignWidth="300">
+             d:DesignHeight="300" d:DesignWidth="400">
     <UserControl.Resources>
         <DataTemplate x:Key="NullSyncboxTemplate">
             <Grid>
@@ -34,6 +34,8 @@
                     <ColumnDefinition Width="5" />
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="5" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="5" />
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="5" />
                 </Grid.ColumnDefinitions>
@@ -48,13 +50,15 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
-                <Label Grid.Row="1" Grid.Column="1" Content="CLSyncboxId" />
+                <Label Grid.Row="1" Grid.Column="1" Content="SyncboxId" />
                 <Label Grid.Row="1" Grid.Column="3" Content="FriendlyName" />
                 <Label Grid.Row="1" Grid.Column="5" Content="StoragePlanId" />
-                <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding SelectedSyncbox.CLSyncboxId}" />
+                <Label Grid.Row="1" Grid.Column="7" Content="DeviceId" />
+                <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding SelectedSyncbox.SyncboxId}" />
                 <TextBlock Grid.Row="3" Grid.Column="3" Text="{Binding SelectedSyncbox.FriendlyName}" />
                 <TextBlock Grid.Row="3" Grid.Column="5" Text="{Binding SelectedSyncbox.StoragePlanId, Converter={StaticResource NullableLongToStringConverter}}" />
-                <Grid Grid.Row="5" Grid.Column="1" Grid.ColumnSpan="5">
+                <TextBlock Grid.Row="3" Grid.Column="7" Text="{Binding SelectedSyncbox.DeviceId}" />
+                <Grid Grid.Row="5" Grid.Column="1" Grid.ColumnSpan="7">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
@@ -78,7 +82,7 @@
                         <Border Grid.Row="2" Grid.ColumnSpan="3" Background="Red" Visibility="{Binding SyncboxActionsFilterRegexInvalid, Converter={StaticResource BoolToVisibilityConverter}}" />
                     </Grid>
                 </Grid>
-                <StackPanel Grid.Row="7" Grid.Column="1" Grid.ColumnSpan="5" Orientation="Horizontal">
+                <StackPanel Grid.Row="7" Grid.Column="1" Grid.ColumnSpan="7" Orientation="Horizontal">
                     <Label Content="Actions:" />
                     <ComboBox ItemsSource="{Binding SyncboxActions}" DisplayMemberPath="Name"
                               MinWidth="200">
@@ -95,7 +99,6 @@
                                                 NullSyncboxTemplate="{StaticResource NullSyncboxTemplate}"
                                                 ValidSyncboxTemplate="{StaticResource ValidSyncboxTemplate}" />
     </UserControl.Resources>
-    <!-- Content="{Binding}" -->
     <ContentControl ContentTemplateSelector="{StaticResource SelectedSyncboxTemplateSelector}">
         <ContentControl.Content>
             <MultiBinding Converter="{StaticResource CombineSyncboxViewModelWithSelectedSyncboxConverter}">

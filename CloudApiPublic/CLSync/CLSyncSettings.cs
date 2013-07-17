@@ -183,7 +183,7 @@ namespace Cloud
                 null,
                 true,
                 0,
-                Environment.MachineName + Guid.NewGuid().ToString("N"),
+                syncSettings.DeviceId,
                 null,
                 String.Empty,
                 CLDefinitions.HttpTimeoutDefaultMilliseconds,
