@@ -319,7 +319,7 @@ namespace CallingAllPublicMethods.ViewModels
         public ConfigurationsViewModel()
         {
             Configurations initialConfigurations = ReadInitialConfigurations();
-            _configurations = new ObservableCollection<ConfigurationType>(initialConfigurations.Items);
+            _configurations = new ObservableCollection<ConfigurationType>(initialConfigurations.Items.OrderBy(initialConfiguration => initialConfiguration.ToString(), StringComparer.Ordinal));
             if (initialConfigurations.Items.Length > 0)
             {
                 lastNonNullConfiguration = _selectedConfiguration = initialConfigurations.Items[0];

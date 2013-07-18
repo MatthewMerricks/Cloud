@@ -13,14 +13,14 @@ namespace CallingAllPublicMethods.ViewModels
     public sealed class MainViewModel : NotifiableObject<MainViewModel>
     {
         #region debug only code remove this section
-        static MainViewModel()
-        {
-            if (!CallingAllPublicMethods.Models.DesignDependencyObject.IsInDesignTool)
-            {
-                System.Windows.MessageBox.Show("Debug only code: remove this section");
-                CallingAllPublicMethods.Models.DesignDependencyObject.SetIsInDesignMode(true);
-            }
-        }
+        //static MainViewModel()
+        //{
+        //    if (!CallingAllPublicMethods.Models.DesignDependencyObject.IsInDesignTool)
+        //    {
+        //        System.Windows.MessageBox.Show("Debug only code: remove this section");
+        //        CallingAllPublicMethods.Models.DesignDependencyObject.SetIsInDesignMode(true);
+        //    }
+        //}
         #endregion
 
         public SyncboxViewModel SyncboxViewModel

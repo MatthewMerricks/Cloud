@@ -250,7 +250,7 @@ namespace CallingAllPublicMethods.ViewModels
             CLError deleteSyncboxError = CLSyncbox.DeleteSyncbox(
                 parameter.SyncboxId,
                 credentials,
-                (parameter == null
+                ((parameter == null || parameter.Syncbox == null)
                     ? new CLSyncSettings("{null}")
                     : (Cloud.Interfaces.ICLSyncSettings)parameter.Syncbox.CopiedSettings));
 
