@@ -64,5 +64,8 @@ namespace Cloud.JsonContracts
             }
         }
         public Nullable<DateTime> ExpiresAt { get; set; }
+
+        [DataMember(Name = CLDefinitions.RESTResponseSession_SyncboxIds, IsRequired = false)]
+        public long[] SyncboxIds { get; set; }
     }
 }

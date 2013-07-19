@@ -90,7 +90,7 @@ namespace Cloud.JsonContracts
                                 this.SyncboxIds = new long[tempSyncboxIds.Length];
                                 for (int tempSyncboxIdIndex = 0; tempSyncboxIdIndex < tempSyncboxIds.Length; tempSyncboxIdIndex++)
                                 {
-                                    this.SyncboxIds[tempSyncboxIdIndex] = (long)tempSyncboxIds[tempSyncboxIdIndex];
+                                    this.SyncboxIds[tempSyncboxIdIndex] = Convert.ToInt64(tempSyncboxIds[tempSyncboxIdIndex]);
                                 }
                             }
                         }

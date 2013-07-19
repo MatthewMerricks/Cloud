@@ -5756,7 +5756,7 @@ using System.Collections;
             /// <param name="ChangeToTransfer">UserState object which is required for calling the StatusCallback for sending status information events; also used to retrieve the StorageKey and MD5 hash for upload</param>
             /// <param name="ShutdownToken">A non-required (possibly null) user-provided token source which is checked through an upload or download in order to cancel it</param>
             /// <param name="SyncboxPath">Full path to the root directory being synced</param>
-            /// <param name="Stream">Stream which will be read from to buffer to write into the upload stream, or null if already disposed</param>
+            /// <param name="StreamContext">Stream which will be read from to buffer to write into the upload stream, or null if already disposed</param>
             /// <param name="ACallback">User-provided callback to fire upon asynchronous operation</param>
             /// <param name="AResult">Asynchronous result for firing async callbacks</param>
             /// <param name="ProgressHolder">Holder for a progress state which can be queried by the user</param>

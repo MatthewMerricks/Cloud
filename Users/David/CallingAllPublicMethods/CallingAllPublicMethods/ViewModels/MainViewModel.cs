@@ -75,28 +75,31 @@ namespace CallingAllPublicMethods.ViewModels
         }
         private void FireSyncboxViewModelOnConfigurationChange()
         {
-            _syncboxViewModel.OnConfigurationChanged(
-                (_configurationsViewModel.SelectedConfiguration.Credentials == null
-                    ? null
-                    : _configurationsViewModel.SelectedConfiguration.Credentials.Key),
-                (_configurationsViewModel.SelectedConfiguration.Credentials == null
-                    ? null
-                    : _configurationsViewModel.SelectedConfiguration.Credentials.Secret),
-                (_configurationsViewModel.SelectedConfiguration.Credentials == null
-                    ? null
-                    : _configurationsViewModel.SelectedConfiguration.Credentials.Token),
-                (_configurationsViewModel.SelectedConfiguration.SelectedSyncbox == null
-                    ? (Nullable<long>)null
-                    : _configurationsViewModel.SelectedConfiguration.SelectedSyncbox.SyncboxId),
-                (_configurationsViewModel.SelectedConfiguration.SelectedSyncbox == null
-                    ? null
-                    : _configurationsViewModel.SelectedConfiguration.SelectedSyncbox.DeviceId));
+            if (_configurationsViewModel.SelectedConfiguration != null)
+            {
+                _syncboxViewModel.OnConfigurationChanged(
+                    (_configurationsViewModel.SelectedConfiguration.Credentials == null
+                        ? null
+                        : _configurationsViewModel.SelectedConfiguration.Credentials.Key),
+                    (_configurationsViewModel.SelectedConfiguration.Credentials == null
+                        ? null
+                        : _configurationsViewModel.SelectedConfiguration.Credentials.Secret),
+                    (_configurationsViewModel.SelectedConfiguration.Credentials == null
+                        ? null
+                        : _configurationsViewModel.SelectedConfiguration.Credentials.Token),
+                    (_configurationsViewModel.SelectedConfiguration.SelectedSyncbox == null
+                        ? (Nullable<long>)null
+                        : _configurationsViewModel.SelectedConfiguration.SelectedSyncbox.SyncboxId),
+                    (_configurationsViewModel.SelectedConfiguration.SelectedSyncbox == null
+                        ? null
+                        : _configurationsViewModel.SelectedConfiguration.SelectedSyncbox.DeviceId));
 
-            _allocateSyncboxViewModel.KnownCLSyncboxes.Clear();
-            _allocateSyncboxViewModel.KnownCLStoragePlans.Clear();
-            _allocateSyncboxViewModel.ModifyableDeviceId = (_configurationsViewModel.SelectedConfiguration.SelectedSyncbox == null
-                ? null
-                : _configurationsViewModel.SelectedConfiguration.SelectedSyncbox.DeviceId);
+                _allocateSyncboxViewModel.KnownCLSyncboxes.Clear();
+                _allocateSyncboxViewModel.KnownCLStoragePlans.Clear();
+                _allocateSyncboxViewModel.ModifyableDeviceId = (_configurationsViewModel.SelectedConfiguration.SelectedSyncbox == null
+                    ? null
+                    : _configurationsViewModel.SelectedConfiguration.SelectedSyncbox.DeviceId);
+            }
         }
     }
 }

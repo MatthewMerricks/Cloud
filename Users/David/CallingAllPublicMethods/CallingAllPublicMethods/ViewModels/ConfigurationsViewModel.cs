@@ -402,8 +402,11 @@ namespace CallingAllPublicMethods.ViewModels
         {
             long testParse;
             return
+                // check that we have a configuration selected
+                _selectedConfiguration != null
+
                 // check for valid configuration credentials
-                _selectedConfiguration.Credentials != null
+                && _selectedConfiguration.Credentials != null
                 && !string.IsNullOrEmpty(_selectedConfiguration.Credentials.Key)
                 && !string.IsNullOrEmpty(_selectedConfiguration.Credentials.Secret)
                 && string.IsNullOrEmpty(_selectedConfiguration.Credentials.Token)

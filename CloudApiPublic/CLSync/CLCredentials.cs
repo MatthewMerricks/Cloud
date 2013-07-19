@@ -18,6 +18,7 @@ using System.Threading;
 using System.Net;
 using Newtonsoft.Json.Linq;
 using Cloud.JsonContracts;
+using System.Collections.ObjectModel;
 
 namespace Cloud
 {
@@ -71,38 +72,23 @@ namespace Cloud
         }
         private readonly string _token;
 
-        /// <summary>
-        /// The session token expiration date.
-        /// </summary>
-        internal Nullable<DateTime> ExpirationDate
-        {
-            get
-            {
-                lock (_expirationDate)
-                {
-                    return _expirationDate.Value;
-                }
-            }
-        }
-        private readonly GenericHolder<Nullable<DateTime>> _expirationDate = new GenericHolder<Nullable<DateTime>>();
-
-        /// <summary>
-        /// The syncbox IDs associated with these credentials.  If this property is null, then all syncboxIDs are associated.
-        /// </summary>
-        internal HashSet<long> SyncboxIds
-        {
-            get
-            {
-                return _syncboxIds;
-            }
-        }
-        private readonly HashSet<long> _syncboxIds = null;
-
         #endregion
 
         #region Private Fields
 
         private ICLSyncSettingsAdvanced _copiedSettings = null;
+
+        private readonly object expirationDateAndSyncboxIdsLocker = new object();
+
+        /// <summary>
+        /// The session token expiration date.
+        /// </summary>
+        private Nullable<DateTime> _expirationDate = null;
+
+        /// <summary>
+        /// The syncbox IDs associated with these credentials. If this property is null, then all syncboxIDs are associated.
+        /// </summary>
+        private List<long> _syncboxIds = null;
 
         #endregion
 
@@ -207,8 +193,8 @@ namespace Cloud
             string token,
             ICLCredentialsSettings settings = null) : this(key, secret, token, settings)
         {
-            this._syncboxIds = syncboxIds;
-            this._expirationDate.Value = expiresAt; // no need to lock since this is the constructor
+            this._syncboxIds = new List<long>(syncboxIds); // no need to lock since this is the constructor
+            this._expirationDate = expiresAt; // no need to lock since this is the constructor
         }
 
         private static readonly GenericHolder<bool> servicePointManagerConfigured = new GenericHolder<bool>(false);
@@ -245,14 +231,14 @@ namespace Cloud
             this._secret = session.Secret;
 
             this._token = token;
-            this._expirationDate.Value = session.ExpiresAt; // no need to lock since this is the constructor
-            if (session.Services[0].SyncboxIds == null)
+            this._expirationDate = session.ExpiresAt; // no need to lock since this is the constructor
+            if ((session.Services[0].SyncboxIds ?? session.SyncboxIds) == null)
             {
-                this._syncboxIds = null;
+                this._syncboxIds = null; // no need to lock since this is the constructor
             }
             else
             {
-                this._syncboxIds = new HashSet<long>(session.Services[0].SyncboxIds);
+                this._syncboxIds = new List<long>(session.Services[0].SyncboxIds ?? session.SyncboxIds); // no need to lock since this is the constructor
             }
 
             // copy settings so they don't change while processing; this also defaults some values
@@ -306,15 +292,21 @@ namespace Cloud
                     {
                         // declare the specific type of response for this operation
                         bool response;
+                        DateTime expirationDate;
+                        ReadOnlyCollection<long> syncboxIds;
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
                         CLError processError = IsValid(
                             out response,
+                            out expirationDate,
+                            out syncboxIds,
                             Data.settings);
 
                         Data.toReturn.Complete(
                             new CredentialsIsValidResult(
                                 processError, // any error that may have occurred during processing
-                                response), // the specific type of response for this operation
+                                response, // the specific type of response for this operation
+                                expirationDate,
+                                syncboxIds),
                             sCompleted: false); // processing did not complete synchronously
                     }
                     catch (Exception ex)
@@ -337,7 +329,7 @@ namespace Cloud
         /// Finishes determining whether the session credentials have expired (!IsValid), if it has not already finished via its asynchronous result and outputs the result,
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
         /// </summary>
-        /// <param name="aResult">The asynchronous result provided upon starting the async operation.</param>
+        /// <param name="asyncResult">The asynchronous result provided upon starting the async operation.</param>
         /// <param name="result">(output) The result from the async operation.</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndListAllActiveSessionCredentials(IAsyncResult asyncResult, out CredentialsIsValidResult result)
@@ -349,9 +341,11 @@ namespace Cloud
         /// Determine whether the session credentials have expired (!IsValid). Requires session credentials.
         /// </summary>
         /// <param name="isValid">(output) The result.  True: The session credentials have not expired.</param>
+        /// <param name="expirationDate">(output) The UTC time when the session will expire.</param>
+        /// <param name="syncboxIds">(output) The list of syncbox ids which are valid for this session, or null for all syncbox ids.</param>
         /// <param name="settings">(optional) settings for optional tracing and specifying the client version to the server</param>
         /// <returns>Any error that occurs, or null.</returns>
-        public CLError IsValid(out bool isValid, ICLCredentialsSettings settings = null)
+        public CLError IsValid(out bool isValid, out DateTime expirationDate, out ReadOnlyCollection<long> syncboxIds, ICLCredentialsSettings settings = null)
         {
             try
             {
@@ -360,7 +354,13 @@ namespace Cloud
                     throw new CLException(CLExceptionCode.Credentials_NotSessionCredentials, Resources.ExceptionCredentialsIsValidRequiresSessionCredentials);
                 }
 
-                Nullable<DateTime> storeExpirationDate = ExpirationDate;
+                Nullable<DateTime> storeExpirationDate;
+                List<long> storeSyncboxIds;
+                lock (expirationDateAndSyncboxIdsLocker)
+                {
+                    storeExpirationDate = _expirationDate;
+                    storeSyncboxIds = _syncboxIds;
+                }
 
                 if (storeExpirationDate == null)
                 {
@@ -373,26 +373,33 @@ namespace Cloud
                     if (errorShowingSession != null)
                     {
                         isValid = Helpers.DefaultForType<bool>();
+                        expirationDate = new DateTime(0, DateTimeKind.Utc);
+                        syncboxIds = Helpers.DefaultForType<ReadOnlyCollection<long>>();
                         return errorShowingSession;
                     }
 
                     if (shownSession == null
-                        || (storeExpirationDate = shownSession.ExpirationDate) == null)
+                        || (storeExpirationDate = shownSession._expirationDate) == null)
                     {
                         throw new CLException(CLExceptionCode.Credentials_ExpirationDateMustNotBeNull, Resources.ExceptionCredentialsExpirationDateMustNotBeNull);
                     }
 
-                    lock (_expirationDate)
+                    lock (expirationDateAndSyncboxIdsLocker)
                     {
-                        _expirationDate.Value = storeExpirationDate;
+                        _expirationDate = storeExpirationDate;
+                        _syncboxIds = storeSyncboxIds = shownSession._syncboxIds;
                     }
                 }
 
                 isValid = DateTime.Compare((DateTime)storeExpirationDate, DateTime.UtcNow) >= 0;
+                expirationDate = (DateTime)storeExpirationDate;
+                syncboxIds = (storeSyncboxIds == null ? null : new ReadOnlyCollection<long>(storeSyncboxIds));
             }
             catch (Exception ex)
             {
                 isValid = Helpers.DefaultForType<bool>();
+                expirationDate = new DateTime(0, DateTimeKind.Utc);
+                syncboxIds = Helpers.DefaultForType<ReadOnlyCollection<long>>();
                 return ex;
             }
 
@@ -627,7 +634,7 @@ namespace Cloud
         /// Finishes creating the session on the server for the current application, if it has not already finished via its asynchronous result, and outputs the result,
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
         /// </summary>
-        /// <param name="aResult">The asynchronous result provided upon starting the async operation.</param>
+        /// <param name="asyncResult">The asynchronous result provided upon starting the async operation.</param>
         /// <param name="result">(output) The result from the async operation as seperated key/secret/token components.</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndCreateSessionCredentialsForSyncboxIds(IAsyncResult asyncResult, out CredentialsSessionCreateSeperatedResult result)
@@ -662,7 +669,7 @@ namespace Cloud
         /// Finishes creating the session on the server for the current application, if it has not already finished via its asynchronous result, and outputs the result,
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
         /// </summary>
-        /// <param name="aResult">The asynchronous result provided upon starting the async operation.</param>
+        /// <param name="asyncResult">The asynchronous result provided upon starting the async operation.</param>
         /// <param name="result">(output) The result from the async operation.</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndCreateSessionCredentialsForSyncboxIds(IAsyncResult asyncResult, out CredentialsSessionCreateResult result)
@@ -1037,7 +1044,7 @@ namespace Cloud
         /// Finishes querying the session by key for the current application from the server, if it has not already finished via its asynchronous result, and outputs the result,
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
         /// </summary>
-        /// <param name="aResult">The asynchronous result provided upon starting the async operation.</param>
+        /// <param name="asyncResult">The asynchronous result provided upon starting the async operation.</param>
         /// <param name="result">(output) The result from the async operation.</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndSessionCredentialsForKey(IAsyncResult asyncResult, out CredentialsSessionGetForKeyResult result)
@@ -1174,7 +1181,7 @@ namespace Cloud
         /// Finishes deleting a session on the server for the current credentials, if it has not already finished via its asynchronous result, and outputs the result,
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
         /// </summary>
-        /// <param name="aResult">The asynchronous result provided upon starting the async operation.</param>
+        /// <param name="asyncResult">The asynchronous result provided upon starting the async operation.</param>
         /// <param name="result">(output) The result from the async operation.</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndDeleteSessionCredentialsWithKey(IAsyncResult asyncResult, out CredentialsSessionDeleteResult result)
@@ -1339,7 +1346,7 @@ namespace Cloud
         /// Finishes creating a new user account on the server with a device and new syncbox, if it has not already finished via its asynchronous result and outputs the result,
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
         /// </summary>
-        /// <param name="aResult">The asynchronous result provided upon starting the async operation.</param>
+        /// <param name="asyncResult">The asynchronous result provided upon starting the async operation.</param>
         /// <param name="result">(output) The result from the async operation.</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
@@ -1516,7 +1523,7 @@ namespace Cloud
         /// Finishes loggin into an account with a device, if it has not already finished via its asynchronous result and outputs the result,
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
         /// </summary>
-        /// <param name="aResult">The asynchronous result provided upon starting the async operation.</param>
+        /// <param name="asyncResult">The asynchronous result provided upon starting the async operation.</param>
         /// <param name="result">(output) The result from the async operation.</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
@@ -1677,7 +1684,7 @@ namespace Cloud
         /// Finishes logging out of an account (and unlinking the device), if it has not already finished via its asynchronous result and outputs the result,
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
         /// </summary>
-        /// <param name="aResult">The asynchronous result provided upon starting the async operation.</param>
+        /// <param name="asyncResult">The asynchronous result provided upon starting the async operation.</param>
         /// <param name="result">(output) The result from the async operation.</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]

@@ -45,6 +45,7 @@ namespace CallingAllPublicMethods.ViewModels
         }
         private static readonly AllocateSyncboxAction[] _allocateSyncboxActions = new AllocateSyncboxAction[]
         {
+            AllocAndInitAction.Instance,
             ListSyncboxesAction.Instance,
             CreateSyncboxAction.Instance
         };
@@ -266,6 +267,53 @@ namespace CallingAllPublicMethods.ViewModels
                     deleteSyncboxError.PrimaryException.Message));
             }
         }
+        private bool DeleteSyncboxCanHandle(CLSyncboxProxy parameter)
+        {
+            return credentials != null && !credentials.IsSessionCredentials();
+        }
+
+        public ICommand DeleteAll
+        {
+            get
+            {
+                return _deleteAll;
+            }
+        }
+        private readonly ICommand _deleteAll;
+        private void DeleteAllHandler(object parameter)
+        {
+            if (_knownCLSyncboxes.Count <= 1
+                || MessageBox.Show(
+                    string.Format(
+                        "Are you sure you would like to delete {0} syncboxes?",
+                        _knownCLSyncboxes.Count),
+                    "Confirm delete all syncboxes?",
+                    MessageBoxButton.YesNo) == MessageBoxResult.Yes)
+            {
+                foreach (CLSyncboxProxy currentKnownSyncbox in _knownCLSyncboxes.ToArray())
+                {
+                    CLError deleteSyncboxError = CLSyncbox.DeleteSyncbox(
+                        currentKnownSyncbox.SyncboxId,
+                        credentials);
+
+                    if (deleteSyncboxError != null)
+                    {
+                        MessageBox.Show(string.Format("An error occurred deleting a syncbox. SyncboxId: {0}. Exception code: {1}. Error message: {2}.",
+                            currentKnownSyncbox.SyncboxId,
+                            deleteSyncboxError.PrimaryException.Code,
+                            deleteSyncboxError.PrimaryException.Message));
+
+                        break;
+                    }
+
+                    _knownCLSyncboxes.Remove(currentKnownSyncbox);
+                }
+            }
+        }
+        private bool DeleteAllCanHandle(object parameter)
+        {
+            return credentials != null && !credentials.IsSessionCredentials() && _knownCLSyncboxes.Count > 0;
+        }
 
         public Nullable<bool> CreatePopupDialogResult
         {
@@ -421,6 +469,76 @@ namespace CallingAllPublicMethods.ViewModels
             CreatePopupDialogResult = false; // triggers [Window].Close() and sets an unsuccessful DialogResult
         }
 
+        public Nullable<bool> AllocPopupDialogResult
+        {
+            get
+            {
+                return _allocPopupDialogResult;
+            }
+            set
+            {
+                if (_allocPopupDialogResult != value)
+                {
+                    _allocPopupDialogResult = value;
+                    base.NotifyPropertyChanged(parent => parent.AllocPopupDialogResult);
+                }
+            }
+        }
+        private Nullable<bool> _allocPopupDialogResult = null;
+
+        public ICommand AllocPopup_Alloc
+        {
+            get
+            {
+                return _allocPopup_Alloc;
+            }
+        }
+        private readonly ICommand _allocPopup_Alloc;
+        private void AllocPopup_AllocHandler(string parameter)
+        {
+            long syncboxId = long.Parse(parameter);
+            CLSyncbox allocSyncbox;
+            CLError allocSyncboxError = CLSyncbox.AllocAndInit(
+                syncboxId,
+                credentials,
+                out allocSyncbox,
+                settings: new CLSyncSettings(_modifyableDeviceId));
+
+            if (allocSyncboxError == null)
+            {
+                FireCLSyncboxPicked(new CLSyncboxProxy(allocSyncbox));
+
+                AllocPopupDialogResult = true; // triggers [Window].Close() and sets a successful DialogResult
+            }
+            else
+            {
+                MessageBox.Show(string.Format(
+                    "An error occurred allocating and initializing a syncbox. SyncboxId: {0}. Exception code: {1}. Error message: {2}.",
+                    syncboxId,
+                    allocSyncboxError.PrimaryException.Code,
+                    allocSyncboxError.PrimaryException.Message));
+            }
+        }
+        private bool AllocPopup_AllocCanHandle(string parameter)
+        {
+            long testParse;
+            return !DeviceIdInvalid
+                && long.TryParse(parameter, out testParse);
+        }
+
+        public ICommand AllocPopup_Cancel
+        {
+            get
+            {
+                return _allocPopup_Cancel;
+            }
+        }
+        private readonly ICommand _allocPopup_Cancel;
+        private void AllocPopup_CancelHandler(object parameter)
+        {
+            AllocPopupDialogResult = false; // triggers [Window].Close() and sets an unsuccessful DialogResult
+        }
+
         public AllocateSyncboxViewModel()
         {
             this._allocateSyncboxActions_SelectionChanged = new RelayCommand<SelectionChangedEventArgs>(AllocateSyncboxActions_SelectionChangedHandler);
@@ -434,7 +552,12 @@ namespace CallingAllPublicMethods.ViewModels
             this._listPopup_Refresh = new RelayCommand<object>(
                 ListPopup_RefreshHandler,
                 ListPopup_RefreshCanHandle);
-            this._deleteSyncbox = new RelayCommand<CLSyncboxProxy>(DeleteSyncboxHandler);
+            this._deleteSyncbox = new RelayCommand<CLSyncboxProxy>(
+                DeleteSyncboxHandler,
+                DeleteSyncboxCanHandle);
+            this._deleteAll = new RelayCommand<object>(
+                DeleteAllHandler,
+                DeleteAllCanHandle);
             this._knownCLStoragePlans = new ObservableCollection<CLStoragePlanProxy>();
             this._knownCLStoragePlans.CollectionChanged += _knownCLStoragePlans_CollectionChanged;
             this.KnownCLStoragePlansDictionary = new ReadOnlyDictionary<long, CLStoragePlanProxy>(_knownCLStoragePlansDictionary);
@@ -448,6 +571,10 @@ namespace CallingAllPublicMethods.ViewModels
                 CreatePopup_RefreshAllHandler,
                 CreatePopup_RefreshAllCanHandle);
             this._createPopup_Cancelled = new RelayCommand<object>(CreatePopup_CancelledHandler);
+            this._allocPopup_Alloc = new RelayCommand<string>(
+                AllocPopup_AllocHandler,
+                AllocPopup_AllocCanHandle);
+            this._allocPopup_Cancel = new RelayCommand<object>(AllocPopup_CancelHandler);
 
             if (DesignDependencyObject.IsInDesignTool)
             {

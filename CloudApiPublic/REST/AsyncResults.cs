@@ -9,6 +9,7 @@ using Cloud.Model;
 using Cloud.Static;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -415,6 +416,9 @@ namespace Cloud.REST
     [Obfuscation(Exclude = true)]
     public sealed class CredentialsIsValidResult
     {
+        /// <summary>
+        /// The result.  True: The session credentials have not expired.
+        /// </summary>
         public bool IsValid
         {
             get
@@ -423,6 +427,30 @@ namespace Cloud.REST
             }
         }
         private readonly bool _isValid;
+
+        /// <summary>
+        /// The UTC time when the session will expire.
+        /// </summary>
+        public DateTime ExpirationDate
+        {
+            get
+            {
+                return _expirationDate;
+            }
+        }
+        private readonly DateTime _expirationDate;
+
+        /// <summary>
+        /// The list of syncbox ids which are valid for this session, or null for all syncbox ids.
+        /// </summary>
+        public ReadOnlyCollection<long> SyncboxIds
+        {
+            get
+            {
+                return _syncboxIds;
+            }
+        }
+        private readonly ReadOnlyCollection<long> _syncboxIds;
         
         /// <summary>
         /// Any error which may have occurred during communication
@@ -437,10 +465,12 @@ namespace Cloud.REST
         private readonly CLError _error;
 
         // construct with all readonly properties
-        internal CredentialsIsValidResult(CLError error, bool isValid)
+        internal CredentialsIsValidResult(CLError error, bool isValid, DateTime ExpirationDate, ReadOnlyCollection<long> SyncboxIds)
         {
             this._error = error;
             this._isValid = isValid;
+            this._expirationDate = ExpirationDate;
+            this._syncboxIds = SyncboxIds;
         }
     }
 

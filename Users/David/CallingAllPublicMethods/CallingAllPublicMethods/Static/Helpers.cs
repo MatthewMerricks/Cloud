@@ -1,6 +1,7 @@
 ﻿using Cloud;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -51,7 +52,9 @@ namespace CallingAllPublicMethods.Static
                 else
                 {
                     bool checkValid;
-                    CLError checkValidError = credentials.IsValid(out checkValid);
+                    DateTime expirationDate;
+                    ReadOnlyCollection<long> syncboxIds;
+                    CLError checkValidError = credentials.IsValid(out checkValid, out expirationDate, out syncboxIds);
 
                     if (checkValidError != null)
                     {

@@ -30,7 +30,12 @@
                 <DataGridTextColumn Binding="{Binding FriendlyName}" Header="FriendlyName" />
                 <DataGridTextColumn Binding="{Binding DeviceId}" Header="DeviceId" />
                 <DataGridTextColumn Binding="{Binding StoragePlanId}" Header="StoragePlanId" />
-                <DataGridTemplateColumn Header="Delete">
+                <DataGridTemplateColumn>
+                    <DataGridTemplateColumn.HeaderTemplate>
+                        <DataTemplate>
+                            <Button Content="Delete All" Command="{Binding ElementName=SyncboxesDataGrid, Path=DataContext.DeleteAll}" />
+                        </DataTemplate>
+                    </DataGridTemplateColumn.HeaderTemplate>
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <Button Content="Delete" Command="{Binding ElementName=SyncboxesDataGrid, Path=DataContext.DeleteSyncbox}"
