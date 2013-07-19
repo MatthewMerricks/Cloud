@@ -21,15 +21,36 @@ namespace CallingAllPublicMethods.Models.AllocateSyncboxActions
         }
         private readonly string _name;
 
+        // CheckProcessParameters is split into two overloads since it calls Helpers.CheckForValidCredentials which has an optional parameter: we do not wish to accidentally apply a different default value
+
+        protected static bool CheckProcessParameters(AllocateSyncboxViewModel viewModel, CLCredentials credentials, bool disallowSessionCredentials)
+        {
+            if (!CheckViewModel(viewModel))
+            {
+                return false;
+            }
+
+            return Helpers.CheckForValidCredentials(credentials, disallowSessionCredentials);
+        }
+
         protected static bool CheckProcessParameters(AllocateSyncboxViewModel viewModel, CLCredentials credentials)
+        {
+            if (!CheckViewModel(viewModel))
+            {
+                return false;
+            }
+
+            return Helpers.CheckForValidCredentials(credentials);
+        }
+
+        private static bool CheckViewModel(AllocateSyncboxViewModel viewModel)
         {
             if (viewModel == null)
             {
                 MessageBox.Show("Unable to process AllocateSyncboxAction because viewModel is null");
                 return false;
             }
-
-            return Helpers.CheckForValidCredentials(credentials);
+            return true;
         }
 
         public abstract void Process(AllocateSyncboxViewModel viewModel, CLCredentials credentials);

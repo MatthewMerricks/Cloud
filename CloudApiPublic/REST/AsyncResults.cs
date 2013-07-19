@@ -408,6 +408,41 @@ namespace Cloud.REST
             this._activeSessionCredentials = activeSessionCredentials;
         }
     }
+    
+    /// <summary>
+    /// Holds result properties
+    /// </summary>
+    [Obfuscation(Exclude = true)]
+    public sealed class CredentialsIsValidResult
+    {
+        public bool IsValid
+        {
+            get
+            {
+                return _isValid;
+            }
+        }
+        private readonly bool _isValid;
+        
+        /// <summary>
+        /// Any error which may have occurred during communication
+        /// </summary>
+        public CLError Error
+        {
+            get
+            {
+                return _error;
+            }
+        }
+        private readonly CLError _error;
+
+        // construct with all readonly properties
+        internal CredentialsIsValidResult(CLError error, bool isValid)
+        {
+            this._error = error;
+            this._isValid = isValid;
+        }
+    }
 
     /// <summary>
     /// Holds result properties
@@ -444,6 +479,71 @@ namespace Cloud.REST
         {
             this._error = error;
             this._sessionCredentials = sessionCredentials;
+        }
+    }
+
+
+    /// <summary>
+    /// Holds result properties
+    /// </summary>
+    [Obfuscation(Exclude = true)]
+    public sealed class CredentialsSessionCreateSeperatedResult
+    {
+        /// <summary>
+        /// The key from the result returned from the server
+        /// </summary>
+        public string SessionCredentialsKey
+        {
+            get
+            {
+                return _sessionCredentialsKey;
+            }
+        }
+        private readonly string _sessionCredentialsKey;
+        
+        /// <summary>
+        /// The secret from the result returned from the server
+        /// </summary>
+        public string SessionCredentialsSecret
+        {
+            get
+            {
+                return _sessionCredentialsSecret;
+            }
+        }
+        private readonly string _sessionCredentialsSecret;
+
+        /// <summary>
+        /// The token from the result returned from the server
+        /// </summary>
+        public string SessionCredentialsToken
+        {
+            get
+            {
+                return _sessionCredentialsToken;
+            }
+        }
+        private readonly string _sessionCredentialsToken;
+
+        /// <summary>
+        /// Any error which may have occurred during communication
+        /// </summary>
+        public CLError Error
+        {
+            get
+            {
+                return _error;
+            }
+        }
+        private readonly CLError _error;
+
+        // construct with all readonly properties
+        internal CredentialsSessionCreateSeperatedResult(CLError error, string sessionCredentialsKey, string sessionCredentialsSecret, string sessionCredentialsToken)
+        {
+            this._error = error;
+            this._sessionCredentialsKey = sessionCredentialsKey;
+            this._sessionCredentialsSecret = sessionCredentialsSecret;
+            this._sessionCredentialsToken = sessionCredentialsToken;
         }
     }
 

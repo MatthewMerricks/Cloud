@@ -102,21 +102,7 @@ namespace CallingAllPublicMethods.ViewModels
             }
 
             CLCredentials testCredentials;
-            CLError testCredentialsError = CLCredentials.AllocAndInit(
-                copyKey,
-                copySecret,
-                out testCredentials,
-                copyToken);
-
-            if (testCredentialsError != null)
-            {
-                MessageBox.Show(
-                    string.Format(
-                        "Key, secret, and/or token are invalid for CLCredentials. ExceptionCode: {0}. Error message: {1}.",
-                        testCredentialsError.PrimaryException.Code,
-                        testCredentialsError.PrimaryException.Message));
-            }
-            else
+            if (Helpers.TryAllocCLCredentials(copyKey, copySecret, copyToken, out testCredentials))
             {
                 _selectedConfiguration.Credentials = new CredentialsType()
                 {
@@ -316,6 +302,127 @@ namespace CallingAllPublicMethods.ViewModels
             }
         }
 
+        public ICommand CreateSession
+        {
+            get
+            {
+                return _createSession;
+            }
+        }
+        private readonly ICommand _createSession;
+        private void CreateSessionHandler(KeyValuePair<string, string> parameter)
+        {
+            CLCredentials testCredentials;
+            if (Helpers.TryAllocCLCredentials(
+                (_selectedConfiguration.Credentials == null
+                    ? null
+                    : _selectedConfiguration.Credentials.Key),
+                (_selectedConfiguration.Credentials == null
+                    ? null
+                    : _selectedConfiguration.Credentials.Secret),
+                (_selectedConfiguration.Credentials == null
+                    ? null
+                    : _selectedConfiguration.Credentials.Token),
+                out testCredentials))
+            {
+                Nullable<long> storeFirstSyncboxId = null;
+                HashSet<long> syncboxIds = null;
+                if (!string.IsNullOrEmpty(parameter.Key))
+                {
+                    foreach (long currentSyncboxId in parameter.Key.Split(',').Select(currentKeySplit => long.Parse(currentKeySplit)))
+                    {
+                        if (syncboxIds == null)
+                        {
+                            syncboxIds = new HashSet<long>(Cloud.Static.Helpers.EnumerateSingleItem(currentSyncboxId));
+                            if (storeFirstSyncboxId == null)
+                            {
+                                storeFirstSyncboxId = currentSyncboxId;
+                            }
+                        }
+                        else
+                        {
+                            syncboxIds.Add(currentSyncboxId);
+                        }
+                    }
+                }
+
+                Nullable<long> sessionMinutes;
+                if (string.IsNullOrEmpty(parameter.Value))
+                {
+                    sessionMinutes = null;
+                }
+                else
+                {
+                    sessionMinutes = long.Parse(parameter.Value);
+                }
+
+                string sessionKey;
+                string sessionSecret;
+                string sessionToken;
+                CLError createSessionError = testCredentials.CreateSessionCredentialsForSyncboxIds(
+                    out sessionKey,
+                    out sessionSecret,
+                    out sessionToken,
+                    syncboxIds,
+                    sessionMinutes);
+
+                if (createSessionError == null)
+                {
+                    _configurations.Add(
+                        SelectedConfiguration = new ConfigurationType()
+                        {
+                            Id = (_configurations[_configurations.Count - 1].Id + 1),
+                            Name = _selectedConfiguration.ToString() + " Session",
+                            Credentials = new CredentialsType()
+                            {
+                                Key = sessionKey,
+                                Secret = sessionSecret,
+                                Token = sessionToken
+                            },
+                            SelectedSyncbox = ((_selectedConfiguration.SelectedSyncbox == null || storeFirstSyncboxId == null)
+                                ? null
+                                : new SyncboxType()
+                                {
+                                    DeviceId = _selectedConfiguration.SelectedSyncbox.DeviceId,
+                                    SyncboxId = (long)storeFirstSyncboxId
+                                })
+                        });
+
+                    SaveConfigurations(_configurations);
+                }
+                else
+                {
+                    MessageBox.Show(string.Format("An error occurred creating session. Exception code: {0}. Error message: {1}.",
+                        createSessionError.PrimaryException.Code,
+                        createSessionError.PrimaryException.Message));
+                }
+            }
+        }
+        private bool CreateSessionCanHandle(KeyValuePair<string, string> parameter)
+        {
+            long testParse;
+            return
+                // check for valid configuration credentials
+                _selectedConfiguration.Credentials != null
+                && !string.IsNullOrEmpty(_selectedConfiguration.Credentials.Key)
+                && !string.IsNullOrEmpty(_selectedConfiguration.Credentials.Secret)
+                && string.IsNullOrEmpty(_selectedConfiguration.Credentials.Token)
+
+                // make sure credentials are not currently modified (but not saved)
+                && string.Equals(_selectedConfiguration.Credentials.Key, _modifyableKey, StringComparison.Ordinal)
+                && string.Equals(_selectedConfiguration.Credentials.Secret, _modifyableSecret, StringComparison.Ordinal)
+                && string.IsNullOrEmpty(_modifyableToken)
+
+                // check for valid syncbox ids
+                && (string.IsNullOrEmpty(parameter.Key)
+                    || parameter.Key.Split(',')
+                        .All(currentSyncboxId => long.TryParse(currentSyncboxId.Trim(), out testParse)))
+
+                // check for valid session minutes
+                && (string.IsNullOrEmpty(parameter.Value)
+                    || long.TryParse(parameter.Value.Trim(), out testParse));
+        }
+
         public ConfigurationsViewModel()
         {
             Configurations initialConfigurations = ReadInitialConfigurations();
@@ -330,6 +437,9 @@ namespace CallingAllPublicMethods.ViewModels
             _addConfiguration = new RelayCommand<object>(AddConfigurationHandler);
             _removeConfiguration = new RelayCommand<object>(RemoveConfigurationHandler);
             _configurations_LostFocus = new RelayCommand<ComboBox>(Configurations_LostFocusHandler);
+            _createSession = new RelayCommand<KeyValuePair<string, string>>(
+                CreateSessionHandler,
+                CreateSessionCanHandle);
         }
 
         private static readonly object ConfigurationsLocker = new object();
@@ -441,7 +551,9 @@ namespace CallingAllPublicMethods.ViewModels
             ConfigurationType[] configurationTypesArray = null;
             if (DesignDependencyObject.IsInDesignTool)
             {
-                MessageBox.Show("Saving configurations is disabled in design tool");
+                MessageBox.Show(string.Format("Saving configurations is disabled in design tool. Stacktrace:{0}{1}",
+                    Environment.NewLine,
+                    Environment.StackTrace));
             }
             else if (configurationTypes != null
                 && (configurationTypesArray = configurationTypes.ToArray()).Length == 0)

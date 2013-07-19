@@ -2339,7 +2339,7 @@ namespace Cloud.REST
         /// <param name="reservedForActiveSync">true: Live sync is active.  User calls are not allowed.</param>
         /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
         /// <param name="itemCompletionCallbackUserState">User state to be passed whenever the item completion callback above is fired.</param>
-        /// <param name="itemsToPurge">One or more file items to delete.</param>
+        /// <param name="itemsToDelete">One or more file items to delete.</param>
         /// <returns>Returns the asynchronous result which is used to retrieve the result</returns>
         internal IAsyncResult BeginDeleteFiles(
             AsyncCallback asyncCallback, 
@@ -2413,7 +2413,7 @@ namespace Cloud.REST
         /// <param name="reservedForActiveSync">true: Live sync is active.  User calls are not allowed.</param>
         /// <param name="itemCompletionCallback">Callback method to fire for each item completion.</param>
         /// <param name="itemCompletionCallbackUserState">User state to be passed whenever the item completion callback above is fired.</param>
-        /// <param name="itemsToPurge">One or more file items to delete.</param>
+        /// <param name="itemsToDelete">One or more file items to delete.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
         internal CLError DeleteFiles(
             bool reservedForActiveSync, 
@@ -3077,7 +3077,8 @@ namespace Cloud.REST
                 // Convert these items to the output array.
                 if (responseFromServer != null && responseFromServer.PurgePendingFilesResponses != null)
                 {
-                    if (responseFromServer.PurgePendingFilesResponses.Length != itemsToPurge.Length)
+                    if (itemsToPurge != null // null itemsToPurge should purge everything for the current device on the server; unable to compare length
+                        && responseFromServer.PurgePendingFilesResponses.Length != itemsToPurge.Length)
                     {
                         throw new CLException(CLExceptionCode.OnDemand_FileRename, Resources.ExceptionOnDemandResponseArrayLength);
                     }

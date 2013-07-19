@@ -9,5 +9,7 @@
         <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
         <converters:NullableLongToStringConverter x:Key="NullableLongToStringConverter" />
         <converters:CombineSyncboxViewModelWithSelectedSyncboxConverter x:Key="CombineSyncboxViewModelWithSelectedSyncboxConverter" />
+        <converters:CombineStoragePlanWithFriendlyNameConverter x:Key="CombineStoragePlanWithFriendlyNameConverter" />
+        <converters:CombineSyncboxIdsWithSessionMinutesConverter x:Key="CombineSyncboxIdsWithSessionMinutesConverter" />
     </Application.Resources>
 </Application>

@@ -10,16 +10,17 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Windows.Navigation;
 using System.Windows.Shapes;
 
 namespace CallingAllPublicMethods.Popups
 {
     /// <summary>
-    /// Interaction logic for SelectSyncboxFromListPopup.xaml
+    /// Interaction logic for CreateSyncboxPlusStoragePlanListPopup.xaml
     /// </summary>
-    public partial class SelectSyncboxFromListPopup : Window
+    public partial class CreateSyncboxPlusStoragePlanListPopup : Window
     {
-        public SelectSyncboxFromListPopup()
+        public CreateSyncboxPlusStoragePlanListPopup()
         {
             InitializeComponent();
         }

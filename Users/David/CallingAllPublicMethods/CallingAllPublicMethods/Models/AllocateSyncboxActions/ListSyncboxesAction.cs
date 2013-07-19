@@ -16,7 +16,7 @@ namespace CallingAllPublicMethods.Models.AllocateSyncboxActions
 
         public override void Process(AllocateSyncboxViewModel viewModel, CLCredentials credentials)
         {
-            if (AllocateSyncboxAction.CheckProcessParameters(viewModel, credentials))
+            if (AllocateSyncboxAction.CheckProcessParameters(viewModel, credentials, disallowSessionCredentials: true))
             {
                 // must reset last dialog result otherwise popup will only ever be openable once
                 viewModel.ListPopupDialogResult = null;
@@ -35,7 +35,7 @@ namespace CallingAllPublicMethods.Models.AllocateSyncboxActions
 
         public static void RefreshList(AllocateSyncboxViewModel viewModel, CLCredentials credentials)
         {
-            if (AllocateSyncboxAction.CheckProcessParameters(viewModel, credentials))
+            if (AllocateSyncboxAction.CheckProcessParameters(viewModel, credentials, disallowSessionCredentials: true))
             {
                 CLSyncbox[] listedSyncboxes;
                 CLError listSyncboxesError = CLSyncbox.ListAllSyncboxes(
@@ -73,6 +73,6 @@ namespace CallingAllPublicMethods.Models.AllocateSyncboxActions
             }
         }
 
-        private ListSyncboxesAction() : base("Pick from existing list") { }
+        private ListSyncboxesAction() : base("ListAllSyncboxes") { }
     }
 }

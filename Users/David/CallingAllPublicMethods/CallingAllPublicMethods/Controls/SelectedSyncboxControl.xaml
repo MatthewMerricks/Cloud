@@ -54,10 +54,10 @@
                 <Label Grid.Row="1" Grid.Column="3" Content="FriendlyName" />
                 <Label Grid.Row="1" Grid.Column="5" Content="StoragePlanId" />
                 <Label Grid.Row="1" Grid.Column="7" Content="DeviceId" />
-                <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding SelectedSyncbox.SyncboxId}" />
-                <TextBlock Grid.Row="3" Grid.Column="3" Text="{Binding SelectedSyncbox.FriendlyName}" />
-                <TextBlock Grid.Row="3" Grid.Column="5" Text="{Binding SelectedSyncbox.StoragePlanId, Converter={StaticResource NullableLongToStringConverter}}" />
-                <TextBlock Grid.Row="3" Grid.Column="7" Text="{Binding SelectedSyncbox.DeviceId}" />
+                <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding SelectedSyncbox.SyncboxId}" Margin="5,0,0,0" />
+                <TextBlock Grid.Row="3" Grid.Column="3" Text="{Binding SelectedSyncbox.FriendlyName}" Margin="5,0,0,0" />
+                <TextBlock Grid.Row="3" Grid.Column="5" Text="{Binding SelectedSyncbox.StoragePlanId, Converter={StaticResource NullableLongToStringConverter}}" Margin="5,0,0,0" />
+                <TextBlock Grid.Row="3" Grid.Column="7" Text="{Binding SelectedSyncbox.DeviceId}" Margin="5,0,0,0" />
                 <Grid Grid.Row="5" Grid.Column="1" Grid.ColumnSpan="7">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
@@ -85,7 +85,7 @@
                 <StackPanel Grid.Row="7" Grid.Column="1" Grid.ColumnSpan="7" Orientation="Horizontal">
                     <Label Content="Actions:" />
                     <ComboBox ItemsSource="{Binding SyncboxActions}" DisplayMemberPath="Name"
-                              MinWidth="200">
+                              MinWidth="200" SelectedItem="{Binding SelectedSyncboxAction}">
                         <i:Interaction.Triggers>
                             <i:EventTrigger EventName="SelectionChanged">
                                 <models:InteractiveCommand Command="{Binding SyncboxActions_SelectionChanged}" />

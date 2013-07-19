@@ -60,7 +60,7 @@ namespace CallingAllPublicMethods.ViewModels
         /// <summary>
         /// Default action regex filter: filters out async methods, property get/set methods, base methods (inherited from object or implemented for IDisposable), initializers, and live-syncing methods
         /// </summary>
-        private const string InitialSyncboxActionsFilterRegex = "^(?!(Begin|End|get_|set_|add_|remove_|Dispose|Equals|InitWithPath|GetType|GetCurrentSyncStatus|StartLiveSync|StopLiveSync|ToString)).+";
+        private const string InitialSyncboxActionsFilterRegex = "^(?!(Begin|End|get_|set_|add_|remove_|Dispose|Equals|InitWithPath|GetType|GetCurrentSyncStatus|StartLiveSync|StopLiveSync|ToString|\\(hidden\\) )).+";
         private string _syncboxActionsFilterRegex = InitialSyncboxActionsFilterRegex;
 
         public bool SyncboxActionsFilterRegexInvalid
@@ -100,6 +100,23 @@ namespace CallingAllPublicMethods.ViewModels
                 ? new CLSyncboxProxy(syncbox: null)
                 : null);
 
+        public CLSyncboxAction SelectedSyncboxAction
+        {
+            get
+            {
+                return _selectedSyncboxAction;
+            }
+            set
+            {
+                if (_selectedSyncboxAction != value)
+                {
+                    _selectedSyncboxAction = value;
+                    base.NotifyPropertyChanged(parent => parent.SelectedSyncboxAction);
+                }
+            }
+        }
+        private CLSyncboxAction _selectedSyncboxAction;
+
         public ICommand SyncboxActions_SelectionChanged
         {
             get
@@ -110,10 +127,10 @@ namespace CallingAllPublicMethods.ViewModels
         private readonly ICommand _syncboxActions_SelectionChanged;
         private void SyncboxActions_SelectionChangedHandler(SelectionChangedEventArgs e)
         {
-            CLSyncboxAction selectedCLSyncboxAction;
-            if (e.AddedItems != null && e.AddedItems.Count == 1 && (selectedCLSyncboxAction = e.AddedItems[0] as CLSyncboxAction) != null)
+            if (_selectedSyncboxAction != null)
             {
-                MessageBox.Show(string.Format("Not implemented yet: need to process action with name {0}", selectedCLSyncboxAction.Name));
+                MessageBox.Show(string.Format("Not implemented yet: need to process action with name {0}", _selectedSyncboxAction.Name));
+                SelectedSyncboxAction = null; // reset action selector for next process
             }
         }
 
@@ -157,7 +174,7 @@ namespace CallingAllPublicMethods.ViewModels
             }
 
             SelectedSyncbox = (tempCLSyncbox == null
-                ? null
+                ? ((DesignDependencyObject.IsInDesignTool && _selectedSyncbox.Syncbox == null) ? _selectedSyncbox : null)
                 : new CLSyncboxProxy(tempCLSyncbox));
         }
 

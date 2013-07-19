@@ -6,6 +6,9 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Data;
+using System.Windows.Interop;
+using System.Windows.Threading;
 
 namespace CallingAllPublicMethods.Static
 {
@@ -30,7 +33,7 @@ namespace CallingAllPublicMethods.Static
             return true;
         }
 
-        public static bool CheckForValidCredentials(CLCredentials credentials)
+        public static bool CheckForValidCredentials(CLCredentials credentials, bool disallowSessionCredentials = false)
         {
             if (credentials == null)
             {
@@ -40,23 +43,57 @@ namespace CallingAllPublicMethods.Static
 
             if (credentials.IsSessionCredentials())
             {
-                bool checkValid;
-                CLError checkValidError = credentials.IsValid(out checkValid);
-
-                if (checkValidError != null)
+                if (disallowSessionCredentials)
                 {
-                    MessageBox.Show(string.Format("Unable to check whether credentials is valid. Exception code: {0}. Error message: {1}", checkValidError.PrimaryException.Code, checkValidError.PrimaryException.Message));
+                    MessageBox.Show("This action is not valid for session credentials");
                     return false;
                 }
-
-                if (!checkValid)
+                else
                 {
-                    MessageBox.Show("credentials is expired");
-                }
+                    bool checkValid;
+                    CLError checkValidError = credentials.IsValid(out checkValid);
 
-                return checkValid;
+                    if (checkValidError != null)
+                    {
+                        MessageBox.Show(string.Format("Unable to check whether credentials is valid. Exception code: {0}. Error message: {1}", checkValidError.PrimaryException.Code, checkValidError.PrimaryException.Message));
+                        return false;
+                    }
+
+                    if (!checkValid)
+                    {
+                        MessageBox.Show("credentials is expired");
+                    }
+
+                    return checkValid;
+                }
             }
 
+            return true;
+        }
+
+        public static object GetItemFromIEnumerator(System.Collections.IEnumerator toIterate, int itemIdx = 0)
+        {
+            return Cloud.Static.Helpers.ToIEnumerable(toIterate).Cast<object>().Skip(itemIdx).First();
+        }
+
+        public static bool TryAllocCLCredentials(string copyKey, string copySecret, string copyToken, out CLCredentials credentials)
+        {
+            CLError testCredentialsError = CLCredentials.AllocAndInit(
+                copyKey,
+                copySecret,
+                out credentials,
+                copyToken);
+
+            if (testCredentialsError != null)
+            {
+                MessageBox.Show(
+                    string.Format(
+                        "Key, secret, and/or token are invalid for CLCredentials. ExceptionCode: {0}. Error message: {1}.",
+                        testCredentialsError.PrimaryException.Code,
+                        testCredentialsError.PrimaryException.Message));
+
+                return false;
+            }
             return true;
         }
 
@@ -66,7 +103,7 @@ namespace CallingAllPublicMethods.Static
         public static readonly DependencyProperty DialogResultProperty =
             DependencyProperty.RegisterAttached(
                 DialogResultPropertyName,
-                propertyType: typeof(bool?),
+                propertyType: typeof(Nullable<bool>),
                 ownerType: typeof(Helpers),
                 defaultMetadata: new FrameworkPropertyMetadata(DialogResultChanged));
 
@@ -77,16 +114,46 @@ namespace CallingAllPublicMethods.Static
             Window castD = d as Window;
             if (castD != null)
             {
-                Nullable<bool> tempDialogResult;
-                castD.DialogResult = tempDialogResult = e.NewValue as Nullable<bool>;
+                Nullable<bool> tempDialogResult = e.NewValue as Nullable<bool>;
+
+                // can only set DialogResult if Window is being shown as modal via ShowDialog();
+                // the most accurate way to determine if a Window is being shown this way is private field: [Window]._showingAsDialog,
+                // but if this thread's Dispatcher is the same as the Window's then we can check ComponentDispatcher.IsThreadModal which is public;
+                // fallback via a try/catch for the InvalidOperationException from setting the DialogResult property
+                if (castD.DialogResult != tempDialogResult)
+                {
+                    if (Dispatcher.CurrentDispatcher == castD.Dispatcher)
+                    {
+                        if (ComponentDispatcher.IsThreadModal)
+                        {
+                            castD.DialogResult = e.NewValue as Nullable<bool>;
+                        }
+                    }
+                    else
+                    {
+                        try
+                        {
+                            castD.DialogResult = e.NewValue as Nullable<bool>;
+                        }
+                        catch (InvalidOperationException ex)
+                        {
+                            MessageBox.Show(string.Format(
+                                "Unable to determine whether Window was being shown a modal dialog and setting its DialogResult resulted in an error. Error message: {0}.",
+                                ex.Message));
+                        }
+                    }
+                }
 
                 if (tempDialogResult != null)
                 {
+                    // set value back to itself (won't cause a changed event) which will also remove the Binding (prevents a change event after Window is disposed)
+                    castD.SetValue(DialogResultProperty, castD.DialogResult);
                     castD.Close();
                 }
             }
         }
 
+        // required for WPF to recognize DialogResultProperty as a proper, attachable DependencyProperty
         public static void SetDialogResult(Window target, Nullable<bool> value)
         {
             target.SetValue(DialogResultProperty, value);

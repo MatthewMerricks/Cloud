@@ -23,11 +23,19 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="5" />
         </Grid.RowDefinitions>
-        <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal">
+        <Grid Grid.Row="1" Grid.Column="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="5" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="5" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="10" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
             <Label Content="Configuration:" />
-            <ComboBox Name="ConfigurationsComboBox"
+            <ComboBox Grid.Column="2" Name="ConfigurationsComboBox" IsEditable="True"
                       ItemsSource="{Binding ConfigurationsViewModel.Configurations}"
-                      MinWidth="150" Margin="5,0,0,0" IsEditable="True"
                       SelectedItem="{Binding ConfigurationsViewModel.SelectedConfiguration}">
                 <i:Interaction.Triggers>
                     <i:EventTrigger EventName="LostFocus">
@@ -40,9 +48,9 @@
                     </i:EventTrigger>
                 </i:Interaction.Triggers>
             </ComboBox>
-            <Button Content="Add" Margin="10,0,0,0" Command="{Binding ConfigurationsViewModel.AddConfiguration}" />
-            <Button Content="Remove" Margin="10,0,0,0" Command="{Binding ConfigurationsViewModel.RemoveConfiguration}" />
-        </StackPanel>
+            <Button Grid.Column="4" Content="Add" Command="{Binding ConfigurationsViewModel.AddConfiguration}" />
+            <Button Grid.Column="6" Content="Remove" Command="{Binding ConfigurationsViewModel.RemoveConfiguration}" />
+        </Grid>
         <controls:SelectedConfigurationControl Grid.Row="3" Grid.Column="1"
                                                DataContext="{Binding ConfigurationsViewModel}" />
         <controls:CreateOrListSyncboxes Grid.Row="5" Grid.Column="1"

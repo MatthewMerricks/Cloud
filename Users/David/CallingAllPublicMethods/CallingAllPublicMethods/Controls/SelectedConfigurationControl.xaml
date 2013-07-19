@@ -6,7 +6,7 @@
              xmlns:viewModels="clr-namespace:CallingAllPublicMethods.ViewModels"
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance Type=viewModels:ConfigurationsViewModel, IsDesignTimeCreatable=True}"
-             d:DesignHeight="300" d:DesignWidth="300">
+             d:DesignHeight="300" d:DesignWidth="400">
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="5" />
@@ -25,6 +25,8 @@
             <RowDefinition Height="5" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="5" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="5" />
         </Grid.RowDefinitions>
         <Label Grid.Row="1" Grid.Column="1" Content="Key:" />
         <TextBox Grid.Row="1" Grid.Column="3" Text="{Binding ModifyableKey}" />
@@ -32,9 +34,39 @@
         <TextBox Grid.Row="3" Grid.Column="3" Text="{Binding ModifyableSecret}" />
         <Label Grid.Row="5" Grid.Column="1" Content="Token:" />
         <TextBox Grid.Row="5" Grid.Column="3" Text="{Binding ModifyableToken}" />
-        <StackPanel Grid.Row="7" Grid.Column="1" Grid.ColumnSpan="3" HorizontalAlignment="Right" Orientation="Horizontal">
-            <Button Content="Save" Command="{Binding SaveCredentials}" />
-            <Button Content="Revert" Margin="10,0,0,0" Command="{Binding RevertCredentials}" />
-        </StackPanel>
+        <Grid Grid.Row="7" Grid.Column="1" Grid.ColumnSpan="3">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="5" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <Label Content="SyncboxIds for Session (comma-seperated):" />
+            <TextBox Grid.Column="2" Name="SyncboxIdsTextBox" />
+        </Grid>
+        <Grid Grid.Row="9" Grid.Column="1" Grid.ColumnSpan="3">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="5" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="5" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="10" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="10" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <Label Content="Session minutes:" />
+            <TextBox Grid.Column="2" Name="SessionMinutesTextBox" />
+            <Button Grid.Column="4" Content="Create Session" Command="{Binding CreateSession}">
+                <Button.CommandParameter>
+                    <MultiBinding Converter="{StaticResource CombineSyncboxIdsWithSessionMinutesConverter}">
+                        <Binding ElementName="SyncboxIdsTextBox" Path="Text" />
+                        <Binding ElementName="SessionMinutesTextBox" Path="Text" />
+                    </MultiBinding>
+                </Button.CommandParameter>
+            </Button>
+            <Button Grid.Column="6" Content="Save" Command="{Binding SaveCredentials}" />
+            <Button Grid.Column="8" Content="Revert" Command="{Binding RevertCredentials}" />
+        </Grid>
     </Grid>
 </UserControl>

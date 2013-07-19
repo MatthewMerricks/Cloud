@@ -2016,6 +2016,15 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Unable to deserialize credentials response from server.
+        /// </summary>
+        internal static string ExceptionCLCredentialsCreateSessionDeserializeError {
+            get {
+                return ResourceManager.GetString("ExceptionCLCredentialsCreateSessionDeserializeError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to An error occurred uploading a file in CLHttpRest AddFiles.
         /// </summary>
         internal static string ExceptionCLHttpRestAddFilesUploadError {
@@ -3876,6 +3885,15 @@ namespace Cloud.Static {
             get {
                 return ResourceManager.GetString("ExceptionOnDemandUpdateStoragePlanStoragePlanServerReturnedNullResponseSyncboxPla" +
                         "nId", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to parse field {0} to type {1}. ObjectType: {2}..
+        /// </summary>
+        internal static string ExceptionSerializationInfoInvalidObjectType {
+            get {
+                return ResourceManager.GetString("ExceptionSerializationInfoInvalidObjectType", resourceCulture);
             }
         }
         

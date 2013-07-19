@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
@@ -16,7 +17,11 @@ namespace CallingAllPublicMethods.Models.CLSyncboxActions
         {
             get
             {
-                return CLSyncboxMethodInfo.Name;
+                IEnumerable<Attribute> methodCustomAttributes;
+                return (((methodCustomAttributes = CLSyncboxMethodInfo.GetCustomAttributes(typeof(EditorBrowsableAttribute))) != null
+                        && methodCustomAttributes.Any(methodCustomAttribute => ((EditorBrowsableAttribute)methodCustomAttribute).State == EditorBrowsableState.Never))
+                    ? "(hidden) "
+                    : string.Empty) + CLSyncboxMethodInfo.Name;
             }
         }
 

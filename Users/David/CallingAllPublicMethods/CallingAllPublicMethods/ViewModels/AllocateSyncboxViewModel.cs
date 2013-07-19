@@ -43,9 +43,10 @@ namespace CallingAllPublicMethods.ViewModels
                 return _allocateSyncboxActions;
             }
         }
-        private static readonly AllocateSyncboxAction[] _allocateSyncboxActions = new[]
+        private static readonly AllocateSyncboxAction[] _allocateSyncboxActions = new AllocateSyncboxAction[]
         {
-            ListSyncboxesAction.Instance
+            ListSyncboxesAction.Instance,
+            CreateSyncboxAction.Instance
         };
 
         public AllocateSyncboxAction SelectedAllocateSyncboxAction
@@ -75,12 +76,11 @@ namespace CallingAllPublicMethods.ViewModels
         private readonly ICommand _allocateSyncboxActions_SelectionChanged;
         private void AllocateSyncboxActions_SelectionChangedHandler(SelectionChangedEventArgs e)
         {
-            AllocateSyncboxAction selectedAllocateSyncboxAction;
-            if (e.AddedItems != null && e.AddedItems.Count == 1 && (selectedAllocateSyncboxAction = e.AddedItems[0] as AllocateSyncboxAction) != null)
+            if (_selectedAllocateSyncboxAction != null)
             {
-                selectedAllocateSyncboxAction.Process(this, this.credentials);
+                _selectedAllocateSyncboxAction.Process(this, this.credentials);
+                SelectedAllocateSyncboxAction = null; // reset action selector for next process
             }
-            SelectedAllocateSyncboxAction = null; // reset action selector for next process
         }
 
         public ObservableCollection<CLSyncboxProxy> KnownCLSyncboxes
@@ -267,6 +267,160 @@ namespace CallingAllPublicMethods.ViewModels
             }
         }
 
+        public Nullable<bool> CreatePopupDialogResult
+        {
+            get
+            {
+                return _createPopupDialogResult;
+            }
+            set
+            {
+                if (_createPopupDialogResult != value)
+                {
+                    _createPopupDialogResult = value;
+                    base.NotifyPropertyChanged(parent => parent.CreatePopupDialogResult);
+                }
+            }
+        }
+        private Nullable<bool> _createPopupDialogResult = null;
+
+        public ObservableCollection<CLStoragePlanProxy> KnownCLStoragePlans
+        {
+            get
+            {
+                return _knownCLStoragePlans;
+            }
+        }
+        private readonly ObservableCollection<CLStoragePlanProxy> _knownCLStoragePlans;
+        private readonly Dictionary<long, CLStoragePlanProxy> _knownCLStoragePlansDictionary = new Dictionary<long, CLStoragePlanProxy>();
+        public readonly ReadOnlyDictionary<long, CLStoragePlanProxy> KnownCLStoragePlansDictionary;
+        private void _knownCLStoragePlans_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+        {
+            switch (e.Action)
+            {
+                case NotifyCollectionChangedAction.Reset:
+                    _knownCLStoragePlansDictionary.Clear();
+                    AddStoragePlansToKnownCLStoragePlansDictionary(_knownCLSyncboxes);
+                    break;
+
+                case NotifyCollectionChangedAction.Add:
+                    AddStoragePlansToKnownCLStoragePlansDictionary(e.NewItems);
+                    break;
+
+                case NotifyCollectionChangedAction.Remove:
+                    RemoveStoragePlansToKnownCLStoragePlansDictionary(e.OldItems);
+                    break;
+
+                case NotifyCollectionChangedAction.Replace:
+                    RemoveStoragePlansToKnownCLStoragePlansDictionary(e.OldItems);
+                    AddStoragePlansToKnownCLStoragePlansDictionary(e.NewItems);
+                    break;
+
+                //// no need to handle move case since only new/old items need to be remapped in the other dictionary
+                //case NotifyCollectionChangedAction.Move:
+            }
+        }
+        private void AddStoragePlansToKnownCLStoragePlansDictionary(IEnumerable storagePlans)
+        {
+            foreach (CLStoragePlanProxy currentKnownStoragePlan in storagePlans)
+            {
+                _knownCLStoragePlansDictionary[currentKnownStoragePlan.PlanId] = currentKnownStoragePlan;
+            }
+        }
+        private void RemoveStoragePlansToKnownCLStoragePlansDictionary(IEnumerable storagePlans)
+        {
+            foreach (CLStoragePlanProxy currentKnownStoragePlan in storagePlans)
+            {
+                _knownCLStoragePlansDictionary.Remove(currentKnownStoragePlan.PlanId);
+            }
+        }
+
+        public ICommand CreatePopup_Create
+        {
+            get
+            {
+                return _createPopup_Create;
+            }
+        }
+        private readonly ICommand _createPopup_Create;
+        private void CreatePopup_CreateHandler(KeyValuePair<CLStoragePlanProxy, string> parameter)
+        {
+            CLSyncbox createdSyncbox;
+            CLError createdSyncboxError = CLSyncbox.CreateSyncbox(
+                parameter.Key.StoragePlan,
+                credentials,
+                out createdSyncbox,
+                friendlyName: (parameter.Value == string.Empty
+                    ? null
+                    : parameter.Value),
+                settings: new CLSyncSettings(_modifyableDeviceId));
+
+            if (createdSyncboxError == null)
+            {
+                FireCLSyncboxPicked(new CLSyncboxProxy(createdSyncbox));
+
+                CreatePopupDialogResult = true; // triggers [Window].Close() and sets a successful DialogResult
+            }
+            else
+            {
+                MessageBox.Show(string.Format("An error occurred creating the syncbox. Exception code: {0}. Error message: {1}.",
+                    createdSyncboxError.PrimaryException.Code,
+                    createdSyncboxError.PrimaryException.Message));
+            }
+        }
+        private bool CreatePopup_CreateCanHandle(KeyValuePair<CLStoragePlanProxy, string> parameter)
+        {
+            return parameter.Key != null
+                && !_deviceIdInvalid;
+        }
+
+        public ICommand CreatePopup_RefreshDefault
+        {
+            get
+            {
+                return _createPopup_RefreshDefault;
+            }
+        }
+        private readonly ICommand _createPopup_RefreshDefault;
+        private void CreatePopup_RefreshDefaultHandler(object parameter)
+        {
+            CreateSyncboxAction.RefreshStoragePlans(this, this.credentials, defaultPlanOnly: true);
+        }
+        private bool CreatePopop_RefreshDefaultCanHandle(object parameter)
+        {
+            return !_deviceIdInvalid;
+        }
+
+        public ICommand CreatePopup_RefreshAll
+        {
+            get
+            {
+                return _createPopup_RefreshAll;
+            }
+        }
+        private readonly ICommand _createPopup_RefreshAll;
+        private void CreatePopup_RefreshAllHandler(object parameter)
+        {
+            CreateSyncboxAction.RefreshStoragePlans(this, this.credentials);
+        }
+        private bool CreatePopup_RefreshAllCanHandle(object parameter)
+        {
+            return !_deviceIdInvalid;
+        }
+
+        public ICommand CreatePopup_Cancelled
+        {
+            get
+            {
+                return _createPopup_Cancelled;
+            }
+        }
+        private readonly ICommand _createPopup_Cancelled;
+        private void CreatePopup_CancelledHandler(object parameter)
+        {
+            CreatePopupDialogResult = false; // triggers [Window].Close() and sets an unsuccessful DialogResult
+        }
+
         public AllocateSyncboxViewModel()
         {
             this._allocateSyncboxActions_SelectionChanged = new RelayCommand<SelectionChangedEventArgs>(AllocateSyncboxActions_SelectionChangedHandler);
@@ -281,10 +435,24 @@ namespace CallingAllPublicMethods.ViewModels
                 ListPopup_RefreshHandler,
                 ListPopup_RefreshCanHandle);
             this._deleteSyncbox = new RelayCommand<CLSyncboxProxy>(DeleteSyncboxHandler);
+            this._knownCLStoragePlans = new ObservableCollection<CLStoragePlanProxy>();
+            this._knownCLStoragePlans.CollectionChanged += _knownCLStoragePlans_CollectionChanged;
+            this.KnownCLStoragePlansDictionary = new ReadOnlyDictionary<long, CLStoragePlanProxy>(_knownCLStoragePlansDictionary);
+            this._createPopup_Create = new RelayCommand<KeyValuePair<CLStoragePlanProxy, string>>(
+                CreatePopup_CreateHandler,
+                CreatePopup_CreateCanHandle);
+            this._createPopup_RefreshDefault = new RelayCommand<object>(
+                CreatePopup_RefreshDefaultHandler,
+                CreatePopop_RefreshDefaultCanHandle);
+            this._createPopup_RefreshAll = new RelayCommand<object>(
+                CreatePopup_RefreshAllHandler,
+                CreatePopup_RefreshAllCanHandle);
+            this._createPopup_Cancelled = new RelayCommand<object>(CreatePopup_CancelledHandler);
 
             if (DesignDependencyObject.IsInDesignTool)
             {
                 this._knownCLSyncboxes.Add(new CLSyncboxProxy(syncbox: null));
+                this._knownCLStoragePlans.Add(new CLStoragePlanProxy(storagePlan: null));
             }
         }
     }
