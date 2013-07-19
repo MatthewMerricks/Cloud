@@ -2394,11 +2394,29 @@ namespace Cloud.Static {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to null responseFromServer returned by server.
+        /// </summary>
+        internal static string ExceptionCredentialsNullResponseFromServerReturnedByServer {
+            get {
+                return ResourceManager.GetString("ExceptionCredentialsNullResponseFromServerReturnedByServer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to null secret returned by server.
         /// </summary>
         internal static string ExceptionCredentialsNullSecretReturnedByServer {
             get {
                 return ResourceManager.GetString("ExceptionCredentialsNullSecretReturnedByServer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to null tokenSession returned by server.
+        /// </summary>
+        internal static string ExceptionCredentialsNullTokenSessionReturnedByServer {
+            get {
+                return ResourceManager.GetString("ExceptionCredentialsNullTokenSessionReturnedByServer", resourceCulture);
             }
         }
         

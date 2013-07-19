@@ -3542,4 +3542,12 @@
     <value>Unable to parse field {0} to type {1}. ObjectType: {2}.</value>
     <comment>ObjectType should not be translated</comment>
   </data>
+  <data name="ExceptionCredentialsNullTokenSessionReturnedByServer" xml:space="preserve">
+    <value>null tokenSession returned by server</value>
+    <comment>tokenSession should not be translated</comment>
+  </data>
+  <data name="ExceptionCredentialsNullResponseFromServerReturnedByServer" xml:space="preserve">
+    <value>null responseFromServer returned by server</value>
+    <comment>responseFromServer should not be translated</comment>
+  </data>
 </root>

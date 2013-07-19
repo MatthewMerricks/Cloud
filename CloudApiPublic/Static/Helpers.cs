@@ -34,13 +34,13 @@ using System.Runtime.InteropServices;
 using Cloud.SQLIndexer.Model;
 using System.Windows;
 using System.Security.Principal;
+using System.Security.AccessControl;
+using Cloud.Callbacks;
+using System.Collections;
 
 namespace Cloud.Static
 {
     extern alias SimpleJsonBase;
-    using System.Security.AccessControl;
-    using Cloud.Callbacks;
-using System.Collections;
 
     /// <summary>
     /// Class containing commonly usable static helper methods
@@ -2095,6 +2095,13 @@ using System.Collections;
         }
         private static readonly string[] FormatBytesOrders = new [] { Resources.AbbreviatedGigabytes, Resources.AbbreviatedMegabytes, Resources.AbbreviatedKilobytes, Resources.BytesPlural };
 
+        /// <summary>
+        /// Returns whether an instance of Type from can be cast (via explicit conversion) to an instance of Type to.
+        /// Includes primitive type-casting Types and overriden implicit and explicit conversion operators.
+        /// </summary>
+        /// <param name="from">Type of instance that will be cast</param>
+        /// <param name="to">Type of result after casting</param>
+        /// <returns>Returns whether Types are castable</returns>
         public static bool IsCastableTo(this Type from, Type to)
         {
             if (from == null
@@ -3118,7 +3125,7 @@ using System.Collections;
             { typeof(JsonContracts.SyncboxListResponse), JsonContractHelpers.ListSyncboxesSerializer },
             { typeof(JsonContracts.StoragePlanListResponse), JsonContractHelpers.ListPlansSerializer },
             { typeof(JsonContracts.SyncboxUpdateStoragePlanResponse), JsonContractHelpers.SyncboxUpdatePlanResponseSerializer },
-            { typeof(JsonContracts.CredentialsSessionGetForKeyResponse), JsonContractHelpers.SessionShowSerializer },
+            { typeof(JsonContracts.CredentialsSessionsResponse), JsonContractHelpers.SessionShowSerializer },
             { typeof(JsonContracts.CredentialsSessionDeleteResponse), JsonContractHelpers.SessionDeleteSerializer },
             { typeof(JsonContracts.NotificationUnsubscribeResponse), JsonContractHelpers.NotificationUnsubscribeResponseSerializer },
             { typeof(JsonContracts.UserRegistrationResponse), JsonContractHelpers.UserRegistrationResponseSerializer},

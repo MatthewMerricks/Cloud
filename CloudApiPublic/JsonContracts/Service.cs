@@ -20,9 +20,9 @@ namespace Cloud.JsonContracts
     /// Contains actual HTTP response fields, representing a service.
     /// </summary>
     [Obfuscation(Exclude = true)]
-    [Serializable]
+    [Serializable] // -David had to convert from DataContract to Serializable because json value for SyncboxIds can be a string or an array of long
     [KnownType(typeof(long[]))]
-    public sealed class Service : ISerializable
+    public sealed class Service : ISerializable // -David had to convert from DataContract to Serializable because json value for SyncboxIds can be a string or an array of long
     {
         public string ServiceType { get; set; }
 
@@ -33,8 +33,8 @@ namespace Cloud.JsonContracts
 
         // have to define a public constructor explicitly because this object is ISerializable (and thus requires a specific type of protected constructor)
         public Service() { }
-        
-        #region ISerializable members
+
+        #region ISerializable members -David had to convert from DataContract to Serializable because json value for SyncboxIds can be a string or an array of long
 
         // why does this work?? (called upon ReadObject on a JsonDataContractSerializer on a response stream)
         protected Service(SerializationInfo info, StreamingContext context)

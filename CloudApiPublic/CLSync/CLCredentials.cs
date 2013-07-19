@@ -16,7 +16,6 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Net;
-using Newtonsoft.Json.Linq;
 using Cloud.JsonContracts;
 using System.Collections.ObjectModel;
 
@@ -522,8 +521,7 @@ namespace Cloud
                 }
 
                 // Communicate with the server.
-                string responseFromServer;
-                responseFromServer = Helpers.ProcessHttp<string>(
+                JsonContracts.CredentialsSessionsResponse responseFromServer = Helpers.ProcessHttp<JsonContracts.CredentialsSessionsResponse>(
                     /* requestContent */ null, // no request body for listing sessions
                     CLDefinitions.CLPlatformAuthServerURL,
                     CLDefinitions.MethodPathAuthListSessions,
@@ -787,8 +785,21 @@ namespace Cloud
                 }
 
                 // Communicate with the server
-                string responseFromServer;
-                responseFromServer = Helpers.ProcessHttp<string>(
+                JsonContracts.CredentialsSessionsResponse responseFromServerObject = Helpers.ProcessHttp<JsonContracts.CredentialsSessionsResponse>(
+                    requestContract,
+                    CLDefinitions.CLPlatformAuthServerURL,
+                    CLDefinitions.MethodPathAuthCreateSession,
+                    Helpers.requestMethod.post,
+                    copiedSettings.HttpTimeoutMilliseconds,
+                    null, // not an upload nor download
+                    Helpers.HttpStatusesOkCreatedNotModifiedNoContent,
+                    copiedSettings,
+                    this,
+                    null,
+                    false);
+
+                // Communicate with the server
+                JsonContracts.CredentialsSessionsResponse responseFromServer = Helpers.ProcessHttp<JsonContracts.CredentialsSessionsResponse>(
                     requestContract, 
                     CLDefinitions.CLPlatformAuthServerURL,
                     CLDefinitions.MethodPathAuthCreateSession,
@@ -834,54 +845,33 @@ namespace Cloud
         /// <param name="responseFromServer"></param>
         /// <param name="arrayCredentials"></param>
         /// <returns></returns>
-        private CLError DeserializeSessions(string responseFromServer, out CLCredentials[] arrayCredentials)
+        private CLError DeserializeSessions(JsonContracts.CredentialsSessionsResponse responseFromServer, out CLCredentials[] arrayCredentials)
         {
             try
             {
-                JObject o = JObject.Parse(responseFromServer);
-
-                // Determine whether is is a single session from /session/create, or multiple sessions from /session/list.
-                JToken tokenSession = o[CLDefinitions.RESTResponseSession];
-                JToken tokenSessions = o[CLDefinitions.RESTResponseSession_Sessions];
-                if (tokenSession != null)
+                if (responseFromServer == null)
                 {
-                    // This is a response with a single session.
+                    throw new CLArgumentNullException(CLExceptionCode.OnDemand_FileMoveNoServerResponsesOrErrors, Resources.ExceptionCredentialsNullResponseFromServerReturnedByServer);
+                }
+                if (responseFromServer.Sessions == null)
+                {
+                    throw new CLNullReferenceException(CLExceptionCode.OnDemand_MoveNoServerResponsesOrErrors, Resources.ExceptionCredentialsNoSessionOrSessionsToken);
+                }
+
+                arrayCredentials = new CLCredentials[responseFromServer.Sessions.Length];
+                for (int credentialsIndex = 0; credentialsIndex < responseFromServer.Sessions.Length; credentialsIndex++)
+                {
                     CLCredentials credentials;
-                    CLError errorFromDeserialize = DeserializeSession(tokenSession, out credentials);
+                    CLError errorFromDeserialize = DeserializeSession(responseFromServer.Sessions[credentialsIndex], out credentials);
                     if (errorFromDeserialize == null)
                     {
-                        arrayCredentials = new CLCredentials[1];
-                        arrayCredentials[0] = credentials;
+                        arrayCredentials[credentialsIndex] = credentials;
                     }
                     else
                     {
                         arrayCredentials = Helpers.DefaultForType<CLCredentials[]>();
+                        return errorFromDeserialize;
                     }
-
-                    return errorFromDeserialize;
-                }
-                else if (tokenSessions != null)
-                {
-                    // This is a response with multiple sessions.
-                    arrayCredentials = new CLCredentials[tokenSessions.Count()];
-                    for (int index = 0; index < tokenSessions.Count(); index++)
-                    {
-                        CLCredentials credentials;
-                        CLError errorFromDeserialize = DeserializeSession(tokenSessions.ToArray()[index], out credentials);
-                        if (errorFromDeserialize == null)
-                        {
-                            arrayCredentials[index] = credentials;
-                        }
-                        else
-                        {
-                            throw new CLException(CLExceptionCode.OnDemand_MoveNoServerResponsesOrErrors, 
-                                String.Format(Resources.ExceptionCredentialsConvertingServerResponseIndexMsg0, index));
-                        }
-                    }
-                }
-                else
-                {
-                    throw new CLException(CLExceptionCode.OnDemand_MoveNoServerResponsesOrErrors, Resources.ExceptionCredentialsNoSessionOrSessionsToken);
                 }
             }
             catch (Exception ex)
@@ -893,79 +883,47 @@ namespace Cloud
             return null;
         }
 
-        private CLError DeserializeSession(JToken tokenSession, out CLCredentials credentials)
+        private CLError DeserializeSession(JsonContracts.Session tokenSession, out CLCredentials credentials)
         {
             try
             {
-                string key = (string)tokenSession[CLDefinitions.RESTResponseSession_Key];
-                string secret = (string)tokenSession[CLDefinitions.RESTResponseSession_Secret];
-                string token = (string)tokenSession[CLDefinitions.RESTResponseSession_Token];
-                DateTime expiresAt = (DateTime)tokenSession[CLDefinitions.RESTResponseSession_ExpiresAt];
+                if (tokenSession == null)
+                {
+                    throw new CLArgumentNullException(CLExceptionCode.OnDemand_FileMoveNoServerResponsesOrErrors, Resources.ExceptionCredentialsNullTokenSessionReturnedByServer);
+                }
+
+                string key = tokenSession.Key;
+                string secret = tokenSession.Secret;
+                string token = tokenSession.Token;
+                Nullable<DateTime> expiresAt = tokenSession.ExpiresAt;
+                //string key = (string)tokenSession[CLDefinitions.RESTResponseSession_Key];
+                //string secret = (string)tokenSession[CLDefinitions.RESTResponseSession_Secret];
+                //string token = (string)tokenSession[CLDefinitions.RESTResponseSession_Token];
+                //DateTime expiresAt = (DateTime)tokenSession[CLDefinitions.RESTResponseSession_ExpiresAt];
                 HashSet<long> syncboxIds;
 
                 if (key == null)
                 {
-                    throw new CLException(CLExceptionCode.OnDemand_MoveNoServerResponsesOrErrors, Resources.ExceptionCredentialsNullKeyReturnedByServer);
+                    throw new CLNullReferenceException(CLExceptionCode.OnDemand_MoveNoServerResponsesOrErrors, Resources.ExceptionCredentialsNullKeyReturnedByServer);
                 }
                 if (expiresAt == null)
                 {
-                    throw new CLException(CLExceptionCode.OnDemand_MoveNoServerResponsesOrErrors, Resources.ExceptionCredentialsNullExpiresAtReturnedByServer);
+                    throw new CLNullReferenceException(CLExceptionCode.OnDemand_MoveNoServerResponsesOrErrors, Resources.ExceptionCredentialsNullExpiresAtReturnedByServer);
                 }
                 if (secret == null)
                 {
-                    throw new CLException(CLExceptionCode.OnDemand_MoveNoServerResponsesOrErrors, Resources.ExceptionCredentialsNullSecretReturnedByServer);
+                    throw new CLNullReferenceException(CLExceptionCode.OnDemand_MoveNoServerResponsesOrErrors, Resources.ExceptionCredentialsNullSecretReturnedByServer);
                 }
 
+                syncboxIds = new HashSet<long>(tokenSession.SyncboxIds);
 
-                if (tokenSession[CLDefinitions.RESTRequestSession_Services].Type == JTokenType.String)
-                {
-                    syncboxIds = null;
-                }
-                else
-                {
-                    JToken firstService = tokenSession[CLDefinitions.RESTRequestSession_Services][0];
-                    if (firstService == null)
-                    {
-                        throw new CLException(CLExceptionCode.OnDemand_MoveNoServerResponsesOrErrors, Resources.ExceptionCredentialsNoItemsInServicesArrayReturnedByServer);
-                    }
-
-                    JToken tokenServiceType = firstService[CLDefinitions.JsonServiceType];
-                    if (tokenServiceType == null)
-                    {
-                        throw new CLException(CLExceptionCode.OnDemand_MoveNoServerResponsesOrErrors, Resources.ExceptionCredentialsNoServiceTypeItemReturnedByServer);
-                    }
-
-                    if (((string)tokenServiceType).ToLower() != CLDefinitions.RESTRequestSession_Sync.ToLower())
-                    {
-                        throw new CLException(CLExceptionCode.OnDemand_MoveNoServerResponsesOrErrors, Resources.ExceptionCredentialsNoServiceTypeSyncItemReturnedByServer);
-                    }
-
-                    JToken tokenSyncboxIds = firstService[CLDefinitions.RESTResponseSession_SyncboxIds];
-                    if (tokenSyncboxIds == null)
-                    {
-                        throw new CLException(CLExceptionCode.OnDemand_MoveNoServerResponsesOrErrors, Resources.ExceptionCredentialsNoSyncBoxIdsItemReturnedByServer);
-                    }
-
-                    if (tokenSyncboxIds.Type == JTokenType.String)
-                    {
-                        if (((string)tokenSyncboxIds).ToLower() == CLDefinitions.RESTRequestSession_SyncboxIdsAll)
-                        {
-                            syncboxIds = null;
-                        }
-                        else
-                        {
-                            throw new CLException(CLExceptionCode.OnDemand_MoveNoServerResponsesOrErrors, Resources.ExceptionCredentialsInvalidSyncBoxIdsStringReturnedByServer);
-                        }
-                    }
-                    else
-                    {
-                        long[] tempSyncboxIds;
-                        tempSyncboxIds = tokenSyncboxIds.ToObject<long[]>();
-                        syncboxIds = new HashSet<long>(tempSyncboxIds);
-                    }
-                }
-
-                credentials = new CLCredentials(syncboxIds, expiresAt, key, secret, token, this._copiedSettings);
+                credentials = new CLCredentials(
+                    syncboxIds,
+                    (DateTime)expiresAt,
+                    key,
+                    secret,
+                    token,
+                    this._copiedSettings);
             }
             catch (Exception ex)
             {
@@ -1085,8 +1043,8 @@ namespace Cloud
                     Helpers.EnumerateSingleItem(new KeyValuePair<string, string>(CLDefinitions.RESTRequestSession_KeyId, Uri.EscapeDataString(sessionKey))));
 
                 // Communicate with the server
-                JsonContracts.CredentialsSessionGetForKeyResponse responseFromServer;
-                responseFromServer = Helpers.ProcessHttp<JsonContracts.CredentialsSessionGetForKeyResponse>(
+                JsonContracts.CredentialsSessionsResponse responseFromServer;
+                responseFromServer = Helpers.ProcessHttp<JsonContracts.CredentialsSessionsResponse>(
                     null,
                     CLDefinitions.CLPlatformAuthServerURL,
                     CLDefinitions.MethodPathAuthShowSession + query,
@@ -1100,9 +1058,9 @@ namespace Cloud
                     true);
 
                 // Convert the server response to a CLCredentials object and pass that back as the response.
-                if (responseFromServer != null && responseFromServer.Session != null)
+                if (responseFromServer != null && responseFromServer.Sessions != null && responseFromServer.Sessions.Length > 0)
                 {
-                    sessionCredentials = new CLCredentials(responseFromServer.Session);
+                    sessionCredentials = new CLCredentials(responseFromServer.Sessions[0]);
                 }
                 else
                 {
