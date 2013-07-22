@@ -4858,8 +4858,7 @@ namespace Cloud.Static
                             Resources.ExceptionHelpersProcessHttpInnerResponseDeserializeMissedEarlierCheck,
                             EventMessageLevel.Important,
                             new Cloud.Model.EventMessages.ErrorInfo.HaltAllOfCloudSDKErrorInfo(),
-                            Syncbox,
-                            CopiedSettings.DeviceId);
+                            Syncbox);
 
                         throw new CLHttpException(
                             httpResponse.StatusCode,

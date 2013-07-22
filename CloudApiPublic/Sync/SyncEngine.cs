@@ -1577,8 +1577,7 @@ namespace Cloud.Sync
 
                             MessageEvents.FireNewEventMessage(
                                 "No internet connection detected. Retrying Sync after a short delay.",
-                                Syncbox: Data.commonThisEngine.syncbox,
-                                DeviceId: Data.commonThisEngine.syncbox.CopiedSettings.DeviceId);
+                                Syncbox: Data.commonThisEngine.syncbox);
 
                             throw new Exception("No internet connection detected.");
                         }
@@ -1614,8 +1613,7 @@ namespace Cloud.Sync
                         MessageEvents.FireNewEventMessage(
                             Message: "Started checking for sync changes to process",
                             Error: null,
-                            Syncbox: Data.commonThisEngine.syncbox,
-                            DeviceId: Data.commonThisEngine.syncbox.CopiedSettings.DeviceId);
+                            Syncbox: Data.commonThisEngine.syncbox);
                     }
                     catch (Exception ex)
                     {
@@ -1737,8 +1735,7 @@ namespace Cloud.Sync
                         MessageEvents.FireNewEventMessage(invalidMessage,
                             EventMessageLevel.Important,
                             new HaltAllOfCloudSDKErrorInfo(),
-                            Data.syncbox,
-                            Data.deviceId);
+                            Data.syncbox);
 
                         throw new InvalidOperationException(invalidMessage);
                     }
@@ -1908,8 +1905,7 @@ namespace Cloud.Sync
                             (outputChangesCount == 0
                                 ? EventMessageLevel.Minor
                                 : EventMessageLevel.Important),
-                            Syncbox: Data.commonThisEngine.syncbox,
-                            DeviceId: Data.commonThisEngine.syncbox.CopiedSettings.DeviceId);
+                            Syncbox: Data.commonThisEngine.syncbox);
 
                         return true; // true for successful
                     }
@@ -1939,8 +1935,7 @@ namespace Cloud.Sync
                             Message: "An error occurred checking for changes",
                             Level: EventMessageLevel.Important,
                             Error: new GeneralErrorInfo(),
-                            Syncbox: Data.commonThisEngine.syncbox,
-                            DeviceId: Data.commonThisEngine.syncbox.CopiedSettings.DeviceId);
+                            Syncbox: Data.commonThisEngine.syncbox);
 
                         return false; // false for not successful
                     }
@@ -2098,8 +2093,7 @@ namespace Cloud.Sync
                             "syncData.completeSingleEvent returned an error after completing an event: " + completeEventError.PrimaryException.Message,
                             EventMessageLevel.Important,
                             new HaltAllOfCloudSDKErrorInfo(),
-                            Data.syncbox,
-                            Data.deviceId);
+                            Data.syncbox);
 
                         return true;
                     }
@@ -2246,8 +2240,7 @@ namespace Cloud.Sync
                                     pendingsErrorString,
                                     EventMessageLevel.Important,
                                     /*Error*/ new GeneralErrorInfo(),
-                                    Data.commonThisEngine.syncbox,
-                                    Data.commonThisEngine.syncbox.CopiedSettings.DeviceId);
+                                    Data.commonThisEngine.syncbox);
                             }
                             catch (Exception ex)
                             {
@@ -2305,8 +2298,7 @@ namespace Cloud.Sync
                                             ? "; Handle message event to prevent duplicate messages"
                                             : string.Empty),
                                     EventMessageLevel.Regular,
-                                    Syncbox: Data.commonThisEngine.syncbox,
-                                    DeviceId: Data.commonThisEngine.syncbox.CopiedSettings.DeviceId);
+                                    Syncbox: Data.commonThisEngine.syncbox);
 
                             Data.unhandledPreexistingUploadDownloadEventMessage.Value = !Data.confirmingMetadataForPreexistingUploadDownloads.Value;
                         }
@@ -2473,8 +2465,7 @@ namespace Cloud.Sync
                                     fileMetadataErrorString,
                                     EventMessageLevel.Regular,
                                     /*Error*/new GeneralErrorInfo(),
-                                    Data.commonThisEngine.syncbox,
-                                    Data.commonThisEngine.syncbox.CopiedSettings.DeviceId);
+                                    Data.commonThisEngine.syncbox);
                             }
                             catch (Exception ex)
                             {
@@ -2513,8 +2504,7 @@ namespace Cloud.Sync
                                         fileVersionsErrorString,
                                         EventMessageLevel.Regular,
                                         /*Error*/new GeneralErrorInfo(),
-                                        Data.commonThisEngine.syncbox,
-                                        Data.commonThisEngine.syncbox.CopiedSettings.DeviceId);
+                                        Data.commonThisEngine.syncbox);
                                 }
                                 catch (Exception ex)
                                 {
@@ -2925,8 +2915,7 @@ namespace Cloud.Sync
                                     : syncFromCount.ToString() +
                                         " change" + (syncFromCount == 1 ? string.Empty : "s") + " synced from server"),
                             EventMessageLevel.Important,
-                            Syncbox: Data.commonThisEngine.syncbox,
-                            DeviceId: Data.commonThisEngine.syncbox.CopiedSettings.DeviceId);
+                            Syncbox: Data.commonThisEngine.syncbox);
                     }
                     if (Data.commonAsynchronouslyProcessed.Value != null
                         && Data.commonAsynchronouslyProcessed.Value.Count != 0)
@@ -2947,8 +2936,7 @@ namespace Cloud.Sync
                                     : syncFromCount.ToString() +
                                         " file" + (syncFromCount == 1 ? string.Empty : "s") + " queued for download"),
                             EventMessageLevel.Important,
-                            Syncbox: Data.commonThisEngine.syncbox,
-                            DeviceId: Data.commonThisEngine.syncbox.CopiedSettings.DeviceId);
+                            Syncbox: Data.commonThisEngine.syncbox);
                     }
                 },
                 toReturn);
@@ -3335,8 +3323,7 @@ namespace Cloud.Sync
                                                 "Unable to cast innerState as List<FileChange>",
                                                 EventMessageLevel.Important,
                                                 new HaltAllOfCloudSDKErrorInfo(),
-                                                innerData.commonThisEngine.syncbox,
-                                                innerData.commonThisEngine.syncbox.CopiedSettings.DeviceId);
+                                                innerData.commonThisEngine.syncbox);
                                         }
                                         else if (currentUpDown.Direction == SyncDirection.To)
                                         {
@@ -3465,8 +3452,7 @@ namespace Cloud.Sync
                                 EventMessageLevel.Important,
                                 /*Error*/new HaltSyncboxOnAuthenticationFailureErrorInfo(TokenExpired:
                                     Data.commonCredentialsError.Value == CredentialsErrorType.ExpiredCredentials),
-                                Data.commonThisEngine.syncbox,
-                                Data.commonThisEngine.syncbox.CopiedSettings.DeviceId);
+                                Data.commonThisEngine.syncbox);
                         }
                         catch (Exception ex)
                         {
@@ -3559,8 +3545,7 @@ namespace Cloud.Sync
                             "syncData.completeSyncSql returned an error after communicating changes: " + completeSyncError.PrimaryException.Message,
                             EventMessageLevel.Important,
                             new HaltAllOfCloudSDKErrorInfo(),
-                            Data.commonThisEngine.syncbox,
-                            Data.commonThisEngine.syncbox.CopiedSettings.DeviceId);
+                            Data.commonThisEngine.syncbox);
                         }
 
                         return true;
@@ -3978,8 +3963,7 @@ namespace Cloud.Sync
                     MessageEvents.FireNewEventMessage(
                         Resources.SyncEngineFinishedCommunicating,
                         EventMessageLevel.Minor,
-                        Syncbox: Data.commonThisEngine.syncbox,
-                        DeviceId: Data.commonThisEngine.syncbox.CopiedSettings.DeviceId);
+                        Syncbox: Data.commonThisEngine.syncbox);
                 },
                 toReturn);
 
@@ -4546,8 +4530,7 @@ namespace Cloud.Sync
                                                 Resources.ExceptionSyncEnginePostCommunicationPrematureUploadSuccess,
                                                 EventMessageLevel.Important,
                                                 new HaltAllOfCloudSDKErrorInfo(),
-                                                syncbox,
-                                                syncbox.CopiedSettings.DeviceId);
+                                                syncbox);
 
                                             throw new CLException(CLExceptionCode.Syncing_LiveSyncEngine, Resources.ExceptionSyncEnginePostCommunicationPrematureUploadSuccess);
                                         }
@@ -4695,8 +4678,7 @@ namespace Cloud.Sync
                     "SyncEngine halted after repeated failure to communicate over one of the Cloud server domains",
                     EventMessageLevel.Important,
                     /*Error*/new HaltSyncboxOnConnectionFailureErrorInfo(),
-                    syncbox,
-                    syncbox.CopiedSettings.DeviceId);
+                    syncbox);
 
                 if (statusUpdated != null)
                 {
@@ -4963,8 +4945,7 @@ namespace Cloud.Sync
                                                         "Unable to upload file due to large size. Expected to fail again, therefore will not try immediately. Path: " + errorToQueue.FileChange.NewPath.ToString(),
                                                         EventMessageLevel.Important,
                                                         /*Error*/new GeneralErrorInfo(),
-                                                        syncbox,
-                                                        syncbox.CopiedSettings.DeviceId);
+                                                        syncbox);
                                                 }
 
                                                 RecurseResetFailureCounters(errorToQueue.FileChange);
@@ -5244,8 +5225,7 @@ namespace Cloud.Sync
                                     "Error applying change locally: " + applyChangeError.PrimaryException.Message,
                                     EventMessageLevel.Regular,
                                     /*Error*/new GeneralErrorInfo(),
-                                    syncbox,
-                                    syncbox.CopiedSettings.DeviceId);
+                                    syncbox);
                             }
                             catch
                             {
@@ -5559,8 +5539,7 @@ namespace Cloud.Sync
                                     "Change to file detected while uploading. Upload will restart with latest data.",
                                     EventMessageLevel.Regular,
                                     new GeneralErrorInfo(),
-                                    castState.Syncbox,
-                                    castState.Syncbox.CopiedSettings.DeviceId);
+                                    castState.Syncbox);
 
                                 // return without EventId so that "ContinueWith"s will not mark the event complete in the database, nor increment the download count
                                 return new EventIdAndCompletionProcessor(0, null, null, 0);
@@ -5589,8 +5568,7 @@ namespace Cloud.Sync
                     MessageEvents.FireNewEventMessage(
                         "File finished uploading from path " + castState.FileToUpload.NewPath.ToString(),
                         EventMessageLevel.Regular,
-                        Syncbox: castState.Syncbox,
-                        DeviceId: castState.Syncbox.CopiedSettings.DeviceId);
+                        Syncbox: castState.Syncbox);
 
                     // return with the info for which event id completed, the event source for marking a complete event, and the settings for tracing and error logging
                     return new EventIdAndCompletionProcessor(castState.FileToUpload.EventId, castState.SyncData, castState.Syncbox.CopiedSettings, castState.Syncbox.SyncboxId);
@@ -5679,8 +5657,7 @@ namespace Cloud.Sync
                         "uploadState must contain FileToUpload and thus unable cleanup after upload error: " + ex.Message,
                         EventMessageLevel.Important,
                         new HaltAllOfCloudSDKErrorInfo(),
-                        castState.Syncbox,
-                        castState.Syncbox.CopiedSettings.DeviceId);
+                        castState.Syncbox);
 
                     return new EventIdAndCompletionProcessor(0, null, null, 0);
                 }
@@ -5690,8 +5667,7 @@ namespace Cloud.Sync
                         "uploadState must contain SyncData and thus unable cleanup after upload error: " + ex.Message,
                         EventMessageLevel.Important,
                         new HaltAllOfCloudSDKErrorInfo(),
-                        castState.Syncbox,
-                        castState.Syncbox.CopiedSettings.DeviceId);
+                        castState.Syncbox);
 
                     return new EventIdAndCompletionProcessor(0, null, null, 0);
                 }
@@ -5701,8 +5677,7 @@ namespace Cloud.Sync
                         "uploadState must contain Syncbox and thus unable cleanup after upload error: " + ex.Message,
                         EventMessageLevel.Important,
                         new HaltAllOfCloudSDKErrorInfo(),
-                        castState.Syncbox,
-                        castState.Syncbox.CopiedSettings.DeviceId);
+                        castState.Syncbox);
 
                     return new EventIdAndCompletionProcessor(0, null, null, 0);
                 }
@@ -5712,8 +5687,7 @@ namespace Cloud.Sync
                         "uploadState must contain MaxNumberOfFailureRetries and thus unable cleanup after upload error: " + ex.Message,
                         EventMessageLevel.Important,
                         new HaltAllOfCloudSDKErrorInfo(),
-                        castState.Syncbox,
-                        castState.Syncbox.CopiedSettings.DeviceId);
+                        castState.Syncbox);
 
                     return new EventIdAndCompletionProcessor(0, null, null, 0);
                 }
@@ -5723,8 +5697,7 @@ namespace Cloud.Sync
                         "uploadState must contain MaxNumberOfNotFounds and thus unable cleanup after upload error: " + ex.Message,
                         EventMessageLevel.Important,
                         new HaltAllOfCloudSDKErrorInfo(),
-                        castState.Syncbox,
-                        castState.Syncbox.CopiedSettings.DeviceId);
+                        castState.Syncbox);
 
                     return new EventIdAndCompletionProcessor(0, null, null, 0);
                 }
@@ -5734,8 +5707,7 @@ namespace Cloud.Sync
                         "uploadState must contain FailedChangesQueue and thus unable cleanup after upload error: " + ex.Message,
                         EventMessageLevel.Important,
                         new HaltAllOfCloudSDKErrorInfo(),
-                        castState.Syncbox,
-                        castState.Syncbox.CopiedSettings.DeviceId);
+                        castState.Syncbox);
 
                     return new EventIdAndCompletionProcessor(0, null, null, 0);
                 }
@@ -5895,8 +5867,7 @@ namespace Cloud.Sync
                     growlErrorMessage, // message
                     (isErrorSerious ? EventMessageLevel.Important : EventMessageLevel.Regular), // important of error based on flag for whether it is serious
                     Error: new GeneralErrorInfo(),
-                    Syncbox: exceptionState.Syncbox,
-                    DeviceId: exceptionState.Syncbox.CopiedSettings.DeviceId);
+                    Syncbox: exceptionState.Syncbox);
             }
             catch (Exception innerEx)
             {
@@ -6321,8 +6292,7 @@ namespace Cloud.Sync
                         MessageEvents.FireNewEventMessage(
                             "File finished downloading to path " + storeNewPath.ToString(), // could have been marked to cancel but already completed, so use stored path
                             EventMessageLevel.Regular,
-                            Syncbox: castState.Syncbox,
-                            DeviceId: castState.Syncbox.CopiedSettings.DeviceId);
+                            Syncbox: castState.Syncbox);
                     }
                     // if there was an error while downloading, rethrow the error
                     else
@@ -6463,8 +6433,7 @@ namespace Cloud.Sync
                         "downloadState must contain FileToDownload and thus unable cleanup after download error: " + ex.Message,
                         EventMessageLevel.Important,
                         new HaltAllOfCloudSDKErrorInfo(),
-                        castState.Syncbox,
-                        castState.Syncbox.CopiedSettings.DeviceId);
+                        castState.Syncbox);
 
                     return new EventIdAndCompletionProcessor(0, null, null, 0);
                 }
@@ -6475,8 +6444,7 @@ namespace Cloud.Sync
                         "downloadState must contain SyncData and thus unable cleanup after download error: " + ex.Message,
                         EventMessageLevel.Important,
                         new HaltAllOfCloudSDKErrorInfo(),
-                        castState.Syncbox,
-                        castState.Syncbox.CopiedSettings.DeviceId);
+                        castState.Syncbox);
 
                     return new EventIdAndCompletionProcessor(0, null, null, 0);
                 }
@@ -6487,8 +6455,7 @@ namespace Cloud.Sync
                         "downloadState must contain Syncbox and thus unable cleanup after download error: " + ex.Message,
                         EventMessageLevel.Important,
                         new HaltAllOfCloudSDKErrorInfo(),
-                        castState.Syncbox,
-                        castState.Syncbox.CopiedSettings.DeviceId);
+                        castState.Syncbox);
 
                     return new EventIdAndCompletionProcessor(0, null, null, 0);
                 }
@@ -6499,8 +6466,7 @@ namespace Cloud.Sync
                         "downloadState must contain MaxNumberOfFailureRetries and thus unable cleanup after download error: " + ex.Message,
                         EventMessageLevel.Important,
                         new HaltAllOfCloudSDKErrorInfo(),
-                        castState.Syncbox,
-                        castState.Syncbox.CopiedSettings.DeviceId);
+                        castState.Syncbox);
 
                     return new EventIdAndCompletionProcessor(0, null, null, 0);
                 }
@@ -6511,8 +6477,7 @@ namespace Cloud.Sync
                         "downloadState must contain MaxNumberOfNotFounds and thus unable cleanup after download error: " + ex.Message,
                         EventMessageLevel.Important,
                         new HaltAllOfCloudSDKErrorInfo(),
-                        castState.Syncbox,
-                        castState.Syncbox.CopiedSettings.DeviceId);
+                        castState.Syncbox);
 
                     return new EventIdAndCompletionProcessor(0, null, null, 0);
                 }
@@ -6523,8 +6488,7 @@ namespace Cloud.Sync
                         "uploadState must contain FailedChangesQueue and thus unable cleanup after upload error: " + ex.Message,
                         EventMessageLevel.Important,
                         new HaltAllOfCloudSDKErrorInfo(),
-                        castState.Syncbox,
-                        castState.Syncbox.CopiedSettings.DeviceId);
+                        castState.Syncbox);
 
                     return new EventIdAndCompletionProcessor(0, null, null, 0);
                 }
@@ -6897,8 +6861,7 @@ namespace Cloud.Sync
                     growlErrorMessage, // message
                     (isErrorSerious ? EventMessageLevel.Important : EventMessageLevel.Regular), // important of error based on flag for whether it is serious
                     Error: new GeneralErrorInfo(),
-                    Syncbox: exceptionState.Syncbox,
-                    DeviceId: exceptionState.Syncbox.CopiedSettings.DeviceId);
+                    Syncbox: exceptionState.Syncbox);
             }
             catch (Exception innerEx)
             {
@@ -8051,8 +8014,7 @@ namespace Cloud.Sync
                                     parentServerUidError,
                                     EventMessageLevel.Important,
                                     new GeneralErrorInfo(),
-                                    syncbox,
-                                    syncbox.CopiedSettings.DeviceId);
+                                    syncbox);
 
                                 throw new NullReferenceException(parentServerUidError);
                             }
@@ -8075,8 +8037,7 @@ namespace Cloud.Sync
                                     serverUidError,
                                     EventMessageLevel.Important,
                                     new GeneralErrorInfo(),
-                                    syncbox,
-                                    syncbox.CopiedSettings.DeviceId);
+                                    syncbox);
 
                                 throw new NullReferenceException(serverUidError);
                             }
@@ -8147,8 +8108,7 @@ namespace Cloud.Sync
                             (communicationArray.Length - communicationArrayPrecheckErrorIndexes.Count).ToString() +
                             " change" + ((communicationArray.Length - communicationArrayPrecheckErrorIndexes.Count) == 1 ? string.Empty : "s") + " to server and checking for any new changes to sync from server",
                         EventMessageLevel.Regular,
-                        Syncbox: syncbox,
-                        DeviceId: syncbox.CopiedSettings.DeviceId);
+                        Syncbox: syncbox);
 
                     // build a function which will throw a formatted exception when the FileChange's FileChangeType and the type of file system object (file or folder) do not match
                     Func<bool, FileChangeType, FilePath, string> getArgumentException = (isFolder, changeType, targetPath) =>
@@ -9486,8 +9446,7 @@ namespace Cloud.Sync
                                                                                 "Error occurred handling conflict for a file rename: " + ex.Message,
                                                                                 EventMessageLevel.Regular,
                                                                                 /*Error*/ new GeneralErrorInfo(),
-                                                                                syncbox,
-                                                                                syncbox.CopiedSettings.DeviceId);
+                                                                                syncbox);
                                                                         }
                                                                         catch
                                                                         {
@@ -9504,8 +9463,7 @@ namespace Cloud.Sync
                                                                                 "File rename conflict handled through duplication",
                                                                                 EventMessageLevel.Minor,
                                                                                 /*Error*/ null,
-                                                                                syncbox,
-                                                                                syncbox.CopiedSettings.DeviceId);
+                                                                                syncbox);
                                                                         }
                                                                         catch
                                                                         {
@@ -10831,8 +10789,7 @@ namespace Cloud.Sync
                         MessageEvents.FireNewEventMessage(
                             "Checking for any new changes to sync from server",
                             EventMessageLevel.Regular,
-                            Syncbox: syncbox,
-                            DeviceId: syncbox.CopiedSettings.DeviceId);
+                            Syncbox: syncbox);
 
                         // declare the status of the sync from communication
                         CLExceptionCode syncFromStatus = (CLExceptionCode)0;
@@ -11566,8 +11523,7 @@ namespace Cloud.Sync
                                                                 "Error occurred handling conflict for a file rename: " + ex.Message,
                                                                 EventMessageLevel.Regular,
                                                                 /*Error*/ new GeneralErrorInfo(),
-                                                                syncbox,
-                                                                syncbox.CopiedSettings.DeviceId);
+                                                                syncbox);
                                                         }
                                                         catch
                                                         {
@@ -11584,8 +11540,7 @@ namespace Cloud.Sync
                                                                 "File rename conflict handled through duplication",
                                                                 EventMessageLevel.Minor,
                                                                 /*Error*/ null,
-                                                                syncbox,
-                                                                syncbox.CopiedSettings.DeviceId);
+                                                                syncbox);
                                                         }
                                                         catch
                                                         {
@@ -11688,8 +11643,7 @@ namespace Cloud.Sync
                         MessageEvents.FireNewEventMessage(
                             "Nothing to communicate with server",
                             EventMessageLevel.Minor,
-                            Syncbox: syncbox,
-                            DeviceId: syncbox.CopiedSettings.DeviceId);
+                            Syncbox: syncbox);
 
                         incompleteChanges = Enumerable.Empty<PossiblyStreamableAndPossiblyChangedFileChange>();
                         newSyncId = null; // the null sync id is used to check on the calling method whether communication occurred
@@ -11718,8 +11672,7 @@ namespace Cloud.Sync
                                     : ex.InnerException.Message)), // else if there is an inner exception with message then append the inner exception message
                     Level: EventMessageLevel.Important,
                     Error: new GeneralErrorInfo(),
-                    Syncbox: syncbox,
-                    DeviceId: syncbox.CopiedSettings.DeviceId);
+                    Syncbox: syncbox);
 
                 // default all ouputs
 

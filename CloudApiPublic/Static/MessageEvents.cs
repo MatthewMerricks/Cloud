@@ -351,8 +351,8 @@ namespace Cloud.Static
             string Message,
             EventMessageLevel Level = EventMessageLevel.Minor,
             BaseErrorInfo Error = null,
-            CLSyncbox Syncbox = null,
-            string DeviceId = null) // device id shouldn't be required anymore since it can be pulled from Syncbox.CopiedSettings.DeviceId
+            CLSyncbox Syncbox = null)
+            // device id shouldn't be required anymore since it can be pulled from Syncbox.CopiedSettings.DeviceId
         {
             if (Error != null
                 && Error.ErrorType == ErrorMessageType.HaltAllOfCloudSDK)
@@ -360,8 +360,9 @@ namespace Cloud.Static
                 Helpers.HaltAllOnUnrecoverableError();
 
                 // Fire the EventMessage.  We will create an exception that can be used to build the required CLError.
-                if (Syncbox.SyncboxId != null
-                    && !string.IsNullOrEmpty(DeviceId))
+                if (Syncbox != null
+                    && Syncbox.CopiedSettings != null
+                    && !string.IsNullOrEmpty(Syncbox.CopiedSettings.DeviceId))
                 {
                     CLError errorToUse;
                     try
@@ -373,7 +374,7 @@ namespace Cloud.Static
                         errorToUse = ex;
                     }
 
-                    MessageEvents.DetectedSyncboxLiveSyncFailedWithErrorChange(Syncbox, errorToUse, Syncbox.SyncboxId, DeviceId);
+                    MessageEvents.DetectedSyncboxLiveSyncFailedWithErrorChange(Syncbox, errorToUse);
                 }
 
                 // Procedural trace
@@ -406,20 +407,21 @@ namespace Cloud.Static
                         Message,
                         Level,
                         Error,
-                        Syncbox.SyncboxId,
-                        DeviceId)
+                        (Syncbox == null ? (Nullable<long>)null : Syncbox.SyncboxId),
+                        ((Syncbox == null || Syncbox.CopiedSettings == null) ? null : Syncbox.CopiedSettings.DeviceId))
                     : (BaseMessage)new InformationalMessage(
                         Message,
                         Level,
-                        Syncbox.SyncboxId,
-                        DeviceId)));
+                        (Syncbox == null ? (Nullable<long>)null : Syncbox.SyncboxId),
+                        ((Syncbox == null || Syncbox.CopiedSettings == null) ? null : Syncbox.CopiedSettings.DeviceId))));
 
             FireNewEventMessageInternal(newArgs, ref toReturn);
 
-            if (Syncbox.SyncboxId != null
-                && !string.IsNullOrEmpty(DeviceId))
+            if (Syncbox != null
+                && Syncbox.CopiedSettings != null
+                && !string.IsNullOrEmpty(Syncbox.CopiedSettings.DeviceId))
             {
-                FireInternalReceiverInternal((long)Syncbox.SyncboxId, DeviceId, newArgs, ref toReturn, 
+                FireInternalReceiverInternal(Syncbox.SyncboxId, Syncbox.CopiedSettings.DeviceId, newArgs, ref toReturn, 
                     (IEventMessageReceiver handler, EventMessageArgs newArgs_) => {
                         BaseMessageArgs newArgsMessage = new BaseMessageArgs(newArgs_); // informational or error message occurs
                         handler.MessageEvents_NewEventMessage(newArgsMessage);
@@ -709,65 +711,74 @@ namespace Cloud.Static
         }
 
         public static EventHandledLevel DetectedSyncboxDidStartLiveSyncChange(
-            CLSyncbox syncbox,
-            Nullable<long> SyncboxId = null,
-            string DeviceId = null)
+            CLSyncbox syncbox)
         {
             EventHandledLevel toReturn = EventHandledLevel.NothingFired;
 
-            EventMessageArgs newArgs = new EventMessageArgs(
-                new SyncboxDidStartLiveSyncMessage(syncbox, SyncboxId, DeviceId));
+            if (syncbox != null
+                && syncbox.CopiedSettings != null
+                && !string.IsNullOrEmpty(syncbox.CopiedSettings.DeviceId))
+            {
+                EventMessageArgs newArgs = new EventMessageArgs(
+                    new SyncboxDidStartLiveSyncMessage(syncbox, syncbox.SyncboxId, syncbox.CopiedSettings.DeviceId));
 
-            FireNewEventMessageInternal(newArgs, ref toReturn);
+                FireNewEventMessageInternal(newArgs, ref toReturn);
 
-            FireAllInternalReceiversInternal(newArgs, ref toReturn,
-                (IEventMessageReceiver handler, EventMessageArgs newArgs_) =>
-                {
-                    handler.SyncboxDidStartLiveSyncChanged(new SyncboxDidStartLiveSyncMessageArgs(newArgs_));
-                });
+                FireAllInternalReceiversInternal(newArgs, ref toReturn,
+                    (IEventMessageReceiver handler, EventMessageArgs newArgs_) =>
+                    {
+                        handler.SyncboxDidStartLiveSyncChanged(new SyncboxDidStartLiveSyncMessageArgs(newArgs_));
+                    });
+            }
 
             return toReturn;
         }
 
         public static EventHandledLevel DetectedSyncboxDidStopLiveSyncChange(
-            CLSyncbox syncbox,
-            Nullable<long> SyncboxId = null,
-            string DeviceId = null)
+            CLSyncbox syncbox)
         {
             EventHandledLevel toReturn = EventHandledLevel.NothingFired;
 
-            EventMessageArgs newArgs = new EventMessageArgs(
-                new SyncboxDidStopLiveSyncMessage(syncbox, SyncboxId, DeviceId));
+            if (syncbox != null
+                && syncbox.CopiedSettings != null
+                && !string.IsNullOrEmpty(syncbox.CopiedSettings.DeviceId))
+            {
+                EventMessageArgs newArgs = new EventMessageArgs(
+                    new SyncboxDidStopLiveSyncMessage(syncbox, syncbox.SyncboxId, syncbox.CopiedSettings.DeviceId));
 
-            FireNewEventMessageInternal(newArgs, ref toReturn);
+                FireNewEventMessageInternal(newArgs, ref toReturn);
 
-            FireAllInternalReceiversInternal(newArgs, ref toReturn,
-                (IEventMessageReceiver handler, EventMessageArgs newArgs_) =>
-                {
-                    handler.SyncboxDidStopLiveSyncChanged(new SyncboxDidStopLiveSyncMessageArgs(newArgs_));
-                });
+                FireAllInternalReceiversInternal(newArgs, ref toReturn,
+                    (IEventMessageReceiver handler, EventMessageArgs newArgs_) =>
+                    {
+                        handler.SyncboxDidStopLiveSyncChanged(new SyncboxDidStopLiveSyncMessageArgs(newArgs_));
+                    });
+            }
 
             return toReturn;
         }
 
         public static EventHandledLevel DetectedSyncboxLiveSyncFailedWithErrorChange(
             CLSyncbox syncbox,
-            CLError error,
-            Nullable<long> SyncboxId = null,
-            string DeviceId = null)
+            CLError error)
         {
             EventHandledLevel toReturn = EventHandledLevel.NothingFired;
 
-            EventMessageArgs newArgs = new EventMessageArgs(
-                new SyncboxLiveSyncFailedWithErrorMessage(syncbox, error, SyncboxId, DeviceId));
+            if (syncbox != null
+                && syncbox.CopiedSettings != null
+                && !string.IsNullOrEmpty(syncbox.CopiedSettings.DeviceId))
+            {
+                EventMessageArgs newArgs = new EventMessageArgs(
+                    new SyncboxLiveSyncFailedWithErrorMessage(syncbox, error, syncbox.SyncboxId, syncbox.CopiedSettings.DeviceId));
 
-            FireNewEventMessageInternal(newArgs, ref toReturn);
+                FireNewEventMessageInternal(newArgs, ref toReturn);
 
-            FireAllInternalReceiversInternal(newArgs, ref toReturn,
-                (IEventMessageReceiver handler, EventMessageArgs newArgs_) =>
-                {
-                    handler.SyncboxLiveSyncFailedWithErrorChanged(new SyncboxLiveSyncFailedWithErrorMessageArgs(newArgs_));
-                });
+                FireAllInternalReceiversInternal(newArgs, ref toReturn,
+                    (IEventMessageReceiver handler, EventMessageArgs newArgs_) =>
+                    {
+                        handler.SyncboxLiveSyncFailedWithErrorChanged(new SyncboxLiveSyncFailedWithErrorMessageArgs(newArgs_));
+                    });
+            }
 
             return toReturn;
         }

@@ -934,8 +934,7 @@ namespace Cloud.SQLIndexer
                                     "Initial building of the database index failed",
                                     EventMessageLevel.Important,
                                     new HaltAllOfCloudSDKErrorInfo(),
-                                    Data.thisAgent.syncbox,
-                                    Data.thisAgent.syncbox.CopiedSettings.DeviceId);
+                                    Data.thisAgent.syncbox);
                             }
                         }
                     },
@@ -5147,8 +5146,7 @@ namespace Cloud.SQLIndexer
                                 "Database corruption found on initializing index. Replacing database with a fresh one. Files and folders changed while offline will be grabbed again from server. Error message: " + ex.Message,
                                 EventMessageLevel.Important,
                                 new GeneralErrorInfo(),
-                                syncbox,
-                                syncbox.CopiedSettings.DeviceId);
+                                syncbox);
                         }
 
                         rootObjectCalculatedFullPath = Helpers.DefaultForType<string>();
@@ -5167,8 +5165,7 @@ namespace Cloud.SQLIndexer
                     MessageEvents.FireNewEventMessage(
                         "Existing database not found, possibly due to new SyncboxId\\DeviceId combination. Starting fresh.",
                         EventMessageLevel.Minor,
-                        Syncbox: syncbox,
-                        DeviceId: syncbox.CopiedSettings.DeviceId);
+                        Syncbox: syncbox);
                 }
 
                 rootObjectCalculatedFullPath = Helpers.DefaultForType<string>();
@@ -5986,8 +5983,7 @@ namespace Cloud.SQLIndexer
                         "Unable to find Cloud directory at path: " + currentDirectoryFullPath,
                         EventMessageLevel.Important,
                         new HaltAllOfCloudSDKErrorInfo(),
-                        this.syncbox,
-                        this.syncbox.CopiedSettings.DeviceId);
+                        this.syncbox);
 
                     // This is a really bad error.  It means the connection to the file system is broken, and if we just ignore this error,
                     // sync will determine that there are no files in the Syncbox folder, and it will actually delete all of the files on the server.
@@ -6249,9 +6245,7 @@ namespace Cloud.SQLIndexer
                 {
                     MessageEvents.DetectedSyncboxLiveSyncFailedWithErrorChange(
                         this.syncbox,
-                        recurseDirectoryError,
-                        this.syncbox.SyncboxId,
-                        this.syncbox.CopiedSettings.DeviceId);
+                        recurseDirectoryError);
 
                     throw ex;
                 }
@@ -6264,8 +6258,7 @@ namespace Cloud.SQLIndexer
                             ex.Message),
                         EventMessageLevel.Regular,
                         new GeneralErrorInfo(),
-                        this.syncbox,
-                        this.syncbox.CopiedSettings.DeviceId);
+                        this.syncbox);
                 }
             }
 

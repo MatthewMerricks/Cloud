@@ -3257,8 +3257,7 @@ namespace Cloud.FileMonitor
                                                                     Resources.ExceptionMonitorAgentGrabPreprocessedChangesCastInnerState,
                                                                     EventMessageLevel.Important,
                                                                     new HaltAllOfCloudSDKErrorInfo(),
-                                                                    this._syncbox,
-                                                                    this._syncbox.CopiedSettings.DeviceId);
+                                                                    this._syncbox);
 
                                                                 throw new CLException(CLExceptionCode.General_Miscellaneous, Resources.ExceptionMonitorAgentGrabPreprocessedChangesCastInnerState);
                                                             }
@@ -3336,8 +3335,7 @@ namespace Cloud.FileMonitor
                                 Resources.ExceptionMonitorAgentGrabPreprocessedChangesErrorOnMergeSql,
                                 EventMessageLevel.Important,
                                 new HaltAllOfCloudSDKErrorInfo(),
-                                _syncbox,
-                                _syncbox.CopiedSettings.DeviceId);
+                                _syncbox);
 
                             toReturn += new AggregateException(Resources.MonitorAgentErrorAddingQueuedChangesWithinProcessingFailedChangesDependencyTreeToSQL, queuedChangesSqlError.Exceptions);
                         }
@@ -4093,8 +4091,7 @@ namespace Cloud.FileMonitor
                                                         Resources.MonitorAgentUnableToCastThisActionAsAction,
                                                         EventMessageLevel.Important,
                                                         new HaltAllOfCloudSDKErrorInfo(),
-                                                        this._syncbox,
-                                                        this._syncbox.CopiedSettings.DeviceId);
+                                                        this._syncbox);
                                                 }
                                                 else
                                                 {
@@ -4977,8 +4974,7 @@ namespace Cloud.FileMonitor
                     ex.Message ?? "{null}"),
                 EventMessageLevel.Minor,
                 new GeneralErrorInfo(),
-                _syncbox,
-                _syncbox.CopiedSettings.DeviceId);
+                _syncbox);
 
             CLError error = ex;
             error.Log(_syncbox.CopiedSettings.TraceLocation, _syncbox.CopiedSettings.LogErrors);
@@ -5963,9 +5959,15 @@ namespace Cloud.FileMonitor
                                 // forces logging even if the setting is turned off in the severe case since a message box had to appear
                                 mergeError.Log(_syncbox.CopiedSettings.TraceLocation, true);
 
+                                // if merge to database failed because of object disposal, then we want to return out of this method now;
+                                // (otherwise, a check later for EventId == 0 will cause a HaltAll since the events had not been added)
+                                if (mergeError.PrimaryException is CLObjectDisposedException)
+                                {
+                                    return;
+                                }
                                 // errors may be more common now that our database is hierarchichal and simple event ordering problems could throw an error adding to database (file before parent folder),
                                 // TODO: better error recovery instead of halting whole SDK
-                                if (!(mergeError.PrimaryException is CLObjectDisposedException))
+                                else
                                 {
                                     MessageEvents.FireNewEventMessage(
                                         Resources.MonitorAgentAnErrorOccurredAddingAFileSystemEventToTheDatabase + Environment.NewLine +
@@ -5975,8 +5977,7 @@ namespace Cloud.FileMonitor
                                                     : currentError.Message)).ToArray()),
                                         EventMessageLevel.Important,
                                         new HaltAllOfCloudSDKErrorInfo(),
-                                        this._syncbox,
-                                        this._syncbox.CopiedSettings.DeviceId);
+                                        this._syncbox);
                                 }
                             }
 
@@ -6020,8 +6021,7 @@ namespace Cloud.FileMonitor
                                         noEventIdErrorMessage,
                                         EventMessageLevel.Important,
                                         new HaltAllOfCloudSDKErrorInfo(),
-                                        this._syncbox,
-                                        this._syncbox.CopiedSettings.DeviceId);
+                                        this._syncbox);
                                 }
 
                                 ProcessingChanges.AddLast(nextMerge);

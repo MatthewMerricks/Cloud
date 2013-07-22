@@ -963,10 +963,7 @@ namespace Cloud
                     _isStarted = true;
 
                     // Fire the event to the subscribers.
-                    MessageEvents.DetectedSyncboxDidStartLiveSyncChange(
-                        this,
-                        SyncboxId: this.SyncboxId,
-                        DeviceId: this.CopiedSettings.DeviceId);
+                    MessageEvents.DetectedSyncboxDidStartLiveSyncChange(this);
                 }
 
             }
@@ -1009,10 +1006,7 @@ namespace Cloud
                         _syncEngine.Stop();
 
                         // Fire the event to the subscribers.
-                        MessageEvents.DetectedSyncboxDidStopLiveSyncChange(
-                            this,
-                            SyncboxId: this.SyncboxId,
-                            DeviceId: this.CopiedSettings.DeviceId);
+                        MessageEvents.DetectedSyncboxDidStopLiveSyncChange(this);
                     }
                     catch
                     {
