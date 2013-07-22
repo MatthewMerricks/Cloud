@@ -364,7 +364,6 @@
 		<row><td>ISX_DEFAULTCOMPONENT9</td><td>{2239655F-BF69-4E47-89BF-65E56AB1DA37}</td><td>APP</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>Microsoft.Net.Http.CSDK.dll</td><td>{E6845937-96E4-4741-949B-5A67F8BDD39F}</td><td>CLOUDSDK1</td><td>2</td><td/><td>microsoft.net.http.csdk.dll</td><td>1</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>Microsoft.Practices.ServiceLocation.CSDK.dll</td><td>{397879BD-0C02-409F-A2CE-3E0ED70DAAE7}</td><td>CLOUDSDK1</td><td>2</td><td/><td>microsoft.practices.servicel1</td><td>1</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
-		<row><td>Newtonsoft.Json.CSDK.dll</td><td>{E0C5EF41-32D0-40C9-AB8F-1E6BC860FB5F}</td><td>CLOUDSDK1</td><td>2</td><td/><td>newtonsoft.json.csdk.dll</td><td>1</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>RateBar.CSDK.dll</td><td>{58A4D7FD-CD4A-4A6B-8961-4C13785FB229}</td><td>APP</td><td>2</td><td/><td>ratebar.csdk.dll</td><td>1</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>Sample_Live_Sync.exe</td><td>{D936F44A-28E5-4073-8640-0CD04AF47C46}</td><td>APP</td><td>2</td><td/><td>sample_live_sync.exe</td><td>1</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 		<row><td>SimpleJson.CSDK.dll</td><td>{715F9DD2-9949-4127-9D0E-4240FB47529B}</td><td>CLOUDSDK1</td><td>2</td><td/><td>simplejson.csdk.dll</td><td>1</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
@@ -1940,7 +1939,6 @@
 		<row><td>AlwaysInstall</td><td>ISX_DEFAULTCOMPONENT9</td></row>
 		<row><td>AlwaysInstall</td><td>Microsoft.Net.Http.CSDK.dll</td></row>
 		<row><td>AlwaysInstall</td><td>Microsoft.Practices.ServiceLocation.CSDK.dll</td></row>
-		<row><td>AlwaysInstall</td><td>Newtonsoft.Json.CSDK.dll</td></row>
 		<row><td>AlwaysInstall</td><td>RateBar.CSDK.dll</td></row>
 		<row><td>AlwaysInstall</td><td>Sample_Live_Sync.exe</td></row>
 		<row><td>AlwaysInstall</td><td>SimpleJson.CSDK.dll</td></row>
@@ -1972,7 +1970,6 @@
 		<row><td>cloudsetupsdksyncsamplesuppo1</td><td>ISX_DEFAULTCOMPONENT2</td><td>CLOUDS~1.CON|CloudSetupSdkSyncSampleSupport.exe.config</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSetupSdkSyncSampleSupport\bin\Release\CloudSetupSdkSyncSampleSupport.exe.config</td><td>1</td><td/></row>
 		<row><td>microsoft.net.http.csdk.dll</td><td>Microsoft.Net.Http.CSDK.dll</td><td>MICROS~1.DLL|Microsoft.Net.Http.CSDK.dll</td><td>0</td><td/><td/><td>0</td><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\Microsoft.Net.Http.CSDK.dll</td><td>1</td><td/></row>
 		<row><td>microsoft.practices.servicel1</td><td>Microsoft.Practices.ServiceLocation.CSDK.dll</td><td>MICROS~1.DLL|Microsoft.Practices.ServiceLocation.CSDK.dll</td><td>0</td><td/><td/><td>0</td><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\Microsoft.Practices.ServiceLocation.CSDK.dll</td><td>1</td><td/></row>
-		<row><td>newtonsoft.json.csdk.dll</td><td>Newtonsoft.Json.CSDK.dll</td><td>NEWTON~1.DLL|Newtonsoft.Json.CSDK.dll</td><td>0</td><td/><td/><td>0</td><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\Newtonsoft.Json.CSDK.dll</td><td>1</td><td/></row>
 		<row><td>ratebar.csdk.dll</td><td>RateBar.CSDK.dll</td><td>RATEBA~1.DLL|RateBar.CSDK.dll</td><td>0</td><td/><td/><td>0</td><td>1</td><td>&lt;ISProjectFolder&gt;\..\3rdParty\bin\Release\RateBar.CSDK.dll</td><td>1</td><td/></row>
 		<row><td>sample_live_sync.exe</td><td>Sample_Live_Sync.exe</td><td>SAMPLE~1.EXE|Sample-Live-Sync.exe</td><td>0</td><td/><td/><td>0</td><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\Sample-Live-Sync.exe</td><td>1</td><td/></row>
 		<row><td>sample_live_sync.exe.config</td><td>ISX_DEFAULTCOMPONENT9</td><td>SAMPLE~1.CON|Sample-Live-Sync.exe.config</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;ISProjectFolder&gt;\..\CloudSdkSyncSample\bin\Release\Sample-Live-Sync.exe.config</td><td>1</td><td/></row>
@@ -2260,7 +2257,6 @@
 		<row><td>ISX_DEFAULTCOMPONENT9</td><td/><td/><td>_E11D3EC4_D745_4D24_86AF_2E36C45D1B7A_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>Microsoft.Net.Http.CSDK.dll</td><td/><td/><td>_3D7EC03E_9D6A_4251_AF3C_CAE1D893AC6F_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>Microsoft.Practices.ServiceLocation.CSDK.dll</td><td/><td/><td>_67D4A127_01EE_4795_97D5_F70001497330_FILTER</td><td/><td/><td/><td/></row>
-		<row><td>Newtonsoft.Json.CSDK.dll</td><td/><td/><td>_9B7F7F1E_9760_4FA8_8B2B_11AAF943F4FF_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>RateBar.CSDK.dll</td><td/><td/><td>_381DF397_E3B7_40C8_BB53_7722EF03A91F_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>Sample_Live_Sync.exe</td><td/><td/><td>_A84C0BBF_665F_4FD7_890F_E77F236CF4BE_FILTER</td><td/><td/><td/><td/></row>
 		<row><td>SimpleJson.CSDK.dll</td><td/><td/><td>_509C3DC4_EF57_4FA9_9971_F2EE123D8441_FILTER</td><td/><td/><td/><td/></row>

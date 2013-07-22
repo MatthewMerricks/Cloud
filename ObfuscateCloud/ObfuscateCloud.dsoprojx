@@ -4,8 +4,7 @@
     <DeepSeaExtensionsPath Condition=" '$(DeepSeaExtensionsPath)' == '' ">$(MSBuildExtensionsPath)\DeepSea Obfuscator\v4</DeepSeaExtensionsPath>
     <RootNamespace>ObfuscateCloud</RootNamespace>
     <KeyFile>C:\CertBackup\CloudSigning\CloudPlatformCodeSigning.pfx</KeyFile>
-    <KeyPassword>
-    </KeyPassword>
+<KeyPassword>cArd1n@l</KeyPassword>
     <ConfigFile>C:\Cloud\CloudSDK-Windows\CloudApiPublic\Cloud.dsoconfig</ConfigFile>
     <OutputType>Library</OutputType>
     <AssemblyName>Cloud</AssemblyName>
