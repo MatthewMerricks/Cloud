@@ -504,7 +504,7 @@ namespace Cloud
         /// <param name="activeSessionCredentials">(output) An array of CLCredential objects representing the sessions related to these credentials.</param>
         /// <param name="settings">(optional) settings for optional tracing and specifying the client version to the server.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError ListAllActiveSessionCredentials(out CLCredentials [] activeSessionCredentials, ICLCredentialsSettings settings = null)
+        public CLError ListAllActiveSessionCredentials(out CLCredentials[] activeSessionCredentials, ICLCredentialsSettings settings = null)
         {
             // try/catch to process the metadata query, on catch return the error
             try
@@ -785,21 +785,7 @@ namespace Cloud
                 }
 
                 // Communicate with the server
-                JsonContracts.CredentialsSessionsResponse responseFromServerObject = Helpers.ProcessHttp<JsonContracts.CredentialsSessionsResponse>(
-                    requestContract,
-                    CLDefinitions.CLPlatformAuthServerURL,
-                    CLDefinitions.MethodPathAuthCreateSession,
-                    Helpers.requestMethod.post,
-                    copiedSettings.HttpTimeoutMilliseconds,
-                    null, // not an upload nor download
-                    Helpers.HttpStatusesOkCreatedNotModifiedNoContent,
-                    copiedSettings,
-                    this,
-                    null,
-                    false);
-
-                // Communicate with the server
-                JsonContracts.CredentialsSessionsResponse responseFromServer = Helpers.ProcessHttp<JsonContracts.CredentialsSessionsResponse>(
+                JsonContracts.CredentialsSessionResponse responseFromServer = Helpers.ProcessHttp<JsonContracts.CredentialsSessionResponse>(
                     requestContract, 
                     CLDefinitions.CLPlatformAuthServerURL,
                     CLDefinitions.MethodPathAuthCreateSession,
@@ -845,7 +831,7 @@ namespace Cloud
         /// <param name="responseFromServer"></param>
         /// <param name="arrayCredentials"></param>
         /// <returns></returns>
-        private CLError DeserializeSessions(JsonContracts.CredentialsSessionsResponse responseFromServer, out CLCredentials[] arrayCredentials)
+        private CLError DeserializeSessions(JsonContracts.ICredentialsSessionsResponse responseFromServer, out CLCredentials[] arrayCredentials)
         {
             try
             {
@@ -1043,8 +1029,8 @@ namespace Cloud
                     Helpers.EnumerateSingleItem(new KeyValuePair<string, string>(CLDefinitions.RESTRequestSession_KeyId, Uri.EscapeDataString(sessionKey))));
 
                 // Communicate with the server
-                JsonContracts.CredentialsSessionsResponse responseFromServer;
-                responseFromServer = Helpers.ProcessHttp<JsonContracts.CredentialsSessionsResponse>(
+                JsonContracts.CredentialsSessionResponse responseFromServer;
+                responseFromServer = Helpers.ProcessHttp<JsonContracts.CredentialsSessionResponse>(
                     null,
                     CLDefinitions.CLPlatformAuthServerURL,
                     CLDefinitions.MethodPathAuthShowSession + query,
@@ -1058,9 +1044,9 @@ namespace Cloud
                     true);
 
                 // Convert the server response to a CLCredentials object and pass that back as the response.
-                if (responseFromServer != null && responseFromServer.Sessions != null && responseFromServer.Sessions.Length > 0)
+                if (responseFromServer != null && responseFromServer.Session != null)
                 {
-                    sessionCredentials = new CLCredentials(responseFromServer.Sessions[0]);
+                    sessionCredentials = new CLCredentials(responseFromServer.Session);
                 }
                 else
                 {
@@ -1495,7 +1481,6 @@ namespace Cloud
         /// </summary>
         /// <param name="request">The parameters to send to the server.</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
-        /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) response object from communication</param>
         /// <param name="settings">The settings to use.</param>
         /// <returns>Returns any error that occurred during communication, or null.</returns>

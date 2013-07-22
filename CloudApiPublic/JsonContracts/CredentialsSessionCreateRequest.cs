@@ -21,7 +21,6 @@ namespace Cloud.JsonContracts
     /// </summary> 
     [Obfuscation(Exclude = true)]
     [DataContract]
-  
     internal sealed class CredentialsSessionCreateRequest
     {
         [DataMember(Name = CLDefinitions.RESTRequestSession_Services, IsRequired = false)]

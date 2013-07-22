@@ -149,6 +149,8 @@
     <Compile Include="Interfaces\IEventMessageReceiver.cs" />
     <Compile Include="Interfaces\ITransferTaskState.cs" />
     <Compile Include="JsonContracts\Archives.cs" />
+    <Compile Include="JsonContracts\CredentialsSessionResponse.cs" />
+    <Compile Include="JsonContracts\ICredentialsSessionsResponse.cs" />
     <Compile Include="JsonContracts\SyncboxStatusRequest.cs" />
     <Compile Include="JsonContracts\SyncboxPurgePendingFilesResponse.cs" />
     <Compile Include="JsonContracts\PurgePendingFilesRequest.cs" />
