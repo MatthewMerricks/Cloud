@@ -135,7 +135,7 @@ namespace Cloud
         private CLCredentials(
             string key,
             string secret,
-            string token, 
+            string token,
             ICLCredentialsSettings settings = null)
         {
             // check input parameters
@@ -156,7 +156,7 @@ namespace Cloud
 
             this._key = key;
             this._secret = secret;
-            
+
             this._token = token;
 
             // copy settings so they don't change while processing; this also defaults some values
@@ -190,7 +190,8 @@ namespace Cloud
             string key,
             string secret,
             string token,
-            ICLCredentialsSettings settings = null) : this(key, secret, token, settings)
+            ICLCredentialsSettings settings = null)
+            : this(key, secret, token, settings)
         {
             this._syncboxIds = new List<long>(syncboxIds); // no need to lock since this is the constructor
             this._expirationDate = expiresAt; // no need to lock since this is the constructor
@@ -216,7 +217,7 @@ namespace Cloud
             }
             if (session.Services == null || session.Services.Length < 1)
             {
-                throw new CLArgumentNullException(CLExceptionCode.Credentials_ServicesMissing,  Resources.ExceptionOnDemandCredentialsCreateSessionServicesMissingInServerResponse);
+                throw new CLArgumentNullException(CLExceptionCode.Credentials_ServicesMissing, Resources.ExceptionOnDemandCredentialsCreateSessionServicesMissingInServerResponse);
             }
 
             // Since we allow null then reverse-null coalesce from empty string
@@ -331,7 +332,7 @@ namespace Cloud
         /// <param name="asyncResult">The asynchronous result provided upon starting the async operation.</param>
         /// <param name="result">(output) The result from the async operation.</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
-        public CLError EndListAllActiveSessionCredentials(IAsyncResult asyncResult, out CredentialsIsValidResult result)
+        public CLError EndIsValid(IAsyncResult asyncResult, out CredentialsIsValidResult result)
         {
             return Helpers.EndAsyncOperation<CredentialsIsValidResult>(asyncResult, out result);
         }
@@ -458,7 +459,7 @@ namespace Cloud
                     try
                     {
                         // declare the specific type of response for this operation
-                        CLCredentials [] response;
+                        CLCredentials[] response;
                         // alloc and init the syncbox with the passed parameters, storing any error that occurs
                         CLError processError = ListAllActiveSessionCredentials(
                             out response,
@@ -499,6 +500,94 @@ namespace Cloud
         }
 
         /// <summary>
+        /// Finishes listing sessions on the server for the current application, if it has not already finished via its asynchronous result and outputs the result,
+        /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
+        /// </summary>
+        /// <param name="asyncResult">The asynchronous result provided upon starting the async operation.</param>
+        /// <param name="result">(output) The result from the async operation.</param>
+        /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
+        public CLError EndListAllActiveSessionCredentials(IAsyncResult asyncResult, out CredentialsListSessionsSeperatedResult result)
+        {
+            CredentialsListSessionsResult sessionsResult;
+            CLError toReturn = Helpers.EndAsyncOperation<CredentialsListSessionsResult>(asyncResult, out sessionsResult);
+
+            if (toReturn == null
+                && sessionsResult != null)
+            {
+                Parameters.CredentialsSeperatedParams[] tempResult;
+
+                if (sessionsResult.ActiveSessionCredentials == null)
+                {
+                    tempResult = null;
+                }
+                else
+                {
+                    tempResult = new Parameters.CredentialsSeperatedParams[sessionsResult.ActiveSessionCredentials.Length];
+                    for (int activeSessionIndex = 0; activeSessionIndex < sessionsResult.ActiveSessionCredentials.Length; activeSessionIndex++)
+                    {
+                        CLCredentials currentActiveSession = sessionsResult.ActiveSessionCredentials[activeSessionIndex];
+                        if (currentActiveSession != null)
+                        {
+                            tempResult[activeSessionIndex] = new Parameters.CredentialsSeperatedParams(
+                                currentActiveSession._key,
+                                currentActiveSession._secret,
+                                currentActiveSession._token);
+                        }
+                    }
+                }
+
+                result = new CredentialsListSessionsSeperatedResult(
+                    sessionsResult.Error,
+                    tempResult);
+            }
+            else
+            {
+                result = Helpers.DefaultForType<CredentialsListSessionsSeperatedResult>();
+            }
+
+            return toReturn;
+        }
+
+        /// <summary>
+        /// Lists the sessions on the server for the current application
+        /// </summary>
+        /// <param name="activeSessionCredentials">(output) An array of CredentialsSeperatedParams objects representing the seperated keys, values, and secrets of sessions related to these credentials.</param>
+        /// <param name="settings">(optional) settings for optional tracing and specifying the client version to the server.</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        public CLError ListAllActiveSessionCredentials(out Parameters.CredentialsSeperatedParams[] activeSessionCredentials, ICLCredentialsSettings settings = null)
+        {
+            CLCredentials[] tempActiveSessionCredentials;
+            CLError toReturn = ListAllActiveSessionCredentials(out tempActiveSessionCredentials, settings);
+            if (toReturn != null)
+            {
+                activeSessionCredentials = Helpers.DefaultForType<Parameters.CredentialsSeperatedParams[]>();
+                return toReturn;
+            }
+
+            if (tempActiveSessionCredentials == null)
+            {
+                activeSessionCredentials = null;
+            }
+            else
+            {
+                activeSessionCredentials = new Parameters.CredentialsSeperatedParams[tempActiveSessionCredentials.Length];
+                for (int activeSessionCredentialIndex = 0; activeSessionCredentialIndex < tempActiveSessionCredentials.Length; activeSessionCredentialIndex++)
+                {
+                    CLCredentials currentActiveSessionCredentials = tempActiveSessionCredentials[activeSessionCredentialIndex];
+                    if (currentActiveSessionCredentials != null)
+                    {
+                        activeSessionCredentials[activeSessionCredentialIndex] = new Parameters.CredentialsSeperatedParams(
+                            currentActiveSessionCredentials._key,
+                            currentActiveSessionCredentials._secret,
+                            currentActiveSessionCredentials._token);
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        /// <summary>
         /// Lists the sessions on the server for the current application
         /// </summary>
         /// <param name="activeSessionCredentials">(output) An array of CLCredential objects representing the sessions related to these credentials.</param>
@@ -531,7 +620,7 @@ namespace Cloud
                     Helpers.HttpStatusesOkAccepted,
                     copiedSettings,
                     Credentials: this,
-                    Syncbox: null, 
+                    Syncbox: null,
                     isOneOff: false);
 
                 // Convert the server response to a CLCredentials object and pass that back as the response.
@@ -540,10 +629,6 @@ namespace Cloud
                 if (errorFromDeserialize != null)
                 {
                     activeSessionCredentials = Helpers.DefaultForType<CLCredentials[]>();
-                }
-                else if (arrayCredentials.Length < 1)
-                {
-                    throw new CLException(CLExceptionCode.OnDemand_ServerResponseNoSession, Resources.ExceptionOnDemandServerResponseNoSession);
                 }
                 else
                 {
@@ -554,7 +639,7 @@ namespace Cloud
             }
             catch (Exception ex)
             {
-                activeSessionCredentials = Helpers.DefaultForType<CLCredentials []>();
+                activeSessionCredentials = Helpers.DefaultForType<CLCredentials[]>();
                 return ex;
             }
         }
@@ -674,7 +759,7 @@ namespace Cloud
         {
             return Helpers.EndAsyncOperation<CredentialsSessionCreateResult>(asyncResult, out result);
         }
-        
+
         /// <summary>
         /// Creates a session on the server for the current application, and activates the session for a list of syncboxIds.
         /// </summary>
@@ -755,10 +840,10 @@ namespace Cloud
                 {
                     JsonContracts.ServiceAllRequest[] requests = new JsonContracts.ServiceAllRequest[1];
                     JsonContracts.ServiceAllRequest request = new ServiceAllRequest()
-                        {
-                            ServiceType = CLDefinitions.RESTRequestSession_Sync,
-                            SyncboxIds = CLDefinitions.RESTRequestSession_SyncboxIdsAll,
-                        };
+                    {
+                        ServiceType = CLDefinitions.RESTRequestSession_Sync,
+                        SyncboxIds = CLDefinitions.RESTRequestSession_SyncboxIdsAll,
+                    };
                     requests[0] = request;
                     Cloud.JsonContracts.CredentialsSessionCreateAllRequest sessionCreateAll = new JsonContracts.CredentialsSessionCreateAllRequest()
                     {
@@ -786,7 +871,7 @@ namespace Cloud
 
                 // Communicate with the server
                 JsonContracts.CredentialsSessionResponse responseFromServer = Helpers.ProcessHttp<JsonContracts.CredentialsSessionResponse>(
-                    requestContract, 
+                    requestContract,
                     CLDefinitions.CLPlatformAuthServerURL,
                     CLDefinitions.MethodPathAuthCreateSession,
                     Helpers.requestMethod.post,
@@ -795,7 +880,7 @@ namespace Cloud
                     Helpers.HttpStatusesOkCreatedNotModifiedNoContent,
                     copiedSettings,
                     this,
-                    null, 
+                    null,
                     false);
 
                 // Convert the server response to a CLCredentials object and pass that back as the response.
@@ -1040,7 +1125,7 @@ namespace Cloud
                     Helpers.HttpStatusesOkAccepted,
                     copiedSettings,
                     this,
-                    null, 
+                    null,
                     true);
 
                 // Convert the server response to a CLCredentials object and pass that back as the response.
@@ -1140,7 +1225,7 @@ namespace Cloud
         /// <param name="settings">(optional) settings for optional tracing and specifying the client version to the server</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError DeleteSessionCredentialsWithKey(
-            string key, 
+            string key,
             ICLCredentialsSettings settings = null)
         {
             // try/catch to process the metadata query, on catch return the error
@@ -1175,7 +1260,7 @@ namespace Cloud
                     Helpers.HttpStatusesOkAccepted,
                     copiedSettings,
                     this,
-                    null, 
+                    null,
                     false);
 
                 // Convert the server response to a CLCredentials object and pass that back as the response.
@@ -1234,7 +1319,7 @@ namespace Cloud
             (new Thread(new ParameterizedThreadStart(state =>
             {
                 // try cast the state as the object with all the input parameters
-                Tuple<GenericAsyncResult<LinkDeviceFirstTimeResult>, int, ICLCredentialsSettings> castState = 
+                Tuple<GenericAsyncResult<LinkDeviceFirstTimeResult>, int, ICLCredentialsSettings> castState =
                             state as Tuple<GenericAsyncResult<LinkDeviceFirstTimeResult>, int, ICLCredentialsSettings>;
                 // if the try cast failed, then show a message box for this unrecoverable error
                 if (castState == null)
@@ -1310,8 +1395,8 @@ namespace Cloud
         /// <remarks>400 Bad Request is accepted without error.  Check for this code.  It generally means the account already exits.</remarks>
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         public CLError LinkDeviceFirstTime(
-                    JsonContracts.LinkDeviceFirstTimeRequest request, 
-                    int timeoutMilliseconds, 
+                    JsonContracts.LinkDeviceFirstTimeRequest request,
+                    int timeoutMilliseconds,
                     out JsonContracts.LinkDeviceFirstTimeResponse response,
                     ICLCredentialsSettings settings = null)
         {
@@ -1486,8 +1571,8 @@ namespace Cloud
         /// <returns>Returns any error that occurred during communication, or null.</returns>
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         public CLError LinkDevice(
-                    JsonContracts.LinkDeviceRequest request, 
-                    int timeoutMilliseconds, 
+                    JsonContracts.LinkDeviceRequest request,
+                    int timeoutMilliseconds,
                     out JsonContracts.LinkDeviceResponse response,
                     ICLCredentialsSettings settings = null)
         {
@@ -1647,8 +1732,8 @@ namespace Cloud
         /// <returns>Returns any error that occurred during communication, or null.</returns>
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         public CLError UnlinkDevice(
-                    JsonContracts.UnlinkDeviceRequest request, 
-                    int timeoutMilliseconds, 
+                    JsonContracts.UnlinkDeviceRequest request,
+                    int timeoutMilliseconds,
                     out JsonContracts.UnlinkDeviceResponse response,
                     ICLCredentialsSettings settings = null)
         {

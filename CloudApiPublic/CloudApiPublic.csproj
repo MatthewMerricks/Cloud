@@ -50,12 +50,12 @@
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
-<PropertyGroup>
-<SignAssembly>true</SignAssembly>
-</PropertyGroup>
-<PropertyGroup>
-<AssemblyOriginatorKeyFile>CloudPlatformCodeSigning.pfx</AssemblyOriginatorKeyFile>
-</PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>true</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>CloudPlatformCodeSigning.pfx</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'ReleaseNoSSL|AnyCPU'">
     <OutputPath>bin\ReleaseNoSSL\</OutputPath>
     <DefineConstants>TRACE;NOSSL</DefineConstants>
@@ -132,6 +132,7 @@
     <Compile Include="CLSync\CLSyncbox.cs" />
     <Compile Include="CLSync\Parameters\AddFolderItemParams.cs" />
     <Compile Include="CLSync\Parameters\AddFileItemParams.cs" />
+    <Compile Include="CLSync\Parameters\CredentialsSeperatedParams.cs" />
     <Compile Include="CLSync\Parameters\ModifyFileItemParams.cs" />
     <Compile Include="CLSync\Parameters\RenameItemParams.cs" />
     <Compile Include="CLSync\Parameters\MoveItemParams.cs" />

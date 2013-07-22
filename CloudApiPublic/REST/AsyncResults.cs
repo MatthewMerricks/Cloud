@@ -88,7 +88,8 @@ namespace Cloud.REST
         /// <summary>
         /// Determines whether upload failed due to a mismatched hash detected during transfer. This is caused by the file being modified during upload.
         /// </summary>
-        public bool HashMismatchFound {
+        public bool HashMismatchFound
+        {
             get
             {
                 return _hashMismatchFound;
@@ -99,7 +100,7 @@ namespace Cloud.REST
 
         // construct with all readonly properties
         internal UploadFileResult(CLError Error, string Result, bool hashMismatchFound)
-            : base(Error, Result) 
+            : base(Error, Result)
         {
             _hashMismatchFound = hashMismatchFound;
         }
@@ -305,14 +306,14 @@ namespace Cloud.REST
         /// <summary>
         /// The result returned from the server
         /// </summary>
-        public CLStoragePlan [] StoragePlans
+        public CLStoragePlan[] StoragePlans
         {
             get
             {
                 return _storagePlans;
             }
         }
-        private readonly CLStoragePlan [] _storagePlans;
+        private readonly CLStoragePlan[] _storagePlans;
 
         /// <summary>
         /// Any error which may have occurred during communication
@@ -327,7 +328,7 @@ namespace Cloud.REST
         private readonly CLError _error;
 
         // construct with all readonly properties
-        internal ListStoragePlansResult(CLError error, CLStoragePlan [] storagePlans)
+        internal ListStoragePlansResult(CLError error, CLStoragePlan[] storagePlans)
         {
             this._error = Error;
             this._storagePlans = storagePlans;
@@ -409,7 +410,45 @@ namespace Cloud.REST
             this._activeSessionCredentials = activeSessionCredentials;
         }
     }
-    
+
+    /// <summary>
+    /// Holds result properties
+    /// </summary>
+    [Obfuscation(Exclude = true)]
+    public sealed class CredentialsListSessionsSeperatedResult
+    {
+        /// <summary>
+        /// The result returned from the server
+        /// </summary>
+        public Cloud.Parameters.CredentialsSeperatedParams[] ActiveSessionCredentials
+        {
+            get
+            {
+                return _activeSessionCredentials;
+            }
+        }
+        private readonly Cloud.Parameters.CredentialsSeperatedParams[] _activeSessionCredentials;
+
+        /// <summary>
+        /// Any error which may have occurred during communication
+        /// </summary>
+        public CLError Error
+        {
+            get
+            {
+                return _error;
+            }
+        }
+        private readonly CLError _error;
+
+        // construct with all readonly properties
+        internal CredentialsListSessionsSeperatedResult(CLError error, Cloud.Parameters.CredentialsSeperatedParams[] activeSessionCredentials)
+        {
+            this._error = error;
+            this._activeSessionCredentials = activeSessionCredentials;
+        }
+    }
+
     /// <summary>
     /// Holds result properties
     /// </summary>
@@ -451,7 +490,7 @@ namespace Cloud.REST
             }
         }
         private readonly ReadOnlyCollection<long> _syncboxIds;
-        
+
         /// <summary>
         /// Any error which may have occurred during communication
         /// </summary>
@@ -530,7 +569,7 @@ namespace Cloud.REST
             }
         }
         private readonly string _sessionCredentialsKey;
-        
+
         /// <summary>
         /// The secret from the result returned from the server
         /// </summary>
