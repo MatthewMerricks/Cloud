@@ -21,7 +21,6 @@ using System.Threading;
 using System.ComponentModel;
 using Cloud.Parameters;
 using Cloud.Callbacks;
-using Newtonsoft.Json.Linq;
 
 namespace Cloud
 {
@@ -1420,7 +1419,7 @@ namespace Cloud
             object asyncCallbackUserState,
             long syncboxId,
             CLCredentials credentials,
-            ICLCredentialsSettings settings = null)
+            ICLSyncSettings settings = null)
         {
             var asyncThread = DelegateAndDataHolderBase.Create(
                 // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
@@ -1489,7 +1488,7 @@ namespace Cloud
         public static CLError DeleteSyncbox(
                     long syncboxId,
                     CLCredentials credentials,
-                    ICLCredentialsSettings settings = null)
+                    ICLSyncSettings settings = null)
         {
             // try/catch to process the query, on catch return the error
             try
@@ -1562,7 +1561,7 @@ namespace Cloud
             AsyncCallback asyncCallback,
             object asyncCallbackUserState,
             CLCredentials credentials,
-            ICLCredentialsSettings settings = null,
+            ICLSyncSettings settings = null,
             IEventMessageReceiver liveSyncStatusReceiver = null,
             Helpers.ReplaceExpiredCredentials getNewCredentialsCallback = null,
             object getNewCredentialsCallbackUserState = null)
@@ -1645,7 +1644,7 @@ namespace Cloud
         public static CLError ListAllSyncboxes(
             CLCredentials credentials,
             out CLSyncbox[] returnedSyncboxes,
-            ICLCredentialsSettings settings = null,
+            ICLSyncSettings settings = null,
             IEventMessageReceiver liveSyncStatusReceiver = null,
             Helpers.ReplaceExpiredCredentials getNewCredentialsCallback = null,
             object getNewCredentialsCallbackUserState = null)

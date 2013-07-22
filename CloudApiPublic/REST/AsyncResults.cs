@@ -9,6 +9,7 @@ using Cloud.Model;
 using Cloud.Static;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -408,6 +409,70 @@ namespace Cloud.REST
             this._activeSessionCredentials = activeSessionCredentials;
         }
     }
+    
+    /// <summary>
+    /// Holds result properties
+    /// </summary>
+    [Obfuscation(Exclude = true)]
+    public sealed class CredentialsIsValidResult
+    {
+        /// <summary>
+        /// The result.  True: The session credentials have not expired.
+        /// </summary>
+        public bool IsValid
+        {
+            get
+            {
+                return _isValid;
+            }
+        }
+        private readonly bool _isValid;
+
+        /// <summary>
+        /// The UTC time when the session will expire.
+        /// </summary>
+        public DateTime ExpirationDate
+        {
+            get
+            {
+                return _expirationDate;
+            }
+        }
+        private readonly DateTime _expirationDate;
+
+        /// <summary>
+        /// The list of syncbox ids which are valid for this session, or null for all syncbox ids.
+        /// </summary>
+        public ReadOnlyCollection<long> SyncboxIds
+        {
+            get
+            {
+                return _syncboxIds;
+            }
+        }
+        private readonly ReadOnlyCollection<long> _syncboxIds;
+        
+        /// <summary>
+        /// Any error which may have occurred during communication
+        /// </summary>
+        public CLError Error
+        {
+            get
+            {
+                return _error;
+            }
+        }
+        private readonly CLError _error;
+
+        // construct with all readonly properties
+        internal CredentialsIsValidResult(CLError error, bool isValid, DateTime ExpirationDate, ReadOnlyCollection<long> SyncboxIds)
+        {
+            this._error = error;
+            this._isValid = isValid;
+            this._expirationDate = ExpirationDate;
+            this._syncboxIds = SyncboxIds;
+        }
+    }
 
     /// <summary>
     /// Holds result properties
@@ -444,6 +509,71 @@ namespace Cloud.REST
         {
             this._error = error;
             this._sessionCredentials = sessionCredentials;
+        }
+    }
+
+
+    /// <summary>
+    /// Holds result properties
+    /// </summary>
+    [Obfuscation(Exclude = true)]
+    public sealed class CredentialsSessionCreateSeperatedResult
+    {
+        /// <summary>
+        /// The key from the result returned from the server
+        /// </summary>
+        public string SessionCredentialsKey
+        {
+            get
+            {
+                return _sessionCredentialsKey;
+            }
+        }
+        private readonly string _sessionCredentialsKey;
+        
+        /// <summary>
+        /// The secret from the result returned from the server
+        /// </summary>
+        public string SessionCredentialsSecret
+        {
+            get
+            {
+                return _sessionCredentialsSecret;
+            }
+        }
+        private readonly string _sessionCredentialsSecret;
+
+        /// <summary>
+        /// The token from the result returned from the server
+        /// </summary>
+        public string SessionCredentialsToken
+        {
+            get
+            {
+                return _sessionCredentialsToken;
+            }
+        }
+        private readonly string _sessionCredentialsToken;
+
+        /// <summary>
+        /// Any error which may have occurred during communication
+        /// </summary>
+        public CLError Error
+        {
+            get
+            {
+                return _error;
+            }
+        }
+        private readonly CLError _error;
+
+        // construct with all readonly properties
+        internal CredentialsSessionCreateSeperatedResult(CLError error, string sessionCredentialsKey, string sessionCredentialsSecret, string sessionCredentialsToken)
+        {
+            this._error = error;
+            this._sessionCredentialsKey = sessionCredentialsKey;
+            this._sessionCredentialsSecret = sessionCredentialsSecret;
+            this._sessionCredentialsToken = sessionCredentialsToken;
         }
     }
 

@@ -1,0 +1,63 @@
+﻿<Window x:Class="CallingAllPublicMethods.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="clr-namespace:CallingAllPublicMethods.Controls"
+        xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
+        xmlns:models="clr-namespace:CallingAllPublicMethods.Models"
+        Title="CLSyncbox Public Method Caller" Height="350" Width="525"
+        DataContext="{StaticResource MainViewModel}">
+    <ScrollViewer>
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="5" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="5" />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="5" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="5" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="5" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="5" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="5" />
+            </Grid.RowDefinitions>
+            <Grid Grid.Row="1" Grid.Column="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="5" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="5" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="10" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <Label Content="Configuration:" />
+                <ComboBox Grid.Column="2" Name="ConfigurationsComboBox" IsEditable="True"
+                          ItemsSource="{Binding ConfigurationsViewModel.Configurations}"
+                          SelectedItem="{Binding ConfigurationsViewModel.SelectedConfiguration}">
+                    <i:Interaction.Triggers>
+                        <i:EventTrigger EventName="LostFocus">
+                            <i:InvokeCommandAction Command="{Binding ConfigurationsViewModel.Configurations_LostFocus}"
+                                                   CommandParameter="{Binding ElementName=ConfigurationsComboBox}" />
+                        </i:EventTrigger>
+                        <i:EventTrigger EventName="DropDownOpened">
+                            <i:InvokeCommandAction Command="{Binding ConfigurationsViewModel.Configurations_LostFocus}"
+                                                   CommandParameter="{Binding ElementName=ConfigurationsComboBox}" />
+                        </i:EventTrigger>
+                    </i:Interaction.Triggers>
+                </ComboBox>
+                <Button Grid.Column="4" Content="Add" Command="{Binding ConfigurationsViewModel.AddConfiguration}" />
+                <Button Grid.Column="6" Content="Remove" Command="{Binding ConfigurationsViewModel.RemoveConfiguration}" />
+            </Grid>
+            <controls:SelectedConfigurationControl Grid.Row="3" Grid.Column="1"
+                                                   DataContext="{Binding ConfigurationsViewModel}" />
+            <controls:CreateOrListSyncboxes Grid.Row="5" Grid.Column="1"
+                                            DataContext="{Binding AllocateSyncboxViewModel}" />
+            <controls:SelectedSyncboxControl Grid.Row="7" Grid.Column="1"
+                                             DataContext="{Binding SyncboxViewModel}" />
+        </Grid>
+    </ScrollViewer>
+</Window>

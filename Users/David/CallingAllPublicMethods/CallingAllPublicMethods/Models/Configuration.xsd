@@ -1,0 +1,41 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xs:schema id="Configuration"
+    targetNamespace="http://www.cloud.com/CallingAllPublicMethods/Configuration.xsd"
+    elementFormDefault="qualified"
+    xmlns="http://www.cloud.com/CallingAllPublicMethods/Configuration.xsd"
+    xmlns:mstns="http://www.cloud.com/CallingAllPublicMethods/Configuration.xsd"
+    xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:simpleType name="NotNullNorEmptyString">
+    <xs:restriction base="xs:string">
+      <xs:minLength value="1" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:complexType name="CredentialsType">
+    <xs:sequence>
+      <xs:element name="Key" type="xs:string" />
+      <xs:element name="Secret" type="xs:string" />
+      <xs:element name="Token" type="xs:string" minOccurs="0" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="SyncboxType">
+    <xs:sequence>
+      <xs:element name="SyncboxId" type="xs:long" />
+      <xs:element name="DeviceId" type="NotNullNorEmptyString" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="ConfigurationType">
+    <xs:sequence>
+      <xs:element name="Id" type="xs:int" />
+      <xs:element name="Name" type="NotNullNorEmptyString" minOccurs="0" />
+      <xs:element name="Credentials" type="CredentialsType" minOccurs="0" />
+      <xs:element name="SelectedSyncbox" type="SyncboxType" minOccurs="0" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="Configurations">
+    <xs:complexType>
+      <xs:choice>
+        <xs:element minOccurs="0" maxOccurs="unbounded" name="Configuration" type="ConfigurationType" />
+      </xs:choice>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>

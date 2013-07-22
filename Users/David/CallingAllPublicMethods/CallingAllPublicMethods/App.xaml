@@ -1,0 +1,15 @@
+﻿<Application x:Class="CallingAllPublicMethods.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:viewModels="clr-namespace:CallingAllPublicMethods.ViewModels"
+             xmlns:converters="clr-namespace:CallingAllPublicMethods.Converters"
+             StartupUri="MainWindow.xaml">
+    <Application.Resources>
+        <viewModels:MainViewModel x:Key="MainViewModel" />
+        <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+        <converters:NullableLongToStringConverter x:Key="NullableLongToStringConverter" />
+        <converters:CombineSyncboxViewModelWithSelectedSyncboxConverter x:Key="CombineSyncboxViewModelWithSelectedSyncboxConverter" />
+        <converters:CombineStoragePlanWithFriendlyNameConverter x:Key="CombineStoragePlanWithFriendlyNameConverter" />
+        <converters:CombineSyncboxIdsWithSessionMinutesConverter x:Key="CombineSyncboxIdsWithSessionMinutesConverter" />
+    </Application.Resources>
+</Application>

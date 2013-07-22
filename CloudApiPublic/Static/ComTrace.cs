@@ -20,6 +20,8 @@ using Cloud.Model;
 
 namespace Cloud.Static
 {
+    extern alias SimpleJsonBase;
+
     [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
     public static class ComTrace
     {
@@ -1059,12 +1061,12 @@ namespace Cloud.Static
                     if ((trimJson.StartsWith("{") && trimJson.EndsWith("}"))
                         || (trimJson.StartsWith("[") && trimJson.EndsWith("]")))
                     {
-                        Dictionary<string, object> bodyDict = Newtonsoft.Json.JsonConvert.DeserializeObject<Dictionary<string, object>>(body);
+                        Dictionary<string, object> bodyDict = SimpleJsonBase.SimpleJson.SimpleJson.DeserializeObject<Dictionary<string, object>>(body);
                         if (bodyDict != null
                             && bodyDict.ContainsKey(CLDefinitions.CLRegistrationAccessTokenKey))
                         {
                             bodyDict[CLDefinitions.CLRegistrationAccessTokenKey] = "---Access token excluded---";
-                            body = Newtonsoft.Json.JsonConvert.SerializeObject(bodyDict);
+                            body = SimpleJsonBase.SimpleJson.SimpleJson.SerializeObject(bodyDict);
                         }
                     }
                 }

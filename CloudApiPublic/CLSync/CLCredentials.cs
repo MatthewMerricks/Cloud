@@ -16,8 +16,8 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Net;
-using Newtonsoft.Json.Linq;
 using Cloud.JsonContracts;
+using System.Collections.ObjectModel;
 
 namespace Cloud
 {
@@ -71,35 +71,23 @@ namespace Cloud
         }
         private readonly string _token;
 
-        /// <summary>
-        /// The session token expiration date.
-        /// </summary>
-        internal Nullable<DateTime> ExpirationDate
-        {
-            get
-            {
-                return _expirationDate;
-            }
-        }
-        private readonly Nullable<DateTime> _expirationDate;
-
-        /// <summary>
-        /// The syncbox IDs associated with these credentials.  If this property is null, then all syncboxIDs are associated.
-        /// </summary>
-        internal HashSet<long> SyncboxIds
-        {
-            get
-            {
-                return _syncboxIds;
-            }
-        }
-        private readonly HashSet<long> _syncboxIds = null;
-
         #endregion
 
         #region Private Fields
 
         private ICLSyncSettingsAdvanced _copiedSettings = null;
+
+        private readonly object expirationDateAndSyncboxIdsLocker = new object();
+
+        /// <summary>
+        /// The session token expiration date.
+        /// </summary>
+        private Nullable<DateTime> _expirationDate = null;
+
+        /// <summary>
+        /// The syncbox IDs associated with these credentials. If this property is null, then all syncboxIDs are associated.
+        /// </summary>
+        private List<long> _syncboxIds = null;
 
         #endregion
 
@@ -204,8 +192,8 @@ namespace Cloud
             string token,
             ICLCredentialsSettings settings = null) : this(key, secret, token, settings)
         {
-            this._syncboxIds = syncboxIds;
-            this._expirationDate = expiresAt;
+            this._syncboxIds = new List<long>(syncboxIds); // no need to lock since this is the constructor
+            this._expirationDate = expiresAt; // no need to lock since this is the constructor
         }
 
         private static readonly GenericHolder<bool> servicePointManagerConfigured = new GenericHolder<bool>(false);
@@ -242,14 +230,14 @@ namespace Cloud
             this._secret = session.Secret;
 
             this._token = token;
-            this._expirationDate = session.ExpiresAt;
-            if (session.Services[0].SyncboxIds == null)
+            this._expirationDate = session.ExpiresAt; // no need to lock since this is the constructor
+            if ((session.Services[0].SyncboxIds ?? session.SyncboxIds) == null)
             {
-                this._syncboxIds = null;
+                this._syncboxIds = null; // no need to lock since this is the constructor
             }
             else
             {
-                this._syncboxIds = new HashSet<long>(session.Services[0].SyncboxIds);
+                this._syncboxIds = new List<long>(session.Services[0].SyncboxIds ?? session.SyncboxIds); // no need to lock since this is the constructor
             }
 
             // copy settings so they don't change while processing; this also defaults some values
@@ -271,12 +259,92 @@ namespace Cloud
             return !String.IsNullOrEmpty(_token);
         }
 
+        #region IsValid
+
         /// <summary>
-        /// Determine whether the session credentials have expired (!IsValid).  Requires session credentials.
+        /// Asynchronously starts determining whether the session credentials have expired (!IsValid). Requires session credentials.
+        /// </summary>
+        /// <param name="asyncCallback">Callback method to fire when the async operation completes.</param>
+        /// <param name="asyncCallbackUserState">User state to pass when firing async callback above.</param>
+        /// <param name="settings">(optional) settings for optional tracing and specifying the client version to the server</param>
+        /// <returns>Returns IAsyncResult, which can be used to interact with the asynchronous task.</returns>
+        public IAsyncResult BeginIsValid(
+            AsyncCallback asyncCallback,
+            object asyncCallbackUserState,
+            ICLCredentialsSettings settings = null)
+        {
+            var asyncThread = DelegateAndDataHolderBase.Create(
+                // create a parameters object to store all the input parameters to be used on another thread with the void (object) parameterized start
+                new
+                {
+                    // create the asynchronous result to return
+                    toReturn = new GenericAsyncResult<CredentialsIsValidResult>(
+                        asyncCallback,
+                        asyncCallbackUserState),
+                    settings = settings
+                },
+                (Data, errorToAccumulate) =>
+                {
+                    // The ThreadProc.
+                    // try/catch to process with the input parameters, on catch set the exception in the asyncronous result
+                    try
+                    {
+                        // declare the specific type of response for this operation
+                        bool response;
+                        DateTime expirationDate;
+                        ReadOnlyCollection<long> syncboxIds;
+                        // alloc and init the syncbox with the passed parameters, storing any error that occurs
+                        CLError processError = IsValid(
+                            out response,
+                            out expirationDate,
+                            out syncboxIds,
+                            Data.settings);
+
+                        Data.toReturn.Complete(
+                            new CredentialsIsValidResult(
+                                processError, // any error that may have occurred during processing
+                                response, // the specific type of response for this operation
+                                expirationDate,
+                                syncboxIds),
+                            sCompleted: false); // processing did not complete synchronously
+                    }
+                    catch (Exception ex)
+                    {
+                        Data.toReturn.HandleException(
+                            ex, // the exception which was not handled correctly by the CLError wrapping
+                            sCompleted: false); // processing did not complete synchronously
+                    }
+                },
+                null);
+
+            // create the thread from a void (object) parameterized start which wraps the synchronous method call
+            (new Thread(new ThreadStart(asyncThread.VoidProcess))).Start(); // start the asynchronous processing thread which is attached to its data
+
+            // return the asynchronous result
+            return asyncThread.TypedData.toReturn;
+        }
+
+        /// <summary>
+        /// Finishes determining whether the session credentials have expired (!IsValid), if it has not already finished via its asynchronous result and outputs the result,
+        /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
+        /// </summary>
+        /// <param name="asyncResult">The asynchronous result provided upon starting the async operation.</param>
+        /// <param name="result">(output) The result from the async operation.</param>
+        /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
+        public CLError EndListAllActiveSessionCredentials(IAsyncResult asyncResult, out CredentialsIsValidResult result)
+        {
+            return Helpers.EndAsyncOperation<CredentialsIsValidResult>(asyncResult, out result);
+        }
+
+        /// <summary>
+        /// Determine whether the session credentials have expired (!IsValid). Requires session credentials.
         /// </summary>
         /// <param name="isValid">(output) The result.  True: The session credentials have not expired.</param>
+        /// <param name="expirationDate">(output) The UTC time when the session will expire.</param>
+        /// <param name="syncboxIds">(output) The list of syncbox ids which are valid for this session, or null for all syncbox ids.</param>
+        /// <param name="settings">(optional) settings for optional tracing and specifying the client version to the server</param>
         /// <returns>Any error that occurs, or null.</returns>
-        public CLError IsValid(out bool isValid)
+        public CLError IsValid(out bool isValid, out DateTime expirationDate, out ReadOnlyCollection<long> syncboxIds, ICLCredentialsSettings settings = null)
         {
             try
             {
@@ -285,26 +353,59 @@ namespace Cloud
                     throw new CLException(CLExceptionCode.Credentials_NotSessionCredentials, Resources.ExceptionCredentialsIsValidRequiresSessionCredentials);
                 }
 
-                if (ExpirationDate == null)
+                Nullable<DateTime> storeExpirationDate;
+                List<long> storeSyncboxIds;
+                lock (expirationDateAndSyncboxIdsLocker)
                 {
-                    throw new CLException(CLExceptionCode.Credentials_ExpirationDateMustNotBeNull, Resources.ExceptionCredentialsExpirationDateMustNotBeNull);
+                    storeExpirationDate = _expirationDate;
+                    storeSyncboxIds = _syncboxIds;
                 }
 
-                if (ExpirationDate < DateTime.UtcNow)
+                if (storeExpirationDate == null)
                 {
-                    isValid = true;
+                    CLCredentials shownSession;
+                    CLError errorShowingSession = SessionCredentialsForKey(
+                        out shownSession,
+                        _key,
+                        _copiedSettings);
+
+                    if (errorShowingSession != null)
+                    {
+                        isValid = Helpers.DefaultForType<bool>();
+                        expirationDate = new DateTime(0, DateTimeKind.Utc);
+                        syncboxIds = Helpers.DefaultForType<ReadOnlyCollection<long>>();
+                        return errorShowingSession;
+                    }
+
+                    if (shownSession == null
+                        || (storeExpirationDate = shownSession._expirationDate) == null)
+                    {
+                        throw new CLException(CLExceptionCode.Credentials_ExpirationDateMustNotBeNull, Resources.ExceptionCredentialsExpirationDateMustNotBeNull);
+                    }
+
+                    lock (expirationDateAndSyncboxIdsLocker)
+                    {
+                        _expirationDate = storeExpirationDate;
+                        _syncboxIds = storeSyncboxIds = shownSession._syncboxIds;
+                    }
                 }
 
-                isValid = false;
+                isValid = DateTime.Compare((DateTime)storeExpirationDate, DateTime.UtcNow) >= 0;
+                expirationDate = (DateTime)storeExpirationDate;
+                syncboxIds = (storeSyncboxIds == null ? null : new ReadOnlyCollection<long>(storeSyncboxIds));
             }
             catch (Exception ex)
             {
-                isValid = false;
+                isValid = Helpers.DefaultForType<bool>();
+                expirationDate = new DateTime(0, DateTimeKind.Utc);
+                syncboxIds = Helpers.DefaultForType<ReadOnlyCollection<long>>();
                 return ex;
             }
 
             return null;
         }
+
+        #endregion
 
         #endregion  // end Public Utilities
 
@@ -327,6 +428,7 @@ namespace Cloud
         #endregion
 
         #region ListAllActiveSessionCredentials (query the cloud for all active sessions for these credentials)
+
         /// <summary>
         /// Asynchronously starts listing the sessions on the server for the current credentials.
         /// </summary>
@@ -388,7 +490,7 @@ namespace Cloud
         /// Finishes listing sessions on the server for the current application, if it has not already finished via its asynchronous result and outputs the result,
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
         /// </summary>
-        /// <param name="aResult">The asynchronous result provided upon starting the async operation.</param>
+        /// <param name="asyncResult">The asynchronous result provided upon starting the async operation.</param>
         /// <param name="result">(output) The result from the async operation.</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndListAllActiveSessionCredentials(IAsyncResult asyncResult, out CredentialsListSessionsResult result)
@@ -402,7 +504,7 @@ namespace Cloud
         /// <param name="activeSessionCredentials">(output) An array of CLCredential objects representing the sessions related to these credentials.</param>
         /// <param name="settings">(optional) settings for optional tracing and specifying the client version to the server.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
-        public CLError ListAllActiveSessionCredentials(out CLCredentials [] activeSessionCredentials, ICLCredentialsSettings settings = null)
+        public CLError ListAllActiveSessionCredentials(out CLCredentials[] activeSessionCredentials, ICLCredentialsSettings settings = null)
         {
             // try/catch to process the metadata query, on catch return the error
             try
@@ -419,8 +521,7 @@ namespace Cloud
                 }
 
                 // Communicate with the server.
-                string responseFromServer;
-                responseFromServer = Helpers.ProcessHttp<string>(
+                JsonContracts.CredentialsSessionsResponse responseFromServer = Helpers.ProcessHttp<JsonContracts.CredentialsSessionsResponse>(
                     /* requestContent */ null, // no request body for listing sessions
                     CLDefinitions.CLPlatformAuthServerURL,
                     CLDefinitions.MethodPathAuthListSessions,
@@ -460,6 +561,7 @@ namespace Cloud
         #endregion (query the cloud for all active sessions for these credentials)
 
         #region CreateSessionCredentialsForSyncboxIds (create a new set of session credentials for a list of syncbox IDs using the current credentials)
+
         /// <summary>
         /// Asynchronously starts creating a session on the server for the current application
         /// </summary>
@@ -530,12 +632,90 @@ namespace Cloud
         /// Finishes creating the session on the server for the current application, if it has not already finished via its asynchronous result, and outputs the result,
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
         /// </summary>
-        /// <param name="aResult">The asynchronous result provided upon starting the async operation.</param>
+        /// <param name="asyncResult">The asynchronous result provided upon starting the async operation.</param>
+        /// <param name="result">(output) The result from the async operation as seperated key/secret/token components.</param>
+        /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
+        public CLError EndCreateSessionCredentialsForSyncboxIds(IAsyncResult asyncResult, out CredentialsSessionCreateSeperatedResult result)
+        {
+            CredentialsSessionCreateResult credentialsResult;
+            CLError toReturn = Helpers.EndAsyncOperation<CredentialsSessionCreateResult>(asyncResult, out credentialsResult);
+
+            if (toReturn == null
+                && credentialsResult != null)
+            {
+                result = new CredentialsSessionCreateSeperatedResult(
+                    credentialsResult.Error,
+                    sessionCredentialsKey: (credentialsResult.SessionCredentials == null
+                        ? null
+                        : credentialsResult.SessionCredentials._key),
+                    sessionCredentialsSecret: (credentialsResult.SessionCredentials == null
+                        ? null
+                        : credentialsResult.SessionCredentials._secret),
+                    sessionCredentialsToken: (credentialsResult.SessionCredentials == null
+                        ? null
+                        : credentialsResult.SessionCredentials._token));
+            }
+            else
+            {
+                result = Helpers.DefaultForType<CredentialsSessionCreateSeperatedResult>();
+            }
+
+            return toReturn;
+        }
+
+        /// <summary>
+        /// Finishes creating the session on the server for the current application, if it has not already finished via its asynchronous result, and outputs the result,
+        /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
+        /// </summary>
+        /// <param name="asyncResult">The asynchronous result provided upon starting the async operation.</param>
         /// <param name="result">(output) The result from the async operation.</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndCreateSessionCredentialsForSyncboxIds(IAsyncResult asyncResult, out CredentialsSessionCreateResult result)
         {
             return Helpers.EndAsyncOperation<CredentialsSessionCreateResult>(asyncResult, out result);
+        }
+        
+        /// <summary>
+        /// Creates a session on the server for the current application, and activates the session for a list of syncboxIds.
+        /// </summary>
+        /// <param name="sessionCredentialsKey">(output) The output session credentials' key.</param>
+        /// <param name="sessionCredentialsSecret">(output) The output session credentials' secret.</param>
+        /// <param name="sessionCredentialsToken">(output) The output session credentials' token.</param>
+        /// <param name="syncboxIds">IDs of sync boxes to associate with this session.  A null value causes all syncboxes defined for the application to be associated with this session.
+        /// May be null.</param>
+        /// <param name="timeToLiveMinutes">The number of minutes before the token expires. Default: 2160 minutes (36 hours).  Maximum: 7200 minutes (120 hours). May be null.</param>
+        /// <param name="settings">(optional) settings for optional tracing and specifying the client version to the server.</param>
+        /// <returns>Returns any error that occurred during communication, if any</returns>
+        public CLError CreateSessionCredentialsForSyncboxIds(
+            out string sessionCredentialsKey,
+            out string sessionCredentialsSecret,
+            out string sessionCredentialsToken,
+            HashSet<long> syncboxIds,
+            Nullable<long> timeToLiveMinutes,
+            ICLCredentialsSettings settings = null)
+        {
+            CLCredentials sessionCredentials;
+            CLError toReturn = CreateSessionCredentialsForSyncboxIds(
+                out sessionCredentials,
+                syncboxIds,
+                timeToLiveMinutes,
+                settings);
+
+            if (toReturn == null
+                && sessionCredentials != null)
+            {
+                sessionCredentialsKey = sessionCredentials._key;
+                sessionCredentialsSecret = sessionCredentials._secret;
+                sessionCredentialsToken = sessionCredentials._token;
+            }
+            else
+            {
+                sessionCredentialsKey = Helpers.DefaultForType<string>();
+                sessionCredentialsSecret = Helpers.DefaultForType<string>();
+                sessionCredentialsToken = Helpers.DefaultForType<string>();
+            }
+
+            return toReturn;
         }
 
         /// <summary>
@@ -548,10 +728,10 @@ namespace Cloud
         /// <param name="settings">(optional) settings for optional tracing and specifying the client version to the server.</param>
         /// <returns>Returns any error that occurred during communication, if any</returns>
         public CLError CreateSessionCredentialsForSyncboxIds(
-                    out CLCredentials sessionCredentials,
-                    HashSet<long> syncboxIds,
-                    Nullable<long> timeToLiveMinutes,
-                    ICLCredentialsSettings settings = null)
+            out CLCredentials sessionCredentials,
+            HashSet<long> syncboxIds,
+            Nullable<long> timeToLiveMinutes,
+            ICLCredentialsSettings settings = null)
         {
             // try/catch to process the metadata query, on catch return the error
             try
@@ -605,8 +785,7 @@ namespace Cloud
                 }
 
                 // Communicate with the server
-                string responseFromServer;
-                responseFromServer = Helpers.ProcessHttp<string>(
+                JsonContracts.CredentialsSessionResponse responseFromServer = Helpers.ProcessHttp<JsonContracts.CredentialsSessionResponse>(
                     requestContract, 
                     CLDefinitions.CLPlatformAuthServerURL,
                     CLDefinitions.MethodPathAuthCreateSession,
@@ -624,7 +803,7 @@ namespace Cloud
                 CLError errorFromDeserialize = DeserializeSessions(responseFromServer, out arrayCredentials);
                 if (errorFromDeserialize != null)
                 {
-                    sessionCredentials = Helpers.DefaultForType<CLCredentials>();
+                    throw new CLException(CLExceptionCode.OnDemand_ServerReturnedInvalidItem, Resources.ExceptionCLCredentialsCreateSessionDeserializeError, errorFromDeserialize.Exceptions);
                 }
                 else if (arrayCredentials.Length < 1)
                 {
@@ -652,54 +831,33 @@ namespace Cloud
         /// <param name="responseFromServer"></param>
         /// <param name="arrayCredentials"></param>
         /// <returns></returns>
-        private CLError DeserializeSessions(string responseFromServer, out CLCredentials[] arrayCredentials)
+        private CLError DeserializeSessions(JsonContracts.ICredentialsSessionsResponse responseFromServer, out CLCredentials[] arrayCredentials)
         {
             try
             {
-                JObject o = JObject.Parse(responseFromServer);
-
-                // Determine whether is is a single session from /session/create, or multiple sessions from /session/list.
-                JToken tokenSession = o[CLDefinitions.RESTResponseSession];
-                JToken tokenSessions = o[CLDefinitions.RESTResponseSession_Sessions];
-                if (tokenSession != null)
+                if (responseFromServer == null)
                 {
-                    // This is a response with a single session.
+                    throw new CLArgumentNullException(CLExceptionCode.OnDemand_FileMoveNoServerResponsesOrErrors, Resources.ExceptionCredentialsNullResponseFromServerReturnedByServer);
+                }
+                if (responseFromServer.Sessions == null)
+                {
+                    throw new CLNullReferenceException(CLExceptionCode.OnDemand_MoveNoServerResponsesOrErrors, Resources.ExceptionCredentialsNoSessionOrSessionsToken);
+                }
+
+                arrayCredentials = new CLCredentials[responseFromServer.Sessions.Length];
+                for (int credentialsIndex = 0; credentialsIndex < responseFromServer.Sessions.Length; credentialsIndex++)
+                {
                     CLCredentials credentials;
-                    CLError errorFromDeserialize = DeserializeSession(tokenSession, out credentials);
+                    CLError errorFromDeserialize = DeserializeSession(responseFromServer.Sessions[credentialsIndex], out credentials);
                     if (errorFromDeserialize == null)
                     {
-                        arrayCredentials = new CLCredentials[1];
-                        arrayCredentials[0] = credentials;
+                        arrayCredentials[credentialsIndex] = credentials;
                     }
                     else
                     {
                         arrayCredentials = Helpers.DefaultForType<CLCredentials[]>();
+                        return errorFromDeserialize;
                     }
-
-                    return errorFromDeserialize;
-                }
-                else if (tokenSessions != null)
-                {
-                    // This is a response with multiple sessions.
-                    arrayCredentials = new CLCredentials[tokenSessions.Count()];
-                    for (int index = 0; index < tokenSessions.Count(); index++)
-                    {
-                        CLCredentials credentials;
-                        CLError errorFromDeserialize = DeserializeSession(tokenSessions.ToArray()[index], out credentials);
-                        if (errorFromDeserialize == null)
-                        {
-                            arrayCredentials[index] = credentials;
-                        }
-                        else
-                        {
-                            throw new CLException(CLExceptionCode.OnDemand_MoveNoServerResponsesOrErrors, 
-                                String.Format(Resources.ExceptionCredentialsConvertingServerResponseIndexMsg0, index));
-                        }
-                    }
-                }
-                else
-                {
-                    throw new CLException(CLExceptionCode.OnDemand_MoveNoServerResponsesOrErrors, Resources.ExceptionCredentialsNoSessionOrSessionsToken);
                 }
             }
             catch (Exception ex)
@@ -711,79 +869,47 @@ namespace Cloud
             return null;
         }
 
-        private CLError DeserializeSession(JToken tokenSession, out CLCredentials credentials)
+        private CLError DeserializeSession(JsonContracts.Session tokenSession, out CLCredentials credentials)
         {
             try
             {
-                string key = (string)tokenSession[CLDefinitions.RESTResponseSession_Key];
-                string secret = (string)tokenSession[CLDefinitions.RESTResponseSession_Secret];
-                string token = (string)tokenSession[CLDefinitions.RESTResponseSession_Token];
-                DateTime expiresAt = (DateTime)tokenSession[CLDefinitions.RESTResponseSession_ExpiresAt];
+                if (tokenSession == null)
+                {
+                    throw new CLArgumentNullException(CLExceptionCode.OnDemand_FileMoveNoServerResponsesOrErrors, Resources.ExceptionCredentialsNullTokenSessionReturnedByServer);
+                }
+
+                string key = tokenSession.Key;
+                string secret = tokenSession.Secret;
+                string token = tokenSession.Token;
+                Nullable<DateTime> expiresAt = tokenSession.ExpiresAt;
+                //string key = (string)tokenSession[CLDefinitions.RESTResponseSession_Key];
+                //string secret = (string)tokenSession[CLDefinitions.RESTResponseSession_Secret];
+                //string token = (string)tokenSession[CLDefinitions.RESTResponseSession_Token];
+                //DateTime expiresAt = (DateTime)tokenSession[CLDefinitions.RESTResponseSession_ExpiresAt];
                 HashSet<long> syncboxIds;
 
                 if (key == null)
                 {
-                    throw new CLException(CLExceptionCode.OnDemand_MoveNoServerResponsesOrErrors, Resources.ExceptionCredentialsNullKeyReturnedByServer);
+                    throw new CLNullReferenceException(CLExceptionCode.OnDemand_MoveNoServerResponsesOrErrors, Resources.ExceptionCredentialsNullKeyReturnedByServer);
                 }
                 if (expiresAt == null)
                 {
-                    throw new CLException(CLExceptionCode.OnDemand_MoveNoServerResponsesOrErrors, Resources.ExceptionCredentialsNullExpiresAtReturnedByServer);
+                    throw new CLNullReferenceException(CLExceptionCode.OnDemand_MoveNoServerResponsesOrErrors, Resources.ExceptionCredentialsNullExpiresAtReturnedByServer);
                 }
                 if (secret == null)
                 {
-                    throw new CLException(CLExceptionCode.OnDemand_MoveNoServerResponsesOrErrors, Resources.ExceptionCredentialsNullSecretReturnedByServer);
+                    throw new CLNullReferenceException(CLExceptionCode.OnDemand_MoveNoServerResponsesOrErrors, Resources.ExceptionCredentialsNullSecretReturnedByServer);
                 }
 
+                syncboxIds = new HashSet<long>(tokenSession.SyncboxIds);
 
-                if (tokenSession[CLDefinitions.RESTRequestSession_Services].Type == JTokenType.String)
-                {
-                    syncboxIds = null;
-                }
-                else
-                {
-                    JToken firstService = tokenSession[CLDefinitions.RESTRequestSession_Services][0];
-                    if (firstService == null)
-                    {
-                        throw new CLException(CLExceptionCode.OnDemand_MoveNoServerResponsesOrErrors, Resources.ExceptionCredentialsNoItemsInServicesArrayReturnedByServer);
-                    }
-
-                    JToken tokenServiceType = firstService[CLDefinitions.JsonServiceType];
-                    if (tokenServiceType == null)
-                    {
-                        throw new CLException(CLExceptionCode.OnDemand_MoveNoServerResponsesOrErrors, Resources.ExceptionCredentialsNoServiceTypeItemReturnedByServer);
-                    }
-
-                    if (((string)tokenServiceType).ToLower() != CLDefinitions.RESTRequestSession_Sync.ToLower())
-                    {
-                        throw new CLException(CLExceptionCode.OnDemand_MoveNoServerResponsesOrErrors, Resources.ExceptionCredentialsNoServiceTypeSyncItemReturnedByServer);
-                    }
-
-                    JToken tokenSyncboxIds = firstService[CLDefinitions.RESTResponseSession_SyncboxIds];
-                    if (tokenSyncboxIds == null)
-                    {
-                        throw new CLException(CLExceptionCode.OnDemand_MoveNoServerResponsesOrErrors, Resources.ExceptionCredentialsNoSyncBoxIdsItemReturnedByServer);
-                    }
-
-                    if (tokenSyncboxIds.Type == JTokenType.String)
-                    {
-                        if (((string)tokenSyncboxIds).ToLower() == CLDefinitions.RESTRequestSession_SyncboxIdsAll)
-                        {
-                            syncboxIds = null;
-                        }
-                        else
-                        {
-                            throw new CLException(CLExceptionCode.OnDemand_MoveNoServerResponsesOrErrors, Resources.ExceptionCredentialsInvalidSyncBoxIdsStringReturnedByServer);
-                        }
-                    }
-                    else
-                    {
-                        long[] tempSyncboxIds;
-                        tempSyncboxIds = tokenSyncboxIds.ToObject<long[]>();
-                        syncboxIds = new HashSet<long>(tempSyncboxIds);
-                    }
-                }
-
-                credentials = new CLCredentials(syncboxIds, expiresAt, key, secret, token, this._copiedSettings);
+                credentials = new CLCredentials(
+                    syncboxIds,
+                    (DateTime)expiresAt,
+                    key,
+                    secret,
+                    token,
+                    this._copiedSettings);
             }
             catch (Exception ex)
             {
@@ -862,7 +988,7 @@ namespace Cloud
         /// Finishes querying the session by key for the current application from the server, if it has not already finished via its asynchronous result, and outputs the result,
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
         /// </summary>
-        /// <param name="aResult">The asynchronous result provided upon starting the async operation.</param>
+        /// <param name="asyncResult">The asynchronous result provided upon starting the async operation.</param>
         /// <param name="result">(output) The result from the async operation.</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndSessionCredentialsForKey(IAsyncResult asyncResult, out CredentialsSessionGetForKeyResult result)
@@ -903,8 +1029,8 @@ namespace Cloud
                     Helpers.EnumerateSingleItem(new KeyValuePair<string, string>(CLDefinitions.RESTRequestSession_KeyId, Uri.EscapeDataString(sessionKey))));
 
                 // Communicate with the server
-                JsonContracts.CredentialsSessionGetForKeyResponse responseFromServer;
-                responseFromServer = Helpers.ProcessHttp<JsonContracts.CredentialsSessionGetForKeyResponse>(
+                JsonContracts.CredentialsSessionResponse responseFromServer;
+                responseFromServer = Helpers.ProcessHttp<JsonContracts.CredentialsSessionResponse>(
                     null,
                     CLDefinitions.CLPlatformAuthServerURL,
                     CLDefinitions.MethodPathAuthShowSession + query,
@@ -999,7 +1125,7 @@ namespace Cloud
         /// Finishes deleting a session on the server for the current credentials, if it has not already finished via its asynchronous result, and outputs the result,
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
         /// </summary>
-        /// <param name="aResult">The asynchronous result provided upon starting the async operation.</param>
+        /// <param name="asyncResult">The asynchronous result provided upon starting the async operation.</param>
         /// <param name="result">(output) The result from the async operation.</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         public CLError EndDeleteSessionCredentialsWithKey(IAsyncResult asyncResult, out CredentialsSessionDeleteResult result)
@@ -1164,7 +1290,7 @@ namespace Cloud
         /// Finishes creating a new user account on the server with a device and new syncbox, if it has not already finished via its asynchronous result and outputs the result,
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
         /// </summary>
-        /// <param name="aResult">The asynchronous result provided upon starting the async operation.</param>
+        /// <param name="asyncResult">The asynchronous result provided upon starting the async operation.</param>
         /// <param name="result">(output) The result from the async operation.</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
@@ -1341,7 +1467,7 @@ namespace Cloud
         /// Finishes loggin into an account with a device, if it has not already finished via its asynchronous result and outputs the result,
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
         /// </summary>
-        /// <param name="aResult">The asynchronous result provided upon starting the async operation.</param>
+        /// <param name="asyncResult">The asynchronous result provided upon starting the async operation.</param>
         /// <param name="result">(output) The result from the async operation.</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
@@ -1355,7 +1481,6 @@ namespace Cloud
         /// </summary>
         /// <param name="request">The parameters to send to the server.</param>
         /// <param name="timeoutMilliseconds">Milliseconds before HTTP timeout exception</param>
-        /// <param name="status">(output) success/failure status of communication</param>
         /// <param name="response">(output) response object from communication</param>
         /// <param name="settings">The settings to use.</param>
         /// <returns>Returns any error that occurred during communication, or null.</returns>
@@ -1502,7 +1627,7 @@ namespace Cloud
         /// Finishes logging out of an account (and unlinking the device), if it has not already finished via its asynchronous result and outputs the result,
         /// returning any error that occurs in the process (which is different than any error which may have occurred in communication; check the result's Error)
         /// </summary>
-        /// <param name="aResult">The asynchronous result provided upon starting the async operation.</param>
+        /// <param name="asyncResult">The asynchronous result provided upon starting the async operation.</param>
         /// <param name="result">(output) The result from the async operation.</param>
         /// <returns>Returns the error that occurred while finishing and/or outputing the result, if any</returns>
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]

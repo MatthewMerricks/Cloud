@@ -908,12 +908,26 @@ namespace Cloud.JsonContracts
                 lock (SessionShowSerializerLocker)
                 {
                     return _sessionShowSerializer
-                        ?? (_sessionShowSerializer = new DataContractJsonSerializer(typeof(JsonContracts.CredentialsSessionGetForKeyResponse)));
+                        ?? (_sessionShowSerializer = new DataContractJsonSerializer(typeof(JsonContracts.CredentialsSessionResponse)));
                 }
             }
         }
         private static DataContractJsonSerializer _sessionShowSerializer = null;
         private static readonly object SessionShowSerializerLocker = new object();
+
+        public static DataContractJsonSerializer SessionsShowSerializer
+        {
+            get
+            {
+                lock (SessionsShowSerializerLocker)
+                {
+                    return _sessionsShowSerializer
+                        ?? (_sessionsShowSerializer = new DataContractJsonSerializer(typeof(JsonContracts.CredentialsSessionsResponse)));
+                }
+            }
+        }
+        private static DataContractJsonSerializer _sessionsShowSerializer = null;
+        private static readonly object SessionsShowSerializerLocker = new object();
 
         public static DataContractJsonSerializer SessionDeleteSerializer
         {

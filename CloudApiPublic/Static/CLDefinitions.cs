@@ -689,7 +689,7 @@ namespace Cloud.Static
         public const string RESTResponseSession_Token = "session_token";
         public const string RESTResponseSession_SyncboxIds = "sync_box_ids";
         public const string RESTResponseSession_AllowAll = "allow_all";
-        public const string RESTResponseSession_Sessions = "sessions";
+        public const string RESTResponseSessions = "sessions";
 
         // REST Request Session
         public const string RESTRequestSession_TokenDuration = "token_duration";

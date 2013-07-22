@@ -1,5 +1,5 @@
 ﻿//
-// CredentialsSessionGetForKeyResponse.cs
+// CredentialsSessionsResponse.cs
 // Cloud Windows
 //
 // Created By BobS.
@@ -17,11 +17,11 @@ using System.Text;
 namespace Cloud.JsonContracts
 {
     /// <summary>
-    /// Result from <see cref="Cloud.CLCredentials.ShowSession"/>
+    /// Result from <see cref="Cloud.CLCredentials.ListAllActiveSessionCredentials"/>
     /// </summary>
     [Obfuscation(Exclude = true)]
     [DataContract]
-    public sealed class CredentialsSessionGetForKeyResponse
+    internal sealed class CredentialsSessionsResponse : ICredentialsSessionsResponse
     {
         [DataMember(Name = CLDefinitions.RESTResponseStatus, IsRequired = false)]
         public string Status { get; set; }
@@ -29,7 +29,7 @@ namespace Cloud.JsonContracts
         [DataMember(Name = CLDefinitions.RESTResponseMessage, IsRequired = false)]
         public string Message { get; set; }
 
-        [DataMember(Name = CLDefinitions.RESTResponseSession, IsRequired = false)]
-        public Session Session { get; set; }
+        [DataMember(Name = CLDefinitions.RESTResponseSessions, IsRequired = false)]
+        public Session[] Sessions { get; set; }
     }
 }
